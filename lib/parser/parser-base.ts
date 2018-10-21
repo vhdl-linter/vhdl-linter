@@ -9,7 +9,6 @@ export class ParserBase {
     if (severity == 'error') {
       throw new Error(message + ` in line: ${this.getLine()}`);
     } else {
-      console.log(message + ` in line: ${this.getLine()} severity: ${severity}`);
     }
   }
   advanceWhitespace() {

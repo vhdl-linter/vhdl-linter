@@ -68,7 +68,6 @@ export class EntityParser extends ParserBase{
       }
       multiPort = [];
       this.ports.push(port);
-      console.log(port);
     }
   }
   getType() {

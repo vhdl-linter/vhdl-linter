@@ -32,7 +32,6 @@ export class ProcessParser extends ParserBase {
           this.expect(':');
           nextWord = this.getNextWord({consume: false});
       }
-      console.log('asdasd', nextWord);
       if (nextWord == 'if') {
         statements.push(this.parseIf(label));
       } else if (exitConditions.indexOf(nextWord) > -1) {
@@ -66,9 +65,7 @@ export class ProcessParser extends ParserBase {
     return {variable, start, end, statements};
   }
   parseIf(label?: string): IIf {
-    console.log('asdhuoi', this.text.substr(this.pos.i, 2));
     this.expect('if');
-    console.log('asdhuoi2', this.text.substr(this.pos.i, 2));
     const clauses: IIfClause[] = [];
     let elseStatements: IStatement[] = [];
     const condition = this.advancePast('then');
@@ -98,7 +95,6 @@ export class ProcessParser extends ParserBase {
       this.maybeWord(label);
     }
     this.expect(';');
-    console.log(clauses, 'clauses');
     return {
       clauses,
       elseStatements
@@ -115,7 +111,6 @@ export class ProcessParser extends ParserBase {
       whenClauses.push({condition, statements});
       nextWord = this.getNextWord();
     }
-    console.log(whenClauses, 'whenClauses')
     this.expect('case');
     if (label) {
       this.maybeWord(label);

@@ -11,7 +11,7 @@
     "atom": ">=1.0.0 <2.0.0"
   },
   "scripts": {
-    "watch": "nodemon -e ts -w ./lib -x npm run watch:serve",
+    "watch": "nodemon -e ts -w ./ -x npm run watch:serve",
     "watch:serve": "./node_modules/ts-node/dist/bin.js test/test.ts"
   },
   "dependencies": {

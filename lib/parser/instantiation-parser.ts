@@ -10,7 +10,6 @@ export class InstantiationParser extends ParserBase {
       nextWord = this.getNextWord({re: /[\w.]/});
     }
     const componentName = nextWord;
-    console.log(label, 'label', componentName, 'componentName')
     nextWord = this.getNextWord();
     let hasPortMap = false;
     if (nextWord === 'port') {
@@ -32,7 +31,6 @@ export class InstantiationParser extends ParserBase {
           this.pos.i++;
         }
         portMapping = portMapping.trim();
-        console.log(portName, 'portName', portMapping, 'portMapping');
         portMappings.push({
           portName, portMapping
         });
