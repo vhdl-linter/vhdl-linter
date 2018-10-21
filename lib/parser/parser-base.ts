@@ -6,7 +6,11 @@ export class ParserBase {
 
   }
   message(message: string, severity = 'error') {
-    throw new Error(message + ` in line: ${this.getLine()}`);
+    if (severity == 'error') {
+      throw new Error(message + ` in line: ${this.getLine()}`);
+    } else {
+      console.log(message + ` in line: ${this.getLine()} severity: ${severity}`);
+    }
   }
   advanceWhitespace() {
     while (this.text[this.pos.i] && this.text[this.pos.i].match(/\s/)) {
