@@ -88,8 +88,14 @@ export class ArchitectureParser extends ParserBase{
   parseSignals() {
     const signals: ISignal[] = [];
     let nextWord = this.getNextWord();
+    let multiSignal = [];
     while (nextWord == 'signal') {
       const name = this.getNextWord();
+      if (this.text[this.pos.i] == ',') {
+        multiSignal.push(name);
+        this.expect(',');
+        continue;
+      }
       this.expect(':');
       let type = this.getType();
       let defaultValue;
@@ -98,7 +104,11 @@ export class ArchitectureParser extends ParserBase{
         type = split[0].trim();
         defaultValue = split[1].trim();
       }
+      for (const multiSignalName of multiSignal) {
+        signals.push({name: multiSignalName, type, defaultValue});
+      }
       signals.push({name, type, defaultValue});
+      multiSignal = [];
       nextWord = this.getNextWord();
     }
     if (nextWord !== 'begin') {

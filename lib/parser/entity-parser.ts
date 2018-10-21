@@ -35,6 +35,7 @@ export class EntityParser extends ParserBase{
   }
   parsePorts() {
     this.expect('(');
+    let multiPort = [];
     while (this.pos.i < this.text.length) {
       if (this.text[this.pos.i].match(/\s/)) {
         this.pos.i++;
@@ -47,13 +48,25 @@ export class EntityParser extends ParserBase{
         break;
       }
       const name = this.getNextWord();
+      if (this.text[this.pos.i] == ',') {
+        this.expect(',');
+        multiPort.push(name);
+        continue;
+      }
       this.expect(':');
-      const direction = this.getNextWord();
-      if (direction !== 'in' && direction !== 'out' && direction !== 'inout') {
-        throw new Error(`unexpected port direction ${direction}`);
+      let directionString = this.getNextWord({consume: false});
+      if (directionString !== 'in' && directionString !== 'out' && directionString !== 'inout') {
+        directionString = 'inout';
+      } else {
+        this.getNextWord(); //consume direction
       }
       const type = this.getType();
+      let direction = <'in'|'out'|'inout'>directionString;
       const port: IPort = {name, direction, type}
+      for (const multiPortName of multiPort) {
+        this.ports.push({name: multiPortName, direction, type});
+      }
+      multiPort = [];
       this.ports.push(port);
       console.log(port);
     }

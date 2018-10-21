@@ -26,18 +26,21 @@ end Mux;
 -------------------------------------------------
 
 architecture behv1 of Mux is
+  signal s_test:std_logic_vector(10 downto 0);
 begin
-    process(I3,I2,I1,I0,S)
+    process (I3,I2,I1,I0,S)
     begin
-
+      for i in 50 to 10 loop
+        s_test(i) <= '1';
+      end loop;
         -- use case statement
-        case S is
+      case S is
 	    when "00" =>
-      if I2 = "010" then
+      hase: if I2 = "010" then
         O <= I0;
       else
         O <= "101";
-      end if;
+      end if hase;
 	    when "01" =>	O <= I1;
 	    when "10" =>	O <= I2;
 	    when "11" =>	O <= I3;

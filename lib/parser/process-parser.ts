@@ -25,21 +25,47 @@ export class ProcessParser extends ParserBase {
     const statements = [];
     while (this.pos.i < this.text.length) {
       let nextWord = this.getNextWord({consume: false});
+      let label;
+      if (this.text.substr(this.pos.i + nextWord.length).match(/^\s*:/)) {
+          label = nextWord;
+          this.getNextWord(); //consume label
+          this.expect(':');
+          nextWord = this.getNextWord({consume: false});
+      }
       console.log('asdasd', nextWord);
       if (nextWord == 'if') {
-        statements.push(this.parseIf());
+        statements.push(this.parseIf(label));
       } else if (exitConditions.indexOf(nextWord) > -1) {
         break;
-      } else if (nextWord == 'case') {
+      } else if (nextWord.toLowerCase() == 'case') {
         this.getNextWord();
-        statements.push(this.parseCase());
+        statements.push(this.parseCase(label));
+      } else if (nextWord.toLowerCase() === 'for') {
+        statements.push(this.parseFor(label));
       } else {
         statements.push(this.advancePast(';'));
       }
     }
     return statements;
   }
-  parseIf(): IIf {
+  parseFor(label?: string): IForLoop {
+    this.expect('for');
+    let variable = this.getNextWord();
+    this.expect('in');
+    let start = this.getNextWord();
+    this.expect('to');
+    let end = this.getNextWord();
+    this.expect('loop');
+    let statements = this.parseStatements(['end']);
+    this.expect('end');
+    this.expect('loop');
+    if (label) {
+      this.maybeWord(label);
+    }
+    this.expect(';');
+    return {variable, start, end, statements};
+  }
+  parseIf(label?: string): IIf {
     console.log('asdhuoi', this.text.substr(this.pos.i, 2));
     this.expect('if');
     console.log('asdhuoi2', this.text.substr(this.pos.i, 2));
@@ -53,6 +79,7 @@ export class ProcessParser extends ParserBase {
     })
     let nextWord = this.getNextWord({consume: false});
     while (nextWord === 'elsif') {
+      this.expect('elsif');
       const condition = this.advancePast('then');
       const statements = this.parseStatements(['else', 'elsif', 'end']);
       clauses.push({
@@ -67,6 +94,9 @@ export class ProcessParser extends ParserBase {
     }
     this.expect('end');
     this.expect('if');
+    if (label) {
+      this.maybeWord(label);
+    }
     this.expect(';');
     console.log(clauses, 'clauses');
     return {
@@ -74,7 +104,7 @@ export class ProcessParser extends ParserBase {
       elseStatements
     }
   }
-  parseCase(): ICase {
+  parseCase(label?: string): ICase {
     const variable = this.getNextWord();
     this.expect('is');
     let nextWord = this.getNextWord();
@@ -87,6 +117,9 @@ export class ProcessParser extends ParserBase {
     }
     console.log(whenClauses, 'whenClauses')
     this.expect('case');
+    if (label) {
+      this.maybeWord(label);
+    }
     this.expect(';');
     return {
       variable,
@@ -94,7 +127,7 @@ export class ProcessParser extends ParserBase {
     }
   }
 }
-export type IStatement = ICase | string | IIf;
+export type IStatement = ICase | string | IIf | IForLoop;
 export interface IIf {
   clauses: IIfClause[];
   elseStatements: IStatement[];
@@ -115,4 +148,10 @@ export interface IProcess {
   statements: IStatement[];
   sensitivityList: string;
   label?: string;
+}
+export interface IForLoop {
+  variable: string;
+  start: string;
+  end: string;
+  statements: IStatement[];
 }
