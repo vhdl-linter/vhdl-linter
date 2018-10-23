@@ -1,6 +1,6 @@
 import { Parser } from './parser/parser';
 import { OFile, OIf, OAssignment, OForLoop } from './parser/objects';
-import { RangeCompatible, Point, TextEditor, PointCompatible } from 'atom'
+import { RangeCompatible, Point, TextEditor, PointCompatible } from 'atom';
 
 export function activate() {
   // Fill something here, optional
@@ -56,7 +56,7 @@ export class VhdlLinter {
             },
             severity: 'error',
             excerpt: `signal '${write.text}' is written but not declared`
-          })
+          });
         }
       }
       for (const read of process.getFlatReads()) {
@@ -103,7 +103,7 @@ export class VhdlLinter {
             },
             severity: 'error',
             excerpt: `signal '${read.text}' is read but not declared`
-          })
+          });
         }
       }
     }
@@ -135,14 +135,14 @@ export class VhdlLinter {
           },
           severity: 'error',
           excerpt: `Reset '${signal.name}' missing`
-        })
+        });
       }
     }
   }
   getPositionFromI(i: number): [number, number] {
     let row = 0;
     let col = 0;
-    for(let count = 0; count < i; count++) {
+    for (let count = 0; count < i; count++) {
       if (this.text[count] === '\n') {
         row++;
         col = 0;
@@ -165,7 +165,7 @@ export function provideLinter() {
       const messages = vhdlLinter.checkAll();
       return messages;
     }
-  }
+  };
 }
 
 export type Message = {
@@ -195,4 +195,4 @@ export type Message = {
     apply: (() => any),
   }>,
   description?: string | (() => Promise<string> | string)
-  }
+};

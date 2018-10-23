@@ -5,7 +5,7 @@ import {ParserPosition} from './parser-position';
 import {OEntity, OArchitecture, OFile} from './objects';
 
 
-export class Parser extends ParserBase{
+export class Parser extends ParserBase {
   position: ParserPosition;
   constructor(text: string, file: string) {
     super(text, new ParserPosition(), file);
@@ -22,14 +22,14 @@ export class Parser extends ParserBase{
       if (nextWord === 'library') {
         file.libraries.push(this.getNextWord());
         this.expect(';');
-      } else if (nextWord == 'use') {
+      } else if (nextWord === 'use') {
         file.useStatements.push(this.getUseStatement());
         this.expect(';');
-      } else if (nextWord == 'entity') {
+      } else if (nextWord === 'entity') {
         const entity = new EntityParser(this.text, this.pos, this.file, file);
         file.entity = entity.parse();
         // console.log(file, typeof file.entity, 'typeof');
-      } else if (nextWord == 'architecture') {
+      } else if (nextWord === 'architecture') {
         if (file.architecture) {
           this.message('Second Architecture not supported');
         }
@@ -45,7 +45,7 @@ export class Parser extends ParserBase{
   removeComments() {
     let i = 0;
     while (i < this.text.length) {
-      if (this.text.substr(i, 2) == '--') {
+      if (this.text.substr(i, 2) === '--') {
         let start = i;
         while (this.text[i] !== '\n') {
           i++;

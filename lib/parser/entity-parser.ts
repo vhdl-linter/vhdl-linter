@@ -2,7 +2,7 @@ import {ParserBase} from './parser-base';
 import {ParserPosition} from './parser-position';
 import {OPort, OGeneric, OEntity} from './objects';
 
-export class EntityParser extends ParserBase{
+export class EntityParser extends ParserBase {
   constructor(text: string, pos: ParserPosition, file: string, private parent: object) {
     super(text, pos, file);
     this.debug(`start`);
@@ -19,11 +19,11 @@ export class EntityParser extends ParserBase{
         continue;
       }
       let nextWord = this.getNextWord().toLowerCase();
-      if (nextWord == 'port') {
+      if (nextWord === 'port') {
         entity.ports = this.parsePortsAndGenerics(false, entity);
-      } else if (nextWord == 'generic') {
+      } else if (nextWord === 'generic') {
         entity.generics = this.parsePortsAndGenerics(true, entity);
-      } else if(nextWord == 'end') {
+      } else if (nextWord === 'end') {
         this.maybeWord('entity');
         this.maybeWord(entity.name);
         this.expect(';');
@@ -34,8 +34,8 @@ export class EntityParser extends ParserBase{
 
     return entity;
   }
-  parsePortsAndGenerics(generics: false, entity: any):OPort[];
-  parsePortsAndGenerics(generics: true, entity: any):OGeneric[];
+  parsePortsAndGenerics(generics: false, entity: any): OPort[];
+  parsePortsAndGenerics(generics: true, entity: any): OGeneric[];
   parsePortsAndGenerics(generics: false|true , entity: any): OPort[]|OGeneric[] {
     this.debug('start ports');
     this.expect('(');
@@ -60,7 +60,7 @@ export class EntityParser extends ParserBase{
         break;
       }
       port.name = this.getNextWord();
-      if (this.text[this.pos.i] == ',') {
+      if (this.text[this.pos.i] === ',') {
         this.expect(',');
         multiPorts.push(port.name);
         continue;
@@ -73,7 +73,7 @@ export class EntityParser extends ParserBase{
           port.direction = 'inout';
         } else {
           port.direction = directionString;
-          this.getNextWord(); //consume direction
+          this.getNextWord(); // consume direction
         }
 
       }
@@ -96,9 +96,9 @@ export class EntityParser extends ParserBase{
     let braceLevel = 0;
     while (this.text[this.pos.i].match(/[^);:]/) || braceLevel > 0) {
       type += this.text[this.pos.i];
-      if (this.text[this.pos.i] == '(') {
+      if (this.text[this.pos.i] === '(') {
         braceLevel++;
-      } else if (this.text[this.pos.i] == ')') {
+      } else if (this.text[this.pos.i] === ')') {
         braceLevel--;
       }
       this.pos.i++;
@@ -109,16 +109,16 @@ export class EntityParser extends ParserBase{
       while (this.text[this.pos.i].match(/[^);]/) || braceLevel > 0) {
 
         defaultValue += this.text[this.pos.i];
-        if (this.text[this.pos.i] == '(') {
+        if (this.text[this.pos.i] === '(') {
           braceLevel++;
-        } else if (this.text[this.pos.i] == ')') {
+        } else if (this.text[this.pos.i] === ')') {
           braceLevel--;
         }
         this.pos.i++;
       }
     }
 
-    if (this.text[this.pos.i] == ';') {
+    if (this.text[this.pos.i] === ';') {
       this.pos.i++;
     }
     this.advanceWhitespace();

@@ -79,8 +79,8 @@ export class OSignal extends OValue {
 export class OInstantiation extends ObjectBase {
   label?: string;
   componentName: string;
-  portMappings: OMapping[]
-  genericMappings: OMapping[]
+  portMappings: OMapping[];
+  genericMappings: OMapping[];
 }
 export class OMapping extends ObjectBase {
   name: string;
@@ -149,7 +149,7 @@ export class OProcess extends ObjectBase {
       return this.flatWrites;
     }
     const flatten = (objects: OStatement[]) => {
-      const flatWrites: OWrite[] = []
+      const flatWrites: OWrite[] = [];
       for (const object of objects) {
         if (object instanceof OAssignment) {
           flatWrites.push(...object.writes);
@@ -162,7 +162,7 @@ export class OProcess extends ObjectBase {
           for (const whenClause of object.whenClauses) {
             flatWrites.push(... flatten(whenClause.statements));
           }
-        } else if (object instanceof OForLoop){
+        } else if (object instanceof OForLoop) {
           flatWrites.push(... flatten(object.statements));
         } else {
           throw new Error('UUPS');
@@ -171,7 +171,7 @@ export class OProcess extends ObjectBase {
 
       }
       return flatWrites;
-    }
+    };
     this.flatWrites = flatten(this.statements);
     return this.flatWrites;
   }
@@ -181,7 +181,7 @@ export class OProcess extends ObjectBase {
       return this.flatReads;
     }
     const flatten = (objects: OStatement[]) => {
-      const flatReads: ORead[] = []
+      const flatReads: ORead[] = [];
       for (const object of objects) {
         if (object instanceof OAssignment) {
           flatReads.push(...object.reads);
@@ -194,7 +194,7 @@ export class OProcess extends ObjectBase {
           for (const whenClause of object.whenClauses) {
             flatReads.push(... flatten(whenClause.statements));
           }
-        } else if (object instanceof OForLoop){
+        } else if (object instanceof OForLoop) {
           flatReads.push(... flatten(object.statements));
         } else {
           throw new Error('UUPS');
@@ -203,7 +203,7 @@ export class OProcess extends ObjectBase {
 
       }
       return flatReads;
-    }
+    };
     this.flatReads = flatten(this.statements);
     return this.flatReads;
   }

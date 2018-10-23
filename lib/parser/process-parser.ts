@@ -1,5 +1,5 @@
 import {ParserBase} from './parser-base';
-import {ParserPosition} from './parser-position'
+import {ParserPosition} from './parser-position';
 import {AssignmentParser} from './assignment-parser';
 
 import {OProcess, OStatement, OForLoop, OIf, OIfClause, OCase, OWhenClause, OVariable} from './objects';
@@ -21,8 +21,8 @@ export class ProcessParser extends ParserBase {
       variable.constant = false;
       this.expect('variable');
       variable.name = this.getNextWord();
-      let multiSignals: string[] = []; //TODO: Fix this!!
-      if (this.text[this.pos.i] == ',') {
+      let multiSignals: string[] = []; // TODO: Fix this!!
+      if (this.text[this.pos.i] === ',') {
         multiSignals.push(name);
         this.expect(',');
 
@@ -62,15 +62,15 @@ export class ProcessParser extends ParserBase {
       let label;
       if (this.text.substr(this.pos.i + nextWord.length).match(/^\s*:/)) {
           label = nextWord;
-          this.getNextWord(); //consume label
+          this.getNextWord(); // consume label
           this.expect(':');
           nextWord = this.getNextWord({consume: false});
       }
-      if (nextWord == 'if') {
+      if (nextWord === 'if') {
         statements.push(this.parseIf(parent, label));
       } else if (exitConditions.indexOf(nextWord) > -1) {
         break;
-      } else if (nextWord.toLowerCase() == 'case') {
+      } else if (nextWord.toLowerCase() === 'case') {
         this.getNextWord();
         statements.push(this.parseCase(parent, label));
       } else if (nextWord.toLowerCase() === 'for') {
@@ -107,7 +107,7 @@ export class ProcessParser extends ParserBase {
     const clause = new OIfClause(if_, this.pos.i);
     this.expect('if');
     clause.condition = this.advancePast('then');
-    clause.conditionReads = this.tokenize(clause.condition).filter(token => token.type == 'VARIABLE').map(token => token.value);
+    clause.conditionReads = this.tokenize(clause.condition).filter(token => token.type === 'VARIABLE').map(token => token.value);
     clause.statements = this.parseStatements(clause, ['else', 'elsif', 'end']);
     if_.clauses.push(clause);
     let nextWord = this.getNextWord({consume: false});
@@ -116,12 +116,12 @@ export class ProcessParser extends ParserBase {
 
       this.expect('elsif');
       clause.condition = this.advancePast('then');
-      clause.conditionReads = this.tokenize(clause.condition).filter(token => token.type == 'VARIABLE').map(token => token.value);
+      clause.conditionReads = this.tokenize(clause.condition).filter(token => token.type === 'VARIABLE').map(token => token.value);
       clause.statements = this.parseStatements(clause, ['else', 'elsif', 'end']);
       if_.clauses.push(clause);
       nextWord = this.getNextWord({consume: false});
     }
-    if (nextWord == 'else') {
+    if (nextWord === 'else') {
       this.expect('else');
       if_.elseStatements = this.parseStatements(if_, ['end']);
     }
@@ -139,7 +139,7 @@ export class ProcessParser extends ParserBase {
     case_.variable = this.getNextWord();
     this.expect('is');
     let nextWord = this.getNextWord();
-    while (nextWord == 'when') {
+    while (nextWord === 'when') {
       const whenClause = new OWhenClause(case_, this.pos.i);
 
       whenClause.condition = this.advancePast('=>');
@@ -152,6 +152,6 @@ export class ProcessParser extends ParserBase {
       this.maybeWord(label);
     }
     this.expect(';');
-    return case_
+    return case_;
   }
 }

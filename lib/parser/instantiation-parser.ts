@@ -1,5 +1,5 @@
 import {ParserBase} from './parser-base';
-import {ParserPosition} from './parser-position'
+import {ParserPosition} from './parser-position';
 import {OInstantiation, OMapping} from './objects';
 
 export class InstantiationParser extends ParserBase {
@@ -11,7 +11,7 @@ export class InstantiationParser extends ParserBase {
   parse(nextWord: string, label?: string): OInstantiation {
     const instantiation = new OInstantiation(this.parent, this.pos.i);
     instantiation.label = label;
-    if (nextWord == 'entity') {
+    if (nextWord === 'entity') {
       nextWord = this.getNextWord({re: /[\w.]/});
     }
     instantiation.componentName = nextWord;
@@ -40,7 +40,7 @@ export class InstantiationParser extends ParserBase {
   parseMapping(instantiation: object) {
     const mappings: OMapping[] = [];
 
-    while(this.pos.i < this.text.length) {
+    while (this.pos.i < this.text.length) {
       const mapping = new OMapping(instantiation, this.pos.i);
       mapping.name = this.getNextWord({re: /[^=]/});
       this.expect('=>');
@@ -48,9 +48,9 @@ export class InstantiationParser extends ParserBase {
       let braceLevel = 0;
       while (this.text[this.pos.i].match(/[,)]/) === null || braceLevel > 0) {
         mapping.mapping += this.text[this.pos.i];
-        if (this.text[this.pos.i] == '(') {
+        if (this.text[this.pos.i] === '(') {
           braceLevel++;
-        } else if (this.text[this.pos.i] == ')') {
+        } else if (this.text[this.pos.i] === ')') {
           braceLevel--;
         }
         this.pos.i++;
@@ -58,10 +58,10 @@ export class InstantiationParser extends ParserBase {
       mapping.name = mapping.name.trim();
       mapping.mapping = mapping.mapping.trim();
       mappings.push(mapping);
-      if (this.text[this.pos.i] == ',') {
+      if (this.text[this.pos.i] === ',') {
         this.pos.i++;
         this.advanceWhitespace();
-      } else if (this.text[this.pos.i] == ')') {
+      } else if (this.text[this.pos.i] === ')') {
         this.pos.i++;
         break;
       }

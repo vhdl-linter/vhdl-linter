@@ -5,7 +5,7 @@ import {ParserPosition} from './parser-position';
 import {OSignal, OType, OArchitecture, OGenerate} from './objects';
 import {AssignmentParser} from './assignment-parser';
 
-export class ArchitectureParser extends ParserBase{
+export class ArchitectureParser extends ParserBase {
   name: string;
   type: string;
   constructor(text: string, pos: ParserPosition, file: string, private parent: object, name?: string) {
@@ -36,7 +36,7 @@ export class ArchitectureParser extends ParserBase{
         continue;
       }
       let nextWord = this.getNextWord().toLowerCase();
-      if(nextWord == 'end') {
+      if (nextWord === 'end') {
         this.maybeWord(structureName);
         this.maybeWord(this.type);
         this.expect(';');
@@ -44,15 +44,15 @@ export class ArchitectureParser extends ParserBase{
         break;
       }
       let label;
-      if (this.text[this.pos.i] == ':') {
+      if (this.text[this.pos.i] === ':') {
         label = nextWord;
         this.pos.i++;
         this.advanceWhitespace();
         nextWord = this.getNextWord();
-      } if (nextWord == 'process') {
+      } if (nextWord === 'process') {
         const processParser = new ProcessParser(this.text, this.pos, this.file, architecture);
         architecture.processes.push(processParser.parse(label));
-      } else if (nextWord == 'for') {
+      } else if (nextWord === 'for') {
         let variable = this.getNextWord();
         this.expect('in');
         let start = this.getNextWord();
@@ -65,11 +65,11 @@ export class ArchitectureParser extends ParserBase{
         generate.end = end;
         generate.variable = variable;
         architecture.generates.push(generate);
-      } else { //TODO for generate and others
+      } else { // TODO for generate and others
         if (label) {
           const instantiationParser = new InstantiationParser(this.text, this.pos, this.file, architecture);
           architecture.instantiations.push(instantiationParser.parse(nextWord, label));
-        } else { //statement;
+        } else { // statement;
           this.reverseWhitespace();
           this.pos.i -= nextWord.length;
           const assignmentParser = new AssignmentParser(this.text, this.pos, this.file, architecture);
@@ -96,7 +96,7 @@ export class ArchitectureParser extends ParserBase{
 
         signal.constant = nextWord === 'constant';
         signal.name = this.getNextWord();
-        if (this.text[this.pos.i] == ',') {
+        if (this.text[this.pos.i] === ',') {
           multiSignals.push(name);
           this.expect(',');
           continue;

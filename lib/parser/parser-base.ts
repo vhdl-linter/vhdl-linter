@@ -5,7 +5,8 @@ export interface Token {
   type: string;
   value: string;
   offset: number;
-};
+}
+
 export class ParserBase {
   start: number;
   end: number;
@@ -19,7 +20,7 @@ export class ParserBase {
     let target: any = {};
     const filter = (object: any) => {
       const target: any = {};
-      for(const key of Object.keys(object)) {
+      for (const key of Object.keys(object)) {
         if (key === 'parent') {
           continue;
         } else if (Array.isArray(object[key])) {
@@ -32,12 +33,12 @@ export class ParserBase {
         }
       }
       return target;
-    }
+    };
     target = filter(object);
     console.log(`${this.constructor.name}: ${JSON.stringify(target, null, 2)} in line: ${this.getLine()}, (${this.file})`);
   }
   message(message: string, severity = 'error') {
-    if (severity == 'error') {
+    if (severity === 'error') {
       throw new Error(message + ` in line: ${this.getLine()}`);
     } else {
     }
@@ -53,9 +54,9 @@ export class ParserBase {
     }
   }
   advancePast(search: string) {
-    let string = '';
+    let text = '';
     while (this.text.substr(this.pos.i, search.length) !== search) {
-      string += this.text[this.pos.i];
+      text += this.text[this.pos.i];
       this.pos.i++;
       if (this.pos.i > this.text.length) {
         throw new Error(`could not find ${search}`);
@@ -63,7 +64,7 @@ export class ParserBase {
     }
     this.pos.i += search.length;
     this.advanceWhitespace();
-    return string.trim();
+    return text.trim();
   }
   advanceSemicolon() {
     let text = '';
@@ -84,7 +85,7 @@ export class ParserBase {
       consume = true;
     }
     if (consume) {
-      let word = ''
+      let word = '';
       while (this.text[this.pos.i].match(re)) {
         word += this.text[this.pos.i];
         this.pos.i++;
@@ -103,7 +104,7 @@ export class ParserBase {
   getLine() {
     let line = 1;
     for (let counter = 0; counter < this.pos.i; counter++) {
-      if (this.text[counter] == '\n') {
+      if (this.text[counter] === '\n') {
         line++;
       }
     }
@@ -162,7 +163,7 @@ export class ParserBase {
       for (const operator of operatorGroup) {
         if (operator.match(/[^a-z]/i)) {
           tokenTypes.unshift({
-            regex: new RegExp('^' + escapeStringRegexp(operator) + '(?!\s*'+ specialChars + ')'),
+            regex: new RegExp('^' + escapeStringRegexp(operator) + '(?!\s*' + specialChars + ')'),
             tokenType: 'OPERATION',
           });
         } else {

@@ -3,4 +3,4 @@ export class ParserPosition {
   constructor() {
     this.i = 0;
   }
-};
+}
