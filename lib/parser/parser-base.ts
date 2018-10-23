@@ -1,9 +1,18 @@
 import {ParserPosition} from './parser-position';
+const escapeStringRegexp = require('escape-string-regexp');
+
+export interface Token {
+  type: string;
+  value: string;
+};
 export class ParserBase {
   start: number;
   end: number;
-  constructor(protected text: string, protected pos: ParserPosition) {
+  constructor(protected text: string, protected pos: ParserPosition, protected file: string) {
 
+  }
+  debug(message: string)  {
+      console.log(`${this.constructor.name}: ${message} in line: ${this.getLine()}, (${this.file})`);
   }
   message(message: string, severity = 'error') {
     if (severity == 'error') {
@@ -92,5 +101,74 @@ export class ParserBase {
       this.pos.i += word.length;
       this.advanceWhitespace();
     }
+  }
+  getType() {
+    let type = '';
+    while (this.text[this.pos.i].match(/[^;]/)) {
+      type += this.text[this.pos.i];
+      this.pos.i++;
+    }
+    this.expect(';');
+    this.advanceWhitespace();
+    return type;
+  }
+  tokenize(text: string): Token[] {
+    const operators = [
+      ['**', 'abs', 'not'],
+      ['*', '/'],
+      ['+', '-'],
+      ['+', '-', '&'],
+      ['sll', 'srl', 'sla', 'sra', 'rol', 'ror'],
+      ['=', '/=', '<=', '>', '>=', '?=', '?/=', '?<', '?<=', '?>', '?>='],
+      ['and', 'or', 'nand', 'nor', 'xor', 'xnor'],
+      ['downto', 'to']
+    ];
+    const tokenTypes = [
+      { regex: /^\s+/, tokenType: 'WHITESPACE' },
+      { regex: /^[()]/, tokenType: 'BRACE' },
+      { regex: /^,/, tokenType: 'COMMA' },
+      { regex: /^[0-9]+/, tokenType: 'INTEGER_LITERAL'},
+      { regex: /^"[0-9]+"/, tokenType: 'LOGIC_LITERAL'},
+      { regex: /^x"[0-9A-F]+"/i, tokenType: 'LOGIC_LITERAL'},
+      { regex: /^'[0-9]+'/, tokenType: 'LOGIC_LITERAL'},
+      { regex: /^[a-z]\w+(?!\s*[(])/, tokenType: 'VARIABLE'},
+      { regex: /^\w+(?=\s*\()/, tokenType: 'FUNCTION'},
+
+    ];
+    const specialChars = '[*/&-?=<>+]';
+    for (const operatorGroup of operators) {
+      for (const operator of operatorGroup) {
+        if (operator.match(/[^a-z]/i)) {
+          tokenTypes.unshift({
+            regex: new RegExp('^' + escapeStringRegexp(operator) + '(?!\s*'+ specialChars + ')'),
+            tokenType: 'OPERATION',
+          });
+        } else {
+          tokenTypes.unshift({
+            regex: new RegExp('^\\b' + operator + '\\b', 'i'),
+            tokenType: 'OPERATION',
+          });
+
+        }
+      }
+    }
+    // console.log(tokenTypes);
+    const tokens = [];
+    let foundToken;
+    do {
+      foundToken = false;
+      for (const tokenType of tokenTypes) {
+        let match = tokenType.regex.exec(text);
+        if (match) {
+          const token: Token = { type: tokenType.tokenType, value: match[0] };
+          tokens.push(token);
+          text = text.substring(match[0].length);
+          foundToken = true;
+          break;
+        }
+      }
+    } while (text.length > 0 && foundToken);
+
+    return tokens;
   }
 }

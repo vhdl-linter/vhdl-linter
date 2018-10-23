@@ -1,32 +1,34 @@
-import {EntityParser, IEntity} from './entity-parser';
-import {ArchitectureParser, IArchitecture} from './architecture-parser';
+import {EntityParser} from './entity-parser';
+import {ArchitectureParser} from './architecture-parser';
 import {ParserBase} from './parser-base';
 import {ParserPosition} from './parser-position';
+import {OEntity, OArchitecture} from './objects';
 
-export interface IFile {
+export interface OFile {
   libraries: string[];
   useStatements: string[];
-  entity: IEntity;
-  architecture: IArchitecture;
+  entity: OEntity;
+  architecture: OArchitecture;
 }
 export class Parser extends ParserBase{
   libraries: string[] = [];
   useStatements: string[] = [];
-  entity: IEntity;
-  architecture: IArchitecture;
+  entity: OEntity;
+  architecture: OArchitecture;
   position: ParserPosition;
-  constructor(text: string) {
-    super(text, new ParserPosition());
+  constructor(text: string, file: string) {
+    super(text, new ParserPosition(), file);
     this.removeComments();
     this.parse();
   }
-  parse(): IFile {
+  parse(): OFile {
     while (this.pos.i < this.text.length) {
       if (this.text[this.pos.i].match(/\s/)) {
         this.pos.i++;
         continue;
       }
       let nextWord = this.getNextWord().toLowerCase();
+
       if (nextWord === 'library') {
         this.libraries.push(this.getNextWord());
         this.expect(';');
@@ -34,13 +36,13 @@ export class Parser extends ParserBase{
         this.useStatements.push(this.getUseStatement());
         this.expect(';');
       } else if (nextWord == 'entity') {
-        const entity = new EntityParser(this.text, this.pos);
+        const entity = new EntityParser(this.text, this.pos, this.file);
         this.entity = entity.parse();
       } else if (nextWord == 'architecture') {
         if (this.architecture) {
           this.message('Second Architecture not supported');
         }
-        const architecture = new ArchitectureParser(this.text, this.pos);
+        const architecture = new ArchitectureParser(this.text, this.pos, this.file);
         this.architecture = architecture.parse();
       } else {
         this.pos.i++;

@@ -1,27 +1,61 @@
 import {ParserBase} from './parser-base';
 import {ParserPosition} from './parser-position'
+import {AssignmentParser} from './assignment-parser';
+
+import {OProcess, OStatement, OForLoop, OIf, OIfClause, OCase, OWhenClause, OSignal} from './objects';
+
 export class ProcessParser extends ParserBase {
-  constructor(text: string, pos: ParserPosition) {
-    super(text, pos);
+  constructor(text: string, pos: ParserPosition, file: string) {
+    super(text, pos, file);
+    this.debug(`start`);
+
   }
-  parse(label?: string): IProcess {
+  parse(label?: string): OProcess {
     this.expect('(');
-    const sensitivityList = this.advancePast(')');
+    const process = new OProcess(this.pos.i);
+
+    process.sensitivityList = this.advancePast(')');
+    let nextWord = this.getNextWord({consume: false});
+    while (nextWord !== 'begin') {
+      const variable = new OSignal(this.pos.i);
+      variable.constant = false;
+      this.expect('variable');
+      const name = this.getNextWord();
+      let multiSignals: string[] = []; //TODO: Fix this!!
+      if (this.text[this.pos.i] == ',') {
+        multiSignals.push(name);
+        this.expect(',');
+
+        continue;
+      }
+      this.expect(':');
+      let type = this.getType();
+      if (type.indexOf(':=') > -1) {
+        const split = type.split(':=');
+        type = split[0].trim();
+        variable.defaultValue = split[1].trim();
+      }
+      for (const multiSignalName of multiSignals) {
+        const multiSignal = new OSignal();
+        Object.assign(variable, multiSignal);
+        multiSignal.name = multiSignalName;
+        process.variables.push(multiSignal);
+      }
+      process.variables.push(variable);
+      multiSignals = [];
+      nextWord = this.getNextWord({consume: false});
+    }
     this.expect('begin');
-    const statements = this.parseStatements(['end']);
+    process.statements = this.parseStatements(['end']);
     this.expect('end');
     this.expect('process');
     if (label) {
       this.maybeWord(label);
     }
     this.expect(';');
-    return {
-      label,
-      sensitivityList,
-      statements
-    };
+    return process;
   }
-  parseStatements(exitConditions: string[]): IStatement[] {
+  parseStatements(exitConditions: string[]): OStatement[] {
     const statements = [];
     while (this.pos.i < this.text.length) {
       let nextWord = this.getNextWord({consume: false});
@@ -42,52 +76,54 @@ export class ProcessParser extends ParserBase {
       } else if (nextWord.toLowerCase() === 'for') {
         statements.push(this.parseFor(label));
       } else {
-        statements.push(this.advancePast(';'));
+        const assignmentParser = new AssignmentParser(this.text, this.pos, this.file);
+        statements.push(assignmentParser.parse());
       }
     }
     return statements;
   }
-  parseFor(label?: string): IForLoop {
+  parseFor(label?: string): OForLoop {
+    const forLoop = new OForLoop(this.pos.i);
     this.expect('for');
-    let variable = this.getNextWord();
+    forLoop.variable = this.getNextWord();
     this.expect('in');
-    let start = this.getNextWord();
+    forLoop.start = this.getNextWord();
     this.expect('to');
-    let end = this.getNextWord();
+    forLoop.end = this.getNextWord();
     this.expect('loop');
-    let statements = this.parseStatements(['end']);
+    forLoop.statements = this.parseStatements(['end']);
     this.expect('end');
     this.expect('loop');
     if (label) {
       this.maybeWord(label);
     }
     this.expect(';');
-    return {variable, start, end, statements};
+    return forLoop;
   }
-  parseIf(label?: string): IIf {
+  parseIf(label?: string): OIf {
+    this.debug(`parseIf`);
+
+    const clause = new OIfClause(this.pos.i);
+    const if_ = new OIf();
     this.expect('if');
-    const clauses: IIfClause[] = [];
-    let elseStatements: IStatement[] = [];
-    const condition = this.advancePast('then');
-    const statements = this.parseStatements(['else', 'elsif', 'end']);
-    clauses.push({
-      condition,
-      statements
-    })
+    clause.condition = this.advancePast('then');
+    clause.conditionReads = this.tokenize(clause.condition).filter(token => token.type == 'VARIABLE').map(token => token.value);
+    clause.statements = this.parseStatements(['else', 'elsif', 'end']);
+    if_.clauses.push(clause);
     let nextWord = this.getNextWord({consume: false});
     while (nextWord === 'elsif') {
+      const clause = new OIfClause(this.pos.i);
+
       this.expect('elsif');
-      const condition = this.advancePast('then');
-      const statements = this.parseStatements(['else', 'elsif', 'end']);
-      clauses.push({
-        condition,
-        statements
-      })
+      clause.condition = this.advancePast('then');
+      clause.conditionReads = this.tokenize(clause.condition).filter(token => token.type == 'VARIABLE').map(token => token.value);
+      clause.statements = this.parseStatements(['else', 'elsif', 'end']);
+      if_.clauses.push(clause);
       nextWord = this.getNextWord({consume: false});
     }
     if (nextWord == 'else') {
       this.expect('else');
-      elseStatements = this.parseStatements(['end']);
+      if_.elseStatements = this.parseStatements(['end']);
     }
     this.expect('end');
     this.expect('if');
@@ -95,20 +131,20 @@ export class ProcessParser extends ParserBase {
       this.maybeWord(label);
     }
     this.expect(';');
-    return {
-      clauses,
-      elseStatements
-    }
+    return if_;
   }
-  parseCase(label?: string): ICase {
-    const variable = this.getNextWord();
+  parseCase(label?: string): OCase {
+    const case_ = new OCase(this.pos.i);
+
+    case_.variable = this.getNextWord();
     this.expect('is');
     let nextWord = this.getNextWord();
-    let whenClauses: IWhenClause[] = [];
     while (nextWord == 'when') {
-      const condition = this.advancePast('=>');
-      const statements = this.parseStatements(['when', 'end']);
-      whenClauses.push({condition, statements});
+      const whenClause = new OWhenClause(this.pos.i);
+
+      whenClause.condition = this.advancePast('=>');
+      whenClause.statements = this.parseStatements(['when', 'end']);
+      case_.whenClauses.push(whenClause);
       nextWord = this.getNextWord();
     }
     this.expect('case');
@@ -116,37 +152,6 @@ export class ProcessParser extends ParserBase {
       this.maybeWord(label);
     }
     this.expect(';');
-    return {
-      variable,
-      whenClauses
-    }
+    return case_
   }
-}
-export type IStatement = ICase | string | IIf | IForLoop;
-export interface IIf {
-  clauses: IIfClause[];
-  elseStatements: IStatement[];
-}
-export interface IIfClause {
-  condition: string;
-  statements: IStatement[];
-}
-export interface ICase {
-  variable: string;
-  whenClauses: IWhenClause[];
-}
-export interface IWhenClause {
-  condition: string;
-  statements: IStatement[];
-}
-export interface IProcess {
-  statements: IStatement[];
-  sensitivityList: string;
-  label?: string;
-}
-export interface IForLoop {
-  variable: string;
-  start: string;
-  end: string;
-  statements: IStatement[];
 }
