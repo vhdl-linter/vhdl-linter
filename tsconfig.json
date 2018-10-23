@@ -1,8 +1,12 @@
 {
     "compilerOptions": {
         "module": "commonjs",
-        "target": "es6",
+        "target": "es2016",
         "noImplicitAny": true,
-        "strictNullChecks": true
-    }
+        "strictNullChecks": true,
+        "inlineSourceMap": true,
+        "alwaysStrict": true,
+        "outDir": "./dist"
+    },
+    "include": ["lib/**/*"]
 }
