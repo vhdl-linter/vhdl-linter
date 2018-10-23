@@ -1,65 +1,71 @@
 import {ParserBase} from './parser-base';
 import {ParserPosition} from './parser-position'
+import {OInstantiation, OMapping} from './objects';
+
 export class InstantiationParser extends ParserBase {
-  constructor(text: string, pos: ParserPosition) {
-    super(text, pos);
+  constructor(text: string, pos: ParserPosition, file: string) {
+    super(text, pos, file);
+    this.debug(`start`);
+
   }
-  parse(nextWord: string, label?: string): IInstantiation {
-    const portMappings: {portName: string, portMapping: string}[] = [];
+  parse(nextWord: string, label?: string): OInstantiation {
+    const instantiation = new OInstantiation(this.pos.i);
+    instantiation.label = label;
     if (nextWord == 'entity') {
       nextWord = this.getNextWord({re: /[\w.]/});
     }
-    const componentName = nextWord;
-    nextWord = this.getNextWord();
+    instantiation.componentName = nextWord;
     let hasPortMap = false;
-    if (nextWord === 'port') {
-      hasPortMap = true;
-      this.expect('map');
-      this.expect('(');
-      while(this.pos.i < this.text.length) {
-        let portName = this.getNextWord();
-        this.expect('=>');
-        let portMapping = '';
-        let braceLevel = 0;
-        while (this.text[this.pos.i].match(/[,)]/) === null || braceLevel > 0) {
-          portMapping += this.text[this.pos.i];
-          if (this.text[this.pos.i] == '(') {
-            braceLevel++;
-          } else if (this.text[this.pos.i] == ')') {
-            braceLevel--;
-          }
-          this.pos.i++;
-        }
-        portMapping = portMapping.trim();
-        portMappings.push({
-          portName, portMapping
-        });
-        if (this.text[this.pos.i] == ',') {
-          this.pos.i++;
-          this.advanceWhitespace();
-        } else if (this.text[this.pos.i] == ')') {
-          this.pos.i++;
-          this.advancePast(';');
-          break;
-        }
+    while (this.text[this.pos.i] !== ';') {
+      nextWord = this.getNextWord();
+      if (nextWord === 'port') {
+        hasPortMap = true;
+        this.expect('map');
+        this.expect('(');
+        instantiation.portMappings = this.parseMapping();
+
+      } else if (nextWord === 'generic') {
+        this.expect('map');
+        this.expect('(');
+        instantiation.genericMappings = this.parseMapping();
       }
 
     }
+    this.expect(';');
     if (!hasPortMap) {
       throw new Error(`Instantiation has no Port Map. line ${this.getLine()}`);
     }
-    return {
-      label,
-      portMappings,
-      componentName
-    }
+    return instantiation;
   }
-}
-export interface IInstantiation {
-  label?: string;
-  componentName: string;
-  portMappings: {
-    portName: string,
-    portMapping: string
-  }[]
+  parseMapping() {
+    const mappings: OMapping[] = [];
+
+    while(this.pos.i < this.text.length) {
+      const mapping = new OMapping(this.pos.i);
+      mapping.name = this.getNextWord({re: /[^=]/});
+      this.expect('=>');
+      mapping.mapping = '';
+      let braceLevel = 0;
+      while (this.text[this.pos.i].match(/[,)]/) === null || braceLevel > 0) {
+        mapping.mapping += this.text[this.pos.i];
+        if (this.text[this.pos.i] == '(') {
+          braceLevel++;
+        } else if (this.text[this.pos.i] == ')') {
+          braceLevel--;
+        }
+        this.pos.i++;
+      }
+      mapping.name = mapping.name.trim();
+      mapping.mapping = mapping.mapping.trim();
+      mappings.push(mapping);
+      if (this.text[this.pos.i] == ',') {
+        this.pos.i++;
+        this.advanceWhitespace();
+      } else if (this.text[this.pos.i] == ')') {
+        this.pos.i++;
+        break;
+      }
+    }
+    return mappings;
+  }
 }

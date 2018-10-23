@@ -1,30 +1,35 @@
 import {ParserBase} from './parser-base';
-import {ProcessParser, IProcess} from './process-parser';
-import {InstantiationParser, IInstantiation} from './instantiation-parser';
+import {ProcessParser} from './process-parser';
+import {InstantiationParser} from './instantiation-parser';
 import {ParserPosition} from './parser-position';
+import {OSignal, OType, OArchitecture, OGenerate} from './objects';
+import {AssignmentParser} from './assignment-parser';
 
 export class ArchitectureParser extends ParserBase{
   name: string;
   type: string;
-  constructor(text: string, pos: ParserPosition, name?: string) {
-    super(text, pos);
+  constructor(text: string, pos: ParserPosition, file: string, name?: string) {
+    super(text, pos, file);
+    this.debug('start');
     this.start = pos.i;
     if (name) {
       this.name = name;
     }
   }
-  parse(skipStart = false, structureName = 'architecture'): IArchitecture {
+  parse(skipStart = false, structureName = 'architecture'): OArchitecture {
+    let architecture = new OArchitecture(this.pos.i);
     if (skipStart !== true) {
       this.type = this.getNextWord();
       this.expect('of');
       this.name = this.getNextWord();
       this.expect('is');
     }
-    const signals = this.parseSignals();
-    const processes: IProcess[] = [];
-    const instantiations = [];
-    const generates = [];
-    const statements = [];
+
+    const {signals, types} = this.parseDefinitionBlock();
+    architecture.signals = signals;
+    architecture.types = types;
+
+    this.expect('begin');
     while (this.pos.i < this.text.length) {
       if (this.text[this.pos.i].match(/\s/)) {
         this.pos.i++;
@@ -45,8 +50,8 @@ export class ArchitectureParser extends ParserBase{
         this.advanceWhitespace();
         nextWord = this.getNextWord();
       } if (nextWord == 'process') {
-        const processParser = new ProcessParser(this.text, this.pos);
-        processes.push(processParser.parse(label));
+        const processParser = new ProcessParser(this.text, this.pos, this.file);
+        architecture.processes.push(processParser.parse(label));
       } else if (nextWord == 'for') {
         let variable = this.getNextWord();
         this.expect('in');
@@ -54,19 +59,23 @@ export class ArchitectureParser extends ParserBase{
         this.expect('to');
         let end = this.getNextWord();
         this.expect('generate');
-        const subarchitecture = new ArchitectureParser(this.text, this.pos, label);
-        const generate = (subarchitecture.parse(true, 'generate') as IGenerate);
+        const subarchitecture = new ArchitectureParser(this.text, this.pos, this.file, label);
+        const generate = (subarchitecture.parse(true, 'generate') as OGenerate);
         generate.start = start;
         generate.end = end;
         generate.variable = variable;
-        generates.push(generate);
+        architecture.generates.push(generate);
       } else { //TODO for generate and others
         if (label) {
-          const instantiationParser = new InstantiationParser(this.text, this.pos);
-          instantiations.push(instantiationParser.parse(nextWord, label));
+          const instantiationParser = new InstantiationParser(this.text, this.pos, this.file);
+          architecture.instantiations.push(instantiationParser.parse(nextWord, label));
         } else { //statement;
-          const statement = nextWord + this.advancePast(';');
-          statements.push(statement);
+          this.reverseWhitespace();
+          this.pos.i -= nextWord.length;
+          const assignmentParser = new AssignmentParser(this.text, this.pos, this.file);
+          const assignment = assignmentParser.parse();
+          architecture.statements.push(assignment);
+
           continue;
         }
       }
@@ -75,77 +84,57 @@ export class ArchitectureParser extends ParserBase{
 
 
     }
-    return {
-      signals,
-      processes,
-      instantiations,
-      generates,
-      statements
-    }
+    return architecture;
   }
 
 
-  parseSignals() {
-    const signals: ISignal[] = [];
-    let nextWord = this.getNextWord();
-    let multiSignal = [];
-    while (nextWord == 'signal') {
-      const name = this.getNextWord();
-      if (this.text[this.pos.i] == ',') {
-        multiSignal.push(name);
-        this.expect(',');
-        continue;
+  parseDefinitionBlock() {
+    const signals: OSignal[] = [];
+    const types: OType[] = [];
+    let nextWord = this.getNextWord({consume: false}).toLowerCase();
+    let multiSignals: string[] = [];
+    while (nextWord !== 'begin') {
+      this.getNextWord();
+      if (nextWord === 'signal' || nextWord === 'constant') {
+        const signal = new OSignal(this.pos.i);
+
+        signal.constant = nextWord === 'constant';
+        const name = this.getNextWord();
+        if (this.text[this.pos.i] == ',') {
+          multiSignals.push(name);
+          this.expect(',');
+          continue;
+        }
+        this.expect(':');
+        let type = this.getType();
+        if (type.indexOf(':=') > -1) {
+          const split = type.split(':=');
+          type = split[0].trim();
+          signal.defaultValue = split[1].trim();
+
+        }
+        for (const multiSignalName of multiSignals) {
+          const multiSignal = new OSignal();
+          Object.assign(signal, multiSignal);
+          multiSignal.name = multiSignalName;
+          signals.push(multiSignal);
+        }
+        signals.push(signal);
+        multiSignals = [];
+      } else if (nextWord === 'attribute') {
+        this.advancePast(';');
+      } else if (nextWord === 'type') {
+        const type = new OType(this.pos.i);
+        type.name = this.getNextWord();
+        this.expect('is');
+        this.expect('(');
+        type.states = this.advancePast(')').split(',').map(type => type.trim());
+        types.push(type);
+        this.expect(';');
       }
-      this.expect(':');
-      let type = this.getType();
-      let defaultValue;
-      if (type.indexOf(':=') > -1) {
-        const split = type.split(':=');
-        type = split[0].trim();
-        defaultValue = split[1].trim();
-      }
-      for (const multiSignalName of multiSignal) {
-        signals.push({name: multiSignalName, type, defaultValue});
-      }
-      signals.push({name, type, defaultValue});
-      multiSignal = [];
-      nextWord = this.getNextWord();
+      nextWord = this.getNextWord({consume: false});
     }
-    if (nextWord !== 'begin') {
-      if (signals.length > 0) {
-        throw new Error(`Error on ${this.getLine()} found ${nextWord}`);
-      } else {
-        this.reverseWhitespace();
-        this.pos.i -= nextWord.length;
-      }
-    }
-    return signals;
+    return {signals, types};
   }
-  getType() {
-    let type = '';
-    while (this.text[this.pos.i].match(/[^;]/)) {
-      type += this.text[this.pos.i];
-      this.pos.i++;
-    }
-    this.expect(';');
-    this.advanceWhitespace();
-    return type;
-  }
-}
-export interface IArchitecture {
-  signals: ISignal[];
-  processes: IProcess[];
-  instantiations: IInstantiation[];
-  generates: IGenerate[];
-  statements: string[];
-}
-export interface IGenerate extends IArchitecture {
-  variable: string;
-  start: string;
-  end: string;
-}
-export interface ISignal {
-    name: string;
-    type: string;
-    defaultValue?: string;
+
 }

@@ -11,11 +11,13 @@
     "atom": ">=1.0.0 <2.0.0"
   },
   "scripts": {
-    "watch": "nodemon -e ts -w ./ -x npm run watch:serve",
+    "watch": "./node_modules/nodemon/bin/nodemon.js -e ts -w ./ -x npm run watch:serve",
     "watch:serve": "./node_modules/ts-node/dist/bin.js test/test.ts"
   },
   "dependencies": {
     "@types/prettyjson": "0.0.28",
+    "escape-string-regexp": "^1.0.5",
+    "nodemon": "^1.18.4",
     "prettyjson": "^1.2.1"
   },
   "providedServices": {
