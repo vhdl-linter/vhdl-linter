@@ -8,7 +8,7 @@ import {AssignmentParser} from './assignment-parser';
 export class ArchitectureParser extends ParserBase{
   name: string;
   type: string;
-  constructor(text: string, pos: ParserPosition, file: string, name?: string) {
+  constructor(text: string, pos: ParserPosition, file: string, private parent: object, name?: string) {
     super(text, pos, file);
     this.debug('start');
     this.start = pos.i;
@@ -17,7 +17,7 @@ export class ArchitectureParser extends ParserBase{
     }
   }
   parse(skipStart = false, structureName = 'architecture'): OArchitecture {
-    let architecture = new OArchitecture(this.pos.i);
+    let architecture = new OArchitecture(this.parent, this.pos.i);
     if (skipStart !== true) {
       this.type = this.getNextWord();
       this.expect('of');
@@ -25,7 +25,7 @@ export class ArchitectureParser extends ParserBase{
       this.expect('is');
     }
 
-    const {signals, types} = this.parseDefinitionBlock();
+    const {signals, types} = this.parseDefinitionBlock(architecture);
     architecture.signals = signals;
     architecture.types = types;
 
@@ -50,7 +50,7 @@ export class ArchitectureParser extends ParserBase{
         this.advanceWhitespace();
         nextWord = this.getNextWord();
       } if (nextWord == 'process') {
-        const processParser = new ProcessParser(this.text, this.pos, this.file);
+        const processParser = new ProcessParser(this.text, this.pos, this.file, architecture);
         architecture.processes.push(processParser.parse(label));
       } else if (nextWord == 'for') {
         let variable = this.getNextWord();
@@ -59,7 +59,7 @@ export class ArchitectureParser extends ParserBase{
         this.expect('to');
         let end = this.getNextWord();
         this.expect('generate');
-        const subarchitecture = new ArchitectureParser(this.text, this.pos, this.file, label);
+        const subarchitecture = new ArchitectureParser(this.text, this.pos, this.file, architecture, label);
         const generate = (subarchitecture.parse(true, 'generate') as OGenerate);
         generate.start = start;
         generate.end = end;
@@ -67,28 +67,24 @@ export class ArchitectureParser extends ParserBase{
         architecture.generates.push(generate);
       } else { //TODO for generate and others
         if (label) {
-          const instantiationParser = new InstantiationParser(this.text, this.pos, this.file);
+          const instantiationParser = new InstantiationParser(this.text, this.pos, this.file, architecture);
           architecture.instantiations.push(instantiationParser.parse(nextWord, label));
         } else { //statement;
           this.reverseWhitespace();
           this.pos.i -= nextWord.length;
-          const assignmentParser = new AssignmentParser(this.text, this.pos, this.file);
+          const assignmentParser = new AssignmentParser(this.text, this.pos, this.file, architecture);
           const assignment = assignmentParser.parse();
           architecture.statements.push(assignment);
 
           continue;
         }
       }
-
-
-
-
     }
     return architecture;
   }
 
 
-  parseDefinitionBlock() {
+  parseDefinitionBlock(parent: OArchitecture) {
     const signals: OSignal[] = [];
     const types: OType[] = [];
     let nextWord = this.getNextWord({consume: false}).toLowerCase();
@@ -96,10 +92,10 @@ export class ArchitectureParser extends ParserBase{
     while (nextWord !== 'begin') {
       this.getNextWord();
       if (nextWord === 'signal' || nextWord === 'constant') {
-        const signal = new OSignal(this.pos.i);
+        const signal = new OSignal(parent, this.pos.i);
 
         signal.constant = nextWord === 'constant';
-        const name = this.getNextWord();
+        signal.name = this.getNextWord();
         if (this.text[this.pos.i] == ',') {
           multiSignals.push(name);
           this.expect(',');
@@ -114,7 +110,7 @@ export class ArchitectureParser extends ParserBase{
 
         }
         for (const multiSignalName of multiSignals) {
-          const multiSignal = new OSignal();
+          const multiSignal = new OSignal(parent);
           Object.assign(signal, multiSignal);
           multiSignal.name = multiSignalName;
           signals.push(multiSignal);
@@ -124,7 +120,7 @@ export class ArchitectureParser extends ParserBase{
       } else if (nextWord === 'attribute') {
         this.advancePast(';');
       } else if (nextWord === 'type') {
-        const type = new OType(this.pos.i);
+        const type = new OType(parent, this.pos.i);
         type.name = this.getNextWord();
         this.expect('is');
         this.expect('(');

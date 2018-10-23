@@ -2,25 +2,25 @@ import {ParserBase} from './parser-base';
 import {ParserPosition} from './parser-position'
 import {AssignmentParser} from './assignment-parser';
 
-import {OProcess, OStatement, OForLoop, OIf, OIfClause, OCase, OWhenClause, OSignal} from './objects';
+import {OProcess, OStatement, OForLoop, OIf, OIfClause, OCase, OWhenClause, OVariable} from './objects';
 
 export class ProcessParser extends ParserBase {
-  constructor(text: string, pos: ParserPosition, file: string) {
+  constructor(text: string, pos: ParserPosition, file: string, private parent: object) {
     super(text, pos, file);
     this.debug(`start`);
 
   }
   parse(label?: string): OProcess {
     this.expect('(');
-    const process = new OProcess(this.pos.i);
+    const process = new OProcess(this.parent, this.pos.i);
 
     process.sensitivityList = this.advancePast(')');
     let nextWord = this.getNextWord({consume: false});
     while (nextWord !== 'begin') {
-      const variable = new OSignal(this.pos.i);
+      const variable = new OVariable(process, this.pos.i);
       variable.constant = false;
       this.expect('variable');
-      const name = this.getNextWord();
+      variable.name = this.getNextWord();
       let multiSignals: string[] = []; //TODO: Fix this!!
       if (this.text[this.pos.i] == ',') {
         multiSignals.push(name);
@@ -36,7 +36,7 @@ export class ProcessParser extends ParserBase {
         variable.defaultValue = split[1].trim();
       }
       for (const multiSignalName of multiSignals) {
-        const multiSignal = new OSignal();
+        const multiSignal = new OVariable(process);
         Object.assign(variable, multiSignal);
         multiSignal.name = multiSignalName;
         process.variables.push(multiSignal);
@@ -46,7 +46,7 @@ export class ProcessParser extends ParserBase {
       nextWord = this.getNextWord({consume: false});
     }
     this.expect('begin');
-    process.statements = this.parseStatements(['end']);
+    process.statements = this.parseStatements(process, ['end']);
     this.expect('end');
     this.expect('process');
     if (label) {
@@ -55,7 +55,7 @@ export class ProcessParser extends ParserBase {
     this.expect(';');
     return process;
   }
-  parseStatements(exitConditions: string[]): OStatement[] {
+  parseStatements(parent: object, exitConditions: string[]): OStatement[] {
     const statements = [];
     while (this.pos.i < this.text.length) {
       let nextWord = this.getNextWord({consume: false});
@@ -67,23 +67,23 @@ export class ProcessParser extends ParserBase {
           nextWord = this.getNextWord({consume: false});
       }
       if (nextWord == 'if') {
-        statements.push(this.parseIf(label));
+        statements.push(this.parseIf(parent, label));
       } else if (exitConditions.indexOf(nextWord) > -1) {
         break;
       } else if (nextWord.toLowerCase() == 'case') {
         this.getNextWord();
-        statements.push(this.parseCase(label));
+        statements.push(this.parseCase(parent, label));
       } else if (nextWord.toLowerCase() === 'for') {
-        statements.push(this.parseFor(label));
+        statements.push(this.parseFor(parent, label));
       } else {
-        const assignmentParser = new AssignmentParser(this.text, this.pos, this.file);
+        const assignmentParser = new AssignmentParser(this.text, this.pos, this.file, parent);
         statements.push(assignmentParser.parse());
       }
     }
     return statements;
   }
-  parseFor(label?: string): OForLoop {
-    const forLoop = new OForLoop(this.pos.i);
+  parseFor(parent: object, label?: string): OForLoop {
+    const forLoop = new OForLoop(parent, this.pos.i);
     this.expect('for');
     forLoop.variable = this.getNextWord();
     this.expect('in');
@@ -91,7 +91,7 @@ export class ProcessParser extends ParserBase {
     this.expect('to');
     forLoop.end = this.getNextWord();
     this.expect('loop');
-    forLoop.statements = this.parseStatements(['end']);
+    forLoop.statements = this.parseStatements(forLoop, ['end']);
     this.expect('end');
     this.expect('loop');
     if (label) {
@@ -100,30 +100,30 @@ export class ProcessParser extends ParserBase {
     this.expect(';');
     return forLoop;
   }
-  parseIf(label?: string): OIf {
+  parseIf(parent: object, label?: string): OIf {
     this.debug(`parseIf`);
 
-    const clause = new OIfClause(this.pos.i);
-    const if_ = new OIf();
+    const if_ = new OIf(parent, this.pos.i);
+    const clause = new OIfClause(if_, this.pos.i);
     this.expect('if');
     clause.condition = this.advancePast('then');
     clause.conditionReads = this.tokenize(clause.condition).filter(token => token.type == 'VARIABLE').map(token => token.value);
-    clause.statements = this.parseStatements(['else', 'elsif', 'end']);
+    clause.statements = this.parseStatements(clause, ['else', 'elsif', 'end']);
     if_.clauses.push(clause);
     let nextWord = this.getNextWord({consume: false});
     while (nextWord === 'elsif') {
-      const clause = new OIfClause(this.pos.i);
+      const clause = new OIfClause(if_, this.pos.i);
 
       this.expect('elsif');
       clause.condition = this.advancePast('then');
       clause.conditionReads = this.tokenize(clause.condition).filter(token => token.type == 'VARIABLE').map(token => token.value);
-      clause.statements = this.parseStatements(['else', 'elsif', 'end']);
+      clause.statements = this.parseStatements(clause, ['else', 'elsif', 'end']);
       if_.clauses.push(clause);
       nextWord = this.getNextWord({consume: false});
     }
     if (nextWord == 'else') {
       this.expect('else');
-      if_.elseStatements = this.parseStatements(['end']);
+      if_.elseStatements = this.parseStatements(if_, ['end']);
     }
     this.expect('end');
     this.expect('if');
@@ -133,17 +133,17 @@ export class ProcessParser extends ParserBase {
     this.expect(';');
     return if_;
   }
-  parseCase(label?: string): OCase {
-    const case_ = new OCase(this.pos.i);
+  parseCase(parent: object, label?: string): OCase {
+    const case_ = new OCase(parent, this.pos.i);
 
     case_.variable = this.getNextWord();
     this.expect('is');
     let nextWord = this.getNextWord();
     while (nextWord == 'when') {
-      const whenClause = new OWhenClause(this.pos.i);
+      const whenClause = new OWhenClause(case_, this.pos.i);
 
       whenClause.condition = this.advancePast('=>');
-      whenClause.statements = this.parseStatements(['when', 'end']);
+      whenClause.statements = this.parseStatements(whenClause, ['when', 'end']);
       case_.whenClauses.push(whenClause);
       nextWord = this.getNextWord();
     }

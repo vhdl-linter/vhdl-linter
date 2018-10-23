@@ -11,31 +11,23 @@
     "atom": ">=1.0.0 <2.0.0"
   },
   "scripts": {
-<<<<<<< HEAD
     "build": "tsc --project .",
     "lint": "tslint --project .",
     "prepublishOnly": "npm run build",
     "precommit": "npm run lint",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "watch": "nodemon -e ts -w ./ -x npm run watch:serve",
-=======
     "watch": "./node_modules/nodemon/bin/nodemon.js -e ts -w ./ -x npm run watch:serve",
->>>>>>> af71e7b6a305f349c1a68624f569b5a6f1d0c690
     "watch:serve": "./node_modules/ts-node/dist/bin.js test/test.ts"
   },
   "dependencies": {
     "@types/prettyjson": "0.0.28",
-<<<<<<< HEAD
     "prettyjson": "^1.2.1",
-    "atom-package-deps": "^4.6.2"
-=======
+    "atom-package-deps": "^4.6.2",
     "escape-string-regexp": "^1.0.5",
-    "nodemon": "^1.18.4",
-    "prettyjson": "^1.2.1"
->>>>>>> af71e7b6a305f349c1a68624f569b5a6f1d0c690
+    "nodemon": "^1.18.4"
   },
   "package-deps": [
-      "linter"
+    "linter"
   ],
   "providedServices": {
     "linter": {
@@ -50,7 +42,6 @@
     "ts-node": "^7.0.1",
     "tslint": "^5.11.0",
     "husky": "^1.1.2",
-
     "typescript": "^3.1.3"
   }
 }

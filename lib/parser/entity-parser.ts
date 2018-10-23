@@ -3,13 +3,13 @@ import {ParserPosition} from './parser-position';
 import {OPort, OGeneric, OEntity} from './objects';
 
 export class EntityParser extends ParserBase{
-  constructor(text: string, pos: ParserPosition, file: string) {
+  constructor(text: string, pos: ParserPosition, file: string, private parent: object) {
     super(text, pos, file);
     this.debug(`start`);
     this.start = pos.i;
   }
   parse(): OEntity {
-    const entity = new OEntity(this.pos.i);
+    const entity = new OEntity(this.parent, this.pos.i);
     entity.name = this.getNextWord();
     this.expect('is');
 
@@ -20,9 +20,9 @@ export class EntityParser extends ParserBase{
       }
       let nextWord = this.getNextWord().toLowerCase();
       if (nextWord == 'port') {
-        entity.ports = this.parsePortsAndGenerics(false);
+        entity.ports = this.parsePortsAndGenerics(false, entity);
       } else if (nextWord == 'generic') {
-        entity.generics = this.parsePortsAndGenerics(true);
+        entity.generics = this.parsePortsAndGenerics(true, entity);
       } else if(nextWord == 'end') {
         this.maybeWord('entity');
         this.maybeWord(entity.name);
@@ -31,11 +31,12 @@ export class EntityParser extends ParserBase{
       }
     }
     this.end = this.pos.i;
+
     return entity;
   }
-  parsePortsAndGenerics(generics: false):OPort[];
-  parsePortsAndGenerics(generics: true):OGeneric[];
-  parsePortsAndGenerics(generics = false) {
+  parsePortsAndGenerics(generics: false, entity: any):OPort[];
+  parsePortsAndGenerics(generics: true, entity: any):OGeneric[];
+  parsePortsAndGenerics(generics: false|true , entity: any): OPort[]|OGeneric[] {
     this.debug('start ports');
     this.expect('(');
     let multiPorts: string[] = [];
@@ -47,9 +48,9 @@ export class EntityParser extends ParserBase{
       }
       let port;
       if (generics) {
-        port = new OGeneric(this.pos.i);
+        port = new OGeneric(entity, this.pos.i);
       } else {
-        port = new OPort(this.pos.i);
+        port = new OPort(entity, this.pos.i);
       }
 
       if (this.text[this.pos.i] === ')') {
@@ -66,11 +67,12 @@ export class EntityParser extends ParserBase{
       }
       this.expect(':');
       let directionString;
-      if (generics === false) {
+      if (port instanceof OPort) {
         directionString = this.getNextWord({consume: false});
-        if (directionString !== 'in' && directionString !== 'out' && directionString !== 'inout' && port instanceof OPort) {
+        if (directionString !== 'in' && directionString !== 'out' && directionString !== 'inout') {
           port.direction = 'inout';
         } else {
+          port.direction = directionString;
           this.getNextWord(); //consume direction
         }
 
@@ -80,7 +82,7 @@ export class EntityParser extends ParserBase{
       port.defaultValue = defaultValue;
       ports.push(port);
       for (const multiPortName of multiPorts) {
-        const multiPort = new OPort();
+        const multiPort = new OPort(this.parent);
         Object.assign(port, multiPort);
         multiPort.name = multiPortName;
         ports.push(multiPort);

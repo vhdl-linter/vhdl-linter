@@ -4,6 +4,7 @@ const escapeStringRegexp = require('escape-string-regexp');
 export interface Token {
   type: string;
   value: string;
+  offset: number;
 };
 export class ParserBase {
   start: number;
@@ -12,7 +13,28 @@ export class ParserBase {
 
   }
   debug(message: string)  {
-      console.log(`${this.constructor.name}: ${message} in line: ${this.getLine()}, (${this.file})`);
+      // console.log(`${this.constructor.name}: ${message} in line: ${this.getLine()}, (${this.file})`);
+  }
+  debugObject(object: any) {
+    let target: any = {};
+    const filter = (object: any) => {
+      const target: any = {};
+      for(const key of Object.keys(object)) {
+        if (key === 'parent') {
+          continue;
+        } else if (Array.isArray(object[key])) {
+          target[key] = object[key].map(filter);
+
+        } else if (typeof object[key] === 'object') {
+          target[key] = filter(object[key]);
+        } else {
+          target[key] = object[key];
+        }
+      }
+      return target;
+    }
+    target = filter(object);
+    console.log(`${this.constructor.name}: ${JSON.stringify(target, null, 2)} in line: ${this.getLine()}, (${this.file})`);
   }
   message(message: string, severity = 'error') {
     if (severity == 'error') {
@@ -121,7 +143,7 @@ export class ParserBase {
       ['sll', 'srl', 'sla', 'sra', 'rol', 'ror'],
       ['=', '/=', '<=', '>', '>=', '?=', '?/=', '?<', '?<=', '?>', '?>='],
       ['and', 'or', 'nand', 'nor', 'xor', 'xnor'],
-      ['downto', 'to']
+      ['downto', 'to', 'others']
     ];
     const tokenTypes = [
       { regex: /^\s+/, tokenType: 'WHITESPACE' },
@@ -131,7 +153,7 @@ export class ParserBase {
       { regex: /^"[0-9]+"/, tokenType: 'LOGIC_LITERAL'},
       { regex: /^x"[0-9A-F]+"/i, tokenType: 'LOGIC_LITERAL'},
       { regex: /^'[0-9]+'/, tokenType: 'LOGIC_LITERAL'},
-      { regex: /^[a-z]\w+(?!\s*[(])/, tokenType: 'VARIABLE'},
+      { regex: /^[a-z]\w*(?!\s*[(]|\w)/i, tokenType: 'VARIABLE'},
       { regex: /^\w+(?=\s*\()/, tokenType: 'FUNCTION'},
 
     ];
@@ -155,14 +177,16 @@ export class ParserBase {
     // console.log(tokenTypes);
     const tokens = [];
     let foundToken;
+    let offset = 0;
     do {
       foundToken = false;
       for (const tokenType of tokenTypes) {
         let match = tokenType.regex.exec(text);
         if (match) {
-          const token: Token = { type: tokenType.tokenType, value: match[0] };
+          const token: Token = { type: tokenType.tokenType, value: match[0], offset};
           tokens.push(token);
           text = text.substring(match[0].length);
+          offset += match[0].length;
           foundToken = true;
           break;
         }

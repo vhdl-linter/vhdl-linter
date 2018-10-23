@@ -3,13 +3,13 @@ import {ParserPosition} from './parser-position'
 import {OInstantiation, OMapping} from './objects';
 
 export class InstantiationParser extends ParserBase {
-  constructor(text: string, pos: ParserPosition, file: string) {
+  constructor(text: string, pos: ParserPosition, file: string, private parent: object) {
     super(text, pos, file);
     this.debug(`start`);
 
   }
   parse(nextWord: string, label?: string): OInstantiation {
-    const instantiation = new OInstantiation(this.pos.i);
+    const instantiation = new OInstantiation(this.parent, this.pos.i);
     instantiation.label = label;
     if (nextWord == 'entity') {
       nextWord = this.getNextWord({re: /[\w.]/});
@@ -22,12 +22,12 @@ export class InstantiationParser extends ParserBase {
         hasPortMap = true;
         this.expect('map');
         this.expect('(');
-        instantiation.portMappings = this.parseMapping();
+        instantiation.portMappings = this.parseMapping(instantiation);
 
       } else if (nextWord === 'generic') {
         this.expect('map');
         this.expect('(');
-        instantiation.genericMappings = this.parseMapping();
+        instantiation.genericMappings = this.parseMapping(instantiation);
       }
 
     }
@@ -37,11 +37,11 @@ export class InstantiationParser extends ParserBase {
     }
     return instantiation;
   }
-  parseMapping() {
+  parseMapping(instantiation: object) {
     const mappings: OMapping[] = [];
 
     while(this.pos.i < this.text.length) {
-      const mapping = new OMapping(this.pos.i);
+      const mapping = new OMapping(instantiation, this.pos.i);
       mapping.name = this.getNextWord({re: /[^=]/});
       this.expect('=>');
       mapping.mapping = '';

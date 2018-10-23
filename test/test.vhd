@@ -26,12 +26,12 @@ end Mux;
 -------------------------------------------------
 
 architecture behv1 of Mux is
-  signal s_test:std_logic_vector(10 downto 0);
+  signal s_test : std_logic_vector(10 downto 0);
 begin
     process (I3,I2,I1,I0,S)
     begin
       for i in 50 to 10 loop
-        s_test(i) <= '1';
+        s_tesst <= b;
       end loop;
         -- use case statement
       case S is

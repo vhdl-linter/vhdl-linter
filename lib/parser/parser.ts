@@ -2,58 +2,45 @@ import {EntityParser} from './entity-parser';
 import {ArchitectureParser} from './architecture-parser';
 import {ParserBase} from './parser-base';
 import {ParserPosition} from './parser-position';
-import {OEntity, OArchitecture} from './objects';
+import {OEntity, OArchitecture, OFile} from './objects';
 
-export interface OFile {
-  libraries: string[];
-  useStatements: string[];
-  entity: OEntity;
-  architecture: OArchitecture;
-}
+
 export class Parser extends ParserBase{
-  libraries: string[] = [];
-  useStatements: string[] = [];
-  entity: OEntity;
-  architecture: OArchitecture;
   position: ParserPosition;
   constructor(text: string, file: string) {
     super(text, new ParserPosition(), file);
     this.removeComments();
-    this.parse();
   }
   parse(): OFile {
+    const file = new OFile();
     while (this.pos.i < this.text.length) {
       if (this.text[this.pos.i].match(/\s/)) {
         this.pos.i++;
         continue;
       }
       let nextWord = this.getNextWord().toLowerCase();
-
       if (nextWord === 'library') {
-        this.libraries.push(this.getNextWord());
+        file.libraries.push(this.getNextWord());
         this.expect(';');
       } else if (nextWord == 'use') {
-        this.useStatements.push(this.getUseStatement());
+        file.useStatements.push(this.getUseStatement());
         this.expect(';');
       } else if (nextWord == 'entity') {
-        const entity = new EntityParser(this.text, this.pos, this.file);
-        this.entity = entity.parse();
+        const entity = new EntityParser(this.text, this.pos, this.file, file);
+        file.entity = entity.parse();
+        // console.log(file, typeof file.entity, 'typeof');
       } else if (nextWord == 'architecture') {
-        if (this.architecture) {
+        if (file.architecture) {
           this.message('Second Architecture not supported');
         }
-        const architecture = new ArchitectureParser(this.text, this.pos, this.file);
-        this.architecture = architecture.parse();
+        const architecture = new ArchitectureParser(this.text, this.pos, this.file, file);
+        file.architecture = architecture.parse();
+
       } else {
         this.pos.i++;
       }
     }
-    return {
-      libraries: this.libraries,
-      useStatements: this.useStatements,
-      entity: this.entity,
-      architecture: this.architecture
-    };
+    return file;
   }
   removeComments() {
     let i = 0;
