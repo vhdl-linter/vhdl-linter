@@ -2,7 +2,7 @@ import {ParserBase} from './parser-base';
 import {ProcessParser} from './process-parser';
 import {InstantiationParser} from './instantiation-parser';
 import {ParserPosition} from './parser-position';
-import {OSignal, OType, OArchitecture, OGenerate} from './objects';
+import {OSignal, OType, OArchitecture, OGenerate, ParserError} from './objects';
 import {AssignmentParser} from './assignment-parser';
 
 export class ArchitectureParser extends ParserBase {
@@ -74,7 +74,7 @@ export class ArchitectureParser extends ParserBase {
           this.pos.i -= nextWord.length;
           const assignmentParser = new AssignmentParser(this.text, this.pos, this.file, architecture);
           const assignment = assignmentParser.parse();
-          architecture.statements.push(assignment);
+          architecture.assignments.push(assignment);
 
           continue;
         }
@@ -110,7 +110,7 @@ export class ArchitectureParser extends ParserBase {
 
         }
         for (const multiSignalName of multiSignals) {
-          const multiSignal = new OSignal(parent);
+          const multiSignal = new OSignal(parent, -1);
           Object.assign(signal, multiSignal);
           multiSignal.name = multiSignalName;
           signals.push(multiSignal);
@@ -127,6 +127,12 @@ export class ArchitectureParser extends ParserBase {
         type.states = this.advancePast(')').split(',').map(type => type.trim());
         types.push(type);
         this.expect(';');
+      } else if (nextWord === 'component') {
+        this.advancePast('end');
+        this.maybeWord('component');
+        this.expect(';');
+      } else {
+        throw new ParserError(`Unknown Ding, ${nextWord}`, this.pos.i);
       }
       nextWord = this.getNextWord({consume: false});
     }

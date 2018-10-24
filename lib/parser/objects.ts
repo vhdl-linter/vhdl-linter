@@ -1,6 +1,6 @@
 export class ObjectBase {
   public startI: number;
-  constructor (public parent: any, startI?: number) {
+  constructor (public parent: any, startI: number) {
     if (startI) {
       this.startI = startI;
     }
@@ -20,7 +20,7 @@ export class OArchitecture extends ObjectBase {
   processes: OProcess[] = [];
   instantiations: OInstantiation[] = [];
   generates: OGenerate[] = [];
-  statements: OAssignment[] = [];
+  assignments: OAssignment[] = [];
   types: OType[] = [];
 }
 export class OType extends ObjectBase {
@@ -48,7 +48,7 @@ export class OSignal extends OValue {
     constant: boolean;
     private register: boolean | null = null;
     private registerProcess: OProcess | null;
-    constructor(public parent: OArchitecture, startI?: number) {
+    constructor(public parent: OArchitecture, startI: number) {
       super(parent, startI);
     }
     isRegister(): boolean {
@@ -109,15 +109,15 @@ export class OIf extends ObjectBase {
 }
 export class OIfClause extends ObjectBase {
   condition: string;
-  conditionReads: string[];
+  conditionReads: ORead[];
   statements: OStatement[] = [];
 }
 export class OCase extends ObjectBase {
-  variable: string;
+  variable: ORead;
   whenClauses: OWhenClause[] = [];
 }
 export class OWhenClause extends ObjectBase {
-  condition: string;
+  condition: ORead;
   statements: OStatement[] = [];
 }
 export class OProcess extends ObjectBase {
@@ -188,10 +188,13 @@ export class OProcess extends ObjectBase {
         } else if (object instanceof OIf) {
           flatReads.push(... flatten(object.elseStatements));
           for (const clause of object.clauses) {
+            flatReads.push(... clause.conditionReads);
             flatReads.push(... flatten(clause.statements));
           }
         } else if (object instanceof OCase) {
+          flatReads.push(object.variable);
           for (const whenClause of object.whenClauses) {
+            flatReads.push(whenClause.condition);
             flatReads.push(... flatten(whenClause.statements));
           }
         } else if (object instanceof OForLoop) {
