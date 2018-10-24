@@ -149,6 +149,7 @@ export class ProcessParser extends ParserBase {
     return if_;
   }
   parseCase(parent: object, label?: string): OCase {
+    this.debug(`parseCase`);
     const case_ = new OCase(parent, this.pos.i);
 
     case_.variable = new ORead(case_, this.pos.i);

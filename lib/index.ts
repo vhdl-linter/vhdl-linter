@@ -1,5 +1,5 @@
 import { Parser } from './parser/parser';
-import { OFile, OIf, OAssignment, OForLoop } from './parser/objects';
+import { OFile, OIf, OAssignment, OForLoop, OSignalLike } from './parser/objects';
 import { RangeCompatible, Point, TextEditor, PointCompatible } from 'atom';
 
 export function activate() {
@@ -12,11 +12,12 @@ export function deactivate() {
 export class VhdlLinter {
   messages: Message[] = [];
   tree: OFile;
+  parser: Parser;
   constructor(private editorPath: string, private text: string) {
-    let parser = new Parser(this.text, this.editorPath);
+    this.parser = new Parser(this.text, this.editorPath);
     console.log(`parsing: ${editorPath}`);
     try {
-      this.tree = parser.parse();
+      this.tree = this.parser.parse();
     } catch (e) {
       try {
         let positionStart = this.getPositionFromI(e.i);
@@ -43,6 +44,7 @@ export class VhdlLinter {
       this.checkUnused();
       this.checkDoubles();
       this.checkUndefineds();
+      this.parser.debugObject(this.tree);
     }
     return this.messages;
   }
@@ -196,7 +198,9 @@ export class VhdlLinter {
     }
   }
   checkResets() {
-    for (const signal of this.tree.architecture.signals) {
+    let signalLike: OSignalLike[] = this.tree.architecture.signals;
+    signalLike = signalLike.concat(this.tree.entity.ports);
+    for (const signal of signalLike) {
       if (signal.isRegister() === false) {
         continue;
       }

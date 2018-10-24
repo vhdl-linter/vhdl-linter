@@ -15,12 +15,15 @@ export class ParserBase {
 
   }
   debug(message: string)  {
-      // console.log(`${this.constructor.name}: ${message} in line: ${this.getLine()}, (${this.file})`);
+      console.log(`${this.constructor.name}: ${message} in line: ${this.getLine()}, (${this.file})`);
   }
   debugObject(object: any) {
     let target: any = {};
     const filter = (object: any) => {
       const target: any = {};
+      if (!object) {
+        return;
+      }
       for (const key of Object.keys(object)) {
         if (key === 'parent') {
           continue;

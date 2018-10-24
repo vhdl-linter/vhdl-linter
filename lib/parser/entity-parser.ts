@@ -81,12 +81,12 @@ export class EntityParser extends ParserBase {
       port.type = type;
       port.defaultValue = defaultValue;
       ports.push(port);
-      for (const multiPortName of multiPorts) {
-        const multiPort = new OPort(this.parent, -1);
-        Object.assign(port, multiPort);
-        multiPort.name = multiPortName;
-        ports.push(multiPort);
-      }
+      // for (const multiPortName of multiPorts) {
+      //   const multiPort = new OPort(this.parent, -1);
+      //   Object.assign(port, multiPort);
+      //   multiPort.name = multiPortName;
+      //   ports.push(multiPort);
+      // }
       multiPorts = [];
     }
     return ports;
