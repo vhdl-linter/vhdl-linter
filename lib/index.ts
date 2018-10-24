@@ -46,7 +46,7 @@ export class VhdlLinter {
     return this.messages;
   }
   checkUndefineds() {
-    const ignores = ['unsigned', 'std_logic_vector', 'to_unsigned', 'to_integer'];
+    const ignores = ['unsigned', 'std_logic_vector', 'to_unsigned', 'to_integer', 'resize'];
     for (const process of this.tree.architecture.processes) {
       for (const write of process.getFlatWrites()) {
         let found = false;
