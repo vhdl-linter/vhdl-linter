@@ -164,7 +164,7 @@ export class ProcessParser extends ParserBase {
       whenClause.condition = new ORead(whenClause, this.pos.i);
       whenClause.condition.begin = this.pos.i;
       whenClause.condition.text = this.advancePast('=>');
-      whenClause.condition.end = this.pos.i;
+      whenClause.condition.end = whenClause.condition.begin + whenClause.condition.text.length;
       whenClause.statements = this.parseStatements(whenClause, ['when', 'end']);
       case_.whenClauses.push(whenClause);
       nextWord = this.getNextWord();

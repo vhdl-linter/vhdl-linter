@@ -15,7 +15,7 @@ export class ParserBase {
 
   }
   debug(message: string)  {
-      console.log(`${this.constructor.name}: ${message} in line: ${this.getLine()}, (${this.file})`);
+      // console.log(`${this.constructor.name}: ${message} in line: ${this.getLine()}, (${this.file})`);
   }
   debugObject(object: any) {
     let target: any = {};

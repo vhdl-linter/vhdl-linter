@@ -41,16 +41,65 @@ export class VhdlLinter {
     if (this.tree) {
       this.checkResets();
       this.checkUnused();
+      this.checkDoubles();
       this.checkUndefineds();
     }
     return this.messages;
   }
+  checkDoubles() {
+    for (const signal of this.tree.architecture.signals) {
+      if (this.tree.architecture.signals.find(signalSearch => signal !== signalSearch && signal.name.toLowerCase() === signalSearch.name.toLowerCase())) {
+        this.messages.push({
+          location: {
+            file: this.editorPath,
+            position: this.getPositionFromILine(signal.startI)
+          },
+          severity: 'error',
+          excerpt: `signal ${signal.name} defined multiple times`
+        });
+      }
+    }
+    for (const type of this.tree.architecture.types) {
+      if (this.tree.architecture.types.find(typeSearch => type !== typeSearch && type.name.toLowerCase() === typeSearch.name.toLowerCase())) {
+        this.messages.push({
+          location: {
+            file: this.editorPath,
+            position: this.getPositionFromILine(type.startI)
+          },
+          severity: 'error',
+          excerpt: `type ${type.name} defined multiple times`
+        });
+      }
+      for (const state of type.states) {
+        if (type.states.find(stateSearch => state !== stateSearch && state.name.toLowerCase() === stateSearch.name.toLowerCase())) {
+          this.messages.push({
+            location: {
+              file: this.editorPath,
+              position: this.getPositionFromILine(state.begin, state.end)
+            },
+            severity: 'error',
+            excerpt: `state ${state.name} defined multiple times`
+          });
+
+        }
+      }
+    }
+    for (const port of this.tree.entity.ports) {
+      if (this.tree.entity.ports.find(portSearch => port  !== portSearch && port.name.toLowerCase() === portSearch.name.toLowerCase())) {
+        this.messages.push({
+          location: {
+            file: this.editorPath,
+            position: this.getPositionFromILine(port.startI)
+          },
+          severity: 'error',
+          excerpt: `port ${port.name} defined multiple times`
+        });
+
+      }
+    }
+  }
   checkUndefineds() {
-<<<<<<< HEAD
-    const ignores = ['unsigned', 'std_logic_vector', 'to_unsigned', 'to_integer', 'resize'];
-=======
-    const ignores = ['unsigned', 'std_logic_vector', 'to_unsigned', 'to_integer', 'rising_edge'];
->>>>>>> 6e37df2bec3f44880882dbc5e5e23957def88dd0
+    const ignores = ['unsigned', 'std_logic_vector', 'to_unsigned', 'to_integer', 'resize', 'rising_edge'];
     for (const process of this.tree.architecture.processes) {
       for (const write of process.getFlatWrites()) {
         let found = false;
@@ -95,7 +144,7 @@ export class VhdlLinter {
           found = true;
         }
         for (const type of this.tree.architecture.types) {
-          if (type.states.find(state => state.toLowerCase() === read.text.toLowerCase())) {
+          if (type.states.find(state => state.name.toLowerCase() === read.text.toLowerCase())) {
             found = true;
           }
         }
@@ -205,7 +254,7 @@ export class VhdlLinter {
         this.messages.push({
           location: {
             file: this.editorPath,
-            position : this.getPositionFromILine(signal.startI)
+            position: this.getPositionFromILine(signal.startI)
           },
           severity: 'warning',
           excerpt: `Not reading signal '${signal.name}'`
@@ -215,7 +264,7 @@ export class VhdlLinter {
         this.messages.push({
           location: {
             file: this.editorPath,
-            position : this.getPositionFromILine(signal.startI)
+            position: this.getPositionFromILine(signal.startI)
           },
           severity: 'warning',
           excerpt: `Not writing signal '${signal.name}'`
@@ -228,9 +277,9 @@ export class VhdlLinter {
 
 
 
-  getPositionFromILine(i: number): [[number, number], [number, number]] {
+  getPositionFromILine(i: number, j?: number): [[number, number], [number, number]] {
     const positionStart = this.getPositionFromI(i);
-    const positionEnd: PointCompatible = [positionStart[0], Infinity];
+    const positionEnd: PointCompatible = j ? this.getPositionFromI(j) : [positionStart[0], Infinity];
     const position: RangeCompatible = [positionStart, positionEnd];
     return position;
   }

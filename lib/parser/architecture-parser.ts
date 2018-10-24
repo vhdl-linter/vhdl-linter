@@ -2,7 +2,7 @@ import {ParserBase} from './parser-base';
 import {ProcessParser} from './process-parser';
 import {InstantiationParser} from './instantiation-parser';
 import {ParserPosition} from './parser-position';
-import {OSignal, OType, OArchitecture, OGenerate, ParserError} from './objects';
+import {OSignal, OType, OArchitecture, OGenerate, ParserError, OState} from './objects';
 import {AssignmentParser} from './assignment-parser';
 
 export class ArchitectureParser extends ParserBase {
@@ -124,7 +124,21 @@ export class ArchitectureParser extends ParserBase {
         type.name = this.getNextWord();
         this.expect('is');
         this.expect('(');
-        type.states = this.advancePast(')').split(',').map(type => type.trim());
+        let position = this.pos.i;
+        type.states = this.advancePast(')').split(',').map(type => {
+          const state = new OState(type, position);
+          const match = type.match(/^\s*/);
+          if (match) {
+            state.begin = position + match[0].length;
+          } else {
+            state.begin = position;
+          }
+          state.name = type.trim();
+          state.end = state.begin + state.name.length;
+          position += type.length;
+          position++;
+          return state;
+        });
         types.push(type);
         this.expect(';');
       } else if (nextWord === 'component') {

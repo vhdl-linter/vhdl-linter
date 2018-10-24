@@ -25,7 +25,12 @@ export class OArchitecture extends ObjectBase {
 }
 export class OType extends ObjectBase {
   name: string;
-  states: string[] = [];
+  states: OState[] = [];
+}
+export class OState extends ObjectBase {
+  begin: number;
+  end: number;
+  name: string;
 }
 export class OGenerate extends OArchitecture {
   variable: string;
