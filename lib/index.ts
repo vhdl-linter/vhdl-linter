@@ -40,13 +40,17 @@ export class VhdlLinter {
   checkAll() {
     if (this.tree) {
       this.checkResets();
-      // this.checkUnused();
+      this.checkUnused();
       this.checkUndefineds();
     }
     return this.messages;
   }
   checkUndefineds() {
+<<<<<<< HEAD
     const ignores = ['unsigned', 'std_logic_vector', 'to_unsigned', 'to_integer', 'resize'];
+=======
+    const ignores = ['unsigned', 'std_logic_vector', 'to_unsigned', 'to_integer', 'rising_edge'];
+>>>>>>> 6e37df2bec3f44880882dbc5e5e23957def88dd0
     for (const process of this.tree.architecture.processes) {
       for (const write of process.getFlatWrites()) {
         let found = false;
@@ -159,19 +163,76 @@ export class VhdlLinter {
       }
       const registerProcess = signal.getRegisterProcess();
       if (!resetFound && registerProcess) {
-        let positionStart = this.getPositionFromI(registerProcess.startI);
-        let positionEnd: PointCompatible = [positionStart[0], Infinity];
-        let position: RangeCompatible = [positionStart, positionEnd];
         this.messages.push({
           location: {
             file: this.editorPath,
-            position
+            position: this.getPositionFromILine(registerProcess.startI)
           },
           severity: 'error',
           excerpt: `Reset '${signal.name}' missing`
         });
       }
     }
+  }
+  checkUnused() {
+    for (const signal of this.tree.architecture.signals) {
+      let unread = true;
+      let unwritten = true;
+      const sigLowName = signal.name.toLowerCase();
+      for (const process of this.tree.architecture.processes) {
+        if (process.getFlatReads().find(read => read.text.toLowerCase() === sigLowName)) {
+          unread = false;
+        }
+        if (process.getFlatWrites().find(write => write.text.toLowerCase() === sigLowName)) {
+          unwritten = false;
+        }
+      }
+      for (const assignment of this.tree.architecture.assignments) {
+        if (assignment.reads.find(read => read.text.toLowerCase() === sigLowName)) {
+          unread = false;
+        }
+        if (assignment.writes.find(write => write.text.toLowerCase() === sigLowName)) {
+          unwritten = false;
+        }
+      }
+      for (const instantiation of this.tree.architecture.instantiations) {
+        if (instantiation.portMappings.find(portMap => portMap.mapping.toLowerCase() === sigLowName)) {
+          unwritten = false;
+          unread = false;
+        }
+      }
+      if (unread) {
+        this.messages.push({
+          location: {
+            file: this.editorPath,
+            position : this.getPositionFromILine(signal.startI)
+          },
+          severity: 'warning',
+          excerpt: `Not reading signal '${signal.name}'`
+        });
+      }
+      if (unwritten && !signal.constant) {
+        this.messages.push({
+          location: {
+            file: this.editorPath,
+            position : this.getPositionFromILine(signal.startI)
+          },
+          severity: 'warning',
+          excerpt: `Not writing signal '${signal.name}'`
+        });
+      }
+    }
+  }
+
+
+
+
+
+  getPositionFromILine(i: number): [[number, number], [number, number]] {
+    const positionStart = this.getPositionFromI(i);
+    const positionEnd: PointCompatible = [positionStart[0], Infinity];
+    const position: RangeCompatible = [positionStart, positionEnd];
+    return position;
   }
   getPositionFromI(i: number): [number, number] {
     let row = 0;
@@ -186,6 +247,7 @@ export class VhdlLinter {
     }
     return [row, col];
   }
+
 }
 
 export function provideLinter() {

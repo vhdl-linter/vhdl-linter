@@ -22,6 +22,6 @@ import * as util from 'util';
 
 
 import {VhdlLinter} from '../lib/index';
-const filename = './test/test.vhd';
+const filename = './test/__yolotest.vhd';
 const vhdlLinter = new VhdlLinter(filename, fs.readFileSync(filename).toString());
 console.log(util.inspect(vhdlLinter.checkAll(), true, 5));
