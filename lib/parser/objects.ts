@@ -11,9 +11,14 @@ export class ObjectBase {
 }
 export class OFile {
   libraries: string[] = [];
-  useStatements: string[] = [];
+  useStatements: OUseStatement[] = [];
   entity: OEntity;
   architecture: OArchitecture;
+}
+export class OUseStatement extends ObjectBase {
+  text: string;
+  begin: number;
+  end: number;
 }
 export class OArchitecture extends ObjectBase {
   signals: OSignal[] = [];
@@ -116,11 +121,11 @@ export class OIfClause extends ObjectBase {
   statements: OStatement[] = [];
 }
 export class OCase extends ObjectBase {
-  variable: ORead;
+  variable: ORead[];
   whenClauses: OWhenClause[] = [];
 }
 export class OWhenClause extends ObjectBase {
-  condition: ORead;
+  condition: ORead[];
   statements: OStatement[] = [];
 }
 export class OProcess extends ObjectBase {
@@ -195,9 +200,9 @@ export class OProcess extends ObjectBase {
             flatReads.push(... flatten(clause.statements));
           }
         } else if (object instanceof OCase) {
-          flatReads.push(object.variable);
+          flatReads.push(... object.variable);
           for (const whenClause of object.whenClauses) {
-            flatReads.push(whenClause.condition);
+            flatReads.push(... whenClause.condition);
             flatReads.push(... flatten(whenClause.statements));
           }
         } else if (object instanceof OForLoop) {

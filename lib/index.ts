@@ -1,6 +1,6 @@
 import { Parser } from './parser/parser';
 import { OFile, OIf, OAssignment, OForLoop, OSignalLike } from './parser/objects';
-import { RangeCompatible, Point, TextEditor, PointCompatible } from 'atom';
+import { RangeCompatible, Point, TextEditor, PointCompatible, Directory, File } from 'atom';
 
 export function activate() {
   // Fill something here, optional
@@ -13,6 +13,7 @@ export class VhdlLinter {
   messages: Message[] = [];
   tree: OFile;
   parser: Parser;
+  packageThings: string[] = [];
   constructor(private editorPath: string, private text: string) {
     this.parser = new Parser(this.text, this.editorPath);
     console.log(`parsing: ${editorPath}`);
@@ -38,17 +39,75 @@ export class VhdlLinter {
     console.log(`done parsing: ${editorPath}`);
 
   }
-  checkAll() {
+  async parsePackages() {
+    let files: File[] = [];
+    const parseDirectory = (directory: Directory): File[] => {
+      const files = [];
+      for (const entry of directory.getEntriesSync()) {
+        if (entry instanceof File) {
+          files.push(entry);
+        } else {
+          files.push(... parseDirectory(entry));
+        }
+      }
+      return files;
+    };
+    for (const directory of atom.project.getDirectories()) {
+      files = parseDirectory(directory);
+    }
+    files = files.filter(file => file.getBaseName().match(/\.vhdl?$/i));
+    for (const useStatement of this.tree.useStatements) {
+      let match = useStatement.text.match(/([^.]+)\.([^.]+)\.all/i);
+      let found = false;
+      if (match) {
+        if (match[1] === 'ieee') {
+          found = true;
+        } else {
+          for (const file of files) {
+            const text = await file.read();
+            if (text && text.match(new RegExp('package\\s+' + match[2] + '\\s+is', 'i'))) {
+              found = true;
+              let re = /constant\s+(\w+)/g;
+              let m;
+              while (m = re.exec(text)) {
+                this.packageThings.push(m[1]);
+              }
+              re = /function\s+(\w+)/g;
+              while (m = re.exec(text)) {
+                this.packageThings.push(m[1]);
+              }
+            }
+          }
+        }
+      }
+      if (!found) {
+        this.messages.push({
+          location: {
+            file: this.editorPath,
+            position: this.getPositionFromILine(useStatement.begin, useStatement.end)
+          },
+          severity: 'warning',
+          excerpt: `could not find package for ${useStatement.text}`
+        });
+      }
+    }
+    console.log(files);
+  }
+  async checkAll() {
     if (this.tree) {
+      await this.parsePackages();
       this.checkResets();
       this.checkUnused();
       this.checkDoubles();
       this.checkUndefineds();
-      this.parser.debugObject(this.tree);
+      // this.parser.debugObject(this.tree);
     }
     return this.messages;
   }
   checkDoubles() {
+    if (!this.tree.architecture) {
+      return;
+    }
     for (const signal of this.tree.architecture.signals) {
       if (this.tree.architecture.signals.find(signalSearch => signal !== signalSearch && signal.name.toLowerCase() === signalSearch.name.toLowerCase())) {
         this.messages.push({
@@ -101,6 +160,9 @@ export class VhdlLinter {
     }
   }
   checkUndefineds() {
+    if (!this.tree.architecture) {
+      return;
+    }
     const ignores = ['unsigned', 'std_logic_vector', 'to_unsigned', 'to_integer', 'resize', 'rising_edge'];
     for (const process of this.tree.architecture.processes) {
       for (const write of process.getFlatWrites()) {
@@ -142,7 +204,7 @@ export class VhdlLinter {
         if (ignores.indexOf(read.text.toLowerCase()) > - 1) {
           found = true;
         }
-        if (read.text.match(/^c_/)) {
+        if (this.packageThings.find(packageConstant => packageConstant.toLowerCase() === read.text.toLowerCase())) {
           found = true;
         }
         for (const type of this.tree.architecture.types) {
@@ -198,6 +260,9 @@ export class VhdlLinter {
     }
   }
   checkResets() {
+    if (!this.tree.architecture) {
+      return;
+    }
     let signalLike: OSignalLike[] = this.tree.architecture.signals;
     signalLike = signalLike.concat(this.tree.entity.ports);
     for (const signal of signalLike) {
@@ -228,6 +293,9 @@ export class VhdlLinter {
     }
   }
   checkUnused() {
+    if (!this.tree.architecture) {
+      return;
+    }
     for (const signal of this.tree.architecture.signals) {
       let unread = true;
       let unwritten = true;
