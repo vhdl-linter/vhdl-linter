@@ -14,16 +14,39 @@ export class VhdlLinter {
   tree: OFile;
   constructor(private editorPath: string, private text: string) {
     let parser = new Parser(this.text, this.editorPath);
-    this.tree = parser.parse();
+    console.log(`parsing: ${editorPath}`);
+    try {
+      this.tree = parser.parse();
+    } catch (e) {
+      try {
+        let positionStart = this.getPositionFromI(e.i);
+        let positionEnd: [number, number] = [positionStart[0], Infinity];
+        let position: [[number, number], [number, number]] = [positionStart, positionEnd];
+        this.messages.push({
+          location: {
+            file: this.editorPath,
+            position
+          },
+          severity: 'error',
+          excerpt: e.message
+        });
+      } catch (err) {
+        console.error('error parsing error', e, err);
+      }
+    }
+    console.log(`done parsing: ${editorPath}`);
 
   }
   checkAll() {
-    this.checkResets();
-    // this.checkUnused();
-    this.checkUndefineds();
+    if (this.tree) {
+      this.checkResets();
+      // this.checkUnused();
+      this.checkUndefineds();
+    }
     return this.messages;
   }
   checkUndefineds() {
+    const ignores = ['unsigned', 'std_logic_vector', 'to_unsigned', 'to_integer'];
     for (const process of this.tree.architecture.processes) {
       for (const write of process.getFlatWrites()) {
         let found = false;
@@ -61,6 +84,17 @@ export class VhdlLinter {
       }
       for (const read of process.getFlatReads()) {
         let found = false;
+        if (ignores.indexOf(read.text.toLowerCase()) > - 1) {
+          found = true;
+        }
+        if (read.text.match(/^c_/)) {
+          found = true;
+        }
+        for (const type of this.tree.architecture.types) {
+          if (type.states.find(state => state.toLowerCase() === read.text.toLowerCase())) {
+            found = true;
+          }
+        }
         for (const signal of this.tree.architecture.signals) {
           if (signal.name.toLowerCase() === read.text.toLowerCase()) {
             found = true;

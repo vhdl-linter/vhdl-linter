@@ -1,6 +1,6 @@
 import {ParserBase} from './parser-base';
 import {ParserPosition} from './parser-position';
-import {OAssignment, OWrite, ORead} from './objects';
+import {OAssignment, OWrite, ORead, ParserError} from './objects';
 
 export class AssignmentParser extends ParserBase {
   constructor(text: string, pos: ParserPosition, file: string, private parent: object) {
@@ -16,6 +16,9 @@ export class AssignmentParser extends ParserBase {
     while (this.text.substr(this.pos.i, 2) !== '<=') {
       leftHandSide += this.text[this.pos.i];
       this.pos.i++;
+      if (this.pos.i === this.text.length) {
+        throw new ParserError(`expecteded <=, reached end of text. Start on line: ${this.getLine(leftHandSideI)}`, leftHandSideI);
+      }
     }
     assignment.writes = this.tokenize(leftHandSide).filter(token => token.type === 'VARIABLE' || token.type === 'FUNCTION').map(token => {
       const write = new OWrite(assignment, leftHandSideI + token.offset);

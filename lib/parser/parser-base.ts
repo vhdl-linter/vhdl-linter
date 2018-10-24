@@ -1,5 +1,6 @@
 import {ParserPosition} from './parser-position';
 const escapeStringRegexp = require('escape-string-regexp');
+import {ParserError} from './objects';
 
 export interface Token {
   type: string;
@@ -39,7 +40,7 @@ export class ParserBase {
   }
   message(message: string, severity = 'error') {
     if (severity === 'error') {
-      throw new Error(message + ` in line: ${this.getLine()}`);
+      throw new ParserError(message + ` in line: ${this.getLine()}`, this.pos.i);
     } else {
     }
   }
@@ -101,9 +102,12 @@ export class ParserBase {
     }
     return word;
   }
-  getLine() {
+  getLine(position?: number) {
+    if (!position) {
+      position = this.pos.i;
+    }
     let line = 1;
-    for (let counter = 0; counter < this.pos.i; counter++) {
+    for (let counter = 0; counter < position; counter++) {
       if (this.text[counter] === '\n') {
         line++;
       }
@@ -113,7 +117,7 @@ export class ParserBase {
   expect(expected: string) {
     const word = this.text.substr(this.pos.i, expected.length);
     if (word !== expected) {
-      throw new Error(`expected '${expected}' found '${word}' line: ${this.getLine()}`);
+      throw new ParserError(`expected '${expected}' found '${word}' line: ${this.getLine()}`, this.pos.i);
     }
     this.pos.i += word.length;
     this.advanceWhitespace();

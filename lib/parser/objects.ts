@@ -255,3 +255,8 @@ export class OWrite extends OWriteReadBase {
 export class ORead extends OWriteReadBase {
 
 }
+export class ParserError extends Error {
+    constructor(message: string, public i: number) {
+      super(message);
+    }
+}

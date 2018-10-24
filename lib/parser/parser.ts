@@ -51,7 +51,7 @@ export class Parser extends ParserBase {
           i++;
         }
         let end = i;
-        this.text = this.text.substr(0, start) + ' '.repeat(end - start + 1) + this.text.substr(end);
+        this.text = this.text.substr(0, start) + ' '.repeat(end - start) + this.text.substr(end);
       }
       i++;
     }
