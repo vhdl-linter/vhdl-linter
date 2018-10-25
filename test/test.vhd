@@ -10,39 +10,46 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-
+use work.DEMO_PACK.all;
 -------------------------------------------------
 
 entity Mux is
-  port(I3 : in  std_logic_vector(2 downto 0);
-       I2 : in  std_logic_vector(2 downto 0);
-       I1 : in  std_logic_vector(2 downto 0);
-       I0 : in  std_logic_vector(2 downto 0);
-       S  : in  std_logic_vector(1 downto 0);
-       O  : out std_logic_vector(2 downto 0)
-       );
+port(	I3: 	 in std_logic_vector(2 downto 0);
+	I2: 	in std_logic_vector(2 downto 0);
+	I1: 	in std_logic_vector(2 downto 0);
+	I0: 	in std_logic_vector(2 downto 0);
+	S:	 in std_logic_vector(1 downto 0);
+	O:	out std_logic_vector(2 downto 0);
+	o_test: out std_logic
+);
 end Mux;
 
 -------------------------------------------------
 
 architecture behv1 of Mux is
   signal s_test : std_logic_vector(10 downto 0);
-  type t_statesTX is (s_IDLE_TX, s_SENDING);
-
 begin
+	o_test <= s_test;
+    process (I3,I2,I1,I0,S)
+    begin
+      for i in 50 to 10 loop
+        s_test <= PARITY(SOME_FLAG);
+      end loop;
+        -- use case statement
+      case S is
+	    when "00" =>
+      hase: if I2 = "010" then
+        O <= I0;
+      else
+      end if hase;
+	    when "01" =>	O <= I1;
+	    when "10" =>	O <= I2;
+	    when "11" =>	O <= I3;
+	    when others =>	O <=  "ZZZ";
+	end case;
 
+    end process;
 
-  process (I3, I2, I1, I0, S)
-  begin
-    for v_i in 0 to c_AXI_DATAWIDTH/g_BYTENUM_LENGTH - 1 loop
-      if std_logic_vector(r_consecutiveReceiveByteCounter + v_i) /= s_rxDataFifoReadData(s_rxDataFifoReadData'left - g_BYTENUM_LENGTH * v_i downto s_rxDataFifoReadData'left - g_BYTENUM_LENGTH * (v_i + 1) + 1) then
-        r_byteError <= '1';
-        yolo        <= s_IDLE_TX;
-      -- report "byte error" & to_hex_string(r_consecutiveReceiveByteCounter + v_i) severity failure;
-      end if;
-    end loop;  -- end for
-
-  end process;
 end behv1;
 
 -----------------------------

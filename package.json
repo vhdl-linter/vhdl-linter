@@ -21,10 +21,11 @@
   },
   "dependencies": {
     "@types/prettyjson": "0.0.28",
-    "prettyjson": "^1.2.1",
     "atom-package-deps": "^4.6.2",
     "escape-string-regexp": "^1.0.5",
-    "nodemon": "^1.18.4"
+    "nodemon": "^1.18.4",
+    "prettyjson": "^1.2.1",
+    "typed-promisify": "^0.4.0"
   },
   "package-deps": [
     "linter"

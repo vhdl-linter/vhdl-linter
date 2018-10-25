@@ -1,6 +1,6 @@
 import {ParserPosition} from './parser-position';
 const escapeStringRegexp = require('escape-string-regexp');
-import {ParserError} from './objects';
+import {ParserError, OWrite, ORead} from './objects';
 
 export interface Token {
   type: string;
@@ -15,12 +15,15 @@ export class ParserBase {
 
   }
   debug(message: string)  {
-      // console.log(`${this.constructor.name}: ${message} in line: ${this.getLine()}, (${this.file})`);
+      console.log(`${this.constructor.name}: ${message} in line: ${this.getLine()}, (${this.file})`);
   }
   debugObject(object: any) {
     let target: any = {};
     const filter = (object: any) => {
       const target: any = {};
+      if (!object) {
+        return;
+      }
       for (const key of Object.keys(object)) {
         if (key === 'parent') {
           continue;
@@ -54,16 +57,30 @@ export class ParserBase {
       this.pos.i--;
     }
   }
-  advancePast(search: string) {
+  advancePast(search: string|RegExp) {
     let text = '';
-    while (this.text.substr(this.pos.i, search.length) !== search) {
-      text += this.text[this.pos.i];
-      this.pos.i++;
-      if (this.pos.i > this.text.length) {
-        throw new Error(`could not find ${search}`);
+    let searchStart = this.pos.i;
+    if (typeof search === 'string') {
+      while (this.text.substr(this.pos.i, search.length) !== search) {
+        text += this.text[this.pos.i];
+        this.pos.i++;
+        if (this.pos.i > this.text.length) {
+          throw new ParserError(`could not find ${search}`, searchStart);
+        }
       }
+      this.pos.i += search.length;
+    } else {
+      let match = this.text.substr(this.pos.i).match(search);
+      while (match === null) {
+        text += this.text[this.pos.i];
+        this.pos.i++;
+        if (this.pos.i > this.text.length) {
+          throw new ParserError(`could not find ${search}`, searchStart);
+        }
+        match = this.text.substr(this.pos.i).match(search);
+      }
+      this.pos.i += match[0].length;
     }
-    this.pos.i += search.length;
     this.advanceWhitespace();
     return text.trim();
   }
@@ -138,6 +155,16 @@ export class ParserBase {
     this.expect(';');
     this.advanceWhitespace();
     return type;
+  }
+  extractReadsOrWrite(parent: any, text: string, i: number): ORead[] {
+    return this.tokenize(text).filter(token => token.type === 'VARIABLE' || token.type === 'FUNCTION').map(token => {
+      const write = new OWrite(parent, i);
+      write.begin = i;
+      // write.begin = leftHandSideI + token.offset;
+      write.end = write.begin + token.value.length;
+      write.text = token.value;
+      return write;
+    });
   }
   tokenize(text: string): Token[] {
     const operators = [

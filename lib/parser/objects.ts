@@ -11,9 +11,14 @@ export class ObjectBase {
 }
 export class OFile {
   libraries: string[] = [];
-  useStatements: string[] = [];
+  useStatements: OUseStatement[] = [];
   entity: OEntity;
   architecture: OArchitecture;
+}
+export class OUseStatement extends ObjectBase {
+  text: string;
+  begin: number;
+  end: number;
 }
 export class OArchitecture extends ObjectBase {
   signals: OSignal[] = [];
@@ -46,40 +51,41 @@ export class OValue extends ObjectBase {
 export class OVariable extends OValue {
 
 }
-export class OSignal extends OValue {
-    name: string;
-    type: string;
-    defaultValue?: string;
-    constant: boolean;
-    private register: boolean | null = null;
-    private registerProcess: OProcess | null;
-    constructor(public parent: OArchitecture, startI: number) {
-      super(parent, startI);
+export class OSignalLike extends ObjectBase {
+  type: string;
+  name: string;
+  defaultValue?: string;
+  private register: boolean | null = null;
+  private registerProcess: OProcess | null;
+  constructor(public parent: OArchitecture, startI: number) {
+    super(parent, startI);
+  }
+  isRegister(): boolean {
+    if (this.register !== null) {
+      return this.register;
     }
-    isRegister(): boolean {
-      if (this.register !== null) {
-        return this.register;
-      }
-      this.register = false;
-      for (const process of this.parent.processes) {
-        if (process.isRegisterProcess()) {
-          for (const write of process.getFlatWrites()) {
-            if (write.text.toLowerCase() === this.name.toLowerCase()) {
-              this.register = true;
-              this.registerProcess = process;
-            }
+    this.register = false;
+    for (const process of this.parent.parent.architecture.processes) {
+      if (process.isRegisterProcess()) {
+        for (const write of process.getFlatWrites()) {
+          if (write.text.toLowerCase() === this.name.toLowerCase()) {
+            this.register = true;
+            this.registerProcess = process;
           }
         }
       }
-      return this.register;
     }
-    getRegisterProcess(): OProcess | null {
-      if (this.isRegister === null) {
-        return null;
-      }
-      return this.registerProcess;
-
+    return this.register;
+  }
+  getRegisterProcess(): OProcess | null {
+    if (this.isRegister === null) {
+      return null;
     }
+    return this.registerProcess;
+}
+}
+export class OSignal extends OSignalLike {
+    constant: boolean;
 }
 export class OInstantiation extends ObjectBase {
   label?: string;
@@ -96,11 +102,8 @@ export class OEntity extends ObjectBase {
   ports: OPort[] = [];
   generics: OGeneric[] = [];
 }
-export class OPort extends ObjectBase {
-    name: string;
+export class OPort extends OSignalLike {
     direction: 'in' | 'out' | 'inout';
-    type: string;
-    defaultValue?: string;
 }
 export class OGeneric extends ObjectBase {
     name: string;
@@ -118,11 +121,11 @@ export class OIfClause extends ObjectBase {
   statements: OStatement[] = [];
 }
 export class OCase extends ObjectBase {
-  variable: ORead;
+  variable: ORead[];
   whenClauses: OWhenClause[] = [];
 }
 export class OWhenClause extends ObjectBase {
-  condition: ORead;
+  condition: ORead[];
   statements: OStatement[] = [];
 }
 export class OProcess extends ObjectBase {
@@ -197,9 +200,9 @@ export class OProcess extends ObjectBase {
             flatReads.push(... flatten(clause.statements));
           }
         } else if (object instanceof OCase) {
-          flatReads.push(object.variable);
+          flatReads.push(... object.variable);
           for (const whenClause of object.whenClauses) {
-            flatReads.push(whenClause.condition);
+            flatReads.push(... whenClause.condition);
             flatReads.push(... flatten(whenClause.statements));
           }
         } else if (object instanceof OForLoop) {
