@@ -99,7 +99,7 @@ export class VhdlLinter {
     }
   }
   checkUndefineds() {
-    const ignores = ['unsigned', 'std_logic_vector', 'to_unsigned', 'to_integer', 'resize', 'rising_edge'];
+    const ignores = ['unsigned', 'std_logic_vector', 'to_unsigned', 'to_integer', 'resize', 'rising_edge', 'to_signed'];
     for (const process of this.tree.architecture.processes) {
       for (const write of process.getFlatWrites()) {
         let found = false;
@@ -160,6 +160,11 @@ export class VhdlLinter {
         }
         for (const port of this.tree.entity.ports) {
           if (port.name.toLowerCase() === read.text.toLowerCase()) {
+            found = true;
+          }
+        }
+        for (const generic of this.tree.entity.generics) {
+          if (generic.name.toLowerCase() === read.text.toLowerCase()) {
             found = true;
           }
         }
