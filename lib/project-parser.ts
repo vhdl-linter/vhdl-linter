@@ -18,7 +18,7 @@ export class ProjectParser {
     return files;
   }
   public removeFile(path: string) {
-    const index = this.cachedFiles.findIndex(cachedFile => cachedFile.path === path)
+    const index = this.cachedFiles.findIndex(cachedFile => cachedFile.path === path);
     this.cachedFiles.splice(index, 1);
   }
   public async getPackages(): Promise<OPackage[]> {
