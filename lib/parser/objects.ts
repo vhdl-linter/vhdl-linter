@@ -46,13 +46,11 @@ export class OIfGenerate extends OArchitecture {
   condition: string;
   conditionReads: ORead[];
 }
-export class OValue extends ObjectBase {
+export class OVariable extends ObjectBase {
   name: string;
   type: string;
   defaultValue?: string;
   constant: boolean;
-}
-export class OVariable extends OValue {
 
 }
 export class OSignalLike extends ObjectBase {

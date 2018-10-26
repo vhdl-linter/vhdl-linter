@@ -73,5 +73,10 @@ export class OFileCache {
     while (m = re.exec(text)) {
       this.package.things.push(m[1]);
     }
+    re = /type\s+(\w+)\s+is\s*\(([^)]*)\)\s*;/g;
+    while (m = re.exec(text)) {
+      this.package.things.push(... m[2].split(',').map(thing => thing.trim()));
+    }
   }
 }
+// type t_packet is (p_NONE, p_CM_REQ, p_CM_REJ, p_CM_REP, p_CM_RTU, p_CM_DREQ, p_CM_DREP, p_RC_MR, p_RC_SIZE, p_RC_DECLINE, p_RDMA_F, p_RDMA_M, p_RDMA_L, p_RDMA_O, p_ACK);

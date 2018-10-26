@@ -1,6 +1,6 @@
-import {ParserPosition} from './parser-position';
+import { ParserPosition } from './parser-position';
 const escapeStringRegexp = require('escape-string-regexp');
-import {ParserError, OWrite, ORead} from './objects';
+import { ParserError, OWrite, ORead } from './objects';
 
 export interface Token {
   type: string;
@@ -14,8 +14,8 @@ export class ParserBase {
   constructor(protected text: string, protected pos: ParserPosition, protected file: string) {
 
   }
-  debug(message: string)  {
-      // console.log(`${this.constructor.name}: ${message} in line: ${this.getLine()}, (${this.file})`);
+  debug(message: string) {
+    // console.log(`${this.constructor.name}: ${message} in line: ${this.getLine()}, (${this.file})`);
   }
   debugObject(object: any) {
     let target: any = {};
@@ -57,7 +57,7 @@ export class ParserBase {
       this.pos.i--;
     }
   }
-  advancePast(search: string|RegExp) {
+  advancePast(search: string | RegExp) {
     let text = '';
     let searchStart = this.pos.i;
     if (typeof search === 'string') {
@@ -94,8 +94,8 @@ export class ParserBase {
     this.advanceWhitespace();
     return text;
   }
-  getNextWord(options: {re?: RegExp, consume?: boolean, withCase?: boolean} = {}) {
-    let {re, consume, withCase} = options;
+  getNextWord(options: { re?: RegExp, consume?: boolean, withCase?: boolean } = {}) {
+    let { re, consume, withCase } = options;
     if (!re) {
       re = /\w/;
     }
@@ -137,13 +137,22 @@ export class ParserBase {
     }
     return line;
   }
-  expect(expected: string) {
-    const word = this.text.substr(this.pos.i, expected.length);
-    if (word.toLowerCase() !== expected.toLowerCase()) {
-      throw new ParserError(`expected '${expected}' found '${word}' line: ${this.getLine()}`, this.pos.i);
+  expect(expected: string | string[]) {
+    if (!Array.isArray(expected)) {
+      expected = [expected];
     }
-    this.pos.i += word.length;
-    this.advanceWhitespace();
+    let hit = false;
+    for (const exp of expected) {
+      const word = this.text.substr(this.pos.i, exp.length);
+      if (word.toLowerCase() === exp.toLowerCase()) {
+        hit = true;
+        this.pos.i += word.length;
+        this.advanceWhitespace();
+      }
+    }
+    if (!hit) {
+      throw new ParserError(`expected '${expected.join(', ')}' found '${this.getNextWord()}' line: ${this.getLine()}`, this.pos.i);
+    }
   }
   maybeWord(expected: string) {
     const word = this.text.substr(this.pos.i, expected.length);
@@ -187,12 +196,12 @@ export class ParserBase {
       { regex: /^\s+/, tokenType: 'WHITESPACE' },
       { regex: /^[()]/, tokenType: 'BRACE' },
       { regex: /^,/, tokenType: 'COMMA' },
-      { regex: /^[0-9]+/, tokenType: 'INTEGER_LITERAL'},
-      { regex: /^"[0-9]+"/, tokenType: 'LOGIC_LITERAL'},
-      { regex: /^x"[0-9A-F]+"/i, tokenType: 'LOGIC_LITERAL'},
-      { regex: /^'[0-9]+'/, tokenType: 'LOGIC_LITERAL'},
-      { regex: /^[a-z]\w*(?!\s*[(]|\w)/i, tokenType: 'VARIABLE'},
-      { regex: /^\w+(?=\s*\()/, tokenType: 'FUNCTION'},
+      { regex: /^[0-9]+/, tokenType: 'INTEGER_LITERAL' },
+      { regex: /^"[0-9]+"/, tokenType: 'LOGIC_LITERAL' },
+      { regex: /^x"[0-9A-F]+"/i, tokenType: 'LOGIC_LITERAL' },
+      { regex: /^'[0-9]+'/, tokenType: 'LOGIC_LITERAL' },
+      { regex: /^[a-z]\w*(?!\s*[(]|\w)/i, tokenType: 'VARIABLE' },
+      { regex: /^\w+(?=\s*\()/, tokenType: 'FUNCTION' },
 
     ];
     const specialChars = '[*/&-?=<>+]';
@@ -221,7 +230,7 @@ export class ParserBase {
       for (const tokenType of tokenTypes) {
         let match = tokenType.regex.exec(text);
         if (match) {
-          const token: Token = { type: tokenType.tokenType, value: match[0], offset};
+          const token: Token = { type: tokenType.tokenType, value: match[0], offset };
           tokens.push(token);
           text = text.substring(match[0].length);
           offset += match[0].length;

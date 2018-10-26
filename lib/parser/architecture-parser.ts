@@ -1,9 +1,9 @@
-import {ParserBase} from './parser-base';
-import {ProcessParser} from './process-parser';
-import {InstantiationParser} from './instantiation-parser';
-import {ParserPosition} from './parser-position';
-import {OSignal, OType, OArchitecture, ParserError, OState, OForGenerate, OIfGenerate} from './objects';
-import {AssignmentParser} from './assignment-parser';
+import { ParserBase } from './parser-base';
+import { ProcessParser } from './process-parser';
+import { InstantiationParser } from './instantiation-parser';
+import { ParserPosition } from './parser-position';
+import { OSignal, OType, OArchitecture, ParserError, OState, OForGenerate, OIfGenerate } from './objects';
+import { AssignmentParser } from './assignment-parser';
 
 export class ArchitectureParser extends ParserBase {
   name: string;
@@ -25,11 +25,10 @@ export class ArchitectureParser extends ParserBase {
       this.expect('is');
     }
 
-    const {signals, types} = this.parseDefinitionBlock(architecture);
+    const { signals, types } = this.parseDefinitionBlock(architecture, structureName !== 'architecture');
     architecture.signals = signals;
     architecture.types = types;
 
-    this.expect('begin');
     while (this.pos.i < this.text.length) {
       if (this.text[this.pos.i].match(/\s/)) {
         this.pos.i++;
@@ -71,7 +70,7 @@ export class ArchitectureParser extends ParserBase {
       } else if (nextWord === 'for') {
         this.debug('parse for generate');
         let variable = this.advancePast(/^\bin/i);
-        let start = this.advancePast(/^\bto/i);
+        let start = this.advancePast(/^\b(to|downto)/i);
         let end = this.advancePast(/^\bgenerate/i);
         const subarchitecture = new ArchitectureParser(this.text, this.pos, this.file, architecture, label);
         const generate: OForGenerate = (subarchitecture.parse(true, 'generate') as OForGenerate);
@@ -80,7 +79,7 @@ export class ArchitectureParser extends ParserBase {
         generate.variable = variable;
         architecture.generates.push(generate);
       } else if (nextWord === 'with') {
-          console.error('WTF');
+        console.error('WTF');
       } else { // TODO  others
         if (label) {
           const instantiationParser = new InstantiationParser(this.text, this.pos, this.file, architecture);
@@ -100,10 +99,10 @@ export class ArchitectureParser extends ParserBase {
   }
 
 
-  parseDefinitionBlock(parent: OArchitecture) {
+  parseDefinitionBlock(parent: OArchitecture, optional: boolean = false) {
     const signals: OSignal[] = [];
     const types: OType[] = [];
-    let nextWord = this.getNextWord({consume: false}).toLowerCase();
+    let nextWord = this.getNextWord({ consume: false }).toLowerCase();
     let multiSignals: string[] = [];
     while (nextWord !== 'begin') {
       this.getNextWord();
@@ -161,12 +160,15 @@ export class ArchitectureParser extends ParserBase {
         this.advancePast('end');
         this.maybeWord('component');
         this.expect(';');
+      } else if (optional && signals.length === 0 && types.length === 0) {
+        return { signals, types };
       } else {
         throw new ParserError(`Unknown Ding: '${nextWord}' on line ${this.getLine()}`, this.pos.i);
       }
-      nextWord = this.getNextWord({consume: false}).toLowerCase();
+      nextWord = this.getNextWord({ consume: false }).toLowerCase();
     }
-    return {signals, types};
+    this.expect('begin');
+    return { signals, types };
   }
 
 }

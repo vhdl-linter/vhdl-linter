@@ -1,5 +1,5 @@
 import { Parser } from './parser/parser';
-import { OFile, OIf, OAssignment, OForLoop, OSignalLike } from './parser/objects';
+import { OFile, OIf, OAssignment, OForLoop, OSignalLike, OSignal, OArchitecture } from './parser/objects';
 import { RangeCompatible, Point, TextEditor, PointCompatible, Directory, File } from 'atom';
 import { ProjectParser } from './project-parser';
 
@@ -79,7 +79,7 @@ export class VhdlLinter {
         await this.parsePackages();
       }
       this.checkResets();
-      this.checkUnused();
+      this.checkUnused(this.tree.architecture);
       this.checkDoubles();
       this.checkUndefineds();
       // this.parser.debugObject(this.tree);
@@ -279,36 +279,50 @@ export class VhdlLinter {
       }
     }
   }
-  checkUnused() {
-    if (!this.tree.architecture) {
+
+  checkUnusedPerArchitecture(architecture: OArchitecture, signal: OSignal) {
+    let unread = true;
+    let unwritten = true;
+    const sigLowName = signal.name.toLowerCase();
+    for (const process of architecture.processes) {
+      if (process.getFlatReads().find(read => read.text.toLowerCase() === sigLowName)) {
+        unread = false;
+      }
+      if (process.getFlatWrites().find(write => write.text.toLowerCase() === sigLowName)) {
+        unwritten = false;
+      }
+    }
+    for (const assignment of architecture.assignments) {
+      if (assignment.reads.find(read => read.text.toLowerCase() === sigLowName)) {
+        unread = false;
+      }
+      if (assignment.writes.find(write => write.text.toLowerCase() === sigLowName)) {
+        unwritten = false;
+      }
+    }
+    for (const instantiation of architecture.instantiations) {
+      if (instantiation.portMappings.find(portMap => portMap.mapping.toLowerCase() === sigLowName)) {
+        unwritten = false;
+        unread = false;
+      }
+    }
+    for (const generate of architecture.generates) {
+      const [unreadChild, unwrittenChild] = this.checkUnusedPerArchitecture(generate, signal);
+      if (unreadChild) {
+        unread = false;
+      }
+      if (unwrittenChild) {
+        unwritten = false;
+      }
+    }
+    return [unread, unwritten];
+  }
+  checkUnused(architecture: OArchitecture) {
+    if (!architecture) {
       return;
     }
-    for (const signal of this.tree.architecture.signals) {
-      let unread = true;
-      let unwritten = true;
-      const sigLowName = signal.name.toLowerCase();
-      for (const process of this.tree.architecture.processes) {
-        if (process.getFlatReads().find(read => read.text.toLowerCase() === sigLowName)) {
-          unread = false;
-        }
-        if (process.getFlatWrites().find(write => write.text.toLowerCase() === sigLowName)) {
-          unwritten = false;
-        }
-      }
-      for (const assignment of this.tree.architecture.assignments) {
-        if (assignment.reads.find(read => read.text.toLowerCase() === sigLowName)) {
-          unread = false;
-        }
-        if (assignment.writes.find(write => write.text.toLowerCase() === sigLowName)) {
-          unwritten = false;
-        }
-      }
-      for (const instantiation of this.tree.architecture.instantiations) {
-        if (instantiation.portMappings.find(portMap => portMap.mapping.toLowerCase() === sigLowName)) {
-          unwritten = false;
-          unread = false;
-        }
-      }
+    for (const signal of architecture.signals) {
+      const [unread, unwritten] = this.checkUnusedPerArchitecture(architecture, signal);
       if (unread) {
         this.messages.push({
           location: {
@@ -329,6 +343,9 @@ export class VhdlLinter {
           excerpt: `Not writing signal '${signal.name}'`
         });
       }
+    }
+    for (const generate of architecture.generates) {
+      this.checkUnused(generate);
     }
   }
 
