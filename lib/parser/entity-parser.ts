@@ -1,6 +1,6 @@
 import {ParserBase} from './parser-base';
 import {ParserPosition} from './parser-position';
-import {OPort, OGeneric, OEntity} from './objects';
+import {OPort, OGeneric, OEntity, ParserError} from './objects';
 
 export class EntityParser extends ParserBase {
   constructor(text: string, pos: ParserPosition, file: string, private parent: object) {
@@ -13,6 +13,7 @@ export class EntityParser extends ParserBase {
     entity.name = this.getNextWord();
     this.expect('is');
 
+    let lastI;
     while (this.pos.i < this.text.length) {
       if (this.text[this.pos.i].match(/\s/)) {
         this.pos.i++;
@@ -29,6 +30,10 @@ export class EntityParser extends ParserBase {
         this.expect(';');
         break;
       }
+      if (lastI === this.pos.i) {
+        throw new ParserError(`Parser stuck on line ${this.getLine} in module ${this.constructor.name}`, this.pos.i);
+      }
+      lastI = this.pos.i;
     }
     this.end = this.pos.i;
 

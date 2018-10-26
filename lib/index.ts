@@ -1,6 +1,7 @@
 import { Parser } from './parser/parser';
 import { OFile, OIf, OAssignment, OForLoop, OSignalLike } from './parser/objects';
 import { RangeCompatible, Point, TextEditor, PointCompatible, Directory, File } from 'atom';
+import { ProjectParser } from './project-parser';
 
 export function activate() {
   // Fill something here, optional
@@ -9,12 +10,14 @@ export function activate() {
 export function deactivate() {
   // Fill something here, optional
 }
+const projectParser = new ProjectParser();
 export class VhdlLinter {
   messages: Message[] = [];
   tree: OFile;
   parser: Parser;
   packageThings: string[] = [];
   constructor(private editorPath: string, private text: string) {
+    projectParser.removeFile(editorPath);
     this.parser = new Parser(this.text, this.editorPath);
     console.log(`parsing: ${editorPath}`);
     try {
@@ -40,42 +43,20 @@ export class VhdlLinter {
 
   }
   async parsePackages() {
-    let files: File[] = [];
-    const parseDirectory = (directory: Directory): File[] => {
-      const files = [];
-      for (const entry of directory.getEntriesSync()) {
-        if (entry instanceof File) {
-          files.push(entry);
-        } else {
-          files.push(... parseDirectory(entry));
-        }
-      }
-      return files;
-    };
-    for (const directory of atom.project.getDirectories()) {
-      files = parseDirectory(directory);
-    }
-    files = files.filter(file => file.getBaseName().match(/\.vhdl?$/i));
+    const packages = await projectParser.getPackages();
     for (const useStatement of this.tree.useStatements) {
       let match = useStatement.text.match(/([^.]+)\.([^.]+)\.all/i);
       let found = false;
       if (match) {
-        if (match[1] === 'ieee') {
+        const library = match[1];
+        const pkg = match[2];
+        if (library === 'ieee') {
           found = true;
         } else {
-          for (const file of files) {
-            const text = await file.read();
-            if (text && text.match(new RegExp('package\\s+' + match[2] + '\\s+is', 'i'))) {
+          for (const foundPkg of packages) {
+            if (foundPkg.name.toLowerCase() === pkg.toLowerCase()) {
+              this.packageThings.push(... foundPkg.things);
               found = true;
-              let re = /constant\s+(\w+)/g;
-              let m;
-              while (m = re.exec(text)) {
-                this.packageThings.push(m[1]);
-              }
-              re = /function\s+(\w+)/g;
-              while (m = re.exec(text)) {
-                this.packageThings.push(m[1]);
-              }
             }
           }
         }
@@ -91,11 +72,12 @@ export class VhdlLinter {
         });
       }
     }
-    console.log(files);
   }
   async checkAll() {
     if (this.tree) {
-      await this.parsePackages();
+      if (atom) {
+        await this.parsePackages();
+      }
       this.checkResets();
       this.checkUnused();
       this.checkDoubles();
@@ -375,18 +357,18 @@ export class VhdlLinter {
   }
 
 }
-
+console.log('hi');
 export function provideLinter() {
   return {
     name: 'Boss-Linter',
     scope: 'file', // or 'project'
     lintsOnChange: true, // or true
     grammarScopes: ['source.vhdl'],
-    lint(textEditor: TextEditor) {
+    async lint(textEditor: TextEditor): Promise<Message[]> {
       const vhdlLinter = new VhdlLinter(textEditor.getPath() || '', textEditor.getText());
-      const messages = vhdlLinter.checkAll();
+      const messages = await vhdlLinter.checkAll();
       return messages;
-    }
+  }
   };
 }
 

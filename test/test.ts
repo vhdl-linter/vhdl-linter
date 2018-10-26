@@ -1,13 +1,11 @@
 import {Parser} from '../lib/parser/parser';
 import {AssignmentParser} from '../lib/parser/assignment-parser';
 import {ParserPosition} from '../lib/parser/parser-position';
+import * as glob from 'glob';
+
 
 import * as fs from 'fs';
 import * as util from 'util';
-// let text = fs.readFileSync('./test/test2.vhdl').toString();
-// let parser = new Parser(text, './test/test2.vhdl');
-// const tree = parser.parse();
-// console.log(util.inspect(tree, true, 3, true));
 // const files = fs.readdirSync('./test');
 // files.filter(file => file.match(/\.vhdl?/i)).forEach(file => {
 //   console.log(`parsing ${file}`)
@@ -21,7 +19,25 @@ import * as util from 'util';
 // console.log(assignmentParser.parse());
 
 
-import {VhdlLinter} from '../lib/index';
-const filename = './test/__yolotest.vhd';
-const vhdlLinter = new VhdlLinter(filename, fs.readFileSync(filename).toString());
-console.log(util.inspect(vhdlLinter.checkAll(), true, 5));
+const filename = '/home/schulte/Documents/work/TCP/svn_ESG_netstack/branches/0-1.schulte/_src/SpeedApplication2/_sim/../../UDPStack_TX/_src/ICMPHandler.vhd';
+
+let text = fs.readFileSync(filename).toString();
+let parser = new Parser(text, filename);
+const tree = parser.parse();
+// console.log(util.inspect(tree, true, 3, true));
+// const vhdlLinter = new VhdlLinter(filename, fs.readFileSync(filename).toString());
+// console.log(util.inspect(vhdlLinter.checkAll(), true, 5));
+//
+glob("/home/schulte/Documents/work/TCP/svn_ESG_netstack/branches/0-1.schulte/**/*.vhd", function (er, files) {
+  for (const filename of files) {
+    console.log(`starting: ${filename}`);
+    let text = fs.readFileSync(filename).toString();
+    try {
+      let parser = new Parser(text, filename);
+      const tree = parser.parse();
+      console.log(`done: ${filename}`);
+    } catch(e) {
+      console.error(e);
+    }
+  }
+})

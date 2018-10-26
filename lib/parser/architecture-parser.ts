@@ -2,7 +2,7 @@ import {ParserBase} from './parser-base';
 import {ProcessParser} from './process-parser';
 import {InstantiationParser} from './instantiation-parser';
 import {ParserPosition} from './parser-position';
-import {OSignal, OType, OArchitecture, OGenerate, ParserError, OState} from './objects';
+import {OSignal, OType, OArchitecture, ParserError, OState, OForGenerate, OIfGenerate} from './objects';
 import {AssignmentParser} from './assignment-parser';
 
 export class ArchitectureParser extends ParserBase {
@@ -36,9 +36,15 @@ export class ArchitectureParser extends ParserBase {
         continue;
       }
       let nextWord = this.getNextWord().toLowerCase();
+      console.log(nextWord, 'nextWord');
       if (nextWord === 'end') {
         this.maybeWord(structureName);
-        this.maybeWord(this.type);
+        if (this.type) {
+          this.maybeWord(this.type);
+        }
+        if (this.name) {
+          this.maybeWord(this.name);
+        }
         this.expect(';');
         this.end = this.pos.i;
         break;
@@ -52,20 +58,30 @@ export class ArchitectureParser extends ParserBase {
       } if (nextWord === 'process') {
         const processParser = new ProcessParser(this.text, this.pos, this.file, architecture);
         architecture.processes.push(processParser.parse(label));
-      } else if (nextWord === 'for') {
-        let variable = this.getNextWord();
-        this.expect('in');
-        let start = this.getNextWord();
-        this.expect('to');
-        let end = this.getNextWord();
-        this.expect('generate');
+      } else if (nextWord === 'if') {
+        this.debug('parse if generate ' + label);
+        let conditionI = this.pos.i;
+        let condition = this.advancePast(/^\bgenerate/i);
         const subarchitecture = new ArchitectureParser(this.text, this.pos, this.file, architecture, label);
-        const generate = (subarchitecture.parse(true, 'generate') as OGenerate);
+        const ifGenerate = (subarchitecture.parse(true, 'generate') as OIfGenerate);
+        ifGenerate.condition = condition;
+        ifGenerate.conditionReads = this.extractReadsOrWrite(ifGenerate, condition, conditionI);
+        architecture.generates.push(ifGenerate);
+
+      } else if (nextWord === 'for') {
+        this.debug('parse for generate');
+        let variable = this.advancePast(/^\bin/i);
+        let start = this.advancePast(/^\bto/i);
+        let end = this.advancePast(/^\bgenerate/i);
+        const subarchitecture = new ArchitectureParser(this.text, this.pos, this.file, architecture, label);
+        const generate: OForGenerate = (subarchitecture.parse(true, 'generate') as OForGenerate);
         generate.start = start;
         generate.end = end;
         generate.variable = variable;
         architecture.generates.push(generate);
-      } else { // TODO for generate and others
+      } else if (nextWord === 'with') {
+          console.error('WTF');
+      } else { // TODO  others
         if (label) {
           const instantiationParser = new InstantiationParser(this.text, this.pos, this.file, architecture);
           architecture.instantiations.push(instantiationParser.parse(nextWord, label));
@@ -146,9 +162,9 @@ export class ArchitectureParser extends ParserBase {
         this.maybeWord('component');
         this.expect(';');
       } else {
-        throw new ParserError(`Unknown Ding, ${nextWord}`, this.pos.i);
+        throw new ParserError(`Unknown Ding: '${nextWord}' on line ${this.getLine()}`, this.pos.i);
       }
-      nextWord = this.getNextWord({consume: false});
+      nextWord = this.getNextWord({consume: false}).toLowerCase();
     }
     return {signals, types};
   }

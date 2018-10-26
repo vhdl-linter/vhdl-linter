@@ -24,7 +24,7 @@ export class OArchitecture extends ObjectBase {
   signals: OSignal[] = [];
   processes: OProcess[] = [];
   instantiations: OInstantiation[] = [];
-  generates: OGenerate[] = [];
+  generates: OArchitecture[] = [];
   assignments: OAssignment[] = [];
   types: OType[] = [];
 }
@@ -37,10 +37,14 @@ export class OState extends ObjectBase {
   end: number;
   name: string;
 }
-export class OGenerate extends OArchitecture {
+export class OForGenerate extends OArchitecture {
   variable: string;
   start: string;
   end: string;
+}
+export class OIfGenerate extends OArchitecture {
+  condition: string;
+  conditionReads: ORead[];
 }
 export class OValue extends ObjectBase {
   name: string;

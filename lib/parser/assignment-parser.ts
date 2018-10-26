@@ -13,15 +13,15 @@ export class AssignmentParser extends ParserBase {
     assignment.begin = this.pos.i;
     let leftHandSideI = this.pos.i;
     let leftHandSide = '';
-    while (this.text.substr(this.pos.i, 2) !== '<=') {
+    while (this.text.substr(this.pos.i, 2) !== '<=' && this.text.substr(this.pos.i, 2) !== ':=') {
       leftHandSide += this.text[this.pos.i];
       this.pos.i++;
       if (this.pos.i === this.text.length) {
-        throw new ParserError(`expecteded <=, reached end of text. Start on line: ${this.getLine(leftHandSideI)}`, leftHandSideI);
+        throw new ParserError(`expecteded <= or :=, reached end of text. Start on line: ${this.getLine(leftHandSideI)}`, leftHandSideI);
       }
     }
     assignment.writes = this.extractReadsOrWrite(assignment, leftHandSide, leftHandSideI);
-    this.expect('<=');
+    this.pos.i += 2;
     let rightHandSide = '';
     let rightHandSideI = this.pos.i;
 

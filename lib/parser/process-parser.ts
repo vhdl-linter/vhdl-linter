@@ -15,7 +15,8 @@ export class ProcessParser extends ParserBase {
     const process = new OProcess(this.parent, this.pos.i);
 
     process.sensitivityList = this.advancePast(')');
-    let nextWord = this.getNextWord({ consume: false });
+    this.maybeWord('is');
+    let nextWord = this.getNextWord({ consume: false }).toLowerCase();
     while (nextWord !== 'begin') {
       const variable = new OVariable(process, this.pos.i);
       variable.constant = false;
@@ -43,7 +44,7 @@ export class ProcessParser extends ParserBase {
       }
       process.variables.push(variable);
       multiSignals = [];
-      nextWord = this.getNextWord({ consume: false });
+      nextWord = this.getNextWord({ consume: false }).toLowerCase();
     }
     this.expect('begin');
     process.statements = this.parseStatements(process, ['end']);
@@ -66,9 +67,9 @@ export class ProcessParser extends ParserBase {
         this.expect(':');
         nextWord = this.getNextWord({ consume: false });
       }
-      if (nextWord === 'if') {
+      if (nextWord.toLowerCase() === 'if') {
         statements.push(this.parseIf(parent, label));
-      } else if (exitConditions.indexOf(nextWord) > -1) {
+      } else if (exitConditions.indexOf(nextWord.toLowerCase()) > -1) {
         break;
       } else if (nextWord.toLowerCase() === 'case') {
         this.getNextWord();
@@ -118,7 +119,7 @@ export class ProcessParser extends ParserBase {
     });
     clause.statements = this.parseStatements(clause, ['else', 'elsif', 'end']);
     if_.clauses.push(clause);
-    let nextWord = this.getNextWord({ consume: false });
+    let nextWord = this.getNextWord({ consume: false }).toLowerCase();
     while (nextWord === 'elsif') {
       const clause = new OIfClause(if_, this.pos.i);
 
@@ -134,7 +135,7 @@ export class ProcessParser extends ParserBase {
       });
       clause.statements = this.parseStatements(clause, ['else', 'elsif', 'end']);
       if_.clauses.push(clause);
-      nextWord = this.getNextWord({ consume: false });
+      nextWord = this.getNextWord({ consume: false }).toLowerCase();
     }
     if (nextWord === 'else') {
       this.expect('else');
@@ -149,24 +150,27 @@ export class ProcessParser extends ParserBase {
     return if_;
   }
   parseCase(parent: object, label?: string): OCase {
-    this.debug(`parseCase`);
+    this.debug(`parseCase ${label}`);
     const case_ = new OCase(parent, this.pos.i);
     case_.variable = this.extractReadsOrWrite(case_, this.advancePast(/^\s*is/i), this.pos.i);
 
-    let nextWord = this.getNextWord();
+    let nextWord = this.getNextWord().toLowerCase();
     while (nextWord === 'when') {
+      this.debug(`parseWhen`);
       const whenClause = new OWhenClause(case_, this.pos.i);
 
       whenClause.condition = this.extractReadsOrWrite(whenClause, this.advancePast('=>'), this.pos.i);
       whenClause.statements = this.parseStatements(whenClause, ['when', 'end']);
       case_.whenClauses.push(whenClause);
-      nextWord = this.getNextWord();
+      nextWord = this.getNextWord().toLowerCase();
     }
     this.expect('case');
     if (label) {
       this.maybeWord(label);
     }
     this.expect(';');
+    this.debug(`parseCaseDone ${label}`);
+
     return case_;
   }
 }

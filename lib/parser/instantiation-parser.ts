@@ -1,6 +1,6 @@
 import {ParserBase} from './parser-base';
 import {ParserPosition} from './parser-position';
-import {OInstantiation, OMapping} from './objects';
+import {OInstantiation, OMapping, ParserError} from './objects';
 
 export class InstantiationParser extends ParserBase {
   constructor(text: string, pos: ParserPosition, file: string, private parent: object) {
@@ -16,8 +16,10 @@ export class InstantiationParser extends ParserBase {
     }
     instantiation.componentName = nextWord;
     let hasPortMap = false;
+    let lastI;
     while (this.text[this.pos.i] !== ';') {
       nextWord = this.getNextWord();
+      console.log(nextWord, 'nextWord');
       if (nextWord === 'port') {
         hasPortMap = true;
         this.expect('map');
@@ -29,7 +31,10 @@ export class InstantiationParser extends ParserBase {
         this.expect('(');
         instantiation.genericMappings = this.parseMapping(instantiation);
       }
-
+      if (lastI === this.pos.i) {
+        throw new ParserError(`Parser stuck on line ${this.getLine} in module ${this.constructor.name}`, this.pos.i);
+      }
+      lastI = this.pos.i;
     }
     this.expect(';');
     if (!hasPortMap) {
@@ -38,6 +43,8 @@ export class InstantiationParser extends ParserBase {
     return instantiation;
   }
   parseMapping(instantiation: object) {
+    this.debug(`parseMapping`);
+
     const mappings: OMapping[] = [];
 
     while (this.pos.i < this.text.length) {

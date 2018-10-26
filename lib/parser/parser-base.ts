@@ -15,7 +15,7 @@ export class ParserBase {
 
   }
   debug(message: string)  {
-      console.log(`${this.constructor.name}: ${message} in line: ${this.getLine()}, (${this.file})`);
+      // console.log(`${this.constructor.name}: ${message} in line: ${this.getLine()}, (${this.file})`);
   }
   debugObject(object: any) {
     let target: any = {};
@@ -61,7 +61,7 @@ export class ParserBase {
     let text = '';
     let searchStart = this.pos.i;
     if (typeof search === 'string') {
-      while (this.text.substr(this.pos.i, search.length) !== search) {
+      while (this.text.substr(this.pos.i, search.length).toLowerCase() !== search.toLowerCase()) {
         text += this.text[this.pos.i];
         this.pos.i++;
         if (this.pos.i > this.text.length) {
@@ -94,13 +94,16 @@ export class ParserBase {
     this.advanceWhitespace();
     return text;
   }
-  getNextWord(options: {re?: RegExp, consume?: boolean} = {}) {
-    let {re, consume} = options;
+  getNextWord(options: {re?: RegExp, consume?: boolean, withCase?: boolean} = {}) {
+    let {re, consume, withCase} = options;
     if (!re) {
       re = /\w/;
     }
     if (typeof consume === 'undefined') {
       consume = true;
+    }
+    if (typeof withCase === 'undefined') {
+      withCase = false;
     }
     if (consume) {
       let word = '';
@@ -117,7 +120,10 @@ export class ParserBase {
       word += this.text[this.pos.i + j];
       j++;
     }
-    return word;
+    if (withCase) {
+      return word;
+    }
+    return word.toLowerCase();
   }
   getLine(position?: number) {
     if (!position) {
@@ -133,7 +139,7 @@ export class ParserBase {
   }
   expect(expected: string) {
     const word = this.text.substr(this.pos.i, expected.length);
-    if (word !== expected) {
+    if (word.toLowerCase() !== expected.toLowerCase()) {
       throw new ParserError(`expected '${expected}' found '${word}' line: ${this.getLine()}`, this.pos.i);
     }
     this.pos.i += word.length;
