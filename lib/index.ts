@@ -145,7 +145,7 @@ export class VhdlLinter {
     if (!this.tree.architecture) {
       return;
     }
-    const ignores = ['unsigned', 'std_logic_vector', 'to_unsigned', 'to_integer', 'resize', 'rising_edge', 'to_signed'];
+    const ignores = ['unsigned', 'std_logic_vector', 'to_unsigned', 'to_integer', 'resize', 'rising_edge', 'to_signed', 'signed', 'shift_right', 'shift_left'];
     for (const process of this.tree.architecture.processes) {
       for (const write of process.getFlatWrites()) {
         let found = false;
@@ -268,18 +268,52 @@ export class VhdlLinter {
       }
       const registerProcess = signal.getRegisterProcess();
       if (!resetFound && registerProcess) {
+        const solutions: Solution[] = [];
+        for (const statement of registerProcess.statements) {
+          if (statement instanceof OIf) {
+            for (const clause of statement.clauses) {
+              if (clause.condition.match(/reset/i)) {
+                let resetValue = null;
+                console.log(signal);
+                if (signal.type.match(/^std_logic_vector|unsigned|signed/i)) {
+                  resetValue = `(others => '0')`;
+                } else if (signal.type.match(/^std_logic/i)) {
+                  resetValue = `'0'`;
+                } else if (signal.type.match(/^integer/i)) {
+                  resetValue = `0`;
+                }
+                if (resetValue !== null) {
+                  let positionStart = this.getPositionFromI(clause.startI);
+                  positionStart[0]++;
+                  solutions.push({
+                    title: 'Add Register',
+                    position: [positionStart, positionStart],
+                    replaceWith: `  ${signal.name} <= ${resetValue};\n`
+                  });
+                }
+              }
+            }
+          }
+        }
         this.messages.push({
           location: {
             file: this.editorPath,
             position: this.getPositionFromILine(registerProcess.startI)
           },
+          solutions,
           severity: 'error',
           excerpt: `Reset '${signal.name}' missing`
         });
       }
     }
   }
-
+  // Array<{
+  //     title?: string,
+  //     position: Range,
+  //     priority?: number,
+  //     currentText?: string,
+  //     replaceWith: string,
+  //   }
   checkUnusedPerArchitecture(architecture: OArchitecture, signal: OSignal) {
     let unread = true;
     let unwritten = true;
@@ -403,17 +437,18 @@ export type Message = {
   icon?: string,
   excerpt: string,
   severity: 'error' | 'warning' | 'info',
-  solutions?: Array<{
-    title?: string,
-    position: Range,
-    priority?: number,
-    currentText?: string,
-    replaceWith: string,
-  } | {
-    title?: string,
-    priority?: number,
-    position: Range,
-    apply: (() => any),
-  }>,
+  solutions?: Solution[],
   description?: string | (() => Promise<string> | string)
+};
+export type Solution = {
+  title?: string,
+  position: [[number, number], [number, number]],
+  priority?: number,
+  currentText?: string,
+  replaceWith: string,
+} | {
+  title?: string,
+  priority?: number,
+  position: [[number, number], [number, number]],
+  apply: (() => any),
 };

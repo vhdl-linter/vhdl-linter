@@ -64,7 +64,7 @@ export class ArchitectureParser extends ParserBase {
         const subarchitecture = new ArchitectureParser(this.text, this.pos, this.file, architecture, label);
         const ifGenerate = (subarchitecture.parse(true, 'generate') as OIfGenerate);
         ifGenerate.condition = condition;
-        ifGenerate.conditionReads = this.extractReadsOrWrite(ifGenerate, condition, conditionI);
+        ifGenerate.conditionReads = this.extractReads(ifGenerate, condition, conditionI);
         architecture.generates.push(ifGenerate);
 
       } else if (nextWord === 'for') {
@@ -117,10 +117,10 @@ export class ArchitectureParser extends ParserBase {
           continue;
         }
         this.expect(':');
-        let type = this.getType();
-        if (type.indexOf(':=') > -1) {
-          const split = type.split(':=');
-          type = split[0].trim();
+        signal.type = this.getType();
+        if (signal.type.indexOf(':=') > -1) {
+          const split = signal.type.split(':=');
+          signal.type = split[0].trim();
           signal.defaultValue = split[1].trim();
 
         }

@@ -152,14 +152,14 @@ export class ProcessParser extends ParserBase {
   parseCase(parent: object, label?: string): OCase {
     this.debug(`parseCase ${label}`);
     const case_ = new OCase(parent, this.pos.i);
-    case_.variable = this.extractReadsOrWrite(case_, this.advancePast(/^\s*is/i), this.pos.i);
+    case_.variable = this.extractReads(case_, this.advancePast(/^\s*is/i), this.pos.i);
 
     let nextWord = this.getNextWord().toLowerCase();
     while (nextWord === 'when') {
       this.debug(`parseWhen`);
       const whenClause = new OWhenClause(case_, this.pos.i);
 
-      whenClause.condition = this.extractReadsOrWrite(whenClause, this.advancePast('=>'), this.pos.i);
+      whenClause.condition = this.extractReads(whenClause, this.advancePast('=>'), this.pos.i);
       whenClause.statements = this.parseStatements(whenClause, ['when', 'end']);
       case_.whenClauses.push(whenClause);
       nextWord = this.getNextWord().toLowerCase();

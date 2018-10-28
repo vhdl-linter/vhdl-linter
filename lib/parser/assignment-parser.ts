@@ -20,17 +20,16 @@ export class AssignmentParser extends ParserBase {
         throw new ParserError(`expecteded <= or :=, reached end of text. Start on line: ${this.getLine(leftHandSideI)}`, leftHandSideI);
       }
     }
-    assignment.writes = this.extractReadsOrWrite(assignment, leftHandSide, leftHandSideI);
+    [assignment.reads, assignment.writes] = this.extractReadsOrWrite(assignment, leftHandSide, leftHandSideI);
     this.pos.i += 2;
     let rightHandSide = '';
     let rightHandSideI = this.pos.i;
 
-    assignment.reads = [];
     while (this.text.substr(this.pos.i, 1) !== ';') {
       rightHandSide += this.text[this.pos.i];
       this.pos.i++;
     }
-    assignment.reads = this.extractReadsOrWrite(assignment, rightHandSide, rightHandSideI);
+    assignment.reads.push(...this.extractReads(assignment, rightHandSide, rightHandSideI));
     this.expect(';');
     // console.log(assignment,  assignment.constructor.name, assignment instanceof Assignment);
     assignment.end = this.pos.i;

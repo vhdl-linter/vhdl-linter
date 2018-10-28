@@ -171,15 +171,42 @@ export class ParserBase {
     this.advanceWhitespace();
     return type;
   }
-  extractReadsOrWrite(parent: any, text: string, i: number): ORead[] {
+  extractReads(parent: any, text: string, i: number): ORead[] {
     return this.tokenize(text).filter(token => token.type === 'VARIABLE' || token.type === 'FUNCTION').map(token => {
       const write = new OWrite(parent, i);
       write.begin = i;
-      // write.begin = leftHandSideI + token.offset;
+      write.begin = i + token.offset;
       write.end = write.begin + token.value.length;
       write.text = token.value;
       return write;
     });
+  }
+  extractReadsOrWrite(parent: any, text: string, i: number): [ORead[], OWrite[]] {
+    const reads: ORead[] = [];
+    const writes: OWrite[] = [];
+    let braceLevel = 0;
+    for (const token of this.tokenize(text)) {
+      if (token.type === 'BRACE') {
+        token.value === '(' ? braceLevel++ : braceLevel--;
+      } else if (token.type === 'VARIABLE' || token.type === 'FUNCTION') {
+        if (braceLevel === 0) {
+          const write = new OWrite(parent, i);
+          write.begin = i;
+          write.begin = i + token.offset;
+          write.end = write.begin + token.value.length;
+          write.text = token.value;
+          writes.push(write);
+        } else {
+          const read = new ORead(parent, i);
+          read.begin = i;
+          read.begin = i + token.offset;
+          read.end = read.begin + token.value.length;
+          read.text = token.value;
+          reads.push(read);
+        }
+      }
+    }
+    return [reads, writes];
   }
   tokenize(text: string): Token[] {
     const operators = [
