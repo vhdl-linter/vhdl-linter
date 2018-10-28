@@ -50,7 +50,7 @@ export class VhdlLinter {
       if (match) {
         const library = match[1];
         const pkg = match[2];
-        if (library === 'ieee') {
+        if (library.toLowerCase() === 'ieee') {
           found = true;
         } else {
           for (const foundPkg of packages) {
