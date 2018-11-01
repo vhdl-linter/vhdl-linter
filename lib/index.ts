@@ -311,9 +311,9 @@ export class VhdlLinter {
               if (clause.condition.match(/reset/i)) {
                 let resetValue = null;
                 console.log(signal);
-                if (signal.type.match(/^std_logic_vector|unsigned|signed/i)) {
+                if (signal.type.match(/^std_u?logic_vector|unsigned|signed/i)) {
                   resetValue = `(others => '0')`;
-                } else if (signal.type.match(/^std_logic/i)) {
+                } else if (signal.type.match(/^std_u?logic/i)) {
                   resetValue = `'0'`;
                 } else if (signal.type.match(/^integer/i)) {
                   resetValue = `0`;
