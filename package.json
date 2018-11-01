@@ -4,7 +4,11 @@
   "version": "0.0.0",
   "description": "A typescript based linter for vhdl",
   "keywords": [],
-  "activationCommands": {},
+  "activationCommands": {
+    "atom-workspace": [
+      "vhdl-linter:copy-parsed"
+    ]
+  },
   "repository": "https://github.com/atom/vhdl-linter",
   "license": "MIT",
   "engines": {

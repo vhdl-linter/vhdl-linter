@@ -1,15 +1,51 @@
 import { Parser } from './parser/parser';
 import { OFile, OIf, OAssignment, OForLoop, OSignalLike, OSignal, OArchitecture } from './parser/objects';
-import { RangeCompatible, Point, TextEditor, PointCompatible, Directory, File } from 'atom';
+import { RangeCompatible, Point, TextEditor, PointCompatible, Directory, File, CompositeDisposable } from 'atom';
 import { ProjectParser } from './project-parser';
 
 export function activate() {
-  // Fill something here, optional
+  // Events subscribed to in atom's system can be easily cleaned up with a CompositeDisposable
+  this.subscriptions = new CompositeDisposable();
+
+  // Register command that toggles this view
+  this.subscriptions.add(atom.commands.add('atom-workspace', {
+    'vhdl-linter:copy-parsed': () => {
+      const editor = atom.workspace.getActiveTextEditor();
+      if (editor) {
+        this.parser = new Parser(editor.getText(), editor.getPath() || '');
+        const tree = this.parser.parse();
+        let target: any = {};
+        const filter = (object: any) => {
+          const target: any = {};
+          if (!object) {
+            return;
+          }
+          for (const key of Object.keys(object)) {
+            if (key === 'parent') {
+              continue;
+            } else if (Array.isArray(object[key])) {
+              target[key] = object[key].map(filter);
+
+            } else if (typeof object[key] === 'object') {
+              target[key] = filter(object[key]);
+            } else {
+              target[key] = object[key];
+            }
+          }
+          return target;
+        };
+        target = filter(tree);
+        atom.clipboard.write(JSON.stringify(target));
+      }
+    }
+  }));
 }
 
 export function deactivate() {
-  // Fill something here, optional
+  this.subscriptions.dispose();
 }
+
+
 const projectParser = new ProjectParser();
 export class VhdlLinter {
   messages: Message[] = [];
@@ -335,17 +371,17 @@ export class VhdlLinter {
       }
     }
     for (const instantiation of architecture.instantiations) {
-      if (instantiation.portMappings.find(portMap => portMap.mapping.toLowerCase() === sigLowName)) {
+      if (instantiation.portMappings.find(portMap => portMap.mapping.toLowerCase().replace(/\(.*\)*/, '') === sigLowName)) {
         unwritten = false;
         unread = false;
       }
     }
     for (const generate of architecture.generates) {
       const [unreadChild, unwrittenChild] = this.checkUnusedPerArchitecture(generate, signal);
-      if (unreadChild) {
+      if (!unreadChild) {
         unread = false;
       }
-      if (unwrittenChild) {
+      if (!unwrittenChild) {
         unwritten = false;
       }
     }
