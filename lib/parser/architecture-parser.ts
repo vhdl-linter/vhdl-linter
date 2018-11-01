@@ -138,24 +138,28 @@ export class ArchitectureParser extends ParserBase {
         const type = new OType(parent, this.pos.i);
         type.name = this.getNextWord();
         this.expect('is');
-        this.expect('(');
-        let position = this.pos.i;
-        type.states = this.advancePast(')').split(',').map(type => {
-          const state = new OState(type, position);
-          const match = type.match(/^\s*/);
-          if (match) {
-            state.begin = position + match[0].length;
-          } else {
-            state.begin = position;
-          }
-          state.name = type.trim();
-          state.end = state.begin + state.name.length;
-          position += type.length;
-          position++;
-          return state;
-        });
-        types.push(type);
-        this.expect(';');
+        if (this.text[this.pos.i] === '(') {
+          this.expect('(');
+          let position = this.pos.i;
+          type.states = this.advancePast(')').split(',').map(type => {
+            const state = new OState(type, position);
+            const match = type.match(/^\s*/);
+            if (match) {
+              state.begin = position + match[0].length;
+            } else {
+              state.begin = position;
+            }
+            state.name = type.trim();
+            state.end = state.begin + state.name.length;
+            position += type.length;
+            position++;
+            return state;
+          });
+          types.push(type);
+          this.expect(';');
+        } else {
+          this.advancePast(';');
+        }
       } else if (nextWord === 'component') {
         this.advancePast('end');
         this.maybeWord('component');
