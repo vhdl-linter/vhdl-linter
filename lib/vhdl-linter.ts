@@ -10,7 +10,6 @@ export class VhdlLinter {
   packageThings: string[] = [];
   constructor(private editorPath: string, private text: string, public projectParser: ProjectParser) {
     console.log('lint');
-    this.projectParser.removeFile(editorPath);
     this.parser = new Parser(this.text, this.editorPath);
     console.log(`parsing: ${editorPath}`);
     try {
@@ -37,13 +36,14 @@ export class VhdlLinter {
   }
   async parsePackages() {
     const packages = await this.projectParser.getPackages();
+    console.log(packages);
     for (const useStatement of this.tree.useStatements) {
       let match = useStatement.text.match(/([^.]+)\.([^.]+)\.all/i);
       let found = false;
       if (match) {
         const library = match[1];
         const pkg = match[2];
-        if (library.toLowerCase() === 'ieee') {
+        if (library.toLowerCase() === 'altera_mf') {
           found = true;
         } else {
           for (const foundPkg of packages) {
@@ -139,7 +139,6 @@ export class VhdlLinter {
     if (!this.tree.architecture) {
       return;
     }
-    const ignores = ['unsigned', 'std_logic_vector', 'to_unsigned', 'to_integer', 'resize', 'rising_edge', 'to_signed', 'signed', 'shift_right', 'shift_left'];
     for (const process of this.tree.architecture.processes) {
       for (const write of process.getFlatWrites()) {
         let found = false;
@@ -177,9 +176,6 @@ export class VhdlLinter {
       }
       for (const read of process.getFlatReads()) {
         let found = false;
-        if (ignores.indexOf(read.text.toLowerCase()) > - 1) {
-          found = true;
-        }
         if (this.packageThings.find(packageConstant => packageConstant.toLowerCase() === read.text.toLowerCase())) {
           found = true;
         }
@@ -378,6 +374,9 @@ export class VhdlLinter {
     }
   }
   checkPortDeclaration() {
+    if (!this.tree.entity) {
+      return;
+    }
     for (const port of this.tree.entity.ports) {
       if (port.direction === 'in') {
         if (port.name.match(/^o_/i)) {
