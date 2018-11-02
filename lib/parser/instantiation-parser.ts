@@ -51,10 +51,11 @@ export class InstantiationParser extends ParserBase {
       const mapping = new OMapping(instantiation, this.pos.i);
       mapping.name = this.getNextWord({re: /[^=]/});
       this.expect('=>');
-      mapping.mapping = '';
+      let mappingStringStartI = this.pos.i;
+      let mappingString = '';
       let braceLevel = 0;
       while (this.text[this.pos.i].match(/[,)]/) === null || braceLevel > 0) {
-        mapping.mapping += this.text[this.pos.i];
+        mappingString += this.text[this.pos.i];
         if (this.text[this.pos.i] === '(') {
           braceLevel++;
         } else if (this.text[this.pos.i] === ')') {
@@ -63,7 +64,7 @@ export class InstantiationParser extends ParserBase {
         this.pos.i++;
       }
       mapping.name = mapping.name.trim();
-      mapping.mapping = mapping.mapping.trim();
+      mapping.mapping = this.extractReads(mapping, mappingString, mappingStringStartI);
       mappings.push(mapping);
       if (this.text[this.pos.i] === ',') {
         this.pos.i++;

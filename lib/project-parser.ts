@@ -1,8 +1,11 @@
-import { Directory, File } from 'atom';
+import { Directory, File, CompositeDisposable } from 'atom';
 
 export class ProjectParser {
   private cachedFiles: OFileCache[] = [];
-  constructor() {
+  private initializationPromise: Promise<void>;
+  private packages: OPackage[];
+  constructor(public subscriptions: CompositeDisposable) {
+    this.initializationPromise = this.initialize();
   }
   private parseDirectory (directory: Directory): File[] {
     const files = [];
@@ -21,7 +24,7 @@ export class ProjectParser {
     const index = this.cachedFiles.findIndex(cachedFile => cachedFile.path === path);
     this.cachedFiles.splice(index, 1);
   }
-  public async getPackages(): Promise<OPackage[]> {
+  private async initialize(): Promise<void> {
     let files: File[] = [];
     for (const directory of atom.project.getDirectories()) {
       files.push(... this.parseDirectory(directory));
@@ -39,8 +42,45 @@ export class ProjectParser {
       }
     }
     let packages = this.cachedFiles.map(cachedFile => cachedFile.package);
-    let packagesFiltered = packages.filter(package_ => typeof package_ !== 'undefined') as OPackage[];
-    return packagesFiltered;
+    this.packages = packages.filter(package_ => typeof package_ !== 'undefined') as OPackage[];
+    this.subscriptions.add(atom.project.onDidChangeFiles(async events => {
+      for (const event of events) {
+        if (event.path.match(/\.vhdl?$/i)) {
+          if (event.action === 'created') {
+            let cachedFile = new OFileCache();
+            cachedFile.path = event.path;
+            await cachedFile.parsePackage(new File(event.path));
+            this.cachedFiles.push(cachedFile);
+          } else if (event.action === 'deleted') {
+            const index = this.cachedFiles.findIndex(cachedFile => cachedFile.path === event.path);
+            this.cachedFiles.splice(index, 1);
+          } else if (event.action === 'modified') {
+            const cachedFile = this.cachedFiles.find(cachedFile => cachedFile.path === event.path);
+            if (cachedFile) {
+              await cachedFile.parsePackage(new File(event.path));
+            } else {
+              console.error('modified file didnt find', event);
+            }
+          } else if (event.action === 'renamed') {
+            const cachedFile = this.cachedFiles.find(cachedFile => cachedFile.path === event.oldPath);
+            if (cachedFile) {
+              await cachedFile.parsePackage(new File(event.path));
+            } else {
+              console.error('modified file didnt find', event);
+            }
+
+          }
+
+
+          let packages = this.cachedFiles.map(cachedFile => cachedFile.package);
+          this.packages = packages.filter(package_ => typeof package_ !== 'undefined') as OPackage[];
+        }
+      }
+    }));
+  }
+  public async getPackages(): Promise<OPackage[]> {
+    await this.initializationPromise;
+    return this.packages;
   }
 }
 export class OPackage {

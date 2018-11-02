@@ -92,12 +92,29 @@ export class OSignal extends OSignalLike {
 export class OInstantiation extends ObjectBase {
   label?: string;
   componentName: string;
-  portMappings: OMapping[];
-  genericMappings: OMapping[];
+  portMappings: OMapping[] = [];
+  genericMappings: OMapping[] = [];
+  private flatReads: ORead[] | null = null;
+  getFlatReads(): ORead[] {
+    if (this.flatReads !== null) {
+      return this.flatReads;
+    }
+    this.flatReads = [];
+    for (const portMapping of this.portMappings) {
+      this.flatReads.push(...portMapping.mapping);
+    }
+    for (const portMapping of this.genericMappings) {
+      this.flatReads.push(...portMapping.mapping);
+    }
+    return this.flatReads;
+  }
+  getFlatWrites(): OWrite[] {
+    return this.getFlatReads();
+  }
 }
 export class OMapping extends ObjectBase {
   name: string;
-  mapping: string;
+  mapping: ORead[];
 }
 export class OEntity extends ObjectBase {
   name: string;
