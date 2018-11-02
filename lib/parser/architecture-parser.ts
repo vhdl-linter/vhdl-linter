@@ -105,8 +105,8 @@ export class ArchitectureParser extends ParserBase {
     let nextWord = this.getNextWord({ consume: false }).toLowerCase();
     let multiSignals: string[] = [];
     while (nextWord !== 'begin') {
-      this.getNextWord();
       if (nextWord === 'signal' || nextWord === 'constant') {
+        this.getNextWord();
         const signal = new OSignal(parent, this.pos.i);
 
         signal.constant = nextWord === 'constant';
@@ -133,8 +133,10 @@ export class ArchitectureParser extends ParserBase {
         signals.push(signal);
         multiSignals = [];
       } else if (nextWord === 'attribute') {
+        this.getNextWord();
         this.advancePast(';');
       } else if (nextWord === 'type') {
+        this.getNextWord();
         const type = new OType(parent, this.pos.i);
         type.name = this.getNextWord();
         this.expect('is');
@@ -161,12 +163,14 @@ export class ArchitectureParser extends ParserBase {
           this.advancePast(';');
         }
       } else if (nextWord === 'component') {
+        this.getNextWord();
         this.advancePast('end');
         this.maybeWord('component');
         this.expect(';');
       } else if (optional && signals.length === 0 && types.length === 0) {
         return { signals, types };
       } else {
+        this.getNextWord();
         throw new ParserError(`Unknown Ding: '${nextWord}' on line ${this.getLine()}`, this.pos.i);
       }
       nextWord = this.getNextWord({ consume: false }).toLowerCase();

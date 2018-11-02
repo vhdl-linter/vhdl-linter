@@ -159,7 +159,8 @@ export class ProcessParser extends ParserBase {
       this.debug(`parseWhen`);
       const whenClause = new OWhenClause(case_, this.pos.i);
 
-      whenClause.condition = this.extractReads(whenClause, this.advancePast('=>'), this.pos.i);
+      const pos = this.pos.i;
+      whenClause.condition = this.extractReads(whenClause, this.advancePast('=>'), pos);
       whenClause.statements = this.parseStatements(whenClause, ['when', 'end']);
       case_.whenClauses.push(whenClause);
       nextWord = this.getNextWord().toLowerCase();

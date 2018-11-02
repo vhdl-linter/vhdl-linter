@@ -27,12 +27,13 @@ end Mux;
 -------------------------------------------------
 
 architecture behv1 of Mux is
-  signal s_test : std_logic_vector(10 downto 0);
+  signal s_test  : std_logic_vector(10 downto 0);
+  signal s_Clock : std_logic;
 begin
   o_test <= s_test;
   inst_Example_For_Loop : entity work.Example_For_Loop
     port map (
-      _Clock  => _Clock,
+      o_Clock => s_Clock,
       i_reset => i_reset
       );
 

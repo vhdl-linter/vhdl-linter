@@ -1,4 +1,4 @@
-import { OFile, OIf, OForLoop, OSignalLike, OSignal, OArchitecture, OEntity, OPort } from './parser/objects';
+import { OFile, OIf, OForLoop, OSignalLike, OSignal, OArchitecture, OEntity, OPort, OInstantiation } from './parser/objects';
 import { RangeCompatible, Point, TextEditor, PointCompatible, CompositeDisposable } from 'atom';
 import { Parser } from './parser/parser';
 import { ProjectParser, OProjectEntity } from './project-parser';
@@ -10,7 +10,6 @@ export class VhdlLinter {
   packageThings: string[] = [];
   constructor(private editorPath: string, private text: string, public projectParser: ProjectParser) {
     console.log('lint');
-    this.projectParser.removeFile(editorPath);
     this.parser = new Parser(this.text, this.editorPath);
     console.log(`parsing: ${editorPath}`);
     try {
@@ -37,13 +36,14 @@ export class VhdlLinter {
   }
   async parsePackages() {
     const packages = await this.projectParser.getPackages();
+    console.log(packages);
     for (const useStatement of this.tree.useStatements) {
       let match = useStatement.text.match(/([^.]+)\.([^.]+)\.all/i);
       let found = false;
       if (match) {
         const library = match[1];
         const pkg = match[2];
-        if (library.toLowerCase() === 'ieee') {
+        if (library.toLowerCase() === 'altera_mf') {
           found = true;
         } else {
           for (const foundPkg of packages) {
@@ -72,7 +72,7 @@ export class VhdlLinter {
         await this.parsePackages();
       }
       this.checkResets();
-      this.checkUnused(this.tree.architecture);
+      await this.checkUnused(this.tree.architecture, this.tree.entity);
       this.checkDoubles();
       this.checkUndefineds();
       this.checkPortDeclaration();
@@ -140,7 +140,6 @@ export class VhdlLinter {
     if (!this.tree.architecture) {
       return;
     }
-    const ignores = ['unsigned', 'std_logic_vector', 'to_unsigned', 'to_integer', 'resize', 'rising_edge', 'to_signed', 'signed', 'shift_right', 'shift_left'];
     for (const process of this.tree.architecture.processes) {
       for (const write of process.getFlatWrites()) {
         let found = false;
@@ -178,9 +177,6 @@ export class VhdlLinter {
       }
       for (const read of process.getFlatReads()) {
         let found = false;
-        if (ignores.indexOf(read.text.toLowerCase()) > - 1) {
-          found = true;
-        }
         if (this.packageThings.find(packageConstant => packageConstant.toLowerCase() === read.text.toLowerCase())) {
           found = true;
         }
@@ -305,7 +301,7 @@ export class VhdlLinter {
     }
   }
 
-  checkUnusedPerArchitecture(architecture: OArchitecture, signal: OSignal|OPort) {
+  private async checkUnusedPerArchitecture(architecture: OArchitecture, signal: OSignal|OPort) {
     let unread = true;
     let unwritten = true;
     const sigLowName = signal.name.toLowerCase();
@@ -326,16 +322,17 @@ export class VhdlLinter {
       }
     }
     for (const instantiation of architecture.instantiations) {
-      if (instantiation.getFlatReads().find(read => read.text.toLowerCase() === sigLowName)) {
-
+      const entity = await this.getProjectEntity(instantiation);
+      console.log(instantiation.getFlatReads(entity), instantiation.getFlatWrites(entity));
+      if (instantiation.getFlatReads(entity).find(read => read.text.toLowerCase() === sigLowName)) {
         unread = false;
       }
-      if (instantiation.getFlatWrites().find(read => read.text.toLowerCase() === sigLowName)) {
+      if (instantiation.getFlatWrites(entity).find(read => read.text.toLowerCase() === sigLowName)) {
         unwritten = false;
       }
     }
     for (const generate of architecture.generates) {
-      const [unreadChild, unwrittenChild] = this.checkUnusedPerArchitecture(generate, signal);
+      const [unreadChild, unwrittenChild] = await this.checkUnusedPerArchitecture(generate, signal);
       if (!unreadChild) {
         unread = false;
       }
@@ -345,7 +342,7 @@ export class VhdlLinter {
     }
     return [unread, unwritten];
   }
-  checkUnused(architecture: OArchitecture, entity?: OEntity) {
+  private async checkUnused(architecture: OArchitecture, entity?: OEntity) {
     if (!architecture) {
       return;
     }
@@ -354,7 +351,7 @@ export class VhdlLinter {
     }
     if (entity) {
       for (const port of entity.ports) {
-        const [unread, unwritten] = this.checkUnusedPerArchitecture(architecture, port);
+        const [unread, unwritten] = await this.checkUnusedPerArchitecture(architecture, port);
         if (unread && port.direction === 'in') {
           this.messages.push({
             location: {
@@ -377,8 +374,34 @@ export class VhdlLinter {
         }
       }
     }
+    for (const signal of architecture.signals) {
+     const [unread, unwritten] = await this.checkUnusedPerArchitecture(architecture, signal);
+     if (unread) {
+       this.messages.push({
+         location: {
+           file: this.editorPath,
+           position: this.getPositionFromILine(signal.startI)
+         },
+         severity: 'warning',
+         excerpt: `Not reading signal '${signal.name}'`
+       });
+     }
+     if (unwritten && !signal.constant) {
+       this.messages.push({
+         location: {
+           file: this.editorPath,
+           position: this.getPositionFromILine(signal.startI)
+         },
+         severity: 'warning',
+         excerpt: `Not writing signal '${signal.name}'`
+       });
+     }
+   }
   }
   checkPortDeclaration() {
+    if (!this.tree.entity) {
+      return;
+    }
     for (const port of this.tree.entity.ports) {
       if (port.direction === 'in') {
         if (port.name.match(/^o_/i)) {
@@ -423,11 +446,15 @@ export class VhdlLinter {
       }
     }
   }
-  async checkInstantiations(architecture: OArchitecture) {
+  private async getProjectEntity(instantiation: OInstantiation): Promise<OProjectEntity|undefined> {
     const projectEntities: OProjectEntity[] = await this.projectParser.getEntities();
+    return projectEntities.find(entity => entity.name.toLowerCase() === instantiation.componentName.toLowerCase());
+
+  }
+  async checkInstantiations(architecture: OArchitecture) {
     for (const instantiation of architecture.instantiations) {
       if (instantiation.entityInstantiation) {
-        const entity = projectEntities.find(entity => entity.name.toLowerCase() === instantiation.componentName.toLowerCase());
+        const entity = await this.getProjectEntity(instantiation);
         if (!entity) {
           this.messages.push({
             location: {

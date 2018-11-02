@@ -4,8 +4,8 @@ use ieee.numeric_std.all;
 
 entity Example_For_Loop is
   port (
-    _Clock  : in std_logic;
-    i_reset : in std_logic
+    o_Clock : out std_logic;
+    i_reset : in  std_logic
     );
 end Example_For_Loop;
 

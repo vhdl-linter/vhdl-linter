@@ -1,3 +1,4 @@
+import {OProjectEntity} from '../project-parser';
 export class ObjectBase {
   public startI: number;
   constructor (public parent: any, startI: number) {
@@ -96,21 +97,46 @@ export class OInstantiation extends ObjectBase {
   genericMappings: OMapping[] = [];
   entityInstantiation: boolean;
   private flatReads: ORead[] | null = null;
-  getFlatReads(): ORead[] {
+  private flatWrites: OWrite[] | null = null;
+  getFlatReads(entity: OProjectEntity | undefined): ORead[] {
+    console.log(entity, 'asd2');
+
     if (this.flatReads !== null) {
       return this.flatReads;
     }
     this.flatReads = [];
     for (const portMapping of this.portMappings) {
-      this.flatReads.push(...portMapping.mapping);
+      if (entity) {
+        const entityPort = entity.ports.find(port => portMapping.name.toLowerCase() === port.name.toLowerCase());
+        if (entityPort && (entityPort.direction === 'in' || entityPort.direction === 'inout')) {
+          this.flatReads.push(...portMapping.mapping);
+        }
+      } else {
+        this.flatReads.push(...portMapping.mapping);
+      }
     }
     for (const portMapping of this.genericMappings) {
       this.flatReads.push(...portMapping.mapping);
     }
     return this.flatReads;
   }
-  getFlatWrites(): OWrite[] {
-    return this.getFlatReads();
+  getFlatWrites(entity: OProjectEntity | undefined): OWrite[] {
+    console.log(entity, 'asd');
+    if (this.flatWrites !== null) {
+      return this.flatWrites;
+    }
+    this.flatWrites = [];
+    for (const portMapping of this.portMappings) {
+      if (entity) {
+        const entityPort = entity.ports.find(port => portMapping.name.toLowerCase() === port.name.toLowerCase());
+        if (entityPort && (entityPort.direction === 'out' || entityPort.direction === 'inout')) {
+          this.flatWrites.push(...portMapping.mapping);
+        }
+      } else {
+        this.flatWrites.push(...portMapping.mapping);
+      }
+    }
+    return this.flatWrites;
   }
 }
 export class OMapping extends ObjectBase {
