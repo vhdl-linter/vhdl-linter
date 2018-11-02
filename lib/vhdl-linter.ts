@@ -1,7 +1,7 @@
 import { OFile, OIf, OForLoop, OSignalLike, OSignal, OArchitecture, OEntity, OPort } from './parser/objects';
 import { RangeCompatible, Point, TextEditor, PointCompatible, CompositeDisposable } from 'atom';
 import { Parser } from './parser/parser';
-import { ProjectParser } from './project-parser';
+import { ProjectParser, OProjectEntity } from './project-parser';
 
 export class VhdlLinter {
   messages: Message[] = [];
@@ -76,6 +76,7 @@ export class VhdlLinter {
       this.checkDoubles();
       this.checkUndefineds();
       this.checkPortDeclaration();
+      await this.checkInstantiations(this.tree.architecture);
       // this.parser.debugObject(this.tree);
     }
     return this.messages;
@@ -419,6 +420,46 @@ export class VhdlLinter {
             excerpt: `input port '${port.name}' should begin with 'o_'`
           });
         }
+      }
+    }
+  }
+  async checkInstantiations(architecture: OArchitecture) {
+    const projectEntities: OProjectEntity[] = await this.projectParser.getEntities();
+    for (const instantiation of architecture.instantiations) {
+      if (instantiation.entityInstantiation) {
+        const entity = projectEntities.find(entity => entity.name.toLowerCase() === instantiation.componentName.toLowerCase());
+        if (!entity) {
+          this.messages.push({
+            location: {
+              file: this.editorPath,
+              position: this.getPositionFromILine(instantiation.startI)
+            },
+            severity: 'error',
+            excerpt: `can not find entity ${instantiation.componentName}`
+          });
+        } else {
+          for (const portMapping of instantiation.portMappings) {
+            if (!entity.ports.find(port => port.name.toLowerCase() === portMapping.name.toLowerCase())) {
+              this.messages.push({
+                location: {
+                  file: this.editorPath,
+                  position: this.getPositionFromILine(portMapping.startI)
+                },
+                severity: 'error',
+                excerpt: `no port ${portMapping.name} on entity ${instantiation.componentName}`
+              });
+            }
+          }
+        }
+      } else {
+        this.messages.push({
+          location: {
+            file: this.editorPath,
+            position: this.getPositionFromILine(instantiation.startI)
+          },
+          severity: 'warning',
+          excerpt: `can not evaluate instantiation via component`
+        });
       }
     }
   }

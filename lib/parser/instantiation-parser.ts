@@ -11,10 +11,12 @@ export class InstantiationParser extends ParserBase {
   parse(nextWord: string, label?: string): OInstantiation {
     const instantiation = new OInstantiation(this.parent, this.pos.i);
     instantiation.label = label;
+    instantiation.entityInstantiation = false;
     if (nextWord === 'entity') {
+      instantiation.entityInstantiation = true;
       nextWord = this.getNextWord({re: /[\w.]/});
     }
-    instantiation.componentName = nextWord;
+    instantiation.componentName = nextWord.replace(/^.*\./, '');
     let hasPortMap = false;
     let lastI;
     while (this.text[this.pos.i] !== ';') {

@@ -94,6 +94,7 @@ export class OInstantiation extends ObjectBase {
   componentName: string;
   portMappings: OMapping[] = [];
   genericMappings: OMapping[] = [];
+  entityInstantiation: boolean;
   private flatReads: ORead[] | null = null;
   getFlatReads(): ORead[] {
     if (this.flatReads !== null) {
