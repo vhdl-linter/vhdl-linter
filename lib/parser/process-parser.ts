@@ -152,7 +152,8 @@ export class ProcessParser extends ParserBase {
   parseCase(parent: object, label?: string): OCase {
     this.debug(`parseCase ${label}`);
     const case_ = new OCase(parent, this.pos.i);
-    case_.variable = this.extractReads(case_, this.advancePast(/^\s*is/i), this.pos.i);
+    const posI = this.pos.i;
+    case_.variable = this.extractReads(case_, this.advancePast(/^\s*is/i), posI);
 
     let nextWord = this.getNextWord().toLowerCase();
     while (nextWord === 'when') {
