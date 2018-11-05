@@ -35,7 +35,7 @@ export class ArchitectureParser extends ParserBase {
         continue;
       }
       let nextWord = this.getNextWord().toLowerCase();
-      console.log(nextWord, 'nextWord');
+//       console.log(nextWord, 'nextWord');
       if (nextWord === 'end') {
         this.maybeWord(structureName);
         if (this.type) {

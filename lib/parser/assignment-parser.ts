@@ -31,7 +31,7 @@ export class AssignmentParser extends ParserBase {
     }
     assignment.reads.push(...this.extractReads(assignment, rightHandSide, rightHandSideI));
     this.expect(';');
-    // console.log(assignment,  assignment.constructor.name, assignment instanceof Assignment);
+//     // console.log(assignment,  assignment.constructor.name, assignment instanceof Assignment);
     assignment.end = this.pos.i;
     return assignment;
   }

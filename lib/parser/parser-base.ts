@@ -15,7 +15,7 @@ export class ParserBase {
 
   }
   debug(message: string) {
-    // console.log(`${this.constructor.name}: ${message} in line: ${this.getLine()}, (${this.file})`);
+//     // console.log(`${this.constructor.name}: ${message} in line: ${this.getLine()}, (${this.file})`);
   }
   debugObject(object: any) {
     let target: any = {};
@@ -39,7 +39,7 @@ export class ParserBase {
       return target;
     };
     target = filter(object);
-    console.log(`${this.constructor.name}: ${JSON.stringify(target, null, 2)} in line: ${this.getLine()}, (${this.file})`);
+//     console.log(`${this.constructor.name}: ${JSON.stringify(target, null, 2)} in line: ${this.getLine()}, (${this.file})`);
   }
   message(message: string, severity = 'error') {
     if (severity === 'error') {
@@ -248,7 +248,7 @@ export class ParserBase {
         }
       }
     }
-    // console.log(tokenTypes);
+//     // console.log(tokenTypes);
     const tokens = [];
     let foundToken;
     let offset = 0;

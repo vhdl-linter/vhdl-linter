@@ -99,7 +99,7 @@ export class OInstantiation extends ObjectBase {
   private flatReads: ORead[] | null = null;
   private flatWrites: OWrite[] | null = null;
   getFlatReads(entity: OProjectEntity | undefined): ORead[] {
-    console.log(entity, 'asd2');
+//     console.log(entity, 'asd2');
 
     if (this.flatReads !== null) {
       return this.flatReads;
@@ -121,7 +121,7 @@ export class OInstantiation extends ObjectBase {
     return this.flatReads;
   }
   getFlatWrites(entity: OProjectEntity | undefined): OWrite[] {
-    console.log(entity, 'asd');
+//     console.log(entity, 'asd');
     if (this.flatWrites !== null) {
       return this.flatWrites;
     }

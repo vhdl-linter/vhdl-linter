@@ -28,7 +28,7 @@ export class Parser extends ParserBase {
       } else if (nextWord === 'entity') {
         const entity = new EntityParser(this.text, this.pos, this.file, file);
         file.entity = entity.parse();
-        // console.log(file, typeof file.entity, 'typeof');
+//         // console.log(file, typeof file.entity, 'typeof');
       } else if (nextWord === 'architecture') {
         if (file.architecture) {
           this.message('Second Architecture not supported');

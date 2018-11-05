@@ -27,7 +27,7 @@ export class ProjectParser {
     return files;
   }
   private fetchEntitesAndPackages() {
-    console.log(this.cachedFiles);
+//     console.log(this.cachedFiles);
     this.packages = [];
     this.entities = [];
     for (const cachedFile of this.cachedFiles) {
@@ -46,7 +46,7 @@ export class ProjectParser {
     }
     const pkg = atom.packages.getPackageDirPaths() + '/vhdl-linter';
     if (pkg) {
-      console.log(pkg, new Directory(pkg + '/ieee2008'));
+//       console.log(pkg, new Directory(pkg + '/ieee2008'));
       files.push(... this.parseDirectory(new Directory(pkg + '/ieee2008')));
     }
     for (const file of files) {
@@ -65,7 +65,7 @@ export class ProjectParser {
     this.subscriptions.add(atom.project.onDidChangeFiles(async events => {
       for (const event of events) {
         if (event.path.match(/\.vhdl?$/i)) {
-          // console.log(event);
+//           // console.log(event);
           if (event.action === 'created') {
             let cachedFile = new OFileCache();
             cachedFile.path = event.path;
@@ -75,7 +75,7 @@ export class ProjectParser {
             const index = this.cachedFiles.findIndex(cachedFile => cachedFile.path === event.path);
             this.cachedFiles.splice(index, 1);
           } else if (event.action === 'modified') {
-            console.log(this.cachedFiles);
+//             console.log(this.cachedFiles);
             const cachedFile = this.cachedFiles.find(cachedFile => cachedFile.path === event.path);
             if (cachedFile) {
               await cachedFile.parseFile(new File(event.path));

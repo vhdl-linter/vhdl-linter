@@ -9,9 +9,9 @@ export class VhdlLinter {
   parser: Parser;
   packageThings: string[] = [];
   constructor(private editorPath: string, private text: string, public projectParser: ProjectParser) {
-    console.log('lint');
+//     console.log('lint');
     this.parser = new Parser(this.text, this.editorPath);
-    console.log(`parsing: ${editorPath}`);
+//     console.log(`parsing: ${editorPath}`);
     try {
       this.tree = this.parser.parse();
     } catch (e) {
@@ -31,12 +31,12 @@ export class VhdlLinter {
         console.error('error parsing error', e, err);
       }
     }
-    console.log(`done parsing: ${editorPath}`);
+//     console.log(`done parsing: ${editorPath}`);
 
   }
   async parsePackages() {
     const packages = await this.projectParser.getPackages();
-    console.log(packages);
+//     console.log(packages);
     for (const useStatement of this.tree.useStatements) {
       let match = useStatement.text.match(/([^.]+)\.([^.]+)\.all/i);
       let found = false;
@@ -323,7 +323,7 @@ export class VhdlLinter {
     }
     for (const instantiation of architecture.instantiations) {
       const entity = await this.getProjectEntity(instantiation);
-      console.log(instantiation.getFlatReads(entity), instantiation.getFlatWrites(entity));
+//       console.log(instantiation.getFlatReads(entity), instantiation.getFlatWrites(entity));
       if (instantiation.getFlatReads(entity).find(read => read.text.toLowerCase() === sigLowName)) {
         unread = false;
       }
