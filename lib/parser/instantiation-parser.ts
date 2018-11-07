@@ -51,7 +51,7 @@ export class InstantiationParser extends ParserBase {
 
     while (this.pos.i < this.text.length) {
       const mapping = new OMapping(instantiation, this.pos.i);
-      mapping.name = this.getNextWord({re: /[^=]/});
+      mapping.name = this.parseName(this.getNextWord({re: /[^=]/}));
       this.expect('=>');
       let mappingStringStartI = this.pos.i;
       let mappingString = '';
@@ -77,5 +77,12 @@ export class InstantiationParser extends ParserBase {
       }
     }
     return mappings;
+  }
+  parseName(text: string): string {
+    let match = text.match(/\((\w+)/i);
+    if (match) {
+      return match[1];
+    }
+    return text;
   }
 }

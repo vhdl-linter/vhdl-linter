@@ -74,7 +74,7 @@ export class VhdlLinter {
       this.checkResets();
       await this.checkUnused(this.tree.architecture, this.tree.entity);
       this.checkDoubles();
-      this.checkUndefineds();
+      await this.checkNotDeclared();
       this.checkPortDeclaration();
       await this.checkInstantiations(this.tree.architecture);
       // this.parser.debugObject(this.tree);
@@ -136,8 +136,8 @@ export class VhdlLinter {
       }
     }
   }
-  checkUndefineds() {
-    if (!this.tree.architecture) {
+  async checkNotDeclared(architecture?: OArchitecture) {
+    if (!architecture) {
       return;
     }
     for (const process of this.tree.architecture.processes) {
@@ -209,12 +209,12 @@ export class VhdlLinter {
         while ((parent instanceof OFile) === false) {
           if (parent.variables) {
             for (const variable of parent.variables) {
-              if (variable.name.toLowerCase() === read.text) {
+              if (variable.name.toLowerCase() === read.text.toLowerCase()) {
                 found = true;
               }
             }
           } else if (parent instanceof OForLoop) {
-            if (parent.variable.toLowerCase() === read.text) {
+            if (parent.variable.toLowerCase() === read.text.toLowerCase()) {
               found = true;
             }
           }
@@ -232,6 +232,104 @@ export class VhdlLinter {
             },
             severity: 'error',
             excerpt: `signal '${read.text}' is read but not declared`
+          });
+        }
+      }
+    }
+
+    for (const instantiation of architecture.instantiations) {
+      const entity = await this.getProjectEntity(instantiation);
+      for (const read of instantiation.getFlatReads(entity)) {
+        let found = false;
+        for (const signal of this.tree.architecture.signals) {
+          if (signal.name.toLowerCase() === read.text.toLowerCase()) {
+            found = true;
+          }
+        }
+        for (const generic of this.tree.entity.generics) {
+          if (generic.name.toLowerCase() === read.text.toLowerCase()) {
+            found = true;
+          }
+        }
+        for (const port of this.tree.entity.ports) {
+          if (port.name.toLowerCase() === read.text.toLowerCase()) {
+            found = true;
+          }
+        }
+        for (const type of this.tree.architecture.types) {
+          if (type.states.find(state => state.name.toLowerCase() === read.text.toLowerCase())) {
+            found = true;
+          }
+        }
+        let parent = instantiation.parent;
+        while ((parent instanceof OFile) === false) {
+          if (parent instanceof OArchitecture) {
+            for (const signal of parent.signals) {
+              if (signal.name.toLowerCase() === read.text.toLowerCase()) {
+                found = true;
+              }
+            }
+          }
+          parent = parent.parent;
+        }
+        if (!found) {
+          let positionStart = this.getPositionFromI(read.begin);
+          let positionEnd = this.getPositionFromI(read.end);
+          let position: RangeCompatible = [positionStart, positionEnd];
+
+          this.messages.push({
+            location: {
+              file: this.editorPath,
+              position
+            },
+            severity: 'error',
+            excerpt: `signal '${read.text}' is read but not declared`
+          });
+        }
+      }
+    }
+    for (const instantiation of architecture.instantiations) {
+      const entity = await this.getProjectEntity(instantiation);
+      for (const write of instantiation.getFlatWrites(entity)) {
+        let found = false;
+        for (const signal of this.tree.architecture.signals) {
+          if (signal.name.toLowerCase() === write.text.toLowerCase()) {
+            found = true;
+          }
+        }
+        for (const port of this.tree.entity.ports) {
+          if (port.name.toLowerCase() === write.text.toLowerCase()) {
+            found = true;
+          }
+        }
+        for (const type of this.tree.architecture.types) {
+          if (type.states.find(state => state.name.toLowerCase() === write.text.toLowerCase())) {
+            found = true;
+          }
+        }
+        let parent = instantiation.parent;
+        while ((parent instanceof OFile) === false) {
+          if (parent instanceof OArchitecture) {
+            for (const signal of parent.signals) {
+              if (signal.name.toLowerCase() === write.text.toLowerCase()) {
+                found = true;
+              }
+            }
+          }
+          parent = parent.parent;
+        }
+        if (!found) {
+          let positionStart = this.getPositionFromI(write.begin);
+          let positionEnd = this.getPositionFromI(write.end);
+          let position: RangeCompatible = [positionStart, positionEnd];
+
+          this.messages.push({
+            location: {
+              file: this.editorPath,
+              position
+            },
+            severity: 'error',
+            excerpt: `signal '${write.text}' is written but not declared`
           });
         }
       }
