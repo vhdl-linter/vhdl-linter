@@ -147,7 +147,8 @@ export class VhdlLinter {
           if (signal.name.toLowerCase() === write.text.toLowerCase()) {
             found = true;
           }
-        }
+        } //yolo
+
         for (const variable of process.variables) {
           if (variable.name.toLowerCase() === write.text.toLowerCase()) {
             found = true;
