@@ -14,6 +14,7 @@
     "lint": "tslint --project .",
     "prepublishOnly": "npm run build",
     "precommit": "npm run lint",
+    "post-merge": "npm i && npm run build",
     "test": "echo \"Error: no test specified\" && exit 1",
     "watch": "./node_modules/nodemon/bin/nodemon.js -e ts -w ./ -x npm run watch:serve",
     "watch:serve": "./node_modules/ts-node/dist/bin.js test/test.ts"
