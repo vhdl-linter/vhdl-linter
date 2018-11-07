@@ -550,6 +550,9 @@ export class VhdlLinter {
 
   }
   async checkInstantiations(architecture: OArchitecture) {
+    if (!architecture) {
+      return;
+    }
     for (const instantiation of architecture.instantiations) {
       if (instantiation.entityInstantiation) {
         const entity = await this.getProjectEntity(instantiation);
@@ -582,7 +585,7 @@ export class VhdlLinter {
             file: this.editorPath,
             position: this.getPositionFromILine(instantiation.startI)
           },
-          severity: 'warning',
+          severity: 'info',
           excerpt: `can not evaluate instantiation via component`
         });
       }
