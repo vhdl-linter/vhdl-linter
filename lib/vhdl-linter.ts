@@ -176,6 +176,7 @@ export class VhdlLinter {
           });
         }
       }
+      // yolo
       for (const read of process.getFlatReads()) {
         let found = false;
         if (this.packageThings.find(packageConstant => packageConstant.toLowerCase() === read.text.toLowerCase())) {
