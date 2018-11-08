@@ -380,7 +380,7 @@ export class VhdlLinter {
                   solutions.push({
                     title: 'Add Register',
                     position: [positionStart, positionStart],
-                    replaceWith: `  ${signal.name} <= ${resetValue};\n`
+                    replaceWith: `  ${signal.name} <= ${resetValue};\n    `
                   });
                 }
               }
