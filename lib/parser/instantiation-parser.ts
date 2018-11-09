@@ -66,7 +66,11 @@ export class InstantiationParser extends ParserBase {
         this.pos.i++;
       }
       mapping.name = mapping.name.trim();
-      mapping.mapping = this.extractReads(mapping, mappingString, mappingStringStartI);
+      if (mappingString.trim().toLowerCase() !== 'open') {
+        mapping.mapping = this.extractReads(mapping, mappingString, mappingStringStartI);
+      } else {
+        mapping.mapping = [];
+      }
       mappings.push(mapping);
       if (this.text[this.pos.i] === ',') {
         this.pos.i++;
