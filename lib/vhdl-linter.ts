@@ -74,7 +74,7 @@ export class VhdlLinter {
       this.checkResets();
       await this.checkUnused(this.tree.architecture, this.tree.entity);
       this.checkDoubles();
-      await this.checkNotDeclared();
+      await this.checkNotDeclared(this.tree.architecture);
       this.checkPortDeclaration();
       await this.checkInstantiations(this.tree.architecture);
       // this.parser.debugObject(this.tree);
@@ -176,7 +176,6 @@ export class VhdlLinter {
           });
         }
       }
-      // yolo
       for (const read of process.getFlatReads()) {
         let found = false;
         if (this.packageThings.find(packageConstant => packageConstant.toLowerCase() === read.text.toLowerCase())) {
