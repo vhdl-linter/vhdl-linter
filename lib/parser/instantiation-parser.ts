@@ -51,7 +51,8 @@ export class InstantiationParser extends ParserBase {
 
     while (this.pos.i < this.text.length) {
       const mapping = new OMapping(instantiation, this.pos.i);
-      mapping.name = this.parseName(this.getNextWord({re: /[^=]/}));
+      const mappingNameI = this.pos.i;
+      mapping.name = this.extractReads(mapping, this.getNextWord({re: /[^=]/}), mappingNameI);
       this.expect('=>');
       let mappingStringStartI = this.pos.i;
       let mappingString = '';
@@ -65,7 +66,7 @@ export class InstantiationParser extends ParserBase {
         }
         this.pos.i++;
       }
-      mapping.name = mapping.name.trim();
+      // mapping.name = mapping.name.trim();
       if (mappingString.trim().toLowerCase() !== 'open') {
         mapping.mapping = this.extractReads(mapping, mappingString, mappingStringStartI);
       } else {
@@ -82,11 +83,26 @@ export class InstantiationParser extends ParserBase {
     }
     return mappings;
   }
-  parseName(text: string): string {
-    let match = text.match(/\((\w+)/i);
-    if (match) {
-      return match[1];
-    }
-    return text;
-  }
+  // parseName(text: string): string {
+  //   const convertFunctions = ['std_logic_vector', 'std_ulogic_vector', 'unsigned', 'signed', 'to_integer', 'to_unsigned', 'to_signed'];
+  //   const re = new RegExp('^(' + convertFunctions.join('|') + ')\\s*', 'i');
+  //   let match: RegExpExecArray | null;
+  //   while (match = re.exec(text)) {
+  //     text = text.substr(match[0].length + 1);
+  //     let braceLevel = 0;
+  //     for (let i = 0; i < text.length; i++) {
+  //         if (text[i] === '(') {
+  //           braceLevel++;
+  //         } if (text[i] === ')') {
+  //           if (braceLevel > 0) {
+  //             braceLevel--;
+  //           } else {
+  //             text = text.substring(0, i) + text.substring(i + 1);
+  //           }
+  //         }
+  //     }
+  //   }
+  //   text = text.replace(/\(.*\)/, '');
+  //   return text;
+  // }
 }

@@ -242,6 +242,9 @@ export class VhdlLinter {
       const entity = await this.getProjectEntity(instantiation);
       for (const read of instantiation.getFlatReads(entity)) {
         let found = false;
+        if (this.packageThings.find(packageThing => packageThing.toLowerCase() === read.text.toLowerCase())) {
+          found = true;
+        }
         for (const signal of this.tree.architecture.signals) {
           if (signal.name.toLowerCase() === read.text.toLowerCase()) {
             found = true;
@@ -568,14 +571,22 @@ export class VhdlLinter {
           });
         } else {
           for (const portMapping of instantiation.portMappings) {
-            if (!entity.ports.find(port => port.name.toLowerCase() === portMapping.name.toLowerCase())) {
+            const entityPort = entity.ports.find(port => {
+              for (const part of portMapping.name) {
+                if (part.text.toLowerCase() === port.name.toLowerCase()) {
+                  return true;
+                }
+              }
+              return false;
+            });
+            if (!entityPort) {
               this.messages.push({
                 location: {
                   file: this.editorPath,
                   position: this.getPositionFromILine(portMapping.startI)
                 },
                 severity: 'error',
-                excerpt: `no port ${portMapping.name} on entity ${instantiation.componentName}`
+                excerpt: `no port ${portMapping.name.map(name => name.text).join(', ')} on entity ${instantiation.componentName}`
               });
             }
           }

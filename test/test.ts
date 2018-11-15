@@ -43,4 +43,5 @@ import * as util from 'util';
 //   }
 // })
 const parserBase = new ParserBase('yolo', new ParserPosition(), 'yolo.txt');
-// console.log(parserBase.extractReadsOrWrite(new ParserPosition, `r_readStepShift(i)`, 5));
+
+console.log(parserBase.extractReads(new ParserPosition, `(others => s_tx_serial_clkA)`, 5));

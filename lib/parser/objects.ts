@@ -107,7 +107,14 @@ export class OInstantiation extends ObjectBase {
     this.flatReads = [];
     for (const portMapping of this.portMappings) {
       if (entity) {
-        const entityPort = entity.ports.find(port => portMapping.name.toLowerCase() === port.name.toLowerCase());
+        const entityPort = entity.ports.find(port => {
+          for (const part of portMapping.name) {
+            if (part.text.toLowerCase() === port.name.toLowerCase()) {
+              return true;
+            }
+          }
+          return false;
+        });
         if (entityPort && (entityPort.direction === 'in' || entityPort.direction === 'inout')) {
           this.flatReads.push(...portMapping.mapping);
         }
@@ -128,7 +135,14 @@ export class OInstantiation extends ObjectBase {
     this.flatWrites = [];
     for (const portMapping of this.portMappings) {
       if (entity) {
-        const entityPort = entity.ports.find(port => portMapping.name.toLowerCase() === port.name.toLowerCase());
+        const entityPort = entity.ports.find(port => {
+          for (const part of portMapping.name) {
+            if (part.text.toLowerCase() === port.name.toLowerCase()) {
+              return true;
+            }
+          }
+          return false;
+        });
         if (entityPort && (entityPort.direction === 'out' || entityPort.direction === 'inout')) {
           this.flatWrites.push(...portMapping.mapping);
         }
@@ -140,7 +154,7 @@ export class OInstantiation extends ObjectBase {
   }
 }
 export class OMapping extends ObjectBase {
-  name: string;
+  name: ORead[];
   mapping: ORead[];
 }
 export class OEntity extends ObjectBase {
