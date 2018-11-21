@@ -217,13 +217,14 @@ export class ParserBase {
       ['sll', 'srl', 'sla', 'sra', 'rol', 'ror'],
       ['=', '/=', '<=', '>', '>=', '?=', '?/=', '?<', '?<=', '?>', '?>=', '=>'],
       ['and', 'or', 'nand', 'nor', 'xor', 'xnor'],
-      ['downto', 'to', 'others']
+      ['downto', 'to', 'others', 'when', 'else']
     ];
     const tokenTypes = [
       { regex: /^\s+/, tokenType: 'WHITESPACE' },
       { regex: /^[()]/, tokenType: 'BRACE' },
       { regex: /^,/, tokenType: 'COMMA' },
       { regex: /^[0-9]+/, tokenType: 'INTEGER_LITERAL' },
+      { regex: /^true|false/i, tokenType: 'BOOLEAN_LITERAL' },
       { regex: /^"[0-9]+"/, tokenType: 'LOGIC_LITERAL' },
       { regex: /^x"[0-9A-F]+"/i, tokenType: 'LOGIC_LITERAL' },
       { regex: /^'[0-9]+'/, tokenType: 'LOGIC_LITERAL' },

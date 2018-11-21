@@ -28,6 +28,42 @@ export class OArchitecture extends ObjectBase {
   generates: OArchitecture[] = [];
   assignments: OAssignment[] = [];
   types: OType[] = [];
+  // isValidWrite(write: OW)
+  isValidRead(read: ORead, packageThings: string[]): boolean {
+    let found = false;
+
+    if (packageThings.find(packageThing => packageThing.toLowerCase() === read.text.toLowerCase())) {
+      found = true;
+    }
+    let parent = read.parent.parent;
+    while ((parent instanceof OFile) === false) {
+      if (parent instanceof OArchitecture) {
+        for (const signal of parent.signals) {
+          if (signal.name.toLowerCase() === read.text.toLowerCase()) {
+            found = true;
+          }
+        }
+      }
+      parent = parent.parent;
+    }
+    const file = parent as OFile;
+    for (const generic of file.entity.generics) {
+      if (generic.name.toLowerCase() === read.text.toLowerCase()) {
+        found = true;
+      }
+    }
+    for (const port of file.entity.ports) {
+      if (port.name.toLowerCase() === read.text.toLowerCase()) {
+        found = true;
+      }
+    }
+    for (const type of file.architecture.types) {
+      if (type.states.find(state => state.name.toLowerCase() === read.text.toLowerCase())) {
+        found = true;
+      }
+    }
+    return found;
+  }
 }
 export class OType extends ObjectBase {
   name: string;
@@ -290,7 +326,7 @@ export class OProcess extends ObjectBase {
     for (const statement of this.statements) {
       if (statement instanceof OIf) {
         for (const clause of statement.clauses) {
-          if (clause.condition.match(/reset/i)) {
+          if (clause.condition.match(/res/i)) {
             for (const subStatement of clause.statements) {
               if (subStatement instanceof OAssignment) {
                 this.resets = this.resets.concat(subStatement.writes.map(write => write.text));

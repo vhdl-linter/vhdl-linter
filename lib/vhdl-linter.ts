@@ -140,6 +140,7 @@ export class VhdlLinter {
     if (!architecture) {
       return;
     }
+
     for (const process of this.tree.architecture.processes) {
       for (const write of process.getFlatWrites()) {
         let found = false;
@@ -178,49 +179,14 @@ export class VhdlLinter {
       }
       for (const read of process.getFlatReads()) {
         let found = false;
-        if (this.packageThings.find(packageConstant => packageConstant.toLowerCase() === read.text.toLowerCase())) {
+        if (this.tree.architecture.isValidRead(read, this.packageThings)) {
           found = true;
-        }
-        for (const type of this.tree.architecture.types) {
-          if (type.states.find(state => state.name.toLowerCase() === read.text.toLowerCase())) {
-            found = true;
-          }
-        }
-        for (const signal of this.tree.architecture.signals) {
-          if (signal.name.toLowerCase() === read.text.toLowerCase()) {
-            found = true;
-          }
         }
         for (const variable of process.variables) {
           if (variable.name.toLowerCase() === read.text.toLowerCase()) {
             found = true;
           }
         }
-        for (const port of this.tree.entity.ports) {
-          if (port.name.toLowerCase() === read.text.toLowerCase()) {
-            found = true;
-          }
-        }
-        for (const generic of this.tree.entity.generics) {
-          if (generic.name.toLowerCase() === read.text.toLowerCase()) {
-            found = true;
-          }
-        }
-        let parent = read.parent;
-        while ((parent instanceof OFile) === false) {
-          if (parent.variables) {
-            for (const variable of parent.variables) {
-              if (variable.name.toLowerCase() === read.text.toLowerCase()) {
-                found = true;
-              }
-            }
-          } else if (parent instanceof OForLoop) {
-            if (parent.variable.toLowerCase() === read.text.toLowerCase()) {
-              found = true;
-            }
-          }
-          parent = parent.parent;
-        }
         if (!found) {
           let positionStart = this.getPositionFromI(read.begin);
           let positionEnd = this.getPositionFromI(read.end);
@@ -238,45 +204,12 @@ export class VhdlLinter {
       }
     }
 
+
+    // Reads
     for (const instantiation of architecture.instantiations) {
       const entity = await this.getProjectEntity(instantiation);
       for (const read of instantiation.getFlatReads(entity)) {
-        let found = false;
-        if (this.packageThings.find(packageThing => packageThing.toLowerCase() === read.text.toLowerCase())) {
-          found = true;
-        }
-        for (const signal of this.tree.architecture.signals) {
-          if (signal.name.toLowerCase() === read.text.toLowerCase()) {
-            found = true;
-          }
-        }
-        for (const generic of this.tree.entity.generics) {
-          if (generic.name.toLowerCase() === read.text.toLowerCase()) {
-            found = true;
-          }
-        }
-        for (const port of this.tree.entity.ports) {
-          if (port.name.toLowerCase() === read.text.toLowerCase()) {
-            found = true;
-          }
-        }
-        for (const type of this.tree.architecture.types) {
-          if (type.states.find(state => state.name.toLowerCase() === read.text.toLowerCase())) {
-            found = true;
-          }
-        }
-        let parent = instantiation.parent;
-        while ((parent instanceof OFile) === false) {
-          if (parent instanceof OArchitecture) {
-            for (const signal of parent.signals) {
-              if (signal.name.toLowerCase() === read.text.toLowerCase()) {
-                found = true;
-              }
-            }
-          }
-          parent = parent.parent;
-        }
-        if (!found) {
+        if (!architecture.isValidRead(read, this.packageThings)) {
           let positionStart = this.getPositionFromI(read.begin);
           let positionEnd = this.getPositionFromI(read.end);
           let position: RangeCompatible = [positionStart, positionEnd];
@@ -292,6 +225,8 @@ export class VhdlLinter {
         }
       }
     }
+    // Writes
+
     for (const instantiation of architecture.instantiations) {
       const entity = await this.getProjectEntity(instantiation);
       for (const write of instantiation.getFlatWrites(entity)) {
@@ -337,6 +272,71 @@ export class VhdlLinter {
           });
         }
       }
+    }
+
+    for (const assignment of architecture.assignments) {
+      for (const read of assignment.reads) {
+        if (!architecture.isValidRead(read, this.packageThings)) {
+          let positionStart = this.getPositionFromI(read.begin);
+          let positionEnd = this.getPositionFromI(read.end);
+          let position: RangeCompatible = [positionStart, positionEnd];
+
+          this.messages.push({
+            location: {
+              file: this.editorPath,
+              position
+            },
+            severity: 'error',
+            excerpt: `signal '${read.text}' is read but not declared`
+          });
+        }
+      }
+      for (const write of assignment.writes) {
+        let found = false;
+        for (const signal of this.tree.architecture.signals) {
+          if (signal.name.toLowerCase() === write.text.toLowerCase()) {
+            found = true;
+          }
+        }
+        for (const port of this.tree.entity.ports) {
+          if (port.name.toLowerCase() === write.text.toLowerCase()) {
+            found = true;
+          }
+        }
+        for (const type of this.tree.architecture.types) {
+          if (type.states.find(state => state.name.toLowerCase() === write.text.toLowerCase())) {
+            found = true;
+          }
+        }
+        let parent = assignment.parent;
+        while ((parent instanceof OFile) === false) {
+          if (parent instanceof OArchitecture) {
+            for (const signal of parent.signals) {
+              if (signal.name.toLowerCase() === write.text.toLowerCase()) {
+                found = true;
+              }
+            }
+          }
+          parent = parent.parent;
+        }
+        if (!found) {
+          let positionStart = this.getPositionFromI(write.begin);
+          let positionEnd = this.getPositionFromI(write.end);
+          let position: RangeCompatible = [positionStart, positionEnd];
+
+          this.messages.push({
+            location: {
+              file: this.editorPath,
+              position
+            },
+            severity: 'error',
+            excerpt: `signal '${write.text}' is written but not declared`
+          });
+        }
+      }
+    }
+    for (const generate of architecture.generates) {
+      this.checkNotDeclared(generate);
     }
   }
   checkResets() {
@@ -425,7 +425,7 @@ export class VhdlLinter {
     }
     for (const instantiation of architecture.instantiations) {
       const entity = await this.getProjectEntity(instantiation);
-//       console.log(instantiation.getFlatReads(entity), instantiation.getFlatWrites(entity));
+      //       console.log(instantiation.getFlatReads(entity), instantiation.getFlatWrites(entity));
       if (instantiation.getFlatReads(entity).find(read => read.text.toLowerCase() === sigLowName)) {
         unread = false;
       }
