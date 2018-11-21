@@ -157,6 +157,8 @@ export class OFileCache {
     }
     this.package = new OPackage();
     this.package.name = match[1];
+    // console.log(  this.package.name, 'parsing package');
+
     let re = /constant\s+(\w+)/g;
     let m;
     while (m = re.exec(this.text)) {
