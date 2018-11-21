@@ -123,6 +123,7 @@ export class ProjectParser {
 export class OPackage {
   name: string;
   things: string[] = [];
+  referencePackage?: string;
 }
 export class OProjectPorts {
   name: string;
@@ -157,6 +158,8 @@ export class OFileCache {
     }
     this.package = new OPackage();
     this.package.name = match[1];
+    // console.log(  this.package.name, 'parsing package');
+
     let re = /constant\s+(\w+)/g;
     let m;
     while (m = re.exec(this.text)) {
@@ -174,6 +177,11 @@ export class OFileCache {
     while (m = re.exec(this.text)) {
       this.package.things.push(... m[2].split(',').map(thing => thing.trim()));
     }
+    const matchReference = this.text.match(/is\s+new\s+(\w+).(\w+)/i);
+    if (matchReference) {
+      this.package.referencePackage = matchReference[2];
+    }
+
   }
   private parseEntity(): void {
     const match = this.text.match(/entity\s+(\S+)\s+is/i);

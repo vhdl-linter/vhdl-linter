@@ -185,8 +185,11 @@ export class ParserBase {
     const reads: ORead[] = [];
     const writes: OWrite[] = [];
     let braceLevel = 0;
-    for (const token of this.tokenize(text)) {
-      if (token.type === 'BRACE') {
+    const tokens = this.tokenize(text);
+    let index = 0;
+    for (const token of tokens) {
+      // console.log(index, token);
+      if (token.type === 'BRACE' && index > 0) {
         token.value === '(' ? braceLevel++ : braceLevel--;
       } else if (token.type === 'VARIABLE' || token.type === 'FUNCTION') {
         if (braceLevel === 0) {
@@ -205,6 +208,9 @@ export class ParserBase {
           reads.push(read);
         }
       }
+      if (token.type !== 'WHITESPACE') {
+        index++;
+      }
     }
     return [reads, writes];
   }
@@ -217,13 +223,14 @@ export class ParserBase {
       ['sll', 'srl', 'sla', 'sra', 'rol', 'ror'],
       ['=', '/=', '<=', '>', '>=', '?=', '?/=', '?<', '?<=', '?>', '?>=', '=>'],
       ['and', 'or', 'nand', 'nor', 'xor', 'xnor'],
-      ['downto', 'to', 'others']
+      ['downto', 'to', 'others', 'when', 'else']
     ];
     const tokenTypes = [
       { regex: /^\s+/, tokenType: 'WHITESPACE' },
       { regex: /^[()]/, tokenType: 'BRACE' },
       { regex: /^,/, tokenType: 'COMMA' },
       { regex: /^[0-9]+/, tokenType: 'INTEGER_LITERAL' },
+      { regex: /^true|false/i, tokenType: 'BOOLEAN_LITERAL' },
       { regex: /^"[0-9]+"/, tokenType: 'LOGIC_LITERAL' },
       { regex: /^x"[0-9A-F]+"/i, tokenType: 'LOGIC_LITERAL' },
       { regex: /^'[0-9]+'/, tokenType: 'LOGIC_LITERAL' },

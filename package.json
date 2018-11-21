@@ -11,6 +11,7 @@
   },
   "scripts": {
     "build": "tsc --project .",
+    "build-watch": "tsc -w --project .",
     "lint": "tslint --project .",
     "prepublishOnly": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1",
