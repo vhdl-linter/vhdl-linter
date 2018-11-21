@@ -366,7 +366,7 @@ export class VhdlLinter {
         for (const statement of registerProcess.statements) {
           if (statement instanceof OIf) {
             for (const clause of statement.clauses) {
-              if (clause.condition.match(/reset/i)) {
+              if (clause.condition.match(/res/i)) {
                 resetBlockFound = true;
                 let resetValue = null;
                 if (signal.type.match(/^std_u?logic_vector|unsigned|signed/i)) {
