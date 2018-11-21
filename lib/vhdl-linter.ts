@@ -1,4 +1,4 @@
-import { OFile, OIf, OForLoop, OSignalLike, OSignal, OArchitecture, OEntity, OPort, OInstantiation } from './parser/objects';
+import { OFile, OIf, OForLoop, OSignalLike, OSignal, OArchitecture, OEntity, OPort, OInstantiation, OWrite, ORead } from './parser/objects';
 import { RangeCompatible, Point, TextEditor, PointCompatible, CompositeDisposable } from 'atom';
 import { Parser } from './parser/parser';
 import { ProjectParser, OProjectEntity } from './project-parser';
@@ -49,6 +49,14 @@ export class VhdlLinter {
           for (const foundPkg of packages) {
             if (foundPkg.name.toLowerCase() === pkg.toLowerCase()) {
               this.packageThings.push(... foundPkg.things);
+              if (foundPkg.referencePackage) {
+                for (const referencePackage of packages) {
+                  if (referencePackage.name === foundPkg.referencePackage) {
+                    this.packageThings.push(... referencePackage.things);
+
+                  }
+                }
+              }
               found = true;
             }
           }
@@ -136,71 +144,59 @@ export class VhdlLinter {
       }
     }
   }
+
   async checkNotDeclared(architecture?: OArchitecture) {
     if (!architecture) {
       return;
     }
+    const pushWriteError = (write: OWrite) => {
+      let positionStart = this.getPositionFromI(write.begin);
+      let positionEnd = this.getPositionFromI(write.end);
+      let position: RangeCompatible = [positionStart, positionEnd];
 
-    for (const process of this.tree.architecture.processes) {
+      this.messages.push({
+        location: {
+          file: this.editorPath,
+          position
+        },
+        severity: 'error',
+        excerpt: `signal '${write.text}' is written but not declared`
+      });
+    };
+    const pushReadError = (read: ORead) => {
+      let positionStart = this.getPositionFromI(read.begin);
+      let positionEnd = this.getPositionFromI(read.end);
+      let position: RangeCompatible = [positionStart, positionEnd];
+
+      this.messages.push({
+        location: {
+          file: this.editorPath,
+          position
+        },
+        severity: 'error',
+        excerpt: `signal '${read.text}' is read but not declared`
+      });
+    };
+    for (const process of architecture.processes) {
       for (const write of process.getFlatWrites()) {
-        let found = false;
-        for (const signal of this.tree.architecture.signals) {
-          if (signal.name.toLowerCase() === write.text.toLowerCase()) {
-            found = true;
-          }
-        }
-
-        for (const variable of process.variables) {
-          if (variable.name.toLowerCase() === write.text.toLowerCase()) {
-            found = true;
-          }
-        }
-        for (const port of this.tree.entity.ports) {
-          if (port.direction === 'out' || port.direction === 'inout') {
-            if (port.name.toLowerCase() === write.text.toLowerCase()) {
+        let found = this.tree.architecture.isValidWrite(write);
+        if (!found) {
+          for (const variable of process.variables) {
+            if (variable.name.toLowerCase() === write.text.toLowerCase()) {
               found = true;
             }
           }
         }
-        if (!found) {
-          let positionStart = this.getPositionFromI(write.begin);
-          let positionEnd = this.getPositionFromI(write.end);
-          let position: RangeCompatible = [positionStart, positionEnd];
-
-          this.messages.push({
-            location: {
-              file: this.editorPath,
-              position
-            },
-            severity: 'error',
-            excerpt: `signal '${write.text}' is written but not declared`
-          });
-        }
+        !found && pushWriteError(write);
       }
       for (const read of process.getFlatReads()) {
-        let found = false;
-        if (this.tree.architecture.isValidRead(read, this.packageThings)) {
-          found = true;
-        }
+        let found = architecture.isValidRead(read, this.packageThings);
         for (const variable of process.variables) {
           if (variable.name.toLowerCase() === read.text.toLowerCase()) {
             found = true;
           }
         }
-        if (!found) {
-          let positionStart = this.getPositionFromI(read.begin);
-          let positionEnd = this.getPositionFromI(read.end);
-          let position: RangeCompatible = [positionStart, positionEnd];
-
-          this.messages.push({
-            location: {
-              file: this.editorPath,
-              position
-            },
-            severity: 'error',
-            excerpt: `signal '${read.text}' is read but not declared`
-          });
-        }
+        !found && pushReadError(read);
       }
     }
 
@@ -209,20 +205,7 @@ export class VhdlLinter {
     for (const instantiation of architecture.instantiations) {
       const entity = await this.getProjectEntity(instantiation);
       for (const read of instantiation.getFlatReads(entity)) {
-        if (!architecture.isValidRead(read, this.packageThings)) {
-          let positionStart = this.getPositionFromI(read.begin);
-          let positionEnd = this.getPositionFromI(read.end);
-          let position: RangeCompatible = [positionStart, positionEnd];
-
-          this.messages.push({
-            location: {
-              file: this.editorPath,
-              position
-            },
-            severity: 'error',
-            excerpt: `signal '${read.text}' is read but not declared`
-          });
-        }
+        !architecture.isValidRead(read, this.packageThings) && pushReadError(read);
       }
     }
     // Writes
@@ -230,109 +213,16 @@ export class VhdlLinter {
     for (const instantiation of architecture.instantiations) {
       const entity = await this.getProjectEntity(instantiation);
       for (const write of instantiation.getFlatWrites(entity)) {
-        let found = false;
-        for (const signal of this.tree.architecture.signals) {
-          if (signal.name.toLowerCase() === write.text.toLowerCase()) {
-            found = true;
-          }
-        }
-        for (const port of this.tree.entity.ports) {
-          if (port.name.toLowerCase() === write.text.toLowerCase()) {
-            found = true;
-          }
-        }
-        for (const type of this.tree.architecture.types) {
-          if (type.states.find(state => state.name.toLowerCase() === write.text.toLowerCase())) {
-            found = true;
-          }
-        }
-        let parent = instantiation.parent;
-        while ((parent instanceof OFile) === false) {
-          if (parent instanceof OArchitecture) {
-            for (const signal of parent.signals) {
-              if (signal.name.toLowerCase() === write.text.toLowerCase()) {
-                found = true;
-              }
-            }
-          }
-          parent = parent.parent;
-        }
-        if (!found) {
-          let positionStart = this.getPositionFromI(write.begin);
-          let positionEnd = this.getPositionFromI(write.end);
-          let position: RangeCompatible = [positionStart, positionEnd];
-
-          this.messages.push({
-            location: {
-              file: this.editorPath,
-              position
-            },
-            severity: 'error',
-            excerpt: `signal '${write.text}' is written but not declared`
-          });
-        }
+        !architecture.isValidWrite(write) && pushWriteError(write);
       }
     }
 
     for (const assignment of architecture.assignments) {
       for (const read of assignment.reads) {
-        if (!architecture.isValidRead(read, this.packageThings)) {
-          let positionStart = this.getPositionFromI(read.begin);
-          let positionEnd = this.getPositionFromI(read.end);
-          let position: RangeCompatible = [positionStart, positionEnd];
-
-          this.messages.push({
-            location: {
-              file: this.editorPath,
-              position
-            },
-            severity: 'error',
-            excerpt: `signal '${read.text}' is read but not declared`
-          });
-        }
+        !architecture.isValidRead(read, this.packageThings) && pushReadError(read);
       }
       for (const write of assignment.writes) {
-        let found = false;
-        for (const signal of this.tree.architecture.signals) {
-          if (signal.name.toLowerCase() === write.text.toLowerCase()) {
-            found = true;
-          }
-        }
-        for (const port of this.tree.entity.ports) {
-          if (port.name.toLowerCase() === write.text.toLowerCase()) {
-            found = true;
-          }
-        }
-        for (const type of this.tree.architecture.types) {
-          if (type.states.find(state => state.name.toLowerCase() === write.text.toLowerCase())) {
-            found = true;
-          }
-        }
-        let parent = assignment.parent;
-        while ((parent instanceof OFile) === false) {
-          if (parent instanceof OArchitecture) {
-            for (const signal of parent.signals) {
-              if (signal.name.toLowerCase() === write.text.toLowerCase()) {
-                found = true;
-              }
-            }
-          }
-          parent = parent.parent;
-        }
-        if (!found) {
-          let positionStart = this.getPositionFromI(write.begin);
-          let positionEnd = this.getPositionFromI(write.end);
-          let position: RangeCompatible = [positionStart, positionEnd];
-
-          this.messages.push({
-            location: {
-              file: this.editorPath,
-              position
-            },
-            severity: 'error',
-            excerpt: `signal '${write.text}' is written but not declared`
-          });
-        }
+        !architecture.isValidWrite(write) && pushWriteError(write);
       }
     }
     for (const generate of architecture.generates) {

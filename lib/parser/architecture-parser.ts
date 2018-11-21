@@ -2,7 +2,7 @@ import { ParserBase } from './parser-base';
 import { ProcessParser } from './process-parser';
 import { InstantiationParser } from './instantiation-parser';
 import { ParserPosition } from './parser-position';
-import { OSignal, OType, OArchitecture, ParserError, OState, OForGenerate, OIfGenerate } from './objects';
+import { OSignal, OType, OArchitecture, ParserError, OState, OForGenerate, OIfGenerate, OFunction } from './objects';
 import { AssignmentParser } from './assignment-parser';
 
 export class ArchitectureParser extends ParserBase {
@@ -167,6 +167,18 @@ export class ArchitectureParser extends ParserBase {
         this.advancePast('end');
         this.maybeWord('component');
         this.expect(';');
+      } else if (nextWord === 'function') {
+        this.getNextWord();
+        const func = new OFunction(parent, this.pos.i);
+        func.name = this.getNextWord();
+        this.advancePast('end');
+        let word = this.getNextWord({consume: false});
+        while (['case', 'loop', 'if'].indexOf(word.toLowerCase()) > -1) {
+          this.advancePast('end');
+          word = this.getNextWord({consume: false});
+        }
+        this.advancePast(';');
+        parent.functions.push(func);
       } else if (optional && signals.length === 0 && types.length === 0) {
         return { signals, types };
       } else {

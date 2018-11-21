@@ -21,6 +21,9 @@ export class OUseStatement extends ObjectBase {
   begin: number;
   end: number;
 }
+export class OFunction extends ObjectBase {
+  name: string;
+}
 export class OArchitecture extends ObjectBase {
   signals: OSignal[] = [];
   processes: OProcess[] = [];
@@ -28,39 +31,61 @@ export class OArchitecture extends ObjectBase {
   generates: OArchitecture[] = [];
   assignments: OAssignment[] = [];
   types: OType[] = [];
-  // isValidWrite(write: OW)
+  functions: OFunction[] = [];
+  isValidWrite(write: OWrite): boolean {
+    let found = false;
+    let parent = write.parent;
+    while ((parent instanceof OFile) === false) {
+      if (parent instanceof OArchitecture) {
+        for (const signal of parent.signals) {
+            found = found || signal.name.toLowerCase() === write.text.toLowerCase();
+        }
+      }
+      parent = parent.parent;
+    }
+    const file = parent as OFile;
+    for (const signal of file.architecture.signals) {
+        found = found || signal.name.toLowerCase() === write.text.toLowerCase();
+    }
+    for (const port of file.entity.ports) {
+      found = found || port.name.toLowerCase() === write.text.toLowerCase();
+    }
+    for (const type of file.architecture.types) {
+      if (type.states.find(state => state.name.toLowerCase() === write.text.toLowerCase())) {
+        found = true;
+      }
+    }
+    return found;
+  }
   isValidRead(read: ORead, packageThings: string[]): boolean {
     let found = false;
 
     if (packageThings.find(packageThing => packageThing.toLowerCase() === read.text.toLowerCase())) {
       found = true;
     }
-    let parent = read.parent.parent;
+    let parent = read.parent;
     while ((parent instanceof OFile) === false) {
       if (parent instanceof OArchitecture) {
         for (const signal of parent.signals) {
-          if (signal.name.toLowerCase() === read.text.toLowerCase()) {
-            found = true;
-          }
+          found = found || signal.name.toLowerCase() === read.text.toLowerCase();
         }
+        for (const func of parent.functions) {
+          found = found || func.name.toLowerCase() === read.text.toLowerCase();
+        }
+      } else if (parent instanceof OForLoop) {
+        found = found || parent.variable.toLowerCase() === read.text.toLowerCase();
       }
       parent = parent.parent;
     }
     const file = parent as OFile;
     for (const generic of file.entity.generics) {
-      if (generic.name.toLowerCase() === read.text.toLowerCase()) {
-        found = true;
-      }
+      found = found || generic.name.toLowerCase() === read.text.toLowerCase();
     }
     for (const port of file.entity.ports) {
-      if (port.name.toLowerCase() === read.text.toLowerCase()) {
-        found = true;
-      }
+      found = found || port.name.toLowerCase() === read.text.toLowerCase();
     }
     for (const type of file.architecture.types) {
-      if (type.states.find(state => state.name.toLowerCase() === read.text.toLowerCase())) {
-        found = true;
-      }
+      found = found || typeof type.states.find(state => state.name.toLowerCase() === read.text.toLowerCase()) !== 'undefined';
     }
     return found;
   }
@@ -357,7 +382,6 @@ export class OWriteReadBase extends ObjectBase {
   text: string;
 }
 export class OWrite extends OWriteReadBase {
-
 }
 export class ORead extends OWriteReadBase {
 

@@ -185,8 +185,11 @@ export class ParserBase {
     const reads: ORead[] = [];
     const writes: OWrite[] = [];
     let braceLevel = 0;
-    for (const token of this.tokenize(text)) {
-      if (token.type === 'BRACE') {
+    const tokens = this.tokenize(text);
+    let index = 0;
+    for (const token of tokens) {
+      // console.log(index, token);
+      if (token.type === 'BRACE' && index > 0) {
         token.value === '(' ? braceLevel++ : braceLevel--;
       } else if (token.type === 'VARIABLE' || token.type === 'FUNCTION') {
         if (braceLevel === 0) {
@@ -204,6 +207,9 @@ export class ParserBase {
           read.text = token.value;
           reads.push(read);
         }
+      }
+      if (token.type !== 'WHITESPACE') {
+        index++;
       }
     }
     return [reads, writes];
