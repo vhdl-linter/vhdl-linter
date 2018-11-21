@@ -228,7 +228,9 @@ export class ParserBase {
       { regex: /^x"[0-9A-F]+"/i, tokenType: 'LOGIC_LITERAL' },
       { regex: /^'[0-9]+'/, tokenType: 'LOGIC_LITERAL' },
       { regex: /^[a-z]\w*(?!\s*[(]|\w)/i, tokenType: 'VARIABLE' },
+      { regex: /^\.[a-z]\w*(?!\s*[(]|\w)/i, tokenType: 'RECORD_ELEMENT' },
       { regex: /^\w+(?=\s*\()/, tokenType: 'FUNCTION' },
+      { regex: /^\.\w+(?=\s*\()/, tokenType: 'FUNCTION_RECORD_ELEMENT' },
 
     ];
     const specialChars = '[*/&-?=<>+]';
