@@ -21,7 +21,7 @@
   "husky": {
     "hooks": {
       "pre-commit": "npm run lint",
-      "post-merge": "npm i && npm run build"
+      "post-merge": "npm i && npm run build && echo -e '#####################\nRestart Atom\n#####################'"
     }
   },
   "dependencies": {
