@@ -1,5 +1,5 @@
 import { OFile, OIf, OForLoop, OSignalLike, OSignal, OArchitecture, OEntity, OPort, OInstantiation, OWrite, ORead } from './parser/objects';
-import { RangeCompatible, Point, TextEditor, PointCompatible, CompositeDisposable } from 'atom';
+import { Range, Point, TextEditor, CompositeDisposable } from 'atom';
 import { Parser } from './parser/parser';
 import { ProjectParser, OProjectEntity } from './project-parser';
 
@@ -17,8 +17,8 @@ export class VhdlLinter {
     } catch (e) {
       try {
         let positionStart = this.getPositionFromI(e.i);
-        let positionEnd: [number, number] = [positionStart[0], Infinity];
-        let position: [[number, number], [number, number]] = [positionStart, positionEnd];
+        let positionEnd = new Point(positionStart.row, Infinity);
+        let position: Range = new Range(positionStart, positionEnd);
         this.messages.push({
           location: {
             file: this.editorPath,
@@ -152,7 +152,7 @@ export class VhdlLinter {
     const pushWriteError = (write: OWrite) => {
       let positionStart = this.getPositionFromI(write.begin);
       let positionEnd = this.getPositionFromI(write.end);
-      let position: RangeCompatible = [positionStart, positionEnd];
+      let position = new Range(positionStart, positionEnd);
 
       this.messages.push({
         location: {
@@ -166,7 +166,7 @@ export class VhdlLinter {
     const pushReadError = (read: ORead) => {
       let positionStart = this.getPositionFromI(read.begin);
       let positionEnd = this.getPositionFromI(read.end);
-      let position: RangeCompatible = [positionStart, positionEnd];
+      let position = new Range(positionStart, positionEnd);
 
       this.messages.push({
         location: {
@@ -268,10 +268,10 @@ export class VhdlLinter {
                 }
                 if (resetValue !== null) {
                   let positionStart = this.getPositionFromI(clause.startI);
-                  positionStart[0]++;
+                  positionStart.row++;
                   solutions.push({
                     title: 'Add Register',
-                    position: [positionStart, positionStart],
+                    position:    new Range(positionStart, positionStart),
                     replaceWith: `  ${signal.name} <= ${resetValue};\n    `
                   });
                 }
@@ -497,13 +497,13 @@ export class VhdlLinter {
 
 
 
-  getPositionFromILine(i: number, j?: number): [[number, number], [number, number]] {
+  getPositionFromILine(i: number, j?: number): Range {
     const positionStart = this.getPositionFromI(i);
-    const positionEnd: PointCompatible = j ? this.getPositionFromI(j) : [positionStart[0], Infinity];
-    const position: RangeCompatible = [positionStart, positionEnd];
+    const positionEnd = j ? this.getPositionFromI(j) : new Point(positionStart.row, Infinity);
+    const position: Range = new Range(positionStart, positionEnd);
     return position;
   }
-  getPositionFromI(i: number): [number, number] {
+  getPositionFromI(i: number): Point {
     let row = 0;
     let col = 0;
     for (let count = 0; count < i; count++) {
@@ -514,7 +514,7 @@ export class VhdlLinter {
         col++;
       }
     }
-    return [row, col];
+    return new Point(row, col);
   }
 
 }
@@ -522,7 +522,7 @@ export type Message = {
   // From providers
   location: {
     file: string,
-    position: [[number, number], [number, number]],
+    position: Range,
   },
   reference?: {
     file: string,
@@ -537,13 +537,13 @@ export type Message = {
 };
 export type Solution = {
   title?: string,
-  position: [[number, number], [number, number]],
+  position: Range,
   priority?: number,
   currentText?: string,
   replaceWith: string,
 } | {
   title?: string,
   priority?: number,
-  position: [[number, number], [number, number]],
+  position: Range,
   apply: (() => any),
 };

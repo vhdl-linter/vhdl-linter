@@ -35,6 +35,7 @@ export class OArchitecture extends ObjectBase {
   isValidWrite(write: OWrite): boolean {
     let found = false;
     let parent = write.parent;
+    let counter = 100;
     while ((parent instanceof OFile) === false) {
       if (parent instanceof OArchitecture) {
         for (const signal of parent.signals) {
@@ -42,6 +43,11 @@ export class OArchitecture extends ObjectBase {
         }
       }
       parent = parent.parent;
+      counter--;
+      if (counter === 0) {
+        console.log(parent, parent.parent);
+        throw new Error('Infinite Loop?');
+      }
     }
     const file = parent as OFile;
     for (const signal of file.architecture.signals) {
@@ -64,7 +70,9 @@ export class OArchitecture extends ObjectBase {
       found = true;
     }
     let parent = read.parent;
+    let counter = 100;
     while ((parent instanceof OFile) === false) {
+      // No Else if. Can be Instance of Multiple Classes (extends)
       if (parent instanceof OArchitecture) {
         for (const signal of parent.signals) {
           found = found || signal.name.toLowerCase() === read.text.toLowerCase();
@@ -72,10 +80,19 @@ export class OArchitecture extends ObjectBase {
         for (const func of parent.functions) {
           found = found || func.name.toLowerCase() === read.text.toLowerCase();
         }
-      } else if (parent instanceof OForLoop) {
+      }
+      if (parent instanceof OForLoop) {
+        found = found || parent.variable.toLowerCase() === read.text.toLowerCase();
+      }
+      if (parent instanceof OForGenerate) {
         found = found || parent.variable.toLowerCase() === read.text.toLowerCase();
       }
       parent = parent.parent;
+      counter--;
+      if (counter === 0) {
+        console.log(parent, parent.parent);
+        throw new Error('Infinite Loop?');
+      }
     }
     const file = parent as OFile;
     for (const generic of file.entity.generics) {
@@ -177,14 +194,16 @@ export class OInstantiation extends ObjectBase {
           return false;
         });
         if (entityPort && (entityPort.direction === 'in' || entityPort.direction === 'inout')) {
-          this.flatReads.push(...portMapping.mapping);
+          this.flatReads.push(...portMapping.mappingIfInput);
+        } else if (entityPort && entityPort.direction === 'out') {
+          this.flatReads.push(...portMapping.mappingIfOutput[0]);
         }
       } else {
-        this.flatReads.push(...portMapping.mapping);
+        this.flatReads.push(...portMapping.mappingIfInput);
       }
     }
     for (const portMapping of this.genericMappings) {
-      this.flatReads.push(...portMapping.mapping);
+      this.flatReads.push(...portMapping.mappingIfInput);
     }
     return this.flatReads;
   }
@@ -205,10 +224,10 @@ export class OInstantiation extends ObjectBase {
           return false;
         });
         if (entityPort && (entityPort.direction === 'out' || entityPort.direction === 'inout')) {
-          this.flatWrites.push(...portMapping.mapping);
+          this.flatWrites.push(...portMapping.mappingIfOutput[1]);
         }
       } else {
-        this.flatWrites.push(...portMapping.mapping);
+        this.flatWrites.push(...portMapping.mappingIfInput);
       }
     }
     return this.flatWrites;
@@ -216,7 +235,8 @@ export class OInstantiation extends ObjectBase {
 }
 export class OMapping extends ObjectBase {
   name: ORead[];
-  mapping: ORead[];
+  mappingIfInput: ORead[];
+  mappingIfOutput: [ORead[], OWrite[]];
 }
 export class OEntity extends ObjectBase {
   name: string;

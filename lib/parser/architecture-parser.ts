@@ -16,8 +16,20 @@ export class ArchitectureParser extends ParserBase {
       this.name = name;
     }
   }
-  parse(skipStart = false, structureName = 'architecture'): OArchitecture {
-    let architecture = new OArchitecture(this.parent, this.pos.i);
+  parse(): OArchitecture;
+  parse(skipStart: boolean, structureName: 'generate'): OForGenerate;
+  parse(skipStart: boolean, structureName: 'generate', ifGenerate: true): OIfGenerate;
+  parse(skipStart = false, structureName: 'architecture' | 'generate' = 'architecture', ifGenerate: boolean = false): OArchitecture|OForGenerate|OIfGenerate {
+    let architecture;
+    if (structureName === 'architecture') {
+      architecture = new OArchitecture(this.parent, this.pos.i);
+    } else {
+      if (ifGenerate) {
+        architecture = new OIfGenerate(this.parent, this.pos.i);
+      } else {
+        architecture = new OForGenerate(this.parent, this.pos.i);
+      }
+    }
     if (skipStart !== true) {
       this.type = this.getNextWord();
       this.expect('of');
@@ -62,7 +74,7 @@ export class ArchitectureParser extends ParserBase {
         let conditionI = this.pos.i;
         let condition = this.advancePast(/^\bgenerate/i);
         const subarchitecture = new ArchitectureParser(this.text, this.pos, this.file, architecture, label);
-        const ifGenerate = (subarchitecture.parse(true, 'generate') as OIfGenerate);
+        const ifGenerate = subarchitecture.parse(true, 'generate', true);
         ifGenerate.condition = condition;
         ifGenerate.conditionReads = this.extractReads(ifGenerate, condition, conditionI);
         architecture.generates.push(ifGenerate);
@@ -73,10 +85,11 @@ export class ArchitectureParser extends ParserBase {
         let start = this.advancePast(/^\b(to|downto)/i);
         let end = this.advancePast(/^\bgenerate/i);
         const subarchitecture = new ArchitectureParser(this.text, this.pos, this.file, architecture, label);
-        const generate: OForGenerate = (subarchitecture.parse(true, 'generate') as OForGenerate);
+        const generate: OForGenerate = subarchitecture.parse(true, 'generate');
         generate.start = start;
         generate.end = end;
         generate.variable = variable;
+        console.log(generate, generate.constructor.name);
         architecture.generates.push(generate);
       } else if (nextWord === 'with') {
         console.error('WTF');
