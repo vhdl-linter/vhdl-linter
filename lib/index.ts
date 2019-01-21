@@ -40,6 +40,7 @@ module.exports = {
           };
           target = filter(tree);
           atom.clipboard.write(JSON.stringify(target));
+          atom.notifications.addInfo('copied tree');
         }
       }
     }));
