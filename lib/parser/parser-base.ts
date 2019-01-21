@@ -107,9 +107,12 @@ export class ParserBase {
     }
     if (consume) {
       let word = '';
-      while (this.text[this.pos.i].match(re)) {
+      while (this.pos.i < this.text.length && this.text[this.pos.i].match(re)) {
         word += this.text[this.pos.i];
         this.pos.i++;
+        // if (this.pos.i >= this.text.length) {
+        //   throw new ParserError(`did not find ${re}. EOF line: ${this.getLine()}`, this.pos.i);
+        // }
       }
       this.advanceWhitespace();
       return word;
