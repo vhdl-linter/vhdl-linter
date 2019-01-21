@@ -81,7 +81,7 @@ export class ArchitectureParser extends ParserBase {
 
       } else if (nextWord === 'for') {
         this.debug('parse for generate');
-        let variable = this.advancePast(/^\bin/i);
+        let variable = this.advancePast(/^\sin\b/i);
         let start = this.advancePast(/^\b(to|downto)/i);
         let end = this.advancePast(/^\bgenerate/i);
         const subarchitecture = new ArchitectureParser(this.text, this.pos, this.file, architecture, label);
