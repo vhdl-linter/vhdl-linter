@@ -72,7 +72,7 @@ export class ArchitectureParser extends ParserBase {
       } else if (nextWord === 'if') {
         this.debug('parse if generate ' + label);
         let conditionI = this.pos.i;
-        let condition = this.advancePast(/^\bgenerate/i);
+        let condition = this.advancePast(/\bgenerate\b/i);
         const subarchitecture = new ArchitectureParser(this.text, this.pos, this.file, architecture, label);
         const ifGenerate = subarchitecture.parse(true, 'generate', true);
         ifGenerate.condition = condition;
@@ -81,9 +81,9 @@ export class ArchitectureParser extends ParserBase {
 
       } else if (nextWord === 'for') {
         this.debug('parse for generate');
-        let variable = this.advancePast(/^\sin\b/i);
-        let start = this.advancePast(/^\b(to|downto)/i);
-        let end = this.advancePast(/^\bgenerate/i);
+        let variable = this.advancePast(/\bin\b/i);
+        let start = this.advancePast(/\b(to|downto)\b/i);
+        let end = this.advancePast(/\bgenerate\b/i);
         const subarchitecture = new ArchitectureParser(this.text, this.pos, this.file, architecture, label);
         const generate: OForGenerate = subarchitecture.parse(true, 'generate');
         generate.start = start;

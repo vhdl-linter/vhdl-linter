@@ -71,15 +71,12 @@ export class ParserBase {
       this.pos.i += search.length;
     } else {
       let match = this.text.substr(this.pos.i).match(search);
-      while (match === null) {
-        text += this.text[this.pos.i];
-        this.pos.i++;
-        if (this.pos.i > this.text.length) {
-          throw new ParserError(`could not find ${search}`, searchStart);
-        }
-        match = this.text.substr(this.pos.i).match(search);
+      if (match !== null && typeof match.index !== 'undefined') {
+        text = match[0];
+        this.pos.i += match.index + text.length;
+      } else {
+        throw new ParserError(`could not find ${search}`, searchStart);
       }
-      this.pos.i += match[0].length;
     }
     this.advanceWhitespace();
     return text.trim();
