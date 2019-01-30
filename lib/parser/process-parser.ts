@@ -154,6 +154,7 @@ export class ProcessParser extends ParserBase {
     const case_ = new OCase(parent, this.pos.i);
     const posI = this.pos.i;
     case_.variable = this.extractReads(case_, this.advancePast(/\bis\b/i), posI);
+    this.debug(`Apfel`);
 
     let nextWord = this.getNextWord().toLowerCase();
     while (nextWord === 'when') {

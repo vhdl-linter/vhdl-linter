@@ -15,7 +15,8 @@ export class ParserBase {
 
   }
   debug(message: string) {
-//     // console.log(`${this.constructor.name}: ${message} in line: ${this.getLine()}, (${this.file})`);
+    let pos = this.getPosition();
+    console.log(`${this.constructor.name}: ${message} at ${pos.line}:${pos.col}, (${this.file})`);
   }
   debugObject(object: any) {
     let target: any = {};
@@ -74,7 +75,7 @@ export class ParserBase {
       if (match !== null && typeof match.index !== 'undefined') {
         // text = match[0];
         text = this.text.substr(this.pos.i, match.index);
-        this.pos.i += match.index + text.length;
+        this.pos.i += match.index + match[0].length;
       } else {
         throw new ParserError(`could not find ${search}`, searchStart);
       }
@@ -137,6 +138,21 @@ export class ParserBase {
       }
     }
     return line;
+  }
+  getPosition(position?: number) {
+    if (!position) {
+      position = this.pos.i;
+    }
+    let line = 1;
+    let col = 1;
+    for (let counter = 0; counter < position; counter++) {
+      col++;
+      if (this.text[counter] === '\n') {
+        line++;
+        col = 1;
+      }
+    }
+    return {line, col};
   }
   expect(expected: string | string[]) {
     if (!Array.isArray(expected)) {
