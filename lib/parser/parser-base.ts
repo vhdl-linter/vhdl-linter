@@ -72,7 +72,8 @@ export class ParserBase {
     } else {
       let match = this.text.substr(this.pos.i).match(search);
       if (match !== null && typeof match.index !== 'undefined') {
-        text = match[0];
+        // text = match[0];
+        text = this.text.substr(this.pos.i, match.index);
         this.pos.i += match.index + text.length;
       } else {
         throw new ParserError(`could not find ${search}`, searchStart);
