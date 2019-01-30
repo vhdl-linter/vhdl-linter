@@ -234,7 +234,7 @@ export class ParserBase {
   tokenize(text: string): Token[] {
     const operators = [
       ['**', 'abs', 'not'],
-      ['*', '/'],
+      ['*', '/', 'mod'],
       ['+', '-'],
       ['+', '-', '&'],
       ['sll', 'srl', 'sla', 'sra', 'rol', 'ror'],
