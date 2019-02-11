@@ -125,11 +125,13 @@ export class ArchitectureParser extends ParserBase {
         signal.constant = nextWord === 'constant';
         signal.name = this.getNextWord();
         if (this.text[this.pos.i] === ',') {
-          multiSignals.push(name);
-          this.expect(',');
-          continue;
+          throw new ParserError(`Defining multiple signals not allowed!: ${this.getLine(this.pos.i)}`, this.pos.i);
+          // multiSignals.push(signal.name);
+          // this.expect(',');
+          // continue;
         }
         this.expect(':');
+        const iBeforeType = this.pos.i;
         signal.type = this.getType();
         if (signal.type.indexOf(':=') > -1) {
           const split = signal.type.split(':=');
@@ -137,6 +139,8 @@ export class ArchitectureParser extends ParserBase {
           signal.defaultValue = split[1].trim();
 
         }
+        signal.reads = this.extractReads(signal, signal.type, iBeforeType);
+        console.log(multiSignals, 'multiSignals');
         for (const multiSignalName of multiSignals) {
           const multiSignal = new OSignal(parent, -1);
           Object.assign(signal, multiSignal);

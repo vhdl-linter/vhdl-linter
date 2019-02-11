@@ -138,6 +138,7 @@ export class OSignalLike extends ObjectBase {
   defaultValue?: string;
   private register: boolean | null = null;
   private registerProcess: OProcess | null;
+  reads: ORead[];
   constructor(public parent: OArchitecture, startI: number) {
     super(parent, startI);
   }

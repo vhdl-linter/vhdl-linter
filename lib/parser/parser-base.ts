@@ -16,7 +16,7 @@ export class ParserBase {
   }
   debug(message: string) {
     let pos = this.getPosition();
-    console.log(`${this.constructor.name}: ${message} at ${pos.line}:${pos.col}, (${this.file})`);
+    // console.log(`${this.constructor.name}: ${message} at ${pos.line}:${pos.col}, (${this.file})`);
   }
   debugObject(object: any) {
     let target: any = {};
@@ -233,16 +233,14 @@ export class ParserBase {
   }
   tokenize(text: string): Token[] {
     const operators = [
-      ['**', 'abs', 'not'],
-      ['*', '/', 'mod'],
-      ['+', '-'],
-      ['+', '-', '&'],
+      ['abs', 'not'],
+      ['mod'],
       ['sll', 'srl', 'sla', 'sra', 'rol', 'ror'],
-      ['=', '/=', '<=', '>', '>=', '?=', '?/=', '?<', '?<=', '?>', '?>=', '=>'],
       ['and', 'or', 'nand', 'nor', 'xor', 'xnor'],
       ['downto', 'to', 'others', 'when', 'else']
     ];
     const tokenTypes = [
+      { regex: /^[*\/&\-?=<>+]+/, tokenType: 'OPERATION'},
       { regex: /^\s+/, tokenType: 'WHITESPACE' },
       { regex: /^[()]/, tokenType: 'BRACE' },
       { regex: /^,/, tokenType: 'COMMA' },
@@ -257,24 +255,16 @@ export class ParserBase {
       { regex: /^\.\w+(?=\s*\()/, tokenType: 'FUNCTION_RECORD_ELEMENT' },
 
     ];
-    const specialChars = '[*/&-?=<>+]';
     for (const operatorGroup of operators) {
       for (const operator of operatorGroup) {
-        if (operator.match(/[^a-z]/i)) {
-          tokenTypes.unshift({
-            regex: new RegExp('^' + escapeStringRegexp(operator) + '(?!\s*' + specialChars + ')'),
-            tokenType: 'OPERATION',
-          });
-        } else {
-          tokenTypes.unshift({
-            regex: new RegExp('^\\b' + operator + '\\b', 'i'),
-            tokenType: 'OPERATION',
-          });
-
-        }
+        tokenTypes.unshift({
+          regex: new RegExp('^' + operator + '\\b', 'i'),
+          tokenType: 'KEYWORD',
+        });
       }
     }
-//     // console.log(tokenTypes);
+//     console.log(tokenTypes);
+// console.log(text);
     const tokens = [];
     let foundToken;
     let offset = 0;
@@ -292,7 +282,7 @@ export class ParserBase {
         }
       }
     } while (text.length > 0 && foundToken);
-
+    // console.log(tokens);
     return tokens;
   }
 }

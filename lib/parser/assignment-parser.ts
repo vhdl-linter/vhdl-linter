@@ -17,7 +17,7 @@ export class AssignmentParser extends ParserBase {
       leftHandSide += this.text[this.pos.i];
       this.pos.i++;
       if (this.pos.i === this.text.length) {
-        throw new ParserError(`expecteded <= or :=, reached end of text. Start on line: ${this.getLine(leftHandSideI)}`, leftHandSideI);
+        throw new ParserError(`expected <= or :=, reached end of text. Start on line: ${this.getLine(leftHandSideI)}`, leftHandSideI);
       }
     }
     [assignment.reads, assignment.writes] = this.extractReadsOrWrite(assignment, leftHandSide, leftHandSideI);

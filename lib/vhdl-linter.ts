@@ -313,6 +313,11 @@ export class VhdlLinter {
         unwritten = false;
       }
     }
+    for (const signal of architecture.signals) {
+      if (signal.reads.find(read => read.text.toLowerCase() === sigLowName)) {
+        unread = false;
+      }
+    }
     for (const instantiation of architecture.instantiations) {
       const entity = await this.getProjectEntity(instantiation);
       //       console.log(instantiation.getFlatReads(entity), instantiation.getFlatWrites(entity));
