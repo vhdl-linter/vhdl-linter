@@ -158,18 +158,27 @@ export class ParserBase {
     if (!Array.isArray(expected)) {
       expected = [expected];
     }
-    let hit = false;
-    for (const exp of expected) {
-      const word = this.text.substr(this.pos.i, exp.length);
-      if (word.toLowerCase() === exp.toLowerCase()) {
-        hit = true;
-        this.pos.i += word.length;
-        this.advanceWhitespace();
-      }
-    }
-    if (!hit) {
+    const re = new RegExp('^' + expected.map(e => escapeStringRegexp(e)).join('|'), 'i');
+    console.log(re);
+    const match = re.exec(this.text.substr(this.pos.i));
+    if (match !== null) {
+      this.pos.i += match[0].length;
+      this.advanceWhitespace();
+    } else {
       throw new ParserError(`expected '${expected.join(', ')}' found '${this.getNextWord()}' line: ${this.getLine()}`, this.pos.i);
     }
+    // let hit = false;
+    // for (const exp of expected) {
+    //   const word = this.text.substr(this.pos.i, exp.length);
+    //   if (word.toLowerCase() === exp.toLowerCase()) {
+    //     hit = true;
+    //     this.pos.i += word.length;
+    //     this.advanceWhitespace();
+    //   }
+    // }
+    // if (!hit) {
+    //
+    // }
   }
   maybeWord(expected: string) {
     const word = this.text.substr(this.pos.i, expected.length);

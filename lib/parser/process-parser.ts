@@ -90,8 +90,9 @@ export class ProcessParser extends ParserBase {
     this.expect('for');
     forLoop.variable = this.getNextWord();
     this.expect('in');
-    forLoop.start = this.getNextWord();
-    this.expect('to');
+    // forLoop.start = this.getNextWord();
+    forLoop.start = this.advancePast(/downto|to/i).trim();
+    // this.expect(['downto', 'to']);
     forLoop.end = this.advancePast('loop').trim();
     forLoop.statements = this.parseStatements(forLoop, ['end']);
     this.expect('end');

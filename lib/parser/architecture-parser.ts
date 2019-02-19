@@ -140,7 +140,7 @@ export class ArchitectureParser extends ParserBase {
 
         }
         signal.reads = this.extractReads(signal, signal.type, iBeforeType);
-        console.log(multiSignals, 'multiSignals');
+        // console.log(multiSignals, 'multiSignals');
         for (const multiSignalName of multiSignals) {
           const multiSignal = new OSignal(parent, -1);
           Object.assign(signal, multiSignal);
