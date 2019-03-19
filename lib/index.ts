@@ -7,7 +7,7 @@ module.exports = {
   projectParser: ProjectParser,
   parser: Parser,
   activate(): void {
-    console.log('activate', this);
+    // console.log('activate', this);
     // Events subscribed to in atom's system can be easily cleaned up with a CompositeDisposable
     this.subscriptions = new CompositeDisposable();
 
@@ -60,7 +60,7 @@ module.exports = {
       lintsOnChange: true, // or true
       grammarScopes: ['source.vhdl'],
       async lint(textEditor: TextEditor): Promise<Message[]> {
-        console.log('lint', this);
+        // console.log('lint', this);
 
         const vhdlLinter = new VhdlLinter(textEditor.getPath() || '', textEditor.getText(), module.exports.projectParser);
         const messages = await vhdlLinter.checkAll();

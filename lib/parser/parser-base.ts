@@ -159,7 +159,7 @@ export class ParserBase {
       expected = [expected];
     }
     const re = new RegExp('^' + expected.map(e => escapeStringRegexp(e)).join('|'), 'i');
-    console.log(re);
+    // console.log(re);
     const match = re.exec(this.text.substr(this.pos.i));
     if (match !== null) {
       this.pos.i += match[0].length;
