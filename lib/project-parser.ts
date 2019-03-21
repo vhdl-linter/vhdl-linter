@@ -128,6 +128,7 @@ export class OPackage {
 export class OProjectPorts {
   name: string;
   direction: 'in' | 'out' | 'inout';
+  hasDefault: boolean;
 }
 export class OProjectEntity {
   ports: OProjectPorts[] = [];
@@ -190,7 +191,7 @@ export class OFileCache {
     }
     this.entity = new OProjectEntity();
     this.entity.name = match[1];
-    let re = /(\S+)\s*:\s*(in|out|inout)/ig;
+    let re = /(\S+)\s*:\s*(in|out|inout)\b(.*?:=.*)?/ig;
     let m;
     while (m = re.exec(this.text)) {
       const direction = m[2].toLowerCase();
@@ -198,7 +199,7 @@ export class OFileCache {
         const port = new OProjectPorts();
         port.name = m[1];
         port.direction = direction;
-
+        port.hasDefault = typeof m[3] !== 'undefined';
         this.entity.ports.push(port);
 
       }

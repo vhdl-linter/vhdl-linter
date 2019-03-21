@@ -465,8 +465,9 @@ export class VhdlLinter {
             excerpt: `can not find entity ${instantiation.componentName}`
           });
         } else {
+          const foundPorts = [];
           for (const portMapping of instantiation.portMappings) {
-            const entityPort = entity.ports.find(port => {
+            const entityPortIndex = entity.ports.findIndex(port => {
               for (const part of portMapping.name) {
                 if (part.text.toLowerCase() === port.name.toLowerCase()) {
                   return true;
@@ -474,6 +475,8 @@ export class VhdlLinter {
               }
               return false;
             });
+            const entityPort = entity.ports[entityPortIndex];
+            foundPorts.push(entityPortIndex);
             if (!entityPort) {
               this.messages.push({
                 location: {
@@ -485,6 +488,19 @@ export class VhdlLinter {
               });
             }
           }
+          for (const [index, port] of entity.ports.entries()) {
+            if (port.direction === 'in' && port.hasDefault === false && foundPorts.findIndex(portIndex => portIndex === index) === -1) {
+              this.messages.push({
+                location: {
+                  file: this.editorPath,
+                  position: this.getPositionFromILine(instantiation.startI)
+                },
+                severity: 'error',
+                excerpt: `input port ${port.name} is missing in port map and has no default value on entity ${instantiation.componentName}`
+              });
+            }
+          }
+
         }
       } else {
         this.messages.push({

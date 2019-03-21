@@ -58,11 +58,14 @@ export class ParserBase {
       this.pos.i--;
     }
   }
-  advancePast(search: string | RegExp) {
+  advancePast(search: string | RegExp, options: {allowSemicolon: boolean} = {allowSemicolon: false}) {
     let text = '';
     let searchStart = this.pos.i;
     if (typeof search === 'string') {
       while (this.text.substr(this.pos.i, search.length).toLowerCase() !== search.toLowerCase()) {
+        if (!options.allowSemicolon && this.text[this.pos.i] === ';') {
+          throw new ParserError(`could not find ${search} DEBUG-SEMICOLON`, this.pos.i);
+        }
         text += this.text[this.pos.i];
         this.pos.i++;
         if (this.pos.i > this.text.length) {
@@ -73,6 +76,9 @@ export class ParserBase {
     } else {
       let match = this.text.substr(this.pos.i).match(search);
       if (match !== null && typeof match.index !== 'undefined') {
+        if (!options.allowSemicolon && this.text.substr(this.pos.i, match.index).indexOf(';') > -1) {
+          throw new ParserError(`could not find ${search} DEBUG-SEMICOLON`, searchStart);
+        }
         // text = match[0];
         text = this.text.substr(this.pos.i, match.index);
         this.pos.i += match.index + match[0].length;

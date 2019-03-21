@@ -78,6 +78,8 @@ export class ProcessParser extends ParserBase {
         statements.push(this.parseFor(parent, label));
       } else if (nextWord.toLowerCase() === 'report') {
         this.advancePast(';');
+      } else if (nextWord.toLowerCase() === 'null') {
+        this.advancePast(';');
       } else {
         const assignmentParser = new AssignmentParser(this.text, this.pos, this.file, parent);
         statements.push(assignmentParser.parse());
@@ -91,7 +93,7 @@ export class ProcessParser extends ParserBase {
     forLoop.variable = this.getNextWord();
     this.expect('in');
     // forLoop.start = this.getNextWord();
-    forLoop.start = this.advancePast(/downto|to/i).trim();
+    forLoop.start = this.advancePast(/\b(?:downto|to)\b/i).trim();
     // this.expect(['downto', 'to']);
     forLoop.end = this.advancePast('loop').trim();
     forLoop.statements = this.parseStatements(forLoop, ['end']);

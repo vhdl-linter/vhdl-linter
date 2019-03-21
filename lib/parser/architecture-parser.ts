@@ -181,17 +181,19 @@ export class ArchitectureParser extends ParserBase {
         }
       } else if (nextWord === 'component') {
         this.getNextWord();
-        this.advancePast('end');
+        const componentName = this.getNextWord();
+        this.advancePast('end', {allowSemicolon: true});
         this.maybeWord('component');
+        this.maybeWord(componentName);
         this.expect(';');
       } else if (nextWord === 'function') {
         this.getNextWord();
         const func = new OFunction(parent, this.pos.i);
         func.name = this.getNextWord();
-        this.advancePast('end');
+        this.advancePast('end', {allowSemicolon: true});
         let word = this.getNextWord({consume: false});
         while (['case', 'loop', 'if'].indexOf(word.toLowerCase()) > -1) {
-          this.advancePast('end');
+          this.advancePast('end', {allowSemicolon: true});
           word = this.getNextWord({consume: false});
         }
         this.advancePast(';');
