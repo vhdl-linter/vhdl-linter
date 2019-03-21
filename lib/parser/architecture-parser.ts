@@ -93,6 +93,9 @@ export class ArchitectureParser extends ParserBase {
         architecture.generates.push(generate);
       } else if (nextWord === 'with') {
         console.error('WTF');
+      } else if (nextWord === 'report') {
+        console.log('report');
+        this.advancePast(';');
       } else { // TODO  others
         if (label) {
           const instantiationParser = new InstantiationParser(this.text, this.pos, this.file, architecture);
