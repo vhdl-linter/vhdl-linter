@@ -2,13 +2,13 @@ import { ParserBase } from './parser-base';
 import { ProcessParser } from './process-parser';
 import { InstantiationParser } from './instantiation-parser';
 import { ParserPosition } from './parser-position';
-import { OSignal, OType, OArchitecture, ParserError, OState, OForGenerate, OIfGenerate, OFunction } from './objects';
+import { OSignal, OType, OArchitecture, ParserError, OState, OForGenerate, OIfGenerate, OFunction, OFile } from './objects';
 import { AssignmentParser } from './assignment-parser';
 
 export class ArchitectureParser extends ParserBase {
   name: string;
   type: string;
-  constructor(text: string, pos: ParserPosition, file: string, private parent: object, name?: string) {
+  constructor(text: string, pos: ParserPosition, file: string, private parent: OArchitecture|OFile, name?: string) {
     super(text, pos, file);
     this.debug('start');
     this.start = pos.i;
@@ -91,6 +91,19 @@ export class ArchitectureParser extends ParserBase {
         generate.variable = variable;
         console.log(generate, generate.constructor.name);
         architecture.generates.push(generate);
+      } else if (nextWord === 'else') {
+        if (!(this.parent instanceof OArchitecture)) {
+          throw new ParserError('Found Else generate without preceding if generate', this.pos.i);
+        }
+        this.debug('parse else generate ' + label);
+        let conditionI = this.pos.i;
+        let condition = this.advancePast(/\bgenerate\b/i);
+        const subarchitecture = new ArchitectureParser(this.text, this.pos, this.file, architecture, label);
+        const ifGenerate = subarchitecture.parse(true, 'generate', true);
+        ifGenerate.condition = condition;
+        ifGenerate.conditionReads = this.extractReads(ifGenerate, condition, conditionI);
+        this.parent.generates.push(ifGenerate);
+        break;
       } else if (nextWord === 'with') {
         console.error('WTF');
       } else if (nextWord === 'report' || nextWord === 'assert') {
@@ -184,17 +197,19 @@ export class ArchitectureParser extends ParserBase {
         }
       } else if (nextWord === 'component') {
         this.getNextWord();
-        this.advancePast('end');
+        const componentName = this.getNextWord();
+        this.advancePast('end', {allowSemicolon: true});
         this.maybeWord('component');
+        this.maybeWord(componentName);
         this.expect(';');
       } else if (nextWord === 'function') {
         this.getNextWord();
         const func = new OFunction(parent, this.pos.i);
         func.name = this.getNextWord();
-        this.advancePast('end');
+        this.advancePast('end', {allowSemicolon: true});
         let word = this.getNextWord({consume: false});
         while (['case', 'loop', 'if'].indexOf(word.toLowerCase()) > -1) {
-          this.advancePast('end');
+          this.advancePast('end', {allowSemicolon: true});
           word = this.getNextWord({consume: false});
         }
         this.advancePast(';');
