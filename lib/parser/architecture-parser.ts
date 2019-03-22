@@ -105,7 +105,7 @@ export class ArchitectureParser extends ParserBase {
         if (!(this.parent instanceof OArchitecture)) {
           throw new ParserError('Found Else generate without preceding if generate', this.pos.i);
         }
-        this.debug('parse else generate ' + name);
+        this.debug('parse else generate ' + this.name);
         this.advancePast(/\bgenerate\b/i);
       } else if (nextWord === 'with') {
         console.error('WTF');
