@@ -122,7 +122,7 @@ export class OForGenerate extends OArchitecture {
   end: string;
 }
 export class OIfGenerate extends OArchitecture {
-  condition: string;
+  conditions: string[];
   conditionReads: ORead[];
 }
 export class OVariable extends ObjectBase {
