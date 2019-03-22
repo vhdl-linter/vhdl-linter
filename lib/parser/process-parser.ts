@@ -61,7 +61,7 @@ export class ProcessParser extends ParserBase {
     while (this.pos.i < this.text.length) {
       let nextWord = this.getNextWord({ consume: false });
       let label;
-      if (this.text.substr(this.pos.i + nextWord.length).match(/^\s*:/)) {
+      if (this.text.substr(this.pos.i + nextWord.length).match(/^\s*:(?!=)/)) {
         label = nextWord;
         this.getNextWord(); // consume label
         this.expect(':');

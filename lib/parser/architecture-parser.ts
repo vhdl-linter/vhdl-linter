@@ -93,7 +93,7 @@ export class ArchitectureParser extends ParserBase {
         architecture.generates.push(generate);
       } else if (nextWord === 'with') {
         console.error('WTF');
-      } else if (nextWord === 'report') {
+      } else if (nextWord === 'report' || nextWord === 'assert') {
         console.log('report');
         this.advancePast(';');
       } else { // TODO  others
