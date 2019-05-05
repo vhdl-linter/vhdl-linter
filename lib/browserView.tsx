@@ -4,6 +4,7 @@ import {OFile, OPort, OSignal, OSignalLike} from './parser/objects';
 import {Point} from 'atom';
 import {SignalLikeViewer} from './signalLikeViewer';
 import {InstantiationsViewer} from './instantiationsViewer';
+import {ProcessViewer} from './processViewer';
 export interface IProps {
   tree: OFile;
 }
@@ -18,6 +19,7 @@ export class BrowserView extends React.Component<IProps, {}> {
           <SignalLikeViewer signalLikes={tree.entity.ports} type='port' classCallback = {(port: OPort) => 'vhdl-port-' + port.direction} header='Ports'></SignalLikeViewer>
           <SignalLikeViewer signalLikes={tree.architecture.signals} type='signal' classCallback = {(signal: OSignal) => signal.isRegister() ? 'vhdl-signal-register' : signal.constant ? 'vhdl-signal-constant' : ''} header='Signals'></SignalLikeViewer>
           <InstantiationsViewer instantiations={tree.architecture.instantiations}></InstantiationsViewer>
+          <ProcessViewer processes={tree.architecture.processes}></ProcessViewer>
       </div>
     </div>;
     // <div className='vhdl-portmap'>

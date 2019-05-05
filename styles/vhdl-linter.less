@@ -7,6 +7,7 @@
 .vhdl-linter {
 }
 .vhdl-browser {
+  font-family: var(--editor-font-family);
   transition: all 0.5s;
   width: 200px;
   padding: 10px;
@@ -48,7 +49,7 @@
 .vhdl-signal {
   color: #9090FF;
 }
-.vhdl-signal, .vhdl-port, .vhdl-generic {
+.vhdl-list-header-show {
   cursor: pointer;
 }
 .vhdl-signal-constant {
@@ -73,4 +74,52 @@
 }
 .vhdl-instantiation {
   color: purple;
+}
+.vhdl-list-body {
+  height: auto;
+  transition: height 0.25s;
+}
+.vhdl-list-header-show::before {
+  content: "▶";
+  transform: rotate(90deg);
+  transition: transform 0.25s;
+  display: inline-block;
+  margin-right: 3px;
+}
+.vhdl-body-hidden .vhdl-list-header-show::before {
+  transform: rotate(0deg);
+}
+.vhdl-body-hidden .vhdl-list-body {
+  height: 0;
+  overflow: hidden;
+}
+.vhdl-type::before {
+  content: ' ';
+    display: inline-block;
+    width: 4ch;
+    /* overflow: hidden; */
+    /* writing-mode: vertical-rl; */
+    font-size: 70%;
+    text-align: center;
+}
+.vhdl-type-std_logic::before {
+  content: "sl";
+}
+.vhdl-type-std_ulogic::before {
+  content: "sl";
+}
+.vhdl-type-std_logic_vector::before {
+  content: "slv";
+}
+.vhdl-type-std_ulogic_vector::before {
+  content: "slv";
+}
+.vhdl-type-integer::before {
+  content: "int";
+}
+.vhdl-type-positive::before {
+  content: "pos";
+}
+.vhdl-type-unsigned::before {
+  content: "uns";
 }

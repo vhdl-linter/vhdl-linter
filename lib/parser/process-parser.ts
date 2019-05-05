@@ -13,7 +13,7 @@ export class ProcessParser extends ParserBase {
   parse(label?: string): OProcess {
     this.expect('(');
     const process = new OProcess(this.parent, this.pos.i);
-
+    process.label = label;
     process.sensitivityList = this.advancePast(')');
     this.maybeWord('is');
     let nextWord = this.getNextWord({ consume: false }).toLowerCase();

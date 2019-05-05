@@ -1,15 +1,15 @@
 import * as React from 'react';
-import {OInstantiation} from './parser/objects';
+import {OProcess} from './parser/objects';
 import {Viewer} from './viewer';
 export interface IProps {
-  instantiations: OInstantiation[];
+  processes: OProcess[];
 }
 
 export interface IState {
   bodyVisible: boolean;
   sortAlpha: boolean;
 }
-export class InstantiationsViewer extends Viewer<IProps, IState> {
+export class ProcessViewer extends Viewer<IProps, IState> {
   constructor(props: any) {
     super(props);
     this.state = {
@@ -18,7 +18,7 @@ export class InstantiationsViewer extends Viewer<IProps, IState> {
     };
   }
   render() {
-    const sorted = this.state.sortAlpha ? [...this.props.instantiations].sort((a, b) => {
+    const sorted = this.state.sortAlpha ? [...this.props.processes].sort((a, b) => {
       if (typeof a.label === 'undefined' && b.label === 'undefined') {
         return 0;
       }
@@ -29,22 +29,22 @@ export class InstantiationsViewer extends Viewer<IProps, IState> {
         return 1;
       }
       return a.label > b.label ? 1 : -1;
-    }) : this.props.instantiations;
-    const className = 'vhdl-instantiation-list ' + (this.state.bodyVisible ? 'vhdl-body-visible' : 'vhdl-body-hidden');
+    }) : this.props.processes;
+    const className = 'vhdl-process-list ' + (this.state.bodyVisible ? 'vhdl-body-visible' : 'vhdl-body-hidden');
 
     return <div className={className}>
       <h4 className='vhdl-list-header'>
         <span className='vhdl-list-header-show' onClick={() => this.setState({bodyVisible: !this.state.bodyVisible})}>
-          Instantiations
+          Processes
         </span>
         <span className='vhdl-list-header-sort' onClick={(evt) => {evt.preventDefault(); this.setState({sortAlpha: !this.state.sortAlpha}); }}>⇅</span>
 
       </h4>
-      <div className={'vhdl-instantiation-list-body vhdl-list-body'}>
+      <div className={'vhdl-process-list-body vhdl-list-body'}>
         {
-          sorted.map(instantiation => {
-            return <div className = 'vhdl-instantiation' onClick={() => this.jumpToI(instantiation.startI)} title={instantiation.componentName}>
-             {instantiation.label}
+          sorted.map(process => {
+            return <div className = 'vhdl-process' onClick={() => this.jumpToI(process.startI)} title={process.label}>
+             {process.isRegisterProcess() ? 'reg: ' : ''}{process.label}
             </div>;
           })
         }
