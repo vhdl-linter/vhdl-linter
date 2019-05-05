@@ -6,7 +6,8 @@
         "strictNullChecks": true,
         "inlineSourceMap": true,
         "alwaysStrict": true,
-        "outDir": "./dist"
+        "outDir": "./dist",
+        "jsx": "react"
     },
     "include": ["lib/**/*"]
 }

@@ -11,7 +11,7 @@
   },
   "scripts": {
     "build": "tsc --project .",
-    "build-watch": "tsc -w --project .",
+    "build-watch": "tsc -w --jsx react --project  .",
     "lint": "tslint --project .",
     "prepublishOnly": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -27,12 +27,16 @@
   "dependencies": {
     "@types/glob": "^7.1.1",
     "@types/prettyjson": "0.0.28",
+    "@types/react": "^16.8.15",
+    "@types/react-dom": "^16.8.4",
     "atom-package-deps": "^4.6.2",
     "escape-string-regexp": "^1.0.5",
     "glob": "^7.1.3",
     "lite-event": "^1.0.5",
     "nodemon": "^1.18.4",
     "prettyjson": "^1.2.1",
+    "react": "^16.8.6",
+    "react-dom": "^16.8.6",
     "threads": "^0.12.0",
     "typed-promisify": "^0.4.0"
   },

@@ -2,6 +2,7 @@ import { OFile, OIf, OForLoop, OSignalLike, OSignal, OArchitecture, OEntity, OPo
 import { Range, Point, TextEditor, CompositeDisposable } from 'atom';
 import { Parser } from './parser/parser';
 import { ProjectParser, OProjectEntity } from './project-parser';
+import {browser} from './browser';
 
 export class VhdlLinter {
   messages: Message[] = [];

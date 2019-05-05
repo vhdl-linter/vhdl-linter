@@ -6,3 +6,71 @@
 
 .vhdl-linter {
 }
+.vhdl-browser {
+  transition: all 0.5s;
+  width: 200px;
+  padding: 10px;
+  height: 100%;
+}
+.vhdl-entity-name {
+  text-align: center;
+  font-weight: bold;
+  line-height: 30px;
+  margin: 0;
+  margin-top: -10px;
+
+}
+.vhdl-generic {
+  color: purple;
+}
+.vhdl-browser div {
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.vhdl-port-in {
+  color: #ff5050;
+}
+.vhdl-port-in::before {
+  content: "➡️";
+}
+.vhdl-port-out::after {
+  content: "➡️";
+}
+.vhdl-port-inout {
+  text-align: center;
+}
+.vhdl-port-out {
+  color: green;
+  text-align: right;
+}
+.vhdl-signal {
+  color: #9090FF;
+}
+.vhdl-signal, .vhdl-port, .vhdl-generic {
+  cursor: pointer;
+}
+.vhdl-signal-constant {
+  color: purple;
+}
+.vhdl-signal-register {
+  color: #d1d131;
+}
+.vhdl-scroll {
+  height: ~"calc(100% - 10px)";
+  overflow: auto !important;
+}
+.vhdl-list-header {
+  font-size: 14px;
+}
+.vhdl-list-header-show, .vhdl-list-header-sort {
+  cursor: pointer;
+}
+.vhdl-list-header-sort {
+  float: right;
+  display: inline-block;
+}
+.vhdl-instantiation {
+  color: purple;
+}
