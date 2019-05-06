@@ -276,6 +276,30 @@ export class OProcess extends ObjectBase {
   label?: string;
   variables: OVariable[] = [];
   private registerProcess: boolean | null = null;
+  getStates(): OState[] {
+    if (this.isRegisterProcess() === false) {
+      return [];
+    }
+    let states: OState[] = [];
+    for (const statement of this.statements) {
+      if (statement instanceof OIf) {
+        for (const clause of statement.clauses) {
+          if (clause.condition.match(/rising_edge/i)) {
+            for (const statement of clause.statements) {
+              if (statement instanceof OCase) {
+                for (const whenClause of statement.whenClauses) {
+                  const state = new OState(whenClause.parent, whenClause.startI);
+                  state.name = whenClause.condition.map(read => read.text).join(' ');
+                  states.push(state);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    return states;
+  }
   isRegisterProcess(): boolean {
     if (this.registerProcess !== null) {
       return this.registerProcess;

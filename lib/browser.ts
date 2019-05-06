@@ -8,11 +8,14 @@ export class Browser {
   container = document.createElement('div');
   private tree: OFile;
   constructor() {
+    this.container.classList.add('tool-panel', 'resizable-right-panel');
     atom.workspace.observeActiveTextEditor(editor => {
       console.log('editorChange', editor);
       if (!editor || editor.getGrammar().name !== 'VHDL') {
+        this.container.style.display = 'none';
         return;
       }
+      this.container.style.display = 'block';
       const parser = new Parser(editor.getText(), editor.getPath() || '');
       try {
         this.tree = parser.parse();
