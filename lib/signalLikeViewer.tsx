@@ -24,10 +24,10 @@ export class SignalLikeViewer extends Viewer<IProps, IState> {
     const signalLikeSorted = this.state.sortAlpha ? [...this.props.signalLikes].sort((a, b) => a.name > b.name ? 1 : -1) : this.props.signalLikes;
     const className = 'vhdl-' + this.props.type + '-list ' + (this.state.bodyVisible ? 'vhdl-body-visible' : 'vhdl-body-hidden');
     return <div className={className}>
-      <h4 className='vhdl-list-header'>
+      <div className='vhdl-list-header'>
         <span className='vhdl-list-header-show' onClick={() => this.setState({bodyVisible: !this.state.bodyVisible})}>{this.props.header}</span>
         <span className='vhdl-list-header-sort' onClick={(evt) => {evt.preventDefault(); this.setState({sortAlpha: !this.state.sortAlpha}); }}>⇅</span>
-      </h4>
+      </div>
       <div className={'vhdl-' + this.props.type + '-list-body vhdl-list-body'}>
         {
           signalLikeSorted.map(signalLike => {

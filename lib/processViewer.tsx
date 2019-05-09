@@ -33,13 +33,13 @@ export class ProcessViewer extends Viewer<IProps, IState> {
     const className = 'vhdl-process-list ' + (this.state.bodyVisible ? 'vhdl-body-visible' : 'vhdl-body-hidden');
 
     return <div className={className}>
-      <h4 className='vhdl-list-header'>
+      <div className='vhdl-list-header'>
         <span className='vhdl-list-header-show' onClick={() => this.setState({bodyVisible: !this.state.bodyVisible})}>
           Processes
         </span>
         <span className='vhdl-list-header-sort' onClick={(evt) => {evt.preventDefault(); this.setState({sortAlpha: !this.state.sortAlpha}); }}>⇅</span>
 
-      </h4>
+      </div>
       <div className={'vhdl-process-list-body vhdl-list-body'}>
         {
           sorted.map(process => {
