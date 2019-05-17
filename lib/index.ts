@@ -11,6 +11,8 @@ module.exports = {
     console.log('activate', this);
     // Events subscribed to in atom's system can be easily cleaned up with a CompositeDisposable
     this.subscriptions = new CompositeDisposable();
+    console.log(browser);
+    // browser.getView();
     atom.workspace.addRightPanel({
       item: browser.getView()
     });

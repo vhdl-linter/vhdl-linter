@@ -1,6 +1,6 @@
 import { Directory, File, CompositeDisposable } from 'atom';
 import { LiteEvent } from 'lite-event';
-
+import {promisify} from 'util';
 
 export class ProjectParser {
   private cachedFiles: OFileCache[] = [];
@@ -13,15 +13,22 @@ export class ProjectParser {
       this.initEvent.trigger();
     });
   }
-  private parseDirectory (directory: Directory): File[] {
+  private async parseDirectory (directory: Directory): Promise<File[]> {
     const files = [];
-    for (const entry of directory.getEntriesSync()) {
+    const entries = await new Promise((resolve, reject) => directory.getEntries((err, entries) => {
+      if (err) {
+        return reject(err);
+      }
+      resolve(entries);
+    })) as (Directory|File)[];
+    // const entries = await promisify(directory.getEntries)()
+    for (const entry of entries) {
       if (entry instanceof File) {
         if (entry.getBaseName().match(/\.vhdl?$/i)) {
           files.push(entry);
         }
       } else {
-        files.push(... this.parseDirectory(entry));
+        files.push(... await this.parseDirectory(entry));
       }
     }
     return files;
@@ -42,12 +49,12 @@ export class ProjectParser {
   private async initialize(): Promise<void> {
     let files: File[] = [];
     for (const directory of atom.project.getDirectories()) {
-      files.push(... this.parseDirectory(directory));
+      files.push(... await this.parseDirectory(directory));
     }
     const pkg = atom.packages.getPackageDirPaths() + '/vhdl-linter';
     if (pkg) {
 //       console.log(pkg, new Directory(pkg + '/ieee2008'));
-      files.push(... this.parseDirectory(new Directory(pkg + '/ieee2008')));
+      files.push(... await this.parseDirectory(new Directory(pkg + '/ieee2008')));
     }
     for (const file of files) {
       let cachedFile = this.cachedFiles.find(cachedFile => cachedFile.path === file.getPath());
