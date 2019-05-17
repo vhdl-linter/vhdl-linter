@@ -264,7 +264,7 @@ export class VhdlLinter {
                   resetValue = `(others => '0')`;
                 } else if (signal.type.match(/^std_u?logic/i)) {
                   resetValue = `'0'`;
-                } else if (signal.type.match(/^integer/i)) {
+                } else if (signal.type.match(/^integer|natural|positive/i)) {
                   resetValue = `0`;
                 }
                 if (resetValue !== null) {
