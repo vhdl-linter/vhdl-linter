@@ -174,6 +174,7 @@ export class OInstantiation extends ObjectBase {
   componentName: string;
   portMappings: OMapping[] = [];
   genericMappings: OMapping[] = [];
+  library?: string;
   entityInstantiation: boolean;
   private flatReads: ORead[] | null = null;
   private flatWrites: OWrite[] | null = null;

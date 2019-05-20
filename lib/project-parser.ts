@@ -140,6 +140,7 @@ export class OProjectPorts {
 export class OProjectEntity {
   ports: OProjectPorts[] = [];
   name: string;
+  library?: string;
 }
 export class OFileCache {
   path: string;
@@ -208,8 +209,11 @@ export class OFileCache {
         port.direction = direction;
         port.hasDefault = typeof m[3] !== 'undefined';
         this.entity.ports.push(port);
-
       }
+    }
+    let libraryMatch = this.text.match(/--!\s*@library\s+(\S+)/i);
+    if (libraryMatch) {
+      this.entity.library = libraryMatch[1];
     }
   }
 }

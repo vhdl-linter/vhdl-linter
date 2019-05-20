@@ -446,6 +446,12 @@ export class VhdlLinter {
   }
   private async getProjectEntity(instantiation: OInstantiation): Promise<OProjectEntity|undefined> {
     const projectEntities: OProjectEntity[] = await this.projectParser.getEntities();
+    if (instantiation.library) {
+      const entityWithLibrary =  projectEntities.find(entity => entity.name.toLowerCase() === instantiation.componentName.toLowerCase() && typeof entity.library !== 'undefined' && typeof instantiation.library !== 'undefined' && entity.library.toLowerCase() === instantiation.library.toLowerCase());
+      if (entityWithLibrary) {
+        return entityWithLibrary;
+      }
+    }
     return projectEntities.find(entity => entity.name.toLowerCase() === instantiation.componentName.toLowerCase());
 
   }

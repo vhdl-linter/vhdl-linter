@@ -15,6 +15,11 @@ export class InstantiationParser extends ParserBase {
     if (nextWord === 'entity') {
       instantiation.entityInstantiation = true;
       nextWord = this.getNextWord({re: /[\w.]/});
+      let libraryMatch = nextWord.match(/^(.*)\./i);
+      if (!libraryMatch) {
+        throw new ParserError(`Can not parse entity instantiation`, this.pos.i);
+      }
+      instantiation.library = libraryMatch[1];
     }
     instantiation.componentName = nextWord.replace(/^.*\./, '');
     let hasPortMap = false;
