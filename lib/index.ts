@@ -8,10 +8,10 @@ module.exports = {
   projectParser: ProjectParser,
   parser: Parser,
   activate(): void {
-    console.log('activate', this);
+//    console.log('activate', this);
     // Events subscribed to in atom's system can be easily cleaned up with a CompositeDisposable
     this.subscriptions = new CompositeDisposable();
-    console.log(browser);
+//    console.log(browser);
     // browser.getView();
     atom.workspace.addRightPanel({
       item: browser.getView()
@@ -19,7 +19,7 @@ module.exports = {
     // Register command that toggles this view
     this.subscriptions.add(atom.commands.add('atom-workspace', {
       'vhdl-linter:copy-parsed': () => {
-        console.log('activat2e', this);
+//        console.log('activat2e', this);
         const editor = atom.workspace.getActiveTextEditor();
         if (editor) {
           this.parser = new Parser(editor.getText(), editor.getPath() || '');

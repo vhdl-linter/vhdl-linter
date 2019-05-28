@@ -81,7 +81,7 @@ export class ArchitectureParser extends ParserBase {
         generate.start = start;
         generate.end = end;
         generate.variable = variable;
-        console.log(generate, generate.constructor.name);
+//        console.log(generate, generate.constructor.name);
         architecture.generates.push(generate);
       } else if (nextWord === 'if') {
         let conditionI = this.pos.i;
@@ -110,7 +110,7 @@ export class ArchitectureParser extends ParserBase {
       } else if (nextWord === 'with') {
         console.error('WTF');
       } else if (nextWord === 'report' || nextWord === 'assert') {
-        console.log('report');
+//        console.log('report');
         this.advancePast(';');
       } else { // TODO  others
         if (label) {

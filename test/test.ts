@@ -43,5 +43,5 @@ import * as util from 'util';
 //   }
 // })
 const parserBase = new ParserBase('yolo', new ParserPosition(), 'yolo.txt');
-
+//
 console.log(parserBase.extractReadsOrWrite(new ParserPosition, `  (s_PlaneDatum, s_NBinVec)`, 5));

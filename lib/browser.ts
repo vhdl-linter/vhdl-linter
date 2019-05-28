@@ -10,9 +10,9 @@ export class Browser {
   }
   getView() {
     const container = document.createElement('div');
-    console.log('Browser constr');
+    // console.log('Browser constr');
     atom.workspace.observeActiveTextEditor(editor => {
-      console.log('editorChange', editor);
+      // console.log('editorChange', editor);
       if (!editor || editor.getGrammar().name !== 'VHDL') {
         container.style.display = 'none';
         return;

@@ -485,6 +485,7 @@ export class VhdlLinter {
             const entityPort = entity.ports[entityPortIndex];
             foundPorts.push(entityPortIndex);
             if (!entityPort) {
+              console.log(instantiation);
               this.messages.push({
                 location: {
                   file: this.editorPath,

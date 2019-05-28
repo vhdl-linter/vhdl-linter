@@ -45,7 +45,7 @@ export class OArchitecture extends ObjectBase {
       parent = parent.parent;
       counter--;
       if (counter === 0) {
-        console.log(parent, parent.parent);
+//        console.log(parent, parent.parent);
         throw new Error('Infinite Loop?');
       }
     }
@@ -90,7 +90,7 @@ export class OArchitecture extends ObjectBase {
       parent = parent.parent;
       counter--;
       if (counter === 0) {
-        console.log(parent, parent.parent);
+//        console.log(parent, parent.parent);
         throw new Error('Infinite Loop?');
       }
     }
