@@ -202,7 +202,7 @@ export class ArchitectureParser extends ParserBase {
       } else if (nextWord === 'component') {
         this.getNextWord();
         const componentName = this.getNextWord();
-        this.advancePast('end', {allowSemicolon: true});
+        this.advancePast(/\bend\b/i, {allowSemicolon: true});
         this.maybeWord('component');
         this.maybeWord(componentName);
         this.expect(';');
@@ -210,10 +210,10 @@ export class ArchitectureParser extends ParserBase {
         this.getNextWord();
         const func = new OFunction(parent, this.pos.i);
         func.name = this.getNextWord();
-        this.advancePast('end', {allowSemicolon: true});
+        this.advancePast(/\bend\b/i, {allowSemicolon: true});
         let word = this.getNextWord({consume: false});
         while (['case', 'loop', 'if'].indexOf(word.toLowerCase()) > -1) {
-          this.advancePast('end', {allowSemicolon: true});
+          this.advancePast(/\bend\b/i, {allowSemicolon: true});
           word = this.getNextWord({consume: false});
         }
         this.advancePast(';');
