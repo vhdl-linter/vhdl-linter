@@ -1,10 +1,15 @@
 import {OProjectEntity} from '../project-parser';
 export class ObjectBase {
   public startI: number;
-  constructor (public parent: any, startI: number) {
+  constructor (public parent: ObjectBase|OFile, startI: number) {
     if (startI) {
       this.startI = startI;
     }
+    let p = parent;
+    while (!(p instanceof OFile)) {
+      p = p.parent;
+    }
+    p.objectList.push(this);
   }
   y() {
 
@@ -15,6 +20,7 @@ export class OFile {
   useStatements: OUseStatement[] = [];
   entity: OEntity;
   architecture: OArchitecture;
+  objectList: ObjectBase[] = [];
 }
 export class OUseStatement extends ObjectBase {
   text: string;
@@ -42,14 +48,14 @@ export class OArchitecture extends ObjectBase {
             found = found || signal.name.toLowerCase() === write.text.toLowerCase();
         }
       }
-      parent = parent.parent;
+      parent = (parent as any).parent;
       counter--;
       if (counter === 0) {
 //        console.log(parent, parent.parent);
         throw new Error('Infinite Loop?');
       }
     }
-    const file = parent as OFile;
+    const file = (parent as any) as OFile;
     for (const signal of file.architecture.signals) {
         found = found || signal.name.toLowerCase() === write.text.toLowerCase();
     }
@@ -64,7 +70,10 @@ export class OArchitecture extends ObjectBase {
     return found;
   }
   isValidRead(read: ORead, packageThings: string[]): boolean {
-    let found = false;
+    return this.findRead(read, packageThings) !== false;
+  }
+  findRead(read: ORead, packageThings: string[]) {
+    let found: OSignal|OFunction|boolean|OForLoop|OForGenerate = false;
 
     if (packageThings.find(packageThing => packageThing.toLowerCase() === read.text.toLowerCase())) {
       found = true;
@@ -75,34 +84,35 @@ export class OArchitecture extends ObjectBase {
       // No Else if. Can be Instance of Multiple Classes (extends)
       if (parent instanceof OArchitecture) {
         for (const signal of parent.signals) {
-          found = found || signal.name.toLowerCase() === read.text.toLowerCase();
+          found = found || signal.name.toLowerCase() === read.text.toLowerCase() && signal;
         }
         for (const func of parent.functions) {
-          found = found || func.name.toLowerCase() === read.text.toLowerCase();
+          found = found || func.name.toLowerCase() === read.text.toLowerCase() && func;
         }
       }
       if (parent instanceof OForLoop) {
-        found = found || parent.variable.toLowerCase() === read.text.toLowerCase();
+        found = found || parent.variable.toLowerCase() === read.text.toLowerCase() && parent;
       }
       if (parent instanceof OForGenerate) {
-        found = found || parent.variable.toLowerCase() === read.text.toLowerCase();
+        found = found || parent.variable.toLowerCase() === read.text.toLowerCase() && parent;
       }
-      parent = parent.parent;
+      parent = (parent as any).parent;
       counter--;
       if (counter === 0) {
 //        console.log(parent, parent.parent);
         throw new Error('Infinite Loop?');
       }
     }
-    const file = parent as OFile;
+    const file = (parent as any) as OFile;
     for (const generic of file.entity.generics) {
-      found = found || generic.name.toLowerCase() === read.text.toLowerCase();
+      found = found || generic.name.toLowerCase() === read.text.toLowerCase() && generic;
     }
     for (const port of file.entity.ports) {
-      found = found || port.name.toLowerCase() === read.text.toLowerCase();
+      found = found || port.name.toLowerCase() === read.text.toLowerCase() && port;
     }
     for (const type of file.architecture.types) {
-      found = found || typeof type.states.find(state => state.name.toLowerCase() === read.text.toLowerCase()) !== 'undefined';
+      const state = type.states.find(state => state.name.toLowerCase() === read.text.toLowerCase());
+      found = found || typeof state !== 'undefined' && state;
     }
     return found;
   }
@@ -147,7 +157,7 @@ export class OSignalLike extends ObjectBase {
       return this.register;
     }
     this.register = false;
-    for (const process of this.parent.parent.architecture.processes) {
+    for (const process of (this.parent.parent as any).architecture.processes) {
       if (process.isRegisterProcess()) {
         for (const write of process.getFlatWrites()) {
           if (write.text.toLowerCase() === this.name.toLowerCase()) {
@@ -411,7 +421,7 @@ export class OProcess extends ObjectBase {
   }
 }
 export class OForLoop extends ObjectBase {
-  variable: string;
+  variable: string; // TODO: FIX ME not string
   start: string;
   end: string;
   statements: OStatement[] = [];

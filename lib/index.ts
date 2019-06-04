@@ -1,8 +1,10 @@
 import { TextEditor, CompositeDisposable } from 'atom';
 import { VhdlLinter, Message } from './vhdl-linter';
+import { ORead, OWrite } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser, OProjectEntity } from './project-parser';
 import { browser } from './browser';
+
 module.exports = {
   subscriptions: CompositeDisposable,
   projectParser: ProjectParser,
@@ -57,8 +59,6 @@ module.exports = {
     this.subscriptions.dispose();
   },
 
-
-
   provideLinter() {
     return {
       name: 'Vhdl-Linter',
@@ -67,9 +67,11 @@ module.exports = {
       grammarScopes: ['source.vhdl'],
       async lint(textEditor: TextEditor): Promise<Message[]> {
         // console.log('lint', this);
-
-        const vhdlLinter = new VhdlLinter(textEditor.getPath() || '', textEditor.getText(), module.exports.projectParser);
-        const messages = await vhdlLinter.checkAll();
+        if (!module.exports.vhdlLinters) {
+          module.exports.vhdlLinters = [];
+        }
+        module.exports.vhdlLinters[textEditor.getPath() || ''] = new VhdlLinter(textEditor.getPath() || '', textEditor.getText(), module.exports.projectParser);
+        const messages = await module.exports.vhdlLinters[textEditor.getPath() || ''].checkAll();
         return messages;
       }
     };
@@ -79,16 +81,60 @@ module.exports = {
     return {
       priority: 1,
       grammarScopes: ['source.vhdl'], // JavaScript files
-      wordRegExp: /entity\s+[a-z][\w.]*/ig,
+      wordRegExp: /(entity\s+)?[a-z][\w.]*/ig,
       getSuggestionForWord: async (
         textEditor: TextEditor,
         text: string,
-        range: Range
+        range: any
       ) => {
         console.log(text, range);
-        const match = text.match(/(entity\s+)(\w+)\.(\w+)/i);
+        const match = text.match(/^(entity\s+)(\w+)\.(\w+)/i);
         if (!match) {
-          return;
+          console.log('path', textEditor.getPath());
+          const linter = module.exports.vhdlLinters[textEditor.getPath() || ''] as VhdlLinter;
+          console.log('linter', linter);
+          let result: any;
+          try {
+            const startIRegex = new RegExp(`^(.*\n){${range.start.row}}.{${range.start.column}}`, 'g');
+            const match2 = textEditor.getText().match(startIRegex);
+            if (!match2) {
+              console.log('match not found');
+              return;
+            }
+            const startI = match2[0].length;
+            const read = linter.tree.objectList.find(obj => {
+              if (obj instanceof ORead || obj instanceof OWrite) {
+                return obj.begin === startI;
+              } else {
+                return false;
+              }
+            });
+            if (!read || !(read instanceof ORead || read instanceof OWrite)) {
+              console.log('read not read', read, startI);
+              return;
+            }
+            result = linter.tree.architecture.findRead(read, []);
+          } catch (e) {
+            console.log(e);
+          }
+          console.log('reads', result);
+          if (typeof result === 'boolean') {
+            return;
+          }
+          return {
+            range,
+            callback() {
+              console.log('callback false');
+              const editor = atom.workspace.getActiveTextEditor();
+              if (!editor) {
+                return;
+              }
+              let pos = linter.getPositionFromI(result.startI);
+              editor.setCursorBufferPosition(pos, {autoscroll: false});
+              editor.scrollToCursorPosition({center: true});
+              // atom.workspace.open(entities[0].file.getPath());
+            },
+          };
         }
         const [, whatever, library, entityName] = match;
         const entities = (await this.projectParser.getEntities()).filter((entity: OProjectEntity) => {

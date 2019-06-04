@@ -180,17 +180,17 @@ export class ArchitectureParser extends ParserBase {
         if (this.text[this.pos.i] === '(') {
           this.expect('(');
           let position = this.pos.i;
-          type.states = this.advancePast(')').split(',').map(type => {
+          type.states = this.advancePast(')').split(',').map(typyFilterIrgendwas => {
             const state = new OState(type, position);
-            const match = type.match(/^\s*/);
+            const match = typyFilterIrgendwas.match(/^\s*/);
             if (match) {
               state.begin = position + match[0].length;
             } else {
               state.begin = position;
             }
-            state.name = type.trim();
+            state.name = typyFilterIrgendwas.trim();
             state.end = state.begin + state.name.length;
-            position += type.length;
+            position += typyFilterIrgendwas.length;
             position++;
             return state;
           });
