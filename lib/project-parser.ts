@@ -141,6 +141,7 @@ export class OProjectEntity {
   ports: OProjectPorts[] = [];
   name: string;
   library?: string;
+  file: File;
 }
 export class OFileCache {
   path: string;
@@ -158,7 +159,7 @@ export class OFileCache {
     this.digest = await file.getDigest();
     this.path = file.getPath();
     this.parsePackage();
-    this.parseEntity();
+    this.parseEntity(file);
   }
   private parsePackage(): void {
     const match = this.text.match(/package\s+(\w+)\s+is/i);
@@ -192,13 +193,14 @@ export class OFileCache {
     }
 
   }
-  private parseEntity(): void {
+  private parseEntity(file: File): void {
     const match = this.text.match(/entity\s+(\S+)\s+is/i);
     if (!match) {
       return;
     }
     this.entity = new OProjectEntity();
     this.entity.name = match[1];
+    this.entity.file = file;
     let re = /(\S+)\s*:\s*(in|out|inout)\b(.*?:=.*)?/ig;
     let m;
     while (m = re.exec(this.text)) {

@@ -41,12 +41,18 @@
     "typed-promisify": "^0.4.0"
   },
   "package-deps": [
-    "linter"
+    "linter",
+    "hyperclick"
   ],
   "providedServices": {
     "linter": {
       "versions": {
         "2.0.0": "provideLinter"
+      }
+    },
+    "hyperclick": {
+      "versions": {
+        "0.1.0": "provideHyper"
       }
     }
   },
