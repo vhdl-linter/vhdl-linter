@@ -1,17 +1,17 @@
 import { TextEditor, CompositeDisposable } from 'atom';
 import { VhdlLinter, Message } from './vhdl-linter';
 import { Parser } from './parser/parser';
-import { ProjectParser } from './project-parser';
-import {browser} from './browser';
+import { ProjectParser, OProjectEntity } from './project-parser';
+import { browser } from './browser';
 module.exports = {
   subscriptions: CompositeDisposable,
   projectParser: ProjectParser,
   parser: Parser,
   activate(): void {
-//    console.log('activate', this);
+    //    console.log('activate', this);
     // Events subscribed to in atom's system can be easily cleaned up with a CompositeDisposable
     this.subscriptions = new CompositeDisposable();
-//    console.log(browser);
+    //    console.log(browser);
     // browser.getView();
     atom.workspace.addRightPanel({
       item: browser.getView()
@@ -19,7 +19,7 @@ module.exports = {
     // Register command that toggles this view
     this.subscriptions.add(atom.commands.add('atom-workspace', {
       'vhdl-linter:copy-parsed': () => {
-//        console.log('activat2e', this);
+        //        console.log('activat2e', this);
         const editor = atom.workspace.getActiveTextEditor();
         if (editor) {
           this.parser = new Parser(editor.getText(), editor.getPath() || '');
@@ -73,6 +73,35 @@ module.exports = {
         return messages;
       }
     };
-  }
+  },
 
+  provideHyper() {
+    return {
+      priority: 1,
+      grammarScopes: ['source.vhdl'], // JavaScript files
+      wordRegExp: /entity\s+[a-z][\w.]*/ig,
+      getSuggestionForWord: async (
+        textEditor: TextEditor,
+        text: string,
+        range: Range
+      ) => {
+        console.log(text, range);
+        const match = text.match(/(entity\s+)(\w+)\.(\w+)/i);
+        if (!match) {
+          return;
+        }
+        const [, whatever, library, entityName] = match;
+        const entities = (await this.projectParser.getEntities()).filter((entity: OProjectEntity) => {
+          return entity.name === entityName && (entity.library ? entity.library === library : true);
+        });
+        return {
+          range,
+          callback() {
+            console.log('callback', entities);
+            atom.workspace.open(entities[0].file.getPath());
+          },
+        };
+      },
+    };
+  }
 };

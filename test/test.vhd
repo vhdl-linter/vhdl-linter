@@ -13,15 +13,15 @@ use ieee.std_logic_1164.all;
 use work.DEMO_PACK.all;
 -------------------------------------------------
 
-entity Mux is
+entity yolo is
   port(
     o_asd : out std_logic
     );
-end Mux;
+end yolo;
 
 -------------------------------------------------
 
-architecture rtl of Mux is
+architecture rtl of yolo is
   constant c_REQ_CA_GUID_OFFSET : integer := 128;
 
   signal s_test : std_logic_vector(c_REQ_CA_GUID_OFFSET - 10 downto 0);
