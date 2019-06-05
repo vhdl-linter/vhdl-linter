@@ -255,19 +255,21 @@ export class ParserBase {
       ['downto', 'to', 'others', 'when', 'else']
     ];
     const tokenTypes = [
-      { regex: /^[*\/&\-?=<>+]+/, tokenType: 'OPERATION'},
-      { regex: /^\s+/, tokenType: 'WHITESPACE' },
-      { regex: /^[()]/, tokenType: 'BRACE' },
-      { regex: /^,/, tokenType: 'COMMA' },
-      { regex: /^[0-9]+/, tokenType: 'INTEGER_LITERAL' },
+      { regex: /^["]([^"\\\n]|\\.|\\\n)*["]/i, tokenType: 'STRING_LITERAL' },
+      { regex: /^[*\/&\-?=<>+]+/i, tokenType: 'OPERATION'},
+      { regex: /^\s+/i, tokenType: 'WHITESPACE' },
+      { regex: /^[()]/i, tokenType: 'BRACE' },
+      { regex: /^,/i, tokenType: 'COMMA' },
+      { regex: /^[0-9]+/i, tokenType: 'INTEGER_LITERAL' },
       { regex: /^true|false/i, tokenType: 'BOOLEAN_LITERAL' },
-      { regex: /^"[0-9]+"/, tokenType: 'LOGIC_LITERAL' },
+      { regex: /^"[0-9]+"/i, tokenType: 'LOGIC_LITERAL' },
       { regex: /^x"[0-9A-F]+"/i, tokenType: 'LOGIC_LITERAL' },
-      { regex: /^'[0-9]+'/, tokenType: 'LOGIC_LITERAL' },
+      { regex: /^'[0-9]+'/i, tokenType: 'LOGIC_LITERAL' },
+      { regex: /^\w+'\w+(?=\s*\()/i, tokenType: 'ATTRIBUTE_FUNCTION' },
       { regex: /^[a-z]\w*(?!\s*[(]|\w)/i, tokenType: 'VARIABLE' },
       { regex: /^\.[a-z]\w*(?!\s*[(]|\w)/i, tokenType: 'RECORD_ELEMENT' },
-      { regex: /^\w+(?=\s*\()/, tokenType: 'FUNCTION' },
-      { regex: /^\.\w+(?=\s*\()/, tokenType: 'FUNCTION_RECORD_ELEMENT' },
+      { regex: /^\w+(?=\s*\()/i, tokenType: 'FUNCTION' },
+      { regex: /^\.\w+(?=\s*\()/i, tokenType: 'FUNCTION_RECORD_ELEMENT' },
 
     ];
     for (const operatorGroup of operators) {
