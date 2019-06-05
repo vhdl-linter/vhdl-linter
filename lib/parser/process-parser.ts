@@ -2,10 +2,10 @@ import { ParserBase } from './parser-base';
 import { ParserPosition } from './parser-position';
 import { AssignmentParser } from './assignment-parser';
 
-import { OProcess, OStatement, OForLoop, OIf, OIfClause, OCase, OWhenClause, OVariable, ORead } from './objects';
+import { OProcess, OStatement, OForLoop, OIf, OIfClause, OCase, OWhenClause, OVariable, ORead, ObjectBase } from './objects';
 
 export class ProcessParser extends ParserBase {
-  constructor(text: string, pos: ParserPosition, file: string, private parent: object) {
+  constructor(text: string, pos: ParserPosition, file: string, private parent: ObjectBase) {
     super(text, pos, file);
     this.debug(`start`);
 
@@ -56,7 +56,7 @@ export class ProcessParser extends ParserBase {
     this.expect(';');
     return process;
   }
-  parseStatements(parent: object, exitConditions: string[]): OStatement[] {
+  parseStatements(parent: ObjectBase, exitConditions: string[]): OStatement[] {
     const statements = [];
     while (this.pos.i < this.text.length) {
       let nextWord = this.getNextWord({ consume: false });
@@ -87,7 +87,7 @@ export class ProcessParser extends ParserBase {
     }
     return statements;
   }
-  parseFor(parent: object, label?: string): OForLoop {
+  parseFor(parent: ObjectBase, label?: string): OForLoop {
     const forLoop = new OForLoop(parent, this.pos.i);
     this.expect('for');
     forLoop.variable = this.getNextWord();
@@ -105,7 +105,7 @@ export class ProcessParser extends ParserBase {
     this.expect(';');
     return forLoop;
   }
-  parseIf(parent: object, label?: string): OIf {
+  parseIf(parent: ObjectBase, label?: string): OIf {
     this.debug(`parseIf`);
 
     const if_ = new OIf(parent, this.pos.i);
@@ -152,7 +152,7 @@ export class ProcessParser extends ParserBase {
     this.expect(';');
     return if_;
   }
-  parseCase(parent: object, label?: string): OCase {
+  parseCase(parent: ObjectBase, label?: string): OCase {
     this.debug(`parseCase ${label}`);
     const case_ = new OCase(parent, this.pos.i);
     const posI = this.pos.i;

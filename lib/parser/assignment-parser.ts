@@ -1,9 +1,9 @@
 import {ParserBase} from './parser-base';
 import {ParserPosition} from './parser-position';
-import {OAssignment, ParserError} from './objects';
+import {OAssignment, ParserError, ObjectBase} from './objects';
 
 export class AssignmentParser extends ParserBase {
-  constructor(text: string, pos: ParserPosition, file: string, private parent: object) {
+  constructor(text: string, pos: ParserPosition, file: string, private parent: ObjectBase) {
     super(text, pos, file);
     this.debug(`start`);
     this.start = pos.i;
