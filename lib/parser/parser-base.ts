@@ -16,7 +16,7 @@ export class ParserBase {
   }
   debug(message: string) {
     let pos = this.getPosition();
-    // console.log(`${this.constructor.name}: ${message} at ${pos.line}:${pos.col}, (${this.file})`);
+    console.log(`${this.constructor.name}: ${message} at ${pos.line}:${pos.col}, (${this.file})`);
   }
   debugObject(object: any) {
     let target: any = {};

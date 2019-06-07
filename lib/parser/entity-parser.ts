@@ -1,5 +1,6 @@
 import {ParserBase} from './parser-base';
 import {ParserPosition} from './parser-position';
+import { DeclarativePartParser } from './declarative-part-parser';
 import {OPort, OGeneric, OEntity, ParserError, OFile} from './objects';
 
 export class EntityParser extends ParserBase {
@@ -19,16 +20,23 @@ export class EntityParser extends ParserBase {
         this.pos.i++;
         continue;
       }
-      let nextWord = this.getNextWord().toLowerCase();
+      let nextWord = this.getNextWord({consume: false}).toLowerCase();
       if (nextWord === 'port') {
+        this.getNextWord();
         entity.ports = this.parsePortsAndGenerics(false, entity);
       } else if (nextWord === 'generic') {
+        this.getNextWord();
         entity.generics = this.parsePortsAndGenerics(true, entity);
       } else if (nextWord === 'end') {
+        this.getNextWord();
         this.maybeWord('entity');
         this.maybeWord(entity.name);
         this.expect(';');
         break;
+      } else if (nextWord === 'begin') {
+         this.advancePast(/(?=end)/i, {allowSemicolon: true});
+      } else {
+        new DeclarativePartParser(this.text, this.pos, this.file, entity).parse(true);
       }
       if (lastI === this.pos.i) {
         throw new ParserError(`Parser stuck on line ${this.getLine} in module ${this.constructor.name}`, this.pos.i);

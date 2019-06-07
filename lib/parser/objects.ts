@@ -149,7 +149,7 @@ export class OSignalLike extends ObjectBase {
   private register: boolean | null = null;
   private registerProcess: OProcess | null;
   reads: ORead[];
-  constructor(public parent: OArchitecture, startI: number) {
+  constructor(public parent: OArchitecture|OEntity, startI: number) {
     super(parent, startI);
   }
   isRegister(): boolean {
@@ -254,6 +254,8 @@ export class OEntity extends ObjectBase {
   name: string;
   ports: OPort[] = [];
   generics: OGeneric[] = [];
+  signals: OSignal[] = [];
+  functions: OFunction[] = [];
 }
 export class OPort extends OSignalLike {
     direction: 'in' | 'out' | 'inout';

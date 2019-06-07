@@ -2,8 +2,9 @@ import { ParserBase } from './parser-base';
 import { ProcessParser } from './process-parser';
 import { InstantiationParser } from './instantiation-parser';
 import { ParserPosition } from './parser-position';
-import { OSignal, OType, OArchitecture, ParserError, OState, OForGenerate, OIfGenerate, OFunction, OFile } from './objects';
+import { OSignal, OType, OArchitecture, ParserError, OState, OForGenerate, OIfGenerate, OFunction, OFile, ObjectBase} from './objects';
 import { AssignmentParser } from './assignment-parser';
+import { DeclarativePartParser } from './declarative-part-parser';
 
 export class ArchitectureParser extends ParserBase {
   name: string;
@@ -18,17 +19,16 @@ export class ArchitectureParser extends ParserBase {
   }
   parse(): OArchitecture;
   parse(skipStart: boolean, structureName: 'generate'): OForGenerate;
-  parse(skipStart: boolean, structureName: 'generate', ifGenerate: true): OIfGenerate;
-  parse(skipStart = false, structureName: 'architecture' | 'generate' = 'architecture', ifGenerate: boolean = false): OArchitecture|OForGenerate|OIfGenerate {
+  parse(skipStart: boolean, structureName: 'generate', ifGenerate: true, noElse: boolean): OIfGenerate;
+  parse(skipStart = false, structureName: 'architecture' | 'generate' = 'architecture', ifGenerate: boolean = false, noElse: boolean = true): OArchitecture|OForGenerate|OIfGenerate {
+    this.debug(`parse, noElse: ${noElse}`);
     let architecture;
     if (structureName === 'architecture') {
       architecture = new OArchitecture(this.parent, this.pos.i);
+    } else if (ifGenerate) {
+      architecture = new OIfGenerate(this.parent, this.pos.i);
     } else {
-      if (ifGenerate) {
-        architecture = new OIfGenerate(this.parent, this.pos.i);
-      } else {
-        architecture = new OForGenerate(this.parent, this.pos.i);
-      }
+      architecture = new OForGenerate(this.parent, this.pos.i);
     }
     if (skipStart !== true) {
       this.type = this.getNextWord();
@@ -37,7 +37,8 @@ export class ArchitectureParser extends ParserBase {
       this.expect('is');
     }
 
-    const { signals, types } = this.parseDefinitionBlock(architecture, structureName !== 'architecture');
+    const { signals, types } = new DeclarativePartParser(this.text, this.pos, this.file, architecture).parse(structureName !== 'architecture');
+    this.maybeWord('begin');
     architecture.signals = signals;
     architecture.types = types;
 
@@ -46,9 +47,13 @@ export class ArchitectureParser extends ParserBase {
         this.pos.i++;
         continue;
       }
-      let nextWord = this.getNextWord().toLowerCase();
+      let nextWord = this.getNextWord({consume: false}).toLowerCase();
 //       console.log(nextWord, 'nextWord');
       if (nextWord === 'end') {
+        if (ifGenerate && noElse) {
+          break;
+        }
+        this.getNextWord();
         this.maybeWord(structureName);
         if (this.type) {
           this.maybeWord(this.type);
@@ -61,13 +66,18 @@ export class ArchitectureParser extends ParserBase {
         break;
       }
       let label;
-      if (this.text[this.pos.i] === ':') {
+      const regex = new RegExp(`^${nextWord}\\s*:`, 'i');
+      if (this.text.substr(this.pos.i).match(regex)) {
+        this.getNextWord();
         label = nextWord;
         this.debug('parse label ' + label);
         this.pos.i++;
         this.advanceWhitespace();
         nextWord = this.getNextWord();
-      } if (nextWord === 'process') {
+      }
+
+      if (nextWord === 'process') {
+        this.getNextWord();
         const processParser = new ProcessParser(this.text, this.pos, this.file, architecture);
         architecture.processes.push(processParser.parse(label));
 
@@ -84,35 +94,66 @@ export class ArchitectureParser extends ParserBase {
 //        console.log(generate, generate.constructor.name);
         architecture.generates.push(generate);
       } else if (nextWord === 'if') {
+        this.getNextWord();
         let conditionI = this.pos.i;
         let condition = this.advancePast(/\bgenerate\b/i);
         this.debug('parse if generate ' + label);
         const subarchitecture = new ArchitectureParser(this.text, this.pos, this.file, architecture, label);
-        const ifGenerate = subarchitecture.parse(true, 'generate', true);
-        ifGenerate.conditions = [condition].concat(ifGenerate.conditions);
-        ifGenerate.conditionReads = this.extractReads(ifGenerate, condition, conditionI).concat(ifGenerate.conditionReads);
-        architecture.generates.push(ifGenerate);
+        const ifGenerateObject = subarchitecture.parse(true, 'generate', true, false);
+        ifGenerateObject.conditions = [condition].concat(ifGenerateObject.conditions);
+        ifGenerateObject.conditionReads = this.extractReads(ifGenerateObject, condition, conditionI).concat(ifGenerateObject.conditionReads);
+        architecture.generates.push(ifGenerateObject);
       } else if (nextWord === 'elsif') {
-        if (!(this.parent instanceof OArchitecture)) {
-          throw new ParserError('Found elsif generate without preceding if generate', this.pos.i);
+        if (noElse && !ifGenerate) {
+          throw new ParserError('elsif generate without if generate', this.pos.i);
+        } else if (noElse) {
+          break;
         }
-        this.debug('parse elsif generate ' + this.name);
         let conditionI = this.pos.i;
         let condition = this.advancePast(/\bgenerate\b/i);
-        (architecture as OIfGenerate).conditions = [condition].concat((architecture as OIfGenerate).conditions);
-        (architecture as OIfGenerate).conditionReads = this.extractReads(architecture, condition, conditionI).concat((architecture as OIfGenerate).conditionReads);
-      } else if (nextWord === 'else') {
-        if (!(this.parent instanceof OArchitecture)) {
-          throw new ParserError('Found Else generate without preceding if generate', this.pos.i);
-        }
-        this.debug('parse else generate ' + this.name);
-        this.advancePast(/\bgenerate\b/i);
+        this.debug('parse elsif generate ' + label);
+        const subarchitecture = new ArchitectureParser(this.text, this.pos, this.file, architecture.parent as OArchitecture, label);
+        const ifGenerateObject = subarchitecture.parse(true, 'generate', true, true);
+        ifGenerateObject.conditions = [condition].concat(ifGenerateObject.conditions);
+        ifGenerateObject.conditionReads = this.extractReads(ifGenerateObject, condition, conditionI).concat(ifGenerateObject.conditionReads);
+        (architecture.parent as OArchitecture).generates.push(ifGenerateObject);
+      // } else if (nextWord === 'elsif') {
+      //   if (!(this.parent instanceof OArchitecture)) {
+      //     throw new ParserError('Found elsif generate without preceding if generate', this.pos.i);
+      //   }
+      //   this.debug('parse elsif generate ' + this.name);
+      //   let conditionI = this.pos.i;
+      //   let condition = this.advancePast(/\bgenerate\b/i);
+      //   (architecture as OIfGenerate).conditions = [condition].concat((architecture as OIfGenerate).conditions);
+      //   (architecture as OIfGenerate).conditionReads = this.extractReads(architecture, condition, conditionI).concat((architecture as OIfGenerate).conditionReads);
+      } else if (ifGenerate && nextWord === 'else') {
+          if (noElse && !ifGenerate) {
+            throw new ParserError('else generate without if generate', this.pos.i);
+          } else if (noElse) {
+            break;
+          }
+          let conditionI = this.pos.i;
+          let condition = this.advancePast(/\bgenerate\b/i);
+          this.debug('parse else generate ' + label);
+          const subarchitecture = new ArchitectureParser(this.text, this.pos, this.file, architecture.parent as OArchitecture, label);
+          const ifGenerateObject = subarchitecture.parse(true, 'generate', true, true);
+          ifGenerateObject.conditions = [condition].concat(ifGenerateObject.conditions);
+          ifGenerateObject.conditionReads = this.extractReads(ifGenerateObject, condition, conditionI).concat(ifGenerateObject.conditionReads);
+          (architecture.parent as OArchitecture).generates.push(ifGenerateObject);
+        // this.getNextWord();
+        // if (!(this.parent instanceof OArchitecture)) {
+        //   throw new ParserError('Found Else generate without preceding if generate', this.pos.i);
+        // }
+        // this.debug('parse else generate ' + this.name);
+        // this.advancePast(/\bgenerate\b/i);
       } else if (nextWord === 'with') {
         console.error('WTF');
       } else if (nextWord === 'report' || nextWord === 'assert') {
+        this.getNextWord();
 //        console.log('report');
         this.advancePast(';');
       } else { // TODO  others
+        this.getNextWord();
         if (label) {
           const instantiationParser = new InstantiationParser(this.text, this.pos, this.file, architecture);
           architecture.instantiations.push(instantiationParser.parse(nextWord, label));
@@ -131,103 +172,5 @@ export class ArchitectureParser extends ParserBase {
     return architecture;
   }
 
-
-  parseDefinitionBlock(parent: OArchitecture, optional: boolean = false) {
-    const signals: OSignal[] = [];
-    const types: OType[] = [];
-    let nextWord = this.getNextWord({ consume: false }).toLowerCase();
-    let multiSignals: string[] = [];
-    while (nextWord !== 'begin') {
-      if (nextWord === 'signal' || nextWord === 'constant') {
-        this.getNextWord();
-        const signal = new OSignal(parent, this.pos.i);
-
-        signal.constant = nextWord === 'constant';
-        signal.name = this.getNextWord();
-        if (this.text[this.pos.i] === ',') {
-          throw new ParserError(`Defining multiple signals not allowed!: ${this.getLine(this.pos.i)}`, this.pos.i);
-          // multiSignals.push(signal.name);
-          // this.expect(',');
-          // continue;
-        }
-        this.expect(':');
-        const iBeforeType = this.pos.i;
-        signal.type = this.getType();
-        if (signal.type.indexOf(':=') > -1) {
-          const split = signal.type.split(':=');
-          signal.type = split[0].trim();
-          signal.defaultValue = split[1].trim();
-
-        }
-        signal.reads = this.extractReads(signal, signal.type, iBeforeType);
-        // console.log(multiSignals, 'multiSignals');
-        for (const multiSignalName of multiSignals) {
-          const multiSignal = new OSignal(parent, -1);
-          Object.assign(signal, multiSignal);
-          multiSignal.name = multiSignalName;
-          signals.push(multiSignal);
-        }
-        signals.push(signal);
-        multiSignals = [];
-      } else if (nextWord === 'attribute') {
-        this.getNextWord();
-        this.advancePast(';');
-      } else if (nextWord === 'type') {
-        this.getNextWord();
-        const type = new OType(parent, this.pos.i);
-        type.name = this.getNextWord();
-        this.expect('is');
-        if (this.text[this.pos.i] === '(') {
-          this.expect('(');
-          let position = this.pos.i;
-          type.states = this.advancePast(')').split(',').map(typyFilterIrgendwas => {
-            const state = new OState(type, position);
-            const match = typyFilterIrgendwas.match(/^\s*/);
-            if (match) {
-              state.begin = position + match[0].length;
-            } else {
-              state.begin = position;
-            }
-            state.name = typyFilterIrgendwas.trim();
-            state.end = state.begin + state.name.length;
-            position += typyFilterIrgendwas.length;
-            position++;
-            return state;
-          });
-          types.push(type);
-          this.expect(';');
-        } else {
-          this.advancePast(';');
-        }
-      } else if (nextWord === 'component') {
-        this.getNextWord();
-        const componentName = this.getNextWord();
-        this.advancePast(/\bend\b/i, {allowSemicolon: true});
-        this.maybeWord('component');
-        this.maybeWord(componentName);
-        this.expect(';');
-      } else if (nextWord === 'function') {
-        this.getNextWord();
-        const func = new OFunction(parent, this.pos.i);
-        func.name = this.getNextWord();
-        this.advancePast(/\bend\b/i, {allowSemicolon: true});
-        let word = this.getNextWord({consume: false});
-        while (['case', 'loop', 'if'].indexOf(word.toLowerCase()) > -1) {
-          this.advancePast(/\bend\b/i, {allowSemicolon: true});
-          word = this.getNextWord({consume: false});
-        }
-        this.advancePast(';');
-        parent.functions.push(func);
-      } else if (optional && signals.length === 0 && types.length === 0) {
-        return { signals, types };
-      } else {
-        this.getNextWord();
-        throw new ParserError(`Unknown Ding: '${nextWord}' on line ${this.getLine()}`, this.pos.i);
-      }
-      nextWord = this.getNextWord({ consume: false }).toLowerCase();
-    }
-    this.expect('begin');
-    return { signals, types };
-  }
 
 }
