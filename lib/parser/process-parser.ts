@@ -24,7 +24,7 @@ export class ProcessParser extends ParserBase {
       variable.name = this.getNextWord();
       let multiSignals: string[] = []; // TODO: Fix this!!
       if (this.text[this.pos.i] === ',') {
-        multiSignals.push(name);
+        // multiSignals.push(name);
         this.expect(',');
 
         continue;

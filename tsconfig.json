@@ -9,5 +9,5 @@
         "outDir": "./dist",
         "jsx": "react"
     },
-    "include": ["lib/**/*"]
+    "include": ["lib/**/*", "test/*"]
 }

@@ -24,30 +24,8 @@ module.exports = {
         //        console.log('activat2e', this);
         const editor = atom.workspace.getActiveTextEditor();
         if (editor) {
-          this.parser = new Parser(editor.getText(), editor.getPath() || '');
-          const tree = this.parser.parse();
-          let target: any = {};
-          const filter = (object: any) => {
-            const target: any = {};
-            if (!object) {
-              return;
-            }
-            for (const key of Object.keys(object)) {
-              if (key === 'parent') {
-                continue;
-              } else if (Array.isArray(object[key])) {
-                target[key] = object[key].map(filter);
-
-              } else if (typeof object[key] === 'object') {
-                target[key] = filter(object[key]);
-              } else {
-                target[key] = object[key];
-              }
-            }
-            return target;
-          };
-          target = filter(tree);
-          atom.clipboard.write(JSON.stringify(target));
+           const parser = new Parser(editor.getText(), editor.getPath() || '');
+          atom.clipboard.write(JSON.stringify(parser.parse().getJSONMagic()));
           atom.notifications.addInfo('copied tree');
         }
       }

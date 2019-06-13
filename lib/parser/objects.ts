@@ -21,6 +21,33 @@ export class OFile {
   entity: OEntity;
   architecture: OArchitecture;
   objectList: ObjectBase[] = [];
+  getJSONMagic() {
+    let target: any = {};
+    const filter = (object: any) => {
+      const target: any = {};
+      if (!object) {
+        return;
+      }
+      if (typeof object === 'string') {
+        return object;
+      }
+      for (const key of Object.keys(object)) {
+        if (key === 'parent') {
+          continue;
+        } else if (Array.isArray(object[key])) {
+          target[key] = object[key].map(filter);
+
+        } else if (typeof object[key] === 'object') {
+          target[key] = filter(object[key]);
+        } else {
+          target[key] = object[key];
+        }
+      }
+      return target;
+    };
+    target = filter(this);
+    return target;
+  }
 }
 export class OUseStatement extends ObjectBase {
   text: string;

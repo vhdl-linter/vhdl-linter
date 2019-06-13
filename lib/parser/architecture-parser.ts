@@ -117,15 +117,6 @@ export class ArchitectureParser extends ParserBase {
         ifGenerateObject.conditions = [condition].concat(ifGenerateObject.conditions);
         ifGenerateObject.conditionReads = this.extractReads(ifGenerateObject, condition, conditionI).concat(ifGenerateObject.conditionReads);
         (architecture.parent as OArchitecture).generates.push(ifGenerateObject);
-      // } else if (nextWord === 'elsif') {
-      //   if (!(this.parent instanceof OArchitecture)) {
-      //     throw new ParserError('Found elsif generate without preceding if generate', this.pos.i);
-      //   }
-      //   this.debug('parse elsif generate ' + this.name);
-      //   let conditionI = this.pos.i;
-      //   let condition = this.advancePast(/\bgenerate\b/i);
-      //   (architecture as OIfGenerate).conditions = [condition].concat((architecture as OIfGenerate).conditions);
-      //   (architecture as OIfGenerate).conditionReads = this.extractReads(architecture, condition, conditionI).concat((architecture as OIfGenerate).conditionReads);
       } else if (ifGenerate && nextWord === 'else') {
           if (noElse && !ifGenerate) {
             throw new ParserError('else generate without if generate', this.pos.i);
@@ -147,17 +138,19 @@ export class ArchitectureParser extends ParserBase {
         // this.debug('parse else generate ' + this.name);
         // this.advancePast(/\bgenerate\b/i);
       } else if (nextWord === 'with') {
-        console.error('WTF');
+        this.getNextWord();
+        this.advancePast(';');
+        this.debug('WTF ' + this.file);
       } else if (nextWord === 'report' || nextWord === 'assert') {
         this.getNextWord();
 //        console.log('report');
         this.advancePast(';');
       } else { // TODO  others
-        this.getNextWord();
         if (label) {
           const instantiationParser = new InstantiationParser(this.text, this.pos, this.file, architecture);
           architecture.instantiations.push(instantiationParser.parse(nextWord, label));
         } else { // statement;
+          this.getNextWord();
           this.reverseWhitespace();
           this.pos.i -= nextWord.length;
           const assignmentParser = new AssignmentParser(this.text, this.pos, this.file, architecture);

@@ -1,6 +1,7 @@
 import { ParserPosition } from './parser-position';
 const escapeStringRegexp = require('escape-string-regexp');
 import { ParserError, OWrite, ORead } from './objects';
+import { config } from './config';
 
 export interface Token {
   type: string;
@@ -16,7 +17,9 @@ export class ParserBase {
   }
   debug(message: string) {
     let pos = this.getPosition();
-    console.log(`${this.constructor.name}: ${message} at ${pos.line}:${pos.col}, (${this.file})`);
+    if (config.debug) {
+      console.log(`${this.constructor.name}: ${message} at ${pos.line}:${pos.col}, (${this.file})`);
+    }
   }
   debugObject(object: any) {
     let target: any = {};

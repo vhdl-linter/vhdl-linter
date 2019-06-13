@@ -6,15 +6,11 @@ import { OSignal, OType, OArchitecture, OEntity, ParserError, OState, OForGenera
 import { AssignmentParser } from './assignment-parser';
 
 export class DeclarativePartParser extends ParserBase {
-  name: string;
   type: string;
   constructor(text: string, pos: ParserPosition, file: string, private parent: OArchitecture|OEntity) {
     super(text, pos, file);
     this.debug('start');
     this.start = pos.i;
-    if (name) {
-      this.name = name;
-    }
   }
   parse( optional: boolean = false) {
     const signals: OSignal[] = [];
