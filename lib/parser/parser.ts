@@ -2,7 +2,7 @@ import {EntityParser} from './entity-parser';
 import {ArchitectureParser} from './architecture-parser';
 import {ParserBase} from './parser-base';
 import {ParserPosition} from './parser-position';
-import {OEntity, OArchitecture, OFile, OUseStatement} from './objects';
+import {OEntity, OArchitecture, OFile, OUseStatement, ParserError} from './objects';
 
 
 export class Parser extends ParserBase {
@@ -12,6 +12,9 @@ export class Parser extends ParserBase {
     this.removeComments();
   }
   parse(): OFile {
+    if (this.text.length > 500 * 1024) {
+      throw new ParserError('file too large', 0);
+    }
     const file = new OFile();
     while (this.pos.i < this.text.length) {
       if (this.text[this.pos.i].match(/\s/)) {
