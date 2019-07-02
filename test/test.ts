@@ -100,18 +100,26 @@ screen.key(['C-c'], () => {
 (async () => {
   if (argv[2] === '-c') {
     for (const [count, file] of files.entries()) {
+      if (fs.statSync(file).size > 500 * 1024) {
+        debugLog.log(colors.blue(`File too large: skipping ${file}`));
+        continue;
+      }
       debugLog.log(`creating ${file}`);
       const result = await megaFunction(file);
       fs.mkdirSync(`./test_results/${file}`.replace(/\/[^/]*$/i, ''), { recursive: true });
       fs.writeFileSync(`./test_results/${file}.json`, result, { encoding: 'utf8' });
       debugProgress.setProgress((count + 1) / files.length * 100);
-      debugText.setText(`{center}${count + 1}/${files.length}\nkaputt: 100{/center}`);
+      debugText.setText(`{center}${count + 1}/${files.length}\nkaputt: 0{/center}`);
     }
     exit(0);
   } else {
     execSync('rm -rf ./test_results_kaputt');
     let errorCount = 0;
     for (const [count, file] of files.entries()) {
+      if (fs.statSync(file).size > 500 * 1024) {
+        debugLog.log(colors.blue(`File too large: skipping ${file}`));
+        continue;
+      }
       debugLog.log(`testing ${file}`);
       let fileString: string;
       try {
