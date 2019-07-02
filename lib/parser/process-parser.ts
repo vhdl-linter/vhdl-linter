@@ -14,7 +14,7 @@ export class ProcessParser extends ParserBase {
     this.expect('(');
     const process = new OProcess(this.parent, this.pos.i);
     process.label = label;
-    process.sensitivityList = this.advancePast(')');
+    process.sensitivityList = this.advanceBrace();
     this.maybeWord('is');
     let nextWord = this.getNextWord({ consume: false }).toLowerCase();
     while (nextWord !== 'begin') {

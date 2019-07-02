@@ -65,18 +65,18 @@ module.exports = {
         text: string,
         range: any
       ) => {
-        console.log(text, range);
+//        console.log(text, range);
         const match = text.match(/^(entity\s+)(\w+)\.(\w+)/i);
         if (!match) {
-          console.log('path', textEditor.getPath());
+//          console.log('path', textEditor.getPath());
           const linter = module.exports.vhdlLinters[textEditor.getPath() || ''] as VhdlLinter;
-          console.log('linter', linter);
+//          console.log('linter', linter);
           let result: any;
           try {
             const startIRegex = new RegExp(`^(.*\n){${range.start.row}}.{${range.start.column}}`, 'g');
             const match2 = textEditor.getText().match(startIRegex);
             if (!match2) {
-              console.log('match not found');
+//              console.log('match not found');
               return;
             }
             const startI = match2[0].length;
@@ -88,21 +88,21 @@ module.exports = {
               }
             });
             if (!read || !(read instanceof ORead || read instanceof OWrite)) {
-              console.log('read not read', read, startI);
+//              console.log('read not read', read, startI);
               return;
             }
             result = linter.tree.architecture.findRead(read, []);
           } catch (e) {
-            console.log(e);
+//            console.log(e);
           }
-          console.log('reads', result);
+//          console.log('reads', result);
           if (typeof result === 'boolean') {
             return;
           }
           return {
             range,
             callback() {
-              console.log('callback false');
+//              console.log('callback false');
               const editor = atom.workspace.getActiveTextEditor();
               if (!editor) {
                 return;
@@ -121,7 +121,7 @@ module.exports = {
         return {
           range,
           callback() {
-            console.log('callback', entities);
+//            console.log('callback', entities);
             atom.workspace.open(entities[0].file.getPath());
           },
         };

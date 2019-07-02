@@ -43,8 +43,9 @@ export class ProcessViewer extends Viewer<IProps, IState> {
       <div className={'vhdl-process-list-body vhdl-list-body'}>
         {
           sorted.map(process => {
+           console.log('process', process.label, process.isRegisterProcess());
             return <div className = 'vhdl-process'>
-             {process.isRegisterProcess() ? 'reg: ' : ''}<span className = 'vhdl-process-label' onClick={() => this.jumpToI(process.startI)} title={process.label}>{process.label}</span>
+             {process.isRegisterProcess() ? 'reg: ' : 'com: '}<span className = 'vhdl-process-label' onClick={() => this.jumpToI(process.startI)} title={process.label}>{process.label}</span>
              {process.getStates().map(state => {
                return <div className='vhdl-state' onClick={() => this.jumpToI(state.startI)}>{state.name}</div>;
              })}

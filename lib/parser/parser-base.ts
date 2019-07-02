@@ -18,7 +18,7 @@ export class ParserBase {
   debug(message: string) {
     let pos = this.getPosition();
     if (config.debug) {
-      console.log(`${this.constructor.name}: ${message} at ${pos.line}:${pos.col}, (${this.file})`);
+//      console.log(`${this.constructor.name}: ${message} at ${pos.line}:${pos.col}, (${this.file})`);
     }
   }
   debugObject(object: any) {
@@ -92,6 +92,29 @@ export class ParserBase {
     this.advanceWhitespace();
     return text.trim();
   }
+  advanceBrace() {
+    let text = '';
+    let braceLevel = 0;
+    let quote = false;
+    while (this.text[this.pos.i]) {
+      if (this.text[this.pos.i] === '"' && this.text[this.pos.i - 1] !== '\\') {
+        quote = !quote;
+      } else if (this.text[this.pos.i] === '(' && !quote) {
+        braceLevel++;
+      } else if (this.text[this.pos.i] === ')' && !quote) {
+        if (braceLevel > 0) {
+          braceLevel--;
+        } else {
+          this.pos.i++;
+          this.advanceWhitespace();
+          return text.trim();
+        }
+      }
+      text += this.text[this.pos.i];
+      this.pos.i++;
+    }
+    throw new ParserError(`could not find closing brace`, this.pos.i - text.length);
+  }
   advanceSemicolon() {
     let text = '';
     while (this.text[this.pos.i].match(/[^;]/)) {
@@ -102,16 +125,13 @@ export class ParserBase {
     this.advanceWhitespace();
     return text;
   }
-  getNextWord(options: { re?: RegExp, consume?: boolean, withCase?: boolean } = {}) {
-    let { re, consume, withCase } = options;
+  getNextWord(options: { re?: RegExp, consume?: boolean} = {}) {
+    let { re, consume } = options;
     if (!re) {
       re = /\w/;
     }
     if (typeof consume === 'undefined') {
       consume = true;
-    }
-    if (typeof withCase === 'undefined') {
-      withCase = false;
     }
     if (consume) {
       let word = '';
@@ -123,16 +143,13 @@ export class ParserBase {
         // }
       }
       this.advanceWhitespace();
-      return word;
+      return word.toLowerCase();
     }
     let word = '';
     let j = 0;
     while (this.text[this.pos.i + j].match(re)) {
       word += this.text[this.pos.i + j];
       j++;
-    }
-    if (withCase) {
-      return word;
     }
     return word.toLowerCase();
   }

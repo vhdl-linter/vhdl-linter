@@ -44,6 +44,11 @@ architecture behav of ConvChain is
 	signal s_activationChain : t_SULV_array(C_NUM_DSP-1 downto 0)(g_WIDTH_ACTIVATION-1 downto 0);
 	signal s_sumChain        : t_SULV_array(C_NUM_DSP-1 downto 0)(63 downto 0);
 begin
+
+  p_reg: process(i_clk, i_reset(i))
+  begin
+  end process;
+
 	gen_dsp : if i = 0 generate
 		inst_DSP: entity dsp.dsp
 			generic map (
@@ -141,5 +146,7 @@ begin
 				i_WeightB         => s_x(2*1+1)
 		);
 	end generate;
+
+  s_sumChain <= s_activationChain;
 
 end architecture behav;

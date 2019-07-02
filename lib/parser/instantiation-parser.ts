@@ -25,7 +25,7 @@ export class InstantiationParser extends ParserBase {
     let hasPortMap = false;
     let lastI;
     while (this.text[this.pos.i] !== ';') {
-      nextWord = this.getNextWord();
+      nextWord = this.getNextWord().toLowerCase();
 //       console.log(nextWord, 'nextWord');
       if (nextWord === 'port') {
         hasPortMap = true;

@@ -1,6 +1,6 @@
 {
   "name": "vhdl-linter",
-  "main": "./dist/index.js",
+  "main": "./dist/lib/index.js",
   "version": "0.0.0",
   "description": "A typescript based linter for vhdl",
   "keywords": [],
@@ -37,6 +37,7 @@
     "colors": "^1.3.3",
     "escape-string-regexp": "^1.0.5",
     "glob": "^7.1.4",
+    "json-diff": "^0.5.4",
     "lite-event": "^1.0.5",
     "nodemon": "^1.18.4",
     "prettyjson": "^1.2.1",

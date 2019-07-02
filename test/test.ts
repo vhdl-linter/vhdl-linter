@@ -9,6 +9,9 @@ import * as fs from 'fs';
 import * as glob from 'glob';
 import * as blessed from 'blessed';
 import { promisify } from 'util';
+const { diffString, diff } = require('json-diff');
+import { execSync } from 'child_process';
+
 
 config.debug = false;
 const files = glob.sync('./test/**/*.vhd', { follow: true }).filter((file) => file.indexOf('_syn') === -1);
@@ -80,9 +83,9 @@ const debugProgress = blessed.progressbar({
 });
 screen.append(debugProgress);
 const debugText = blessed.textbox({
-  top: '95%',
-  left: '50%-3',
-  width: '5%',
+  top: '92%',
+  left: '50%-6',
+  width: '8%',
   height: 'shrink',
   tags: true,
   keys: false,
@@ -102,10 +105,11 @@ screen.key(['C-c'], () => {
       fs.mkdirSync(`./test_results/${file}`.replace(/\/[^/]*$/i, ''), { recursive: true });
       fs.writeFileSync(`./test_results/${file}.json`, result, { encoding: 'utf8' });
       debugProgress.setProgress((count + 1) / files.length * 100);
-      debugText.setText(`{center}${count + 1}/${files.length}{/center}`);
+      debugText.setText(`{center}${count + 1}/${files.length}\nkaputt: 100{/center}`);
     }
     exit(0);
   } else {
+    execSync('rm -rf ./test_results_kaputt');
     let errorCount = 0;
     for (const [count, file] of files.entries()) {
       debugLog.log(`testing ${file}`);
@@ -118,16 +122,18 @@ screen.key(['C-c'], () => {
         fs.writeFileSync(`./test_results/${file}.json`, fileString, { encoding: 'utf8' });
         kaputtLog.log(colors.green(`${file} had no created test`));
       }
-      const expectedResult = JSON.stringify(JSON.parse(fileString));
+      const expectedResult = JSON.parse(fileString);
       const result = await megaFunction(file);
-      if (result !== expectedResult) {
+      if (result !== JSON.stringify(expectedResult) && diff(JSON.parse(result), expectedResult)) {
+        fs.mkdirSync(`./test_results_kaputt/${file}`.replace(/\/[^/]*$/i, ''), { recursive: true });
+        fs.writeFileSync(`./test_results_kaputt/${file}.json`, diffString(expectedResult, JSON.parse(result)), { encoding: 'utf8' });
         kaputtLog.log(colors.red.underline.bold(`${file} is kaputt`));
         errorCount++;
       } else {
         debugLog.log(colors.green.underline.bold('is heile'));
       }
       debugProgress.setProgress((count + 1) / files.length * 100);
-      debugText.setText(`{center}${count + 1}/${files.length}{/center}`);
+      debugText.setText(`{center}${count + 1}/${files.length}\nkaputt: ${errorCount}{/center}`);
     }
     if (errorCount === 0) {
       screen.destroy();

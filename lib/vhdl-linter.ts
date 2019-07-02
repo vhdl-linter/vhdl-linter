@@ -429,7 +429,7 @@ export class VhdlLinter {
               position: this.getPositionFromILine(port.startI)
             },
             severity: 'error',
-            excerpt: `input port '${port.name}' begins with 'i_'!`
+            excerpt: `ouput port '${port.name}' begins with 'i_'!`
           });
         } else if (port.name.match(/^o_/i) === null) {
           this.messages.push({
@@ -438,7 +438,7 @@ export class VhdlLinter {
               position: this.getPositionFromILine(port.startI)
             },
             severity: 'warning',
-            excerpt: `input port '${port.name}' should begin with 'o_'`
+            excerpt: `ouput port '${port.name}' should begin with 'o_'`
           });
         }
       }
@@ -485,7 +485,7 @@ export class VhdlLinter {
             const entityPort = entity.ports[entityPortIndex];
             foundPorts.push(entityPortIndex);
             if (!entityPort) {
-              console.log(instantiation);
+//              console.log(instantiation);
               this.messages.push({
                 location: {
                   file: this.editorPath,

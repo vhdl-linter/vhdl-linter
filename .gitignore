@@ -3,6 +3,5 @@ npm-debug.log
 node_modules
 package-lock.json
 test/_*
-test/private_test
 dist/*
-test_results/test/private_test/*
+test_results_kaputt/*
