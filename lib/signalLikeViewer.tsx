@@ -1,7 +1,6 @@
 import * as React from 'react';
 import {OSignalLike} from './parser/objects';
 import {Viewer} from './viewer';
-import {Point} from 'atom';
 export interface IProps {
   signalLikes: OSignalLike[];
   type: string;
