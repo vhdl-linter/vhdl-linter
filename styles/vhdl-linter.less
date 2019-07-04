@@ -72,7 +72,8 @@
 }
 .vhdl-list-header {
   font-size: 1.2em;
-;
+  font-weight: bold;
+  
 }
 .vhdl-list-header-show, .vhdl-list-header-sort {
   cursor: pointer;
@@ -98,10 +99,10 @@
   display: inline-block;
   margin-right: 3px;
 }
-.vhdl-body-hidden .vhdl-list-header-show::before {
+.vhdl-body-hidden > div > .vhdl-list-header-show::before {
   transform: rotate(0deg);
 }
-.vhdl-body-hidden .vhdl-list-body {
+.vhdl-body-hidden > .vhdl-list-body {
   height: 0;
   overflow: hidden;
 }
