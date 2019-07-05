@@ -10,7 +10,6 @@ export class BrowserViewer extends React.Component<IProps, {}> {
   private resizeContainer = React.createRef<HTMLDivElement>();
   private resizeBar = React.createRef<HTMLDivElement>();
   render() {
-//    console.log('render');
     const {tree} = this.props;
     return <div className='vhdl-browser'>
       <link rel='stylesheet' href='../node_modules/highlight.js/styles/atom-one-dark.css'/>

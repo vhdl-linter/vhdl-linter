@@ -45,9 +45,16 @@ architecture behav of ConvChain is
   signal s_sumChain        : t_SULV_array(C_NUM_DSP-1 downto 0)(63 downto 0);
 begin
 
+
   gen_devices : for i in g_NUM_DEVICES - 1 downto 0 generate
-    signal a: std_logic;
+    signal a : std_logic;
   begin
+
+    inst_yolo1234 : entity work.yolo1234
+      port map (
+        o_Clock => o_Result,
+        _reset => i_reset
+        );
 
     p_reg : process(i_clk, i_reset(i))
     begin

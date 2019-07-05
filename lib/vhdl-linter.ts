@@ -484,7 +484,6 @@ export class VhdlLinter {
             const entityPort = entity.ports[entityPortIndex];
             foundPorts.push(entityPortIndex);
             if (!entityPort) {
-//              console.log(instantiation);
               this.messages.push({
                 location: {
                   file: this.editorPath,
@@ -519,6 +518,9 @@ export class VhdlLinter {
           excerpt: `can not evaluate instantiation via component`
         });
       }
+    }
+    for (const generate of architecture.generates) {
+      this.checkInstantiations(generate);
     }
   }
 
