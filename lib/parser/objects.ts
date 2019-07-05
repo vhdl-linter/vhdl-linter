@@ -184,7 +184,10 @@ export class OSignalLike extends ObjectBase {
       return this.register;
     }
     this.register = false;
-    for (const process of (this.parent.parent as any).architecture.processes) {
+    if (this.parent instanceof OEntity) {
+      return false;
+    }
+    for (const process of this.parent.processes) {
       if (process.isRegisterProcess()) {
         for (const write of process.getFlatWrites()) {
           if (write.text.toLowerCase() === this.name.toLowerCase()) {

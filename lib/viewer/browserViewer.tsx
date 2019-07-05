@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {OFile, OPort, OSignal, OSignalLike} from './parser/objects';
+import {OFile, OPort, OSignal, OSignalLike} from '../parser/objects';
 import {SignalLikeViewer} from './signalLikeViewer';
 import {ArchitectureViewer} from './architectureViewer';
 export interface IProps {
@@ -15,7 +15,7 @@ export class BrowserViewer extends React.Component<IProps, {}> {
     return <div className='vhdl-browser'>
       <link rel='stylesheet' href='../node_modules/highlight.js/styles/atom-one-dark.css'/>
       <div className='vhdl-resize-bar' onMouseDown={e => this.initDrag(e)} ref={this.resizeBar}></div>
-      <div className='vhdl-resize-container' ref={this.resizeContainer}>
+      <div className='vhdl-resize-container' ref={this.resizeContainer} style={{width: '400px'}}>
         <h3 className='vhdl-entity-name'>{tree.entity.name}</h3>
         <div className='vhdl-scroll'>
             <SignalLikeViewer signalLikes={tree.entity.generics as OSignalLike[]} type='generic' header='Generics'></SignalLikeViewer>
@@ -26,13 +26,11 @@ export class BrowserViewer extends React.Component<IProps, {}> {
     </div>;
   }
   initDrag(e: any) {
-    // console.log(this.resizeContainer.current, this.resizeBar.current);
     if (!this.resizeContainer.current) {
       return;
     }
     const doDrag = (e: any) => {
       if (this.resizeContainer.current) {
-        // console.log(this.resizeContainer.current.offsetLeft, this.resizeContainer.current.offsetWidth, e.clientX, this.resizeContainer.current.offsetLeft + this.resizeContainer.current.offsetWidth - e.clientX);
         this.resizeContainer.current.style.width = (this.resizeContainer.current.getBoundingClientRect().left + this.resizeContainer.current.offsetWidth - e.clientX) + 'px';
       }
     };

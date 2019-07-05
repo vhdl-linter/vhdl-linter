@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {Point} from 'atom';
 
-export class Viewer<IProps, IState> extends React.Component<IProps, IState> {
+export class BaseViewer<IProps, IState> extends React.Component<IProps, IState> {
   getPositionFromI(i: number, text: string): Point {
     let row = 0;
     let col = 0;

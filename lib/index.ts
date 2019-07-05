@@ -3,7 +3,7 @@ import { VhdlLinter, Message } from './vhdl-linter';
 import { ORead, OWrite } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser, OProjectEntity } from './project-parser';
-import { browser } from './browser';
+import { browser } from './viewer/browser';
 
 module.exports = {
   subscriptions: CompositeDisposable,

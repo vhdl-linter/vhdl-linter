@@ -1,6 +1,6 @@
 import * as React from 'react';
-import {OInstantiation} from './parser/objects';
-import {Viewer} from './viewer';
+import {OInstantiation} from '../parser/objects';
+import {BaseViewer} from './baseViewer';
 export interface IProps {
   instantiations: OInstantiation[];
 }
@@ -9,7 +9,7 @@ export interface IState {
   bodyVisible: boolean;
   sortAlpha: boolean;
 }
-export class InstantiationsViewer extends Viewer<IProps, IState> {
+export class InstantiationsViewer extends BaseViewer<IProps, IState> {
   constructor(props: any) {
     super(props);
     this.state = {
@@ -34,10 +34,9 @@ export class InstantiationsViewer extends Viewer<IProps, IState> {
 
     return <div className={className}>
       <div className='vhdl-list-header'>
-        <span className='vhdl-list-header-show' onClick={() => this.setState({bodyVisible: !this.state.bodyVisible})}>
-          Instantiations
-        </span>
-        <span className='vhdl-list-header-sort' onClick={(evt) => {evt.preventDefault(); this.setState({sortAlpha: !this.state.sortAlpha}); }}>⇅</span>
+        <div className='vhdl-list-header-show' onClick={() => this.setState({bodyVisible: !this.state.bodyVisible})}></div>
+        <div className='vhdl-list-header-title' onClick={() => this.setState({bodyVisible: !this.state.bodyVisible})}>Instantiations</div>
+        <div className='vhdl-list-header-sort' onClick={(evt) => {evt.preventDefault(); this.setState({sortAlpha: !this.state.sortAlpha}); }}>⇅</div>
 
       </div>
       <div className={'vhdl-instantiation-list-body vhdl-list-body'}>

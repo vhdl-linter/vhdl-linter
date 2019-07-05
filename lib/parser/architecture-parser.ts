@@ -66,6 +66,7 @@ export class ArchitectureParser extends ParserBase {
         break;
       }
       let label;
+      const savedI = this.pos.i;
       const regex = new RegExp(`^${nextWord}\\s*:`, 'i');
       if (this.text.substr(this.pos.i).match(regex)) {
         label = this.getNextWord({withCase: true});
@@ -87,6 +88,7 @@ export class ArchitectureParser extends ParserBase {
         let end = this.advancePast(/\bgenerate\b/i);
         const subarchitecture = new ArchitectureParser(this.text, this.pos, this.file, architecture, label);
         const generate: OForGenerate = subarchitecture.parse(true, 'generate');
+        generate.startI = savedI;
         generate.start = start;
         generate.end = end;
         generate.variable = variable;
@@ -99,6 +101,7 @@ export class ArchitectureParser extends ParserBase {
         this.debug('parse if generate ' + label);
         const subarchitecture = new ArchitectureParser(this.text, this.pos, this.file, architecture, label);
         const ifGenerateObject = subarchitecture.parse(true, 'generate', true, false);
+        ifGenerateObject.startI = savedI;
         if (ifGenerateObject.conditions) {
           ifGenerateObject.conditions = [condition].concat(ifGenerateObject.conditions);
           ifGenerateObject.conditionReads = this.extractReads(ifGenerateObject, condition, conditionI).concat(ifGenerateObject.conditionReads);
@@ -118,6 +121,7 @@ export class ArchitectureParser extends ParserBase {
         this.debug('parse elsif generate ' + label);
         const subarchitecture = new ArchitectureParser(this.text, this.pos, this.file, architecture.parent as OArchitecture, label);
         const ifGenerateObject = subarchitecture.parse(true, 'generate', true, true);
+        ifGenerateObject.startI = savedI;
         if (ifGenerateObject.conditions) {
           ifGenerateObject.conditions = [condition].concat(ifGenerateObject.conditions);
           ifGenerateObject.conditionReads = this.extractReads(ifGenerateObject, condition, conditionI).concat(ifGenerateObject.conditionReads);
@@ -137,6 +141,7 @@ export class ArchitectureParser extends ParserBase {
           this.debug('parse else generate ' + label);
           const subarchitecture = new ArchitectureParser(this.text, this.pos, this.file, architecture.parent as OArchitecture, label);
           const ifGenerateObject = subarchitecture.parse(true, 'generate', true, true);
+          ifGenerateObject.startI = savedI;
           if (ifGenerateObject.conditions) {
             ifGenerateObject.conditions = [condition].concat(ifGenerateObject.conditions);
             ifGenerateObject.conditionReads = this.extractReads(ifGenerateObject, condition, conditionI).concat(ifGenerateObject.conditionReads);

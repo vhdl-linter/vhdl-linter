@@ -1,5 +1,5 @@
-import {OFile} from './parser/objects';
-import { Parser } from './parser/parser';
+import {OFile} from '../parser/objects';
+import { Parser } from '../parser/parser';
 import {BrowserViewer} from './browserViewer';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
@@ -21,6 +21,7 @@ export class Browser {
       const parser = new Parser(editor.getText(), editor.getPath() || '');
       try {
         this.tree = parser.parse();
+        console.log(this.tree);
         if (this.tree) {
           ReactDOM.render(
               React.createElement(BrowserViewer, {tree: this.tree}),

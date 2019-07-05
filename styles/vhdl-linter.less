@@ -14,7 +14,26 @@
 
   height: 100%;
   display: flex;
+
+  pre {
+    font-family: var(--editor-font-family);
+    font-size: var(--editor-font-size);
+    padding: 0;
+    display: inline-block;
+    code {
+      background: @app-background-color;
+      font-family: var(--editor-font-family);
+      font-size: 1.2em;
+      padding: 0;
+      line-height: 1.5em;
+      width: 100%;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+  }
 }
+
 .vhdl-entity-name {
   text-align: center;
   font-weight: bold;
@@ -26,7 +45,7 @@
 .vhdl-generic {
   cursor: pointer;
 }
-.vhdl-browser div {
+.vhdl-browser > div {
   width: 100%;
   overflow: hidden;
   white-space: nowrap;
@@ -57,6 +76,7 @@
 }
 .vhdl-list-header-show {
   cursor: pointer;
+  width: 1.5ch;
 }
 .vhdl-signal-constant {
   cursor: pointer;
@@ -73,10 +93,14 @@
 .vhdl-list-header {
   font-size: 1.2em;
   font-weight: bold;
-  
+  display: flex;
+
 }
-.vhdl-list-header-show, .vhdl-list-header-sort {
+.vhdl-list-header-show, .vhdl-list-header-sort, .vhdl-list-header-title {
   cursor: pointer;
+}
+.vhdl-list-header-title {
+  flex-grow: 1;
 }
 .vhdl-list-header-sort {
   float: right;
@@ -98,6 +122,8 @@
   transition: transform 0.25s;
   display: inline-block;
   margin-right: 3px;
+  font-size: 1.2em;
+  line-height: 1.5em;
 }
 .vhdl-body-hidden > div > .vhdl-list-header-show::before {
   transform: rotate(0deg);

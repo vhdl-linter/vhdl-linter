@@ -1,7 +1,7 @@
 import * as React from 'react';
-import {OArchitecture, OSignal, OForGenerate, OIfGenerate} from './parser/objects';
+import {OArchitecture, OSignal, OForGenerate, OIfGenerate} from '../parser/objects';
 import {ArchitectureViewer} from './architectureViewer';
-import {Viewer} from './viewer';
+import {BaseViewer} from './baseViewer';
 import Highlight from 'react-highlight';
 
 export interface IProps {
@@ -12,7 +12,7 @@ export interface IState {
   bodyVisible: boolean;
 }
 
-export class GenerateViewer extends Viewer<IProps, IState> {
+export class GenerateViewer extends BaseViewer<IProps, IState> {
   constructor(props: IProps) {
     super(props);
     this.state = {bodyVisible: true};
@@ -24,17 +24,14 @@ export class GenerateViewer extends Viewer<IProps, IState> {
         return;
       }
       const pos = this.getPositionFromI(generate.startI, editor.getText());
-      let i = 1;
-      let text = '';
-      do {
-        text = editor.lineTextForBufferRow(pos.row - i);
-        i++;
-      } while (text.trim() === '');
+      let text = editor.lineTextForBufferRow(pos.row).trim();
 
     return <div className={'vhdl-generate-list ' + (this.state.bodyVisible ? 'vhdl-body-visible' : 'vhdl-body-hidden')}>
       <div className='vhdl-list-header'>
-        <span className='vhdl-list-header-show' onClick={() => this.setState({bodyVisible: !this.state.bodyVisible})}></span>
+        <div className='vhdl-list-header-show' onClick={() => this.setState({bodyVisible: !this.state.bodyVisible})}> </div>
+        <div className='vhdl-list-header-title' onClick={() => this.setState({bodyVisible: !this.state.bodyVisible})}>
         <Highlight className='vhdl'>{text}</Highlight>
+        </div>
       </div>
       <div className='vhdl-generate-body vhdl-list-body'>
         <ArchitectureViewer architecture={generate} isEntity={false}></ArchitectureViewer>

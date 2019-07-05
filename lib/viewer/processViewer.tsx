@@ -1,6 +1,6 @@
 import * as React from 'react';
-import {OProcess} from './parser/objects';
-import {Viewer} from './viewer';
+import {OProcess} from '../parser/objects';
+import {BaseViewer} from './baseViewer';
 export interface IProps {
   processes: OProcess[];
 }
@@ -9,7 +9,7 @@ export interface IState {
   bodyVisible: boolean;
   sortAlpha: boolean;
 }
-export class ProcessViewer extends Viewer<IProps, IState> {
+export class ProcessViewer extends BaseViewer<IProps, IState> {
   constructor(props: any) {
     super(props);
     this.state = {
@@ -34,10 +34,9 @@ export class ProcessViewer extends Viewer<IProps, IState> {
 
     return <div className={className}>
       <div className='vhdl-list-header'>
-        <span className='vhdl-list-header-show' onClick={() => this.setState({bodyVisible: !this.state.bodyVisible})}>
-          Processes
-        </span>
-        <span className='vhdl-list-header-sort' onClick={(evt) => {evt.preventDefault(); this.setState({sortAlpha: !this.state.sortAlpha}); }}>⇅</span>
+        <div className='vhdl-list-header-show' onClick={() => this.setState({bodyVisible: !this.state.bodyVisible})}></div>
+        <div className='vhdl-list-header-title' onClick={() => this.setState({bodyVisible: !this.state.bodyVisible})}>Processes</div>
+        <div className='vhdl-list-header-sort' onClick={(evt) => {evt.preventDefault(); this.setState({sortAlpha: !this.state.sortAlpha}); }}>⇅</div>
 
       </div>
       <div className={'vhdl-process-list-body vhdl-list-body'}>

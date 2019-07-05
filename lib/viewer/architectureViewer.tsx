@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {OArchitecture, OSignal, OForGenerate, OIfGenerate} from './parser/objects';
+import {OArchitecture, OSignal, OForGenerate, OIfGenerate} from '../parser/objects';
 import {SignalLikeViewer} from './signalLikeViewer';
 import {InstantiationsViewer} from './instantiationsViewer';
 import {ProcessViewer} from './processViewer';
