@@ -40,7 +40,6 @@
     "glob": "^7.1.4",
     "json-diff": "^0.5.4",
     "lite-event": "^1.0.5",
-    "nodemon": "^1.18.4",
     "prettyjson": "^1.2.1",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
