@@ -47,7 +47,7 @@ export class ArchitectureParser extends ParserBase {
         this.pos.i++;
         continue;
       }
-      let nextWord = this.getNextWord({consume: false}).toLowerCase();
+      let nextWord = this.getNextWord({consume: false});
 //       console.log(nextWord, 'nextWord');
       if (nextWord === 'end') {
         if (ifGenerate && noElse) {
@@ -68,8 +68,7 @@ export class ArchitectureParser extends ParserBase {
       let label;
       const regex = new RegExp(`^${nextWord}\\s*:`, 'i');
       if (this.text.substr(this.pos.i).match(regex)) {
-        this.getNextWord();
-        label = nextWord;
+        label = this.getNextWord({withCase: true});
         this.debug('parse label ' + label);
         this.pos.i++;
         this.advanceWhitespace();

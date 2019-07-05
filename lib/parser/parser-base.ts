@@ -61,7 +61,10 @@ export class ParserBase {
       this.pos.i--;
     }
   }
-  advancePast(search: string | RegExp, options: {allowSemicolon: boolean} = {allowSemicolon: false}) {
+  advancePast(search: string | RegExp, options: {allowSemicolon?: boolean} = {}) {
+    if (typeof options.allowSemicolon === 'undefined') {
+      options.allowSemicolon = false;
+    }
     let text = '';
     let searchStart = this.pos.i;
     if (typeof search === 'string') {
@@ -125,13 +128,16 @@ export class ParserBase {
     this.advanceWhitespace();
     return text;
   }
-  getNextWord(options: { re?: RegExp, consume?: boolean} = {}) {
-    let { re, consume } = options;
+  getNextWord(options: { re?: RegExp, consume?: boolean, withCase?: boolean} = {}) {
+    let { re, consume, withCase } = options;
     if (!re) {
       re = /\w/;
     }
     if (typeof consume === 'undefined') {
       consume = true;
+    }
+    if (typeof withCase === 'undefined') {
+      withCase = false;
     }
     if (consume) {
       let word = '';
@@ -143,7 +149,7 @@ export class ParserBase {
         // }
       }
       this.advanceWhitespace();
-      return word.toLowerCase();
+      return withCase ? word : word.toLowerCase();
     }
     let word = '';
     let j = 0;
@@ -151,8 +157,9 @@ export class ParserBase {
       word += this.text[this.pos.i + j];
       j++;
     }
-    return word.toLowerCase();
+    return withCase ? word : word.toLowerCase();
   }
+
   getLine(position?: number) {
     if (!position) {
       position = this.pos.i;

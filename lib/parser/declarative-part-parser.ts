@@ -23,7 +23,7 @@ export class DeclarativePartParser extends ParserBase {
         const signal = new OSignal(this.parent, this.pos.i);
 
         signal.constant = nextWord === 'constant';
-        signal.name = this.getNextWord();
+        signal.name = this.getNextWord({withCase: true});
         if (this.text[this.pos.i] === ',') {
           throw new ParserError(`Defining multiple signals not allowed!: ${this.getLine(this.pos.i)}`, this.pos.i);
           // multiSignals.push(signal.name);

@@ -100,7 +100,7 @@ screen.key(['C-c'], () => {
 (async () => {
   if (argv[2] === '-c') {
     for (const [count, file] of files.entries()) {
-      if (fs.statSync(file).size > 500 * 1024) {
+      if (fs.statSync(file).size > 50 * 1024) {
         debugLog.log(colors.blue(`File too large: skipping ${file}`));
         continue;
       }
@@ -116,7 +116,7 @@ screen.key(['C-c'], () => {
     execSync('rm -rf ./test_results_kaputt');
     let errorCount = 0;
     for (const [count, file] of files.entries()) {
-      if (fs.statSync(file).size > 500 * 1024) {
+      if (fs.statSync(file).size > 50 * 1024) {
         debugLog.log(colors.blue(`File too large: skipping ${file}`));
         continue;
       }

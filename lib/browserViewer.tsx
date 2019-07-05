@@ -13,6 +13,7 @@ export class BrowserViewer extends React.Component<IProps, {}> {
 //    console.log('render');
     const {tree} = this.props;
     return <div className='vhdl-browser'>
+      <link rel='stylesheet' href='../node_modules/highlight.js/styles/atom-one-dark.css'/>
       <div className='vhdl-resize-bar' onMouseDown={e => this.initDrag(e)} ref={this.resizeBar}></div>
       <div className='vhdl-resize-container' ref={this.resizeContainer}>
         <h3 className='vhdl-entity-name'>{tree.entity.name}</h3>

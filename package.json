@@ -31,6 +31,7 @@
     "@types/prettyjson": "0.0.28",
     "@types/react": "^16.8.15",
     "@types/react-dom": "^16.8.4",
+    "@types/react-highlight": "^0.12.1",
     "atom-package-deps": "^4.6.2",
     "blessed": "^0.1.81",
     "blessed-contrib": "^4.8.16",
@@ -43,6 +44,7 @@
     "prettyjson": "^1.2.1",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
+    "react-highlight": "^0.12.0",
     "threads": "^0.12.0",
     "typed-promisify": "^0.4.0"
   },

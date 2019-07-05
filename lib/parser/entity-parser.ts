@@ -11,7 +11,7 @@ export class EntityParser extends ParserBase {
   }
   parse(): OEntity {
     const entity = new OEntity(this.parent, this.pos.i);
-    entity.name = this.getNextWord();
+    entity.name = this.getNextWord({withCase: true});
     this.expect('is');
 
     let lastI;
@@ -72,7 +72,7 @@ export class EntityParser extends ParserBase {
         this.expect(';');
         break;
       }
-      port.name = this.getNextWord();
+      port.name = this.getNextWord({withCase: true});
       if (this.text[this.pos.i] === ',') {
         this.expect(',');
         multiPorts.push(port.name);

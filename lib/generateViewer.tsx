@@ -2,6 +2,8 @@ import * as React from 'react';
 import {OArchitecture, OSignal, OForGenerate, OIfGenerate} from './parser/objects';
 import {ArchitectureViewer} from './architectureViewer';
 import {Viewer} from './viewer';
+import Highlight from 'react-highlight';
+
 export interface IProps {
   generate: OForGenerate|OIfGenerate;
 }
@@ -22,10 +24,17 @@ export class GenerateViewer extends Viewer<IProps, IState> {
         return;
       }
       const pos = this.getPositionFromI(generate.startI, editor.getText());
-      const text = editor.lineTextForBufferRow(pos.row - 1);
+      let i = 1;
+      let text = '';
+      do {
+        text = editor.lineTextForBufferRow(pos.row - i);
+        i++;
+      } while (text.trim() === '');
+
     return <div className={'vhdl-generate-list ' + (this.state.bodyVisible ? 'vhdl-body-visible' : 'vhdl-body-hidden')}>
       <div className='vhdl-list-header'>
-        <span className='vhdl-list-header-show' onClick={() => this.setState({bodyVisible: !this.state.bodyVisible})}>{text}</span>
+        <span className='vhdl-list-header-show' onClick={() => this.setState({bodyVisible: !this.state.bodyVisible})}></span>
+        <Highlight className='vhdl'>{text}</Highlight>
       </div>
       <div className='vhdl-generate-body vhdl-list-body'>
         <ArchitectureViewer architecture={generate} isEntity={false}></ArchitectureViewer>
