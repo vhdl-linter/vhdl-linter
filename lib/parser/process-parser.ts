@@ -78,7 +78,7 @@ export class ProcessParser extends ParserBase {
         statements.push(this.parseFor(parent, label));
       } else if (nextWord.toLowerCase() === 'report') {
         this.advancePast(';');
-      } else if (nextWord.toLowerCase() === 'null') {
+      } else if (nextWord.toLowerCase() === 'assert') {
         this.advancePast(';');
       } else {
         const assignmentParser = new AssignmentParser(this.text, this.pos, this.file, parent);
