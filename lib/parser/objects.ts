@@ -184,10 +184,8 @@ export class OSignalLike extends ObjectBase {
       return this.register;
     }
     this.register = false;
-    if (this.parent instanceof OEntity) {
-      return false;
-    }
-    for (const process of this.parent.processes) {
+    const processes = this.parent instanceof OArchitecture ? this.parent.processes : this.parent.parent.architecture.processes;
+    for (const process of processes) {
       if (process.isRegisterProcess()) {
         for (const write of process.getFlatWrites()) {
           if (write.text.toLowerCase() === this.name.toLowerCase()) {
@@ -281,6 +279,9 @@ export class OMapping extends ObjectBase {
   mappingIfOutput: [ORead[], OWrite[]];
 }
 export class OEntity extends ObjectBase {
+  constructor(public parent: OFile, startI: number) {
+    super(parent, startI);
+  }
   name: string;
   ports: OPort[] = [];
   generics: OGeneric[] = [];

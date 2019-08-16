@@ -18,7 +18,7 @@ export class BrowserViewer extends React.Component<IProps, {}> {
         <h3 className='vhdl-entity-name'>{tree.entity.name}</h3>
         <div className='vhdl-scroll'>
             <SignalLikeViewer signalLikes={tree.entity.generics as OSignalLike[]} type='generic' header='Generics'></SignalLikeViewer>
-            <SignalLikeViewer signalLikes={tree.entity.ports} type='port' classCallback = {(port: OPort) => 'vhdl-port-' + port.direction} header='Ports'></SignalLikeViewer>
+            <SignalLikeViewer signalLikes={tree.entity.ports} type='port' classCallback = {(port: OPort) => 'vhdl-port-' + port.direction + (port.isRegister() ? ' vhdl-port-register' : '')} header='Ports'></SignalLikeViewer>
             <ArchitectureViewer architecture={tree.architecture} isEntity={false}></ArchitectureViewer>
         </div>
       </div>
