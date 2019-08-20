@@ -9,11 +9,11 @@ export class ProjectParser {
   private initialized = false;
   private initEvent = new LiteEvent();
   constructor(public subscriptions: CompositeDisposable) {
-    // setTimeout(() => {
+    setTimeout(() => {
       this.initialize().then(() => {
         this.initEvent.trigger();
       });
-    // }, 1000);
+    }, 1000);
   }
   private async parseDirectory (directory: Directory): Promise<File[]> {
     const files = [];
