@@ -1,8 +1,10 @@
 import { OFile, OIf, OForLoop, OSignalLike, OSignal, OArchitecture, OEntity, OPort, OInstantiation, OWrite, ORead } from './parser/objects';
-import { Range, Point, TextEditor, CompositeDisposable } from 'atom';
 import { Parser } from './parser/parser';
 import { ProjectParser, OProjectEntity } from './project-parser';
-
+import {
+  Range,
+  Position
+} from 'vscode-languageserver';
 export class VhdlLinter {
   messages: Message[] = [];
   tree: OFile;
@@ -17,8 +19,8 @@ export class VhdlLinter {
     } catch (e) {
       try {
         let positionStart = this.getPositionFromI(e.i);
-        let positionEnd = new Point(positionStart.row, Infinity);
-        let position: Range = new Range(positionStart, positionEnd);
+        let positionEnd = Position.create(positionStart.line, Infinity);
+        let position: Range = Range.create(positionStart, positionEnd);
         this.messages.push({
           location: {
             file: this.editorPath,
@@ -76,9 +78,7 @@ export class VhdlLinter {
   }
   async checkAll() {
     if (this.tree) {
-      if (atom) {
-        await this.parsePackages();
-      }
+      await this.parsePackages();
       this.checkResets();
       await this.checkUnused(this.tree.architecture, this.tree.entity);
       this.checkDoubles();
@@ -152,7 +152,7 @@ export class VhdlLinter {
     const pushWriteError = (write: OWrite) => {
       let positionStart = this.getPositionFromI(write.begin);
       let positionEnd = this.getPositionFromI(write.end);
-      let position = new Range(positionStart, positionEnd);
+      let position = Range.create(positionStart, positionEnd);
 
       this.messages.push({
         location: {
@@ -166,7 +166,7 @@ export class VhdlLinter {
     const pushReadError = (read: ORead) => {
       let positionStart = this.getPositionFromI(read.begin);
       let positionEnd = this.getPositionFromI(read.end);
-      let position = new Range(positionStart, positionEnd);
+      let position = Range.create(positionStart, positionEnd);
 
       this.messages.push({
         location: {
@@ -268,10 +268,10 @@ export class VhdlLinter {
                 }
                 if (resetValue !== null) {
                   let positionStart = this.getPositionFromI(clause.startI);
-                  positionStart.row++;
+                  positionStart.line++;
                   solutions.push({
                     title: 'Add Register',
-                    position:    new Range(positionStart, positionStart),
+                    position:    Range.create(positionStart, positionStart),
                     replaceWith: `  ${signal.name} <= ${resetValue};\n    `
                   });
                 }
@@ -529,11 +529,11 @@ export class VhdlLinter {
 
   getPositionFromILine(i: number, j?: number): Range {
     const positionStart = this.getPositionFromI(i);
-    const positionEnd = j ? this.getPositionFromI(j) : new Point(positionStart.row, Infinity);
-    const position: Range = new Range(positionStart, positionEnd);
+    const positionEnd = j ? this.getPositionFromI(j) : Position.create(positionStart.line, Infinity);
+    const position: Range = Range.create(positionStart, positionEnd);
     return position;
   }
-  getPositionFromI(i: number): Point {
+  getPositionFromI(i: number): Position {
     let row = 0;
     let col = 0;
     for (let count = 0; count < i; count++) {
@@ -544,7 +544,7 @@ export class VhdlLinter {
         col++;
       }
     }
-    return new Point(row, col);
+    return Position.create(row, col);
   }
 
 }
@@ -556,7 +556,7 @@ export type Message = {
   },
   reference?: {
     file: string,
-    position?: Point,
+    position?: Position,
   },
   url?: string,
   icon?: string,

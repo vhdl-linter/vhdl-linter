@@ -13,12 +13,8 @@ architecture behave of yolo1234 is
 
   signal r_Shift_With_For : std_logic_vector(3 downto 0) := X"1";
   signal r_Shift_Regular  : std_logic_vector(3 downto 0) := X"1";
-  signal a                : std_logic
+  signal a                : std_logic;
 begin
-  yolo : entity work.yolo
-    port map(
-      a => a
-      );
 
   -- Performs a shift left using regular assignments
   p_Shift_Without_For : process (i_Clock)
@@ -39,6 +35,10 @@ begin
     end if;
   end process;
 
+  yolo : entity work.yolo
+  port map(
+  a => a
+  );
 
 
 end behave;

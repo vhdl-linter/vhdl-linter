@@ -1,6 +1,7 @@
-import { Directory, File, CompositeDisposable } from 'atom';
 import { LiteEvent } from 'lite-event';
 import {promisify} from 'util';
+import {readdir, readFile, stat, watch} from 'fs';
+const nsfw = require('nsfw');
 
 export class ProjectParser {
   private cachedFiles: OFileCache[] = [];
@@ -8,29 +9,32 @@ export class ProjectParser {
   private entities: OProjectEntity[];
   private initialized = false;
   private initEvent = new LiteEvent();
-  constructor(public subscriptions: CompositeDisposable) {
+  constructor(public workspaces: string[]) {
     setTimeout(() => {
       this.initialize().then(() => {
         this.initEvent.trigger();
       });
     }, 1000);
   }
-  private async parseDirectory (directory: Directory): Promise<File[]> {
+  private async parseDirectory (directory: string): Promise<string[]> {
     const files = [];
-    const entries = await new Promise((resolve, reject) => directory.getEntries((err, entries) => {
+    const entries = await new Promise((resolve, reject) => readdir(directory, (err, entries) => {
       if (err) {
         return reject(err);
       }
       resolve(entries);
-    })) as (Directory|File)[];
+    })) as string[];
+
     // const entries = await promisify(directory.getEntries)()
+
     for (const entry of entries) {
-      if (entry instanceof File) {
-        if (entry.getBaseName().match(/\.vhdl?$/i)) {
-          files.push(entry);
+      const fileStat = await promisify(stat)(directory + '/' + entry);
+      if (fileStat.isFile()) {
+        if (entry.match(/\.vhdl?$/i)) {
+          files.push(directory + '/' + entry);
         }
       } else {
-        files.push(... await this.parseDirectory(entry));
+        files.push(... await this.parseDirectory(directory + '/' + entry));
       }
     }
     return files;
@@ -49,61 +53,98 @@ export class ProjectParser {
     }
   }
   private async initialize(): Promise<void> {
-    let files: File[] = [];
-    for (const directory of atom.project.getDirectories()) {
-      files.push(... await this.parseDirectory(directory));
-    }
-    const pkg = atom.packages.getPackageDirPaths() + '/vhdl-linter';
+    let files: string[] = [];
+    // for (const directory of atom.project.getDirectories()) {
+    //   files.push(... await this.parseDirectory(directory));
+    // }
+    const pkg = __dirname;
     if (pkg) {
 //       console.log(pkg, new Directory(pkg + '/ieee2008'));
-      files.push(... await this.parseDirectory(new Directory(pkg + '/ieee2008')));
+      files.push(... await this.parseDirectory((pkg + '/../../ieee2008')));
     }
     for (const file of files) {
-      let cachedFile = this.cachedFiles.find(cachedFile => cachedFile.path === file.getPath());
+      let cachedFile = this.cachedFiles.find(cachedFile => cachedFile.path === file);
       // if (cachedFile && cachedFile.digest !== await file.getDigest()) {
       //   cachedFile.parsePackage(file);
       // }
       if (!cachedFile) {
         let cachedFile = new OFileCache();
-        cachedFile.path = file.getPath();
+        cachedFile.path = file;
         await cachedFile.parseFile(file);
         this.cachedFiles.push(cachedFile);
       }
     }
     this.fetchEntitesAndPackages();
-    this.subscriptions.add(atom.project.onDidChangeFiles(async events => {
-      for (const event of events) {
-        if (event.path.match(/\.vhdl?$/i)) {
-//           // console.log(event);
-          if (event.action === 'created') {
+    for (const workspace of this.workspaces) {
+      const watcher = await nsfw(workspace, async (events: any) => {
+        for (const event of events) {
+          const path = `${event.directory}/${event.file}`;
+          if (events.action === nsfw.actions.CREATED) {
             let cachedFile = new OFileCache();
             cachedFile.path = event.path;
-            await cachedFile.parseFile(new File(event.path));
+            await cachedFile.parseFile(path);
             this.cachedFiles.push(cachedFile);
           } else if (event.action === 'deleted') {
-            const index = this.cachedFiles.findIndex(cachedFile => cachedFile.path === event.path);
+            const index = this.cachedFiles.findIndex(cachedFile => cachedFile.path === path);
             this.cachedFiles.splice(index, 1);
           } else if (event.action === 'modified') {
 //             console.log(this.cachedFiles);
-            const cachedFile = this.cachedFiles.find(cachedFile => cachedFile.path === event.path);
+            const cachedFile = this.cachedFiles.find(cachedFile => cachedFile.path === path);
             if (cachedFile) {
-              await cachedFile.parseFile(new File(event.path));
+              await cachedFile.parseFile(path);
             } else {
               console.error('modified file not found', event);
             }
           } else if (event.action === 'renamed') {
-            const cachedFile = this.cachedFiles.find(cachedFile => cachedFile.path === event.oldPath);
+            const oldPath = `${event.directory}/${event.oldFile}`;
+            const newPath = `${event.newDirectory}/${event.newFile}`;
+            const cachedFile = this.cachedFiles.find(cachedFile => cachedFile.path === oldPath);
             if (cachedFile) {
-              await cachedFile.parseFile(new File(event.path));
+              await cachedFile.parseFile(newPath);
             } else {
               console.error('renamed file not found', event);
             }
 
           }
           this.fetchEntitesAndPackages();
+
         }
-      }
-    }));
+      });
+      watcher.start();
+    }
+//     atom.project.onDidChangeFiles(async events => {
+//       for (const event of events) {
+//         if (event.path.match(/\.vhdl?$/i)) {
+// //           // console.log(event);
+//           if (event.action === 'created') {
+//             let cachedFile = new OFileCache();
+//             cachedFile.path = event.path;
+//             await cachedFile.parseFile(event.path);
+//             this.cachedFiles.push(cachedFile);
+//           } else if (event.action === 'deleted') {
+//             const index = this.cachedFiles.findIndex(cachedFile => cachedFile.path === event.path);
+//             this.cachedFiles.splice(index, 1);
+//           } else if (event.action === 'modified') {
+// //             console.log(this.cachedFiles);
+//             const cachedFile = this.cachedFiles.find(cachedFile => cachedFile.path === event.path);
+//             if (cachedFile) {
+//               await cachedFile.parseFile(event.path);
+//             } else {
+//               console.error('modified file not found', event);
+//             }
+//           } else if (event.action === 'renamed') {
+//             const cachedFile = this.cachedFiles.find(cachedFile => cachedFile.path === event.oldPath);
+//             if (cachedFile) {
+//               await cachedFile.parseFile(event.path);
+//             } else {
+//               console.error('renamed file not found', event);
+//             }
+//
+//           }
+//           this.fetchEntitesAndPackages();
+//         }
+//       }
+//     });
     this.initialized = true;
   }
   public async getPackages(): Promise<OPackage[]> {
@@ -143,7 +184,7 @@ export class OProjectEntity {
   ports: OProjectPorts[] = [];
   name: string;
   library?: string;
-  file: File;
+  file: string;
 }
 export class OFileCache {
   path: string;
@@ -152,14 +193,14 @@ export class OFileCache {
   entity?: OProjectEntity;
   private text: string;
 
-  async parseFile(file: File): Promise<void> {
-    const text = await file.read();
+  async parseFile(file: string): Promise<void> {
+    const text = await promisify(readFile)(file, {encoding: 'utf8'});
     if (!text) {
       return;
     }
     this.text = text;
-    this.digest = await file.getDigest();
-    this.path = file.getPath();
+    // this.digest = await file.getDigest();
+    this.path = file;
     this.parsePackage();
     this.parseEntity(file);
   }
@@ -196,7 +237,7 @@ export class OFileCache {
     // console.log(this.package);
 
   }
-  private parseEntity(file: File): void {
+  private parseEntity(file: string): void {
     const match = this.text.match(/entity\s+(\S+)\s+is/i);
     if (!match) {
       return;
