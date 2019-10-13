@@ -54,9 +54,9 @@ export class ProjectParser {
   }
   private async initialize(): Promise<void> {
     let files: string[] = [];
-    // for (const directory of atom.project.getDirectories()) {
-    //   files.push(... await this.parseDirectory(directory));
-    // }
+    for (const directory of this.workspaces) {
+      files.push(... await this.parseDirectory(directory));
+    }
     const pkg = __dirname;
     if (pkg) {
 //       console.log(pkg, new Directory(pkg + '/ieee2008'));
