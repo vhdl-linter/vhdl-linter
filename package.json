@@ -68,6 +68,11 @@
         "2.0.0": "provideLinter"
       }
     },
+    "definitions": {
+      "versions": {
+        "0.1.0": "provideDefinitions"
+      }
+    },
     "hyperclick": {
       "versions": {
         "0.1.0": "provideHyper"
@@ -78,11 +83,16 @@
         "2.0.0": "provideAutocomplete"
       }
     },
+    "outline-view": {
+      "versions": {
+        "0.1.0": "provideOutlines"
+      }
+    },
     "code-actions": {
-    "versions": {
-      "0.1.0": "provideCodeActions"
+      "versions": {
+        "0.1.0": "provideCodeActions"
+      }
     }
-  }
   },
   "consumedServices": {
     "linter-indie": {

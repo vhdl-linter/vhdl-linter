@@ -1,6 +1,6 @@
 import { LiteEvent } from 'lite-event';
-import {promisify} from 'util';
-import {readdir, readFile, stat, watch} from 'fs';
+import { promisify } from 'util';
+import { readdir, readFile, stat, watch } from 'fs';
 const nsfw = require('nsfw');
 
 export class ProjectParser {
@@ -16,7 +16,7 @@ export class ProjectParser {
       });
     }, 1000);
   }
-  private async parseDirectory (directory: string): Promise<string[]> {
+  private async parseDirectory(directory: string): Promise<string[]> {
     const files = [];
     const entries = await new Promise((resolve, reject) => readdir(directory, (err, entries) => {
       if (err) {
@@ -40,7 +40,7 @@ export class ProjectParser {
     return files;
   }
   private fetchEntitesAndPackages() {
-//     console.log(this.cachedFiles);
+    //     console.log(this.cachedFiles);
     this.packages = [];
     this.entities = [];
     for (const cachedFile of this.cachedFiles) {
@@ -59,7 +59,7 @@ export class ProjectParser {
     }
     const pkg = __dirname;
     if (pkg) {
-//       console.log(pkg, new Directory(pkg + '/ieee2008'));
+      //       console.log(pkg, new Directory(pkg + '/ieee2008'));
       files.push(... await this.parseDirectory((pkg + '/../../ieee2008')));
     }
     for (const file of files) {
@@ -88,7 +88,7 @@ export class ProjectParser {
             const index = this.cachedFiles.findIndex(cachedFile => cachedFile.path === path);
             this.cachedFiles.splice(index, 1);
           } else if (event.action === 'modified') {
-//             console.log(this.cachedFiles);
+            //             console.log(this.cachedFiles);
             const cachedFile = this.cachedFiles.find(cachedFile => cachedFile.path === path);
             if (cachedFile) {
               await cachedFile.parseFile(path);
@@ -112,39 +112,39 @@ export class ProjectParser {
       });
       watcher.start();
     }
-//     atom.project.onDidChangeFiles(async events => {
-//       for (const event of events) {
-//         if (event.path.match(/\.vhdl?$/i)) {
-// //           // console.log(event);
-//           if (event.action === 'created') {
-//             let cachedFile = new OFileCache();
-//             cachedFile.path = event.path;
-//             await cachedFile.parseFile(event.path);
-//             this.cachedFiles.push(cachedFile);
-//           } else if (event.action === 'deleted') {
-//             const index = this.cachedFiles.findIndex(cachedFile => cachedFile.path === event.path);
-//             this.cachedFiles.splice(index, 1);
-//           } else if (event.action === 'modified') {
-// //             console.log(this.cachedFiles);
-//             const cachedFile = this.cachedFiles.find(cachedFile => cachedFile.path === event.path);
-//             if (cachedFile) {
-//               await cachedFile.parseFile(event.path);
-//             } else {
-//               console.error('modified file not found', event);
-//             }
-//           } else if (event.action === 'renamed') {
-//             const cachedFile = this.cachedFiles.find(cachedFile => cachedFile.path === event.oldPath);
-//             if (cachedFile) {
-//               await cachedFile.parseFile(event.path);
-//             } else {
-//               console.error('renamed file not found', event);
-//             }
-//
-//           }
-//           this.fetchEntitesAndPackages();
-//         }
-//       }
-//     });
+    //     atom.project.onDidChangeFiles(async events => {
+    //       for (const event of events) {
+    //         if (event.path.match(/\.vhdl?$/i)) {
+    // //           // console.log(event);
+    //           if (event.action === 'created') {
+    //             let cachedFile = new OFileCache();
+    //             cachedFile.path = event.path;
+    //             await cachedFile.parseFile(event.path);
+    //             this.cachedFiles.push(cachedFile);
+    //           } else if (event.action === 'deleted') {
+    //             const index = this.cachedFiles.findIndex(cachedFile => cachedFile.path === event.path);
+    //             this.cachedFiles.splice(index, 1);
+    //           } else if (event.action === 'modified') {
+    // //             console.log(this.cachedFiles);
+    //             const cachedFile = this.cachedFiles.find(cachedFile => cachedFile.path === event.path);
+    //             if (cachedFile) {
+    //               await cachedFile.parseFile(event.path);
+    //             } else {
+    //               console.error('modified file not found', event);
+    //             }
+    //           } else if (event.action === 'renamed') {
+    //             const cachedFile = this.cachedFiles.find(cachedFile => cachedFile.path === event.oldPath);
+    //             if (cachedFile) {
+    //               await cachedFile.parseFile(event.path);
+    //             } else {
+    //               console.error('renamed file not found', event);
+    //             }
+    //
+    //           }
+    //           this.fetchEntitesAndPackages();
+    //         }
+    //       }
+    //     });
     this.initialized = true;
   }
   public async getPackages(): Promise<OPackage[]> {
@@ -171,9 +171,12 @@ export class ProjectParser {
   }
 }
 export class OPackage {
-  name: string;
-  things: string[] = [];
+  things: OThing[] = [];
   referencePackage?: string;
+  constructor(public path: string, public name: string) {}
+}
+export class OThing {
+  constructor(public parent: OPackage, public name: string, public startI: number) { }
 }
 export class OProjectPorts {
   name: string;
@@ -194,7 +197,7 @@ export class OFileCache {
   private text: string;
 
   async parseFile(file: string): Promise<void> {
-    const text = await promisify(readFile)(file, {encoding: 'utf8'});
+    const text = await promisify(readFile)(file, { encoding: 'utf8' });
     if (!text) {
       return;
     }
@@ -209,26 +212,31 @@ export class OFileCache {
     if (!match) {
       return;
     }
-    this.package = new OPackage();
-    this.package.name = match[1];
+    this.package = new OPackage(this.path, match[1]);
     // console.log(  this.package.name, 'parsing package');
 
     let re = /constant\s+(\w+)/g;
     let m;
     while (m = re.exec(this.text)) {
-      this.package.things.push(m[1]);
+      this.package.things.push(new OThing(this.package, m[1], m.index));
     }
     re = /function\s+(\w+)/g;
     while (m = re.exec(this.text)) {
-      this.package.things.push(m[1]);
+      this.package.things.push(new OThing(this.package, m[1], m.index));
     }
     re = /(?:subtype|type)\s+(\w+)/g;
     while (m = re.exec(this.text)) {
-      this.package.things.push(m[1]);
+      this.package.things.push(new OThing(this.package, m[1], m.index));
     }
     re = /type\s+(\w+)\s+is\s*\(([^)]*)\)\s*;/g;
     while (m = re.exec(this.text)) {
-      this.package.things.push(... m[2].split(',').map(thing => thing.trim()));
+      let j = m.index;
+      const pkg = this.package;
+      this.package.things.push(...m[2].split(',').map(thing => {
+        const thing2 = new OThing(pkg, thing.trim(), j);
+        j += 1 + thing.length;
+        return thing2;
+      }));
     }
     const matchReference = this.text.match(/is\s+new\s+(\w+).(\w+)/i);
     if (matchReference) {

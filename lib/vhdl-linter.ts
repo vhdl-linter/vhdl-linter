@@ -1,6 +1,6 @@
 import { OFile, OIf, OForLoop, OSignalLike, OSignal, OArchitecture, OEntity, OPort, OInstantiation, OWrite, ORead } from './parser/objects';
 import { Parser } from './parser/parser';
-import { ProjectParser, OProjectEntity } from './project-parser';
+import { ProjectParser, OProjectEntity, OThing } from './project-parser';
 import {
   Range,
   Position
@@ -9,7 +9,7 @@ export class VhdlLinter {
   messages: Message[] = [];
   tree: OFile;
   parser: Parser;
-  packageThings: string[] = [];
+  packageThings: OThing[] = [];
   constructor(private editorPath: string, public text: string, public projectParser: ProjectParser) {
 //     console.log('lint');
     this.parser = new Parser(this.text, this.editorPath);
@@ -527,9 +527,8 @@ export class VhdlLinter {
 
 
   getIFromPosition(p: Position): number {
-    let text = this.text.split('\n').slice(0, p.line + 1);
-    text[text.length - 1] = text[text.length - 1].slice(0, p.character + 1);
-    let i = text.join('\n').length;
+    let text = this.text.split('\n').slice(0, p.line);
+    let i = text.join('\n').length + p.character;
     return i;
   }
   getPositionFromILine(i: number, j?: number): Range {

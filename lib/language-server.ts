@@ -1,5 +1,6 @@
 import {
   createConnection,
+  SymbolKind,
   TextDocuments,
   TextDocument,
   Diagnostic,
@@ -12,11 +13,15 @@ import {
   CompletionItemKind,
   CompletionParams,
   WorkspaceEdit,
-  TextEdit
+  TextEdit,
+  Location,
+  DocumentSymbol,
+  Range,
+  Position
 } from 'vscode-languageserver';
-import {VhdlLinter} from './vhdl-linter';
-import {ProjectParser} from './project-parser';
-import {OFile, OArchitecture} from './parser/objects';
+import { VhdlLinter } from './vhdl-linter';
+import { ProjectParser, OThing, OPackage, OProjectEntity} from './project-parser';
+import { OFile, OArchitecture, ORead, OWrite, OSignal, OFunction, OForLoop, OForGenerate} from './parser/objects';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -52,7 +57,9 @@ connection.onInitialize((params: InitializeParams) => {
       // Tell the client that the server supports code completion
       completionProvider: {
         resolveProvider: true
-      }
+      },
+      documentSymbolProvider: true,
+      definitionProvider: true
     }
   };
 });
@@ -174,11 +181,10 @@ connection.onCodeAction(async (params): Promise<CodeAction[]> => {
       return false;
     }
     return message.location.position.start.character === params.range.start.character &&
-    message.location.position.start.line === params.range.start.line &&
-    message.location.position.end.character === params.range.end.character &&
-    message.location.position.end.line === params.range.end.line;
+      message.location.position.start.line === params.range.start.line &&
+      message.location.position.end.character === params.range.end.character &&
+      message.location.position.end.line === params.range.end.line;
   });
-  console.error(messages, message);
   if (message && message.solutions) {
     return message.solutions.filter(solution => solution.replaceWith).map(solution => {
       const workspaceEdit: WorkspaceEdit = {};
@@ -192,6 +198,160 @@ connection.onCodeAction(async (params): Promise<CodeAction[]> => {
     });
   }
   return [];
+});
+connection.onDocumentSymbol(async (params): Promise<DocumentSymbol[]> => {
+  console.error('DOCUMENT SYMBOL');
+  const linter = linters.get(params.textDocument.uri);
+  if (!linter) {
+    return [];
+  }
+  const parseArchitecture = (architecture: OArchitecture): DocumentSymbol[] => {
+    const symbols: DocumentSymbol[] = [{
+      name: 'signals',
+      kind: SymbolKind.Class,
+      range: linter.getPositionFromILine(architecture.startI),
+      selectionRange: linter.getPositionFromILine(architecture.startI),
+      children: architecture.signals.map(signal => ({
+        name: signal.name,
+        deprecated: signal.isRegister(),
+        kind: SymbolKind.Variable,
+        range: linter.getPositionFromILine(signal.startI),
+        selectionRange: linter.getPositionFromILine(signal.startI)
+      }))
+    },
+    {
+      name: 'instantiation',
+      kind: SymbolKind.Class,
+      range: linter.getPositionFromILine(architecture.startI),
+      selectionRange: linter.getPositionFromILine(architecture.startI),
+      children: architecture.instantiations.map(instantiation => ({
+        name: instantiation.componentName,
+        detail: instantiation.label,
+        kind: SymbolKind.Object,
+        range: linter.getPositionFromILine(instantiation.startI),
+        selectionRange: linter.getPositionFromILine(instantiation.startI)
+      }))
+    },
+    {
+      name: 'process',
+      kind: SymbolKind.Class,
+      range: linter.getPositionFromILine(architecture.startI),
+      selectionRange: linter.getPositionFromILine(architecture.startI),
+      children: architecture.processes.map(process => ({
+        name: process.label || '',
+        detail: process.label,
+        kind: SymbolKind.Object,
+        range: linter.getPositionFromILine(process.startI),
+        selectionRange: linter.getPositionFromILine(process.startI),
+        children: process.getStates().map(state => ({
+          name: state.name,
+          kind: SymbolKind.EnumMember,
+          range: linter.getPositionFromILine(state.startI),
+          selectionRange: linter.getPositionFromILine(state.startI),
+
+        }))
+      }))
+    }];
+    for (const generate of architecture.generates) {
+      symbols.push({
+        name: linter.text.split('\n')[linter.getPositionFromILine(generate.startI).start.line],
+        kind: SymbolKind.Enum,
+        range: linter.getPositionFromILine(generate.startI),
+        selectionRange: linter.getPositionFromILine(generate.startI),
+        children: parseArchitecture(generate)
+      });
+    }
+    return symbols;
+  };
+  return [
+    {
+      name: 'generics',
+      kind: SymbolKind.Class,
+      range: linter.getPositionFromILine(linter.tree.entity.startI),
+      selectionRange: linter.getPositionFromILine(linter.tree.entity.startI),
+      children: linter.tree.entity.generics.map(generic => DocumentSymbol.create(generic.name, undefined, SymbolKind.Variable, linter.getPositionFromILine(generic.startI), linter.getPositionFromILine(generic.startI)))
+    },
+    {
+      name: 'ports',
+      kind: SymbolKind.Class,
+      range: linter.getPositionFromILine(linter.tree.entity.startI),
+      selectionRange: linter.getPositionFromILine(linter.tree.entity.startI),
+      children: linter.tree.entity.ports.map(port => DocumentSymbol.create(port.name, undefined, SymbolKind.Variable, linter.getPositionFromILine(port.startI), linter.getPositionFromILine(port.startI)))
+    },
+    ...parseArchitecture(linter.tree.architecture)
+  ];
+});
+connection.onDefinition(async (params): Promise<Location|null> => {
+  console.error(params);
+  const linter = linters.get(params.textDocument.uri);
+  if (!linter) {
+    return null
+  }
+
+  let startI = linter.getIFromPosition(params.position);
+  while (linter.text[startI].match(/\S/)) {
+    startI--;
+  }
+  let text = linter.text.slice(startI);
+  const wordMatch = text.match(/(entity\s+)?[a-z][\w.]*/i);
+  if (!wordMatch) {
+    console.error('no word match');
+    return null;
+  }
+  text = wordMatch[0];
+  if (typeof wordMatch.index === 'undefined') {
+    return null
+  }
+  startI += wordMatch.index;
+
+  const match = text.match(/(entity\s+)(\w+)\.(\w+)/i);
+  if (!match) {
+    console.error('sginak maybe', startI);
+    //          console.log('path', textEditor.getPath());
+    //          console.log('linter', linter);
+    let result: OSignal|OFunction|false|OThing|OForLoop|OForGenerate|undefined;
+    // try {
+    const foundThing = linter.tree.objectList.find(obj => {
+      if (obj instanceof ORead || obj instanceof OWrite) {
+        return obj.begin <= startI && obj.end >= startI;
+      } else {
+        return false;
+      }
+    });
+    console.error('foundThing', foundThing);
+    if (!foundThing || !(foundThing instanceof ORead || foundThing instanceof OWrite)) {
+      //              console.log('foundThing not foundThing', foundThing, startI);
+      return null;
+    }
+    const packageThings: OThing[] = [];
+    result = linter.tree.architecture.findRead(foundThing, linter.packageThings);
+    //           } catch (e) {
+    // //            console.log(e);
+    //           }
+    //          console.log('reads', result);
+    if (typeof result === 'boolean') {
+      return null;
+    }
+    const position = linter.getPositionFromILine(result.startI);
+    // console.error();
+    return {
+      // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
+      range: position,
+      // targetSelectionRange: position,
+      uri: result instanceof OThing ? 'file://' + result.parent.path : params.textDocument.uri
+    };
+  }
+  const [, whatever, library, entityName] = match;
+  console.error(match)
+  const entities = (await linter.projectParser.getEntities()).filter((entity: OProjectEntity) => {
+    return entity.name === entityName && (entity.library ? entity.library === library : true);
+  });
+  return {
+    // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
+    range: Range.create(Position.create(0, 0), Position.create(0, 0)),
+    // targetSelectionRange:  Range.create(Position.create(0, 0), Position.create(0, 0)),
+    uri: 'file://' + entities[0].file
+  };
 });
 // This handler provides the initial list of the completion items.
 connection.onCompletion(
@@ -217,10 +377,10 @@ connection.onCompletion(
     while ((parent instanceof OFile) === false) {
       if (parent instanceof OArchitecture) {
         for (const signal of parent.signals) {
-          candidates.push({label: signal.name, kind: CompletionItemKind.Variable});
+          candidates.push({ label: signal.name, kind: CompletionItemKind.Variable });
         }
         for (const type of parent.types) {
-          candidates.push({label: type.name, kind: CompletionItemKind.TypeParameter});
+          candidates.push({ label: type.name, kind: CompletionItemKind.TypeParameter });
           candidates.push(...type.states.map(state => {
             return {
               label: state.name,
@@ -232,7 +392,7 @@ connection.onCompletion(
       parent = (parent as any).parent;
       counter--;
       if (counter === 0) {
-//        console.log(parent, parent.parent);
+        //        console.log(parent, parent.parent);
         throw new Error('Infinite Loop?');
       }
     }
@@ -240,7 +400,7 @@ connection.onCompletion(
     console.error('packageThings');
     candidates.push(...packageThingsUnique.map(packageThing => {
       return {
-        label: packageThing,
+        label: packageThing.name,
         kind: CompletionItemKind.Text
       };
     }));
