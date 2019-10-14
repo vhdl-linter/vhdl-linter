@@ -72,7 +72,17 @@
       "versions": {
         "0.1.0": "provideHyper"
       }
+    },
+    "autocomplete.provider": {
+      "versions": {
+        "2.0.0": "provideAutocomplete"
+      }
+    },
+    "code-actions": {
+    "versions": {
+      "0.1.0": "provideCodeActions"
     }
+  }
   },
   "consumedServices": {
     "linter-indie": {

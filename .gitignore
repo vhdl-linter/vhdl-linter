@@ -1,7 +1,6 @@
 .DS_Store
 npm-debug.log
 node_modules
-package-lock.json
 test/_*
 dist/*
 test_results_kaputt/*

@@ -10,7 +10,7 @@ export class VhdlLinter {
   tree: OFile;
   parser: Parser;
   packageThings: string[] = [];
-  constructor(private editorPath: string, private text: string, public projectParser: ProjectParser) {
+  constructor(private editorPath: string, public text: string, public projectParser: ProjectParser) {
 //     console.log('lint');
     this.parser = new Parser(this.text, this.editorPath);
 //     console.log(`parsing: ${editorPath}`);
@@ -526,10 +526,20 @@ export class VhdlLinter {
 
 
 
-
+  getIFromPosition(p: Position): number {
+    let text = this.text.split('\n').slice(0, p.line + 1);
+    text[text.length - 1] = text[text.length - 1].slice(0, p.character + 1);
+    let i = text.join('\n').length;
+    return i;
+  }
   getPositionFromILine(i: number, j?: number): Range {
     const positionStart = this.getPositionFromI(i);
-    const positionEnd = j ? this.getPositionFromI(j) : Position.create(positionStart.line, Infinity);
+    let positionEnd: Position;
+    if (j) {
+      positionEnd = this.getPositionFromI(j);
+    } else {
+      positionEnd = Position.create(positionStart.line, this.text.split('\n')[positionStart.line].length);
+    }
     const position: Range = Range.create(positionStart, positionEnd);
     return position;
   }
@@ -566,14 +576,15 @@ export type Message = {
   description?: string | (() => Promise<string> | string)
 };
 export type Solution = {
-  title?: string,
+  title: string,
   position: Range,
   priority?: number,
   currentText?: string,
   replaceWith: string,
-} | {
-  title?: string,
-  priority?: number,
-  position: Range,
-  apply: (() => any),
 };
+// | {
+//   title?: string,
+//   priority?: number,
+//   position: Range,
+//   apply: (() => any),
+// }
