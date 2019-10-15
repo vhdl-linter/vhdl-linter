@@ -285,7 +285,7 @@ connection.onDefinition(async (params): Promise<Location|null> => {
   console.error(params);
   const linter = linters.get(params.textDocument.uri);
   if (!linter) {
-    return null
+    return null;
   }
 
   let startI = linter.getIFromPosition(params.position);
@@ -342,7 +342,6 @@ connection.onDefinition(async (params): Promise<Location|null> => {
     };
   }
   const [, whatever, library, entityName] = match;
-  console.error(match)
   const entities = (await linter.projectParser.getEntities()).filter((entity: OProjectEntity) => {
     return entity.name === entityName && (entity.library ? entity.library === library : true);
   });

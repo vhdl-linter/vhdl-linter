@@ -76,7 +76,9 @@ export class ProjectParser {
     }
     this.fetchEntitesAndPackages();
     for (const workspace of this.workspaces) {
+      console.error('WATCHING: ', workspace);
       const watcher = await nsfw(workspace, async (events: any) => {
+        console.error('CHANGED: ', events);
         for (const event of events) {
           const path = `${event.directory}/${event.file}`;
           if (events.action === nsfw.actions.CREATED) {
@@ -84,18 +86,19 @@ export class ProjectParser {
             cachedFile.path = event.path;
             await cachedFile.parseFile(path);
             this.cachedFiles.push(cachedFile);
-          } else if (event.action === 'deleted') {
+          } else if (event.action === nsfw.actions.DELETED) {
             const index = this.cachedFiles.findIndex(cachedFile => cachedFile.path === path);
             this.cachedFiles.splice(index, 1);
-          } else if (event.action === 'modified') {
+          } else if (event.action === nsfw.actions.MODIFIED) {
             //             console.log(this.cachedFiles);
             const cachedFile = this.cachedFiles.find(cachedFile => cachedFile.path === path);
+            console.error('modified: ', cachedFile);
             if (cachedFile) {
               await cachedFile.parseFile(path);
             } else {
               console.error('modified file not found', event);
             }
-          } else if (event.action === 'renamed') {
+          } else if (event.action === nsfw.actions.RENAMED) {
             const oldPath = `${event.directory}/${event.oldFile}`;
             const newPath = `${event.newDirectory}/${event.newFile}`;
             const cachedFile = this.cachedFiles.find(cachedFile => cachedFile.path === oldPath);
