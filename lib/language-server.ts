@@ -300,11 +300,11 @@ connection.onDefinition(async (params): Promise<Location|null> => {
   }
   text = wordMatch[0];
   if (typeof wordMatch.index === 'undefined') {
-    return null
+    return null;
   }
   startI += wordMatch.index;
 
-  const match = text.match(/(entity\s+)(\w+)\.(\w+)/i);
+  const match = text.match(/(?:entity\s+)(\w+)\.(\w+)/i);
   if (!match) {
     console.error('sginak maybe', startI);
     //          console.log('path', textEditor.getPath());
@@ -323,7 +323,6 @@ connection.onDefinition(async (params): Promise<Location|null> => {
       //              console.log('foundThing not foundThing', foundThing, startI);
       return null;
     }
-    const packageThings: OThing[] = [];
     result = linter.tree.architecture.findRead(foundThing, linter.packageThings);
     //           } catch (e) {
     // //            console.log(e);
@@ -341,7 +340,7 @@ connection.onDefinition(async (params): Promise<Location|null> => {
       uri: result instanceof OThing ? 'file://' + result.parent.path : params.textDocument.uri
     };
   }
-  const [, whatever, library, entityName] = match;
+  const [, library, entityName] = match;
   const entities = (await linter.projectParser.getEntities()).filter((entity: OProjectEntity) => {
     return entity.name === entityName && (entity.library ? entity.library === library : true);
   });
