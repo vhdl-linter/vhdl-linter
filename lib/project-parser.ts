@@ -76,9 +76,7 @@ export class ProjectParser {
     }
     this.fetchEntitesAndPackages();
     for (const workspace of this.workspaces) {
-      console.error('WATCHING: ', workspace);
       const watcher = await nsfw(workspace, async (events: any) => {
-        console.error('CHANGED: ', events);
         for (const event of events) {
           const path = `${event.directory}/${event.file}`;
           if (events.action === nsfw.actions.CREATED) {
@@ -92,7 +90,6 @@ export class ProjectParser {
           } else if (event.action === nsfw.actions.MODIFIED) {
             //             console.log(this.cachedFiles);
             const cachedFile = this.cachedFiles.find(cachedFile => cachedFile.path === path);
-            console.error('modified: ', cachedFile);
             if (cachedFile) {
               await cachedFile.parseFile(path);
             } else {
