@@ -17,7 +17,8 @@ import {
   Location,
   DocumentSymbol,
   Range,
-  Position
+  Position,
+  Hover
 } from 'vscode-languageserver';
 import { VhdlLinter } from './vhdl-linter';
 import { ProjectParser, OThing, OPackage, OProjectEntity} from './project-parser';
@@ -59,7 +60,8 @@ connection.onInitialize((params: InitializeParams) => {
         resolveProvider: true
       },
       documentSymbolProvider: true,
-      definitionProvider: true
+      definitionProvider: true,
+      hoverProvider: true
     }
   };
 });
@@ -281,8 +283,18 @@ connection.onDocumentSymbol(async (params): Promise<DocumentSymbol[]> => {
     ...parseArchitecture(linter.tree.architecture)
   ];
 });
-connection.onDefinition(async (params): Promise<Location|null> => {
-  console.error(params);
+const positionFromI = (text: string, i: number) => {
+  const slice = text.slice(0, i);
+  const lines = slice.split('\n');
+  return Position.create(lines.length - 1, lines[lines.length - 1].length - 1);
+};
+interface IFindDefinitionParams {
+  textDocument: {
+    uri: string
+  };
+  position: Position;
+}
+const findDefinition = async (params: IFindDefinitionParams) => {
   const linter = linters.get(params.textDocument.uri);
   if (!linter) {
     return null;
@@ -336,6 +348,7 @@ connection.onDefinition(async (params): Promise<Location|null> => {
     return {
       // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
       range: position,
+      text: result instanceof OThing ? result.parent.fileCache.text : linter.text,
       // targetSelectionRange: position,
       uri: result instanceof OThing ? 'file://' + result.parent.path : params.textDocument.uri
     };
@@ -344,12 +357,34 @@ connection.onDefinition(async (params): Promise<Location|null> => {
   const entities = (await linter.projectParser.getEntities()).filter((entity: OProjectEntity) => {
     return entity.name === entityName && (entity.library ? entity.library === library : true);
   });
+  const entity = entities[0];
+  console.error('entity', entity);
   return {
     // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
-    range: Range.create(Position.create(0, 0), Position.create(0, 0)),
+    range: Range.create(positionFromI(entity.fileCache.text, entity.start), positionFromI(entity.fileCache.text, entity.end)),
+    text: entity.fileCache.text,
     // targetSelectionRange:  Range.create(Position.create(0, 0), Position.create(0, 0)),
-    uri: 'file://' + entities[0].file
+    uri: 'file://' + entity.file
   };
+};
+connection.onHover(async (params): Promise<Hover|null> => {
+  const definition = await findDefinition(params);
+  if (definition === null) {
+    return null;
+  }
+  const lines = definition.text.split('\n').slice(definition.range.start.line, definition.range.end.line + 1);
+  lines[0] = lines[0].slice(definition.range.start.character);
+  lines[lines.length - 1] = lines[lines.length - 1].slice(0, definition.range.end.character + 1);
+  return {
+    contents: {
+      language: 'vhdl',
+      value: lines.join('\n')
+    }
+  };
+});
+connection.onDefinition(async (params): Promise<Location|null> => {
+  console.error(params);
+  return await findDefinition(params);
 });
 // This handler provides the initial list of the completion items.
 connection.onCompletion(
@@ -403,27 +438,6 @@ connection.onCompletion(
       };
     }));
     return candidates;
-    //               if (obj instanceof ORead || obj instanceof OWrite) {
-    //                 return obj.begin === startI;
-    //               } else {
-    //                 return false;
-    //               }
-    //             });
-    // The pass parameter contains the position of the text document in
-    // which code complete got requested. For the example we ignore this
-    // info and always provide the same completion items.
-    // return [
-    //   {
-    //     label: 'TypeScript',
-    //     kind: CompletionItemKind.Text,
-    //     data: 1
-    //   },
-    //   {
-    //     label: 'JavaScript',
-    //     kind: CompletionItemKind.Text,
-    //     data: 2
-    //   }
-    // ];
   }
 );
 

@@ -31,9 +31,6 @@
     "@types/glob": "^7.1.1",
     "@types/node": "^10.12.0",
     "@types/prettyjson": "0.0.28",
-    "@types/react": "^16.8.15",
-    "@types/react-dom": "^16.8.4",
-    "@types/react-highlight": "^0.12.1",
     "atom-languageclient": "github:g0t00/atom-languageclient",
     "atom-package-deps": "^4.6.2",
     "blessed": "^0.1.81",
@@ -46,11 +43,7 @@
     "lite-event": "^1.0.5",
     "nsfw": "^1.2.5",
     "prettyjson": "^1.2.1",
-    "react": "^16.8.6",
-    "react-dom": "^16.8.6",
-    "react-highlight": "^0.12.0",
     "threads": "^0.12.0",
-    "ts-node": "^7.0.1",
     "tslint": "^5.11.0",
     "tslint-microsoft-contrib": "^5.2.1",
     "typed-promisify": "^0.4.0",
@@ -58,8 +51,11 @@
     "vscode-languageserver": "^5.2.1",
     "vscode-languageserver-types": "^3.14.0"
   },
+  "enhancedScopes": [
+    "source.vhdl"
+  ],
   "package-deps": [
-    "linter",
+    "atom-ide-ui",
     "hyperclick"
   ],
   "providedServices": {
@@ -92,12 +88,22 @@
       "versions": {
         "0.1.0": "provideCodeActions"
       }
+    },
+    "find-references": {
+      "versions": {
+        "0.1.0": "provideFindReferences"
+      }
     }
   },
   "consumedServices": {
     "linter-indie": {
       "versions": {
         "2.0.0": "consumeLinterV2"
+      }
+    },
+    "datatip": {
+      "versions": {
+        "0.1.0": "consumeDatatip"
       }
     }
   },

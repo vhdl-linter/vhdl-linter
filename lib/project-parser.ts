@@ -1,6 +1,6 @@
 import { LiteEvent } from 'lite-event';
 import { promisify } from 'util';
-import { readdir, readFile, stat, watch } from 'fs';
+import { readdir, readFile, stat } from 'fs';
 const nsfw = require('nsfw');
 
 export class ProjectParser {
@@ -173,7 +173,7 @@ export class ProjectParser {
 export class OPackage {
   things: OThing[] = [];
   referencePackage?: string;
-  constructor(public path: string, public name: string) {}
+  constructor(public path: string, public name: string, public fileCache: OFileCache) {}
 }
 export class OThing {
   constructor(public parent: OPackage, public name: string, public startI: number) { }
@@ -184,17 +184,22 @@ export class OProjectPorts {
   hasDefault: boolean;
 }
 export class OProjectEntity {
-  ports: OProjectPorts[] = [];
-  name: string;
-  library?: string;
-  file: string;
+  constructor(
+    public fileCache: OFileCache,
+    public ports: OProjectPorts[] = [],
+    public name: string,
+    public file: string,
+    public start: number,
+    public end: number,
+    public library?: string,
+  ) {}
 }
 export class OFileCache {
   path: string;
   digest: string;
   package?: OPackage;
   entity?: OProjectEntity;
-  private text: string;
+  text: string;
 
   async parseFile(file: string): Promise<void> {
     const text = await promisify(readFile)(file, { encoding: 'utf8' });
@@ -212,7 +217,7 @@ export class OFileCache {
     if (!match) {
       return;
     }
-    this.package = new OPackage(this.path, match[1]);
+    this.package = new OPackage(this.path, match[1], this);
     // console.log(  this.package.name, 'parsing package');
 
     let re = /constant\s+(\w+)/g;
@@ -250,11 +255,10 @@ export class OFileCache {
     if (!match) {
       return;
     }
-    this.entity = new OProjectEntity();
-    this.entity.name = match[1];
-    this.entity.file = file;
+    const name = match[1];
     let re = /(\S+)\s*:\s*(in|out|inout)\b(.*?:=.*)?/ig;
     let m;
+    const ports: OProjectPorts[] = [];
     while (m = re.exec(this.text)) {
       const direction = m[2].toLowerCase();
       if (direction === 'in' || direction === 'inout' || direction === 'out') {
@@ -262,13 +266,22 @@ export class OFileCache {
         port.name = m[1];
         port.direction = direction;
         port.hasDefault = typeof m[3] !== 'undefined';
-        this.entity.ports.push(port);
+        ports.push(port);
       }
     }
     let libraryMatch = this.text.match(/--!\s*@library\s+(\S+)/i);
+    let library;
     if (libraryMatch) {
-      this.entity.library = libraryMatch[1];
+      library = libraryMatch[1];
     }
+    let start = 0;
+    let end = 0;
+    const matchEntity = this.text.match(new RegExp(`entity\\s${name}\\sis.*?\\bend\\b(\\s+entity)?(\\s+${name})?\\s*;`, 'si'));
+    if (matchEntity !== null && matchEntity.index) {
+      start = matchEntity.index;
+      end = matchEntity.index + matchEntity[0].length;
+    }
+    this.entity = new OProjectEntity(this, ports, name, file, start, end, library);
   }
 }
 // type t_packet is (p_NONE, p_CM_REQ, p_CM_REJ, p_CM_REP, p_CM_RTU, p_CM_DREQ, p_CM_DREP, p_RC_MR, p_RC_SIZE, p_RC_DECLINE, p_RDMA_F, p_RDMA_M, p_RDMA_L, p_RDMA_O, p_ACK);
