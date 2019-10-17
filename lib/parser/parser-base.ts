@@ -172,6 +172,15 @@ export class ParserBase {
     }
     return line;
   }
+  getEndOfLineI(position?: number) {
+    if (!position) {
+      position = this.pos.i;
+    }
+    while (this.text[position] !== '\n') {
+      position++;
+    }
+    return position - 1;
+  }
   getPosition(position?: number) {
     if (!position) {
       position = this.pos.i;
@@ -191,27 +200,18 @@ export class ParserBase {
     if (!Array.isArray(expected)) {
       expected = [expected];
     }
+    let savedI: number;
     const re = new RegExp('^' + expected.map(e => escapeStringRegexp(e)).join('|'), 'i');
     // console.log(re);
     const match = re.exec(this.text.substr(this.pos.i));
     if (match !== null) {
       this.pos.i += match[0].length;
+      savedI = this.pos.i;
       this.advanceWhitespace();
     } else {
       throw new ParserError(`expected '${expected.join(', ')}' found '${this.getNextWord()}' line: ${this.getLine()}`, this.pos.i);
     }
-    // let hit = false;
-    // for (const exp of expected) {
-    //   const word = this.text.substr(this.pos.i, exp.length);
-    //   if (word.toLowerCase() === exp.toLowerCase()) {
-    //     hit = true;
-    //     this.pos.i += word.length;
-    //     this.advanceWhitespace();
-    //   }
-    // }
-    // if (!hit) {
-    //
-    // }
+    return savedI;
   }
   maybeWord(expected: string) {
     const word = this.text.substr(this.pos.i, expected.length);
@@ -232,7 +232,7 @@ export class ParserBase {
   }
   extractReads(parent: any, text: string, i: number): ORead[] {
     return this.tokenize(text).filter(token => token.type === 'VARIABLE' || token.type === 'FUNCTION').map(token => {
-      const write = new OWrite(parent, i);
+      const write = new OWrite(parent, i, this.getEndOfLineI(i));
       write.begin = i;
       write.begin = i + token.offset;
       write.end = write.begin + token.value.length;
@@ -252,14 +252,14 @@ export class ParserBase {
         token.value === '(' ? braceLevel++ : braceLevel--;
       } else if (token.type === 'VARIABLE' || token.type === 'FUNCTION') {
         if (braceLevel === 0) {
-          const write = new OWrite(parent, i);
+          const write = new OWrite(parent, i, this.getEndOfLineI(i));
           write.begin = i;
           write.begin = i + token.offset;
           write.end = write.begin + token.value.length;
           write.text = token.value;
           writes.push(write);
         } else {
-          const read = new ORead(parent, i);
+          const read = new ORead(parent, i, this.getEndOfLineI(i));
           read.begin = i;
           read.begin = i + token.offset;
           read.end = read.begin + token.value.length;

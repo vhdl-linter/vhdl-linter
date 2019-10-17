@@ -8,8 +8,8 @@ export class InstantiationParser extends ParserBase {
     this.debug(`start`);
 
   }
-  parse(nextWord: string, label?: string): OInstantiation {
-    const instantiation = new OInstantiation(this.parent, this.pos.i);
+  parse(nextWord: string, label: string, startI: number): OInstantiation {
+    const instantiation = new OInstantiation(this.parent, startI, this.getEndOfLineI());
     instantiation.label = label;
     instantiation.entityInstantiation = false;
     if (nextWord === 'entity') {
@@ -43,7 +43,7 @@ export class InstantiationParser extends ParserBase {
       }
       lastI = this.pos.i;
     }
-    this.expect(';');
+    instantiation.endI = this.expect(';');
     if (!hasPortMap) {
       throw new Error(`Instantiation has no Port Map. line ${this.getLine()}`);
     }
@@ -55,7 +55,7 @@ export class InstantiationParser extends ParserBase {
     const mappings: OMapping[] = [];
 
     while (this.pos.i < this.text.length) {
-      const mapping = new OMapping(instantiation as ObjectBase, this.pos.i);
+      const mapping = new OMapping(instantiation as ObjectBase, this.pos.i, this.getEndOfLineI());
       const mappingNameI = this.pos.i;
       mapping.name = this.extractReads(mapping, this.getNextWord({re: /[^=]/}), mappingNameI);
       this.expect('=>');

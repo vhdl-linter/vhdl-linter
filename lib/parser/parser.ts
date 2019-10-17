@@ -61,7 +61,7 @@ export class Parser extends ParserBase {
   }
 
   getUseStatement(file: OFile) {
-    let useStatement = new OUseStatement(file, this.pos.i);
+    let useStatement = new OUseStatement(file, this.pos.i, this.getEndOfLineI());
     useStatement.begin = this.pos.i;
     useStatement.text = '';
     while (this.text[this.pos.i].match(/[\w.]/)) {

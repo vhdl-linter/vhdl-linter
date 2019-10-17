@@ -9,7 +9,7 @@ export class AssignmentParser extends ParserBase {
     this.start = pos.i;
   }
   parse(): OAssignment {
-    let assignment = new OAssignment(this.parent, this.pos.i);
+    let assignment = new OAssignment(this.parent, this.pos.i, this.getEndOfLineI());
     assignment.begin = this.pos.i;
     let leftHandSideI = this.pos.i;
     let leftHandSide = '';

@@ -79,6 +79,9 @@ export class ProjectParser {
       const watcher = await nsfw(workspace, async (events: any) => {
         for (const event of events) {
           const path = `${event.directory}/${event.file}`;
+          if (event.file.match(/.vhd$/i) === null) {
+            continue;
+          }
           if (events.action === nsfw.actions.CREATED) {
             let cachedFile = new OFileCache();
             cachedFile.path = event.path;
@@ -176,7 +179,7 @@ export class OPackage {
   constructor(public path: string, public name: string, public fileCache: OFileCache) {}
 }
 export class OThing {
-  constructor(public parent: OPackage, public name: string, public startI: number) { }
+  constructor(public parent: OPackage, public name: string, public startI: number, public endI: number) { }
 }
 export class OProjectPorts {
   name: string;
@@ -220,25 +223,25 @@ export class OFileCache {
     this.package = new OPackage(this.path, match[1], this);
     // console.log(  this.package.name, 'parsing package');
 
-    let re = /constant\s+(\w+)/g;
+    let re = /constant\s+(\w+).*?;/sg;
     let m;
     while (m = re.exec(this.text)) {
-      this.package.things.push(new OThing(this.package, m[1], m.index));
+      this.package.things.push(new OThing(this.package, m[1], m.index, m.index + m[0].length));
     }
-    re = /function\s+(\w+)/g;
+    re = /function\s+(\w+).*?;/sg;
     while (m = re.exec(this.text)) {
-      this.package.things.push(new OThing(this.package, m[1], m.index));
+      this.package.things.push(new OThing(this.package, m[1], m.index, m.index + m[0].length));
     }
-    re = /(?:subtype|type)\s+(\w+)/g;
+    re = /(?:subtype|type)\s+(\w+)/sg;
     while (m = re.exec(this.text)) {
-      this.package.things.push(new OThing(this.package, m[1], m.index));
+      this.package.things.push(new OThing(this.package, m[1], m.index, m.index + m[0].length));
     }
-    re = /type\s+(\w+)\s+is\s*\(([^)]*)\)\s*;/g;
+    re = /type\s+(\w+)\s+is\s*\(([^)]*)\)\s*;/sg;
     while (m = re.exec(this.text)) {
       let j = m.index;
       const pkg = this.package;
       this.package.things.push(...m[2].split(',').map(thing => {
-        const thing2 = new OThing(pkg, thing.trim(), j);
+        const thing2 = new OThing(pkg, thing.trim(), j, j + thing.trim().length);
         j += 1 + thing.length;
         return thing2;
       }));

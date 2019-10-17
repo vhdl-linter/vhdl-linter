@@ -212,54 +212,54 @@ connection.onDocumentSymbol(async (params): Promise<DocumentSymbol[]> => {
       name: 'signals',
       kind: SymbolKind.Class,
       range: linter.getPositionFromILine(architecture.startI),
-      selectionRange: linter.getPositionFromILine(architecture.startI),
+      selectionRange: linter.getPositionFromILine(architecture.startI, architecture.endI),
       children: architecture.signals.map(signal => ({
         name: signal.name,
         deprecated: signal.isRegister(),
         kind: SymbolKind.Variable,
-        range: linter.getPositionFromILine(signal.startI),
-        selectionRange: linter.getPositionFromILine(signal.startI)
+        range: linter.getPositionFromILine(signal.startI, signal.endI),
+        selectionRange: linter.getPositionFromILine(signal.startI, signal.endI)
       }))
     },
     {
       name: 'instantiation',
       kind: SymbolKind.Class,
       range: linter.getPositionFromILine(architecture.startI),
-      selectionRange: linter.getPositionFromILine(architecture.startI),
+      selectionRange: linter.getPositionFromILine(architecture.startI, architecture.endI),
       children: architecture.instantiations.map(instantiation => ({
-        name: instantiation.componentName,
+        name: instantiation.label + ': ' + instantiation.componentName,
         detail: instantiation.label,
         kind: SymbolKind.Object,
-        range: linter.getPositionFromILine(instantiation.startI),
-        selectionRange: linter.getPositionFromILine(instantiation.startI)
+        range: linter.getPositionFromILine(instantiation.startI, instantiation.endI),
+        selectionRange: linter.getPositionFromILine(instantiation.startI, instantiation.endI)
       }))
     },
     {
       name: 'process',
       kind: SymbolKind.Class,
       range: linter.getPositionFromILine(architecture.startI),
-      selectionRange: linter.getPositionFromILine(architecture.startI),
+      selectionRange: linter.getPositionFromILine(architecture.startI, architecture.endI),
       children: architecture.processes.map(process => ({
         name: process.label || '',
         detail: process.label,
         kind: SymbolKind.Object,
-        range: linter.getPositionFromILine(process.startI),
-        selectionRange: linter.getPositionFromILine(process.startI),
+        range: linter.getPositionFromILine(process.startI, process.endI),
+        selectionRange: linter.getPositionFromILine(process.startI, process.endI),
         children: process.getStates().map(state => ({
           name: state.name,
           kind: SymbolKind.EnumMember,
-          range: linter.getPositionFromILine(state.startI),
-          selectionRange: linter.getPositionFromILine(state.startI),
+          range: linter.getPositionFromILine(state.startI, state.endI),
+          selectionRange: linter.getPositionFromILine(state.startI, state.endI),
 
         }))
       }))
     }];
     for (const generate of architecture.generates) {
       symbols.push({
-        name: linter.text.split('\n')[linter.getPositionFromILine(generate.startI).start.line],
+        name: linter.text.split('\n')[linter.getPositionFromILine(generate.startI, generate.endI).start.line],
         kind: SymbolKind.Enum,
-        range: linter.getPositionFromILine(generate.startI),
-        selectionRange: linter.getPositionFromILine(generate.startI),
+        range: linter.getPositionFromILine(generate.startI, generate.endI),
+        selectionRange: linter.getPositionFromILine(generate.startI, generate.endI),
         children: parseArchitecture(generate)
       });
     }
@@ -270,15 +270,15 @@ connection.onDocumentSymbol(async (params): Promise<DocumentSymbol[]> => {
       name: 'generics',
       kind: SymbolKind.Class,
       range: linter.getPositionFromILine(linter.tree.entity.startI),
-      selectionRange: linter.getPositionFromILine(linter.tree.entity.startI),
-      children: linter.tree.entity.generics.map(generic => DocumentSymbol.create(generic.name, undefined, SymbolKind.Variable, linter.getPositionFromILine(generic.startI), linter.getPositionFromILine(generic.startI)))
+      selectionRange: linter.getPositionFromILine(linter.tree.entity.startI, linter.tree.entity.endI),
+      children: linter.tree.entity.generics.map(generic => DocumentSymbol.create(generic.name, undefined, SymbolKind.Variable, linter.getPositionFromILine(generic.startI, generic.endI), linter.getPositionFromILine(generic.startI, generic.endI)))
     },
     {
       name: 'ports',
       kind: SymbolKind.Class,
       range: linter.getPositionFromILine(linter.tree.entity.startI),
-      selectionRange: linter.getPositionFromILine(linter.tree.entity.startI),
-      children: linter.tree.entity.ports.map(port => DocumentSymbol.create(port.name, undefined, SymbolKind.Variable, linter.getPositionFromILine(port.startI), linter.getPositionFromILine(port.startI)))
+      selectionRange: linter.getPositionFromILine(linter.tree.entity.startI, linter.tree.entity.endI),
+      children: linter.tree.entity.ports.map(port => DocumentSymbol.create(port.name, undefined, SymbolKind.Variable, linter.getPositionFromILine(port.startI, port.endI), linter.getPositionFromILine(port.startI, port.endI)))
     },
     ...parseArchitecture(linter.tree.architecture)
   ];
@@ -318,7 +318,7 @@ const findDefinition = async (params: IFindDefinitionParams) => {
 
   const match = text.match(/(?:entity\s+)(\w+)\.(\w+)/i);
   if (!match) {
-    console.error('sginak maybe', startI);
+    // console.error('signal maybe', startI);
     //          console.log('path', textEditor.getPath());
     //          console.log('linter', linter);
     let result: OSignal|OFunction|false|OThing|OForLoop|OForGenerate|undefined;
@@ -330,7 +330,7 @@ const findDefinition = async (params: IFindDefinitionParams) => {
         return false;
       }
     });
-    console.error('foundThing', foundThing);
+    // console.error('foundThing', foundThing);
     if (!foundThing || !(foundThing instanceof ORead || foundThing instanceof OWrite)) {
       //              console.log('foundThing not foundThing', foundThing, startI);
       return null;
@@ -343,7 +343,9 @@ const findDefinition = async (params: IFindDefinitionParams) => {
     if (typeof result === 'boolean') {
       return null;
     }
-    const position = linter.getPositionFromILine(result.startI);
+    const position = result instanceof OThing
+    ? Range.create(positionFromI(result.parent.fileCache.text, result.startI), positionFromI(result.parent.fileCache.text, result.endI))
+    : linter.getPositionFromILine(result.startI, result.endI);
     // console.error();
     return {
       // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),

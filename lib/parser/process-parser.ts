@@ -10,15 +10,15 @@ export class ProcessParser extends ParserBase {
     this.debug(`start`);
 
   }
-  parse(label?: string): OProcess {
+  parse(startI: number, label?: string): OProcess {
     this.expect('(');
-    const process = new OProcess(this.parent, this.pos.i);
+    const process = new OProcess(this.parent, startI, this.getEndOfLineI());
     process.label = label;
     process.sensitivityList = this.advanceBrace();
     this.maybeWord('is');
     let nextWord = this.getNextWord({ consume: false }).toLowerCase();
     while (nextWord !== 'begin') {
-      const variable = new OVariable(process, this.pos.i);
+      const variable = new OVariable(process, this.pos.i, this.getEndOfLineI());
       variable.constant = false;
       this.expect('variable');
       variable.name = this.getNextWord();
@@ -37,7 +37,7 @@ export class ProcessParser extends ParserBase {
         variable.defaultValue = split[1].trim();
       }
       for (const multiSignalName of multiSignals) {
-        const multiSignal = new OVariable(process, -1);
+        const multiSignal = new OVariable(process, -1, -1);
         Object.assign(variable, multiSignal);
         multiSignal.name = multiSignalName;
         process.variables.push(multiSignal);
@@ -88,7 +88,7 @@ export class ProcessParser extends ParserBase {
     return statements;
   }
   parseFor(parent: ObjectBase, label?: string): OForLoop {
-    const forLoop = new OForLoop(parent, this.pos.i);
+    const forLoop = new OForLoop(parent, this.pos.i, this.getEndOfLineI());
     this.expect('for');
     forLoop.variable = this.getNextWord();
     this.expect('in');
@@ -108,13 +108,13 @@ export class ProcessParser extends ParserBase {
   parseIf(parent: ObjectBase, label?: string): OIf {
     this.debug(`parseIf`);
 
-    const if_ = new OIf(parent, this.pos.i);
-    const clause = new OIfClause(if_, this.pos.i);
+    const if_ = new OIf(parent, this.pos.i, this.getEndOfLineI());
+    const clause = new OIfClause(if_, this.pos.i, this.getEndOfLineI());
     this.expect('if');
     const position = this.pos.i;
     clause.condition = this.advancePast('then');
     clause.conditionReads = this.tokenize(clause.condition).filter(token => (token.type === 'FUNCTION') || (token.type === 'VARIABLE')).map(token => {
-      const read = new ORead(clause, position + token.offset);
+      const read = new ORead(clause, position + token.offset, this.getEndOfLineI(position + token.offset));
       read.text = token.value;
       read.begin = position + token.offset;
       read.end = position + token.offset + token.value.length;
@@ -124,13 +124,13 @@ export class ProcessParser extends ParserBase {
     if_.clauses.push(clause);
     let nextWord = this.getNextWord({ consume: false }).toLowerCase();
     while (nextWord === 'elsif') {
-      const clause = new OIfClause(if_, this.pos.i);
+      const clause = new OIfClause(if_, this.pos.i, this.getEndOfLineI());
 
       this.expect('elsif');
       const position = this.pos.i;
       clause.condition = this.advancePast('then');
       clause.conditionReads = this.tokenize(clause.condition).filter(token => (token.type === 'VARIABLE') || (token.type === 'FUNCTION')).map(token => {
-        const read = new ORead(clause, position + token.offset);
+        const read = new ORead(clause, position + token.offset, this.getEndOfLineI(position + token.offset));
         read.text = token.value;
         read.begin = position + token.offset;
         read.end = position + token.offset + token.value.length;
@@ -154,21 +154,28 @@ export class ProcessParser extends ParserBase {
   }
   parseCase(parent: ObjectBase, label?: string): OCase {
     this.debug(`parseCase ${label}`);
-    const case_ = new OCase(parent, this.pos.i);
+    const case_ = new OCase(parent, this.pos.i, this.getEndOfLineI());
     const posI = this.pos.i;
     case_.variable = this.extractReads(case_, this.advancePast(/\bis\b/i), posI);
-    this.debug(`Apfel`);
+    // this.debug(`Apfel`);
 
     let nextWord = this.getNextWord().toLowerCase();
+    let lastWhen: OWhenClause|undefined;
     while (nextWord === 'when') {
       this.debug(`parseWhen`);
-      const whenClause = new OWhenClause(case_, this.pos.i);
-
+      const whenClause = new OWhenClause(case_, this.pos.i, this.getEndOfLineI());
+      if (lastWhen) {
+        lastWhen.endI = this.pos.i;
+      }
+      lastWhen = whenClause;
       const pos = this.pos.i;
       whenClause.condition = this.extractReads(whenClause, this.advancePast('=>'), pos);
       whenClause.statements = this.parseStatements(whenClause, ['when', 'end']);
       case_.whenClauses.push(whenClause);
       nextWord = this.getNextWord().toLowerCase();
+    }
+    if (lastWhen) {
+      lastWhen.endI = this.pos.i;
     }
     this.expect('case');
     if (label) {

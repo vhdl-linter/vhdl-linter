@@ -20,7 +20,7 @@ export class DeclarativePartParser extends ParserBase {
     while (nextWord !== 'begin') {
       if (nextWord === 'signal' || nextWord === 'constant') {
         this.getNextWord();
-        const signal = new OSignal(this.parent, this.pos.i);
+        const signal = new OSignal(this.parent, this.pos.i, this.getEndOfLineI());
 
         signal.constant = nextWord === 'constant';
         signal.name = this.getNextWord({withCase: true});
@@ -42,7 +42,7 @@ export class DeclarativePartParser extends ParserBase {
         signal.reads = this.extractReads(signal, signal.type, iBeforeType);
         // console.log(multiSignals, 'multiSignals');
         for (const multiSignalName of multiSignals) {
-          const multiSignal = new OSignal(this.parent, -1);
+          const multiSignal = new OSignal(this.parent, -1, -1);
           Object.assign(signal, multiSignal);
           multiSignal.name = multiSignalName;
           signals.push(multiSignal);
@@ -54,14 +54,14 @@ export class DeclarativePartParser extends ParserBase {
         this.advancePast(';');
       } else if (nextWord === 'type') {
         this.getNextWord();
-        const type = new OType(this.parent, this.pos.i);
+        const type = new OType(this.parent, this.pos.i, this.getEndOfLineI());
         type.name = this.getNextWord();
         this.expect('is');
         if (this.text[this.pos.i] === '(') {
           this.expect('(');
           let position = this.pos.i;
           type.states = this.advancePast(')').split(',').map(typyFilterIrgendwas => {
-            const state = new OState(type, position);
+            const state = new OState(type, position, this.getEndOfLineI(position));
             const match = typyFilterIrgendwas.match(/^\s*/);
             if (match) {
               state.begin = position + match[0].length;
@@ -88,7 +88,7 @@ export class DeclarativePartParser extends ParserBase {
         this.expect(';');
       } else if (nextWord === 'function') {
         this.getNextWord();
-        const func = new OFunction(this.parent, this.pos.i);
+        const func = new OFunction(this.parent, this.pos.i, this.getEndOfLineI());
         func.name = this.getNextWord();
         this.advancePast(/\bend\b/i, {allowSemicolon: true});
         let word = this.getNextWord({consume: false});

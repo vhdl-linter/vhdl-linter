@@ -1,9 +1,13 @@
 import {OProjectEntity, OThing} from '../project-parser';
 export class ObjectBase {
   public startI: number;
-  constructor (public parent: ObjectBase|OFile, startI: number) {
+  public endI: number;
+  constructor (public parent: ObjectBase|OFile, startI: number, endI: number) {
     if (startI) {
       this.startI = startI;
+    }
+    if (endI) {
+      this.endI = endI;
     }
     let p = parent;
     while (!(p instanceof OFile)) {
@@ -178,8 +182,8 @@ export class OSignalLike extends ObjectBase {
   private register: boolean | null = null;
   private registerProcess: OProcess | null;
   reads: ORead[];
-  constructor(public parent: OArchitecture|OEntity, startI: number) {
-    super(parent, startI);
+  constructor(public parent: OArchitecture|OEntity, startI: number, endI: number) {
+    super(parent, startI, endI);
   }
   isRegister(): boolean {
     if (this.register !== null) {
@@ -281,8 +285,8 @@ export class OMapping extends ObjectBase {
   mappingIfOutput: [ORead[], OWrite[]];
 }
 export class OEntity extends ObjectBase {
-  constructor(public parent: OFile, startI: number) {
-    super(parent, startI);
+  constructor(public parent: OFile, startI: number, endI: number) {
+    super(parent, startI, endI);
   }
   name: string;
   ports: OPort[] = [];
@@ -334,7 +338,7 @@ export class OProcess extends ObjectBase {
             for (const statement of clause.statements) {
               if (statement instanceof OCase) {
                 for (const whenClause of statement.whenClauses) {
-                  const state = new OState(whenClause.parent, whenClause.startI);
+                  const state = new OState(whenClause.parent, whenClause.startI, whenClause.endI);
                   state.name = whenClause.condition.map(read => read.text).join(' ');
                   states.push(state);
                 }

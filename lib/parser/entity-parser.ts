@@ -10,7 +10,7 @@ export class EntityParser extends ParserBase {
     this.start = pos.i;
   }
   parse(): OEntity {
-    const entity = new OEntity(this.parent, this.pos.i);
+    const entity = new OEntity(this.parent, this.pos.i, this.getEndOfLineI());
     entity.name = this.getNextWord({withCase: true});
     this.expect('is');
 
@@ -61,9 +61,9 @@ export class EntityParser extends ParserBase {
       }
       let port;
       if (generics) {
-        port = new OGeneric(entity, this.pos.i);
+        port = new OGeneric(entity, this.pos.i, this.getEndOfLineI());
       } else {
-        port = new OPort(entity, this.pos.i);
+        port = new OPort(entity, this.pos.i, this.getEndOfLineI());
       }
 
       if (this.text[this.pos.i] === ')') {

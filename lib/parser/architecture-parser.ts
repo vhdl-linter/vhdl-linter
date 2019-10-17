@@ -24,11 +24,11 @@ export class ArchitectureParser extends ParserBase {
     this.debug(`parse, noElse: ${noElse}`);
     let architecture;
     if (structureName === 'architecture') {
-      architecture = new OArchitecture(this.parent, this.pos.i);
+      architecture = new OArchitecture(this.parent, this.pos.i, this.getEndOfLineI());
     } else if (ifGenerate) {
-      architecture = new OIfGenerate(this.parent, this.pos.i);
+      architecture = new OIfGenerate(this.parent, this.pos.i, this.getEndOfLineI());
     } else {
-      architecture = new OForGenerate(this.parent, this.pos.i);
+      architecture = new OForGenerate(this.parent, this.pos.i, this.getEndOfLineI());
     }
     if (skipStart !== true) {
       this.type = this.getNextWord();
@@ -79,7 +79,7 @@ export class ArchitectureParser extends ParserBase {
       if (nextWord === 'process') {
         this.getNextWord();
         const processParser = new ProcessParser(this.text, this.pos, this.file, architecture);
-        architecture.processes.push(processParser.parse(label));
+        architecture.processes.push(processParser.parse(savedI, label));
 
       } else if (nextWord === 'for') {
         this.debug('parse for generate');
@@ -167,7 +167,7 @@ export class ArchitectureParser extends ParserBase {
       } else { // TODO  others
         if (label) {
           const instantiationParser = new InstantiationParser(this.text, this.pos, this.file, architecture);
-          architecture.instantiations.push(instantiationParser.parse(nextWord, label));
+          architecture.instantiations.push(instantiationParser.parse(nextWord, label, savedI));
         } else { // statement;
           this.getNextWord();
           this.reverseWhitespace();
