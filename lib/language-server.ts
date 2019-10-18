@@ -431,11 +431,16 @@ connection.onCompletion(
         throw new Error('Infinite Loop?');
       }
     }
+    if (parent instanceof OFile) {
+        for (const port of parent.entity.ports) {
+          candidates.push({ label: port.name, kind: CompletionItemKind.Field });
+        }
+    }
     const packageThingsUnique = Array.from(new Set(linter.packageThings));
     console.error('packageThings');
     candidates.push(...packageThingsUnique.map(packageThing => {
       return {
-        label: packageThing.name,
+        label: packageThing.parent.path.match(/ieee/i) === null ? packageThing.name : packageThing.name.toLowerCase(),
         kind: CompletionItemKind.Text
       };
     }));
