@@ -2,20 +2,22 @@ import {EntityParser} from './entity-parser';
 import {ArchitectureParser} from './architecture-parser';
 import {ParserBase} from './parser-base';
 import {ParserPosition} from './parser-position';
-import {OEntity, OArchitecture, OFile, OUseStatement, ParserError} from './objects';
+import {OFile, OUseStatement, ParserError} from './objects';
 
 
 export class Parser extends ParserBase {
   position: ParserPosition;
-  constructor(text: string, file: string) {
+  private originalText: string;
+  constructor(text: string, file: string, public onlyEntity: boolean = true) {
     super(text, new ParserPosition(), file);
+    this.originalText = text;
     this.removeComments();
   }
   parse(): OFile {
     if (this.text.length > 500 * 1024) {
       throw new ParserError('file too large', 0);
     }
-    const file = new OFile();
+    const file = new OFile(this.text, this.file, this.originalText);
     while (this.pos.i < this.text.length) {
       if (this.text[this.pos.i].match(/\s/)) {
         this.pos.i++;
@@ -31,6 +33,9 @@ export class Parser extends ParserBase {
       } else if (nextWord === 'entity') {
         const entity = new EntityParser(this.text, this.pos, this.file, file);
         file.entity = entity.parse();
+        if (this.onlyEntity) {
+          return file;
+        }
 //         // console.log(file, typeof file.entity, 'typeof');
       } else if (nextWord === 'architecture') {
         if (file.architecture) {

@@ -1,16 +1,12 @@
 import { ParserBase } from './parser-base';
-import { ProcessParser } from './process-parser';
-import { InstantiationParser } from './instantiation-parser';
 import { ParserPosition } from './parser-position';
-import { OSignal, OType, OArchitecture, OEntity, ParserError, OState, OForGenerate, OIfGenerate, OFunction, OFile } from './objects';
-import { AssignmentParser } from './assignment-parser';
+import { OSignal, OType, OArchitecture, OEntity, ParserError, OState, OFunction } from './objects';
 
 export class DeclarativePartParser extends ParserBase {
   type: string;
   constructor(text: string, pos: ParserPosition, file: string, private parent: OArchitecture|OEntity) {
     super(text, pos, file);
     this.debug('start');
-    this.start = pos.i;
   }
   parse( optional: boolean = false) {
     const signals: OSignal[] = [];
@@ -23,7 +19,7 @@ export class DeclarativePartParser extends ParserBase {
         const signal = new OSignal(this.parent, this.pos.i, this.getEndOfLineI());
 
         signal.constant = nextWord === 'constant';
-        signal.name = this.getNextWord({withCase: true});
+        signal.name = this.getNextWord({});
         if (this.text[this.pos.i] === ',') {
           throw new ParserError(`Defining multiple signals not allowed!: ${this.getLine(this.pos.i)}`, this.pos.i);
           // multiSignals.push(signal.name);

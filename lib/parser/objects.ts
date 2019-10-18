@@ -1,4 +1,4 @@
-import {OProjectEntity, OThing} from '../project-parser';
+import {OThing} from '../project-parser';
 export class ObjectBase {
   public startI: number;
   public endI: number;
@@ -15,11 +15,24 @@ export class ObjectBase {
     }
     p.objectList.push(this);
   }
+  private root?: OFile;
+  getRoot(): OFile {
+    if (this.root) {
+      return this.root;
+    }
+    let parent: any = this;
+    while (parent instanceof OFile === false) {
+      parent = parent.parent;
+    }
+    this.root = parent;
+    return parent;
+  }
   y() {
 
   }
 }
 export class OFile {
+  constructor(public text: string, public file: string, public originalText: string) {}
   libraries: string[] = [];
   useStatements: OUseStatement[] = [];
   entity: OEntity;
@@ -171,8 +184,8 @@ export class OIfGenerate extends OArchitecture {
 export class OVariable extends ObjectBase {
   name: string;
   type: string;
-  defaultValue?: string;
   constant: boolean;
+  defaultValue: string;
 
 }
 export class OSignalLike extends ObjectBase {
@@ -222,7 +235,7 @@ export class OInstantiation extends ObjectBase {
   entityInstantiation: boolean;
   private flatReads: ORead[] | null = null;
   private flatWrites: OWrite[] | null = null;
-  getFlatReads(entity: OProjectEntity | undefined): ORead[] {
+  getFlatReads(entity: OEntity | undefined): ORead[] {
 //     console.log(entity, 'asd2');
 
     if (this.flatReads !== null) {
@@ -253,7 +266,7 @@ export class OInstantiation extends ObjectBase {
     }
     return this.flatReads;
   }
-  getFlatWrites(entity: OProjectEntity | undefined): OWrite[] {
+  getFlatWrites(entity: OEntity | undefined): OWrite[] {
 //     console.log(entity, 'asd');
     if (this.flatWrites !== null) {
       return this.flatWrites;
@@ -288,7 +301,7 @@ export class OMapping extends ObjectBase {
   mappingIfOutput: [ORead[], OWrite[]];
 }
 export class OEntity extends ObjectBase {
-  constructor(public parent: OFile, startI: number, endI: number) {
+  constructor(public parent: OFile, startI: number, endI: number, public library?: string) {
     super(parent, startI, endI);
   }
   name: string;
@@ -299,6 +312,7 @@ export class OEntity extends ObjectBase {
 }
 export class OPort extends OSignalLike {
     direction: 'in' | 'out' | 'inout';
+    hasDefault: boolean;
 }
 export class OGeneric extends ObjectBase {
     name: string;

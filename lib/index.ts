@@ -20,8 +20,9 @@ class VhdlLinterClient extends AutoLanguageClient {
     return params;
   }
   startServerProcess() {
-    atom.config.set('core.debugLSP', true);
+    // atom.config.set('core.debugLSP', true);
     return spawn('node', [require.resolve('./language-server'), '--stdio']);
+    // return spawn('node', ['--inspect', '--trace-warnings', require.resolve('./language-server'), '--stdio']);
   }
   preInitialization(connection: LanguageClientConnection): void {
     connection.onCustom('workspace/workspaceFolders', () => {

@@ -1,40 +1,76 @@
-import { LiteEvent } from 'lite-event';
-import { promisify } from 'util';
-import { readdir, readFile, stat } from 'fs';
-const nsfw = require('nsfw');
+import { readdirSync, statSync, readFileSync } from 'fs';
+import { OEntity } from './parser/objects';
+import { VhdlLinter } from './vhdl-linter';
+import {watch, FSWatcher} from 'chokidar';
 
 export class ProjectParser {
+
   private cachedFiles: OFileCache[] = [];
   private packages: OPackage[];
-  private entities: OProjectEntity[];
-  private initialized = false;
-  private initEvent = new LiteEvent();
+  private entities: OEntity[];
   constructor(public workspaces: string[]) {
-    setTimeout(() => {
-      this.initialize().then(() => {
-        this.initEvent.trigger();
-      });
-    }, 1000);
-  }
-  private async parseDirectory(directory: string): Promise<string[]> {
-    const files = [];
-    const entries = await new Promise((resolve, reject) => readdir(directory, (err, entries) => {
-      if (err) {
-        return reject(err);
+    let files: string[] = [];
+    for (const directory of this.workspaces) {
+      files.push(... this.parseDirectory(directory));
+    }
+    const pkg = __dirname;
+    if (pkg) {
+      //       console.log(pkg, new Directory(pkg + '/ieee2008'));
+      files.push(... this.parseDirectory((pkg + '/../../ieee2008')));
+    }
+    for (const file of files) {
+      let cachedFile = this.cachedFiles.find(cachedFile => cachedFile.path === file);
+      // if (cachedFile && cachedFile.digest !== await file.getDigest()) {
+      //   cachedFile.parsePackage(file);
+      // }
+      if (!cachedFile) {
+        let cachedFile = new OFileCache(this);
+        cachedFile.path = file;
+        cachedFile.parseFile(file);
+        this.cachedFiles.push(cachedFile);
       }
-      resolve(entries);
-    })) as string[];
+    }
+    this.fetchEntitesAndPackages();
+    for (const workspace of this.workspaces) {
+      const watcher = watch(workspace + '/**/*.vhd');
+      watcher.on('add', async (path) => {
+        let cachedFile = new OFileCache(this);
+        cachedFile.path = path;
+        cachedFile.parseFile(path);
+        this.cachedFiles.push(cachedFile);
+        this.fetchEntitesAndPackages();
+      });
+      watcher.on('change', async (path) => {
+        const cachedFile = this.cachedFiles.find(cachedFile => cachedFile.path === path);
+        if (cachedFile) {
+          cachedFile.parseFile(path);
+        } else {
+          console.error('modified file not found', event);
+        }
+        this.fetchEntitesAndPackages();
+      });
+      watcher.on('unlink', path => {
+        const cachedFileIndex = this.cachedFiles.findIndex(cachedFile => cachedFile.path === path);
+        this.cachedFiles.splice(cachedFileIndex, 1);
+        this.fetchEntitesAndPackages();
+      });
+
+    }
+  }
+  private parseDirectory(directory: string): string[] {
+    const files = [];
+    const entries = readdirSync(directory);
 
     // const entries = await promisify(directory.getEntries)()
 
     for (const entry of entries) {
-      const fileStat = await promisify(stat)(directory + '/' + entry);
+      const fileStat = statSync(directory + '/' + entry);
       if (fileStat.isFile()) {
         if (entry.match(/\.vhdl?$/i)) {
           files.push(directory + '/' + entry);
         }
       } else {
-        files.push(... await this.parseDirectory(directory + '/' + entry));
+        files.push(... this.parseDirectory(directory + '/' + entry));
       }
     }
     return files;
@@ -52,124 +88,14 @@ export class ProjectParser {
       }
     }
   }
-  private async initialize(): Promise<void> {
-    let files: string[] = [];
-    for (const directory of this.workspaces) {
-      files.push(... await this.parseDirectory(directory));
-    }
-    const pkg = __dirname;
-    if (pkg) {
-      //       console.log(pkg, new Directory(pkg + '/ieee2008'));
-      files.push(... await this.parseDirectory((pkg + '/../../ieee2008')));
-    }
-    for (const file of files) {
-      let cachedFile = this.cachedFiles.find(cachedFile => cachedFile.path === file);
-      // if (cachedFile && cachedFile.digest !== await file.getDigest()) {
-      //   cachedFile.parsePackage(file);
-      // }
-      if (!cachedFile) {
-        let cachedFile = new OFileCache();
-        cachedFile.path = file;
-        await cachedFile.parseFile(file);
-        this.cachedFiles.push(cachedFile);
-      }
-    }
-    this.fetchEntitesAndPackages();
-    for (const workspace of this.workspaces) {
-      const watcher = await nsfw(workspace, async (events: any) => {
-        for (const event of events) {
-          const path = `${event.directory}/${event.file}`;
-          if (event.file.match(/.vhd$/i) === null) {
-            continue;
-          }
-          if (events.action === nsfw.actions.CREATED) {
-            let cachedFile = new OFileCache();
-            cachedFile.path = event.path;
-            await cachedFile.parseFile(path);
-            this.cachedFiles.push(cachedFile);
-          } else if (event.action === nsfw.actions.DELETED) {
-            const index = this.cachedFiles.findIndex(cachedFile => cachedFile.path === path);
-            this.cachedFiles.splice(index, 1);
-          } else if (event.action === nsfw.actions.MODIFIED) {
-            //             console.log(this.cachedFiles);
-            const cachedFile = this.cachedFiles.find(cachedFile => cachedFile.path === path);
-            if (cachedFile) {
-              await cachedFile.parseFile(path);
-            } else {
-              console.error('modified file not found', event);
-            }
-          } else if (event.action === nsfw.actions.RENAMED) {
-            const oldPath = `${event.directory}/${event.oldFile}`;
-            const newPath = `${event.newDirectory}/${event.newFile}`;
-            const cachedFile = this.cachedFiles.find(cachedFile => cachedFile.path === oldPath);
-            if (cachedFile) {
-              await cachedFile.parseFile(newPath);
-            } else {
-              console.error('renamed file not found', event);
-            }
-
-          }
-          this.fetchEntitesAndPackages();
-
-        }
-      });
-      watcher.start();
-    }
-    //     atom.project.onDidChangeFiles(async events => {
-    //       for (const event of events) {
-    //         if (event.path.match(/\.vhdl?$/i)) {
-    // //           // console.log(event);
-    //           if (event.action === 'created') {
-    //             let cachedFile = new OFileCache();
-    //             cachedFile.path = event.path;
-    //             await cachedFile.parseFile(event.path);
-    //             this.cachedFiles.push(cachedFile);
-    //           } else if (event.action === 'deleted') {
-    //             const index = this.cachedFiles.findIndex(cachedFile => cachedFile.path === event.path);
-    //             this.cachedFiles.splice(index, 1);
-    //           } else if (event.action === 'modified') {
-    // //             console.log(this.cachedFiles);
-    //             const cachedFile = this.cachedFiles.find(cachedFile => cachedFile.path === event.path);
-    //             if (cachedFile) {
-    //               await cachedFile.parseFile(event.path);
-    //             } else {
-    //               console.error('modified file not found', event);
-    //             }
-    //           } else if (event.action === 'renamed') {
-    //             const cachedFile = this.cachedFiles.find(cachedFile => cachedFile.path === event.oldPath);
-    //             if (cachedFile) {
-    //               await cachedFile.parseFile(event.path);
-    //             } else {
-    //               console.error('renamed file not found', event);
-    //             }
-    //
-    //           }
-    //           this.fetchEntitesAndPackages();
-    //         }
-    //       }
-    //     });
-    this.initialized = true;
+  watcher: FSWatcher;
+  addFolders(folders: string[]) {
+    this.watcher.add(folders.map(folder => folder + '/**/*.vhd'));
   }
   public async getPackages(): Promise<OPackage[]> {
-    if (this.initialized) {
-      return this.packages;
-    }
-    await new Promise(resolve => {
-      this.initEvent.on((_arg1, _arg2) => {
-        resolve();
-      });
-    });
     return this.packages;
   }
-  public async getEntities(): Promise<OProjectEntity[]> {
-    if (this.initialized) {
-      return this.entities;
-    }
-    await new Promise(resolve => {
-      this.initEvent.on((_arg1, _arg2) => {
-        resolve();
-      });
-    });
+  public async getEntities(): Promise<OEntity[]> {
     return this.entities;
   }
 }
@@ -190,26 +116,15 @@ export class OProjectPorts {
     public endI: number,
   ) {}
 }
-export class OProjectEntity {
-  constructor(
-    public fileCache: OFileCache,
-    public ports: OProjectPorts[] = [],
-    public name: string,
-    public file: string,
-    public startI: number,
-    public endI: number,
-    public library?: string,
-  ) {}
-}
 export class OFileCache {
   path: string;
   digest: string;
   package?: OPackage;
-  entity?: OProjectEntity;
+  entity?: OEntity;
   text: string;
-
-  async parseFile(file: string): Promise<void> {
-    const text = await promisify(readFile)(file, { encoding: 'utf8' });
+  constructor(public projectParser: ProjectParser) {}
+  parseFile(file: string): void {
+    const text = readFileSync(file, { encoding: 'utf8' });
     if (!text) {
       return;
     }
@@ -217,7 +132,7 @@ export class OFileCache {
     // this.digest = await file.getDigest();
     this.path = file;
     this.parsePackage();
-    this.parseEntity(file);
+    this.parseEntity();
   }
   private parsePackage(): void {
     const match = this.text.match(/package\s+(\w+)\s+is/i);
@@ -257,37 +172,10 @@ export class OFileCache {
     // console.log(this.package);
 
   }
-  private parseEntity(file: string): void {
-    const match = this.text.match(/entity\s+(\S+)\s+is/i);
-    if (!match) {
-      return;
-    }
-    const name = match[1];
-    let re = /(\S+)\s*:\s*(in|out|inout)\b([^;]*?:=[^;)]*)?.*?[;)]/igs;
-    let m;
-    const ports: OProjectPorts[] = [];
-    while (m = re.exec(this.text)) {
-      const direction = m[2].toLowerCase();
-      if (direction === 'in' || direction === 'inout' || direction === 'out') {
-        const port = new OProjectPorts(m[1], direction, typeof m[3] !== 'undefined', m.index, m.index + m[0].length);
-        ports.push(port);
-      }
-    }
-    let libraryMatch = this.text.match(/--!\s*@library\s+(\S+)/i);
-    let library;
-    if (libraryMatch) {
-      library = libraryMatch[1];
-    }
-    let start = 0;
-    let end = 0;
-    const matchEntity = this.text.match(new RegExp(`entity\\s${name}\\sis.*?\\bend\\b(\\s+entity)?(\\s+${name})?\\s*;`, 'si'));
-    if (matchEntity !== null && matchEntity.index) {
-      start = matchEntity.index;
-      end = matchEntity.index + matchEntity[0].length;
-    }
-    this.entity = new OProjectEntity(this, ports, name, file, start, end, library);
-    if (name.toLowerCase() === 'axislavenetworkinterface') {
-      console.error(this.entity.ports);
+  private parseEntity(): void {
+    const linter = new VhdlLinter(this.path, this.text, this.projectParser, true);
+    if (linter.tree && linter.tree.entity) {
+      this.entity = linter.tree.entity;
     }
   }
 }

@@ -7,11 +7,10 @@ export class EntityParser extends ParserBase {
   constructor(text: string, pos: ParserPosition, file: string, private parent: OFile) {
     super(text, pos, file);
     this.debug(`start`);
-    this.start = pos.i;
   }
   parse(): OEntity {
     const entity = new OEntity(this.parent, this.pos.i, this.getEndOfLineI());
-    entity.name = this.getNextWord({withCase: true});
+    entity.name = this.getNextWord();
     this.expect('is');
 
     let lastI;
@@ -43,7 +42,7 @@ export class EntityParser extends ParserBase {
       }
       lastI = this.pos.i;
     }
-    this.end = this.pos.i;
+    entity.endI = this.pos.i;
 
     return entity;
   }
@@ -72,7 +71,7 @@ export class EntityParser extends ParserBase {
         this.expect(';');
         break;
       }
-      port.name = this.getNextWord({withCase: true});
+      port.name = this.getNextWord();
       if (this.text[this.pos.i] === ',') {
         this.expect(',');
         multiPorts.push(port.name);
@@ -81,7 +80,7 @@ export class EntityParser extends ParserBase {
       this.expect(':');
       let directionString;
       if (port instanceof OPort) {
-        directionString = this.getNextWord({consume: false});
+        directionString = this.getNextWord();
         if (directionString !== 'in' && directionString !== 'out' && directionString !== 'inout') {
           port.direction = 'inout';
         } else {

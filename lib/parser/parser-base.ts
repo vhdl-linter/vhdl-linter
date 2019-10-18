@@ -10,39 +10,37 @@ export interface Token {
 }
 
 export class ParserBase {
-  start: number;
-  end: number;
   constructor(protected text: string, protected pos: ParserPosition, protected file: string) {
 
   }
-  debug(message: string) {
-    let pos = this.getPosition();
+  debug(_message: string) {
+    // let pos = this.getPosition();
     if (config.debug) {
 //      console.log(`${this.constructor.name}: ${message} at ${pos.line}:${pos.col}, (${this.file})`);
     }
   }
-  debugObject(object: any) {
-    let target: any = {};
-    const filter = (object: any) => {
-      const target: any = {};
-      if (!object) {
-        return;
-      }
-      for (const key of Object.keys(object)) {
-        if (key === 'parent') {
-          continue;
-        } else if (Array.isArray(object[key])) {
-          target[key] = object[key].map(filter);
-
-        } else if (typeof object[key] === 'object') {
-          target[key] = filter(object[key]);
-        } else {
-          target[key] = object[key];
-        }
-      }
-      return target;
-    };
-    target = filter(object);
+  debugObject(_object: any) {
+    // let target: any = {};
+    // const filter = (object: any) => {
+    //   const target: any = {};
+    //   if (!object) {
+    //     return;
+    //   }
+    //   for (const key of Object.keys(object)) {
+    //     if (key === 'parent') {
+    //       continue;
+    //     } else if (Array.isArray(object[key])) {
+    //       target[key] = object[key].map(filter);
+    //
+    //     } else if (typeof object[key] === 'object') {
+    //       target[key] = filter(object[key]);
+    //     } else {
+    //       target[key] = object[key];
+    //     }
+    //   }
+    //   return target;
+    // };
+    // target = filter(object);
 //     console.log(`${this.constructor.name}: ${JSON.stringify(target, null, 2)} in line: ${this.getLine()}, (${this.file})`);
   }
   message(message: string, severity = 'error') {
@@ -128,17 +126,15 @@ export class ParserBase {
     this.advanceWhitespace();
     return text;
   }
-  getNextWord(options: { re?: RegExp, consume?: boolean, withCase?: boolean} = {}) {
-    let { re, consume, withCase } = options;
+  getNextWord(options: { re?: RegExp, consume?: boolean} = {}) {
+    let { re, consume } = options;
     if (!re) {
       re = /\w/;
     }
     if (typeof consume === 'undefined') {
       consume = true;
     }
-    if (typeof withCase === 'undefined') {
-      withCase = false;
-    }
+
     if (consume) {
       let word = '';
       while (this.pos.i < this.text.length && this.text[this.pos.i].match(re)) {
@@ -149,7 +145,7 @@ export class ParserBase {
         // }
       }
       this.advanceWhitespace();
-      return withCase ? word : word.toLowerCase();
+      return word;
     }
     let word = '';
     let j = 0;
@@ -157,7 +153,7 @@ export class ParserBase {
       word += this.text[this.pos.i + j];
       j++;
     }
-    return withCase ? word : word.toLowerCase();
+    return word;
   }
 
   getLine(position?: number) {
@@ -232,7 +228,7 @@ export class ParserBase {
   }
   extractReads(parent: any, text: string, i: number): ORead[] {
     return this.tokenize(text).filter(token => token.type === 'VARIABLE' || token.type === 'FUNCTION').map(token => {
-      const write = new OWrite(parent, i, this.getEndOfLineI(i));
+      const write = new OWrite(parent, i, i + token.value.length);
       write.begin = i;
       write.begin = i + token.offset;
       write.end = write.begin + token.value.length;

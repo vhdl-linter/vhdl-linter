@@ -1,6 +1,7 @@
 import { OFile, OIf, OSignalLike, OSignal, OArchitecture, OEntity, OPort, OInstantiation, OWrite, ORead } from './parser/objects';
 import { Parser } from './parser/parser';
-import { ProjectParser, OProjectEntity, OThing } from './project-parser';
+import { ProjectParser, OThing } from './project-parser';
+import {findBestMatch} from 'string-similarity';
 import {
   Range,
   Position
@@ -10,9 +11,10 @@ export class VhdlLinter {
   tree: OFile;
   parser: Parser;
   packageThings: OThing[] = [];
-  constructor(private editorPath: string, public text: string, public projectParser: ProjectParser) {
+
+  constructor(private editorPath: string, public text: string, public projectParser: ProjectParser, public onlyEntity: boolean = false) {
 //     console.log('lint');
-    this.parser = new Parser(this.text, this.editorPath);
+    this.parser = new Parser(this.text, this.editorPath, onlyEntity);
 //     console.log(`parsing: ${editorPath}`);
     try {
       this.tree = this.parser.parse();
@@ -443,8 +445,8 @@ export class VhdlLinter {
       }
     }
   }
-  private async getProjectEntity(instantiation: OInstantiation): Promise<OProjectEntity|undefined> {
-    const projectEntities: OProjectEntity[] = await this.projectParser.getEntities();
+  private async getProjectEntity(instantiation: OInstantiation): Promise<OEntity|undefined> {
+    const projectEntities: OEntity[] = await this.projectParser.getEntities();
     if (instantiation.library) {
       const entityWithLibrary =  projectEntities.find(entity => entity.name.toLowerCase() === instantiation.componentName.toLowerCase() && typeof entity.library !== 'undefined' && typeof instantiation.library !== 'undefined' && entity.library.toLowerCase() === instantiation.library.toLowerCase());
       if (entityWithLibrary) {
@@ -484,13 +486,21 @@ export class VhdlLinter {
             const entityPort = entity.ports[entityPortIndex];
             foundPorts.push(entityPortIndex);
             if (!entityPort) {
+              const bestMatch = findBestMatch(portMapping.name[0].text, entity.ports.map(port => port.name));
               this.messages.push({
                 location: {
                   file: this.editorPath,
                   position: this.getPositionFromILine(portMapping.startI)
                 },
                 severity: 'error',
-                excerpt: `no port ${portMapping.name.map(name => name.text).join(', ')} on entity ${instantiation.componentName}`
+                excerpt: `no port ${portMapping.name.map(name => name.text).join(', ')} on entity ${instantiation.componentName}`,
+                solutions: [
+                  {
+                    title: `Replace with ${bestMatch.bestMatch.target} (score: ${bestMatch.bestMatch.rating})`,
+                    position:    Range.create(this.getPositionFromI(portMapping.name[0].startI), this.getPositionFromI(portMapping.name[portMapping.name.length - 1].endI)),
+                    replaceWith: bestMatch.bestMatch.target
+                  }
+                ]
               });
             }
           }

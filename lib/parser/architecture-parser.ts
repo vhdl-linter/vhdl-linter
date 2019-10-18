@@ -2,7 +2,7 @@ import { ParserBase } from './parser-base';
 import { ProcessParser } from './process-parser';
 import { InstantiationParser } from './instantiation-parser';
 import { ParserPosition } from './parser-position';
-import { OSignal, OType, OArchitecture, ParserError, OState, OForGenerate, OIfGenerate, OFunction, OFile, ObjectBase} from './objects';
+import { OArchitecture, ParserError, OForGenerate, OIfGenerate, OFile} from './objects';
 import { AssignmentParser } from './assignment-parser';
 import { DeclarativePartParser } from './declarative-part-parser';
 
@@ -12,7 +12,6 @@ export class ArchitectureParser extends ParserBase {
   constructor(text: string, pos: ParserPosition, file: string, private parent: OArchitecture|OFile, name?: string) {
     super(text, pos, file);
     this.debug('start');
-    this.start = pos.i;
     if (name) {
       this.name = name;
     }
@@ -62,14 +61,13 @@ export class ArchitectureParser extends ParserBase {
           this.maybeWord(this.name);
         }
         this.expect(';');
-        this.end = this.pos.i;
         break;
       }
       let label;
       const savedI = this.pos.i;
       const regex = new RegExp(`^${nextWord}\\s*:`, 'i');
       if (this.text.substr(this.pos.i).match(regex)) {
-        label = this.getNextWord({withCase: true});
+        label = this.getNextWord();
         this.debug('parse label ' + label);
         this.pos.i++;
         this.advanceWhitespace();

@@ -6,7 +6,6 @@ export class AssignmentParser extends ParserBase {
   constructor(text: string, pos: ParserPosition, file: string, private parent: ObjectBase) {
     super(text, pos, file);
     this.debug(`start`);
-    this.start = pos.i;
   }
   parse(): OAssignment {
     let assignment = new OAssignment(this.parent, this.pos.i, this.getEndOfLineI());

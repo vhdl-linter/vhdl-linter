@@ -7,7 +7,6 @@ import {
   DiagnosticSeverity,
   ProposedFeatures,
   InitializeParams,
-  DidChangeConfigurationNotification,
   CompletionItem,
   CodeAction,
   CompletionItemKind,
@@ -21,8 +20,9 @@ import {
   Hover
 } from 'vscode-languageserver';
 import { VhdlLinter } from './vhdl-linter';
-import { ProjectParser, OThing, OProjectEntity} from './project-parser';
-import { OFile, OArchitecture, ORead, OWrite, OSignal, OFunction, OForLoop, OForGenerate, OInstantiation, OMapping} from './parser/objects';
+import { ProjectParser, OThing} from './project-parser';
+import { OFile, OArchitecture, ORead, OWrite, OSignal, OFunction, OForLoop, OForGenerate, OInstantiation, OMapping, OEntity} from './parser/objects';
+import { readFileSync } from 'fs';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -32,24 +32,14 @@ let connection = createConnection(ProposedFeatures.all);
 // supports full document sync only
 let documents: TextDocuments = new TextDocuments();
 
-let hasConfigurationCapability: boolean = false;
 let hasWorkspaceFolderCapability: boolean = false;
 // let hasDiagnosticRelatedInformationCapability: boolean = false;
-let projectParser: ProjectParser = new ProjectParser([]);
+let projectParser: ProjectParser;
 
 connection.onInitialize((params: InitializeParams) => {
   let capabilities = params.capabilities;
-  // console.error(JSON.stringify(capabilities));
-  // Does the client support the `workspace/configuration` request?
-  // If not, we will fall back using global settings
-  hasConfigurationCapability =
-    capabilities.workspace && !!capabilities.workspace.configuration || false;
   hasWorkspaceFolderCapability =
     capabilities.workspace && !!capabilities.workspace.workspaceFolders || false;
-  // hasDiagnosticRelatedInformationCapability =
-  //   capabilities.textDocument &&
-  //   capabilities.textDocument.publishDiagnostics &&
-  //   capabilities.textDocument.publishDiagnostics.relatedInformation || false;
 
   return {
     capabilities: {
@@ -67,33 +57,29 @@ connection.onInitialize((params: InitializeParams) => {
 });
 
 connection.onInitialized(async () => {
-  if (hasConfigurationCapability) {
-    // Register for all configuration changes.
-    connection.client.register(DidChangeConfigurationNotification.type, undefined);
-  }
-  console.error(hasWorkspaceFolderCapability, 'hasWorkspaceFolderCapability');
   if (hasWorkspaceFolderCapability) {
-
     const parseWorkspaces = async () => {
       const workspaceFolders = await connection.workspace.getWorkspaceFolders();
       if (workspaceFolders) {
         const folders = workspaceFolders.map(workspaceFolder => workspaceFolder.uri);
         projectParser = new ProjectParser(folders);
       }
+      documents.onDidChangeContent(change => {
+        validateTextDocument(change.document);
+      });
     };
     parseWorkspaces();
-    connection.workspace.onDidChangeWorkspaceFolders(async _event => {
-      parseWorkspaces();
+    connection.workspace.onDidChangeWorkspaceFolders(async event => {
+      projectParser.addFolders(event.added.map(folder => folder.uri));
       connection.console.log('Workspace folder change event received.');
     });
+  } else {
+    projectParser = new ProjectParser([]);
   }
 });
 
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
-documents.onDidChangeContent(change => {
-  validateTextDocument(change.document);
-});
 const linters = new Map<string, VhdlLinter>();
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 
@@ -154,7 +140,6 @@ connection.onCodeAction(async (params): Promise<CodeAction[]> => {
   return [];
 });
 connection.onDocumentSymbol(async (params): Promise<DocumentSymbol[]> => {
-  console.error('DOCUMENT SYMBOL');
   const linter = linters.get(params.textDocument.uri);
   if (!linter) {
     return [];
@@ -261,24 +246,14 @@ const findDefinition = async (params: IFindDefinitionParams) => {
   }
 
   if (candidate instanceof ORead || candidate instanceof OWrite) {
-    // console.error('signal maybe', startI);
-    //          console.log('path', textEditor.getPath());
-    //          console.log('linter', linter);
     let result: OSignal|OFunction|false|OThing|OForLoop|OForGenerate|undefined;
-    // try {
-    // console.error('foundThing', foundThing);
     result = linter.tree.architecture.findRead(candidate, linter.packageThings);
-    //           } catch (e) {
-    // //            console.log(e);
-    //           }
-    //          console.log('reads', result);
     if (typeof result === 'boolean') {
       return null;
     }
     const position = result instanceof OThing
     ? Range.create(positionFromI(result.parent.fileCache.text, result.startI), positionFromI(result.parent.fileCache.text, result.endI))
     : linter.getPositionFromILine(result.startI, result.endI);
-    // console.error();
     return {
       // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
       range: position,
@@ -288,21 +263,20 @@ const findDefinition = async (params: IFindDefinitionParams) => {
     };
   } else if (candidate instanceof OInstantiation || candidate instanceof OMapping) {
     let instantiation: OInstantiation = candidate instanceof OInstantiation ? candidate : candidate.parent;
-    const entities = (await linter.projectParser.getEntities()).filter((entity: OProjectEntity) => {
+    const entities = (await linter.projectParser.getEntities()).filter((entity: OEntity) => {
       return entity.name.toLowerCase() === instantiation.componentName.toLowerCase() && ((entity.library && instantiation.library) ? entity.library.toLowerCase() === instantiation.library.toLowerCase() : true);
     });
     if (entities.length === 0) {
-      console.error('not found');
       return null;
     }
     const entity = entities[0];
     if (candidate instanceof OInstantiation) {
       return {
         // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
-        range: Range.create(positionFromI(entity.fileCache.text, entity.startI), positionFromI(entity.fileCache.text, entity.endI)),
-        text: entity.fileCache.text,
+        range: Range.create(positionFromI(entity.getRoot().text, entity.startI), positionFromI(entity.getRoot().text, entity.endI)),
+        text: entity.getRoot().originalText,
         // targetSelectionRange:  Range.create(Position.create(0, 0), Position.create(0, 0)),
-        uri: 'file://' + entity.file
+        uri: 'file://' + entity.getRoot().file
       };
     } else {
       const port = entity.ports.find(port => candidate.name.find(read => read.text.toLowerCase() === port.name.toLowerCase()));
@@ -311,10 +285,10 @@ const findDefinition = async (params: IFindDefinitionParams) => {
       }
       return {
         // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
-        range: Range.create(positionFromI(entity.fileCache.text, port.startI), positionFromI(entity.fileCache.text, port.endI)),
-        text: entity.fileCache.text,
+        range: Range.create(positionFromI(entity.getRoot().text, port.startI), positionFromI(entity.getRoot().text, port.endI)),
+        text: entity.getRoot().originalText,
         // targetSelectionRange:  Range.create(Position.create(0, 0), Position.create(0, 0)),
-        uri: 'file://' + entity.file
+        uri: 'file://' + entity.getRoot().file
       };
 
     }
@@ -341,7 +315,6 @@ connection.onHover(async (params): Promise<Hover|null> => {
   };
 });
 connection.onDefinition(async (params): Promise<Location|null> => {
-  console.error(params);
   return await findDefinition(params);
 });
 // This handler provides the initial list of the completion items.
@@ -349,11 +322,9 @@ connection.onCompletion(
   (params: CompletionParams): CompletionItem[] => {
     const linter = linters.get(params.textDocument.uri);
     if (typeof linter === 'undefined') {
-      console.error('linter undefined');
       return [];
     }
     if (typeof linter.tree === 'undefined') {
-      console.error('tree undefined');
       return [];
     }
     linter.tree.objectList.sort((b, a) => a.startI - b.startI);
@@ -396,7 +367,6 @@ connection.onCompletion(
         }
     }
     const packageThingsUnique = Array.from(new Set(linter.packageThings));
-    console.error('packageThings');
     candidates.push(...packageThingsUnique.map(packageThing => {
       return {
         label: packageThing.parent.path.match(/ieee/i) === null ? packageThing.name : packageThing.name.toLowerCase(),
