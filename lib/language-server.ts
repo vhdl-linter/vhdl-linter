@@ -435,6 +435,9 @@ connection.onCompletion(
         for (const port of parent.entity.ports) {
           candidates.push({ label: port.name, kind: CompletionItemKind.Field });
         }
+        for (const port of parent.entity.generics) {
+          candidates.push({ label: port.name, kind: CompletionItemKind.Constant });
+        }
     }
     const packageThingsUnique = Array.from(new Set(linter.packageThings));
     console.error('packageThings');
