@@ -280,6 +280,9 @@ export class OInstantiation extends ObjectBase {
   }
 }
 export class OMapping extends ObjectBase {
+  constructor(public parent: OInstantiation, startI: number, endI: number) {
+    super(parent, startI, endI);
+  }
   name: ORead[];
   mappingIfInput: ORead[];
   mappingIfOutput: [ORead[], OWrite[]];

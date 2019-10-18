@@ -49,13 +49,13 @@ export class InstantiationParser extends ParserBase {
     }
     return instantiation;
   }
-  parseMapping(instantiation: object) {
+  parseMapping(instantiation: OInstantiation) {
     this.debug(`parseMapping`);
 
     const mappings: OMapping[] = [];
 
     while (this.pos.i < this.text.length) {
-      const mapping = new OMapping(instantiation as ObjectBase, this.pos.i, this.getEndOfLineI());
+      const mapping = new OMapping(instantiation, this.pos.i, this.getEndOfLineI());
       const mappingNameI = this.pos.i;
       mapping.name = this.extractReads(mapping, this.getNextWord({re: /[^=]/}), mappingNameI);
       this.expect('=>');

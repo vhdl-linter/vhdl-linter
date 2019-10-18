@@ -1,4 +1,4 @@
-import { OFile, OIf, OForLoop, OSignalLike, OSignal, OArchitecture, OEntity, OPort, OInstantiation, OWrite, ORead } from './parser/objects';
+import { OFile, OIf, OSignalLike, OSignal, OArchitecture, OEntity, OPort, OInstantiation, OWrite, ORead } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser, OProjectEntity, OThing } from './project-parser';
 import {

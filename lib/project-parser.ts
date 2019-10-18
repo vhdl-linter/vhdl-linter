@@ -182,9 +182,13 @@ export class OThing {
   constructor(public parent: OPackage, public name: string, public startI: number, public endI: number) { }
 }
 export class OProjectPorts {
-  name: string;
-  direction: 'in' | 'out' | 'inout';
-  hasDefault: boolean;
+  constructor(
+    public name: string,
+    public direction: 'in' | 'out' | 'inout',
+    public hasDefault: boolean,
+    public startI: number,
+    public endI: number,
+  ) {}
 }
 export class OProjectEntity {
   constructor(
@@ -192,8 +196,8 @@ export class OProjectEntity {
     public ports: OProjectPorts[] = [],
     public name: string,
     public file: string,
-    public start: number,
-    public end: number,
+    public startI: number,
+    public endI: number,
     public library?: string,
   ) {}
 }
@@ -259,16 +263,13 @@ export class OFileCache {
       return;
     }
     const name = match[1];
-    let re = /(\S+)\s*:\s*(in|out|inout)\b(.*?:=.*)?/ig;
+    let re = /(\S+)\s*:\s*(in|out|inout)\b([^;]*?:=[^;)]*)?.*?[;)]/igs;
     let m;
     const ports: OProjectPorts[] = [];
     while (m = re.exec(this.text)) {
       const direction = m[2].toLowerCase();
       if (direction === 'in' || direction === 'inout' || direction === 'out') {
-        const port = new OProjectPorts();
-        port.name = m[1];
-        port.direction = direction;
-        port.hasDefault = typeof m[3] !== 'undefined';
+        const port = new OProjectPorts(m[1], direction, typeof m[3] !== 'undefined', m.index, m.index + m[0].length);
         ports.push(port);
       }
     }
@@ -285,6 +286,9 @@ export class OFileCache {
       end = matchEntity.index + matchEntity[0].length;
     }
     this.entity = new OProjectEntity(this, ports, name, file, start, end, library);
+    if (name.toLowerCase() === 'axislavenetworkinterface') {
+      console.error(this.entity.ports);
+    }
   }
 }
 // type t_packet is (p_NONE, p_CM_REQ, p_CM_REJ, p_CM_REP, p_CM_RTU, p_CM_DREQ, p_CM_DREP, p_RC_MR, p_RC_SIZE, p_RC_DECLINE, p_RDMA_F, p_RDMA_M, p_RDMA_L, p_RDMA_O, p_ACK);

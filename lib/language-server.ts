@@ -21,8 +21,8 @@ import {
   Hover
 } from 'vscode-languageserver';
 import { VhdlLinter } from './vhdl-linter';
-import { ProjectParser, OThing, OPackage, OProjectEntity} from './project-parser';
-import { OFile, OArchitecture, ORead, OWrite, OSignal, OFunction, OForLoop, OForGenerate} from './parser/objects';
+import { ProjectParser, OThing, OProjectEntity} from './project-parser';
+import { OFile, OArchitecture, ORead, OWrite, OSignal, OFunction, OForLoop, OForGenerate, OInstantiation, OMapping} from './parser/objects';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -87,54 +87,6 @@ connection.onInitialized(async () => {
       connection.console.log('Workspace folder change event received.');
     });
   }
-});
-
-// The example settings
-interface ISettings {
-  workspaces: string[];
-}
-
-// The global settings, used when the `workspace/configuration` request is not supported by the client.
-// Please note that this is not the case when using this server with the client provided in this example
-// but could happen with other clients.
-const defaultSettings: ISettings = { workspaces: [] };
-let globalSettings: ISettings = defaultSettings;
-
-// Cache the settings of all open documents
-let documentSettings: Map<string, Thenable<ISettings>> = new Map();
-
-connection.onDidChangeConfiguration(change => {
-  if (hasConfigurationCapability) {
-    // Reset all cached document settings
-    documentSettings.clear();
-  } else {
-    globalSettings = <ISettings>(
-      (change.settings.languageServerExample || defaultSettings)
-    );
-  }
-
-  // Revalidate all open text documents
-  documents.all().forEach(validateTextDocument);
-});
-
-function getDocumentSettings(resource: string): Thenable<ISettings> {
-  if (!hasConfigurationCapability) {
-    return Promise.resolve(globalSettings);
-  }
-  let result = documentSettings.get(resource);
-  if (!result) {
-    result = connection.workspace.getConfiguration({
-      scopeUri: resource,
-      section: 'languageServerExample'
-    });
-    documentSettings.set(resource, result);
-  }
-  return result;
-}
-
-// Only keep settings for open documents
-documents.onDidClose(e => {
-  documentSettings.delete(e.document.uri);
 });
 
 // The content of a text document has changed. This event is emitted
@@ -301,41 +253,21 @@ const findDefinition = async (params: IFindDefinitionParams) => {
   }
 
   let startI = linter.getIFromPosition(params.position);
-  while (linter.text[startI].match(/\S/)) {
-    startI--;
-  }
-  let text = linter.text.slice(startI);
-  const wordMatch = text.match(/(entity\s+)?[a-z][\w.]*/i);
-  if (!wordMatch) {
-    console.error('no word match');
+  const candidates = linter.tree.objectList.filter(object => object.startI <= startI && startI <= object.endI);
+  candidates.sort((a, b) => (a.endI - a.startI) - (b.endI - b.startI));
+  const candidate = candidates[0];
+  if (!candidate) {
     return null;
   }
-  text = wordMatch[0];
-  if (typeof wordMatch.index === 'undefined') {
-    return null;
-  }
-  startI += wordMatch.index;
 
-  const match = text.match(/(?:entity\s+)(\w+)\.(\w+)/i);
-  if (!match) {
+  if (candidate instanceof ORead || candidate instanceof OWrite) {
     // console.error('signal maybe', startI);
     //          console.log('path', textEditor.getPath());
     //          console.log('linter', linter);
     let result: OSignal|OFunction|false|OThing|OForLoop|OForGenerate|undefined;
     // try {
-    const foundThing = linter.tree.objectList.find(obj => {
-      if (obj instanceof ORead || obj instanceof OWrite) {
-        return obj.begin <= startI && obj.end >= startI;
-      } else {
-        return false;
-      }
-    });
     // console.error('foundThing', foundThing);
-    if (!foundThing || !(foundThing instanceof ORead || foundThing instanceof OWrite)) {
-      //              console.log('foundThing not foundThing', foundThing, startI);
-      return null;
-    }
-    result = linter.tree.architecture.findRead(foundThing, linter.packageThings);
+    result = linter.tree.architecture.findRead(candidate, linter.packageThings);
     //           } catch (e) {
     // //            console.log(e);
     //           }
@@ -354,20 +286,40 @@ const findDefinition = async (params: IFindDefinitionParams) => {
       // targetSelectionRange: position,
       uri: result instanceof OThing ? 'file://' + result.parent.path : params.textDocument.uri
     };
+  } else if (candidate instanceof OInstantiation || candidate instanceof OMapping) {
+    let instantiation: OInstantiation = candidate instanceof OInstantiation ? candidate : candidate.parent;
+    const entities = (await linter.projectParser.getEntities()).filter((entity: OProjectEntity) => {
+      return entity.name.toLowerCase() === instantiation.componentName.toLowerCase() && ((entity.library && instantiation.library) ? entity.library.toLowerCase() === instantiation.library.toLowerCase() : true);
+    });
+    if (entities.length === 0) {
+      console.error('not found');
+      return null;
+    }
+    const entity = entities[0];
+    if (candidate instanceof OInstantiation) {
+      return {
+        // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
+        range: Range.create(positionFromI(entity.fileCache.text, entity.startI), positionFromI(entity.fileCache.text, entity.endI)),
+        text: entity.fileCache.text,
+        // targetSelectionRange:  Range.create(Position.create(0, 0), Position.create(0, 0)),
+        uri: 'file://' + entity.file
+      };
+    } else {
+      const port = entity.ports.find(port => candidate.name.find(read => read.text.toLowerCase() === port.name.toLowerCase()));
+      if (!port) {
+        return null;
+      }
+      return {
+        // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
+        range: Range.create(positionFromI(entity.fileCache.text, port.startI), positionFromI(entity.fileCache.text, port.endI)),
+        text: entity.fileCache.text,
+        // targetSelectionRange:  Range.create(Position.create(0, 0), Position.create(0, 0)),
+        uri: 'file://' + entity.file
+      };
+
+    }
   }
-  const [, library, entityName] = match;
-  const entities = (await linter.projectParser.getEntities()).filter((entity: OProjectEntity) => {
-    return entity.name === entityName && (entity.library ? entity.library === library : true);
-  });
-  const entity = entities[0];
-  console.error('entity', entity);
-  return {
-    // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
-    range: Range.create(positionFromI(entity.fileCache.text, entity.start), positionFromI(entity.fileCache.text, entity.end)),
-    text: entity.fileCache.text,
-    // targetSelectionRange:  Range.create(Position.create(0, 0), Position.create(0, 0)),
-    uri: 'file://' + entity.file
-  };
+  return null;
 };
 connection.onHover(async (params): Promise<Hover|null> => {
   const definition = await findDefinition(params);
@@ -375,8 +327,12 @@ connection.onHover(async (params): Promise<Hover|null> => {
     return null;
   }
   const lines = definition.text.split('\n').slice(definition.range.start.line, definition.range.end.line + 1);
-  lines[0] = lines[0].slice(definition.range.start.character);
-  lines[lines.length - 1] = lines[lines.length - 1].slice(0, definition.range.end.character + 1);
+  if (definition.range.start.line === definition.range.end.line) {
+    lines[0] = lines[0].substring(definition.range.start.character, definition.range.end.character + 1);
+  } else {
+    lines[0] = lines[0].substring(definition.range.start.character);
+    lines[lines.length - 1] = lines[lines.length - 1].substring(0, definition.range.end.character + 1);
+  }
   return {
     contents: {
       language: 'vhdl',
