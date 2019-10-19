@@ -20,8 +20,8 @@ import {
   Hover
 } from 'vscode-languageserver';
 import { VhdlLinter } from './vhdl-linter';
-import { ProjectParser, OThing} from './project-parser';
-import { OFile, OArchitecture, ORead, OWrite, OSignal, OFunction, OForLoop, OForGenerate, OInstantiation, OMapping, OEntity} from './parser/objects';
+import { ProjectParser} from './project-parser';
+import { OFile, OArchitecture, ORead, OWrite, OSignal, OFunction, OForLoop, OForGenerate, OInstantiation, OMapping, OEntity, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackage, OEnum} from './parser/objects';
 import { readFileSync } from 'fs';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
@@ -202,23 +202,32 @@ connection.onDocumentSymbol(async (params): Promise<DocumentSymbol[]> => {
     }
     return symbols;
   };
-  return [
-    {
+  const returnValue: DocumentSymbol[] = [];
+  if (linter.tree instanceof OFileWithEntity) {
+    returnValue.push({
       name: 'generics',
       kind: SymbolKind.Class,
       range: linter.getPositionFromILine(linter.tree.entity.startI),
       selectionRange: linter.getPositionFromILine(linter.tree.entity.startI, linter.tree.entity.endI),
       children: linter.tree.entity.generics.map(generic => DocumentSymbol.create(generic.name, undefined, SymbolKind.Variable, linter.getPositionFromILine(generic.startI, generic.endI), linter.getPositionFromILine(generic.startI, generic.endI)))
-    },
-    {
+    });
+    returnValue.push({
       name: 'ports',
       kind: SymbolKind.Class,
       range: linter.getPositionFromILine(linter.tree.entity.startI),
       selectionRange: linter.getPositionFromILine(linter.tree.entity.startI, linter.tree.entity.endI),
       children: linter.tree.entity.ports.map(port => DocumentSymbol.create(port.name, undefined, SymbolKind.Variable, linter.getPositionFromILine(port.startI, port.endI), linter.getPositionFromILine(port.startI, port.endI)))
-    },
-    ...parseArchitecture(linter.tree.architecture)
-  ];
+    });
+  }
+  if (linter.tree instanceof OFileWithPackage) {
+    returnValue.push(...linter.tree.package.types.map(type => DocumentSymbol.create(type.name, undefined, SymbolKind.Enum, linter.getPositionFromILine(type.startI, type.endI), linter.getPositionFromILine(type.startI, type.endI))));
+    returnValue.push(...linter.tree.package.functions.map(func => DocumentSymbol.create(func.name, undefined, SymbolKind.Function, linter.getPositionFromILine(func.startI, func.endI), linter.getPositionFromILine(func.startI, func.endI))));
+    returnValue.push(... linter.tree.package.constants.map(constants => DocumentSymbol.create(constants.name, undefined, SymbolKind.Constant, linter.getPositionFromILine(constants.startI, constants.endI), linter.getPositionFromILine(constants.startI, constants.endI))));
+  }
+  if (linter.tree instanceof OFileWithEntityAndArchitecture) {
+    returnValue.push(...parseArchitecture(linter.tree.architecture));
+  }
+  return returnValue;
 });
 const positionFromI = (text: string, i: number) => {
   const slice = text.slice(0, i);
@@ -245,25 +254,23 @@ const findDefinition = async (params: IFindDefinitionParams) => {
     return null;
   }
 
-  if (candidate instanceof ORead || candidate instanceof OWrite) {
-    let result: OSignal|OFunction|false|OThing|OForLoop|OForGenerate|undefined;
-    result = linter.tree.architecture.findRead(candidate, linter.packageThings);
+  if ((candidate instanceof ORead || candidate instanceof OWrite) && linter.tree instanceof OFileWithEntityAndArchitecture) {
+    let result: OSignal|OFunction|false|OForLoop|OForGenerate;
+    result = linter.tree.architecture.findRead(candidate, linter.packages);
     if (typeof result === 'boolean') {
       return null;
     }
-    const position = result instanceof OThing
-    ? Range.create(positionFromI(result.parent.fileCache.text, result.startI), positionFromI(result.parent.fileCache.text, result.endI))
-    : linter.getPositionFromILine(result.startI, result.endI);
+    const position = Range.create(positionFromI(result.getRoot().originalText, result.startI), positionFromI(result.getRoot().originalText, result.endI));
     return {
       // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
       range: position,
-      text: result instanceof OThing ? result.parent.fileCache.text : linter.text,
+      text: result.getRoot().originalText,
       // targetSelectionRange: position,
-      uri: result instanceof OThing ? 'file://' + result.parent.path : params.textDocument.uri
+      uri: 'file://' + result.getRoot().file
     };
   } else if (candidate instanceof OInstantiation || candidate instanceof OMapping) {
     let instantiation: OInstantiation = candidate instanceof OInstantiation ? candidate : candidate.parent;
-    const entities = (await linter.projectParser.getEntities()).filter((entity: OEntity) => {
+    const entities = linter.projectParser.getEntities().filter((entity: OEntity) => {
       return entity.name.toLowerCase() === instantiation.componentName.toLowerCase() && ((entity.library && instantiation.library) ? entity.library.toLowerCase() === instantiation.library.toLowerCase() : true);
     });
     if (entities.length === 0) {
@@ -337,18 +344,21 @@ connection.onCompletion(
     let counter = 100;
     const candidates: CompletionItem[] = [];
     while ((parent instanceof OFile) === false) {
+      // console.log(parent instanceof OFile, parent);
       if (parent instanceof OArchitecture) {
         for (const signal of parent.signals) {
           candidates.push({ label: signal.name, kind: CompletionItemKind.Variable });
         }
         for (const type of parent.types) {
           candidates.push({ label: type.name, kind: CompletionItemKind.TypeParameter });
-          candidates.push(...type.states.map(state => {
-            return {
-              label: state.name,
-              kind: CompletionItemKind.EnumMember
-            };
-          }));
+          if (type instanceof OEnum) {
+            candidates.push(...type.states.map(state => {
+              return {
+                label: state.name,
+                kind: CompletionItemKind.EnumMember
+              };
+            }));
+          }
         }
       }
       parent = (parent as any).parent;
@@ -358,7 +368,7 @@ connection.onCompletion(
         throw new Error('Infinite Loop?');
       }
     }
-    if (parent instanceof OFile) {
+    if (parent instanceof OFileWithEntity) {
         for (const port of parent.entity.ports) {
           candidates.push({ label: port.name, kind: CompletionItemKind.Field });
         }
@@ -366,13 +376,16 @@ connection.onCompletion(
           candidates.push({ label: port.name, kind: CompletionItemKind.Constant });
         }
     }
-    const packageThingsUnique = Array.from(new Set(linter.packageThings));
-    candidates.push(...packageThingsUnique.map(packageThing => {
-      return {
-        label: packageThing.parent.path.match(/ieee/i) === null ? packageThing.name : packageThing.name.toLowerCase(),
-        kind: CompletionItemKind.Text
-      };
-    }));
+    for (const pkg of linter.packages) {
+      for (const obj of pkg.getRoot().objectList) {
+        if ((obj as any).name) {
+          candidates.push({
+            label: (obj as any).name,
+            kind: CompletionItemKind.Text
+          });
+        }
+      }
+    }
     return candidates;
   }
 );
@@ -392,28 +405,7 @@ connection.onCompletionResolve(
   }
 );
 
-/*
-connection.onDidOpenTextDocument((params) => {
-    // A text document got opened in VS Code.
-    // params.uri uniquely identifies the document. For documents store on disk this is a file URI.
-    // params.text the initial full content of the document.
-    connection.console.log(`${params.textDocument.uri} opened.`);
-});
-connection.onDidChangeTextDocument((params) => {
-    // The content of a text document did change in VS Code.
-    // params.uri uniquely identifies the document.
-    // params.contentChanges describe the content changes to the document.
-    connection.console.log(`${params.textDocument.uri} changed: ${JSON.stringify(params.contentChanges)}`);
-});
-connection.onDidCloseTextDocument((params) => {
-    // A text document got closed in VS Code.
-    // params.uri uniquely identifies the document.
-    connection.console.log(`${params.textDocument.uri} closed.`);
-});
-*/
 
-// Make the text document manager listen on the connection
-// for open, change and close text document events
 documents.listen(connection);
 
 // Listen on the connection

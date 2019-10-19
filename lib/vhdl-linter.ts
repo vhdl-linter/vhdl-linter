@@ -1,6 +1,6 @@
-import { OFile, OIf, OSignalLike, OSignal, OArchitecture, OEntity, OPort, OInstantiation, OWrite, ORead } from './parser/objects';
+import { OFile, OIf, OSignalLike, OSignal, OArchitecture, OEntity, OPort, OInstantiation, OWrite, ORead, OFileWithEntity, OFileWithPackage, OFileWithEntityAndArchitecture, OEnum, OPackage } from './parser/objects';
 import { Parser } from './parser/parser';
-import { ProjectParser, OThing } from './project-parser';
+import { ProjectParser } from './project-parser';
 import {findBestMatch} from 'string-similarity';
 import {
   Range,
@@ -8,9 +8,9 @@ import {
 } from 'vscode-languageserver';
 export class VhdlLinter {
   messages: Message[] = [];
-  tree: OFile;
+  tree: OFileWithEntityAndArchitecture | OFileWithEntity | OFileWithPackage | OFile;
   parser: Parser;
-  packageThings: OThing[] = [];
+  packages: OPackage[] = [];
 
   constructor(private editorPath: string, public text: string, public projectParser: ProjectParser, public onlyEntity: boolean = false) {
 //     console.log('lint');
@@ -39,7 +39,7 @@ export class VhdlLinter {
 
   }
   async parsePackages() {
-    const packages = await this.projectParser.getPackages();
+    const packages = this.projectParser.getPackages();
 //     console.log(packages);
     for (const useStatement of this.tree.useStatements) {
       let match = useStatement.text.match(/([^.]+)\.([^.]+)\.all/i);
@@ -52,15 +52,7 @@ export class VhdlLinter {
         } else {
           for (const foundPkg of packages) {
             if (foundPkg.name.toLowerCase() === pkg.toLowerCase()) {
-              this.packageThings.push(... foundPkg.things);
-              if (foundPkg.referencePackage) {
-                for (const referencePackage of packages) {
-                  if (referencePackage.name === foundPkg.referencePackage) {
-                    this.packageThings.push(... referencePackage.things);
-
-                  }
-                }
-              }
+              this.packages.push(foundPkg);
               found = true;
             }
           }
@@ -78,21 +70,23 @@ export class VhdlLinter {
       }
     }
   }
-  async checkAll() {
+  checkAll() {
     if (this.tree) {
-      await this.parsePackages();
-      this.checkResets();
-      await this.checkUnused(this.tree.architecture, this.tree.entity);
-      this.checkDoubles();
-      await this.checkNotDeclared(this.tree.architecture);
-      this.checkPortDeclaration();
-      await this.checkInstantiations(this.tree.architecture);
+      this.parsePackages();
+      if (this.tree instanceof OFileWithEntityAndArchitecture) {
+        this.checkResets();
+        this.checkUnused(this.tree.architecture, this.tree.entity);
+        this.checkDoubles();
+        this.checkNotDeclared(this.tree.architecture);
+        this.checkPortDeclaration();
+        this.checkInstantiations(this.tree.architecture);
+      }
       // this.parser.debugObject(this.tree);
     }
     return this.messages;
   }
   checkDoubles() {
-    if (!this.tree.architecture) {
+    if (!(this.tree instanceof OFileWithEntityAndArchitecture)) {
       return;
     }
     for (const signal of this.tree.architecture.signals) {
@@ -118,17 +112,19 @@ export class VhdlLinter {
           excerpt: `type ${type.name} defined multiple times`
         });
       }
-      for (const state of type.states) {
-        if (type.states.find(stateSearch => state !== stateSearch && state.name.toLowerCase() === stateSearch.name.toLowerCase())) {
-          this.messages.push({
-            location: {
-              file: this.editorPath,
-              position: this.getPositionFromILine(state.begin, state.end)
-            },
-            severity: 'error',
-            excerpt: `state ${state.name} defined multiple times`
-          });
+      if (type instanceof OEnum) {
+        for (const state of type.states) {
+          if (type.states.find(stateSearch => state !== stateSearch && state.name.toLowerCase() === stateSearch.name.toLowerCase())) {
+            this.messages.push({
+              location: {
+                file: this.editorPath,
+                position: this.getPositionFromILine(state.begin, state.end)
+              },
+              severity: 'error',
+              excerpt: `state ${state.name} defined multiple times`
+            });
 
+          }
         }
       }
     }
@@ -147,8 +143,11 @@ export class VhdlLinter {
     }
   }
 
-  async checkNotDeclared(architecture?: OArchitecture) {
+  checkNotDeclared(architecture?: OArchitecture) {
     if (!architecture) {
+      return;
+    }
+    if (!(this.tree instanceof OFileWithEntityAndArchitecture)) {
       return;
     }
     const pushWriteError = (write: OWrite) => {
@@ -192,7 +191,7 @@ export class VhdlLinter {
         !found && pushWriteError(write);
       }
       for (const read of process.getFlatReads()) {
-        let found = architecture.isValidRead(read, this.packageThings);
+        let found = architecture.isValidRead(read, this.packages);
         for (const variable of process.variables) {
           if (variable.name.toLowerCase() === read.text.toLowerCase()) {
             found = true;
@@ -205,15 +204,15 @@ export class VhdlLinter {
 
     // Reads
     for (const instantiation of architecture.instantiations) {
-      const entity = await this.getProjectEntity(instantiation);
+      const entity = this.getProjectEntity(instantiation);
       for (const read of instantiation.getFlatReads(entity)) {
-        !architecture.isValidRead(read, this.packageThings) && pushReadError(read);
+        !architecture.isValidRead(read, this.packages) && pushReadError(read);
       }
     }
     // Writes
 
     for (const instantiation of architecture.instantiations) {
-      const entity = await this.getProjectEntity(instantiation);
+      const entity = this.getProjectEntity(instantiation);
       for (const write of instantiation.getFlatWrites(entity)) {
         !architecture.isValidWrite(write) && pushWriteError(write);
       }
@@ -221,7 +220,7 @@ export class VhdlLinter {
 
     for (const assignment of architecture.assignments) {
       for (const read of assignment.reads) {
-        !architecture.isValidRead(read, this.packageThings) && pushReadError(read);
+        !architecture.isValidRead(read, this.packages) && pushReadError(read);
       }
       for (const write of assignment.writes) {
         !architecture.isValidWrite(write) && pushWriteError(write);
@@ -232,7 +231,7 @@ export class VhdlLinter {
     }
   }
   checkResets() {
-    if (!this.tree.architecture) {
+    if (!(this.tree instanceof OFileWithEntityAndArchitecture)) {
       return;
     }
     let signalLike: OSignalLike[] = this.tree.architecture.signals;
@@ -295,7 +294,7 @@ export class VhdlLinter {
     }
   }
 
-  private async checkUnusedPerArchitecture(architecture: OArchitecture, signal: OSignal|OPort) {
+  private checkUnusedPerArchitecture(architecture: OArchitecture, signal: OSignal|OPort) {
     let unread = true;
     let unwritten = true;
     const sigLowName = signal.name.toLowerCase();
@@ -321,7 +320,7 @@ export class VhdlLinter {
       }
     }
     for (const instantiation of architecture.instantiations) {
-      const entity = await this.getProjectEntity(instantiation);
+      const entity = this.getProjectEntity(instantiation);
       //       console.log(instantiation.getFlatReads(entity), instantiation.getFlatWrites(entity));
       if (instantiation.getFlatReads(entity).find(read => read.text.toLowerCase() === sigLowName)) {
         unread = false;
@@ -331,7 +330,7 @@ export class VhdlLinter {
       }
     }
     for (const generate of architecture.generates) {
-      const [unreadChild, unwrittenChild] = await this.checkUnusedPerArchitecture(generate, signal);
+      const [unreadChild, unwrittenChild] = this.checkUnusedPerArchitecture(generate, signal);
       if (!unreadChild) {
         unread = false;
       }
@@ -341,7 +340,7 @@ export class VhdlLinter {
     }
     return [unread, unwritten];
   }
-  private async checkUnused(architecture: OArchitecture, entity?: OEntity) {
+  private checkUnused(architecture: OArchitecture, entity?: OEntity) {
     if (!architecture) {
       return;
     }
@@ -350,7 +349,7 @@ export class VhdlLinter {
     }
     if (entity) {
       for (const port of entity.ports) {
-        const [unread, unwritten] = await this.checkUnusedPerArchitecture(architecture, port);
+        const [unread, unwritten] = this.checkUnusedPerArchitecture(architecture, port);
         if (unread && port.direction === 'in') {
           this.messages.push({
             location: {
@@ -374,7 +373,7 @@ export class VhdlLinter {
       }
     }
     for (const signal of architecture.signals) {
-     const [unread, unwritten] = await this.checkUnusedPerArchitecture(architecture, signal);
+     const [unread, unwritten] = this.checkUnusedPerArchitecture(architecture, signal);
      if (unread) {
        this.messages.push({
          location: {
@@ -398,10 +397,11 @@ export class VhdlLinter {
    }
   }
   checkPortDeclaration() {
-    if (!this.tree.entity) {
+    if (this.tree instanceof OFileWithEntity === false) {
       return;
     }
-    for (const port of this.tree.entity.ports) {
+    const tree = this.tree as OFileWithEntity;
+    for (const port of tree.entity.ports) {
       if (port.direction === 'in') {
         if (port.name.match(/^o_/i)) {
           this.messages.push({
@@ -445,8 +445,8 @@ export class VhdlLinter {
       }
     }
   }
-  private async getProjectEntity(instantiation: OInstantiation): Promise<OEntity|undefined> {
-    const projectEntities: OEntity[] = await this.projectParser.getEntities();
+  private getProjectEntity(instantiation: OInstantiation): OEntity|undefined {
+    const projectEntities: OEntity[] = this.projectParser.getEntities();
     if (instantiation.library) {
       const entityWithLibrary =  projectEntities.find(entity => entity.name.toLowerCase() === instantiation.componentName.toLowerCase() && typeof entity.library !== 'undefined' && typeof instantiation.library !== 'undefined' && entity.library.toLowerCase() === instantiation.library.toLowerCase());
       if (entityWithLibrary) {
@@ -456,13 +456,13 @@ export class VhdlLinter {
     return projectEntities.find(entity => entity.name.toLowerCase() === instantiation.componentName.toLowerCase());
 
   }
-  async checkInstantiations(architecture: OArchitecture) {
+  checkInstantiations(architecture: OArchitecture) {
     if (!architecture) {
       return;
     }
     for (const instantiation of architecture.instantiations) {
       if (instantiation.entityInstantiation) {
-        const entity = await this.getProjectEntity(instantiation);
+        const entity = this.getProjectEntity(instantiation);
         if (!entity) {
           this.messages.push({
             location: {

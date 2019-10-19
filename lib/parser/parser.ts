@@ -2,7 +2,8 @@ import {EntityParser} from './entity-parser';
 import {ArchitectureParser} from './architecture-parser';
 import {ParserBase} from './parser-base';
 import {ParserPosition} from './parser-position';
-import {OFile, OUseStatement, ParserError} from './objects';
+import {OFile, OUseStatement, ParserError, OEntity, OArchitecture, OPackage, OFileWithEntity, OFileWithPackage, OFileWithEntityAndArchitecture} from './objects';
+import { PackageParser } from './package-parser';
 
 
 export class Parser extends ParserBase {
@@ -13,11 +14,14 @@ export class Parser extends ParserBase {
     this.originalText = text;
     this.removeComments();
   }
-  parse(): OFile {
+  parse(): OFileWithPackage|OFileWithEntity|OFile {
     if (this.text.length > 500 * 1024) {
       throw new ParserError('file too large', 0);
     }
     const file = new OFile(this.text, this.file, this.originalText);
+    let entity: OEntity|undefined;
+    let architecture: OArchitecture|undefined;
+    let pkg: OPackage|undefined;
     while (this.pos.i < this.text.length) {
       if (this.text[this.pos.i].match(/\s/)) {
         this.pos.i++;
@@ -31,22 +35,37 @@ export class Parser extends ParserBase {
         file.useStatements.push(this.getUseStatement(file));
         this.expect(';');
       } else if (nextWord === 'entity') {
-        const entity = new EntityParser(this.text, this.pos, this.file, file);
-        file.entity = entity.parse();
+        const entityParser = new EntityParser(this.text, this.pos, this.file, file as OFileWithEntity);
+        entity = entityParser.parse();
         if (this.onlyEntity) {
+          Object.setPrototypeOf(file, OFileWithEntity.prototype);
+          (file as OFileWithEntity).entity = entity;
           return file;
         }
 //         // console.log(file, typeof file.entity, 'typeof');
       } else if (nextWord === 'architecture') {
-        if (file.architecture) {
+        if (architecture) {
           this.message('Second Architecture not supported');
         }
-        const architecture = new ArchitectureParser(this.text, this.pos, this.file, file);
-        file.architecture = architecture.parse();
-
+        const architectureParser = new ArchitectureParser(this.text, this.pos, this.file, file);
+        architecture = architectureParser.parse();
+      } else if (nextWord === 'package') {
+        const packageParser = new PackageParser(this.text, this.pos, this.file);
+        pkg = packageParser.parse(file);
+        Object.setPrototypeOf(file, OFileWithPackage.prototype);
+        (file as OFileWithPackage).package = pkg;
+        return file;
       } else {
         this.pos.i++;
       }
+    }
+    if (architecture && entity) {
+      Object.setPrototypeOf(file, OFileWithEntityAndArchitecture.prototype);
+      (file as OFileWithEntityAndArchitecture).architecture = architecture;
+      (file as OFileWithEntityAndArchitecture).entity = entity;
+    } else if (pkg) {
+      Object.setPrototypeOf(file, OFileWithPackage.prototype);
+      (file as OFileWithPackage).package = pkg;
     }
     return file;
   }

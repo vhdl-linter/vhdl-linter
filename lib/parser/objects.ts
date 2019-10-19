@@ -1,4 +1,3 @@
-import {OThing} from '../project-parser';
 export class ObjectBase {
   public startI: number;
   public endI: number;
@@ -35,8 +34,6 @@ export class OFile {
   constructor(public text: string, public file: string, public originalText: string) {}
   libraries: string[] = [];
   useStatements: OUseStatement[] = [];
-  entity: OEntity;
-  architecture: OArchitecture;
   objectList: ObjectBase[] = [];
   getJSONMagic() {
     let target: any = {};
@@ -65,6 +62,21 @@ export class OFile {
     target = filter(this);
     return target;
   }
+}
+export class OFileWithEntity extends OFile {
+  entity: OEntity;
+}
+export class OFileWithEntityAndArchitecture extends OFileWithEntity {
+  architecture: OArchitecture;
+}
+export class OFileWithPackage extends OFile {
+  package: OPackage;
+}
+export class OPackage extends ObjectBase {
+  name: string;
+  functions: OFunction[];
+  constants: OSignal[];
+  types: OType[];
 }
 export class OUseStatement extends ObjectBase {
   text: string;
@@ -99,7 +111,7 @@ export class OArchitecture extends ObjectBase {
         throw new Error('Infinite Loop?');
       }
     }
-    const file = (parent as any) as OFile;
+    const file = (parent as any) as OFileWithEntityAndArchitecture;
     for (const signal of file.architecture.signals) {
         found = found || signal.name.toLowerCase() === write.text.toLowerCase();
     }
@@ -107,23 +119,49 @@ export class OArchitecture extends ObjectBase {
       found = found || port.name.toLowerCase() === write.text.toLowerCase();
     }
     for (const type of file.architecture.types) {
-      if (type.states.find(state => state.name.toLowerCase() === write.text.toLowerCase())) {
+      if (type instanceof OEnum && type.states.find(state => state.name.toLowerCase() === write.text.toLowerCase())) {
         found = true;
       }
     }
     return found;
   }
-  isValidRead(read: ORead, packageThings: OThing[]): boolean {
-    return this.findRead(read, packageThings) !== false;
+  isValidRead(read: ORead, packages: OPackage[]): boolean {
+    return this.findRead(read, packages) !== false;
   }
-  findRead(read: ORead, packageThings: OThing[]): OSignal|OFunction|false|OThing|OForLoop|OForGenerate {
-    let found: OSignal|OFunction|false|OThing|OForLoop|OForGenerate = false;
+  findRead(read: ORead, packages: OPackage[]): OSignal|OFunction|false|OForLoop|OForGenerate {
+    let found: OSignal|OFunction|false|OForLoop|OForGenerate = false;
 
-    const packageThing = packageThings.find(packageThing => packageThing.name.toLowerCase() === read.text.toLowerCase());
-    if (packageThing) {
-      found = packageThing;
-      return found;
+    for (const pkg of packages) {
+      for (const constant of pkg.constants) {
+        if (constant.name.toLowerCase() === read.text.toLowerCase()) {
+          return constant;
+        }
+      }
+      for (const func of pkg.functions) {
+        if (func.name.toLowerCase() === read.text.toLowerCase()) {
+          return func;
+        }
+      }
+      for (const type of pkg.types) {
+        if (type.name.toLowerCase() === read.text.toLowerCase()) {
+          return type;
+        }
+        if (type instanceof OEnum) {
+          for (const state of type.states) {
+            if (state.name.toLowerCase() === read.text.toLowerCase()) {
+              return state;
+            }
+          }
+        } else if (type instanceof ORecord) {
+          for (const child of type.children) {
+            if (child.name.toLowerCase() === read.text.toLowerCase()) {
+              return child;
+            }
+          }
+        }
+      }
     }
+
     let parent = read.parent;
     let counter = 100;
     while ((parent instanceof OFile) === false) {
@@ -149,23 +187,32 @@ export class OArchitecture extends ObjectBase {
         throw new Error('Infinite Loop?');
       }
     }
-    const file = (parent as any) as OFile;
-    for (const generic of file.entity.generics) {
-      found = found || generic.name.toLowerCase() === read.text.toLowerCase() && generic;
-    }
-    for (const port of file.entity.ports) {
-      found = found || port.name.toLowerCase() === read.text.toLowerCase() && port;
-    }
-    for (const type of file.architecture.types) {
-      const state = type.states.find(state => state.name.toLowerCase() === read.text.toLowerCase());
-      found = found || typeof state !== 'undefined' && state;
+    if (parent instanceof OFileWithEntityAndArchitecture) {
+      const file = (parent as any) as OFileWithEntityAndArchitecture;
+      for (const generic of file.entity.generics) {
+        found = found || generic.name.toLowerCase() === read.text.toLowerCase() && generic;
+      }
+      for (const port of file.entity.ports) {
+        found = found || port.name.toLowerCase() === read.text.toLowerCase() && port;
+      }
+      for (const type of file.architecture.types) {
+        if (type instanceof OEnum) {
+          const state = type.states.find(state => state.name.toLowerCase() === read.text.toLowerCase());
+          found = found || typeof state !== 'undefined' && state;
+        }
+      }
     }
     return found;
   }
 }
 export class OType extends ObjectBase {
   name: string;
+}
+export class OEnum extends OType {
   states: OState[] = [];
+}
+export class ORecord extends OType {
+  children: OType[];
 }
 export class OState extends ObjectBase {
   begin: number;
@@ -195,7 +242,7 @@ export class OSignalLike extends ObjectBase {
   private register: boolean | null = null;
   private registerProcess: OProcess | null;
   reads: ORead[];
-  constructor(public parent: OArchitecture|OEntity, startI: number, endI: number) {
+  constructor(public parent: OArchitecture|OEntity|OPackage, startI: number, endI: number) {
     super(parent, startI, endI);
   }
   isRegister(): boolean {
@@ -203,7 +250,7 @@ export class OSignalLike extends ObjectBase {
       return this.register;
     }
     this.register = false;
-    const processes = this.parent instanceof OArchitecture ? this.parent.processes : this.parent.parent.architecture.processes;
+    const processes = this.parent instanceof OArchitecture ? this.parent.processes : (this.parent.parent instanceof OFileWithEntityAndArchitecture ? this.parent.parent.architecture.processes : []);
     for (const process of processes) {
       if (process.isRegisterProcess()) {
         for (const write of process.getFlatWrites()) {
@@ -301,7 +348,7 @@ export class OMapping extends ObjectBase {
   mappingIfOutput: [ORead[], OWrite[]];
 }
 export class OEntity extends ObjectBase {
-  constructor(public parent: OFile, startI: number, endI: number, public library?: string) {
+  constructor(public parent: OFileWithEntity, startI: number, endI: number, public library?: string) {
     super(parent, startI, endI);
   }
   name: string;

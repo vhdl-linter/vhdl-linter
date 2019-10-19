@@ -1,10 +1,10 @@
 import {ParserBase} from './parser-base';
 import {ParserPosition} from './parser-position';
 import { DeclarativePartParser } from './declarative-part-parser';
-import {OPort, OGeneric, OEntity, ParserError, OFile} from './objects';
+import {OPort, OGeneric, OEntity, ParserError, OFileWithEntity} from './objects';
 
 export class EntityParser extends ParserBase {
-  constructor(text: string, pos: ParserPosition, file: string, private parent: OFile) {
+  constructor(text: string, pos: ParserPosition, file: string, private parent: OFileWithEntity) {
     super(text, pos, file);
     this.debug(`start`);
   }

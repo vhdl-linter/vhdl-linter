@@ -36,10 +36,11 @@ export class ArchitectureParser extends ParserBase {
       this.expect('is');
     }
 
-    const { signals, types } = new DeclarativePartParser(this.text, this.pos, this.file, architecture).parse(structureName !== 'architecture');
+    const { signals, types, functions } = new DeclarativePartParser(this.text, this.pos, this.file, architecture).parse(structureName !== 'architecture');
     this.maybeWord('begin');
     architecture.signals = signals;
     architecture.types = types;
+    architecture.functions = functions;
 
     while (this.pos.i < this.text.length) {
       if (this.text[this.pos.i].match(/\s/)) {
