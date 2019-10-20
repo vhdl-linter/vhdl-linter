@@ -118,7 +118,7 @@ export class VhdlLinter {
             this.messages.push({
               location: {
                 file: this.editorPath,
-                position: this.getPositionFromILine(state.begin, state.end)
+                position: this.getPositionFromILine(state.startI, state.endI)
               },
               severity: 'error',
               excerpt: `state ${state.name} defined multiple times`
@@ -151,8 +151,8 @@ export class VhdlLinter {
       return;
     }
     const pushWriteError = (write: OWrite) => {
-      let positionStart = this.getPositionFromI(write.begin);
-      let positionEnd = this.getPositionFromI(write.end);
+      let positionStart = this.getPositionFromI(write.startI);
+      let positionEnd = this.getPositionFromI(write.endI);
       let position = Range.create(positionStart, positionEnd);
 
       this.messages.push({
@@ -165,8 +165,8 @@ export class VhdlLinter {
       });
     };
     const pushReadError = (read: ORead) => {
-      let positionStart = this.getPositionFromI(read.begin);
-      let positionEnd = this.getPositionFromI(read.end);
+      let positionStart = this.getPositionFromI(read.startI);
+      let positionEnd = this.getPositionFromI(read.endI);
       let position = Range.create(positionStart, positionEnd);
 
       this.messages.push({

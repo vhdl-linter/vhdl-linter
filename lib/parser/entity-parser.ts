@@ -48,7 +48,7 @@ export class EntityParser extends ParserBase {
   }
   parsePortsAndGenerics(generics: false, entity: any): OPort[];
   parsePortsAndGenerics(generics: true, entity: any): OGeneric[];
-  parsePortsAndGenerics(generics: false|true , entity: any): OPort[]|OGeneric[] {
+  parsePortsAndGenerics(generics: false|true , entity: any): (OPort|OGeneric)[] {
     this.debug('start ports');
     this.expect('(');
     let multiPorts: string[] = [];

@@ -114,10 +114,8 @@ export class ProcessParser extends ParserBase {
     const position = this.pos.i;
     clause.condition = this.advancePast('then');
     clause.conditionReads = this.tokenize(clause.condition).filter(token => (token.type === 'FUNCTION') || (token.type === 'VARIABLE')).map(token => {
-      const read = new ORead(clause, position + token.offset, this.getEndOfLineI(position + token.offset));
+      const read = new ORead(clause, position + token.offset, position + token.offset + token.value.length);
       read.text = token.value;
-      read.begin = position + token.offset;
-      read.end = position + token.offset + token.value.length;
       return read;
     });
     clause.statements = this.parseStatements(clause, ['else', 'elsif', 'end']);
@@ -130,10 +128,8 @@ export class ProcessParser extends ParserBase {
       const position = this.pos.i;
       clause.condition = this.advancePast('then');
       clause.conditionReads = this.tokenize(clause.condition).filter(token => (token.type === 'VARIABLE') || (token.type === 'FUNCTION')).map(token => {
-        const read = new ORead(clause, position + token.offset, this.getEndOfLineI(position + token.offset));
+        const read = new ORead(clause, position + token.offset, position + token.offset + token.value.length);
         read.text = token.value;
-        read.begin = position + token.offset;
-        read.end = position + token.offset + token.value.length;
         return read;
       });
       clause.statements = this.parseStatements(clause, ['else', 'elsif', 'end']);

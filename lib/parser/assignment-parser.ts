@@ -9,7 +9,6 @@ export class AssignmentParser extends ParserBase {
   }
   parse(): OAssignment {
     let assignment = new OAssignment(this.parent, this.pos.i, this.getEndOfLineI());
-    assignment.begin = this.pos.i;
     let leftHandSideI = this.pos.i;
     let leftHandSide = '';
     while (this.text.substr(this.pos.i, 2) !== '<=' && this.text.substr(this.pos.i, 2) !== ':=') {
@@ -31,7 +30,7 @@ export class AssignmentParser extends ParserBase {
     assignment.reads.push(...this.extractReads(assignment, rightHandSide, rightHandSideI));
     this.expect(';');
 //     // console.log(assignment,  assignment.constructor.name, assignment instanceof Assignment);
-    assignment.end = this.pos.i;
+    assignment.endI = this.pos.i;
     return assignment;
   }
 

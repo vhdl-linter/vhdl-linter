@@ -85,6 +85,7 @@ export class OUseStatement extends ObjectBase {
 }
 export class OFunction extends ObjectBase {
   name: string;
+  parameter: string;
 }
 export class OArchitecture extends ObjectBase {
   signals: OSignal[] = [];
@@ -128,8 +129,8 @@ export class OArchitecture extends ObjectBase {
   isValidRead(read: ORead, packages: OPackage[]): boolean {
     return this.findRead(read, packages) !== false;
   }
-  findRead(read: ORead, packages: OPackage[]): OSignal|OFunction|false|OForLoop|OForGenerate {
-    let found: OSignal|OFunction|false|OForLoop|OForGenerate = false;
+  findRead(read: ORead, packages: OPackage[]): ObjectBase|false {
+    let found: ObjectBase|false = false;
 
     for (const pkg of packages) {
       for (const constant of pkg.constants) {
@@ -215,8 +216,6 @@ export class ORecord extends OType {
   children: OType[];
 }
 export class OState extends ObjectBase {
-  begin: number;
-  end: number;
   name: string;
 }
 export class OForGenerate extends OArchitecture {
@@ -238,7 +237,7 @@ export class OVariable extends ObjectBase {
 export class OSignalLike extends ObjectBase {
   type: string;
   name: string;
-  defaultValue?: string;
+  defaultValue?: ORead[];
   private register: boolean | null = null;
   private registerProcess: OProcess | null;
   reads: ORead[];
@@ -532,12 +531,8 @@ export class OForLoop extends ObjectBase {
 export class OAssignment extends ObjectBase {
   writes: OWrite[] = [];
   reads: ORead[] = [];
-  begin: number;
-  end: number;
 }
 export class OWriteReadBase extends ObjectBase {
-  begin: number;
-  end: number;
   text: string;
 }
 export class OWrite extends OWriteReadBase {

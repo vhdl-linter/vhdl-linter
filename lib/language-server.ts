@@ -21,7 +21,7 @@ import {
 } from 'vscode-languageserver';
 import { VhdlLinter } from './vhdl-linter';
 import { ProjectParser} from './project-parser';
-import { OFile, OArchitecture, ORead, OWrite, OSignal, OFunction, OForLoop, OForGenerate, OInstantiation, OMapping, OEntity, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackage, OEnum} from './parser/objects';
+import { OFile, OArchitecture, ORead, OWrite, OSignal, OFunction, OForLoop, OForGenerate, OInstantiation, OMapping, OEntity, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackage, OEnum, ObjectBase, OType} from './parser/objects';
 import { readFileSync } from 'fs';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
@@ -55,39 +55,40 @@ connection.onInitialize((params: InitializeParams) => {
     }
   };
 });
-
-connection.onInitialized(async () => {
-  if (hasWorkspaceFolderCapability) {
-    const parseWorkspaces = async () => {
-      const workspaceFolders = await connection.workspace.getWorkspaceFolders();
-      if (workspaceFolders) {
-        const folders = workspaceFolders.map(workspaceFolder => workspaceFolder.uri);
-        projectParser = new ProjectParser(folders);
-      }
-      documents.onDidChangeContent(change => {
-        validateTextDocument(change.document);
+const initialization = new Promise(resolve => {
+  connection.onInitialized(async () => {
+    if (hasWorkspaceFolderCapability) {
+      const parseWorkspaces = async () => {
+        const workspaceFolders = await connection.workspace.getWorkspaceFolders();
+        if (workspaceFolders) {
+          const folders = workspaceFolders.map(workspaceFolder => workspaceFolder.uri);
+          projectParser = new ProjectParser(folders);
+        }
+        documents.all().forEach(validateTextDocument);
+        documents.onDidChangeContent(change => {
+          validateTextDocument(change.document);
+        });
+      };
+      parseWorkspaces();
+      connection.workspace.onDidChangeWorkspaceFolders(async event => {
+        projectParser.addFolders(event.added.map(folder => folder.uri));
+        connection.console.log('Workspace folder change event received.');
       });
-    };
-    parseWorkspaces();
-    connection.workspace.onDidChangeWorkspaceFolders(async event => {
-      projectParser.addFolders(event.added.map(folder => folder.uri));
-      connection.console.log('Workspace folder change event received.');
-    });
-  } else {
-    projectParser = new ProjectParser([]);
-  }
+    } else {
+      projectParser = new ProjectParser([]);
+    }
+  });
 });
 
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
 const linters = new Map<string, VhdlLinter>();
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
-
   const vhdlLinter = new VhdlLinter(textDocument.uri, textDocument.getText(), projectParser);
   if (typeof vhdlLinter.tree !== 'undefined') {
     linters.set(textDocument.uri, vhdlLinter);
   }
-  const diagnostics: Diagnostic[] = (await vhdlLinter.checkAll()).map(message => {
+  const diagnostics: Diagnostic[] = (vhdlLinter.checkAll()).map(message => {
     let severity: DiagnosticSeverity;
     if (message.severity === 'error') {
       severity = DiagnosticSeverity.Error;
@@ -150,9 +151,8 @@ connection.onDocumentSymbol(async (params): Promise<DocumentSymbol[]> => {
       kind: SymbolKind.Class,
       range: linter.getPositionFromILine(architecture.startI),
       selectionRange: linter.getPositionFromILine(architecture.startI, architecture.endI),
-      children: architecture.signals.map(signal => ({
+      children: (architecture.signals as (OSignal|OType)[]).concat(architecture.types).map(signal => ({
         name: signal.name,
-        deprecated: signal.isRegister(),
         kind: SymbolKind.Variable,
         range: linter.getPositionFromILine(signal.startI, signal.endI),
         selectionRange: linter.getPositionFromILine(signal.startI, signal.endI)
@@ -230,7 +230,7 @@ connection.onDocumentSymbol(async (params): Promise<DocumentSymbol[]> => {
   return returnValue;
 });
 const positionFromI = (text: string, i: number) => {
-  const slice = text.slice(0, i);
+  const slice = text.substring(0, i + 1);
   const lines = slice.split('\n');
   return Position.create(lines.length - 1, lines[lines.length - 1].length - 1);
 };
@@ -255,7 +255,7 @@ const findDefinition = async (params: IFindDefinitionParams) => {
   }
 
   if ((candidate instanceof ORead || candidate instanceof OWrite) && linter.tree instanceof OFileWithEntityAndArchitecture) {
-    let result: OSignal|OFunction|false|OForLoop|OForGenerate;
+    let result: false|ObjectBase;
     result = linter.tree.architecture.findRead(candidate, linter.packages);
     if (typeof result === 'boolean') {
       return null;
@@ -309,10 +309,10 @@ connection.onHover(async (params): Promise<Hover|null> => {
   }
   const lines = definition.text.split('\n').slice(definition.range.start.line, definition.range.end.line + 1);
   if (definition.range.start.line === definition.range.end.line) {
-    lines[0] = lines[0].substring(definition.range.start.character, definition.range.end.character + 1);
+    lines[0] = lines[0].substring(definition.range.start.character, definition.range.end.character);
   } else {
     lines[0] = lines[0].substring(definition.range.start.character);
-    lines[lines.length - 1] = lines[lines.length - 1].substring(0, definition.range.end.character + 1);
+    lines[lines.length - 1] = lines[lines.length - 1].substring(0, definition.range.end.character);
   }
   return {
     contents: {

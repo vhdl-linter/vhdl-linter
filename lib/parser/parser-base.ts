@@ -59,9 +59,12 @@ export class ParserBase {
       this.pos.i--;
     }
   }
-  advancePast(search: string | RegExp, options: {allowSemicolon?: boolean} = {}) {
+  advancePast(search: string | RegExp, options: {allowSemicolon?: boolean, returnMatch?: boolean} = {}) {
     if (typeof options.allowSemicolon === 'undefined') {
       options.allowSemicolon = false;
+    }
+    if (typeof options.returnMatch === 'undefined') {
+      options.returnMatch = false;
     }
     let text = '';
     let searchStart = this.pos.i;
@@ -76,6 +79,9 @@ export class ParserBase {
           throw new ParserError(`could not find ${search}`, searchStart);
         }
       }
+      if (options.returnMatch) {
+        text += search;
+      }
       this.pos.i += search.length;
     } else {
       let match = this.text.substr(this.pos.i).match(search);
@@ -84,7 +90,11 @@ export class ParserBase {
           throw new ParserError(`could not find ${search} DEBUG-SEMICOLON`, searchStart);
         }
         // text = match[0];
-        text = this.text.substr(this.pos.i, match.index);
+        if (options.returnMatch) {
+          text = this.text.substr(this.pos.i, match.index + match[0].length);
+        } else {
+          text = this.text.substr(this.pos.i, match.index);
+        }
         this.pos.i += match.index + match[0].length;
       } else {
         throw new ParserError(`could not find ${search}`, searchStart);
@@ -116,7 +126,32 @@ export class ParserBase {
     }
     throw new ParserError(`could not find closing brace`, this.pos.i - text.length);
   }
-  advanceSemicolon() {
+  advanceSemicolon(braceAware: boolean = false) {
+    if (braceAware) {
+      let text = '';
+      let braceLevel = 0;
+      let quote = false;
+      while (this.text[this.pos.i]) {
+        if (this.text[this.pos.i] === '"' && this.text[this.pos.i - 1] !== '\\') {
+          quote = !quote;
+        } else if (this.text[this.pos.i] === '(' && !quote) {
+          braceLevel++;
+        } else if (this.text[this.pos.i] === ')' && !quote) {
+          if (braceLevel > 0) {
+            braceLevel--;
+          } else {
+            throw new ParserError(`unexpected ')'`, this.pos.i - text.length);
+          }
+        } else if (this.text[this.pos.i] === ';' && !quote && braceLevel === 0) {
+          this.pos.i++;
+          this.advanceWhitespace();
+          return text.trim();
+        }
+        text += this.text[this.pos.i];
+        this.pos.i++;
+      }
+      throw new ParserError(`could not find closing brace`, this.pos.i - text.length);
+    }
     let text = '';
     while (this.text[this.pos.i].match(/[^;]/)) {
       text += this.text[this.pos.i];
@@ -216,22 +251,21 @@ export class ParserBase {
       this.advanceWhitespace();
     }
   }
-  getType() {
+  getType(advanceSemicolon = true) {
     let type = '';
     while (this.text[this.pos.i].match(/[^;]/)) {
       type += this.text[this.pos.i];
       this.pos.i++;
     }
-    this.expect(';');
-    this.advanceWhitespace();
+    if (advanceSemicolon) {
+      this.expect(';');
+      this.advanceWhitespace();
+    }
     return type;
   }
   extractReads(parent: any, text: string, i: number): ORead[] {
     return this.tokenize(text).filter(token => token.type === 'VARIABLE' || token.type === 'FUNCTION').map(token => {
-      const write = new OWrite(parent, i, i + token.value.length);
-      write.begin = i;
-      write.begin = i + token.offset;
-      write.end = write.begin + token.value.length;
+      const write = new OWrite(parent, i + token.offset, i + token.offset + token.value.length);
       write.text = token.value;
       return write;
     });
@@ -248,17 +282,11 @@ export class ParserBase {
         token.value === '(' ? braceLevel++ : braceLevel--;
       } else if (token.type === 'VARIABLE' || token.type === 'FUNCTION') {
         if (braceLevel === 0) {
-          const write = new OWrite(parent, i, this.getEndOfLineI(i));
-          write.begin = i;
-          write.begin = i + token.offset;
-          write.end = write.begin + token.value.length;
+          const write = new OWrite(parent, i + token.offset, i + token.offset + token.value.length);
           write.text = token.value;
           writes.push(write);
         } else {
-          const read = new ORead(parent, i, this.getEndOfLineI(i));
-          read.begin = i;
-          read.begin = i + token.offset;
-          read.end = read.begin + token.value.length;
+          const read = new ORead(parent, i + token.offset, i + token.offset + token.value.length);
           read.text = token.value;
           reads.push(read);
         }
