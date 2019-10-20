@@ -1,14 +1,17 @@
 {
   "name": "vhdl-linter",
-  "main": "./dist/lib/index.js",
+  "main": "./dist/lib/vscode.js",
   "version": "0.0.0",
   "description": "A typescript based linter for vhdl",
   "keywords": [],
-  "repository": "https://github.com/atom/vhdl-linter",
+  "repository": "https://github.com/g0t00/vhdl-linter",
   "license": "MIT",
   "engines": {
-    "atom": ">=1.0.0 <2.0.0"
+    "vscode": "^1.33.0"
   },
+  "activationEvents": [
+    "onLanguage:vhdl"
+  ],
   "scripts": {
     "build": "tsc --project .",
     "build-watch": "tsc -w --jsx react --project  .",
@@ -25,7 +28,6 @@
     }
   },
   "dependencies": {
-    "@types/atom": "^1.31.0",
     "@types/blessed": "^0.1.11",
     "@types/chokidar": "^2.1.3",
     "@types/colors": "^1.2.1",
@@ -33,8 +35,6 @@
     "@types/node": "^10.12.0",
     "@types/prettyjson": "0.0.28",
     "@types/string-similarity": "^3.0.0",
-    "atom-languageclient": "github:g0t00/atom-languageclient",
-    "atom-package-deps": "^4.6.2",
     "blessed": "^0.1.81",
     "blessed-contrib": "^4.8.16",
     "chokidar": "^3.2.2",
@@ -52,6 +52,8 @@
     "tslint-microsoft-contrib": "^5.2.1",
     "typed-promisify": "^0.4.0",
     "typescript": "^3.5.1",
+    "vscode": "^1.1.36",
+    "vscode-languageclient": "^5.2.1",
     "vscode-languageserver": "^5.2.1",
     "vscode-languageserver-types": "^3.14.0"
   },
@@ -59,57 +61,10 @@
     "source.vhdl"
   ],
   "package-deps": [
-    "atom-ide-ui",
-    "hyperclick"
   ],
   "providedServices": {
-    "linter": {
-      "versions": {
-        "2.0.0": "provideLinter"
-      }
-    },
-    "definitions": {
-      "versions": {
-        "0.1.0": "provideDefinitions"
-      }
-    },
-    "hyperclick": {
-      "versions": {
-        "0.1.0": "provideHyper"
-      }
-    },
-    "autocomplete.provider": {
-      "versions": {
-        "2.0.0": "provideAutocomplete"
-      }
-    },
-    "outline-view": {
-      "versions": {
-        "0.1.0": "provideOutlines"
-      }
-    },
-    "code-actions": {
-      "versions": {
-        "0.1.0": "provideCodeActions"
-      }
-    },
-    "find-references": {
-      "versions": {
-        "0.1.0": "provideFindReferences"
-      }
-    }
   },
   "consumedServices": {
-    "linter-indie": {
-      "versions": {
-        "2.0.0": "consumeLinterV2"
-      }
-    },
-    "datatip": {
-      "versions": {
-        "0.1.0": "consumeDatatip"
-      }
-    }
   },
   "devDependencies": {}
 }

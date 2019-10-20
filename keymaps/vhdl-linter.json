@@ -1,6 +1,3 @@
 
 {
-  "atom-text-editor[data-grammar='source vhdl']": {
-    "ctrl-alt-t": "vhdl-linter:copy-parsed"
-  }
 }

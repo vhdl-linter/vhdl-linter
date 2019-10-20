@@ -61,7 +61,7 @@ const initialization = new Promise(resolve => {
       const parseWorkspaces = async () => {
         const workspaceFolders = await connection.workspace.getWorkspaceFolders();
         if (workspaceFolders) {
-          const folders = workspaceFolders.map(workspaceFolder => workspaceFolder.uri);
+          const folders = workspaceFolders.map(workspaceFolder => workspaceFolder.uri.replace('file://', ''));
           projectParser = new ProjectParser(folders);
         }
         documents.all().forEach(validateTextDocument);
@@ -71,7 +71,7 @@ const initialization = new Promise(resolve => {
       };
       parseWorkspaces();
       connection.workspace.onDidChangeWorkspaceFolders(async event => {
-        projectParser.addFolders(event.added.map(folder => folder.uri));
+        projectParser.addFolders(event.added.map(folder => folder.uri.replace('file://', '')));
         connection.console.log('Workspace folder change event received.');
       });
     } else {
@@ -84,7 +84,7 @@ const initialization = new Promise(resolve => {
 // when the text document first opened or when its content has changed.
 const linters = new Map<string, VhdlLinter>();
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
-  const vhdlLinter = new VhdlLinter(textDocument.uri, textDocument.getText(), projectParser);
+  const vhdlLinter = new VhdlLinter(textDocument.uri.replace('file://', ''), textDocument.getText(), projectParser);
   if (typeof vhdlLinter.tree !== 'undefined') {
     linters.set(textDocument.uri, vhdlLinter);
   }
