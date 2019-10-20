@@ -4,3 +4,4 @@ node_modules
 test/_*
 dist/*
 test_results_kaputt/*
+test/private
