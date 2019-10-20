@@ -16,8 +16,8 @@ export class DeclarativePartParser extends ParserBase {
     let multiSignals: string[] = [];
     while (nextWord !== lastWord) {
       if (nextWord === 'signal' || nextWord === 'constant') {
-        this.getNextWord();
         const signal = new OSignal(this.parent, this.pos.i, this.getEndOfLineI());
+        this.getNextWord();
 
         signal.constant = nextWord === 'constant';
         signal.name = this.getNextWord({});

@@ -48,7 +48,7 @@ export class EntityParser extends ParserBase {
   }
   parsePortsAndGenerics(generics: false, entity: any): OPort[];
   parsePortsAndGenerics(generics: true, entity: any): OGeneric[];
-  parsePortsAndGenerics(generics: false|true , entity: any): (OPort|OGeneric)[] {
+  parsePortsAndGenerics(generics: false|true , entity: any): OPort[]|OGeneric[] {
     this.debug('start ports');
     this.expect('(');
     let multiPorts: string[] = [];
@@ -58,12 +58,9 @@ export class EntityParser extends ParserBase {
         this.pos.i++;
         continue;
       }
-      let port;
-      if (generics) {
-        port = new OGeneric(entity, this.pos.i, this.getEndOfLineI());
-      } else {
-        port = new OPort(entity, this.pos.i, this.getEndOfLineI());
-      }
+      let port = generics ?
+        new OGeneric(entity, this.pos.i, this.getEndOfLineI()) :
+        new OPort(entity, this.pos.i, this.getEndOfLineI());
 
       if (this.text[this.pos.i] === ')') {
         this.pos.i++;
@@ -101,7 +98,7 @@ export class EntityParser extends ParserBase {
       // }
       multiPorts = [];
     }
-    return ports;
+    return ports as any;
   }
   getTypeDefintion() {
     let type = '';
