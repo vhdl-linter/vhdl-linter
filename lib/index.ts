@@ -1,4 +1,4 @@
-import { AutoLanguageClient, LanguageServerProcess, LanguageClientConnection } from 'atom-languageclient';
+import { AutoLanguageClient, LanguageServerProcess, LanguageClientConnection } from '@g0t00/atom-languageclient';
 import {spawn} from 'child_process';
 class VhdlLinterClient extends AutoLanguageClient {
   getGrammarScopes() {

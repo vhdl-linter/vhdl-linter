@@ -25,6 +25,7 @@
     }
   },
   "dependencies": {
+    "@g0t00/atom-languageclient": "^0.9.10",
     "@types/atom": "^1.31.0",
     "@types/blessed": "^0.1.11",
     "@types/chokidar": "^2.1.3",
@@ -33,7 +34,6 @@
     "@types/node": "^10.12.0",
     "@types/prettyjson": "0.0.28",
     "@types/string-similarity": "^3.0.0",
-    "atom-languageclient": "github:g0t00/atom-languageclient",
     "atom-package-deps": "^4.6.2",
     "blessed": "^0.1.81",
     "blessed-contrib": "^4.8.16",
