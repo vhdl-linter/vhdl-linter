@@ -377,16 +377,20 @@ connection.onCompletion(
         }
     }
     for (const pkg of linter.packages) {
+      const ieee = pkg.parent.file.match(/ieee/i) !== null;
       for (const obj of pkg.getRoot().objectList) {
         if ((obj as any).name) {
           candidates.push({
-            label: (obj as any).name,
+            label: ieee ? (obj as any).name.toLowerCase() : (obj as any).name,
             kind: CompletionItemKind.Text
           });
         }
       }
     }
-    return candidates;
+    const candidatesUnique = candidates.filter((candidate, candidateI) =>
+      candidates.slice(0, candidateI).findIndex(candidateFind => candidate.label.toLowerCase() === candidateFind.label.toLowerCase()) === -1
+    );
+    return candidatesUnique;
   }
 );
 
