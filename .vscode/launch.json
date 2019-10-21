@@ -11,7 +11,7 @@
 			"outFiles": ["${workspaceRoot}/dist/lib/*.js"],
 			"preLaunchTask": {
 				"type": "npm",
-				"script": "build"
+				"script": "watch"
 			}
 		},
 		{

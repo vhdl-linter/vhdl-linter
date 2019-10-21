@@ -146,51 +146,27 @@ connection.onDocumentSymbol(async (params): Promise<DocumentSymbol[]> => {
     return [];
   }
   const parseArchitecture = (architecture: OArchitecture): DocumentSymbol[] => {
-    const symbols: DocumentSymbol[] = [{
-      name: 'signals',
-      kind: SymbolKind.Class,
-      range: linter.getPositionFromILine(architecture.startI),
-      selectionRange: linter.getPositionFromILine(architecture.startI, architecture.endI),
-      children: (architecture.signals as (OSignal|OType)[]).concat(architecture.types).map(signal => ({
-        name: signal.name,
-        kind: SymbolKind.Variable,
-        range: linter.getPositionFromILine(signal.startI, signal.endI),
-        selectionRange: linter.getPositionFromILine(signal.startI, signal.endI)
-      }))
-    },
-    {
-      name: 'instantiation',
-      kind: SymbolKind.Class,
-      range: linter.getPositionFromILine(architecture.startI),
-      selectionRange: linter.getPositionFromILine(architecture.startI, architecture.endI),
-      children: architecture.instantiations.map(instantiation => ({
+    const symbols: DocumentSymbol[] = [];
+    symbols.push(... architecture.instantiations.map(instantiation => ({
         name: instantiation.label + ': ' + instantiation.componentName,
         detail: instantiation.label,
         kind: SymbolKind.Object,
         range: linter.getPositionFromILine(instantiation.startI, instantiation.endI),
         selectionRange: linter.getPositionFromILine(instantiation.startI, instantiation.endI)
+      })));
+    symbols.push(... architecture.processes.map(process => ({
+      name: process.label || '',
+      detail: process.label,
+      kind: SymbolKind.Object,
+      range: linter.getPositionFromILine(process.startI, process.endI),
+      selectionRange: linter.getPositionFromILine(process.startI),
+      children: process.getStates().map(state => ({
+        name: state.name,
+        kind: SymbolKind.EnumMember,
+        range: linter.getPositionFromILine(state.startI, state.endI),
+        selectionRange: linter.getPositionFromILine(state.startI, state.endI),
       }))
-    },
-    {
-      name: 'process',
-      kind: SymbolKind.Class,
-      range: linter.getPositionFromILine(architecture.startI),
-      selectionRange: linter.getPositionFromILine(architecture.startI, architecture.endI),
-      children: architecture.processes.map(process => ({
-        name: process.label || '',
-        detail: process.label,
-        kind: SymbolKind.Object,
-        range: linter.getPositionFromILine(process.startI, process.endI),
-        selectionRange: linter.getPositionFromILine(process.startI, process.endI),
-        children: process.getStates().map(state => ({
-          name: state.name,
-          kind: SymbolKind.EnumMember,
-          range: linter.getPositionFromILine(state.startI, state.endI),
-          selectionRange: linter.getPositionFromILine(state.startI, state.endI),
-
-        }))
-      }))
-    }];
+    })));
     for (const generate of architecture.generates) {
       symbols.push({
         name: linter.text.split('\n')[linter.getPositionFromILine(generate.startI, generate.endI).start.line],
@@ -203,22 +179,24 @@ connection.onDocumentSymbol(async (params): Promise<DocumentSymbol[]> => {
     return symbols;
   };
   const returnValue: DocumentSymbol[] = [];
-  if (linter.tree instanceof OFileWithEntity) {
-    returnValue.push({
-      name: 'generics',
-      kind: SymbolKind.Class,
-      range: linter.getPositionFromILine(linter.tree.entity.startI),
-      selectionRange: linter.getPositionFromILine(linter.tree.entity.startI, linter.tree.entity.endI),
-      children: linter.tree.entity.generics.map(generic => DocumentSymbol.create(generic.name, undefined, SymbolKind.Variable, linter.getPositionFromILine(generic.startI, generic.endI), linter.getPositionFromILine(generic.startI, generic.endI)))
-    });
-    returnValue.push({
-      name: 'ports',
-      kind: SymbolKind.Class,
-      range: linter.getPositionFromILine(linter.tree.entity.startI),
-      selectionRange: linter.getPositionFromILine(linter.tree.entity.startI, linter.tree.entity.endI),
-      children: linter.tree.entity.ports.map(port => DocumentSymbol.create(port.name, undefined, SymbolKind.Variable, linter.getPositionFromILine(port.startI, port.endI), linter.getPositionFromILine(port.startI, port.endI)))
-    });
-  }
+  // if (linter.tree instanceof OFileWithEntity) {
+  //   returnValue.push({
+  //     name: 'generics',
+  //     kind: SymbolKind.Class,
+  //     // range: linter.getPositionFromILine(linter.tree.entity.startI),
+  //     range: linter.getPositionFromILine(linter.tree.entity.startI, linter.tree.entity.endI),
+  //     selectionRange: linter.getPositionFromILine(linter.tree.entity.startI, linter.tree.entity.endI),
+  //     children: linter.tree.entity.generics.map(generic => DocumentSymbol.create(generic.name, undefined, SymbolKind.Variable, linter.getPositionFromILine(generic.startI, generic.endI), linter.getPositionFromILine(generic.startI, generic.endI)))
+  //   });
+  //   returnValue.push({
+  //     name: 'ports',
+  //     kind: SymbolKind.Class,
+  //     // range: linter.getPositionFromILine(linter.tree.entity.startI),
+  //     range: linter.getPositionFromILine(linter.tree.entity.startI, linter.tree.entity.endI),
+  //     selectionRange: linter.getPositionFromILine(linter.tree.entity.startI, linter.tree.entity.endI),
+  //     children: linter.tree.entity.ports.map(port => DocumentSymbol.create(port.name, undefined, SymbolKind.Variable, linter.getPositionFromILine(port.startI, port.endI), linter.getPositionFromILine(port.startI, port.endI)))
+  //   });
+  // }
   if (linter.tree instanceof OFileWithPackage) {
     returnValue.push(...linter.tree.package.types.map(type => DocumentSymbol.create(type.name, undefined, SymbolKind.Enum, linter.getPositionFromILine(type.startI, type.endI), linter.getPositionFromILine(type.startI, type.endI))));
     returnValue.push(...linter.tree.package.functions.map(func => DocumentSymbol.create(func.name, undefined, SymbolKind.Function, linter.getPositionFromILine(func.startI, func.endI), linter.getPositionFromILine(func.startI, func.endI))));

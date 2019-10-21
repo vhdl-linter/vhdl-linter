@@ -547,7 +547,7 @@ export class VhdlLinter {
     if (j) {
       positionEnd = this.getPositionFromI(j);
     } else {
-      positionEnd = Position.create(positionStart.line, this.text.split('\n')[positionStart.line].length);
+      positionEnd = Position.create(positionStart.line, this.text.split('\n')[positionStart.line].length - 1);
     }
     const position: Range = Range.create(positionStart, positionEnd);
     return position;
