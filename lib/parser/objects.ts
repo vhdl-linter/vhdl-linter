@@ -343,7 +343,7 @@ export class OMapping extends ObjectBase {
   constructor(public parent: OInstantiation, startI: number, endI: number) {
     super(parent, startI, endI);
   }
-  name: ORead[];
+  name: OReadOrMappingName[];
   mappingIfInput: ORead[];
   mappingIfOutput: [ORead[], OWrite[]];
 }
@@ -540,6 +540,9 @@ export class OWrite extends OWriteReadBase {
 }
 export class ORead extends OWriteReadBase {
 
+}
+export class OReadOrMappingName extends ORead {
+  parent: OMapping;
 }
 export class ParserError extends Error {
     constructor(message: string, public i: number) {
