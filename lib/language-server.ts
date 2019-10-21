@@ -17,12 +17,17 @@ import {
   DocumentSymbol,
   Range,
   Position,
-  Hover
+  Hover,
+  DocumentFormattingParams
 } from 'vscode-languageserver';
 import { VhdlLinter } from './vhdl-linter';
 import { ProjectParser} from './project-parser';
 import { OFile, OArchitecture, ORead, OWrite, OSignal, OFunction, OForLoop, OForGenerate, OInstantiation, OMapping, OEntity, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackage, OEnum, ObjectBase, OType, OReadOrMappingName} from './parser/objects';
-import { readFileSync } from 'fs';
+import { readFileSync, mkdtempSync, writeFileSync, writeFile, readFile } from 'fs';
+import { tmpdir } from 'os';
+import { sep } from 'path';
+import { exec } from 'child_process';
+import { promisify } from 'util';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -51,7 +56,8 @@ connection.onInitialize((params: InitializeParams) => {
       },
       documentSymbolProvider: true,
       definitionProvider: true,
-      hoverProvider: true
+      hoverProvider: true,
+      documentFormattingProvider: true
     }
   };
 });
@@ -373,20 +379,22 @@ connection.onCompletion(
   }
 );
 
-// This handler resolves additional information for the item selected in
-// the completion list.
-connection.onCompletionResolve(
-  (item: CompletionItem): CompletionItem => {
-    if (item.data === 1) {
-      item.detail = 'TypeScript details';
-      item.documentation = 'TypeScript documentation';
-    } else if (item.data === 2) {
-      item.detail = 'JavaScript details';
-      item.documentation = 'JavaScript documentation';
-    }
-    return item;
+connection.onDocumentFormatting(async (params: DocumentFormattingParams): Promise<TextEdit[]|null> => {
+  const document = documents.get(params.textDocument.uri);
+  if (typeof document === 'undefined') {
+    return null;
   }
-);
+  const text = document.getText();
+  const path = mkdtempSync(tmpdir() + sep);
+  const tmpFile = path + sep + 'beautify';
+  await promisify(writeFile)(tmpFile, text);
+  const emacs_script_path = __dirname + '/../../emacs-vhdl-formating-script.lisp';
+  await promisify(exec)(`emacs --batch -l ${emacs_script_path} -f vhdl-batch-indent-region ${tmpFile}`);
+  return [{
+    range: Range.create(document.positionAt(0), document.positionAt(text.length)),
+    newText: await promisify(readFile)(tmpFile, {encoding: 'utf8'})
+  }];
+});
 
 
 documents.listen(connection);
