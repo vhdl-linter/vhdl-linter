@@ -1,6 +1,6 @@
 import {ParserBase} from './parser-base';
 import {ParserPosition} from './parser-position';
-import {OInstantiation, OMapping, ParserError, ObjectBase} from './objects';
+import {OInstantiation, OMapping, ParserError, ObjectBase, OReadOrMappingName} from './objects';
 
 export class InstantiationParser extends ParserBase {
   constructor(text: string, pos: ParserPosition, file: string, private parent: ObjectBase) {
@@ -57,7 +57,10 @@ export class InstantiationParser extends ParserBase {
     while (this.pos.i < this.text.length) {
       const mapping = new OMapping(instantiation, this.pos.i, this.getEndOfLineI());
       const mappingNameI = this.pos.i;
-      mapping.name = this.extractReads(mapping, this.getNextWord({re: /[^=]/}), mappingNameI);
+      mapping.name = this.extractReads(mapping, this.getNextWord({re: /[^=]/}), mappingNameI) as OReadOrMappingName[];
+      for (const namePart of mapping.name) {
+        Object.setPrototypeOf(namePart, OReadOrMappingName.prototype);
+      }
       this.expect('=>');
       let mappingStringStartI = this.pos.i;
       let mappingString = '';

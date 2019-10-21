@@ -10,18 +10,33 @@
   "engines": {
     "vscode": "^1.33.0"
   },
+  "contributes": {
+    "configuration": {
+      "type": "object",
+      "title": "Example configuration",
+      "properties": {
+        "VhdlLinter.trace.server": {
+          "scope": "window",
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Traces the communication between VS Code and the language server."
+        }
+      }
+    }
+  },
   "activationEvents": [
     "onLanguage:vhdl"
   ],
   "scripts": {
-    "vscode:prepublish": "npm run build",
-    "build": "tsc --project .",
-    "build-watch": "tsc -w --jsx react --project  .",
+    "compile": "tsc --project .",
+    "watch": "tsc -w  --project  .",
     "lint": "tslint --project .",
-    "prepublishOnly": "npm run build",
-    "test": "node dist/test/test.js",
-    "watch": "./node_modules/nodemon/bin/nodemon.js -e ts -w ./ -x npm run watch:serve",
-    "watch:serve": "./node_modules/ts-node/dist/bin.js test/test.ts"
+    "test": "node dist/test/test.js"
   },
   "husky": {
     "hooks": {

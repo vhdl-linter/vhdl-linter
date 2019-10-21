@@ -53,6 +53,7 @@ export class ProcessParser extends ParserBase {
     if (label) {
       this.maybeWord(label);
     }
+    process.endI = this.pos.i;
     this.expect(';');
     return process;
   }

@@ -265,7 +265,7 @@ export class ParserBase {
   }
   extractReads(parent: any, text: string, i: number): ORead[] {
     return this.tokenize(text).filter(token => token.type === 'VARIABLE' || token.type === 'FUNCTION').map(token => {
-      const write = new OWrite(parent, i + token.offset, i + token.offset + token.value.length);
+      const write = new ORead(parent, i + token.offset, i + token.offset + token.value.length);
       write.text = token.value;
       return write;
     });
