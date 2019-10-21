@@ -1,5 +1,6 @@
 {
   "name": "vhdl-linter",
+  "publisher": "vhdl-linter",
   "main": "./dist/lib/vscode.js",
   "version": "0.0.0",
   "description": "A typescript based linter for vhdl",
@@ -13,6 +14,7 @@
     "onLanguage:vhdl"
   ],
   "scripts": {
+    "vscode:prepublish": "npm run build",
     "build": "tsc --project .",
     "build-watch": "tsc -w --jsx react --project  .",
     "lint": "tslint --project .",
@@ -44,6 +46,7 @@
     "husky": "^1.1.2",
     "json-diff": "^0.5.4",
     "lite-event": "^1.0.5",
+    "marked": "^0.3.19",
     "nsfw": "^1.2.5",
     "prettyjson": "^1.2.1",
     "string-similarity": "^3.0.0",
@@ -51,20 +54,18 @@
     "tslint": "^5.11.0",
     "tslint-microsoft-contrib": "^5.2.1",
     "typed-promisify": "^0.4.0",
-    "typescript": "^3.5.1",
-    "vscode": "^1.1.36",
-    "vscode-languageclient": "^5.2.1",
-    "vscode-languageserver": "^5.2.1",
-    "vscode-languageserver-types": "^3.14.0"
+    "typescript": "^3.5.1"
   },
   "enhancedScopes": [
     "source.vhdl"
   ],
-  "package-deps": [
-  ],
-  "providedServices": {
-  },
-  "consumedServices": {
-  },
-  "devDependencies": {}
+  "package-deps": [],
+  "providedServices": {},
+  "consumedServices": {},
+  "devDependencies": {
+    "vscode": "^1.1.36",
+    "vscode-languageclient": "^5.2.1",
+    "vscode-languageserver": "^5.2.1",
+    "vscode-languageserver-types": "^3.14.0"
+  }
 }
