@@ -18,11 +18,12 @@ import {
   Range,
   Position,
   Hover,
-  DocumentFormattingParams
+  DocumentFormattingParams,
+  ReferenceParams
 } from 'vscode-languageserver';
 import { VhdlLinter } from './vhdl-linter';
 import { ProjectParser} from './project-parser';
-import { OFile, OArchitecture, ORead, OWrite, OSignal, OFunction, OForLoop, OForGenerate, OInstantiation, OMapping, OEntity, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackage, OEnum, ObjectBase, OType, OReadOrMappingName} from './parser/objects';
+import { OFile, OArchitecture, ORead, OWrite, OSignal, OFunction, OForLoop, OForGenerate, OInstantiation, OMapping, OEntity, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackage, OEnum, ObjectBase, OType, OReadOrMappingName, OWriteReadBase} from './parser/objects';
 import { readFileSync, mkdtempSync, writeFileSync, writeFile, readFile } from 'fs';
 import { tmpdir } from 'os';
 import { sep } from 'path';
@@ -57,7 +58,8 @@ connection.onInitialize((params: InitializeParams) => {
       documentSymbolProvider: true,
       definitionProvider: true,
       hoverProvider: true,
-      documentFormattingProvider: true
+      documentFormattingProvider: true,
+      referencesProvider: true
     }
   };
 });
@@ -375,7 +377,26 @@ connection.onCompletion(
     return candidatesUnique;
   }
 );
-
+connection.onReferences((params: ReferenceParams): Location[] => {
+  const linter = linters.get(params.textDocument.uri);
+  if (typeof linter === 'undefined') {
+    return [];
+  }
+  if (typeof linter.tree === 'undefined') {
+    return [];
+  }
+  let startI = linter.getIFromPosition(params.position);
+  const candidates = linter.tree.objectList.filter(object => object.startI <= startI && startI <= object.endI);
+  candidates.sort((a, b) => (a.endI - a.startI) - (b.endI - b.startI));
+  const candidate = candidates[0];
+  if (!candidate) {
+    return [];
+  }
+  if (candidate instanceof OWriteReadBase) {
+    return linter.tree.objectList.filter(obj => obj instanceof OWriteReadBase && obj.text.toLowerCase() === candidate.text.toLowerCase() && obj !== candidate).map(obj => Location.create(params.textDocument.uri, linter.getPositionFromILine(obj.startI, obj.endI)));
+  }
+  return [];
+});
 connection.onDocumentFormatting(async (params: DocumentFormattingParams): Promise<TextEdit[]|null> => {
   const document = documents.get(params.textDocument.uri);
   if (typeof document === 'undefined') {
