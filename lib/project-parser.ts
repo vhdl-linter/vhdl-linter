@@ -1,4 +1,4 @@
-import { readdirSync, statSync, readFileSync } from 'fs';
+import { readdirSync, statSync, readFileSync, realpathSync } from 'fs';
 import { OEntity, OFileWithEntity, OPackage, OFileWithPackage } from './parser/objects';
 import { VhdlLinter } from './vhdl-linter';
 import {watch, FSWatcher} from 'chokidar';
@@ -18,6 +18,8 @@ export class ProjectParser {
       //       console.log(pkg, new Directory(pkg + '/ieee2008'));
       files.push(... this.parseDirectory((pkg + '/../../ieee2008')));
     }
+    files = files.map(file => realpathSync(file));
+    files = [...new Set(files)];
     for (const file of files) {
       let cachedFile = this.cachedFiles.find(cachedFile => cachedFile.path === file);
       // if (cachedFile && cachedFile.digest !== await file.getDigest()) {
