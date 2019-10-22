@@ -137,7 +137,6 @@ export class DeclarativePartParser extends ParserBase {
         return { signals, types, functions };
       } else if (nextWord === 'package' || nextWord === 'generic') {
         this.advanceSemicolon();
-      }
       } else {
         this.getNextWord();
         throw new ParserError(`Unknown Ding: '${nextWord}' on line ${this.getLine()}`, this.pos.i);
