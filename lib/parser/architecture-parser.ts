@@ -2,7 +2,7 @@ import { ParserBase } from './parser-base';
 import { ProcessParser } from './process-parser';
 import { InstantiationParser } from './instantiation-parser';
 import { ParserPosition } from './parser-position';
-import { OArchitecture, ParserError, OForGenerate, OIfGenerate, OFile} from './objects';
+import { OArchitecture, ParserError, OForGenerate, OIfGenerate, OFile, ORead} from './objects';
 import { AssignmentParser } from './assignment-parser';
 import { DeclarativePartParser } from './declarative-part-parser';
 
@@ -157,8 +157,16 @@ export class ArchitectureParser extends ParserBase {
         // this.advancePast(/\bgenerate\b/i);
       } else if (nextWord === 'with') {
         this.getNextWord();
-        this.advancePast(';');
-        this.debug('WTF ' + this.file);
+        const beforeI = this.pos.i;
+        const readText = this.getNextWord();
+        const afterI = this.pos.i;
+        this.getNextWord();
+        const assignmentParser = new AssignmentParser(this.text, this.pos, this.file, architecture);
+        const assignment = assignmentParser.parse();
+        const read = new ORead(assignment, beforeI, afterI);
+        read.text = readText;
+        assignment.reads.push(read);
+        architecture.assignments.push(assignment);
       } else if (nextWord === 'report' || nextWord === 'assert') {
         this.getNextWord();
 //        console.log('report');
