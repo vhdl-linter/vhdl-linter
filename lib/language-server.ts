@@ -240,13 +240,10 @@ const findDefinition = async (params: IFindDefinitionParams) => {
 
    if (candidate instanceof OInstantiation || candidate instanceof OMapping || candidate instanceof OReadOrMappingName) {
     let instantiation: OInstantiation = candidate instanceof OReadOrMappingName ? candidate.parent.parent : (candidate instanceof OInstantiation ? candidate : candidate.parent);
-    const entities = linter.projectParser.getEntities().filter((entity: OEntity) => {
-      return entity.name.toLowerCase() === instantiation.componentName.toLowerCase() && ((entity.library && instantiation.library) ? entity.library.toLowerCase() === instantiation.library.toLowerCase() : true);
-    });
-    if (entities.length === 0) {
+    const entity = linter.getProjectEntity(instantiation);
+    if (!entity) {
       return null;
     }
-    const entity = entities[0];
     if (candidate instanceof OInstantiation) {
       return {
         // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
