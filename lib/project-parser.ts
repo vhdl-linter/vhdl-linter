@@ -32,28 +32,28 @@ export class ProjectParser {
     }
     this.fetchEntitesAndPackages();
     for (const workspace of this.workspaces) {
-      // const watcher = watch(workspace + '/**/*.vhd');
-      // watcher.on('add', async (path) => {
-      //   let cachedFile = new OFileCache(this);
-      //   cachedFile.path = path;
-      //   cachedFile.parseFile(path);
-      //   this.cachedFiles.push(cachedFile);
-      //   this.fetchEntitesAndPackages();
-      // });
-      // watcher.on('change', async (path) => {
-      //   const cachedFile = this.cachedFiles.find(cachedFile => cachedFile.path === path);
-      //   if (cachedFile) {
-      //     cachedFile.parseFile(path);
-      //   } else {
-      //     console.error('modified file not found', event);
-      //   }
-      //   this.fetchEntitesAndPackages();
-      // });
-      // watcher.on('unlink', path => {
-      //   const cachedFileIndex = this.cachedFiles.findIndex(cachedFile => cachedFile.path === path);
-      //   this.cachedFiles.splice(cachedFileIndex, 1);
-      //   this.fetchEntitesAndPackages();
-      // });
+      const watcher = watch(workspace + '/**/*.vhd');
+      watcher.on('add', async (path) => {
+        let cachedFile = new OFileCache(this);
+        cachedFile.path = path;
+        cachedFile.parseFile(path);
+        this.cachedFiles.push(cachedFile);
+        this.fetchEntitesAndPackages();
+      });
+      watcher.on('change', async (path) => {
+        const cachedFile = this.cachedFiles.find(cachedFile => cachedFile.path === path);
+        if (cachedFile) {
+          cachedFile.parseFile(path);
+        } else {
+          console.error('modified file not found', event);
+        }
+        this.fetchEntitesAndPackages();
+      });
+      watcher.on('unlink', path => {
+        const cachedFileIndex = this.cachedFiles.findIndex(cachedFile => cachedFile.path === path);
+        this.cachedFiles.splice(cachedFileIndex, 1);
+        this.fetchEntitesAndPackages();
+      });
 
     }
   }
