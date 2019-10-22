@@ -70,18 +70,7 @@ export class Parser extends ParserBase {
     return file;
   }
   removeComments() {
-    let i = 0;
-    while (i < this.text.length) {
-      if (this.text.substr(i, 2) === '--') {
-        let start = i;
-        while (this.text[i] !== '\n') {
-          i++;
-        }
-        let end = i;
-        this.text = this.text.substr(0, start) + ' '.repeat(end - start) + this.text.substr(end);
-      }
-      i++;
-    }
+    this.text = this.text.replace(/--.*/g, match => ' '.repeat(match.length));
   }
 
   getUseStatement(file: OFile) {

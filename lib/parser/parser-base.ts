@@ -50,9 +50,13 @@ export class ParserBase {
     }
   }
   advanceWhitespace() {
-    while (this.text[this.pos.i] && this.text[this.pos.i].match(/\s/)) {
-      this.pos.i++;
+    const match = this.text.substring(this.pos.i).match(/^\s+/);
+    if (match) {
+      this.pos.i += match[0].length;
     }
+    // while (this.text[this.pos.i] && this.text[this.pos.i].match(/\s/)) {
+    //   this.pos.i++;
+    // }
   }
   reverseWhitespace() {
     while (this.text[this.pos.i - 1] && this.text[this.pos.i - 1].match(/\s/)) {
