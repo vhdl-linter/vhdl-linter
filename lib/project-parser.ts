@@ -66,13 +66,17 @@ export class ProjectParser {
     // const entries = await promisify(directory.getEntries)()
 
     for (const entry of entries) {
-      const fileStat = statSync(directory + '/' + entry);
-      if (fileStat.isFile()) {
-        if (entry.match(/\.vhdl?$/i)) {
-          files.push(directory + '/' + entry);
+      try {
+        const fileStat = statSync(directory + '/' + entry);
+        if (fileStat.isFile()) {
+          if (entry.match(/\.vhdl?$/i)) {
+            files.push(directory + '/' + entry);
+          }
+        } else {
+          files.push(... this.parseDirectory(directory + '/' + entry));
         }
-      } else {
-        files.push(... this.parseDirectory(directory + '/' + entry));
+      } catch (e) {
+        console.log(e);
       }
     }
     return files;
