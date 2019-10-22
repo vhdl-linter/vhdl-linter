@@ -8,7 +8,7 @@ export class DeclarativePartParser extends ParserBase {
     super(text, pos, file);
     this.debug('start');
   }
-  parse( optional: boolean = false, lastWord = 'begin') {
+  parse(optional: boolean = false, lastWord = 'begin') {
     const signals: OSignal[] = [];
     const types: OType[] = [];
     const functions: OFunction[] = [];
@@ -135,6 +135,9 @@ export class DeclarativePartParser extends ParserBase {
         functions.push(func);
       } else if (optional && signals.length === 0 && types.length === 0) {
         return { signals, types, functions };
+      } else if (nextWord === 'package' || nextWord === 'generic') {
+        this.advanceSemicolon();
+      }
       } else {
         this.getNextWord();
         throw new ParserError(`Unknown Ding: '${nextWord}' on line ${this.getLine()}`, this.pos.i);
