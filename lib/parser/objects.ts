@@ -361,11 +361,15 @@ export class OPort extends OSignalLike {
     direction: 'in' | 'out' | 'inout';
     hasDefault: boolean;
 }
-export class OGeneric extends ObjectBase {
-    name: string;
-    type: string;
-    defaultValue?: string;
+export class OGenericType extends ObjectBase {
+  name: string;
 }
+export class OGenericActual extends ObjectBase {
+  name: string;
+  type: string;
+  defaultValue?: string;
+}
+export type OGeneric = OGenericType | OGenericActual;
 export type OStatement = OCase | OAssignment | OIf | OForLoop;
 export class OIf extends ObjectBase {
   clauses: OIfClause[] = [];

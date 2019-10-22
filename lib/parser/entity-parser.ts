@@ -1,7 +1,7 @@
 import {ParserBase} from './parser-base';
 import {ParserPosition} from './parser-position';
 import { DeclarativePartParser } from './declarative-part-parser';
-import {OPort, OGeneric, OEntity, ParserError, OFileWithEntity} from './objects';
+import {OPort, OGeneric, OEntity, ParserError, OFileWithEntity, OGenericActual, OGenericType} from './objects';
 
 export class EntityParser extends ParserBase {
   constructor(text: string, pos: ParserPosition, file: string, private parent: OFileWithEntity) {
@@ -53,7 +53,7 @@ export class EntityParser extends ParserBase {
   parsePortsAndGenerics(generics: false|true , entity: any): OPort[]|OGeneric[] {
     this.debug('start ports');
     this.expect('(');
-    let multiPorts: string[] = [];
+    // let multiPorts: string[] = [];
     const ports = [];
     while (this.pos.i < this.text.length) {
       if (this.text[this.pos.i].match(/\s/)) {
@@ -61,7 +61,7 @@ export class EntityParser extends ParserBase {
         continue;
       }
       let port = generics ?
-        new OGeneric(entity, this.pos.i, this.getEndOfLineI()) :
+        new OGenericActual(entity, this.pos.i, this.getEndOfLineI()) :
         new OPort(entity, this.pos.i, this.getEndOfLineI());
 
       if (this.text[this.pos.i] === ')') {
@@ -70,35 +70,45 @@ export class EntityParser extends ParserBase {
         this.expect(';');
         break;
       }
-      port.name = this.getNextWord();
-      if (this.text[this.pos.i] === ',') {
-        this.expect(',');
-        multiPorts.push(port.name);
-        continue;
-      }
-      this.expect(':');
-      let directionString;
-      if (port instanceof OPort) {
-        directionString = this.getNextWord();
-        if (directionString !== 'in' && directionString !== 'out' && directionString !== 'inout') {
-          port.direction = 'inout';
-        } else {
-          port.direction = directionString;
-          this.getNextWord(); // consume direction
+      if (this.getNextWord({ consume: false }).toLowerCase() === 'type') {
+        this.getNextWord();
+        port = Object.setPrototypeOf(port, OGenericType.prototype);
+        (port as OGenericType).name = this.getNextWord();
+        ports.push(port);
+        if (this.text[this.pos.i] === ';') {
+          this.pos.i++;
+          this.advanceWhitespace();
         }
-
+      } else {
+        port.name = this.getNextWord();
+        if (this.text[this.pos.i] === ',') {
+          this.expect(',');
+          // multiPorts.push(port.name);
+          continue;
+        }
+        this.expect(':');
+        let directionString;
+        if (port instanceof OPort) {
+          directionString = this.getNextWord();
+          if (directionString !== 'in' && directionString !== 'out' && directionString !== 'inout') {
+            port.direction = 'inout';
+          } else {
+            port.direction = directionString;
+            this.getNextWord(); // consume direction
+          }
+        }
+        const {type, defaultValue} = this.getTypeDefintion();
+        port.type = type;
+        port.defaultValue = defaultValue;
+        ports.push(port);
+        // for (const multiPortName of multiPorts) {
+        //   const multiPort = new OPort(this.parent, -1);
+        //   Object.assign(port, multiPort);
+        //   multiPort.name = multiPortName;
+        //   ports.push(multiPort);
+        // }
+        // multiPorts = [];
       }
-      const {type, defaultValue} = this.getTypeDefintion();
-      port.type = type;
-      port.defaultValue = defaultValue;
-      ports.push(port);
-      // for (const multiPortName of multiPorts) {
-      //   const multiPort = new OPort(this.parent, -1);
-      //   Object.assign(port, multiPort);
-      //   multiPort.name = multiPortName;
-      //   ports.push(multiPort);
-      // }
-      multiPorts = [];
     }
     return ports as any;
   }
