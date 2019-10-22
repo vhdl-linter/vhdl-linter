@@ -9,7 +9,9 @@ export class EntityParser extends ParserBase {
     this.debug(`start`);
   }
   parse(): OEntity {
-    const entity = new OEntity(this.parent, this.pos.i, this.getEndOfLineI());
+    const match = this.parent.originalText.match(/!\s*@library\s+(\S+)/i);
+    const library = match ? match[1] : undefined;
+    const entity = new OEntity(this.parent, this.pos.i, this.getEndOfLineI(), library);
     entity.name = this.getNextWord();
     this.expect('is');
 
