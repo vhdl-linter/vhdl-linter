@@ -89,7 +89,7 @@ export class EntityParser extends ParserBase {
         this.expect(':');
         let directionString;
         if (port instanceof OPort) {
-          directionString = this.getNextWord();
+          directionString = this.getNextWord({consume: false});
           if (directionString !== 'in' && directionString !== 'out' && directionString !== 'inout') {
             port.direction = 'inout';
           } else {
