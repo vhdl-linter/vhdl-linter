@@ -97,7 +97,6 @@
     "chokidar": "^3.2.2",
     "escape-string-regexp": "^1.0.5",
     "string-similarity": "^3.0.0",
-    "typescript": "^3.5.1",
     "vscode-languageclient": "^5.2.1",
     "vscode-languageserver": "^5.2.1"
   },
@@ -118,6 +117,7 @@
     "husky": "^1.1.2",
     "prettyjson": "^1.2.1",
     "tslint": "^5.11.0",
+    "typescript": "^3.5.1",
     "tslint-microsoft-contrib": "^5.2.1",
     "vsce": "^1.68.0",
     "vscode-languageserver-types": "^3.14.0"
