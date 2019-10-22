@@ -1,5 +1,5 @@
 import * as path from 'path';
-import { workspace, ExtensionContext } from 'vscode';
+import { workspace, ExtensionContext, commands } from 'vscode';
 
 import {
   LanguageClient,
@@ -7,6 +7,7 @@ import {
   ServerOptions,
   TransportKind
 } from 'vscode-languageclient';
+import { copy, CopyTypes } from './vhdl-entity-converter';
 
 let client: LanguageClient;
 
@@ -48,6 +49,9 @@ export function activate(context: ExtensionContext) {
 
   // Start the client. This will also launch the server
   client.start();
+  context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-as-instance', () => copy(CopyTypes.Instance)));
+  context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-as-sysverilog', () => copy(CopyTypes.Sysverilog)));
+  context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-as-signals', () => copy(CopyTypes.Signals)));
 }
 
 export function deactivate(): Thenable<void> | undefined {

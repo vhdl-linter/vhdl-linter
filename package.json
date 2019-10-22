@@ -11,6 +11,53 @@
     "vscode": "^1.33.0"
   },
   "contributes": {
+    "keybindings": [
+      {
+        "key": "ctrl+shift+c ctrl+shift+s",
+        "command": "vhdl-linter:copy-as-signals",
+        "when": "editorLangId == vhdl"
+      },
+      {
+        "key": "ctrl+shift+i",
+        "command": "vhdl-linter:copy-as-instance",
+        "when": "editorLangId == vhdl"
+      },
+      {
+        "key": "ctrl+alt+s",
+        "command": "vhdl-linter:copy-as-sysverilog",
+        "when": "editorLangId == vhdl"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "vhdl-linter:copy-as-instance",
+          "when": "editorLangId == vhdl"
+        },
+        {
+          "command": "vhdl-linter:copy-as-sysverilog",
+          "when": "editorLangId == vhdl"
+        },
+        {
+          "command": "vhdl-linter:copy-as-signals",
+          "when": "editorLangId == vhdl"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "vhdl-linter:copy-as-instance",
+        "title": "Copy as Instance"
+      },
+      {
+        "command": "vhdl-linter:copy-as-sysverilog",
+        "title": "Copy as System Verilog"
+      },
+      {
+        "command": "vhdl-linter:copy-as-signals",
+        "title": "Copy as Signals"
+      }
+    ],
     "configuration": {
       "type": "object",
       "title": "Example configuration",
