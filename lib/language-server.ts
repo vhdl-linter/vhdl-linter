@@ -161,7 +161,7 @@ connection.onDocumentSymbol(async (params): Promise<DocumentSymbol[]> => {
         selectionRange: linter.getPositionFromILine(instantiation.startI, instantiation.endI)
       })));
     symbols.push(... architecture.processes.map(process => ({
-      name: process.label || '',
+      name: process.label || 'no label',
       detail: process.label,
       kind: SymbolKind.Object,
       range: linter.getPositionFromILine(process.startI, process.endI),
