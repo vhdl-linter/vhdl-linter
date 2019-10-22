@@ -1,0 +1,4 @@
+**/*.ts
+tsconfig.ts
+test
+test_results

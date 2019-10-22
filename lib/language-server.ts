@@ -124,7 +124,7 @@ connection.onCodeAction(async (params): Promise<CodeAction[]> => {
     return [];
   }
 
-  const messages = await linter.checkAll();
+  const messages = linter.checkAll();
   const message = messages.find(message => {
     if (typeof message.solutions === 'undefined' || messages.length === 0) {
       return false;
