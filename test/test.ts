@@ -14,8 +14,8 @@ import { execSync } from 'child_process';
 
 
 config.debug = false;
-// const files = glob.sync('./test/**/*.vhd', { follow: true }).filter((file) => file.indexOf('_syn') === -1);
-const files = glob.sync('./test/test.vhd', { follow: true }).filter((file) => file.indexOf('_syn') === -1);
+const files = glob.sync('./test/**/*.vhd', { follow: true }).filter((file) => file.indexOf('_syn') === -1);
+// const files = glob.sync('./test/test.vhd', { follow: true }).filter((file) => file.indexOf('_syn') === -1);
 // console.log(files);
 // exit();
 
