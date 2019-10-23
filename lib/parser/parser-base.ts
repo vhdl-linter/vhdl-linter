@@ -2,13 +2,8 @@ import { ParserPosition } from './parser-position';
 const escapeStringRegexp = require('escape-string-regexp');
 import { ParserError, OWrite, ORead } from './objects';
 import { config } from './config';
-import { WorkspaceEdit } from 'vscode';
+import { tokenizer } from './tokenizer';
 
-export interface Token {
-  type: string;
-  value: string;
-  offset: number;
-}
 
 export class ParserBase {
   constructor(protected text: string, protected pos: ParserPosition, protected file: string) {
@@ -273,7 +268,7 @@ export class ParserBase {
     return type;
   }
   extractReads(parent: any, text: string, i: number): ORead[] {
-    return this.tokenize(text).filter(token => token.type === 'VARIABLE' || token.type === 'FUNCTION').map(token => {
+    return tokenizer.tokenize(text).filter(token => token.type === 'VARIABLE' || token.type === 'FUNCTION').map(token => {
       const write = new ORead(parent, i + token.offset, i + token.offset + token.value.length);
       write.text = token.value;
       return write;
@@ -283,7 +278,7 @@ export class ParserBase {
     const reads: ORead[] = [];
     const writes: OWrite[] = [];
     let braceLevel = 0;
-    const tokens = this.tokenize(text);
+    const tokens = tokenizer.tokenize(text);
     let index = 0;
     for (const token of tokens) {
       // console.log(index, token);
@@ -305,61 +300,5 @@ export class ParserBase {
       }
     }
     return [reads, writes];
-  }
-  tokenize(text: string): Token[] {
-    const operators = [
-      ['abs', 'not'],
-      ['mod'],
-      ['sll', 'srl', 'sla', 'sra', 'rol', 'ror'],
-      ['and', 'or', 'nand', 'nor', 'xor', 'xnor'],
-      ['downto', 'to', 'others', 'when', 'else']
-    ];
-    const tokenTypes = [
-      { regex: /^["]([^"\\\n]|\\.|\\\n)*["]/i, tokenType: 'STRING_LITERAL' },
-      { regex: /^[*\/&\-?=<>+]+/i, tokenType: 'OPERATION'},
-      { regex: /^\s+/i, tokenType: 'WHITESPACE' },
-      { regex: /^[()]/i, tokenType: 'BRACE' },
-      { regex: /^,/i, tokenType: 'COMMA' },
-      { regex: /^[0-9]+/i, tokenType: 'INTEGER_LITERAL' },
-      { regex: /^true|false/i, tokenType: 'BOOLEAN_LITERAL' },
-      { regex: /^"[0-9]+"/i, tokenType: 'LOGIC_LITERAL' },
-      { regex: /^x"[0-9A-F]+"/i, tokenType: 'LOGIC_LITERAL' },
-      { regex: /^'[0-9]+'/i, tokenType: 'LOGIC_LITERAL' },
-      { regex: /^\w+'\w+(?=\s*\()/i, tokenType: 'ATTRIBUTE_FUNCTION' },
-      { regex: /^[a-z]\w*(?!\s*[(]|\w)/i, tokenType: 'VARIABLE' },
-      { regex: /^\.[a-z]\w*(?!\s*[(]|\w)/i, tokenType: 'RECORD_ELEMENT' },
-      { regex: /^\w+(?=\s*\()/i, tokenType: 'FUNCTION' },
-      { regex: /^\.\w+(?=\s*\()/i, tokenType: 'FUNCTION_RECORD_ELEMENT' },
-
-    ];
-    for (const operatorGroup of operators) {
-      for (const operator of operatorGroup) {
-        tokenTypes.unshift({
-          regex: new RegExp('^' + operator + '\\b', 'i'),
-          tokenType: 'KEYWORD',
-        });
-      }
-    }
-//     console.log(tokenTypes);
-// console.log(text);
-    const tokens = [];
-    let foundToken;
-    let offset = 0;
-    do {
-      foundToken = false;
-      for (const tokenType of tokenTypes) {
-        let match = tokenType.regex.exec(text);
-        if (match) {
-          const token: Token = { type: tokenType.tokenType, value: match[0], offset };
-          tokens.push(token);
-          text = text.substring(match[0].length);
-          offset += match[0].length;
-          foundToken = true;
-          break;
-        }
-      }
-    } while (text.length > 0 && foundToken);
-    // console.log(tokens);
-    return tokens;
   }
 }

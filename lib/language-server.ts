@@ -71,6 +71,7 @@ const initialization = new Promise(resolve => {
         if (workspaceFolders) {
           const folders = workspaceFolders.map(workspaceFolder => workspaceFolder.uri.replace('file://', ''));
           projectParser = new ProjectParser(folders);
+          await projectParser.init();
         }
         documents.all().forEach(validateTextDocument);
         projectParser.events.on('change', () => documents.all().forEach(validateTextDocument));
@@ -78,14 +79,16 @@ const initialization = new Promise(resolve => {
           validateTextDocument(change.document);
         });
       };
-      parseWorkspaces();
+      await parseWorkspaces();
       connection.workspace.onDidChangeWorkspaceFolders(async event => {
         projectParser.addFolders(event.added.map(folder => folder.uri.replace('file://', '')));
         connection.console.log('Workspace folder change event received.');
       });
     } else {
       projectParser = new ProjectParser([]);
+      await projectParser.init();
     }
+    resolve();
   });
 });
 
@@ -120,6 +123,7 @@ connection.onDidChangeWatchedFiles(_change => {
   connection.console.log('We received an file change event');
 });
 connection.onCodeAction(async (params): Promise<CodeAction[]> => {
+  await initialization;
   const linter = linters.get(params.textDocument.uri);
   if (!linter) {
     return [];
@@ -150,6 +154,7 @@ connection.onCodeAction(async (params): Promise<CodeAction[]> => {
   return [];
 });
 connection.onDocumentSymbol(async (params): Promise<DocumentSymbol[]> => {
+  await initialization;
   const linter = linters.get(params.textDocument.uri);
   if (!linter) {
     return [];
@@ -188,24 +193,7 @@ connection.onDocumentSymbol(async (params): Promise<DocumentSymbol[]> => {
     return symbols;
   };
   const returnValue: DocumentSymbol[] = [];
-  // if (linter.tree instanceof OFileWithEntity) {
-  //   returnValue.push({
-  //     name: 'generics',
-  //     kind: SymbolKind.Class,
-  //     // range: linter.getPositionFromILine(linter.tree.entity.startI),
-  //     range: linter.getPositionFromILine(linter.tree.entity.startI, linter.tree.entity.endI),
-  //     selectionRange: linter.getPositionFromILine(linter.tree.entity.startI, linter.tree.entity.endI),
-  //     children: linter.tree.entity.generics.map(generic => DocumentSymbol.create(generic.name, undefined, SymbolKind.Variable, linter.getPositionFromILine(generic.startI, generic.endI), linter.getPositionFromILine(generic.startI, generic.endI)))
-  //   });
-  //   returnValue.push({
-  //     name: 'ports',
-  //     kind: SymbolKind.Class,
-  //     // range: linter.getPositionFromILine(linter.tree.entity.startI),
-  //     range: linter.getPositionFromILine(linter.tree.entity.startI, linter.tree.entity.endI),
-  //     selectionRange: linter.getPositionFromILine(linter.tree.entity.startI, linter.tree.entity.endI),
-  //     children: linter.tree.entity.ports.map(port => DocumentSymbol.create(port.name, undefined, SymbolKind.Variable, linter.getPositionFromILine(port.startI, port.endI), linter.getPositionFromILine(port.startI, port.endI)))
-  //   });
-  // }
+
   if (linter.tree instanceof OFileWithPackage) {
     returnValue.push(...linter.tree.package.types.map(type => DocumentSymbol.create(type.name, undefined, SymbolKind.Enum, linter.getPositionFromILine(type.startI, type.endI), linter.getPositionFromILine(type.startI, type.endI))));
     returnValue.push(...linter.tree.package.functions.map(func => DocumentSymbol.create(func.name, undefined, SymbolKind.Function, linter.getPositionFromILine(func.startI, func.endI), linter.getPositionFromILine(func.startI, func.endI))));
@@ -228,6 +216,7 @@ interface IFindDefinitionParams {
   position: Position;
 }
 const findDefinition = async (params: IFindDefinitionParams) => {
+  await initialization;
   const linter = linters.get(params.textDocument.uri);
   if (!linter) {
     return null;
@@ -288,6 +277,7 @@ const findDefinition = async (params: IFindDefinitionParams) => {
   return null;
 };
 connection.onHover(async (params): Promise<Hover|null> => {
+  await initialization;
   const definition = await findDefinition(params);
   if (definition === null) {
     return null;
@@ -307,11 +297,12 @@ connection.onHover(async (params): Promise<Hover|null> => {
   };
 });
 connection.onDefinition(async (params): Promise<Location|null> => {
+  await initialization;
   return await findDefinition(params);
 });
 // This handler provides the initial list of the completion items.
-connection.onCompletion(
-  (params: CompletionParams): CompletionItem[] => {
+connection.onCompletion(async (params: CompletionParams): Promise<CompletionItem[]> => {
+    await initialization;
     const linter = linters.get(params.textDocument.uri);
     if (typeof linter === 'undefined') {
       return [];
@@ -378,7 +369,8 @@ connection.onCompletion(
     return candidatesUnique;
   }
 );
-connection.onReferences((params: ReferenceParams): Location[] => {
+connection.onReferences(async (params: ReferenceParams): Promise<Location[]> => {
+  await initialization;
   const linter = linters.get(params.textDocument.uri);
   if (typeof linter === 'undefined') {
     return [];

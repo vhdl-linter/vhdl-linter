@@ -3,6 +3,7 @@ import { ParserPosition } from './parser-position';
 import { AssignmentParser } from './assignment-parser';
 
 import { OProcess, OStatement, OForLoop, OIf, OIfClause, OCase, OWhenClause, OVariable, ORead, ObjectBase } from './objects';
+import { tokenizer } from './tokenizer';
 
 export class ProcessParser extends ParserBase {
   constructor(text: string, pos: ParserPosition, file: string, private parent: ObjectBase) {
@@ -114,7 +115,7 @@ export class ProcessParser extends ParserBase {
     this.expect('if');
     const position = this.pos.i;
     clause.condition = this.advancePast('then');
-    clause.conditionReads = this.tokenize(clause.condition).filter(token => (token.type === 'FUNCTION') || (token.type === 'VARIABLE')).map(token => {
+    clause.conditionReads = tokenizer.tokenize(clause.condition).filter(token => (token.type === 'FUNCTION') || (token.type === 'VARIABLE')).map(token => {
       const read = new ORead(clause, position + token.offset, position + token.offset + token.value.length);
       read.text = token.value;
       return read;
@@ -128,7 +129,7 @@ export class ProcessParser extends ParserBase {
       this.expect('elsif');
       const position = this.pos.i;
       clause.condition = this.advancePast('then');
-      clause.conditionReads = this.tokenize(clause.condition).filter(token => (token.type === 'VARIABLE') || (token.type === 'FUNCTION')).map(token => {
+      clause.conditionReads = tokenizer.tokenize(clause.condition).filter(token => (token.type === 'VARIABLE') || (token.type === 'FUNCTION')).map(token => {
         const read = new ORead(clause, position + token.offset, position + token.offset + token.value.length);
         read.text = token.value;
         return read;

@@ -1,8 +1,12 @@
-import { readdirSync, statSync, readFileSync, realpathSync } from 'fs';
+import { readdirSync, statSync, readFileSync, realpath, readdir, stat } from 'fs';
 import { OEntity, OFileWithEntity, OPackage, OFileWithPackage } from './parser/objects';
 import { VhdlLinter } from './vhdl-linter';
 import {watch, FSWatcher} from 'chokidar';
 import {EventEmitter} from 'events';
+import { promisify } from 'util';
+const realpathP = promisify(realpath);
+const readdirP = promisify(readdir);
+const statP = promisify(stat);
 
 export class ProjectParser {
 
@@ -10,15 +14,20 @@ export class ProjectParser {
   private packages: OPackage[];
   private entities: OEntity[];
   events = new EventEmitter();
-  constructor(public workspaces: string[]) {
+  constructor(public workspaces: string[]) {}
+  async init() {
     let files = new Set<string>();
-    for (const directory of this.workspaces) {
-      this.parseDirectory(directory).forEach(file => files.add(realpathSync(file)));
-    }
+    await Promise.all(this.workspaces.map(async (directory) => {
+      const directories = await this.parseDirectory(directory);
+      return (await Promise.all(directories.map(file => realpathP(file)))).forEach(file => files.add(file));
+    }));
+    // for (const directory of this.workspaces) {
+    //   this.parseDirectory(directory).forEach(file => files.add(realpathSync(file)));
+    // }
     const pkg = __dirname;
     if (pkg) {
       //       console.log(pkg, new Directory(pkg + '/ieee2008'));
-      this.parseDirectory((pkg + '/../../ieee2008')).forEach(file => files.add(file));
+      (await this.parseDirectory((pkg + '/../../ieee2008'))).forEach(file => files.add(file));
     }
     for (const file of files) {
       let cachedFile = new OFileCache(this);
@@ -56,26 +65,25 @@ export class ProjectParser {
 
     }
   }
-  private parseDirectory(directory: string): string[] {
-    const files = [];
-    const entries = readdirSync(directory);
+  private async parseDirectory(directory: string): Promise<string[]> {
+    const files: string[] = [];
+    const entries = await readdirP(directory);
 
     // const entries = await promisify(directory.getEntries)()
-
-    for (const entry of entries) {
-      try {
-        const fileStat = statSync(directory + '/' + entry);
-        if (fileStat.isFile()) {
-          if (entry.match(/\.vhdl?$/i)) {
-            files.push(directory + '/' + entry);
+    await Promise.all(entries.map(async entry => {
+        try {
+          const fileStat = await statP(directory + '/' + entry);
+          if (fileStat.isFile()) {
+            if (entry.match(/\.vhdl?$/i)) {
+              files.push(directory + '/' + entry);
+            }
+          } else {
+            files.push(... await this.parseDirectory(directory + '/' + entry));
           }
-        } else {
-          files.push(... this.parseDirectory(directory + '/' + entry));
+        } catch (e) {
+          console.log(e);
         }
-      } catch (e) {
-        console.log(e);
-      }
-    }
+    }));
     return files;
   }
   private fetchEntitesAndPackages() {
