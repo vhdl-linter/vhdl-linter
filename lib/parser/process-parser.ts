@@ -12,10 +12,12 @@ export class ProcessParser extends ParserBase {
 
   }
   parse(startI: number, label?: string): OProcess {
-    this.expect('(');
     const process = new OProcess(this.parent, startI, this.getEndOfLineI());
-    process.label = label;
-    process.sensitivityList = this.advanceBrace();
+    if (this.text[this.pos.i] === '(') {
+      this.expect('(');
+      process.label = label;
+      process.sensitivityList = this.advanceBrace();
+    }
     this.maybeWord('is');
     let nextWord = this.getNextWord({ consume: false }).toLowerCase();
     while (nextWord !== 'begin') {
@@ -81,6 +83,8 @@ export class ProcessParser extends ParserBase {
       } else if (nextWord.toLowerCase() === 'report') {
         this.advancePast(';');
       } else if (nextWord.toLowerCase() === 'assert') {
+        this.advancePast(';');
+      } else if (nextWord.toLowerCase() === 'wait') {
         this.advancePast(';');
       } else {
         const assignmentParser = new AssignmentParser(this.text, this.pos, this.file, parent);
