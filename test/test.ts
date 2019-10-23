@@ -133,9 +133,32 @@ screen.key(['C-c'], () => {
       }
       const expectedResult = JSON.parse(fileString);
       const result = await megaFunction(file);
-      if (result !== JSON.stringify(expectedResult) && diff(JSON.parse(result), expectedResult)) {
+      const removeTypes = (obj: any) => {
+        // debugger;
+        if (typeof obj.type !== 'undefined') {
+          // debugger;
+          delete obj.type;
+        }
+        for (const key in obj) {
+          // console.log(Object.keys(obj), key, obj);
+          if (obj[key].constructor === Object) {
+            removeTypes(obj[key]);
+          } else if (obj[key].constructor === Array) {
+            obj[key].forEach(removeTypes);
+          }
+        }
+      };
+      // debugger;
+      // removeTypes(expectedResult);
+      const objResult = JSON.parse(result);
+      // removeTypes(objResult);
+      expectedResult.tree && expectedResult.tree.text && delete expectedResult.tree.text;
+      expectedResult.tree && expectedResult.tree.originalText && delete expectedResult.tree.originalText;
+      objResult.tree && objResult.tree.text && delete objResult.tree.text;
+      objResult.tree && objResult.tree.originalText && delete objResult.tree.originalText;
+      if (result !== JSON.stringify(expectedResult) && diff(objResult, expectedResult)) {
         fs.mkdirSync(`./test_results_kaputt/${file}`.replace(/\/[^/]*$/i, ''), { recursive: true });
-        fs.writeFileSync(`./test_results_kaputt/${file}.json`, diffString(expectedResult, JSON.parse(result)), { encoding: 'utf8' });
+        fs.writeFileSync(`./test_results_kaputt/${file}.json`, diffString(expectedResult, objResult), { encoding: 'utf8' });
         kaputtLog.log(colors.red.underline.bold(`${file} is kaputt`));
         errorCount++;
       } else {
