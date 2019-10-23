@@ -5,4 +5,5 @@ test/_*
 dist/*
 test_results_kaputt/*
 test/private
+test_results/test/private
 *.vsix
