@@ -8,7 +8,7 @@
   "repository": "https://github.com/g0t00/vhdl-linter",
   "license": "MIT",
   "engines": {
-    "vscode": "^1.33.0"
+    "vscode": "^1.39.0"
   },
   "contributes": {
     "keybindings": [
