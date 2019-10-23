@@ -2,35 +2,29 @@ import { readdirSync, statSync, readFileSync, realpathSync } from 'fs';
 import { OEntity, OFileWithEntity, OPackage, OFileWithPackage } from './parser/objects';
 import { VhdlLinter } from './vhdl-linter';
 import {watch, FSWatcher} from 'chokidar';
+import {EventEmitter} from 'events';
 
 export class ProjectParser {
 
   private cachedFiles: OFileCache[] = [];
   private packages: OPackage[];
   private entities: OEntity[];
+  events = new EventEmitter();
   constructor(public workspaces: string[]) {
-    let files: string[] = [];
+    let files = new Set<string>();
     for (const directory of this.workspaces) {
-      files.push(... this.parseDirectory(directory));
+      this.parseDirectory(directory).forEach(file => files.add(realpathSync(file)));
     }
     const pkg = __dirname;
     if (pkg) {
       //       console.log(pkg, new Directory(pkg + '/ieee2008'));
-      files.push(... this.parseDirectory((pkg + '/../../ieee2008')));
+      this.parseDirectory((pkg + '/../../ieee2008')).forEach(file => files.add(file));
     }
-    files = files.map(file => realpathSync(file));
-    files = [...new Set(files)];
     for (const file of files) {
-      let cachedFile = this.cachedFiles.find(cachedFile => cachedFile.path === file);
-      // if (cachedFile && cachedFile.digest !== await file.getDigest()) {
-      //   cachedFile.parsePackage(file);
-      // }
-      if (!cachedFile) {
-        let cachedFile = new OFileCache(this);
-        cachedFile.path = file;
-        cachedFile.parseFile(file);
-        this.cachedFiles.push(cachedFile);
-      }
+      let cachedFile = new OFileCache(this);
+      cachedFile.path = file;
+      cachedFile.parseFile(file);
+      this.cachedFiles.push(cachedFile);
     }
     this.fetchEntitesAndPackages();
     for (const workspace of this.workspaces) {
@@ -41,6 +35,7 @@ export class ProjectParser {
         cachedFile.parseFile(path);
         this.cachedFiles.push(cachedFile);
         this.fetchEntitesAndPackages();
+        this.events.emit('change');
       });
       watcher.on('change', async (path) => {
         const cachedFile = this.cachedFiles.find(cachedFile => cachedFile.path === path);
@@ -50,11 +45,13 @@ export class ProjectParser {
           console.error('modified file not found', event);
         }
         this.fetchEntitesAndPackages();
+        this.events.emit('change');
       });
       watcher.on('unlink', path => {
         const cachedFileIndex = this.cachedFiles.findIndex(cachedFile => cachedFile.path === path);
         this.cachedFiles.splice(cachedFileIndex, 1);
         this.fetchEntitesAndPackages();
+        this.events.emit('change');
       });
 
     }
@@ -105,23 +102,7 @@ export class ProjectParser {
     return this.entities;
   }
 }
-// export class OPackage {
-//   things: OThing[] = [];
-//   referencePackage?: string;
-//   constructor(public path: string, public name: string, public fileCache: OFileCache) {}
-// }
-// export class OThing {
-//   constructor(public parent: OPackage, public name: string, public startI: number, public endI: number) { }
-// }
-export class OProjectPorts {
-  constructor(
-    public name: string,
-    public direction: 'in' | 'out' | 'inout',
-    public hasDefault: boolean,
-    public startI: number,
-    public endI: number,
-  ) {}
-}
+
 export class OFileCache {
   path: string;
   digest: string;
@@ -145,41 +126,7 @@ export class OFileCache {
     if ((linter.tree instanceof OFileWithPackage)) {
       this.package = linter.tree.package;
     }
-    // const match = this.text.match(/package\s+(\w+)\s+is/i);
-    // if (!match) {
-    //   return;
-    // }
-    // this.package = new OPackage(this.path, match[1], this);
-    // // console.log(  this.package.name, 'parsing package');
-    //
-    // let re = /constant\s+(\w+).*?;/sg;
-    // let m;
-    // while (m = re.exec(this.text)) {
-    //   this.package.things.push(new OThing(this.package, m[1], m.index, m.index + m[0].length));
-    // }
-    // re = /function\s+(\w+).*?;/sg;
-    // while (m = re.exec(this.text)) {
-    //   this.package.things.push(new OThing(this.package, m[1], m.index, m.index + m[0].length));
-    // }
-    // re = /(?:subtype|type)\s+(\w+)/sg;
-    // while (m = re.exec(this.text)) {
-    //   this.package.things.push(new OThing(this.package, m[1], m.index, m.index + m[0].length));
-    // }
-    // re = /type\s+(\w+)\s+is\s*\(([^)]*)\)\s*;/sg;
-    // while (m = re.exec(this.text)) {
-    //   let j = m.index;
-    //   const pkg = this.package;
-    //   this.package.things.push(...m[2].split(',').map(thing => {
-    //     const thing2 = new OThing(pkg, thing.trim(), j, j + thing.trim().length);
-    //     j += 1 + thing.length;
-    //     return thing2;
-    //   }));
-    // }
-    // const matchReference = this.text.match(/is\s+new\s+(\w+).(\w+)/i);
-    // if (matchReference) {
-    //   this.package.referencePackage = matchReference[2];
-    // }
-    // console.log(this.package);
+
 
   }
   private parseEntity(): void {

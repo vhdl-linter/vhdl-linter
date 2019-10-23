@@ -73,6 +73,7 @@ const initialization = new Promise(resolve => {
           projectParser = new ProjectParser(folders);
         }
         documents.all().forEach(validateTextDocument);
+        projectParser.events.on('change', () => documents.all().forEach(validateTextDocument));
         documents.onDidChangeContent(change => {
           validateTextDocument(change.document);
         });
