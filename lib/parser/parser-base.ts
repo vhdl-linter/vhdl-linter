@@ -2,6 +2,7 @@ import { ParserPosition } from './parser-position';
 const escapeStringRegexp = require('escape-string-regexp');
 import { ParserError, OWrite, ORead } from './objects';
 import { config } from './config';
+import { WorkspaceEdit } from 'vscode';
 
 export interface Token {
   type: string;
@@ -136,39 +137,44 @@ export class ParserBase {
       let braceLevel = 0;
       let quote = false;
       while (this.text[this.pos.i]) {
-        if (this.text[this.pos.i] === '"' && this.text[this.pos.i - 1] !== '\\') {
+        const match = /["\\();]/.exec(this.text.substring(this.pos.i));
+        if (!match) {
+          throw new ParserError(`could not find closing brace`, this.pos.i - text.length);
+        }
+        if (match[0] === '"' && this.text[this.pos.i + match.index - 1] !== '\\') {
           quote = !quote;
-        } else if (this.text[this.pos.i] === '(' && !quote) {
+        } else if (match[0] === '(' && !quote) {
           braceLevel++;
-        } else if (this.text[this.pos.i] === ')' && !quote) {
+        } else if (match[0] === ')' && !quote) {
           if (braceLevel > 0) {
             braceLevel--;
           } else {
             throw new ParserError(`unexpected ')'`, this.pos.i - text.length);
           }
-        } else if (this.text[this.pos.i] === ';' && !quote && braceLevel === 0) {
-          this.pos.i++;
+        } else if (match[0] === ';' && !quote && braceLevel === 0) {
+          text += this.text.substring(this.pos.i, this.pos.i + match.index);
+          this.pos.i += match.index + 1;
           this.advanceWhitespace();
           return text.trim();
         }
-        text += this.text[this.pos.i];
-        this.pos.i++;
+        text += this.text.substring(this.pos.i, this.pos.i + match.index);
+        this.pos.i += match.index + 1;
       }
       throw new ParserError(`could not find closing brace`, this.pos.i - text.length);
     }
-    let text = '';
-    while (this.text[this.pos.i].match(/[^;]/)) {
-      text += this.text[this.pos.i];
-      this.pos.i++;
+    const match = /;/.exec(this.text.substring(this.pos.i));
+    if (!match) {
+      throw new ParserError(`could not find semicolon`, this.pos.i);
     }
-    this.pos.i++;
+    const text = this.text.substring(this.pos.i, this.pos.i + match.index);
+    this.pos.i += match.index + 1;
     this.advanceWhitespace();
     return text;
   }
   getNextWord(options: { re?: RegExp, consume?: boolean} = {}) {
     let { re, consume } = options;
     if (!re) {
-      re = /\w/;
+      re = /^\w+/;
     }
     if (typeof consume === 'undefined') {
       consume = true;
@@ -176,15 +182,14 @@ export class ParserBase {
 
     if (consume) {
       let word = '';
-      while (this.pos.i < this.text.length && this.text[this.pos.i].match(re)) {
-        word += this.text[this.pos.i];
-        this.pos.i++;
-        // if (this.pos.i >= this.text.length) {
-        //   throw new ParserError(`did not find ${re}. EOF line: ${this.getLine()}`, this.pos.i);
-        // }
+      const match = this.text.substring(this.pos.i).match(re);
+      if (match) {
+        word = match[0];
+        this.pos.i += word.length;
+        this.advanceWhitespace();
+        return word;
       }
-      this.advanceWhitespace();
-      return word;
+      throw new ParserError(`did not find ${re}. EOF line: ${this.getLine()}`, this.pos.i);
     }
     let word = '';
     let j = 0;

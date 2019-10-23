@@ -14,7 +14,7 @@ export class InstantiationParser extends ParserBase {
     instantiation.entityInstantiation = false;
     if (nextWord === 'entity') {
       instantiation.entityInstantiation = true;
-      nextWord = this.getNextWord({re: /[\w.]/});
+      nextWord = this.getNextWord({re: /^[\w.]+/});
       let libraryMatch = nextWord.match(/^(.*)\./i);
       if (!libraryMatch) {
         throw new ParserError(`Can not parse entity instantiation`, this.pos.i);
@@ -57,7 +57,7 @@ export class InstantiationParser extends ParserBase {
     while (this.pos.i < this.text.length) {
       const mapping = new OMapping(instantiation, this.pos.i, this.getEndOfLineI());
       const mappingNameI = this.pos.i;
-      mapping.name = this.extractReads(mapping, this.getNextWord({re: /[^=]/}), mappingNameI) as OReadOrMappingName[];
+      mapping.name = this.extractReads(mapping, this.getNextWord({re: /^[^=]+/}), mappingNameI) as OReadOrMappingName[];
       for (const namePart of mapping.name) {
         Object.setPrototypeOf(namePart, OReadOrMappingName.prototype);
       }
@@ -88,6 +88,7 @@ export class InstantiationParser extends ParserBase {
         this.advanceWhitespace();
       } else if (this.text[this.pos.i] === ')') {
         this.pos.i++;
+        this.advanceWhitespace();
         break;
       }
     }

@@ -28,7 +28,7 @@ const projectParser = new ProjectParser([]);
   console.log(`Read all files after ${time2 - time1} ms`);
   for (const file of filesCache) {
     const before = new Date().getTime();
-    file.linter = new VhdlLinter(file.path, file.text, projectParser, true);
+    file.linter = new VhdlLinter(file.path, file.text, projectParser, false);
     const after = new Date().getTime();
     file.time = after - before;
   }

@@ -53,7 +53,7 @@ connection.onInitialize((params: InitializeParams) => {
       codeActionProvider: true,
       // Tell the client that the server supports code completion
       completionProvider: {
-        resolveProvider: true
+        resolveProvider: false
       },
       documentSymbolProvider: true,
       definitionProvider: true,

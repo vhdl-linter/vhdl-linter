@@ -56,10 +56,7 @@ export class EntityParser extends ParserBase {
     // let multiPorts: string[] = [];
     const ports = [];
     while (this.pos.i < this.text.length) {
-      if (this.text[this.pos.i].match(/\s/)) {
-        this.pos.i++;
-        continue;
-      }
+      this.advanceWhitespace();
       let port = generics ?
         new OGenericActual(entity, this.pos.i, this.getEndOfLineI()) :
         new OPort(entity, this.pos.i, this.getEndOfLineI());

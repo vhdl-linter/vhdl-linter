@@ -11,25 +11,17 @@ export class AssignmentParser extends ParserBase {
     let assignment = new OAssignment(this.parent, this.pos.i, this.getEndOfLineI());
     let leftHandSideI = this.pos.i;
     let leftHandSide = '';
-    while (this.text.substr(this.pos.i, 2) !== '<=' && this.text.substr(this.pos.i, 2) !== ':=') {
-      leftHandSide += this.text[this.pos.i];
-      this.pos.i++;
-      if (this.pos.i === this.text.length) {
-        throw new ParserError(`expected <= or :=, reached end of text. Start on line: ${this.getLine(leftHandSideI)}`, leftHandSideI);
-      }
+    const match = /[<:]/.exec(this.text.substring(this.pos.i));
+    if (!match) {
+      throw new ParserError(`expected <= or :=, reached end of text. Start on line: ${this.getLine(leftHandSideI)}`, leftHandSideI);
     }
+    leftHandSide += this.text.substring(this.pos.i, this.pos.i + match.index);
+    this.pos.i += match.index;
     [assignment.reads, assignment.writes] = this.extractReadsOrWrite(assignment, leftHandSide, leftHandSideI);
     this.pos.i += 2;
-    let rightHandSide = '';
     let rightHandSideI = this.pos.i;
-
-    while (this.text.substr(this.pos.i, 1) !== ';') {
-      rightHandSide += this.text[this.pos.i];
-      this.pos.i++;
-    }
+    const rightHandSide = this.advanceSemicolon();
     assignment.reads.push(...this.extractReads(assignment, rightHandSide, rightHandSideI));
-    this.expect(';');
-//     // console.log(assignment,  assignment.constructor.name, assignment instanceof Assignment);
     assignment.endI = this.pos.i;
     return assignment;
   }

@@ -43,10 +43,7 @@ export class ArchitectureParser extends ParserBase {
     architecture.functions = functions;
 
     while (this.pos.i < this.text.length) {
-      if (this.text[this.pos.i].match(/\s/)) {
-        this.pos.i++;
-        continue;
-      }
+      this.advanceWhitespace();
       let nextWord = this.getNextWord({consume: false});
 //       console.log(nextWord, 'nextWord');
       if (nextWord === 'end') {
@@ -72,7 +69,7 @@ export class ArchitectureParser extends ParserBase {
         this.debug('parse label ' + label);
         this.pos.i++;
         this.advanceWhitespace();
-        nextWord = this.getNextWord();
+        nextWord = this.getNextWord({consume: false});
       }
 
       if (nextWord === 'process') {
@@ -173,6 +170,7 @@ export class ArchitectureParser extends ParserBase {
         this.advancePast(';');
       } else { // TODO  others
         if (label) {
+          this.getNextWord();
           const instantiationParser = new InstantiationParser(this.text, this.pos, this.file, architecture);
           architecture.instantiations.push(instantiationParser.parse(nextWord, label, savedI));
         } else { // statement;
