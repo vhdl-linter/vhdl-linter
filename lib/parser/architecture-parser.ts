@@ -44,7 +44,7 @@ export class ArchitectureParser extends ParserBase {
 
     while (this.pos.i < this.text.length) {
       this.advanceWhitespace();
-      let nextWord = this.getNextWord({consume: false});
+      let nextWord = this.getNextWord({consume: false}).toLowerCase();
 //       console.log(nextWord, 'nextWord');
       if (nextWord === 'end') {
         if (ifGenerate && noElse) {
@@ -69,7 +69,7 @@ export class ArchitectureParser extends ParserBase {
         this.debug('parse label ' + label);
         this.pos.i++;
         this.advanceWhitespace();
-        nextWord = this.getNextWord({consume: false});
+        nextWord = this.getNextWord({consume: false}).toLowerCase();
       }
 
       if (nextWord === 'process') {
@@ -78,6 +78,7 @@ export class ArchitectureParser extends ParserBase {
         architecture.processes.push(processParser.parse(savedI, label));
 
       } else if (nextWord === 'for') {
+        this.getNextWord();
         this.debug('parse for generate');
         let variable = this.advancePast(/\bin\b/i);
         let start = this.advancePast(/\b(to|downto)\b/i);
@@ -91,7 +92,7 @@ export class ArchitectureParser extends ParserBase {
 //        console.log(generate, generate.constructor.name);
         architecture.generates.push(generate);
       } else if (nextWord === 'if') {
-        // this.getNextWord();
+        this.getNextWord();
         let conditionI = this.pos.i;
         let condition = this.advancePast(/\bgenerate\b/i);
         this.debug('parse if generate ' + label);
