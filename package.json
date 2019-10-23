@@ -94,8 +94,10 @@
   },
   "dependencies": {
     "@types/vscode": "^1.39.0",
+    "blessed": "^0.1.81",
     "chokidar": "^3.2.2",
     "escape-string-regexp": "^1.0.5",
+    "json-diff": "^0.5.4",
     "string-similarity": "^3.0.0",
     "vscode-languageclient": "^5.2.1",
     "vscode-languageserver": "^5.2.1"

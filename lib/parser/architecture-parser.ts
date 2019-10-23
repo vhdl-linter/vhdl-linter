@@ -174,9 +174,6 @@ export class ArchitectureParser extends ParserBase {
           const instantiationParser = new InstantiationParser(this.text, this.pos, this.file, architecture);
           architecture.instantiations.push(instantiationParser.parse(nextWord, label, savedI));
         } else { // statement;
-          this.getNextWord();
-          this.reverseWhitespace();
-          this.pos.i -= nextWord.length;
           const assignmentParser = new AssignmentParser(this.text, this.pos, this.file, architecture);
           const assignment = assignmentParser.parse();
           architecture.assignments.push(assignment);

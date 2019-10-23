@@ -9,7 +9,7 @@ import { PackageParser } from './package-parser';
 export class Parser extends ParserBase {
   position: ParserPosition;
   private originalText: string;
-  constructor(text: string, file: string, public onlyEntity: boolean = true) {
+  constructor(text: string, file: string, public onlyEntity: boolean = false) {
     super(text, new ParserPosition(), file);
     this.originalText = text;
     this.removeComments();
@@ -23,10 +23,7 @@ export class Parser extends ParserBase {
     let architecture: OArchitecture|undefined;
     let pkg: OPackage|undefined;
     while (this.pos.i < this.text.length) {
-      if (this.text[this.pos.i].match(/\s/)) {
-        this.pos.i++;
-        continue;
-      }
+      this.advanceWhitespace();
       let nextWord = this.getNextWord().toLowerCase();
       if (nextWord === 'library') {
         file.libraries.push(this.getNextWord());
