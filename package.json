@@ -1,127 +1,132 @@
 {
-  "name": "vhdl-linter",
-  "publisher": "g0t00",
-  "main": "./dist/lib/vscode.js",
-  "version": "0.6.5",
-  "description": "A typescript based linter for vhdl",
-  "keywords": [],
-  "repository": "https://github.com/g0t00/vhdl-linter",
-  "license": "MIT",
-  "engines": {
-    "vscode": "^1.39.0"
-  },
-  "contributes": {
-    "keybindings": [
-      {
-        "key": "ctrl+shift+c ctrl+shift+s",
-        "command": "vhdl-linter:copy-as-signals",
-        "when": "editorLangId == vhdl"
-      },
-      {
-        "key": "ctrl+shift+i",
-        "command": "vhdl-linter:copy-as-instance",
-        "when": "editorLangId == vhdl"
-      },
-      {
-        "key": "ctrl+alt+s",
-        "command": "vhdl-linter:copy-as-sysverilog",
-        "when": "editorLangId == vhdl"
-      }
-    ],
-    "menus": {
-      "commandPalette": [
-        {
-          "command": "vhdl-linter:copy-as-instance",
-          "when": "editorLangId == vhdl"
-        },
-        {
-          "command": "vhdl-linter:copy-as-sysverilog",
-          "when": "editorLangId == vhdl"
-        },
-        {
-          "command": "vhdl-linter:copy-as-signals",
-          "when": "editorLangId == vhdl"
-        }
-      ]
-    },
-    "commands": [
-      {
-        "command": "vhdl-linter:copy-as-instance",
-        "title": "Copy as Instance"
-      },
-      {
-        "command": "vhdl-linter:copy-as-sysverilog",
-        "title": "Copy as System Verilog"
-      },
-      {
-        "command": "vhdl-linter:copy-as-signals",
-        "title": "Copy as Signals"
-      }
-    ],
-    "configuration": {
-      "type": "object",
-      "title": "Example configuration",
-      "properties": {
-        "VhdlLinter.trace.server": {
-          "scope": "window",
-          "type": "string",
-          "enum": [
-            "off",
-            "messages",
-            "verbose"
-          ],
-          "default": "off",
-          "description": "Traces the communication between VS Code and the language server."
-        }
-      }
-    }
-  },
-  "activationEvents": [
-    "onLanguage:vhdl"
-  ],
-  "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc --project .",
-    "watch": "tsc -w  --project  .",
-    "lint": "tslint --project .",
-    "test": "node dist/test/test.js"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "npm run lint",
-      "post-merge": "npm ci && npm run compile && echo '#####################\nRestart Atom\n#####################'"
-    }
-  },
-  "dependencies": {
-    "chokidar": "^3.2.2",
-    "escape-string-regexp": "^1.0.5",
-    "string-similarity": "^3.0.0",
-    "vscode-languageclient": "^5.2.1",
-    "vscode-languageserver": "^5.2.1"
-  },
-  "enhancedScopes": [
-    "source.vhdl"
-  ],
-  "package-deps": [],
-  "providedServices": {},
-  "consumedServices": {},
-  "devDependencies": {
-    "@types/vscode": "^1.39.0",
-    "blessed": "^0.1.81",
-    "json-diff": "^0.5.4",
-    "@types/blessed": "^0.1.11",
-    "@types/chokidar": "^2.1.3",
-    "@types/colors": "^1.2.1",
-    "@types/glob": "^7.1.1",
-    "@types/node": "^10.12.0",
-    "@types/prettyjson": "0.0.28",
-    "@types/string-similarity": "^3.0.0",
-    "husky": "^1.1.2",
-    "prettyjson": "^1.2.1",
-    "tslint": "^5.11.0",
-    "typescript": "^3.5.1",
-    "tslint-microsoft-contrib": "^5.2.1",
-    "vsce": "^1.68.0",
-    "vscode-languageserver-types": "^3.14.0"
-  }
+	"name": "vhdl-linter",
+	"publisher": "g0t00",
+	"main": "./dist/lib/vscode.js",
+	"version": "0.6.5",
+	"description": "A typescript based linter for vhdl",
+	"keywords": [],
+	"repository": "https://github.com/g0t00/vhdl-linter",
+	"license": "MIT",
+	"engines": {
+		"vscode": "^1.39.0"
+	},
+	"contributes": {
+		"keybindings": [
+			{
+				"key": "ctrl+shift+c ctrl+shift+s",
+				"command": "vhdl-linter:copy-as-signals",
+				"when": "editorLangId == vhdl"
+			},
+			{
+				"key": "ctrl+shift+i",
+				"command": "vhdl-linter:copy-as-instance",
+				"when": "editorLangId == vhdl"
+			},
+			{
+				"key": "ctrl+alt+s",
+				"command": "vhdl-linter:copy-as-sysverilog",
+				"when": "editorLangId == vhdl"
+			}
+		],
+		"menus": {
+			"commandPalette": [
+				{
+					"command": "vhdl-linter:copy-as-instance",
+					"when": "editorLangId == vhdl"
+				},
+				{
+					"command": "vhdl-linter:copy-as-sysverilog",
+					"when": "editorLangId == vhdl"
+				},
+				{
+					"command": "vhdl-linter:copy-as-signals",
+					"when": "editorLangId == vhdl"
+				}
+			]
+		},
+		"commands": [
+			{
+				"command": "vhdl-linter:copy-as-instance",
+				"title": "Copy as Instance"
+			},
+			{
+				"command": "vhdl-linter:copy-as-sysverilog",
+				"title": "Copy as System Verilog"
+			},
+			{
+				"command": "vhdl-linter:copy-as-signals",
+				"title": "Copy as Signals"
+			}
+		],
+		"configuration": {
+			"type": "object",
+			"title": "vhdl-linter",
+			"properties": {
+				"VhdlLinter.trace.server": {
+					"scope": "window",
+					"type": "string",
+					"enum": [
+						"off",
+						"messages",
+						"verbose"
+					],
+					"default": "off",
+					"description": "Traces the communication between VS Code and the language server."
+				}
+			}
+		}
+	},
+	"activationEvents": [
+		"onLanguage:vhdl"
+	],
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc --project .",
+		"watch": "tsc -w  --project  .",
+		"lint": "tslint --project .",
+		"test": "node dist/test/test.js"
+	},
+	"husky": {
+		"hooks": {
+			"pre-commit": "npm run lint",
+			"post-merge": "npm ci && npm run compile && echo '#####################\nRestart Atom\n#####################'"
+		}
+	},
+	"dependencies": {
+		"chokidar": "^3.2.2",
+		"escape-string-regexp": "^1.0.5",
+		"string-similarity": "^3.0.0",
+		"vscode-languageclient": "^5.2.1",
+		"vscode-languageserver": "^5.2.1"
+	},
+	"enhancedScopes": [
+		"source.vhdl"
+	],
+	"package-deps": [],
+	"providedServices": {},
+	"consumedServices": {},
+	"devDependencies": {
+		"@types/vscode": "^1.39.0",
+		"blessed": "^0.1.81",
+		"json-diff": "^0.5.4",
+		"@types/blessed": "^0.1.11",
+		"@types/chokidar": "^2.1.3",
+		"@types/colors": "^1.2.1",
+		"@types/glob": "^7.1.1",
+		"@types/node": "^10.12.0",
+		"@types/prettyjson": "0.0.28",
+		"@types/string-similarity": "^3.0.0",
+		"husky": "^1.1.2",
+		"prettyjson": "^1.2.1",
+		"tslint": "^5.11.0",
+		"typescript": "^3.5.1",
+		"tslint-microsoft-contrib": "^5.2.1",
+		"vsce": "^1.68.0",
+		"vscode-languageserver-types": "^3.14.0"
+	},
+	"__metadata": {
+		"id": "a14f930c-c182-41bd-8a6b-61417ee49e7e",
+		"publisherDisplayName": "g0t00",
+		"publisherId": "a65e6f03-3573-4dce-8df5-e0f91d80e56f"
+	}
 }
