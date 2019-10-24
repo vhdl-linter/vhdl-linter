@@ -11,7 +11,7 @@ class Counter implements Iterable<number> {
                     value: this.arr[counter++]
                 };
             }.bind(this);
-        }
+        };
     }
 }
 let c = new Counter();
