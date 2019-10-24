@@ -118,7 +118,7 @@ export class ProcessParser extends ParserBase {
     this.expect('if');
     const position = this.pos.i;
     clause.condition = this.advancePast('then');
-    clause.conditionReads = tokenizer.tokenize(clause.condition).filter(token => (token.type === 'FUNCTION') || (token.type === 'VARIABLE')).map(token => {
+    clause.conditionReads = tokenizer.tokenize(clause.condition).filter(token => (token.type === 'VARIABLE' || token.type === 'FUNCTION' || token.type === 'FUNCTION_RECORD_ELEMENT' || token.type === 'RECORD_ELEMENT')).map(token => {
       const read = new ORead(clause, position + token.offset, position + token.offset + token.value.length);
       read.text = token.value;
       return read;
@@ -132,7 +132,7 @@ export class ProcessParser extends ParserBase {
       this.expect('elsif');
       const position = this.pos.i;
       clause.condition = this.advancePast('then');
-      clause.conditionReads = tokenizer.tokenize(clause.condition).filter(token => (token.type === 'VARIABLE') || (token.type === 'FUNCTION')).map(token => {
+      clause.conditionReads = tokenizer.tokenize(clause.condition).filter(token => token.type === 'VARIABLE' || token.type === 'FUNCTION' || token.type === 'FUNCTION_RECORD_ELEMENT' || token.type === 'RECORD_ELEMENT').map(token => {
         const read = new ORead(clause, position + token.offset, position + token.offset + token.value.length);
         read.text = token.value;
         return read;

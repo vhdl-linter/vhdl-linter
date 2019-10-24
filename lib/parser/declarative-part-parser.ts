@@ -1,5 +1,5 @@
 import { ParserBase } from './parser-base';
-import { OSignal, OType, OArchitecture, OEntity, ParserError, OState, OFunction, OPackage, OEnum, ORecord, ORead, OI } from './objects';
+import { OSignal, OType, OArchitecture, OEntity, ParserError, OState, OFunction, OPackage, ORecord, OEnum, ORead, OI, ORecordChild } from './objects';
 
 export class DeclarativePartParser extends ParserBase {
   type: string;
@@ -81,10 +81,11 @@ export class DeclarativePartParser extends ParserBase {
             let position = this.pos.i;
             let recordWord = this.getNextWord();
             while (recordWord.toLowerCase() !== 'end') {
-              const child = new OType(type, position, position + recordWord.length);
+              const child = new ORecordChild(type, position, position);
               child.name = recordWord;
               (type as ORecord).children.push(child);
               this.advanceSemicolon();
+              child.range.end.i = this.pos.i;
               position = this.pos.i;
               recordWord = this.getNextWord();
             }

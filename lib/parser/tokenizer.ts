@@ -13,7 +13,7 @@ class Tokenizer {
     ['downto', 'to', 'others', 'when', 'else']
   ];
   tokenTypes = [
-    { regex: /^["]([^"\\\n]|\\.|\\\n)*["]/i, tokenType: 'STRING_LITERAL' },
+    { regex: /^(["])(([^"\\\n]|\\.|\\\n)*)["]/i, tokenType: 'STRING_LITERAL' },
     { regex: /^[*\/&\-?=<>+]+/i, tokenType: 'OPERATION'},
     { regex: /^\s+/i, tokenType: 'WHITESPACE' },
     { regex: /^[()]/i, tokenType: 'BRACE' },
@@ -25,9 +25,9 @@ class Tokenizer {
     { regex: /^'[0-9]+'/i, tokenType: 'LOGIC_LITERAL' },
     { regex: /^\w+'\w+(?=\s*\()/i, tokenType: 'ATTRIBUTE_FUNCTION' },
     { regex: /^[a-z]\w*(?!\s*[(]|\w)/i, tokenType: 'VARIABLE' },
-    { regex: /^\.[a-z]\w*(?!\s*[(]|\w)/i, tokenType: 'RECORD_ELEMENT' },
+    { regex: /^(\.)([a-z]\w*)(?!\s*[(]|\w)/i, tokenType: 'RECORD_ELEMENT' },
     { regex: /^\w+(?=\s*\()/i, tokenType: 'FUNCTION' },
-    { regex: /^\.\w+(?=\s*\()/i, tokenType: 'FUNCTION_RECORD_ELEMENT' },
+    { regex: /^(\.)(\w+)(?=\s*\()/i, tokenType: 'FUNCTION_RECORD_ELEMENT' },
   ];
   constructor() {
     for (const operatorGroup of this.operators) {
@@ -47,9 +47,9 @@ class Tokenizer {
     do {
       foundToken = false;
       for (const tokenType of this.tokenTypes) {
-        let match = tokenType.regex.exec(text);
+        let match = text.match(tokenType.regex);
         if (match) {
-          const token: Token = { type: tokenType.tokenType, value: match[0], offset };
+          const token: Token = { type: tokenType.tokenType, value: match[2] ? match[2] : match[0], offset: match[2] ? offset + match[1].length : offset };
           tokens.push(token);
           text = text.substring(match[0].length);
           offset += match[0].length;

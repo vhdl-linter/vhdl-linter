@@ -267,10 +267,10 @@ export class ParserBase {
     return type;
   }
   extractReads(parent: any, text: string, i: number): ORead[] {
-    return tokenizer.tokenize(text).filter(token => token.type === 'VARIABLE' || token.type === 'FUNCTION').map(token => {
-      const write = new ORead(parent, i + token.offset, i + token.offset + token.value.length);
-      write.text = token.value;
-      return write;
+    return tokenizer.tokenize(text).filter(token => token.type === 'VARIABLE' || token.type === 'FUNCTION' || token.type === 'RECORD_ELEMENT' || token.type === 'FUNCTION_RECORD_ELEMENT').map(token => {
+      const read = new ORead(parent, i + token.offset, i + token.offset + token.value.length);
+      read.text = token.value;
+      return read;
     });
   }
   extractReadsOrWrite(parent: any, text: string, i: number): [ORead[], OWrite[]] {
@@ -283,7 +283,7 @@ export class ParserBase {
       // console.log(index, token);
       if (token.type === 'BRACE' && index > 0) {
         token.value === '(' ? braceLevel++ : braceLevel--;
-      } else if (token.type === 'VARIABLE' || token.type === 'FUNCTION') {
+      } else if (token.type === 'VARIABLE' || token.type === 'FUNCTION' || token.type === 'FUNCTION_RECORD_ELEMENT' || token.type === 'FUNCTION_RECORD_ELEMENT') {
         if (braceLevel === 0) {
           const write = new OWrite(parent, i + token.offset, i + token.offset + token.value.length);
           write.text = token.value;

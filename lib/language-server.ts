@@ -26,7 +26,7 @@ import {
 } from 'vscode-languageserver';
 import { VhdlLinter } from './vhdl-linter';
 import { ProjectParser} from './project-parser';
-import { OFile, OArchitecture, ORead, OWrite, OSignal, OFunction, OForLoop, OForGenerate, OInstantiation, OMapping, OEntity, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackage, OEnum, ObjectBase, OType, OReadOrMappingName, OWriteReadBase} from './parser/objects';
+import { OFile, OArchitecture, ORead, OWrite, OSignal, OFunction, OForLoop, OForGenerate, OInstantiation, OMapping, OEntity, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackage, ORecord, ObjectBase, OType, OReadOrMappingName, OWriteReadBase, ORecordChild, OEnum} from './parser/objects';
 import { readFileSync, mkdtempSync, writeFileSync, writeFile, readFile } from 'fs';
 import { tmpdir } from 'os';
 import { sep } from 'path';
@@ -290,6 +290,9 @@ const findDefinition = async (params: IFindDefinitionParams) => {
     result = linter.tree.architecture.findRead(candidate, linter.packages);
     if (typeof result === 'boolean') {
       return null;
+    }
+    if (result instanceof ORecordChild) {
+      result = result.parent;
     }
     return {
       // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),

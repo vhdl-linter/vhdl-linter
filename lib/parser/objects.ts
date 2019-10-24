@@ -249,6 +249,9 @@ export class OEnum extends OType {
 export class ORecord extends OType {
   children: OType[];
 }
+export class ORecordChild extends OType {
+  public parent: ORecord;
+}
 export class OState extends ObjectBase {
   name: string;
 }
