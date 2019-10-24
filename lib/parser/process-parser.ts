@@ -1,7 +1,7 @@
 import { ParserBase } from './parser-base';
 import { AssignmentParser } from './assignment-parser';
 
-import { OProcess, OStatement, OForLoop, OIf, OIfClause, OCase, OWhenClause, OVariable, ORead, ObjectBase, OI } from './objects';
+import { OProcess, OStatement, OForLoop, OIf, OIfClause, OCase, OWhenClause, OVariable, ORead, ObjectBase, OI, OElseClause } from './objects';
 import { tokenizer } from './tokenizer';
 
 export class ProcessParser extends ParserBase {
@@ -124,6 +124,7 @@ export class ProcessParser extends ParserBase {
       return read;
     });
     clause.statements = this.parseStatements(clause, ['else', 'elsif', 'end']);
+    clause.range.setEndBacktraceWhitespace(this.pos.i);
     if_.clauses.push(clause);
     let nextWord = this.getNextWord({ consume: false }).toLowerCase();
     while (nextWord === 'elsif') {
@@ -138,12 +139,16 @@ export class ProcessParser extends ParserBase {
         return read;
       });
       clause.statements = this.parseStatements(clause, ['else', 'elsif', 'end']);
+      clause.range.setEndBacktraceWhitespace(this.pos.i);
       if_.clauses.push(clause);
       nextWord = this.getNextWord({ consume: false }).toLowerCase();
     }
     if (nextWord === 'else') {
       this.expect('else');
-      if_.elseStatements = this.parseStatements(if_, ['end']);
+      if_.else = new OElseClause(if_, this.pos.i, this.pos.i);
+      if_.else.statements = this.parseStatements(if_, ['end']);
+      if_.else.range.setEndBacktraceWhitespace(this.pos.i);
+
     }
     this.expect('end');
     this.expect('if');
@@ -161,22 +166,15 @@ export class ProcessParser extends ParserBase {
     // this.debug(`Apfel`);
 
     let nextWord = this.getNextWord().toLowerCase();
-    let lastWhen: OWhenClause|undefined;
     while (nextWord === 'when') {
       this.debug(`parseWhen`);
       const whenClause = new OWhenClause(case_, this.pos.i, this.getEndOfLineI());
-      if (lastWhen) {
-        lastWhen.range.end.i = this.pos.i;
-      }
-      lastWhen = whenClause;
       const pos = this.pos.i;
       whenClause.condition = this.extractReads(whenClause, this.advancePast('=>'), pos);
       whenClause.statements = this.parseStatements(whenClause, ['when', 'end']);
+      whenClause.range.setEndBacktraceWhitespace(this.pos.i);
       case_.whenClauses.push(whenClause);
       nextWord = this.getNextWord().toLowerCase();
-    }
-    if (lastWhen) {
-      lastWhen.range.end.i = this.pos.i;
     }
     this.expect('case');
     if (label) {

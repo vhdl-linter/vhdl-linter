@@ -22,20 +22,23 @@ import {
   ReferenceParams,
   FoldingRange,
   FoldingRangeParams,
-  CodeActionKind
+  CodeActionKind,
+  CancellationToken,
+  ErrorCodes
 } from 'vscode-languageserver';
 import { VhdlLinter } from './vhdl-linter';
 import { ProjectParser} from './project-parser';
 import { OFile, OArchitecture, ORead, OWrite, OSignal, OFunction, OForLoop, OForGenerate, OInstantiation, OMapping, OEntity, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackage, ORecord, ObjectBase, OType, OReadOrMappingName, OWriteReadBase, ORecordChild, OEnum, OProcess, OStatement, OIf, OIfClause, OMap} from './parser/objects';
-import { readFileSync, mkdtempSync, writeFileSync, writeFile, readFile } from 'fs';
+import { mkdtempSync, writeFile, readFile } from 'fs';
 import { tmpdir } from 'os';
 import { sep } from 'path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { foldingHandler } from './languageFeatures/folding';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
-let connection = createConnection(ProposedFeatures.all);
+export const connection = createConnection(ProposedFeatures.all);
 
 // Create a simple text document manager. The text document manager
 // supports full document sync only
@@ -66,7 +69,7 @@ connection.onInitialize((params: InitializeParams) => {
       foldingRangeProvider: true}
   };
 });
-const initialization = new Promise(resolve => {
+export const initialization = new Promise(resolve => {
   connection.onInitialized(async () => {
     if (hasWorkspaceFolderCapability) {
       const parseWorkspaces = async () => {
@@ -77,8 +80,12 @@ const initialization = new Promise(resolve => {
           await projectParser.init();
         }
         documents.all().forEach(validateTextDocument);
-        projectParser.events.on('change', () => documents.all().forEach(validateTextDocument));
+        projectParser.events.on('change', (... args) => {
+          console.log('projectParser.events.change', new Date().getTime(), ... args);
+          documents.all().forEach(validateTextDocument);
+        });
         documents.onDidChangeContent(change => {
+          console.log('onDidChangeContent', new Date().getTime());
           validateTextDocument(change.document);
         });
       };
@@ -94,10 +101,12 @@ const initialization = new Promise(resolve => {
     resolve();
   });
 });
-
+documents.onDidClose(change => {
+  connection.sendDiagnostics({uri: change.document.uri, diagnostics: []});
+});
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
-const linters = new Map<string, VhdlLinter>();
+export const linters = new Map<string, VhdlLinter>();
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   const vhdlLinter = new VhdlLinter(textDocument.uri.replace('file://', ''), textDocument.getText(), projectParser);
   if (typeof vhdlLinter.tree !== 'undefined') {
@@ -125,34 +134,6 @@ connection.onDidChangeWatchedFiles(_change => {
   // Monitored files have change in VS Code
   connection.console.log('We received an file change event');
 });
-// connection.onCodeLens(async (params): Promise<CodeLens[]> => {
-//   await initialization;
-//   const linter = linters.get(params.textDocument.uri);
-//   if (!linter) {
-//     return [];
-//   }
-
-//   const messages = linter.checkAll();
-//   return messages.map(message => {
-//     if (!message.solutions) {
-//       return [];
-//     }
-//     return message.solutions.filter(solution => solution.replaceWith).map(solution => {
-//       const workspaceEdit: WorkspaceEdit = { changes: {} };
-//       const textEdit: TextEdit = TextEdit.replace(solution.position, solution.replaceWith);
-//       (workspaceEdit.changes as any)[params.textDocument.uri] = [textEdit];
-//       return {
-//         range: solution.position,
-//         command: Command.create(solution.title, 'workspaceEdit', workspaceEdit)
-//       };
-//     });
-//   }).flat();
-// });
-// connection.onExecuteCommand((params: ExecuteCommandParams) => {
-//   if (params.command === 'workspaceEdit' && params.arguments) {
-//     connection.workspace.applyEdit(params.arguments[0]);
-//   }
-// });
 connection.onCodeAction(async (params): Promise<CodeAction[]> => {
   await initialization;
   const linter = linters.get(params.textDocument.uri);
@@ -304,8 +285,12 @@ const findDefinition = async (params: IFindDefinitionParams) => {
   }
   return null;
 };
-connection.onHover(async (params): Promise<Hover|null> => {
+connection.onHover(async (params, token): Promise<Hover|null> => {
   await initialization;
+  if (token.isCancellationRequested) {
+    console.log('hover canceld');
+    throw ErrorCodes.RequestCancelled;
+  }
   const definition = await findDefinition(params);
   if (definition === null) {
     return null;
@@ -436,37 +421,7 @@ connection.onDocumentFormatting(async (params: DocumentFormattingParams): Promis
     newText: await promisify(readFile)(tmpFile, {encoding: 'utf8'})
   }];
 });
-
-connection.onFoldingRanges(async (params: FoldingRangeParams): Promise<FoldingRange[]> => {
-  await initialization;
-  const linter = linters.get(params.textDocument.uri);
-  if (typeof linter === 'undefined') {
-    return [];
-  }
-  if (typeof linter.tree === 'undefined') {
-    return [];
-  }
-  const result: FoldingRange[] = [];
-  for (const obj of linter.tree.objectList) {
-    if (obj instanceof OProcess || obj instanceof OIfClause || obj instanceof OInstantiation || obj instanceof OMap || obj instanceof OEntity) {
-      result.push(FoldingRange.create(obj.range.start.getPosition().line, obj.range.end.getPosition().line));
-    }
-  }
-  if (linter.tree instanceof OFileWithEntity) {
-    if (linter.tree.entity.portRange) {
-      result.push(FoldingRange.create(linter.tree.entity.portRange.start.getPosition().line, linter.tree.entity.portRange.end.getPosition().line));
-    }
-    if (linter.tree.entity.genericRange) {
-      result.push(FoldingRange.create(linter.tree.entity.genericRange.start.getPosition().line, linter.tree.entity.genericRange.end.getPosition().line));
-    }
-  }
-  const match = linter.text.match(/^(\s*--.*\n)*/);
-  if (match) {
-    result.push(FoldingRange.create(0, match[0].split('\n').length, undefined, undefined, 'comment'));
-  }
-  return result;
-});
-
+connection.onFoldingRanges(foldingHandler);
 
 documents.listen(connection);
 

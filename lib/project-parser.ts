@@ -37,14 +37,14 @@ export class ProjectParser {
     }
     this.fetchEntitesAndPackages();
     for (const workspace of this.workspaces) {
-      const watcher = watch(workspace + '/**/*.vhd');
+      const watcher = watch(workspace + '/**/*.vhd', {ignoreInitial: true});
       watcher.on('add', async (path) => {
         let cachedFile = new OFileCache(this);
         cachedFile.path = path;
         cachedFile.parseFile(path);
         this.cachedFiles.push(cachedFile);
         this.fetchEntitesAndPackages();
-        this.events.emit('change');
+        this.events.emit('change', 'add', path);
       });
       watcher.on('change', async (path) => {
         const cachedFile = this.cachedFiles.find(cachedFile => cachedFile.path === path);
@@ -54,13 +54,13 @@ export class ProjectParser {
           console.error('modified file not found', event);
         }
         this.fetchEntitesAndPackages();
-        this.events.emit('change');
+        this.events.emit('change', 'change', path);
       });
       watcher.on('unlink', path => {
         const cachedFileIndex = this.cachedFiles.findIndex(cachedFile => cachedFile.path === path);
         this.cachedFiles.splice(cachedFileIndex, 1);
         this.fetchEntitesAndPackages();
-        this.events.emit('change');
+        this.events.emit('change', 'unlink', path);
       });
 
     }

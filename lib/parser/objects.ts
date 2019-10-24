@@ -32,6 +32,12 @@ export class OIRange {
       this.end = new OI(parent, end);
     }
   }
+  setEndBacktraceWhitespace(i: number) {
+    this.end.i = i - 1;
+    while (this.parent.getRoot().text[this.end.i].match(/\s/)) {
+      this.end.i--;
+    }
+  }
   getRange(): Range {
     return Range.create(this.start.getPosition(), this.end.getPosition());
   }
@@ -421,7 +427,10 @@ export type OGeneric = OGenericType | OGenericActual;
 export type OStatement = OCase | OAssignment | OIf | OForLoop;
 export class OIf extends ObjectBase {
   clauses: OIfClause[] = [];
-  elseStatements: OStatement[] = [];
+  else?: OElseClause;
+}
+export class OElseClause extends ObjectBase {
+  statements: OStatement[] = [];
 }
 export class OIfClause extends ObjectBase {
   condition: string;
@@ -494,7 +503,9 @@ export class OProcess extends ObjectBase {
         if (object instanceof OAssignment) {
           flatWrites.push(...object.writes);
         } else if (object instanceof OIf) {
-          flatWrites.push(...flatten(object.elseStatements));
+          if (object.else) {
+            flatWrites.push(...flatten(object.else.statements));
+          }
           for (const clause of object.clauses) {
             flatWrites.push(...flatten(clause.statements));
           }
@@ -526,7 +537,9 @@ export class OProcess extends ObjectBase {
         if (object instanceof OAssignment) {
           flatReads.push(...object.reads);
         } else if (object instanceof OIf) {
-          flatReads.push(...flatten(object.elseStatements));
+          if (object.else) {
+            flatReads.push(...flatten(object.else.statements));
+          }
           for (const clause of object.clauses) {
             flatReads.push(...clause.conditionReads);
             flatReads.push(...flatten(clause.statements));
