@@ -1,5 +1,5 @@
 import {ParserBase} from './parser-base';
-import {OInstantiation, OMapping, ParserError, ObjectBase, OReadOrMappingName, OI} from './objects';
+import {OInstantiation, OMapping, ParserError, ObjectBase, OReadOrMappingName, OI, OMap, OIRange} from './objects';
 
 export class InstantiationParser extends ParserBase {
   constructor(text: string, pos: OI, file: string, private parent: ObjectBase) {
@@ -24,18 +24,19 @@ export class InstantiationParser extends ParserBase {
     let hasPortMap = false;
     let lastI;
     while (this.text[this.pos.i] !== ';') {
+      const savedI = this.pos.i;
       nextWord = this.getNextWord().toLowerCase();
 //       console.log(nextWord, 'nextWord');
       if (nextWord === 'port') {
         hasPortMap = true;
         this.expect('map');
         this.expect('(');
-        instantiation.portMappings = this.parseMapping(instantiation);
+        instantiation.portMappings = this.parseMapping(savedI, instantiation);
 
       } else if (nextWord === 'generic') {
         this.expect('map');
         this.expect('(');
-        instantiation.genericMappings = this.parseMapping(instantiation);
+        instantiation.genericMappings = this.parseMapping(savedI, instantiation);
       }
       if (lastI === this.pos.i) {
         throw new ParserError(`Parser stuck on line ${this.getLine} in module ${this.constructor.name}`, this.pos);
@@ -48,10 +49,10 @@ export class InstantiationParser extends ParserBase {
     }
     return instantiation;
   }
-  parseMapping(instantiation: OInstantiation) {
+  parseMapping(startI: number, instantiation: OInstantiation) {
     this.debug(`parseMapping`);
 
-    const mappings: OMapping[] = [];
+    const mappings = new OMap(instantiation, startI, this.pos.i);
 
     while (this.pos.i < this.text.length) {
       const mapping = new OMapping(instantiation, this.pos.i, this.getEndOfLineI());
@@ -81,38 +82,17 @@ export class InstantiationParser extends ParserBase {
         mapping.mappingIfInput = [];
         mapping.mappingIfOutput = [[], []];
       }
-      mappings.push(mapping);
+      mappings.children.push(mapping);
       if (this.text[this.pos.i] === ',') {
         this.pos.i++;
         this.advanceWhitespace();
       } else if (this.text[this.pos.i] === ')') {
         this.pos.i++;
+        mappings.range.end.i = this.pos.i;
         this.advanceWhitespace();
         break;
       }
     }
     return mappings;
   }
-  // parseName(text: string): string {
-  //   const convertFunctions = ['std_logic_vector', 'std_ulogic_vector', 'unsigned', 'signed', 'to_integer', 'to_unsigned', 'to_signed'];
-  //   const re = new RegExp('^(' + convertFunctions.join('|') + ')\\s*', 'i');
-  //   let match: RegExpExecArray | null;
-  //   while (match = re.exec(text)) {
-  //     text = text.substr(match[0].length + 1);
-  //     let braceLevel = 0;
-  //     for (let i = 0; i < text.length; i++) {
-  //         if (text[i] === '(') {
-  //           braceLevel++;
-  //         } if (text[i] === ')') {
-  //           if (braceLevel > 0) {
-  //             braceLevel--;
-  //           } else {
-  //             text = text.substring(0, i) + text.substring(i + 1);
-  //           }
-  //         }
-  //     }
-  //   }
-  //   text = text.replace(/\(.*\)/, '');
-  //   return text;
-  // }
 }

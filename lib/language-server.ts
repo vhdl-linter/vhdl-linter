@@ -26,7 +26,7 @@ import {
 } from 'vscode-languageserver';
 import { VhdlLinter } from './vhdl-linter';
 import { ProjectParser} from './project-parser';
-import { OFile, OArchitecture, ORead, OWrite, OSignal, OFunction, OForLoop, OForGenerate, OInstantiation, OMapping, OEntity, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackage, ORecord, ObjectBase, OType, OReadOrMappingName, OWriteReadBase, ORecordChild, OEnum} from './parser/objects';
+import { OFile, OArchitecture, ORead, OWrite, OSignal, OFunction, OForLoop, OForGenerate, OInstantiation, OMapping, OEntity, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackage, ORecord, ObjectBase, OType, OReadOrMappingName, OWriteReadBase, ORecordChild, OEnum, OProcess, OStatement, OIf, OIfClause, OMap} from './parser/objects';
 import { readFileSync, mkdtempSync, writeFileSync, writeFile, readFile } from 'fs';
 import { tmpdir } from 'os';
 import { sep } from 'path';
@@ -447,8 +447,18 @@ connection.onFoldingRanges(async (params: FoldingRangeParams): Promise<FoldingRa
     return [];
   }
   const result: FoldingRange[] = [];
+  for (const obj of linter.tree.objectList) {
+    if (obj instanceof OProcess || obj instanceof OIfClause || obj instanceof OInstantiation || obj instanceof OMap || obj instanceof OEntity) {
+      result.push(FoldingRange.create(obj.range.start.getPosition().line, obj.range.end.getPosition().line));
+    }
+  }
   if (linter.tree instanceof OFileWithEntity) {
-    // result.push(FoldingRange.create(linter.tree.file.entity.signals[0].startI)
+    if (linter.tree.entity.portRange) {
+      result.push(FoldingRange.create(linter.tree.entity.portRange.start.getPosition().line, linter.tree.entity.portRange.end.getPosition().line));
+    }
+    if (linter.tree.entity.genericRange) {
+      result.push(FoldingRange.create(linter.tree.entity.genericRange.start.getPosition().line, linter.tree.entity.genericRange.end.getPosition().line));
+    }
   }
   const match = linter.text.match(/^(\s*--.*\n)*/);
   if (match) {

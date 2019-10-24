@@ -1,7 +1,7 @@
 import { OFile, OIf, OSignalLike, OSignal, OArchitecture, OEntity, OPort, OInstantiation, OWrite, ORead, OFileWithEntity, OFileWithPackage, OFileWithEntityAndArchitecture, ORecord, OPackage, ParserError, OEnum } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
-import {findBestMatch} from 'string-similarity';
+import { findBestMatch } from 'string-similarity';
 import {
   Range,
   Position
@@ -13,9 +13,9 @@ export class VhdlLinter {
   packages: OPackage[] = [];
 
   constructor(private editorPath: string, public text: string, public projectParser: ProjectParser, public onlyEntity: boolean = false) {
-//     console.log('lint');
+    //     console.log('lint');
     this.parser = new Parser(this.text, this.editorPath, onlyEntity);
-//     console.log(`parsing: ${editorPath}`);
+    //     console.log(`parsing: ${editorPath}`);
     try {
       this.tree = this.parser.parse();
     } catch (e) {
@@ -33,12 +33,12 @@ export class VhdlLinter {
         throw e;
       }
     }
-//     console.log(`done parsing: ${editorPath}`);
+    //     console.log(`done parsing: ${editorPath}`);
 
   }
   async parsePackages() {
     const packages = this.projectParser.getPackages();
-//     console.log(packages);
+    //     console.log(packages);
     for (const useStatement of this.tree.useStatements) {
       let match = useStatement.text.match(/([^.]+)\.([^.]+)\.all/i);
       let found = false;
@@ -127,7 +127,7 @@ export class VhdlLinter {
       }
     }
     for (const port of this.tree.entity.ports) {
-      if (this.tree.entity.ports.find(portSearch => port  !== portSearch && port.name.toLowerCase() === portSearch.name.toLowerCase())) {
+      if (this.tree.entity.ports.find(portSearch => port !== portSearch && port.name.toLowerCase() === portSearch.name.toLowerCase())) {
         this.messages.push({
           location: {
             file: this.editorPath,
@@ -262,7 +262,7 @@ export class VhdlLinter {
                   positionStart.line++;
                   solutions.push({
                     title: 'Add Register',
-                    position:    Range.create(positionStart, positionStart),
+                    position: Range.create(positionStart, positionStart),
                     replaceWith: `  ${signal.name} <= ${resetValue};\n    `
                   });
                 }
@@ -286,7 +286,7 @@ export class VhdlLinter {
     }
   }
 
-  private checkUnusedPerArchitecture(architecture: OArchitecture, signal: OSignal|OPort) {
+  private checkUnusedPerArchitecture(architecture: OArchitecture, signal: OSignal | OPort) {
     let unread = true;
     let unwritten = true;
     const sigLowName = signal.name.toLowerCase();
@@ -365,28 +365,28 @@ export class VhdlLinter {
       }
     }
     for (const signal of architecture.signals) {
-     const [unread, unwritten] = this.checkUnusedPerArchitecture(architecture, signal);
-     if (unread) {
-       this.messages.push({
-         location: {
-           file: this.editorPath,
-           position: signal.range.getRange()
-         },
-         severity: 'warning',
-         excerpt: `Not reading signal '${signal.name}'`
-       });
-     }
-     if (unwritten && !signal.constant) {
-       this.messages.push({
-         location: {
-           file: this.editorPath,
-           position: signal.range.getRange()
-         },
-         severity: 'warning',
-         excerpt: `Not writing signal '${signal.name}'`
-       });
-     }
-   }
+      const [unread, unwritten] = this.checkUnusedPerArchitecture(architecture, signal);
+      if (unread) {
+        this.messages.push({
+          location: {
+            file: this.editorPath,
+            position: signal.range.getRange()
+          },
+          severity: 'warning',
+          excerpt: `Not reading signal '${signal.name}'`
+        });
+      }
+      if (unwritten && !signal.constant) {
+        this.messages.push({
+          location: {
+            file: this.editorPath,
+            position: signal.range.getRange()
+          },
+          severity: 'warning',
+          excerpt: `Not writing signal '${signal.name}'`
+        });
+      }
+    }
   }
   checkPortDeclaration() {
     if (this.tree instanceof OFileWithEntity === false) {
@@ -437,10 +437,10 @@ export class VhdlLinter {
       }
     }
   }
-  getProjectEntity(instantiation: OInstantiation): OEntity|undefined {
+  getProjectEntity(instantiation: OInstantiation): OEntity | undefined {
     const projectEntities: OEntity[] = this.projectParser.getEntities();
     if (instantiation.library) {
-      const entityWithLibrary =  projectEntities.find(entity => entity.name.toLowerCase() === instantiation.componentName.toLowerCase() && typeof entity.library !== 'undefined' && typeof instantiation.library !== 'undefined' && entity.library.toLowerCase() === instantiation.library.toLowerCase());
+      const entityWithLibrary = projectEntities.find(entity => entity.name.toLowerCase() === instantiation.componentName.toLowerCase() && typeof entity.library !== 'undefined' && typeof instantiation.library !== 'undefined' && entity.library.toLowerCase() === instantiation.library.toLowerCase());
       if (entityWithLibrary) {
         return entityWithLibrary;
       }
@@ -466,34 +466,36 @@ export class VhdlLinter {
           });
         } else {
           const foundPorts = [];
-          for (const portMapping of instantiation.portMappings) {
-            const entityPortIndex = entity.ports.findIndex(port => {
-              for (const part of portMapping.name) {
-                if (part.text.toLowerCase() === port.name.toLowerCase()) {
-                  return true;
-                }
-              }
-              return false;
-            });
-            const entityPort = entity.ports[entityPortIndex];
-            foundPorts.push(entityPortIndex);
-            if (!entityPort) {
-              const bestMatch = findBestMatch(portMapping.name[0].text, entity.ports.map(port => port.name));
-              this.messages.push({
-                location: {
-                  file: this.editorPath,
-                  position: portMapping.range.getRange()
-                },
-                severity: 'error',
-                excerpt: `no port ${portMapping.name.map(name => name.text).join(', ')} on entity ${instantiation.componentName}`,
-                solutions: [
-                  {
-                    title: `Replace with ${bestMatch.bestMatch.target} (score: ${bestMatch.bestMatch.rating})`,
-                    position: Range.create(portMapping.name[0].range.start.getPosition(), portMapping.name[portMapping.name.length - 1].range.start.getPosition()),
-                    replaceWith: bestMatch.bestMatch.target
+          if (instantiation.portMappings) {
+            for (const portMapping of instantiation.portMappings.children) {
+              const entityPortIndex = entity.ports.findIndex(port => {
+                for (const part of portMapping.name) {
+                  if (part.text.toLowerCase() === port.name.toLowerCase()) {
+                    return true;
                   }
-                ]
+                }
+                return false;
               });
+              const entityPort = entity.ports[entityPortIndex];
+              foundPorts.push(entityPortIndex);
+              if (!entityPort) {
+                const bestMatch = findBestMatch(portMapping.name[0].text, entity.ports.map(port => port.name));
+                this.messages.push({
+                  location: {
+                    file: this.editorPath,
+                    position: portMapping.range.getRange()
+                  },
+                  severity: 'error',
+                  excerpt: `no port ${portMapping.name.map(name => name.text).join(', ')} on entity ${instantiation.componentName}`,
+                  solutions: [
+                    {
+                      title: `Replace with ${bestMatch.bestMatch.target} (score: ${bestMatch.bestMatch.rating})`,
+                      position: Range.create(portMapping.name[0].range.start.getPosition(), portMapping.name[portMapping.name.length - 1].range.start.getPosition()),
+                      replaceWith: bestMatch.bestMatch.target
+                    }
+                  ]
+                });
+              }
             }
           }
           for (const [index, port] of entity.ports.entries()) {

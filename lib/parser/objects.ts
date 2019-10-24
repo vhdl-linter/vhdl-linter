@@ -1,7 +1,7 @@
 import { Range, Position } from 'vscode-languageserver';
 
 export class OI {
-  constructor(public parent: ObjectBase|OFile, public i: number) { }
+  constructor(public parent: ObjectBase | OFile, public i: number) { }
 
   getPosition(): Position {
     let row = 0;
@@ -20,7 +20,7 @@ export class OI {
 export class OIRange {
   public start: OI;
   public end: OI;
-  constructor(public parent: ObjectBase, start: number|OI, end: number|OI) {
+  constructor(public parent: ObjectBase, start: number | OI, end: number | OI) {
     if (start instanceof OI) {
       this.start = start;
     } else {
@@ -39,7 +39,7 @@ export class OIRange {
 
 export class ObjectBase {
   public range: OIRange;
-  constructor (public parent: ObjectBase|OFile, startI: number, endI: number) {
+  constructor(public parent: ObjectBase | OFile, startI: number, endI: number) {
     this.range = new OIRange(this, startI, endI);
     let p = parent;
     while (!(p instanceof OFile)) {
@@ -64,7 +64,7 @@ export class ObjectBase {
   }
 }
 export class OFile {
-  constructor(public text: string, public file: string, public originalText: string) {}
+  constructor(public text: string, public file: string, public originalText: string) { }
   libraries: string[] = [];
   useStatements: OUseStatement[] = [];
   objectList: ObjectBase[] = [];
@@ -136,19 +136,19 @@ export class OArchitecture extends ObjectBase {
     while ((parent instanceof OFile) === false) {
       if (parent instanceof OArchitecture) {
         for (const signal of parent.signals) {
-            found = found || signal.name.toLowerCase() === write.text.toLowerCase();
+          found = found || signal.name.toLowerCase() === write.text.toLowerCase();
         }
       }
       parent = (parent as any).parent;
       counter--;
       if (counter === 0) {
-//        console.log(parent, parent.parent);
+        //        console.log(parent, parent.parent);
         throw new Error('Infinite Loop?');
       }
     }
     const file = (parent as any) as OFileWithEntityAndArchitecture;
     for (const signal of file.architecture.signals) {
-        found = found || signal.name.toLowerCase() === write.text.toLowerCase();
+      found = found || signal.name.toLowerCase() === write.text.toLowerCase();
     }
     for (const port of file.entity.ports) {
       found = found || port.name.toLowerCase() === write.text.toLowerCase();
@@ -163,8 +163,8 @@ export class OArchitecture extends ObjectBase {
   isValidRead(read: ORead, packages: OPackage[]): boolean {
     return this.findRead(read, packages) !== false;
   }
-  findRead(read: ORead, packages: OPackage[]): ObjectBase|false {
-    let found: ObjectBase|false = false;
+  findRead(read: ORead, packages: OPackage[]): ObjectBase | false {
+    let found: ObjectBase | false = false;
 
     for (const pkg of packages) {
       for (const constant of pkg.constants) {
@@ -218,7 +218,7 @@ export class OArchitecture extends ObjectBase {
       parent = (parent as any).parent;
       counter--;
       if (counter === 0) {
-//        console.log(parent, parent.parent);
+        //        console.log(parent, parent.parent);
         throw new Error('Infinite Loop?');
       }
     }
@@ -278,7 +278,7 @@ export class OSignalLike extends ObjectBase {
   private register: boolean | null = null;
   private registerProcess: OProcess | null;
   reads: ORead[];
-  constructor(public parent: OArchitecture|OEntity|OPackage, startI: number, endI: number) {
+  constructor(public parent: OArchitecture | OEntity | OPackage, startI: number, endI: number) {
     super(parent, startI, endI);
   }
   isRegister(): boolean {
@@ -304,72 +304,81 @@ export class OSignalLike extends ObjectBase {
       return null;
     }
     return this.registerProcess;
-}
+  }
 }
 export class OSignal extends OSignalLike {
-    constant: boolean;
+  constant: boolean;
+}
+export class OMap extends ObjectBase  {
+  public children: OMapping[] = [];
 }
 export class OInstantiation extends ObjectBase {
   label?: string;
   componentName: string;
-  portMappings: OMapping[] = [];
-  genericMappings: OMapping[] = [];
+  portMappings?: OMap;
+  genericMappings?: OMap;
   library?: string;
   entityInstantiation: boolean;
   private flatReads: ORead[] | null = null;
   private flatWrites: OWrite[] | null = null;
   getFlatReads(entity: OEntity | undefined): ORead[] {
-//     console.log(entity, 'asd2');
+    //     console.log(entity, 'asd2');
 
     if (this.flatReads !== null) {
       return this.flatReads;
     }
     this.flatReads = [];
-    for (const portMapping of this.portMappings) {
-      if (entity) {
-        const entityPort = entity.ports.find(port => {
-          for (const part of portMapping.name) {
-            if (part.text.toLowerCase() === port.name.toLowerCase()) {
-              return true;
+    if (this.portMappings) {
+      for (const portMapping of this.portMappings.children) {
+        if (entity) {
+          const entityPort = entity.ports.find(port => {
+            for (const part of portMapping.name) {
+              if (part.text.toLowerCase() === port.name.toLowerCase()) {
+                return true;
+              }
             }
+            return false;
+          });
+          if (entityPort && (entityPort.direction === 'in' || entityPort.direction === 'inout')) {
+            this.flatReads.push(...portMapping.mappingIfInput);
+          } else if (entityPort && entityPort.direction === 'out') {
+            this.flatReads.push(...portMapping.mappingIfOutput[0]);
           }
-          return false;
-        });
-        if (entityPort && (entityPort.direction === 'in' || entityPort.direction === 'inout')) {
+        } else {
           this.flatReads.push(...portMapping.mappingIfInput);
-        } else if (entityPort && entityPort.direction === 'out') {
-          this.flatReads.push(...portMapping.mappingIfOutput[0]);
         }
-      } else {
-        this.flatReads.push(...portMapping.mappingIfInput);
       }
     }
-    for (const portMapping of this.genericMappings) {
-      this.flatReads.push(...portMapping.mappingIfInput);
+    if (this.genericMappings) {
+      for (const portMapping of this.genericMappings.children) {
+        this.flatReads.push(...portMapping.mappingIfInput);
+      }
     }
     return this.flatReads;
   }
   getFlatWrites(entity: OEntity | undefined): OWrite[] {
-//     console.log(entity, 'asd');
+    //     console.log(entity, 'asd');
     if (this.flatWrites !== null) {
       return this.flatWrites;
     }
     this.flatWrites = [];
-    for (const portMapping of this.portMappings) {
-      if (entity) {
-        const entityPort = entity.ports.find(port => {
-          for (const part of portMapping.name) {
-            if (part.text.toLowerCase() === port.name.toLowerCase()) {
-              return true;
+    if (this.portMappings) {
+      for (const portMapping of this.portMappings.children) {
+        if (entity) {
+          const entityPort = entity.ports.find(port => {
+            for (const part of portMapping.name) {
+              if (part.text.toLowerCase() === port.name.toLowerCase()) {
+                return true;
+              }
             }
+            return false;
+          });
+          if (entityPort && (entityPort.direction === 'out' || entityPort.direction === 'inout')) {
+            this.flatWrites.push(...portMapping.mappingIfOutput[1]);
           }
-          return false;
-        });
-        if (entityPort && (entityPort.direction === 'out' || entityPort.direction === 'inout')) {
-          this.flatWrites.push(...portMapping.mappingIfOutput[1]);
+        } else {
+          this.flatWrites.push(...portMapping.mappingIfInput);
         }
-      } else {
-        this.flatWrites.push(...portMapping.mappingIfInput);
       }
     }
     return this.flatWrites;
@@ -383,19 +392,22 @@ export class OMapping extends ObjectBase {
   mappingIfInput: ORead[];
   mappingIfOutput: [ORead[], OWrite[]];
 }
+
 export class OEntity extends ObjectBase {
   constructor(public parent: OFileWithEntity, startI: number, endI: number, public library?: string) {
     super(parent, startI, endI);
   }
   name: string;
+  portRange?: OIRange;
+  genericRange?: OIRange;
   ports: OPort[] = [];
   generics: OGeneric[] = [];
   signals: OSignal[] = [];
   functions: OFunction[] = [];
 }
 export class OPort extends OSignalLike {
-    direction: 'in' | 'out' | 'inout';
-    hasDefault: boolean;
+  direction: 'in' | 'out' | 'inout';
+  hasDefault: boolean;
 }
 export class OGenericType extends ObjectBase {
   name: string;
@@ -482,16 +494,16 @@ export class OProcess extends ObjectBase {
         if (object instanceof OAssignment) {
           flatWrites.push(...object.writes);
         } else if (object instanceof OIf) {
-          flatWrites.push(... flatten(object.elseStatements));
+          flatWrites.push(...flatten(object.elseStatements));
           for (const clause of object.clauses) {
-            flatWrites.push(... flatten(clause.statements));
+            flatWrites.push(...flatten(clause.statements));
           }
         } else if (object instanceof OCase) {
           for (const whenClause of object.whenClauses) {
-            flatWrites.push(... flatten(whenClause.statements));
+            flatWrites.push(...flatten(whenClause.statements));
           }
         } else if (object instanceof OForLoop) {
-          flatWrites.push(... flatten(object.statements));
+          flatWrites.push(...flatten(object.statements));
         } else {
           throw new Error('UUPS');
         }
@@ -514,19 +526,19 @@ export class OProcess extends ObjectBase {
         if (object instanceof OAssignment) {
           flatReads.push(...object.reads);
         } else if (object instanceof OIf) {
-          flatReads.push(... flatten(object.elseStatements));
+          flatReads.push(...flatten(object.elseStatements));
           for (const clause of object.clauses) {
-            flatReads.push(... clause.conditionReads);
-            flatReads.push(... flatten(clause.statements));
+            flatReads.push(...clause.conditionReads);
+            flatReads.push(...flatten(clause.statements));
           }
         } else if (object instanceof OCase) {
-          flatReads.push(... object.variable);
+          flatReads.push(...object.variable);
           for (const whenClause of object.whenClauses) {
-            flatReads.push(... whenClause.condition);
-            flatReads.push(... flatten(whenClause.statements));
+            flatReads.push(...whenClause.condition);
+            flatReads.push(...flatten(whenClause.statements));
           }
         } else if (object instanceof OForLoop) {
-          flatReads.push(... flatten(object.statements));
+          flatReads.push(...flatten(object.statements));
         } else {
           throw new Error('UUPS');
         }
@@ -585,7 +597,7 @@ export class OReadOrMappingName extends ORead {
   parent: OMapping;
 }
 export class ParserError extends Error {
-    constructor(message: string, public pos: OI) {
-      super(message);
-    }
+  constructor(message: string, public pos: OI) {
+    super(message);
+  }
 }

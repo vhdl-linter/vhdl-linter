@@ -1,6 +1,6 @@
 import {ParserBase} from './parser-base';
 import { DeclarativePartParser } from './declarative-part-parser';
-import {OPort, OGeneric, OEntity, ParserError, OFileWithEntity, OGenericActual, OGenericType, OI} from './objects';
+import {OPort, OGeneric, OEntity, ParserError, OFileWithEntity, OGenericActual, OGenericType, OI, OIRange} from './objects';
 
 export class EntityParser extends ParserBase {
   constructor(text: string, pos: OI, file: string, private parent: OFileWithEntity) {
@@ -21,12 +21,15 @@ export class EntityParser extends ParserBase {
         continue;
       }
       let nextWord = this.getNextWord({consume: false}).toLowerCase();
+      const savedI = this.pos.i;
       if (nextWord === 'port') {
         this.getNextWord();
         entity.ports = this.parsePortsAndGenerics(false, entity);
+        entity.portRange = new OIRange(entity, savedI, this.pos.i);
       } else if (nextWord === 'generic') {
         this.getNextWord();
         entity.generics = this.parsePortsAndGenerics(true, entity);
+        entity.genericRange = new OIRange(entity, savedI, this.pos.i);
       } else if (nextWord === 'end') {
         this.getNextWord();
         this.maybeWord('entity');
