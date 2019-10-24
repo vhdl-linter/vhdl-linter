@@ -423,7 +423,7 @@ connection.onFoldingRanges(async (params: FoldingRangeParams): Promise<FoldingRa
   if (linter.tree instanceof OFileWithEntity) {
     // result.push(FoldingRange.create(linter.tree.file.entity.signals[0].startI)
   }
-  return [FoldingRange.create(2, 25)]
+  return [FoldingRange.create(2, 25)];
 });
 
 

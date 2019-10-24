@@ -29,7 +29,7 @@ export class VhdlLinter {
           severity: 'error',
           excerpt: e.message
         });
-      } else { 
+      } else {
         throw e;
       }
     }

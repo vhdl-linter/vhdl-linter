@@ -16,7 +16,6 @@ export class OI {
     }
     return Position.create(row, col);
   }
-  
 }
 export class OIRange {
   public start: OI;
