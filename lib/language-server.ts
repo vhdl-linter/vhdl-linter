@@ -81,11 +81,11 @@ export const initialization = new Promise(resolve => {
         }
         documents.all().forEach(validateTextDocument);
         projectParser.events.on('change', (... args) => {
-          console.log('projectParser.events.change', new Date().getTime(), ... args);
+          // console.log('projectParser.events.change', new Date().getTime(), ... args);
           documents.all().forEach(validateTextDocument);
         });
         documents.onDidChangeContent(change => {
-          console.log('onDidChangeContent', new Date().getTime());
+          // console.log('onDidChangeContent', new Date().getTime());
           validateTextDocument(change.document);
         });
       };
