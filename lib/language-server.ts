@@ -19,7 +19,9 @@ import {
   Position,
   Hover,
   DocumentFormattingParams,
-  ReferenceParams
+  ReferenceParams,
+  FoldingRange,
+  FoldingRangeParams
 } from 'vscode-languageserver';
 import { VhdlLinter } from './vhdl-linter';
 import { ProjectParser} from './project-parser';
@@ -59,8 +61,8 @@ connection.onInitialize((params: InitializeParams) => {
       definitionProvider: true,
       hoverProvider: true,
       documentFormattingProvider: true,
-      referencesProvider: true
-    }
+      referencesProvider: true,
+      foldingRangeProvider: true}
   };
 });
 const initialization = new Promise(resolve => {
@@ -165,28 +167,28 @@ connection.onDocumentSymbol(async (params): Promise<DocumentSymbol[]> => {
         name: instantiation.label + ': ' + instantiation.componentName,
         detail: instantiation.label,
         kind: SymbolKind.Object,
-        range: linter.getPositionFromILine(instantiation.startI, instantiation.endI),
-        selectionRange: linter.getPositionFromILine(instantiation.startI, instantiation.endI)
+        range: instantiation.range.getRange(),
+        selectionRange: instantiation.range.getRange()
       })));
     symbols.push(... architecture.processes.map(process => ({
       name: process.label || 'no label',
       detail: process.label,
       kind: SymbolKind.Object,
-      range: linter.getPositionFromILine(process.startI, process.endI),
-      selectionRange: linter.getPositionFromILine(process.startI),
+      range: process.range.getRange(),
+      selectionRange: process.range.getRange(),
       children: process.getStates().map(state => ({
         name: state.name,
         kind: SymbolKind.EnumMember,
-        range: linter.getPositionFromILine(state.startI, state.endI),
-        selectionRange: linter.getPositionFromILine(state.startI, state.endI),
+        range: state.range.getRange(),
+        selectionRange: state.range.getRange(),
       }))
     })));
     for (const generate of architecture.generates) {
       symbols.push({
-        name: linter.text.split('\n')[linter.getPositionFromILine(generate.startI, generate.endI).start.line],
+        name: linter.text.split('\n')[generate.range.start.getPosition().line],
         kind: SymbolKind.Enum,
-        range: linter.getPositionFromILine(generate.startI, generate.endI),
-        selectionRange: linter.getPositionFromILine(generate.startI, generate.endI),
+        range: generate.range.getRange(),
+        selectionRange: generate.range.getRange(),
         children: parseArchitecture(generate)
       });
     }
@@ -195,9 +197,9 @@ connection.onDocumentSymbol(async (params): Promise<DocumentSymbol[]> => {
   const returnValue: DocumentSymbol[] = [];
 
   if (linter.tree instanceof OFileWithPackage) {
-    returnValue.push(...linter.tree.package.types.map(type => DocumentSymbol.create(type.name, undefined, SymbolKind.Enum, linter.getPositionFromILine(type.startI, type.endI), linter.getPositionFromILine(type.startI, type.endI))));
-    returnValue.push(...linter.tree.package.functions.map(func => DocumentSymbol.create(func.name, undefined, SymbolKind.Function, linter.getPositionFromILine(func.startI, func.endI), linter.getPositionFromILine(func.startI, func.endI))));
-    returnValue.push(... linter.tree.package.constants.map(constants => DocumentSymbol.create(constants.name, undefined, SymbolKind.Constant, linter.getPositionFromILine(constants.startI, constants.endI), linter.getPositionFromILine(constants.startI, constants.endI))));
+    returnValue.push(...linter.tree.package.types.map(type => DocumentSymbol.create(type.name, undefined, SymbolKind.Enum, type.range.getRange(), type.range.getRange())));
+    returnValue.push(...linter.tree.package.functions.map(func => DocumentSymbol.create(func.name, undefined, SymbolKind.Function, func.range.getRange(), func.range.getRange())));
+    returnValue.push(... linter.tree.package.constants.map(constants => DocumentSymbol.create(constants.name, undefined, SymbolKind.Constant, constants.range.getRange(), constants.range.getRange())));
   }
   if (linter.tree instanceof OFileWithEntityAndArchitecture) {
     returnValue.push(...parseArchitecture(linter.tree.architecture));
@@ -223,8 +225,8 @@ const findDefinition = async (params: IFindDefinitionParams) => {
   }
 
   let startI = linter.getIFromPosition(params.position);
-  const candidates = linter.tree.objectList.filter(object => object.startI <= startI && startI <= object.endI);
-  candidates.sort((a, b) => (a.endI - a.startI) - (b.endI - b.startI));
+  const candidates = linter.tree.objectList.filter(object => object.range.start.i <= startI && startI <= object.range.end.i);
+  candidates.sort((a, b) => (a.range.end.i - a.range.start.i) - (b.range.end.i - b.range.start.i));
   const candidate = candidates[0];
   if (!candidate) {
     return null;
@@ -239,7 +241,7 @@ const findDefinition = async (params: IFindDefinitionParams) => {
     if (candidate instanceof OInstantiation) {
       return {
         // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
-        range: Range.create(positionFromI(entity.getRoot().text, entity.startI), positionFromI(entity.getRoot().text, entity.endI)),
+        range: entity.range.getRange(),
         text: entity.getRoot().originalText,
         // targetSelectionRange:  Range.create(Position.create(0, 0), Position.create(0, 0)),
         uri: 'file://' + entity.getRoot().file
@@ -252,7 +254,7 @@ const findDefinition = async (params: IFindDefinitionParams) => {
       }
       return {
         // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
-        range: Range.create(positionFromI(entity.getRoot().text, port.startI), positionFromI(entity.getRoot().text, port.endI)),
+        range: port.range.getRange(),
         text: entity.getRoot().originalText,
         // targetSelectionRange:  Range.create(Position.create(0, 0), Position.create(0, 0)),
         uri: 'file://' + entity.getRoot().file
@@ -265,10 +267,9 @@ const findDefinition = async (params: IFindDefinitionParams) => {
     if (typeof result === 'boolean') {
       return null;
     }
-    const position = Range.create(positionFromI(result.getRoot().originalText, result.startI), positionFromI(result.getRoot().originalText, result.endI));
     return {
       // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
-      range: position,
+      range: result.range.getRange(),
       text: result.getRoot().originalText,
       // targetSelectionRange: position,
       uri: 'file://' + result.getRoot().file
@@ -310,25 +311,27 @@ connection.onCompletion(async (params: CompletionParams): Promise<CompletionItem
     if (typeof linter.tree === 'undefined') {
       return [];
     }
-    linter.tree.objectList.sort((b, a) => a.startI - b.startI);
-    let i = linter.getIFromPosition(params.position);
-    const obj = linter.tree.objectList.find(obj => obj.startI < i);
-    if (typeof obj === 'undefined') {
+    let startI = linter.getIFromPosition(params.position);
+    const candidates = linter.tree.objectList.filter(object => object.range.start.i <= startI && startI <= object.range.end.i);
+    candidates.sort((a, b) => (a.range.end.i - a.range.start.i) - (b.range.end.i - b.range.start.i));
+    const obj = candidates[0];
+    if (!obj) {
       return [];
     }
+
     let parent = obj.parent;
     let counter = 100;
-    const candidates: CompletionItem[] = [];
+    const completions: CompletionItem[] = [];
     while ((parent instanceof OFile) === false) {
       // console.log(parent instanceof OFile, parent);
       if (parent instanceof OArchitecture) {
         for (const signal of parent.signals) {
-          candidates.push({ label: signal.name, kind: CompletionItemKind.Variable });
+          completions.push({ label: signal.name, kind: CompletionItemKind.Variable });
         }
         for (const type of parent.types) {
-          candidates.push({ label: type.name, kind: CompletionItemKind.TypeParameter });
+          completions.push({ label: type.name, kind: CompletionItemKind.TypeParameter });
           if (type instanceof OEnum) {
-            candidates.push(...type.states.map(state => {
+            completions.push(...type.states.map(state => {
               return {
                 label: state.name,
                 kind: CompletionItemKind.EnumMember
@@ -346,27 +349,27 @@ connection.onCompletion(async (params: CompletionParams): Promise<CompletionItem
     }
     if (parent instanceof OFileWithEntity) {
         for (const port of parent.entity.ports) {
-          candidates.push({ label: port.name, kind: CompletionItemKind.Field });
+          completions.push({ label: port.name, kind: CompletionItemKind.Field });
         }
         for (const port of parent.entity.generics) {
-          candidates.push({ label: port.name, kind: CompletionItemKind.Constant });
+          completions.push({ label: port.name, kind: CompletionItemKind.Constant });
         }
     }
     for (const pkg of linter.packages) {
       const ieee = pkg.parent.file.match(/ieee/i) !== null;
       for (const obj of pkg.getRoot().objectList) {
         if ((obj as any).name) {
-          candidates.push({
+          completions.push({
             label: ieee ? (obj as any).name.toLowerCase() : (obj as any).name,
             kind: CompletionItemKind.Text
           });
         }
       }
     }
-    const candidatesUnique = candidates.filter((candidate, candidateI) =>
-      candidates.slice(0, candidateI).findIndex(candidateFind => candidate.label.toLowerCase() === candidateFind.label.toLowerCase()) === -1
+    const completionsUnique = completions.filter((completion, completionI) =>
+      completions.slice(0, completionI).findIndex(completionFind => completion.label.toLowerCase() === completionFind.label.toLowerCase()) === -1
     );
-    return candidatesUnique;
+    return completionsUnique;
   }
 );
 connection.onReferences(async (params: ReferenceParams): Promise<Location[]> => {
@@ -379,14 +382,14 @@ connection.onReferences(async (params: ReferenceParams): Promise<Location[]> => 
     return [];
   }
   let startI = linter.getIFromPosition(params.position);
-  const candidates = linter.tree.objectList.filter(object => object.startI <= startI && startI <= object.endI);
-  candidates.sort((a, b) => (a.endI - a.startI) - (b.endI - b.startI));
+  const candidates = linter.tree.objectList.filter(object => object.range.start.i <= startI && startI <= object.range.end.i);
+  candidates.sort((a, b) => (a.range.end.i - a.range.start.i) - (b.range.end.i - b.range.start.i));
   const candidate = candidates[0];
   if (!candidate) {
     return [];
   }
   if (candidate instanceof OWriteReadBase) {
-    return linter.tree.objectList.filter(obj => obj instanceof OWriteReadBase && obj.text.toLowerCase() === candidate.text.toLowerCase() && obj !== candidate).map(obj => Location.create(params.textDocument.uri, linter.getPositionFromILine(obj.startI, obj.endI)));
+    return linter.tree.objectList.filter(obj => obj instanceof OWriteReadBase && obj.text.toLowerCase() === candidate.text.toLowerCase() && obj !== candidate).map(obj => Location.create(params.textDocument.uri, obj.range.getRange()));
   }
   return [];
 });
@@ -405,6 +408,22 @@ connection.onDocumentFormatting(async (params: DocumentFormattingParams): Promis
     range: Range.create(document.positionAt(0), document.positionAt(text.length)),
     newText: await promisify(readFile)(tmpFile, {encoding: 'utf8'})
   }];
+});
+
+connection.onFoldingRanges(async (params: FoldingRangeParams): Promise<FoldingRange[]> => {
+  await initialization;
+  const linter = linters.get(params.textDocument.uri);
+  if (typeof linter === 'undefined') {
+    return [];
+  }
+  if (typeof linter.tree === 'undefined') {
+    return [];
+  }
+  const result: FoldingRange[] = [];
+  if (linter.tree instanceof OFileWithEntity) {
+    // result.push(FoldingRange.create(linter.tree.file.entity.signals[0].startI)
+  }
+  return [FoldingRange.create(2, 25)]
 });
 
 

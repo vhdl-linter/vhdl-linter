@@ -1,10 +1,9 @@
 import { ParserBase } from './parser-base';
-import { ParserPosition } from './parser-position';
-import { OSignal, OType, OArchitecture, OEntity, ParserError, OState, OFunction, OPackage, OEnum, ORecord, ORead } from './objects';
+import { OSignal, OType, OArchitecture, OEntity, ParserError, OState, OFunction, OPackage, OEnum, ORecord, ORead, OI } from './objects';
 
 export class DeclarativePartParser extends ParserBase {
   type: string;
-  constructor(text: string, pos: ParserPosition, file: string, private parent: OArchitecture|OEntity|OPackage) {
+  constructor(text: string, pos: OI, file: string, private parent: OArchitecture|OEntity|OPackage) {
     super(text, pos, file);
     this.debug('start');
   }
@@ -22,7 +21,7 @@ export class DeclarativePartParser extends ParserBase {
         signal.constant = nextWord === 'constant';
         signal.name = this.getNextWord({});
         if (this.text[this.pos.i] === ',') {
-          throw new ParserError(`Defining multiple signals not allowed!: ${this.getLine(this.pos.i)}`, this.pos.i);
+          throw new ParserError(`Defining multiple signals not allowed!: ${this.getLine(this.pos.i)}`, this.pos);
           // multiSignals.push(signal.name);
           // this.expect(',');
           // continue;
@@ -30,7 +29,7 @@ export class DeclarativePartParser extends ParserBase {
         this.expect(':');
         const iBeforeType = this.pos.i;
         signal.type = this.getType(false);
-        signal.endI = this.pos.i;
+        signal.range.end.i = this.pos.i;
         this.advanceSemicolon();
         if (signal.type.indexOf(':=') > -1) {
           const split = signal.type.split(':=');
@@ -63,15 +62,15 @@ export class DeclarativePartParser extends ParserBase {
             const state = new OState(type, position, this.getEndOfLineI(position));
             const match = stateName.match(/^\s*/);
             if (match) {
-              state.startI = position + match[0].length;
+              state.range.start.i = position + match[0].length;
             }
             state.name = stateName.trim();
-            state.endI = state.startI + state.name.length;
+            state.range.end.i = state.range.start.i + state.name.length;
             position += stateName.length;
             position++;
             return state;
           });
-          type.endI = this.pos.i;
+          type.range.end.i = this.pos.i;
           types.push(type);
           this.expect(';');
         } else {
@@ -92,7 +91,7 @@ export class DeclarativePartParser extends ParserBase {
             this.maybeWord('record');
             this.maybeWord(type.name);
           }
-          type.endI = this.pos.i;
+          type.range.end.i = this.pos.i;
           types.push(type);
           this.advancePast(';');
         }
@@ -139,7 +138,7 @@ export class DeclarativePartParser extends ParserBase {
         this.advanceSemicolon();
       } else {
         this.getNextWord();
-        throw new ParserError(`Unknown Ding: '${nextWord}' on line ${this.getLine()}`, this.pos.i);
+        throw new ParserError(`Unknown Ding: '${nextWord}' on line ${this.getLine()}`, this.pos);
       }
       nextWord = this.getNextWord({ consume: false }).toLowerCase();
     }

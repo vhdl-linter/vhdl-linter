@@ -1,9 +1,8 @@
 import {ParserBase} from './parser-base';
-import {ParserPosition} from './parser-position';
-import {OInstantiation, OMapping, ParserError, ObjectBase, OReadOrMappingName} from './objects';
+import {OInstantiation, OMapping, ParserError, ObjectBase, OReadOrMappingName, OI} from './objects';
 
 export class InstantiationParser extends ParserBase {
-  constructor(text: string, pos: ParserPosition, file: string, private parent: ObjectBase) {
+  constructor(text: string, pos: OI, file: string, private parent: ObjectBase) {
     super(text, pos, file);
     this.debug(`start`);
 
@@ -17,7 +16,7 @@ export class InstantiationParser extends ParserBase {
       nextWord = this.getNextWord({re: /^[\w.]+/});
       let libraryMatch = nextWord.match(/^(.*)\./i);
       if (!libraryMatch) {
-        throw new ParserError(`Can not parse entity instantiation`, this.pos.i);
+        throw new ParserError(`Can not parse entity instantiation`, this.pos);
       }
       instantiation.library = libraryMatch[1];
     }
@@ -39,11 +38,11 @@ export class InstantiationParser extends ParserBase {
         instantiation.genericMappings = this.parseMapping(instantiation);
       }
       if (lastI === this.pos.i) {
-        throw new ParserError(`Parser stuck on line ${this.getLine} in module ${this.constructor.name}`, this.pos.i);
+        throw new ParserError(`Parser stuck on line ${this.getLine} in module ${this.constructor.name}`, this.pos);
       }
       lastI = this.pos.i;
     }
-    instantiation.endI = this.expect(';');
+    instantiation.range.end.i = this.expect(';');
     if (!hasPortMap) {
       throw new Error(`Instantiation has no Port Map. line ${this.getLine()}`);
     }

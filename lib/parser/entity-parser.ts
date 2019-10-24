@@ -1,10 +1,9 @@
 import {ParserBase} from './parser-base';
-import {ParserPosition} from './parser-position';
 import { DeclarativePartParser } from './declarative-part-parser';
-import {OPort, OGeneric, OEntity, ParserError, OFileWithEntity, OGenericActual, OGenericType} from './objects';
+import {OPort, OGeneric, OEntity, ParserError, OFileWithEntity, OGenericActual, OGenericType, OI} from './objects';
 
 export class EntityParser extends ParserBase {
-  constructor(text: string, pos: ParserPosition, file: string, private parent: OFileWithEntity) {
+  constructor(text: string, pos: OI, file: string, private parent: OFileWithEntity) {
     super(text, pos, file);
     this.debug(`start`);
   }
@@ -40,11 +39,11 @@ export class EntityParser extends ParserBase {
         new DeclarativePartParser(this.text, this.pos, this.file, entity).parse(true);
       }
       if (lastI === this.pos.i) {
-        throw new ParserError(`Parser stuck on line ${this.getLine} in module ${this.constructor.name}`, this.pos.i);
+        throw new ParserError(`Parser stuck on line ${this.getLine} in module ${this.constructor.name}`, this.pos);
       }
       lastI = this.pos.i;
     }
-    entity.endI = this.pos.i;
+    entity.range.end.i = this.pos.i;
 
     return entity;
   }

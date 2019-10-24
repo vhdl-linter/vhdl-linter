@@ -1,12 +1,11 @@
-import { ParserPosition } from './parser-position';
 const escapeStringRegexp = require('escape-string-regexp');
-import { ParserError, OWrite, ORead } from './objects';
+import { ParserError, OWrite, ORead, OI } from './objects';
 import { config } from './config';
 import { tokenizer } from './tokenizer';
 
 
 export class ParserBase {
-  constructor(protected text: string, protected pos: ParserPosition, protected file: string) {
+  constructor(protected text: string, protected pos: OI, protected file: string) {
 
   }
   debug(_message: string) {
@@ -41,7 +40,7 @@ export class ParserBase {
   }
   message(message: string, severity = 'error') {
     if (severity === 'error') {
-      throw new ParserError(message + ` in line: ${this.getLine()}`, this.pos.i);
+      throw new ParserError(message + ` in line: ${this.getLine()}`, this.pos);
     } else {
     }
   }
@@ -67,11 +66,11 @@ export class ParserBase {
       options.returnMatch = false;
     }
     let text = '';
-    let searchStart = this.pos.i;
+    let searchStart = this.pos;
     if (typeof search === 'string') {
       while (this.text.substr(this.pos.i, search.length).toLowerCase() !== search.toLowerCase()) {
         if (!options.allowSemicolon && this.text[this.pos.i] === ';') {
-          throw new ParserError(`could not find ${search} DEBUG-SEMICOLON`, this.pos.i);
+          throw new ParserError(`could not find ${search} DEBUG-SEMICOLON`, this.pos);
         }
         text += this.text[this.pos.i];
         this.pos.i++;
@@ -124,7 +123,7 @@ export class ParserBase {
       text += this.text[this.pos.i];
       this.pos.i++;
     }
-    throw new ParserError(`could not find closing brace`, this.pos.i - text.length);
+    throw new ParserError(`could not find closing brace`, new OI(this.pos.parent, this.pos.i - text.length));
   }
   advanceSemicolon(braceAware: boolean = false) {
     if (braceAware) {
@@ -134,7 +133,7 @@ export class ParserBase {
       while (this.text[this.pos.i]) {
         const match = /["\\();]/.exec(this.text.substring(this.pos.i));
         if (!match) {
-          throw new ParserError(`could not find closing brace`, this.pos.i - text.length);
+          throw new ParserError(`could not find closing brace`, new OI(this.pos.parent, this.pos.i - text.length));
         }
         if (match[0] === '"' && this.text[this.pos.i + match.index - 1] !== '\\') {
           quote = !quote;
@@ -144,7 +143,7 @@ export class ParserBase {
           if (braceLevel > 0) {
             braceLevel--;
           } else {
-            throw new ParserError(`unexpected ')'`, this.pos.i - text.length);
+            throw new ParserError(`unexpected ')'`, new OI(this.pos.parent, this.pos.i - text.length));
           }
         } else if (match[0] === ';' && !quote && braceLevel === 0) {
           text += this.text.substring(this.pos.i, this.pos.i + match.index);
@@ -155,11 +154,11 @@ export class ParserBase {
         text += this.text.substring(this.pos.i, this.pos.i + match.index);
         this.pos.i += match.index + 1;
       }
-      throw new ParserError(`could not find closing brace`, this.pos.i - text.length);
+      throw new ParserError(`could not find closing brace`, new OI(this.pos.parent, this.pos.i - text.length));
     }
     const match = /;/.exec(this.text.substring(this.pos.i));
     if (!match) {
-      throw new ParserError(`could not find semicolon`, this.pos.i);
+      throw new ParserError(`could not find semicolon`, this.pos);
     }
     const text = this.text.substring(this.pos.i, this.pos.i + match.index);
     this.pos.i += match.index + 1;
@@ -184,7 +183,7 @@ export class ParserBase {
         this.advanceWhitespace();
         return word;
       }
-      throw new ParserError(`did not find ${re}. EOF line: ${this.getLine()}`, this.pos.i);
+      throw new ParserError(`did not find ${re}. EOF line: ${this.getLine()}`, this.pos);
     }
     let word = '';
     let j = 0;
@@ -244,7 +243,7 @@ export class ParserBase {
       savedI = this.pos.i;
       this.advanceWhitespace();
     } else {
-      throw new ParserError(`expected '${expected.join(', ')}' found '${this.getNextWord()}' line: ${this.getLine()}`, this.pos.i);
+      throw new ParserError(`expected '${expected.join(', ')}' found '${this.getNextWord()}' line: ${this.getLine()}`, this.pos);
     }
     return savedI;
   }

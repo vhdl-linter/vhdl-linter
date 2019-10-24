@@ -1,15 +1,14 @@
 import { ParserBase } from './parser-base';
 import { ProcessParser } from './process-parser';
 import { InstantiationParser } from './instantiation-parser';
-import { ParserPosition } from './parser-position';
-import { OArchitecture, ParserError, OForGenerate, OIfGenerate, OFile, ORead} from './objects';
+import { OArchitecture, ParserError, OForGenerate, OIfGenerate, OFile, ORead, OI} from './objects';
 import { AssignmentParser } from './assignment-parser';
 import { DeclarativePartParser } from './declarative-part-parser';
 
 export class ArchitectureParser extends ParserBase {
   name: string;
   type: string;
-  constructor(text: string, pos: ParserPosition, file: string, private parent: OArchitecture|OFile, name?: string) {
+  constructor(text: string, pos: OI, file: string, private parent: OArchitecture|OFile, name?: string) {
     super(text, pos, file);
     this.debug('start');
     if (name) {
@@ -85,7 +84,7 @@ export class ArchitectureParser extends ParserBase {
         let end = this.advancePast(/\bgenerate\b/i);
         const subarchitecture = new ArchitectureParser(this.text, this.pos, this.file, architecture, label);
         const generate: OForGenerate = subarchitecture.parse(true, 'generate');
-        generate.startI = savedI;
+        generate.range.start.i = savedI;
         generate.start = start;
         generate.end = end;
         generate.variable = variable;
@@ -98,7 +97,7 @@ export class ArchitectureParser extends ParserBase {
         this.debug('parse if generate ' + label);
         const subarchitecture = new ArchitectureParser(this.text, this.pos, this.file, architecture, label);
         const ifGenerateObject = subarchitecture.parse(true, 'generate', true, false);
-        ifGenerateObject.startI = savedI;
+        ifGenerateObject.range.start.i = savedI;
         if (ifGenerateObject.conditions) {
           ifGenerateObject.conditions = [condition].concat(ifGenerateObject.conditions);
           ifGenerateObject.conditionReads = this.extractReads(ifGenerateObject, condition, conditionI).concat(ifGenerateObject.conditionReads);
@@ -109,7 +108,7 @@ export class ArchitectureParser extends ParserBase {
         architecture.generates.push(ifGenerateObject);
       } else if (nextWord === 'elsif') {
         if (noElse && !ifGenerate) {
-          throw new ParserError('elsif generate without if generate', this.pos.i);
+          throw new ParserError('elsif generate without if generate', this.pos);
         } else if (noElse) {
           break;
         }
@@ -118,7 +117,7 @@ export class ArchitectureParser extends ParserBase {
         this.debug('parse elsif generate ' + label);
         const subarchitecture = new ArchitectureParser(this.text, this.pos, this.file, architecture.parent as OArchitecture, label);
         const ifGenerateObject = subarchitecture.parse(true, 'generate', true, true);
-        ifGenerateObject.startI = savedI;
+        ifGenerateObject.range.start.i = savedI;
         if (ifGenerateObject.conditions) {
           ifGenerateObject.conditions = [condition].concat(ifGenerateObject.conditions);
           ifGenerateObject.conditionReads = this.extractReads(ifGenerateObject, condition, conditionI).concat(ifGenerateObject.conditionReads);
@@ -129,7 +128,7 @@ export class ArchitectureParser extends ParserBase {
         (architecture.parent as OArchitecture).generates.push(ifGenerateObject);
       } else if (ifGenerate && nextWord === 'else') {
           if (noElse && !ifGenerate) {
-            throw new ParserError('else generate without if generate', this.pos.i);
+            throw new ParserError('else generate without if generate', this.pos);
           } else if (noElse) {
             break;
           }
@@ -138,7 +137,7 @@ export class ArchitectureParser extends ParserBase {
           this.debug('parse else generate ' + label);
           const subarchitecture = new ArchitectureParser(this.text, this.pos, this.file, architecture.parent as OArchitecture, label);
           const ifGenerateObject = subarchitecture.parse(true, 'generate', true, true);
-          ifGenerateObject.startI = savedI;
+          ifGenerateObject.range.start.i = savedI;
           if (ifGenerateObject.conditions) {
             ifGenerateObject.conditions = [condition].concat(ifGenerateObject.conditions);
             ifGenerateObject.conditionReads = this.extractReads(ifGenerateObject, condition, conditionI).concat(ifGenerateObject.conditionReads);

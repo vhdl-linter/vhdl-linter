@@ -1,12 +1,11 @@
 import { ParserBase } from './parser-base';
-import { ParserPosition } from './parser-position';
 import { AssignmentParser } from './assignment-parser';
 
-import { OProcess, OStatement, OForLoop, OIf, OIfClause, OCase, OWhenClause, OVariable, ORead, ObjectBase } from './objects';
+import { OProcess, OStatement, OForLoop, OIf, OIfClause, OCase, OWhenClause, OVariable, ORead, ObjectBase, OI } from './objects';
 import { tokenizer } from './tokenizer';
 
 export class ProcessParser extends ParserBase {
-  constructor(text: string, pos: ParserPosition, file: string, private parent: ObjectBase) {
+  constructor(text: string, pos: OI, file: string, private parent: ObjectBase) {
     super(text, pos, file);
     this.debug(`start`);
 
@@ -56,7 +55,7 @@ export class ProcessParser extends ParserBase {
     if (label) {
       this.maybeWord(label);
     }
-    process.endI = this.pos.i;
+    process.range.end.i = this.pos.i;
     this.expect(';');
     return process;
   }
@@ -167,7 +166,7 @@ export class ProcessParser extends ParserBase {
       this.debug(`parseWhen`);
       const whenClause = new OWhenClause(case_, this.pos.i, this.getEndOfLineI());
       if (lastWhen) {
-        lastWhen.endI = this.pos.i;
+        lastWhen.range.end.i = this.pos.i;
       }
       lastWhen = whenClause;
       const pos = this.pos.i;
@@ -177,7 +176,7 @@ export class ProcessParser extends ParserBase {
       nextWord = this.getNextWord().toLowerCase();
     }
     if (lastWhen) {
-      lastWhen.endI = this.pos.i;
+      lastWhen.range.end.i = this.pos.i;
     }
     this.expect('case');
     if (label) {

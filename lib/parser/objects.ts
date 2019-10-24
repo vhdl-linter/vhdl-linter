@@ -1,13 +1,47 @@
+import { Range, Position } from 'vscode-languageserver';
+
+export class OI {
+  constructor(public parent: ObjectBase|OFile, public i: number) { }
+
+  getPosition(): Position {
+    let row = 0;
+    let col = 0;
+    for (let count = 0; count < this.i; count++) {
+      if (this.parent instanceof OFile ? this.parent.text[count] === '\n' : this.parent.getRoot().text[count] === '\n') {
+        row++;
+        col = 0;
+      } else {
+        col++;
+      }
+    }
+    return Position.create(row, col);
+  }
+  
+}
+export class OIRange {
+  public start: OI;
+  public end: OI;
+  constructor(public parent: ObjectBase, start: number|OI, end: number|OI) {
+    if (start instanceof OI) {
+      this.start = start;
+    } else {
+      this.start = new OI(parent, start);
+    }
+    if (end instanceof OI) {
+      this.end = end;
+    } else {
+      this.end = new OI(parent, end);
+    }
+  }
+  getRange(): Range {
+    return Range.create(this.start.getPosition(), this.end.getPosition());
+  }
+}
+
 export class ObjectBase {
-  public startI: number;
-  public endI: number;
+  public range: OIRange;
   constructor (public parent: ObjectBase|OFile, startI: number, endI: number) {
-    if (startI) {
-      this.startI = startI;
-    }
-    if (endI) {
-      this.endI = endI;
-    }
+    this.range = new OIRange(this, startI, endI);
     let p = parent;
     while (!(p instanceof OFile)) {
       p = p.parent;
@@ -406,7 +440,7 @@ export class OProcess extends ObjectBase {
             for (const statement of clause.statements) {
               if (statement instanceof OCase) {
                 for (const whenClause of statement.whenClauses) {
-                  const state = new OState(whenClause.parent, whenClause.startI, whenClause.endI);
+                  const state = new OState(whenClause.parent, whenClause.range.start.i, whenClause.range.end.i);
                   state.name = whenClause.condition.map(read => read.text).join(' ');
                   states.push(state);
                 }
@@ -549,7 +583,7 @@ export class OReadOrMappingName extends ORead {
   parent: OMapping;
 }
 export class ParserError extends Error {
-    constructor(message: string, public i: number) {
+    constructor(message: string, public pos: OI) {
       super(message);
     }
 }

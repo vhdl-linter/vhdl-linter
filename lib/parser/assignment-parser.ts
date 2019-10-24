@@ -1,9 +1,8 @@
 import {ParserBase} from './parser-base';
-import {ParserPosition} from './parser-position';
-import {OAssignment, ParserError, ObjectBase} from './objects';
+import {OAssignment, ParserError, ObjectBase, OI} from './objects';
 
 export class AssignmentParser extends ParserBase {
-  constructor(text: string, pos: ParserPosition, file: string, private parent: ObjectBase) {
+  constructor(text: string, pos: OI, file: string, private parent: ObjectBase) {
     super(text, pos, file);
     this.debug(`start`);
   }
@@ -13,7 +12,7 @@ export class AssignmentParser extends ParserBase {
     let leftHandSide = '';
     const match = /[<:]/.exec(this.text.substring(this.pos.i));
     if (!match) {
-      throw new ParserError(`expected <= or :=, reached end of text. Start on line: ${this.getLine(leftHandSideI)}`, leftHandSideI);
+      throw new ParserError(`expected <= or :=, reached end of text. Start on line`, this.pos);
     }
     leftHandSide += this.text.substring(this.pos.i, this.pos.i + match.index);
     this.pos.i += match.index;
@@ -22,7 +21,7 @@ export class AssignmentParser extends ParserBase {
     let rightHandSideI = this.pos.i;
     const rightHandSide = this.advanceSemicolon();
     assignment.reads.push(...this.extractReads(assignment, rightHandSide, rightHandSideI));
-    assignment.endI = this.pos.i;
+    assignment.range.end.i = this.pos.i;
     return assignment;
   }
 

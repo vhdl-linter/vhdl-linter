@@ -1,4 +1,4 @@
-import { OFile, OIf, OSignalLike, OSignal, OArchitecture, OEntity, OPort, OInstantiation, OWrite, ORead, OFileWithEntity, OFileWithPackage, OFileWithEntityAndArchitecture, OEnum, OPackage } from './parser/objects';
+import { OFile, OIf, OSignalLike, OSignal, OArchitecture, OEntity, OPort, OInstantiation, OWrite, ORead, OFileWithEntity, OFileWithPackage, OFileWithEntityAndArchitecture, OEnum, OPackage, ParserError } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 import {findBestMatch} from 'string-similarity';
@@ -19,10 +19,8 @@ export class VhdlLinter {
     try {
       this.tree = this.parser.parse();
     } catch (e) {
-      try {
-        let positionStart = this.getPositionFromI(e.i);
-        let positionEnd = Position.create(positionStart.line, Infinity);
-        let position: Range = Range.create(positionStart, positionEnd);
+      if (e instanceof ParserError) {
+        let position: Range = Range.create(e.pos.getPosition(), e.pos.getPosition());
         this.messages.push({
           location: {
             file: this.editorPath,
@@ -31,8 +29,8 @@ export class VhdlLinter {
           severity: 'error',
           excerpt: e.message
         });
-      } catch (err) {
-        console.error('error parsing error', e, err);
+      } else { 
+        throw e;
       }
     }
 //     console.log(`done parsing: ${editorPath}`);
@@ -62,7 +60,7 @@ export class VhdlLinter {
         this.messages.push({
           location: {
             file: this.editorPath,
-            position: this.getPositionFromILine(useStatement.begin, useStatement.end)
+            position: useStatement.range.getRange()
           },
           severity: 'warning',
           excerpt: `could not find package for ${useStatement.text}`
@@ -94,7 +92,7 @@ export class VhdlLinter {
         this.messages.push({
           location: {
             file: this.editorPath,
-            position: this.getPositionFromILine(signal.startI)
+            position: signal.range.getRange()
           },
           severity: 'error',
           excerpt: `signal ${signal.name} defined multiple times`
@@ -106,7 +104,7 @@ export class VhdlLinter {
         this.messages.push({
           location: {
             file: this.editorPath,
-            position: this.getPositionFromILine(type.startI)
+            position: type.range.getRange()
           },
           severity: 'error',
           excerpt: `type ${type.name} defined multiple times`
@@ -118,7 +116,7 @@ export class VhdlLinter {
             this.messages.push({
               location: {
                 file: this.editorPath,
-                position: this.getPositionFromILine(state.startI, state.endI)
+                position: state.range.getRange()
               },
               severity: 'error',
               excerpt: `state ${state.name} defined multiple times`
@@ -133,7 +131,7 @@ export class VhdlLinter {
         this.messages.push({
           location: {
             file: this.editorPath,
-            position: this.getPositionFromILine(port.startI)
+            position: port.range.getRange()
           },
           severity: 'error',
           excerpt: `port ${port.name} defined multiple times`
@@ -151,28 +149,20 @@ export class VhdlLinter {
       return;
     }
     const pushWriteError = (write: OWrite) => {
-      let positionStart = this.getPositionFromI(write.startI);
-      let positionEnd = this.getPositionFromI(write.endI);
-      let position = Range.create(positionStart, positionEnd);
-
       this.messages.push({
         location: {
           file: this.editorPath,
-          position
+          position: write.range.getRange()
         },
         severity: 'error',
         excerpt: `signal '${write.text}' is written but not declared`
       });
     };
     const pushReadError = (read: ORead) => {
-      let positionStart = this.getPositionFromI(read.startI);
-      let positionEnd = this.getPositionFromI(read.endI);
-      let position = Range.create(positionStart, positionEnd);
-
       this.messages.push({
         location: {
           file: this.editorPath,
-          position
+          position: read.range.getRange()
         },
         severity: 'error',
         excerpt: `signal '${read.text}' is read but not declared`
@@ -268,7 +258,7 @@ export class VhdlLinter {
                   resetValue = `0`;
                 }
                 if (resetValue !== null) {
-                  let positionStart = this.getPositionFromI(clause.startI);
+                  let positionStart = clause.range.start.getPosition();
                   positionStart.line++;
                   solutions.push({
                     title: 'Add Register',
@@ -284,7 +274,7 @@ export class VhdlLinter {
         this.messages.push({
           location: {
             file: this.editorPath,
-            position: this.getPositionFromILine(registerProcess.startI)
+            position: registerProcess.range.getRange()
           },
           solutions,
           severity: 'error',
@@ -354,7 +344,7 @@ export class VhdlLinter {
           this.messages.push({
             location: {
               file: this.editorPath,
-              position: this.getPositionFromILine(port.startI)
+              position: port.range.getRange()
             },
             severity: 'warning',
             excerpt: `Not reading input port '${port.name}'`
@@ -364,7 +354,7 @@ export class VhdlLinter {
           this.messages.push({
             location: {
               file: this.editorPath,
-              position: this.getPositionFromILine(port.startI)
+              position: port.range.getRange()
             },
             severity: 'warning',
             excerpt: `Not writing output port '${port.name}'`
@@ -378,7 +368,7 @@ export class VhdlLinter {
        this.messages.push({
          location: {
            file: this.editorPath,
-           position: this.getPositionFromILine(signal.startI)
+           position: signal.range.getRange()
          },
          severity: 'warning',
          excerpt: `Not reading signal '${signal.name}'`
@@ -388,7 +378,7 @@ export class VhdlLinter {
        this.messages.push({
          location: {
            file: this.editorPath,
-           position: this.getPositionFromILine(signal.startI)
+           position: signal.range.getRange()
          },
          severity: 'warning',
          excerpt: `Not writing signal '${signal.name}'`
@@ -407,7 +397,7 @@ export class VhdlLinter {
           this.messages.push({
             location: {
               file: this.editorPath,
-              position: this.getPositionFromILine(port.startI)
+              position: port.range.getRange()
             },
             severity: 'error',
             excerpt: `input port '${port.name}' begins with 'o_'!`
@@ -416,7 +406,7 @@ export class VhdlLinter {
           this.messages.push({
             location: {
               file: this.editorPath,
-              position: this.getPositionFromILine(port.startI)
+              position: port.range.getRange()
             },
             severity: 'warning',
             excerpt: `input port '${port.name}' should begin with i_`
@@ -427,7 +417,7 @@ export class VhdlLinter {
           this.messages.push({
             location: {
               file: this.editorPath,
-              position: this.getPositionFromILine(port.startI)
+              position: port.range.getRange()
             },
             severity: 'error',
             excerpt: `ouput port '${port.name}' begins with 'i_'!`
@@ -436,7 +426,7 @@ export class VhdlLinter {
           this.messages.push({
             location: {
               file: this.editorPath,
-              position: this.getPositionFromILine(port.startI)
+              position: port.range.getRange()
             },
             severity: 'warning',
             excerpt: `ouput port '${port.name}' should begin with 'o_'`
@@ -467,7 +457,7 @@ export class VhdlLinter {
           this.messages.push({
             location: {
               file: this.editorPath,
-              position: this.getPositionFromILine(instantiation.startI)
+              position: instantiation.range.getRange()
             },
             severity: 'error',
             excerpt: `can not find entity ${instantiation.componentName}`
@@ -490,14 +480,14 @@ export class VhdlLinter {
               this.messages.push({
                 location: {
                   file: this.editorPath,
-                  position: this.getPositionFromILine(portMapping.startI)
+                  position: portMapping.range.getRange()
                 },
                 severity: 'error',
                 excerpt: `no port ${portMapping.name.map(name => name.text).join(', ')} on entity ${instantiation.componentName}`,
                 solutions: [
                   {
                     title: `Replace with ${bestMatch.bestMatch.target} (score: ${bestMatch.bestMatch.rating})`,
-                    position:    Range.create(this.getPositionFromI(portMapping.name[0].startI), this.getPositionFromI(portMapping.name[portMapping.name.length - 1].endI)),
+                    position: Range.create(portMapping.name[0].range.start.getPosition(), portMapping.name[portMapping.name.length - 1].range.start.getPosition()),
                     replaceWith: bestMatch.bestMatch.target
                   }
                 ]
@@ -509,7 +499,7 @@ export class VhdlLinter {
               this.messages.push({
                 location: {
                   file: this.editorPath,
-                  position: this.getPositionFromILine(instantiation.startI)
+                  position: instantiation.range.getRange()
                 },
                 severity: 'error',
                 excerpt: `input port ${port.name} is missing in port map and has no default value on entity ${instantiation.componentName}`
@@ -522,7 +512,7 @@ export class VhdlLinter {
         this.messages.push({
           location: {
             file: this.editorPath,
-            position: this.getPositionFromILine(instantiation.startI)
+            position: instantiation.range.getRange()
           },
           severity: 'info',
           excerpt: `can not evaluate instantiation via component`
@@ -541,30 +531,30 @@ export class VhdlLinter {
     let i = text.join('\n').length + p.character;
     return i;
   }
-  getPositionFromILine(i: number, j?: number): Range {
-    const positionStart = this.getPositionFromI(i);
-    let positionEnd: Position;
-    if (j) {
-      positionEnd = this.getPositionFromI(j);
-    } else {
-      positionEnd = Position.create(positionStart.line, this.text.split('\n')[positionStart.line].length - 1);
-    }
-    const position: Range = Range.create(positionStart, positionEnd);
-    return position;
-  }
-  getPositionFromI(i: number): Position {
-    let row = 0;
-    let col = 0;
-    for (let count = 0; count < i; count++) {
-      if (this.text[count] === '\n') {
-        row++;
-        col = 0;
-      } else {
-        col++;
-      }
-    }
-    return Position.create(row, col);
-  }
+  // getPositionFromILine(i: number, j?: number): Range {
+  //   const positionStart = this.getPositionFromI(i);
+  //   let positionEnd: Position;
+  //   if (j) {
+  //     positionEnd = this.getPositionFromI(j);
+  //   } else {
+  //     positionEnd = Position.create(positionStart.line, this.text.split('\n')[positionStart.line].length - 1);
+  //   }
+  //   const position: Range = Range.create(positionStart, positionEnd);
+  //   return position;
+  // }
+  // getPositionFromI(i: number): Position {
+  //   let row = 0;
+  //   let col = 0;
+  //   for (let count = 0; count < i; count++) {
+  //     if (this.text[count] === '\n') {
+  //       row++;
+  //       col = 0;
+  //     } else {
+  //       col++;
+  //     }
+  //   }
+  //   return Position.create(row, col);
+  // }
 
 }
 export type Message = {

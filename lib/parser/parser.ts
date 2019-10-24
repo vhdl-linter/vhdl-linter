@@ -1,24 +1,24 @@
 import {EntityParser} from './entity-parser';
 import {ArchitectureParser} from './architecture-parser';
 import {ParserBase} from './parser-base';
-import {ParserPosition} from './parser-position';
-import {OFile, OUseStatement, ParserError, OEntity, OArchitecture, OPackage, OFileWithEntity, OFileWithPackage, OFileWithEntityAndArchitecture} from './objects';
+import {OFile, OUseStatement, ParserError, OEntity, OArchitecture, OPackage, OFileWithEntity, OFileWithPackage, OFileWithEntityAndArchitecture, OI, ObjectBase} from './objects';
 import { PackageParser } from './package-parser';
 
 
 export class Parser extends ParserBase {
-  position: ParserPosition;
+  position: OI;
   private originalText: string;
   constructor(text: string, file: string, public onlyEntity: boolean = false) {
-    super(text, new ParserPosition(), file);
+    super(text, {} as OI, file);
     this.originalText = text;
     this.removeComments();
   }
   parse(): OFileWithPackage|OFileWithEntity|OFile {
-    if (this.text.length > 500 * 1024) {
-      throw new ParserError('file too large', 0);
-    }
     const file = new OFile(this.text, this.file, this.originalText);
+    this.pos = new OI(file, 0);
+    if (this.text.length > 500 * 1024) {
+      throw new ParserError('file too large', this.pos);
+    }
     let entity: OEntity|undefined;
     let architecture: OArchitecture|undefined;
     let pkg: OPackage|undefined;

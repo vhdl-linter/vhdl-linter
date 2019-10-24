@@ -28,7 +28,7 @@ const megaFunction = async (file: string) => {
     returnValue = JSON.stringify(result);
   } catch (e) {
     if (e instanceof ParserError) {
-      const result = { success: false, error: { i: e.i, text: e.toString() } };
+      const result = { success: false, error: { i: e.pos, text: e.toString() } };
       returnValue = JSON.stringify(result);
       // console.error(e);
     } else {
