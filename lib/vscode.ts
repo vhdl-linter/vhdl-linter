@@ -1,5 +1,5 @@
 import * as path from 'path';
-import { workspace, ExtensionContext, commands } from 'vscode';
+import { workspace, ExtensionContext, commands, window, env } from 'vscode';
 
 import {
   LanguageClient,
@@ -8,6 +8,8 @@ import {
   TransportKind
 } from 'vscode-languageclient';
 import { copy, CopyTypes } from './vhdl-entity-converter';
+import { VhdlLinter } from './vhdl-linter';
+import { ProjectParser } from './project-parser';
 
 let client: LanguageClient;
 
@@ -52,6 +54,18 @@ export function activate(context: ExtensionContext) {
   context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-as-instance', () => copy(CopyTypes.Instance)));
   context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-as-sysverilog', () => copy(CopyTypes.Sysverilog)));
   context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-as-signals', () => copy(CopyTypes.Signals)));
+  context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-tree', () => {
+    const editor = window.activeTextEditor;
+    if (!editor) {
+      return;
+    }
+    const vhdlLinter = new VhdlLinter(editor.document.uri.path, editor.document.getText(), new ProjectParser([]));
+    if (vhdlLinter.tree) {
+      env.clipboard.writeText(JSON.stringify(vhdlLinter.tree.getJSONMagic()));
+      window.showInformationMessage(`VHDL file as JSON copied to clipboard`);
+
+    }
+  }));
 }
 
 export function deactivate(): Thenable<void> | undefined {
