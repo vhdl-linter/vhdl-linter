@@ -270,11 +270,13 @@ export class VhdlLinter {
             }
           }
         }
+        const range = Range.create(registerProcess.range.start.getPosition(), registerProcess.range.start.getPosition());
+        range.end.character = this.text.split('\n')[range.start.line].length;
         const excerpt = resetBlockFound ? `Reset '${signal.name}' missing` : `Reset '${signal.name}' missing. Reset Block not found!`;
         this.messages.push({
           location: {
             file: this.editorPath,
-            position: registerProcess.range.getRange()
+            position: range
           },
           solutions,
           severity: 'error',

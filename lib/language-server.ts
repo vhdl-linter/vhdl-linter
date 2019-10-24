@@ -21,7 +21,8 @@ import {
   DocumentFormattingParams,
   ReferenceParams,
   FoldingRange,
-  FoldingRangeParams
+  FoldingRangeParams,
+  CodeActionKind
 } from 'vscode-languageserver';
 import { VhdlLinter } from './vhdl-linter';
 import { ProjectParser} from './project-parser';
@@ -124,22 +125,49 @@ connection.onDidChangeWatchedFiles(_change => {
   // Monitored files have change in VS Code
   connection.console.log('We received an file change event');
 });
+// connection.onCodeLens(async (params): Promise<CodeLens[]> => {
+//   await initialization;
+//   const linter = linters.get(params.textDocument.uri);
+//   if (!linter) {
+//     return [];
+//   }
+
+//   const messages = linter.checkAll();
+//   return messages.map(message => {
+//     if (!message.solutions) {
+//       return [];
+//     }
+//     return message.solutions.filter(solution => solution.replaceWith).map(solution => {
+//       const workspaceEdit: WorkspaceEdit = { changes: {} };
+//       const textEdit: TextEdit = TextEdit.replace(solution.position, solution.replaceWith);
+//       (workspaceEdit.changes as any)[params.textDocument.uri] = [textEdit];
+//       return {
+//         range: solution.position,
+//         command: Command.create(solution.title, 'workspaceEdit', workspaceEdit)
+//       };
+//     });
+//   }).flat();
+// });
+// connection.onExecuteCommand((params: ExecuteCommandParams) => {
+//   if (params.command === 'workspaceEdit' && params.arguments) {
+//     connection.workspace.applyEdit(params.arguments[0]);
+//   }
+// });
 connection.onCodeAction(async (params): Promise<CodeAction[]> => {
   await initialization;
   const linter = linters.get(params.textDocument.uri);
   if (!linter) {
     return [];
   }
-
   const messages = linter.checkAll();
   const message = messages.find(message => {
     if (typeof message.solutions === 'undefined' || messages.length === 0) {
       return false;
     }
-    return message.location.position.start.character === params.range.start.character &&
-      message.location.position.start.line === params.range.start.line &&
-      message.location.position.end.character === params.range.end.character &&
-      message.location.position.end.line === params.range.end.line;
+    return message.location.position.start.character === params.context.diagnostics[0].range.start.character &&
+      message.location.position.start.line === params.context.diagnostics[0].range.start.line &&
+      message.location.position.end.character === params.context.diagnostics[0].range.end.character &&
+      message.location.position.end.line === params.context.diagnostics[0].range.end.line;
   });
   if (message && message.solutions) {
     return message.solutions.filter(solution => solution.replaceWith).map(solution => {
@@ -149,7 +177,8 @@ connection.onCodeAction(async (params): Promise<CodeAction[]> => {
       workspaceEdit.changes[params.textDocument.uri] = [textEdit];
       return CodeAction.create(
         solution.title,
-        workspaceEdit
+        workspaceEdit,
+        CodeActionKind.QuickFix
       );
     });
   }
@@ -206,11 +235,6 @@ connection.onDocumentSymbol(async (params): Promise<DocumentSymbol[]> => {
   }
   return returnValue;
 });
-const positionFromI = (text: string, i: number) => {
-  const slice = text.substring(0, i + 1);
-  const lines = slice.split('\n');
-  return Position.create(lines.length - 1, lines[lines.length - 1].length - 1);
-};
 interface IFindDefinitionParams {
   textDocument: {
     uri: string
@@ -423,7 +447,11 @@ connection.onFoldingRanges(async (params: FoldingRangeParams): Promise<FoldingRa
   if (linter.tree instanceof OFileWithEntity) {
     // result.push(FoldingRange.create(linter.tree.file.entity.signals[0].startI)
   }
-  return [FoldingRange.create(2, 25)];
+  const match = linter.text.match(/^(\s*--.*\n)*/);
+  if (match) {
+    result.push(FoldingRange.create(0, match[0].split('\n').length, undefined, undefined, 'comment'));
+  }
+  return result;
 });
 
 
