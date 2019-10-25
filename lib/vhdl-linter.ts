@@ -4,7 +4,12 @@ import { ProjectParser } from './project-parser';
 import { findBestMatch } from 'string-similarity';
 import {
   Range,
-  Position
+  Position,
+  CodeAction,
+  Diagnostic,
+  WorkspaceEdit,
+  TextEdit,
+  CodeActionKind
 } from 'vscode-languageserver';
 export class VhdlLinter {
   messages: Message[] = [];
@@ -164,6 +169,7 @@ export class VhdlLinter {
           file: this.editorPath,
           position: read.range.getRange()
         },
+        code: MessageCode.NotDeclaredRead,
         severity: 'error',
         excerpt: `signal '${read.text}' is read but not declared`
       });
@@ -261,7 +267,7 @@ export class VhdlLinter {
                   let positionStart = clause.range.start.getPosition();
                   positionStart.line++;
                   solutions.push({
-                    title: 'Add Register',
+                    title: 'Add reset for ' + signal.name,
                     position: Range.create(positionStart, positionStart),
                     replaceWith: `  ${signal.name} <= ${resetValue};\n    `
                   });
@@ -528,38 +534,51 @@ export class VhdlLinter {
     }
   }
 
-
-
   getIFromPosition(p: Position): number {
     let text = this.text.split('\n').slice(0, p.line);
     let i = text.join('\n').length + p.character;
     return i;
   }
-  // getPositionFromILine(i: number, j?: number): Range {
-  //   const positionStart = this.getPositionFromI(i);
-  //   let positionEnd: Position;
-  //   if (j) {
-  //     positionEnd = this.getPositionFromI(j);
-  //   } else {
-  //     positionEnd = Position.create(positionStart.line, this.text.split('\n')[positionStart.line].length - 1);
-  //   }
-  //   const position: Range = Range.create(positionStart, positionEnd);
-  //   return position;
-  // }
-  // getPositionFromI(i: number): Position {
-  //   let row = 0;
-  //   let col = 0;
-  //   for (let count = 0; count < i; count++) {
-  //     if (this.text[count] === '\n') {
-  //       row++;
-  //       col = 0;
-  //     } else {
-  //       col++;
-  //     }
-  //   }
-  //   return Position.create(row, col);
-  // }
-
+  getSolutions(diagnostic: Diagnostic, textDocumentUri: string): CodeAction[] {
+    if (diagnostic.code === MessageCode.NotDeclaredRead) {
+      const read = this.tree.objectList.find(obj => {
+        if (!(obj instanceof ORead)) {
+          return false;
+        }
+        const range = obj.range.getRange();
+        return range.start.line === diagnostic.range.start.line && range.start.character === diagnostic.range.start.character && range.end.line === diagnostic.range.end.line && range.end.character === diagnostic.range.end.character;
+      }) as ORead | undefined;
+      if (!read) {
+        return [];
+      }
+      const actions: CodeAction[] = [];
+      for (const pkg of this.projectParser.getPackages()) {
+        for (const constant of pkg.constants) {
+          if (constant.name.toLowerCase() === read.text.toLowerCase()) {
+            const workspaceEdit: WorkspaceEdit = {};
+            const file = read.getRoot();
+            const pos = Position.create(0, 0);
+            if (file.useStatements.length > 0) {
+              pos.line = file.useStatements[file.useStatements.length - 1].range.getRange().end.line + 1;
+            }
+            const textEdit: TextEdit = TextEdit.insert(pos, `use ${pkg.library ? pkg.library : 'work'}.${pkg.name}.all;\n`);
+            workspaceEdit.changes = {};
+            workspaceEdit.changes[textDocumentUri] = [textEdit];
+            actions.push(CodeAction.create(
+              'add use statement for ' + pkg.name,
+              workspaceEdit,
+              CodeActionKind.QuickFix
+            ));
+          }
+        }
+      }
+      return actions;
+    }
+    return [];
+  }
+}
+export enum MessageCode {
+  NotDeclaredRead
 }
 export type Message = {
   // From providers
@@ -567,10 +586,7 @@ export type Message = {
     file: string,
     position: Range,
   },
-  reference?: {
-    file: string,
-    position?: Position,
-  },
+  code?: MessageCode,
   url?: string,
   icon?: string,
   excerpt: string,

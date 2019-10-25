@@ -27,8 +27,8 @@ import {
   ErrorCodes
 } from 'vscode-languageserver';
 import { VhdlLinter } from './vhdl-linter';
-import { ProjectParser} from './project-parser';
-import { OFile, OArchitecture, ORead, OWrite, OSignal, OFunction, OForLoop, OForGenerate, OInstantiation, OMapping, OEntity, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackage, ORecord, ObjectBase, OType, OReadOrMappingName, OWriteReadBase, ORecordChild, OEnum, OProcess, OStatement, OIf, OIfClause, OMap} from './parser/objects';
+import { ProjectParser } from './project-parser';
+import { OFile, OArchitecture, ORead, OWrite, OSignal, OFunction, OForLoop, OForGenerate, OInstantiation, OMapping, OEntity, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackage, ORecord, ObjectBase, OType, OReadOrMappingName, OWriteReadBase, ORecordChild, OEnum, OProcess, OStatement, OIf, OIfClause, OMap } from './parser/objects';
 import { mkdtempSync, writeFile, readFile } from 'fs';
 import { tmpdir } from 'os';
 import { sep } from 'path';
@@ -66,7 +66,8 @@ connection.onInitialize((params: InitializeParams) => {
       hoverProvider: true,
       documentFormattingProvider: true,
       referencesProvider: true,
-      foldingRangeProvider: true}
+      foldingRangeProvider: true
+    }
   };
 });
 export const initialization = new Promise(resolve => {
@@ -80,7 +81,7 @@ export const initialization = new Promise(resolve => {
           await projectParser.init();
         }
         documents.all().forEach(validateTextDocument);
-        projectParser.events.on('change', (... args) => {
+        projectParser.events.on('change', (...args) => {
           // console.log('projectParser.events.change', new Date().getTime(), ... args);
           documents.all().forEach(validateTextDocument);
         });
@@ -102,7 +103,7 @@ export const initialization = new Promise(resolve => {
   });
 });
 documents.onDidClose(change => {
-  connection.sendDiagnostics({uri: change.document.uri, diagnostics: []});
+  connection.sendDiagnostics({ uri: change.document.uri, diagnostics: [] });
 });
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
@@ -124,7 +125,8 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
     return {
       severity: severity,
       range: message.location.position,
-      message: message.excerpt
+      message: message.excerpt,
+      code: message.code
     };
   });
   connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
@@ -140,28 +142,35 @@ connection.onCodeAction(async (params): Promise<CodeAction[]> => {
   if (!linter) {
     return [];
   }
-  const messages = linter.checkAll();
-  const message = messages.find(message => {
-    if (typeof message.solutions === 'undefined' || messages.length === 0) {
-      return false;
-    }
-    return message.location.position.start.character === params.context.diagnostics[0].range.start.character &&
-      message.location.position.start.line === params.context.diagnostics[0].range.start.line &&
-      message.location.position.end.character === params.context.diagnostics[0].range.end.character &&
-      message.location.position.end.line === params.context.diagnostics[0].range.end.line;
-  });
-  if (message && message.solutions) {
-    return message.solutions.filter(solution => solution.replaceWith).map(solution => {
-      const workspaceEdit: WorkspaceEdit = {};
-      const textEdit: TextEdit = TextEdit.replace(solution.position, solution.replaceWith);
-      workspaceEdit.changes = {};
-      workspaceEdit.changes[params.textDocument.uri] = [textEdit];
-      return CodeAction.create(
-        solution.title,
-        workspaceEdit,
-        CodeActionKind.QuickFix
-      );
+  try {
+    const messages = linter.checkAll();
+    const message = messages.find(message => {
+      if (typeof message.solutions === 'undefined' || messages.length === 0) {
+        return false;
+      }
+      return message.location.position.start.character === params.context.diagnostics[0].range.start.character &&
+        message.location.position.start.line === params.context.diagnostics[0].range.start.line &&
+        message.location.position.end.character === params.context.diagnostics[0].range.end.character &&
+        message.location.position.end.line === params.context.diagnostics[0].range.end.line;
     });
+    const actions: CodeAction[] = [];
+    if (message && message.solutions) {
+      actions.push(... message.solutions.filter(solution => solution.replaceWith).map(solution => {
+        const workspaceEdit: WorkspaceEdit = {};
+        const textEdit: TextEdit = TextEdit.replace(solution.position, solution.replaceWith);
+        workspaceEdit.changes = {};
+        workspaceEdit.changes[params.textDocument.uri] = [textEdit];
+        return CodeAction.create(
+          solution.title,
+          workspaceEdit,
+          CodeActionKind.QuickFix
+        );
+      }));
+    }
+    params.context.diagnostics.forEach(diagonstic => actions.push(...linter.getSolutions(diagonstic, params.textDocument.uri)));
+    return actions;
+  } catch (e) {
+    debugger;
   }
   return [];
 });
@@ -173,14 +182,14 @@ connection.onDocumentSymbol(async (params): Promise<DocumentSymbol[]> => {
   }
   const parseArchitecture = (architecture: OArchitecture): DocumentSymbol[] => {
     const symbols: DocumentSymbol[] = [];
-    symbols.push(... architecture.instantiations.map(instantiation => ({
-        name: instantiation.label + ': ' + instantiation.componentName,
-        detail: instantiation.label,
-        kind: SymbolKind.Object,
-        range: instantiation.range.getRange(),
-        selectionRange: instantiation.range.getRange()
-      })));
-    symbols.push(... architecture.processes.map(process => ({
+    symbols.push(...architecture.instantiations.map(instantiation => ({
+      name: instantiation.label + ': ' + instantiation.componentName,
+      detail: instantiation.label,
+      kind: SymbolKind.Object,
+      range: instantiation.range.getRange(),
+      selectionRange: instantiation.range.getRange()
+    })));
+    symbols.push(...architecture.processes.map(process => ({
       name: process.label || 'no label',
       detail: process.label,
       kind: SymbolKind.Object,
@@ -209,7 +218,7 @@ connection.onDocumentSymbol(async (params): Promise<DocumentSymbol[]> => {
   if (linter.tree instanceof OFileWithPackage) {
     returnValue.push(...linter.tree.package.types.map(type => DocumentSymbol.create(type.name, undefined, SymbolKind.Enum, type.range.getRange(), type.range.getRange())));
     returnValue.push(...linter.tree.package.functions.map(func => DocumentSymbol.create(func.name, undefined, SymbolKind.Function, func.range.getRange(), func.range.getRange())));
-    returnValue.push(... linter.tree.package.constants.map(constants => DocumentSymbol.create(constants.name, undefined, SymbolKind.Constant, constants.range.getRange(), constants.range.getRange())));
+    returnValue.push(...linter.tree.package.constants.map(constants => DocumentSymbol.create(constants.name, undefined, SymbolKind.Constant, constants.range.getRange(), constants.range.getRange())));
   }
   if (linter.tree instanceof OFileWithEntityAndArchitecture) {
     returnValue.push(...parseArchitecture(linter.tree.architecture));
@@ -237,7 +246,7 @@ const findDefinition = async (params: IFindDefinitionParams) => {
     return null;
   }
 
-   if (candidate instanceof OInstantiation || candidate instanceof OMapping || candidate instanceof OReadOrMappingName) {
+  if (candidate instanceof OInstantiation || candidate instanceof OMapping || candidate instanceof OReadOrMappingName) {
     let instantiation: OInstantiation = candidate instanceof OReadOrMappingName ? candidate.parent.parent : (candidate instanceof OInstantiation ? candidate : candidate.parent);
     const entity = linter.getProjectEntity(instantiation);
     if (!entity) {
@@ -267,7 +276,7 @@ const findDefinition = async (params: IFindDefinitionParams) => {
 
     }
   } else if ((candidate instanceof ORead || candidate instanceof OWrite) && linter.tree instanceof OFileWithEntityAndArchitecture) {
-    let result: false|ObjectBase;
+    let result: false | ObjectBase;
     result = linter.tree.architecture.findRead(candidate, linter.packages);
     if (typeof result === 'boolean') {
       return null;
@@ -285,7 +294,7 @@ const findDefinition = async (params: IFindDefinitionParams) => {
   }
   return null;
 };
-connection.onHover(async (params, token): Promise<Hover|null> => {
+connection.onHover(async (params, token): Promise<Hover | null> => {
   await initialization;
   if (token.isCancellationRequested) {
     console.log('hover canceld');
@@ -309,80 +318,80 @@ connection.onHover(async (params, token): Promise<Hover|null> => {
     }
   };
 });
-connection.onDefinition(async (params): Promise<Location|null> => {
+connection.onDefinition(async (params): Promise<Location | null> => {
   await initialization;
   return await findDefinition(params);
 });
 // This handler provides the initial list of the completion items.
 connection.onCompletion(async (params: CompletionParams): Promise<CompletionItem[]> => {
-    await initialization;
-    const linter = linters.get(params.textDocument.uri);
-    if (typeof linter === 'undefined') {
-      return [];
-    }
-    if (typeof linter.tree === 'undefined') {
-      return [];
-    }
-    let startI = linter.getIFromPosition(params.position);
-    const candidates = linter.tree.objectList.filter(object => object.range.start.i <= startI && startI <= object.range.end.i);
-    candidates.sort((a, b) => (a.range.end.i - a.range.start.i) - (b.range.end.i - b.range.start.i));
-    const obj = candidates[0];
-    if (!obj) {
-      return [];
-    }
-
-    let parent = obj.parent;
-    let counter = 100;
-    const completions: CompletionItem[] = [];
-    while ((parent instanceof OFile) === false) {
-      // console.log(parent instanceof OFile, parent);
-      if (parent instanceof OArchitecture) {
-        for (const signal of parent.signals) {
-          completions.push({ label: signal.name, kind: CompletionItemKind.Variable });
-        }
-        for (const type of parent.types) {
-          completions.push({ label: type.name, kind: CompletionItemKind.TypeParameter });
-          if (type instanceof OEnum) {
-            completions.push(...type.states.map(state => {
-              return {
-                label: state.name,
-                kind: CompletionItemKind.EnumMember
-              };
-            }));
-          }
-        }
-      }
-      parent = (parent as any).parent;
-      counter--;
-      if (counter === 0) {
-        //        console.log(parent, parent.parent);
-        throw new Error('Infinite Loop?');
-      }
-    }
-    if (parent instanceof OFileWithEntity) {
-        for (const port of parent.entity.ports) {
-          completions.push({ label: port.name, kind: CompletionItemKind.Field });
-        }
-        for (const port of parent.entity.generics) {
-          completions.push({ label: port.name, kind: CompletionItemKind.Constant });
-        }
-    }
-    for (const pkg of linter.packages) {
-      const ieee = pkg.parent.file.match(/ieee/i) !== null;
-      for (const obj of pkg.getRoot().objectList) {
-        if ((obj as any).name) {
-          completions.push({
-            label: ieee ? (obj as any).name.toLowerCase() : (obj as any).name,
-            kind: CompletionItemKind.Text
-          });
-        }
-      }
-    }
-    const completionsUnique = completions.filter((completion, completionI) =>
-      completions.slice(0, completionI).findIndex(completionFind => completion.label.toLowerCase() === completionFind.label.toLowerCase()) === -1
-    );
-    return completionsUnique;
+  await initialization;
+  const linter = linters.get(params.textDocument.uri);
+  if (typeof linter === 'undefined') {
+    return [];
   }
+  if (typeof linter.tree === 'undefined') {
+    return [];
+  }
+  let startI = linter.getIFromPosition(params.position);
+  const candidates = linter.tree.objectList.filter(object => object.range.start.i <= startI && startI <= object.range.end.i);
+  candidates.sort((a, b) => (a.range.end.i - a.range.start.i) - (b.range.end.i - b.range.start.i));
+  const obj = candidates[0];
+  if (!obj) {
+    return [];
+  }
+
+  let parent = obj.parent;
+  let counter = 100;
+  const completions: CompletionItem[] = [];
+  while ((parent instanceof OFile) === false) {
+    // console.log(parent instanceof OFile, parent);
+    if (parent instanceof OArchitecture) {
+      for (const signal of parent.signals) {
+        completions.push({ label: signal.name, kind: CompletionItemKind.Variable });
+      }
+      for (const type of parent.types) {
+        completions.push({ label: type.name, kind: CompletionItemKind.TypeParameter });
+        if (type instanceof OEnum) {
+          completions.push(...type.states.map(state => {
+            return {
+              label: state.name,
+              kind: CompletionItemKind.EnumMember
+            };
+          }));
+        }
+      }
+    }
+    parent = (parent as any).parent;
+    counter--;
+    if (counter === 0) {
+      //        console.log(parent, parent.parent);
+      throw new Error('Infinite Loop?');
+    }
+  }
+  if (parent instanceof OFileWithEntity) {
+    for (const port of parent.entity.ports) {
+      completions.push({ label: port.name, kind: CompletionItemKind.Field });
+    }
+    for (const port of parent.entity.generics) {
+      completions.push({ label: port.name, kind: CompletionItemKind.Constant });
+    }
+  }
+  for (const pkg of linter.packages) {
+    const ieee = pkg.parent.file.match(/ieee/i) !== null;
+    for (const obj of pkg.getRoot().objectList) {
+      if ((obj as any).name) {
+        completions.push({
+          label: ieee ? (obj as any).name.toLowerCase() : (obj as any).name,
+          kind: CompletionItemKind.Text
+        });
+      }
+    }
+  }
+  const completionsUnique = completions.filter((completion, completionI) =>
+    completions.slice(0, completionI).findIndex(completionFind => completion.label.toLowerCase() === completionFind.label.toLowerCase()) === -1
+  );
+  return completionsUnique;
+}
 );
 connection.onReferences(async (params: ReferenceParams): Promise<Location[]> => {
   await initialization;
@@ -405,7 +414,7 @@ connection.onReferences(async (params: ReferenceParams): Promise<Location[]> => 
   }
   return [];
 });
-connection.onDocumentFormatting(async (params: DocumentFormattingParams): Promise<TextEdit[]|null> => {
+connection.onDocumentFormatting(async (params: DocumentFormattingParams): Promise<TextEdit[] | null> => {
   const document = documents.get(params.textDocument.uri);
   if (typeof document === 'undefined') {
     return null;
@@ -418,7 +427,7 @@ connection.onDocumentFormatting(async (params: DocumentFormattingParams): Promis
   await promisify(exec)(`emacs --batch -l ${emacs_script_path} -f vhdl-batch-indent-region ${tmpFile}`);
   return [{
     range: Range.create(document.positionAt(0), document.positionAt(text.length)),
-    newText: await promisify(readFile)(tmpFile, {encoding: 'utf8'})
+    newText: await promisify(readFile)(tmpFile, { encoding: 'utf8' })
   }];
 });
 connection.onFoldingRanges(foldingHandler);

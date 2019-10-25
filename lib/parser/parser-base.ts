@@ -283,8 +283,8 @@ export class ParserBase {
       // console.log(index, token);
       if (token.type === 'BRACE' && index > 0) {
         token.value === '(' ? braceLevel++ : braceLevel--;
-      } else if (token.type === 'VARIABLE' || token.type === 'FUNCTION' || token.type === 'FUNCTION_RECORD_ELEMENT' || token.type === 'FUNCTION_RECORD_ELEMENT') {
-        if (braceLevel === 0) {
+      } else if (token.type === 'VARIABLE' || token.type === 'FUNCTION' || token.type === 'RECORD_ELEMENT' || token.type === 'FUNCTION_RECORD_ELEMENT') {
+        if (braceLevel === 0 && !(token.type === 'RECORD_ELEMENT' || token.type === 'FUNCTION_RECORD_ELEMENT')) {
           const write = new OWrite(parent, i + token.offset, i + token.offset + token.value.length);
           write.text = token.value;
           writes.push(write);

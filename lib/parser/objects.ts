@@ -117,6 +117,7 @@ export class OPackage extends ObjectBase {
   constants: OSignal[];
   types: OType[];
   parent: OFile;
+  library?: string;
 }
 export class OUseStatement extends ObjectBase {
   text: string;
