@@ -10,7 +10,7 @@ class Counter implements Iterable<number> {
                     done: counter === this.arr.length,
                     value: this.arr[counter++]
                 };
-            }.bind(this);
+            }.bind(this)
         };
     }
 }
