@@ -2,6 +2,7 @@ import { OFile, OIf, OSignalLike, OSignal, OArchitecture, OEntity, OPort, OInsta
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 import { findBestMatch } from 'string-similarity';
+import {EventEmitter} from 'events';
 import {
   Range,
   Position,
@@ -16,7 +17,7 @@ export class VhdlLinter {
   tree: OFileWithEntityAndArchitecture | OFileWithEntity | OFileWithPackage | OFile;
   parser: Parser;
   packages: OPackage[] = [];
-
+  codeActionEvent = new EventEmitter();
   constructor(private editorPath: string, public text: string, public projectParser: ProjectParser, public onlyEntity: boolean = false) {
     //     console.log('lint');
     this.parser = new Parser(this.text, this.editorPath, onlyEntity);
@@ -40,6 +41,11 @@ export class VhdlLinter {
     }
     //     console.log(`done parsing: ${editorPath}`);
 
+  }
+  private codeActionCallbackCounter = 0;
+  addCodeActionCallback(handler: () => CodeAction[]) {
+    const code = this.codeActionCallbackCounter++;
+    this.codeActionEvent.once(String(code), handler);
   }
   async parsePackages() {
     const packages = this.projectParser.getPackages();
@@ -577,30 +583,7 @@ export class VhdlLinter {
     return [];
   }
 }
-export enum MessageCode {
-  NotDeclaredRead
 }
-export type Message = {
-  // From providers
-  location: {
-    file: string,
-    position: Range,
-  },
-  code?: MessageCode,
-  url?: string,
-  icon?: string,
-  excerpt: string,
-  severity: 'error' | 'warning' | 'info',
-  solutions?: Solution[],
-  description?: string | (() => Promise<string> | string)
-};
-export type Solution = {
-  title: string,
-  position: Range,
-  priority?: number,
-  currentText?: string,
-  replaceWith: string,
-};
 // | {
 //   title?: string,
 //   priority?: number,

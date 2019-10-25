@@ -142,6 +142,7 @@ connection.onCodeAction(async (params): Promise<CodeAction[]> => {
   if (!linter) {
     return [];
   }
+  // linter.codeActionEvent.emit()
   try {
     const messages = linter.checkAll();
     const message = messages.find(message => {
