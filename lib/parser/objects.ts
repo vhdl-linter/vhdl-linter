@@ -1,23 +1,66 @@
 import { Range, Position } from 'vscode-languageserver';
 
-export class OI {
-  constructor(public parent: ObjectBase | OFile, public i: number) { }
-
-  getPosition(): Position {
-    let row = 0;
-    let col = 0;
-    for (let count = 0; count < this.i; count++) {
-      if (this.parent instanceof OFile ? this.parent.text[count] === '\n' : this.parent.getRoot().text[count] === '\n') {
-        row++;
-        col = 0;
-      } else {
-        col++;
-      }
+export class OI implements Position {
+  private i_: number;
+  constructor(public parent: ObjectBase | OFile, i: number) {
+    this.i_ = i;
+  }
+  set i(i: number) {
+    this.position = undefined;
+    this.i_ = i;
+  }
+  get i() {
+    return this.i_;
+  }
+  private position?: Position;
+  get line() {
+    if (!this.position) {
+      this.position = this.calcPosition();
     }
+    return this.position.line;
+  }
+  set line(line: number) {
+    if (!this.position) {
+      this.position = this.calcPosition();
+    }
+    this.position.line = line;
+    this.calcI();
+  }
+  toJSON() {
+    if (!this.position) {
+      this.position = this.calcPosition();
+    }
+    return this.position;
+  }
+  get character() {
+    if (!this.position) {
+      this.position = this.calcPosition();
+    }
+    return this.position.character;
+  }
+  set character(character: number) {
+    if (!this.position) {
+      this.position = this.calcPosition();
+    }
+    this.position.character = character;
+    this.calcI();
+  }
+  private calcPosition(): Position {
+    const lines = (this.parent instanceof OFile ? this.parent : this.parent.getRoot()).text.slice(0, this.i).split('\n');
+    const row = lines.length - 1;
+    const col = lines[lines.length - 1].length;
     return Position.create(row, col);
   }
+  private calcI() {
+    if (!this.position) {
+      throw new Error('Something went wrong with OIRange');
+    }
+    const lines = (this.parent instanceof OFile ? this.parent : this.parent.getRoot()).text.split('\n');
+    this.i = lines.slice(0, this.position.line).join('\n').length;
+    this.i += this.position.character;
+  }
 }
-export class OIRange {
+export class OIRange implements Range {
   public start: OI;
   public end: OI;
   constructor(public parent: ObjectBase, start: number | OI, end: number | OI) {
@@ -38,8 +81,8 @@ export class OIRange {
       this.end.i--;
     }
   }
-  getRange(): Range {
-    return Range.create(this.start.getPosition(), this.end.getPosition());
+  toJSON() {
+    return Range.create(this.start, this.end);
   }
 }
 
@@ -316,7 +359,7 @@ export class OSignalLike extends ObjectBase {
 export class OSignal extends OSignalLike {
   constant: boolean;
 }
-export class OMap extends ObjectBase  {
+export class OMap extends ObjectBase {
   public children: OMapping[] = [];
 }
 export class OInstantiation extends ObjectBase {

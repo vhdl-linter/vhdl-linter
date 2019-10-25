@@ -28,9 +28,9 @@ import {
 } from 'vscode-languageserver';
 import { VhdlLinter } from './vhdl-linter';
 import { ProjectParser } from './project-parser';
-import { OFile, OArchitecture, ORead, OWrite, OSignal, OFunction, OForLoop, OForGenerate, OInstantiation, OMapping, OEntity, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackage, ORecord, ObjectBase, OType, OReadOrMappingName, OWriteReadBase, ORecordChild, OEnum, OProcess, OStatement, OIf, OIfClause, OMap } from './parser/objects';
+import { OFile, OArchitecture, ORead, OWrite, OSignal, OFunction, OForLoop, OForGenerate, OInstantiation, OMapping, OEntity, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackage, ORecord, ObjectBase, OType, OReadOrMappingName, OWriteReadBase, ORecordChild, OEnum, OProcess, OStatement, OIf, OIfClause, OMap, OUseStatement } from './parser/objects';
 import { mkdtempSync, writeFile, readFile } from 'fs';
-import { tmpdir } from 'os';
+import { tmpdir, type } from 'os';
 import { sep } from 'path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
@@ -113,22 +113,8 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   if (typeof vhdlLinter.tree !== 'undefined') {
     linters.set(textDocument.uri, vhdlLinter);
   }
-  const diagnostics: Diagnostic[] = (vhdlLinter.checkAll()).map(message => {
-    let severity: DiagnosticSeverity;
-    if (message.severity === 'error') {
-      severity = DiagnosticSeverity.Error;
-    } else if (message.severity === 'warning') {
-      severity = DiagnosticSeverity.Warning;
-    } else {
-      severity = DiagnosticSeverity.Information;
-    }
-    return {
-      severity: severity,
-      range: message.location.position,
-      message: message.excerpt,
-      code: message.code
-    };
-  });
+  const diagnostics = vhdlLinter.checkAll();
+  const test = JSON.stringify(diagnostics);
   connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
 }
 
@@ -143,37 +129,13 @@ connection.onCodeAction(async (params): Promise<CodeAction[]> => {
     return [];
   }
   // linter.codeActionEvent.emit()
-  try {
-    const messages = linter.checkAll();
-    const message = messages.find(message => {
-      if (typeof message.solutions === 'undefined' || messages.length === 0) {
-        return false;
-      }
-      return message.location.position.start.character === params.context.diagnostics[0].range.start.character &&
-        message.location.position.start.line === params.context.diagnostics[0].range.start.line &&
-        message.location.position.end.character === params.context.diagnostics[0].range.end.character &&
-        message.location.position.end.line === params.context.diagnostics[0].range.end.line;
-    });
-    const actions: CodeAction[] = [];
-    if (message && message.solutions) {
-      actions.push(... message.solutions.filter(solution => solution.replaceWith).map(solution => {
-        const workspaceEdit: WorkspaceEdit = {};
-        const textEdit: TextEdit = TextEdit.replace(solution.position, solution.replaceWith);
-        workspaceEdit.changes = {};
-        workspaceEdit.changes[params.textDocument.uri] = [textEdit];
-        return CodeAction.create(
-          solution.title,
-          workspaceEdit,
-          CodeActionKind.QuickFix
-        );
-      }));
+  const actions = [];
+  for (const diagnostic of params.context.diagnostics) {
+    if (typeof diagnostic.code === 'number') {
+      actions.push(...linter.diagnosticCodeActionRegistry[diagnostic.code](params.textDocument.uri));
     }
-    params.context.diagnostics.forEach(diagonstic => actions.push(...linter.getSolutions(diagonstic, params.textDocument.uri)));
-    return actions;
-  } catch (e) {
-    debugger;
   }
-  return [];
+  return actions;
 });
 connection.onDocumentSymbol(async (params): Promise<DocumentSymbol[]> => {
   await initialization;
@@ -187,28 +149,28 @@ connection.onDocumentSymbol(async (params): Promise<DocumentSymbol[]> => {
       name: instantiation.label + ': ' + instantiation.componentName,
       detail: instantiation.label,
       kind: SymbolKind.Object,
-      range: instantiation.range.getRange(),
-      selectionRange: instantiation.range.getRange()
+      range: instantiation.range,
+      selectionRange: instantiation.range
     })));
     symbols.push(...architecture.processes.map(process => ({
       name: process.label || 'no label',
       detail: process.label,
       kind: SymbolKind.Object,
-      range: process.range.getRange(),
-      selectionRange: process.range.getRange(),
+      range: process.range,
+      selectionRange: process.range,
       children: process.getStates().map(state => ({
         name: state.name,
         kind: SymbolKind.EnumMember,
-        range: state.range.getRange(),
-        selectionRange: state.range.getRange(),
+        range: state.range,
+        selectionRange: state.range,
       }))
     })));
     for (const generate of architecture.generates) {
       symbols.push({
-        name: linter.text.split('\n')[generate.range.start.getPosition().line],
+        name: linter.text.split('\n')[generate.range.start.line],
         kind: SymbolKind.Enum,
-        range: generate.range.getRange(),
-        selectionRange: generate.range.getRange(),
+        range: generate.range,
+        selectionRange: generate.range,
         children: parseArchitecture(generate)
       });
     }
@@ -217,9 +179,9 @@ connection.onDocumentSymbol(async (params): Promise<DocumentSymbol[]> => {
   const returnValue: DocumentSymbol[] = [];
 
   if (linter.tree instanceof OFileWithPackage) {
-    returnValue.push(...linter.tree.package.types.map(type => DocumentSymbol.create(type.name, undefined, SymbolKind.Enum, type.range.getRange(), type.range.getRange())));
-    returnValue.push(...linter.tree.package.functions.map(func => DocumentSymbol.create(func.name, undefined, SymbolKind.Function, func.range.getRange(), func.range.getRange())));
-    returnValue.push(...linter.tree.package.constants.map(constants => DocumentSymbol.create(constants.name, undefined, SymbolKind.Constant, constants.range.getRange(), constants.range.getRange())));
+    returnValue.push(...linter.tree.package.types.map(type => DocumentSymbol.create(type.name, undefined, SymbolKind.Enum, type.range, type.range)));
+    returnValue.push(...linter.tree.package.functions.map(func => DocumentSymbol.create(func.name, undefined, SymbolKind.Function, func.range, func.range)));
+    returnValue.push(...linter.tree.package.constants.map(constants => DocumentSymbol.create(constants.name, undefined, SymbolKind.Constant, constants.range, constants.range)));
   }
   if (linter.tree instanceof OFileWithEntityAndArchitecture) {
     returnValue.push(...parseArchitecture(linter.tree.architecture));
@@ -256,7 +218,7 @@ const findDefinition = async (params: IFindDefinitionParams) => {
     if (candidate instanceof OInstantiation) {
       return {
         // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
-        range: entity.range.getRange(),
+        range: entity.range,
         text: entity.getRoot().originalText,
         // targetSelectionRange:  Range.create(Position.create(0, 0), Position.create(0, 0)),
         uri: 'file://' + entity.getRoot().file
@@ -269,7 +231,7 @@ const findDefinition = async (params: IFindDefinitionParams) => {
       }
       return {
         // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
-        range: port.range.getRange(),
+        range: port.range,
         text: entity.getRoot().originalText,
         // targetSelectionRange:  Range.create(Position.create(0, 0), Position.create(0, 0)),
         uri: 'file://' + entity.getRoot().file
@@ -287,10 +249,25 @@ const findDefinition = async (params: IFindDefinitionParams) => {
     }
     return {
       // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
-      range: result.range.getRange(),
+      range: result.range,
       text: result.getRoot().originalText,
       // targetSelectionRange: position,
       uri: 'file://' + result.getRoot().file
+    };
+  } else if (candidate instanceof OUseStatement) {
+    const match = candidate.text.match(/[^.]+\.([^.]+).[^.]+/ig);
+    if (!match) {
+      return null;
+    }
+    const packageName = match[1].toLowerCase();
+    const pkg = linter.packages.find(pkg => pkg.name.toLowerCase() === packageName);
+    if (!pkg) {
+      return null;
+    }
+    return {
+      range: pkg.range,
+      text: pkg.getRoot().originalText,
+      uri: 'file://' + pkg.getRoot().file
     };
   }
   return null;
@@ -411,7 +388,7 @@ connection.onReferences(async (params: ReferenceParams): Promise<Location[]> => 
     return [];
   }
   if (candidate instanceof OWriteReadBase) {
-    return linter.tree.objectList.filter(obj => obj instanceof OWriteReadBase && obj.text.toLowerCase() === candidate.text.toLowerCase() && obj !== candidate).map(obj => Location.create(params.textDocument.uri, obj.range.getRange()));
+    return linter.tree.objectList.filter(obj => obj instanceof OWriteReadBase && obj.text.toLowerCase() === candidate.text.toLowerCase() && obj !== candidate).map(obj => Location.create(params.textDocument.uri, obj.range));
   }
   return [];
 });

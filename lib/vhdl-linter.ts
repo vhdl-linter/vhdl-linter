@@ -2,7 +2,7 @@ import { OFile, OIf, OSignalLike, OSignal, OArchitecture, OEntity, OPort, OInsta
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 import { findBestMatch } from 'string-similarity';
-import {EventEmitter} from 'events';
+import { EventEmitter } from 'events';
 import {
   Range,
   Position,
@@ -10,14 +10,15 @@ import {
   Diagnostic,
   WorkspaceEdit,
   TextEdit,
-  CodeActionKind
+  CodeActionKind,
+  DiagnosticSeverity
 } from 'vscode-languageserver';
+export type diagnosticCodeActionCallback = (textDocumentUri: string) => CodeAction[];
 export class VhdlLinter {
-  messages: Message[] = [];
+  messages: Diagnostic[] = [];
   tree: OFileWithEntityAndArchitecture | OFileWithEntity | OFileWithPackage | OFile;
   parser: Parser;
   packages: OPackage[] = [];
-  codeActionEvent = new EventEmitter();
   constructor(private editorPath: string, public text: string, public projectParser: ProjectParser, public onlyEntity: boolean = false) {
     //     console.log('lint');
     this.parser = new Parser(this.text, this.editorPath, onlyEntity);
@@ -26,14 +27,11 @@ export class VhdlLinter {
       this.tree = this.parser.parse();
     } catch (e) {
       if (e instanceof ParserError) {
-        let position: Range = Range.create(e.pos.getPosition(), e.pos.getPosition());
+        let range: Range = Range.create(e.pos, e.pos);
         this.messages.push({
-          location: {
-            file: this.editorPath,
-            position
-          },
-          severity: 'error',
-          excerpt: e.message
+          range,
+          severity: DiagnosticSeverity.Error,
+          message: e.message
         });
       } else {
         throw e;
@@ -42,10 +40,9 @@ export class VhdlLinter {
     //     console.log(`done parsing: ${editorPath}`);
 
   }
-  private codeActionCallbackCounter = 0;
-  addCodeActionCallback(handler: () => CodeAction[]) {
-    const code = this.codeActionCallbackCounter++;
-    this.codeActionEvent.once(String(code), handler);
+  diagnosticCodeActionRegistry: diagnosticCodeActionCallback[] = [];
+  addCodeActionCallback(handler: diagnosticCodeActionCallback): number {
+    return this.diagnosticCodeActionRegistry.push(handler) - 1;
   }
   async parsePackages() {
     const packages = this.projectParser.getPackages();
@@ -69,12 +66,9 @@ export class VhdlLinter {
       }
       if (!found) {
         this.messages.push({
-          location: {
-            file: this.editorPath,
-            position: useStatement.range.getRange()
-          },
-          severity: 'warning',
-          excerpt: `could not find package for ${useStatement.text}`
+          range: useStatement.range,
+          severity: DiagnosticSeverity.Warning,
+          message: `could not find package for ${useStatement.text}`
         });
       }
     }
@@ -101,36 +95,27 @@ export class VhdlLinter {
     for (const signal of this.tree.architecture.signals) {
       if (this.tree.architecture.signals.find(signalSearch => signal !== signalSearch && signal.name.toLowerCase() === signalSearch.name.toLowerCase())) {
         this.messages.push({
-          location: {
-            file: this.editorPath,
-            position: signal.range.getRange()
-          },
-          severity: 'error',
-          excerpt: `signal ${signal.name} defined multiple times`
+          range: signal.range,
+          severity: DiagnosticSeverity.Error,
+          message: `signal ${signal.name} defined multiple times`
         });
       }
     }
     for (const type of this.tree.architecture.types) {
       if (this.tree.architecture.types.find(typeSearch => type !== typeSearch && type.name.toLowerCase() === typeSearch.name.toLowerCase())) {
         this.messages.push({
-          location: {
-            file: this.editorPath,
-            position: type.range.getRange()
-          },
-          severity: 'error',
-          excerpt: `type ${type.name} defined multiple times`
+          range: type.range,
+          severity: DiagnosticSeverity.Error,
+          message: `type ${type.name} defined multiple times`
         });
       }
       if (type instanceof OEnum) {
         for (const state of type.states) {
           if (type.states.find(stateSearch => state !== stateSearch && state.name.toLowerCase() === stateSearch.name.toLowerCase())) {
             this.messages.push({
-              location: {
-                file: this.editorPath,
-                position: state.range.getRange()
-              },
-              severity: 'error',
-              excerpt: `state ${state.name} defined multiple times`
+              range: state.range,
+              severity: DiagnosticSeverity.Error,
+              message: `state ${state.name} defined multiple times`
             });
 
           }
@@ -140,12 +125,9 @@ export class VhdlLinter {
     for (const port of this.tree.entity.ports) {
       if (this.tree.entity.ports.find(portSearch => port !== portSearch && port.name.toLowerCase() === portSearch.name.toLowerCase())) {
         this.messages.push({
-          location: {
-            file: this.editorPath,
-            position: port.range.getRange()
-          },
-          severity: 'error',
-          excerpt: `port ${port.name} defined multiple times`
+          range: port.range,
+          severity: DiagnosticSeverity.Error,
+          message: `port ${port.name} defined multiple times`
         });
 
       }
@@ -161,23 +143,41 @@ export class VhdlLinter {
     }
     const pushWriteError = (write: OWrite) => {
       this.messages.push({
-        location: {
-          file: this.editorPath,
-          position: write.range.getRange()
-        },
-        severity: 'error',
-        excerpt: `signal '${write.text}' is written but not declared`
+        range: write.range,
+        severity: DiagnosticSeverity.Error,
+        message: `signal '${write.text}' is written but not declared`
       });
     };
     const pushReadError = (read: ORead) => {
+      const code = this.addCodeActionCallback((textDocumentUri: string) => {
+        const actions = [];
+        for (const pkg of this.projectParser.getPackages()) {
+          for (const constant of pkg.constants) {
+            if (constant.name.toLowerCase() === read.text.toLowerCase()) {
+              const workspaceEdit: WorkspaceEdit = {};
+              const file = read.getRoot();
+              const pos = Position.create(0, 0);
+              if (file.useStatements.length > 0) {
+                pos.line = file.useStatements[file.useStatements.length - 1].range.end.line + 1;
+              }
+              const textEdit: TextEdit = TextEdit.insert(pos, `use ${pkg.library ? pkg.library : 'work'}.${pkg.name}.all;\n`);
+              workspaceEdit.changes = {};
+              workspaceEdit.changes[textDocumentUri] = [textEdit];
+              actions.push(CodeAction.create(
+                'add use statement for ' + pkg.name,
+                workspaceEdit,
+                CodeActionKind.QuickFix
+              ));
+            }
+          }
+        }
+        return actions;
+      });
       this.messages.push({
-        location: {
-          file: this.editorPath,
-          position: read.range.getRange()
-        },
-        code: MessageCode.NotDeclaredRead,
-        severity: 'error',
-        excerpt: `signal '${read.text}' is read but not declared`
+        range: read.range,
+        code: code,
+        severity: DiagnosticSeverity.Error,
+        message: `signal '${read.text}' is read but not declared`
       });
     };
     for (const process of architecture.processes) {
@@ -255,44 +255,50 @@ export class VhdlLinter {
       const registerProcess = signal.getRegisterProcess();
       if (!resetFound && registerProcess) {
         let resetBlockFound = false;
-        const solutions: Solution[] = [];
-        for (const statement of registerProcess.statements) {
-          if (statement instanceof OIf) {
-            for (const clause of statement.clauses) {
-              if (clause.condition.match(/res/i)) {
-                resetBlockFound = true;
-                let resetValue = null;
-                if (signal.type.match(/^std_u?logic_vector|unsigned|signed/i)) {
-                  resetValue = `(others => '0')`;
-                } else if (signal.type.match(/^std_u?logic/i)) {
-                  resetValue = `'0'`;
-                } else if (signal.type.match(/^integer|natural|positive/i)) {
-                  resetValue = `0`;
-                }
-                if (resetValue !== null) {
-                  let positionStart = clause.range.start.getPosition();
-                  positionStart.line++;
-                  solutions.push({
-                    title: 'Add reset for ' + signal.name,
-                    position: Range.create(positionStart, positionStart),
-                    replaceWith: `  ${signal.name} <= ${resetValue};\n    `
-                  });
+        const code = this.addCodeActionCallback((textDocumentUri: string) => {
+          const actions = [];
+          for (const statement of registerProcess.statements) {
+            if (statement instanceof OIf) {
+              for (const clause of statement.clauses) {
+                if (clause.condition.match(/res/i)) {
+                  resetBlockFound = true;
+                  let resetValue = null;
+                  if (signal.type.match(/^std_u?logic_vector|unsigned|signed/i)) {
+                    resetValue = `(others => '0')`;
+                  } else if (signal.type.match(/^std_u?logic/i)) {
+                    resetValue = `'0'`;
+                  } else if (signal.type.match(/^integer|natural|positive/i)) {
+                    resetValue = `0`;
+                  }
+                  if (resetValue !== null) {
+                    let positionStart = Position.create(clause.range.start.line, clause.range.start.character);
+                    positionStart.line++;
+                    const indent = positionStart.character + 2;
+                    positionStart.character = 0;
+                    const workspaceEdit: WorkspaceEdit = {};
+                    const textEdit: TextEdit = TextEdit.insert(positionStart, ' '.repeat(indent) + `${signal.name} <= ${resetValue};\n`);
+                    workspaceEdit.changes = {};
+                    workspaceEdit.changes[textDocumentUri] = [textEdit];
+                    actions.push(CodeAction.create(
+                      'Add reset for ' + signal.name,
+                      workspaceEdit,
+                      CodeActionKind.QuickFix
+                    ));
+                  }
                 }
               }
             }
           }
-        }
-        const range = Range.create(registerProcess.range.start.getPosition(), registerProcess.range.start.getPosition());
+          return actions;
+        });
+        const range = Range.create(registerProcess.range.start, registerProcess.range.start);
         range.end.character = this.text.split('\n')[range.start.line].length;
-        const excerpt = resetBlockFound ? `Reset '${signal.name}' missing` : `Reset '${signal.name}' missing. Reset Block not found!`;
+        const message = resetBlockFound ? `Reset '${signal.name}' missing` : `Reset '${signal.name}' missing. Reset Block not found!`;
         this.messages.push({
-          location: {
-            file: this.editorPath,
-            position: range
-          },
-          solutions,
-          severity: 'error',
-          excerpt
+          range: range,
+          code,
+          severity: DiagnosticSeverity.Error,
+          message
         });
       }
     }
@@ -356,22 +362,16 @@ export class VhdlLinter {
         const [unread, unwritten] = this.checkUnusedPerArchitecture(architecture, port);
         if (unread && port.direction === 'in') {
           this.messages.push({
-            location: {
-              file: this.editorPath,
-              position: port.range.getRange()
-            },
-            severity: 'warning',
-            excerpt: `Not reading input port '${port.name}'`
+            range: port.range,
+            severity: DiagnosticSeverity.Warning,
+            message: `Not reading input port '${port.name}'`
           });
         }
         if (unwritten && port.direction === 'out') {
           this.messages.push({
-            location: {
-              file: this.editorPath,
-              position: port.range.getRange()
-            },
-            severity: 'warning',
-            excerpt: `Not writing output port '${port.name}'`
+            range: port.range,
+            severity: DiagnosticSeverity.Warning,
+            message: `Not writing output port '${port.name}'`
           });
         }
       }
@@ -380,22 +380,16 @@ export class VhdlLinter {
       const [unread, unwritten] = this.checkUnusedPerArchitecture(architecture, signal);
       if (unread) {
         this.messages.push({
-          location: {
-            file: this.editorPath,
-            position: signal.range.getRange()
-          },
-          severity: 'warning',
-          excerpt: `Not reading signal '${signal.name}'`
+          range: signal.range,
+          severity: DiagnosticSeverity.Warning,
+          message: `Not reading signal '${signal.name}'`
         });
       }
       if (unwritten && !signal.constant) {
         this.messages.push({
-          location: {
-            file: this.editorPath,
-            position: signal.range.getRange()
-          },
-          severity: 'warning',
-          excerpt: `Not writing signal '${signal.name}'`
+          range: signal.range,
+          severity: DiagnosticSeverity.Warning,
+          message: `Not writing signal '${signal.name}'`
         });
       }
     }
@@ -409,41 +403,29 @@ export class VhdlLinter {
       if (port.direction === 'in') {
         if (port.name.match(/^o_/i)) {
           this.messages.push({
-            location: {
-              file: this.editorPath,
-              position: port.range.getRange()
-            },
-            severity: 'error',
-            excerpt: `input port '${port.name}' begins with 'o_'!`
+            range: port.range,
+            severity: DiagnosticSeverity.Error,
+            message: `input port '${port.name}' begins with 'o_'!`
           });
         } else if (port.name.match(/^i_/i) === null) {
           this.messages.push({
-            location: {
-              file: this.editorPath,
-              position: port.range.getRange()
-            },
-            severity: 'warning',
-            excerpt: `input port '${port.name}' should begin with i_`
+            range: port.range,
+            severity: DiagnosticSeverity.Warning,
+            message: `input port '${port.name}' should begin with i_`
           });
         }
       } else if (port.direction === 'out') {
         if (port.name.match(/^i_/i)) {
           this.messages.push({
-            location: {
-              file: this.editorPath,
-              position: port.range.getRange()
-            },
-            severity: 'error',
-            excerpt: `ouput port '${port.name}' begins with 'i_'!`
+            range: port.range,
+            severity: DiagnosticSeverity.Error,
+            message: `ouput port '${port.name}' begins with 'i_'!`
           });
         } else if (port.name.match(/^o_/i) === null) {
           this.messages.push({
-            location: {
-              file: this.editorPath,
-              position: port.range.getRange()
-            },
-            severity: 'warning',
-            excerpt: `ouput port '${port.name}' should begin with 'o_'`
+            range: port.range,
+            severity: DiagnosticSeverity.Warning,
+            message: `ouput port '${port.name}' should begin with 'o_'`
           });
         }
       }
@@ -469,12 +451,9 @@ export class VhdlLinter {
         const entity = this.getProjectEntity(instantiation);
         if (!entity) {
           this.messages.push({
-            location: {
-              file: this.editorPath,
-              position: instantiation.range.getRange()
-            },
-            severity: 'error',
-            excerpt: `can not find entity ${instantiation.componentName}`
+            range: instantiation.range,
+            severity: DiagnosticSeverity.Error,
+            message: `can not find entity ${instantiation.componentName}`
           });
         } else {
           const foundPorts = [];
@@ -492,20 +471,24 @@ export class VhdlLinter {
               foundPorts.push(entityPortIndex);
               if (!entityPort) {
                 const bestMatch = findBestMatch(portMapping.name[0].text, entity.ports.map(port => port.name));
+                const code = this.addCodeActionCallback((textDocumentUri: string) => {
+                  const actions = [];
+                  const workspaceEdit: WorkspaceEdit = {};
+                  const textEdit: TextEdit = TextEdit.replace(Range.create(portMapping.name[0].range.start, portMapping.name[portMapping.name.length - 1].range.start)
+                  , bestMatch.bestMatch.target);
+                  workspaceEdit.changes = {};
+                  workspaceEdit.changes[textDocumentUri] = [textEdit];
+                  actions.push(CodeAction.create(
+                    `Replace with ${bestMatch.bestMatch.target} (score: ${bestMatch.bestMatch.rating})`,
+                    workspaceEdit,
+                    CodeActionKind.QuickFix));
+                  return actions;
+                });
                 this.messages.push({
-                  location: {
-                    file: this.editorPath,
-                    position: portMapping.range.getRange()
-                  },
-                  severity: 'error',
-                  excerpt: `no port ${portMapping.name.map(name => name.text).join(', ')} on entity ${instantiation.componentName}`,
-                  solutions: [
-                    {
-                      title: `Replace with ${bestMatch.bestMatch.target} (score: ${bestMatch.bestMatch.rating})`,
-                      position: Range.create(portMapping.name[0].range.start.getPosition(), portMapping.name[portMapping.name.length - 1].range.start.getPosition()),
-                      replaceWith: bestMatch.bestMatch.target
-                    }
-                  ]
+                  range: portMapping.range,
+                  severity: DiagnosticSeverity.Error,
+                  message: `no port ${portMapping.name.map(name => name.text).join(', ')} on entity ${instantiation.componentName}`,
+                  code
                 });
               }
             }
@@ -513,12 +496,9 @@ export class VhdlLinter {
           for (const [index, port] of entity.ports.entries()) {
             if (port.direction === 'in' && port.hasDefault === false && foundPorts.findIndex(portIndex => portIndex === index) === -1) {
               this.messages.push({
-                location: {
-                  file: this.editorPath,
-                  position: instantiation.range.getRange()
-                },
-                severity: 'error',
-                excerpt: `input port ${port.name} is missing in port map and has no default value on entity ${instantiation.componentName}`
+                range: instantiation.range,
+                severity: DiagnosticSeverity.Error,
+                message: `input port ${port.name} is missing in port map and has no default value on entity ${instantiation.componentName}`
               });
             }
           }
@@ -526,12 +506,9 @@ export class VhdlLinter {
         }
       } else {
         this.messages.push({
-          location: {
-            file: this.editorPath,
-            position: instantiation.range.getRange()
-          },
-          severity: 'info',
-          excerpt: `can not evaluate instantiation via component`
+          range: instantiation.range,
+          severity: DiagnosticSeverity.Hint,
+          message: `can not evaluate instantiation via component`
         });
       }
     }
@@ -545,44 +522,6 @@ export class VhdlLinter {
     let i = text.join('\n').length + p.character;
     return i;
   }
-  getSolutions(diagnostic: Diagnostic, textDocumentUri: string): CodeAction[] {
-    if (diagnostic.code === MessageCode.NotDeclaredRead) {
-      const read = this.tree.objectList.find(obj => {
-        if (!(obj instanceof ORead)) {
-          return false;
-        }
-        const range = obj.range.getRange();
-        return range.start.line === diagnostic.range.start.line && range.start.character === diagnostic.range.start.character && range.end.line === diagnostic.range.end.line && range.end.character === diagnostic.range.end.character;
-      }) as ORead | undefined;
-      if (!read) {
-        return [];
-      }
-      const actions: CodeAction[] = [];
-      for (const pkg of this.projectParser.getPackages()) {
-        for (const constant of pkg.constants) {
-          if (constant.name.toLowerCase() === read.text.toLowerCase()) {
-            const workspaceEdit: WorkspaceEdit = {};
-            const file = read.getRoot();
-            const pos = Position.create(0, 0);
-            if (file.useStatements.length > 0) {
-              pos.line = file.useStatements[file.useStatements.length - 1].range.getRange().end.line + 1;
-            }
-            const textEdit: TextEdit = TextEdit.insert(pos, `use ${pkg.library ? pkg.library : 'work'}.${pkg.name}.all;\n`);
-            workspaceEdit.changes = {};
-            workspaceEdit.changes[textDocumentUri] = [textEdit];
-            actions.push(CodeAction.create(
-              'add use statement for ' + pkg.name,
-              workspaceEdit,
-              CodeActionKind.QuickFix
-            ));
-          }
-        }
-      }
-      return actions;
-    }
-    return [];
-  }
-}
 }
 // | {
 //   title?: string,

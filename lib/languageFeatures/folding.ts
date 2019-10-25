@@ -14,15 +14,15 @@ export async function foldingHandler (params: FoldingRangeParams): Promise<Foldi
   for (const obj of linter.tree.objectList) {
     if (obj instanceof OProcess || obj instanceof OIfClause || obj instanceof OInstantiation ||
       obj instanceof OMap || obj instanceof OEntity || obj instanceof OElseClause || obj instanceof OCase || obj instanceof OWhenClause) {
-      result.push(FoldingRange.create(obj.range.start.getPosition().line, obj.range.end.getPosition().line));
+      result.push(FoldingRange.create(obj.range.start.line, obj.range.end.line));
     }
   }
   if (linter.tree instanceof OFileWithEntity) {
     if (linter.tree.entity.portRange) {
-      result.push(FoldingRange.create(linter.tree.entity.portRange.start.getPosition().line, linter.tree.entity.portRange.end.getPosition().line));
+      result.push(FoldingRange.create(linter.tree.entity.portRange.start.line, linter.tree.entity.portRange.end.line));
     }
     if (linter.tree.entity.genericRange) {
-      result.push(FoldingRange.create(linter.tree.entity.genericRange.start.getPosition().line, linter.tree.entity.genericRange.end.getPosition().line));
+      result.push(FoldingRange.create(linter.tree.entity.genericRange.start.line, linter.tree.entity.genericRange.end.line));
     }
   }
   const match = linter.text.match(/^(\s*--.*\n)*/);
