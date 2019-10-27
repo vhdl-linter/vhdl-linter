@@ -255,7 +255,7 @@ const findDefinition = async (params: IFindDefinitionParams) => {
       uri: 'file://' + result.getRoot().file
     };
   } else if (candidate instanceof OUseStatement) {
-    const match = candidate.text.match(/[^.]+\.([^.]+).[^.]+/ig);
+    const match = candidate.text.match(/[^.]+\.([^.]+).[^.]+/i);
     if (!match) {
       return null;
     }

@@ -28,6 +28,7 @@ export class ProjectParser {
     if (pkg) {
       //       console.log(pkg, new Directory(pkg + '/ieee2008'));
       (await this.parseDirectory((pkg + '/../../ieee2008'))).forEach(file => files.add(file));
+      files.add(pkg + '/../../standard.vhdl');
     }
     for (const file of files) {
       let cachedFile = new OFileCache(this);

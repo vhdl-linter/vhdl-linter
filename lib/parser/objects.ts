@@ -283,6 +283,7 @@ export class OArchitecture extends ObjectBase {
       for (const type of file.architecture.types) {
         if (type instanceof OEnum) {
           const state = type.states.find(state => state.name.toLowerCase() === read.text.toLowerCase());
+          found = found || type.name.toLowerCase() === read.text.toLowerCase() && type;
           found = found || typeof state !== 'undefined' && state;
         }
       }
@@ -327,7 +328,7 @@ export class OSignalLike extends ObjectBase {
   defaultValue?: ORead[];
   private register: boolean | null = null;
   private registerProcess: OProcess | null;
-  reads: ORead[];
+  reads: ORead[] = [];
   constructor(public parent: OArchitecture | OEntity | OPackage, startI: number, endI: number) {
     super(parent, startI, endI);
   }
@@ -454,6 +455,51 @@ export class OEntity extends ObjectBase {
   generics: OGeneric[] = [];
   signals: OSignal[] = [];
   functions: OFunction[] = [];
+  isValidRead(read: ORead, packages: OPackage[]): boolean {
+    return this.findRead(read, packages) !== false;
+  }
+  findRead(read: ORead, packages: OPackage[]): ObjectBase | false {
+    let found: ObjectBase | false = false;
+
+    for (const pkg of packages) {
+      for (const constant of pkg.constants) {
+        if (constant.name.toLowerCase() === read.text.toLowerCase()) {
+          return constant;
+        }
+      }
+      for (const func of pkg.functions) {
+        if (func.name.toLowerCase() === read.text.toLowerCase()) {
+          return func;
+        }
+      }
+      for (const type of pkg.types) {
+        if (type.name.toLowerCase() === read.text.toLowerCase()) {
+          return type;
+        }
+        if (type instanceof OEnum) {
+          for (const state of type.states) {
+            if (state.name.toLowerCase() === read.text.toLowerCase()) {
+              return state;
+            }
+          }
+        } else if (type instanceof ORecord) {
+          for (const child of type.children) {
+            if (child.name.toLowerCase() === read.text.toLowerCase()) {
+              return child;
+            }
+          }
+        }
+      }
+    }
+
+    for (const signal of this.signals) {
+      found = found || signal.name.toLowerCase() === read.text.toLowerCase() && signal;
+    }
+    for (const func of this.functions) {
+      found = found || func.name.toLowerCase() === read.text.toLowerCase() && func;
+    }
+    return found;
+  }
 }
 export class OPort extends OSignalLike {
   direction: 'in' | 'out' | 'inout';
@@ -466,6 +512,7 @@ export class OGenericActual extends ObjectBase {
   name: string;
   type: string;
   defaultValue?: string;
+  reads: ORead[];
 }
 export type OGeneric = OGenericType | OGenericActual;
 export type OStatement = OCase | OAssignment | OIf | OForLoop;

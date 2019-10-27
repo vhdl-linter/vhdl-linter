@@ -1,4 +1,4 @@
-import { OFile, OIf, OSignalLike, OSignal, OArchitecture, OEntity, OPort, OInstantiation, OWrite, ORead, OFileWithEntity, OFileWithPackage, OFileWithEntityAndArchitecture, ORecord, OPackage, ParserError, OEnum } from './parser/objects';
+import { OFile, OIf, OSignalLike, OSignal, OArchitecture, OEntity, OPort, OInstantiation, OWrite, ORead, OFileWithEntity, OFileWithPackage, OFileWithEntityAndArchitecture, ORecord, OPackage, ParserError, OEnum, OGenericActual } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 import { findBestMatch } from 'string-similarity';
@@ -13,6 +13,7 @@ import {
   CodeActionKind,
   DiagnosticSeverity
 } from 'vscode-languageserver';
+import { ThemeIcon } from 'vscode';
 export type diagnosticCodeActionCallback = (textDocumentUri: string) => CodeAction[];
 export class VhdlLinter {
   messages: Diagnostic[] = [];
@@ -46,6 +47,10 @@ export class VhdlLinter {
   }
   async parsePackages() {
     const packages = this.projectParser.getPackages();
+    const standard = packages.find(pkg => pkg.name.toLowerCase() === 'standard');
+    if (standard) {
+      this.packages.push(standard);
+    }
     //     console.log(packages);
     for (const useStatement of this.tree.useStatements) {
       let match = useStatement.text.match(/([^.]+)\.([^.]+)\.all/i);
@@ -80,7 +85,7 @@ export class VhdlLinter {
         this.checkResets();
         this.checkUnused(this.tree.architecture, this.tree.entity);
         this.checkDoubles();
-        this.checkNotDeclared(this.tree.architecture);
+        this.checkNotDeclared();
         this.checkPortDeclaration();
         this.checkInstantiations(this.tree.architecture);
       }
@@ -134,72 +139,94 @@ export class VhdlLinter {
     }
   }
 
-  checkNotDeclared(architecture?: OArchitecture) {
-    if (!architecture) {
-      return;
-    }
-    if (!(this.tree instanceof OFileWithEntityAndArchitecture)) {
-      return;
-    }
-    const pushWriteError = (write: OWrite) => {
-      this.messages.push({
-        range: write.range,
-        severity: DiagnosticSeverity.Error,
-        message: `signal '${write.text}' is written but not declared`
-      });
-    };
-    const pushReadError = (read: ORead) => {
-      const code = this.addCodeActionCallback((textDocumentUri: string) => {
-        const actions = [];
-        for (const pkg of this.projectParser.getPackages()) {
-          for (const constant of pkg.constants) {
-            if (constant.name.toLowerCase() === read.text.toLowerCase()) {
-              const workspaceEdit: WorkspaceEdit = {};
-              const file = read.getRoot();
-              const pos = Position.create(0, 0);
-              if (file.useStatements.length > 0) {
-                pos.line = file.useStatements[file.useStatements.length - 1].range.end.line + 1;
-              }
-              const textEdit: TextEdit = TextEdit.insert(pos, `use ${pkg.library ? pkg.library : 'work'}.${pkg.name}.all;\n`);
-              workspaceEdit.changes = {};
-              workspaceEdit.changes[textDocumentUri] = [textEdit];
-              actions.push(CodeAction.create(
-                'add use statement for ' + pkg.name,
-                workspaceEdit,
-                CodeActionKind.QuickFix
-              ));
+  private pushWriteError(write: OWrite) {
+    this.messages.push({
+      range: write.range,
+      severity: DiagnosticSeverity.Error,
+      message: `signal '${write.text}' is written but not declared`
+    });
+  }
+  private pushReadError(read: ORead) {
+    const code = this.addCodeActionCallback((textDocumentUri: string) => {
+      const actions = [];
+      for (const pkg of this.projectParser.getPackages()) {
+        for (const constant of pkg.constants) {
+          if (constant.name.toLowerCase() === read.text.toLowerCase()) {
+            const workspaceEdit: WorkspaceEdit = {};
+            const file = read.getRoot();
+            const pos = Position.create(0, 0);
+            if (file.useStatements.length > 0) {
+              pos.line = file.useStatements[file.useStatements.length - 1].range.end.line + 1;
             }
+            const textEdit: TextEdit = TextEdit.insert(pos, `use ${pkg.library ? pkg.library : 'work'}.${pkg.name}.all;\n`);
+            workspaceEdit.changes = {};
+            workspaceEdit.changes[textDocumentUri] = [textEdit];
+            actions.push(CodeAction.create(
+              'add use statement for ' + pkg.name,
+              workspaceEdit,
+              CodeActionKind.QuickFix
+            ));
           }
         }
-        return actions;
-      });
-      this.messages.push({
-        range: read.range,
-        code: code,
-        severity: DiagnosticSeverity.Error,
-        message: `signal '${read.text}' is read but not declared`
-      });
-    };
-    for (const process of architecture.processes) {
-      for (const write of process.getFlatWrites()) {
-        let found = this.tree.architecture.isValidWrite(write);
-        if (!found) {
+      }
+      return actions;
+    });
+    this.messages.push({
+      range: read.range,
+      code: code,
+      severity: DiagnosticSeverity.Error,
+      message: `signal '${read.text}' is read but not declared`
+    });
+  }
+  checkNotDeclared() {
+    if (this.tree instanceof OFileWithEntity) {
+      for (const port of this.tree.entity.ports) {
+        for (const read of port.reads) {
+          !this.tree.entity.isValidRead(read, this.packages) && this.pushReadError(read);
+
+        }
+      }
+      for (const generic of this.tree.entity.generics) {
+        if (generic instanceof OGenericActual) {
+          for (const read of generic.reads) {
+            !this.tree.entity.isValidRead(read, this.packages) && this.pushReadError(read);
+          }
+
+        }
+      }
+      if (this.tree instanceof OFileWithEntityAndArchitecture) {
+        this.checkNotDeclaredArchitecture(this.tree.architecture);
+      }
+    }
+  }
+  private checkNotDeclaredArchitecture(architecture: OArchitecture) {
+    if (this.tree instanceof OFileWithEntityAndArchitecture) {
+      for (const process of architecture.processes) {
+        for (const write of process.getFlatWrites()) {
+          let found = this.tree.architecture.isValidWrite(write);
+          if (!found) {
+            for (const variable of process.variables) {
+              if (variable.name.toLowerCase() === write.text.toLowerCase()) {
+                found = true;
+              }
+            }
+          }
+          !found && this.pushWriteError(write);
+        }
+        for (const read of process.getFlatReads()) {
+          let found = architecture.isValidRead(read, this.packages);
           for (const variable of process.variables) {
-            if (variable.name.toLowerCase() === write.text.toLowerCase()) {
+            if (variable.name.toLowerCase() === read.text.toLowerCase()) {
               found = true;
             }
           }
+          !found && this.pushReadError(read);
         }
-        !found && pushWriteError(write);
       }
-      for (const read of process.getFlatReads()) {
-        let found = architecture.isValidRead(read, this.packages);
-        for (const variable of process.variables) {
-          if (variable.name.toLowerCase() === read.text.toLowerCase()) {
-            found = true;
-          }
-        }
-        !found && pushReadError(read);
+    }
+    for (const signal of architecture.signals) {
+      for (const read of signal.reads) {
+        !architecture.isValidRead(read, this.packages) && this.pushReadError(read);
       }
     }
 
@@ -208,7 +235,7 @@ export class VhdlLinter {
     for (const instantiation of architecture.instantiations) {
       const entity = this.getProjectEntity(instantiation);
       for (const read of instantiation.getFlatReads(entity)) {
-        !architecture.isValidRead(read, this.packages) && pushReadError(read);
+        !architecture.isValidRead(read, this.packages) && this.pushReadError(read);
       }
     }
     // Writes
@@ -216,22 +243,23 @@ export class VhdlLinter {
     for (const instantiation of architecture.instantiations) {
       const entity = this.getProjectEntity(instantiation);
       for (const write of instantiation.getFlatWrites(entity)) {
-        !architecture.isValidWrite(write) && pushWriteError(write);
+        !architecture.isValidWrite(write) && this.pushWriteError(write);
       }
     }
 
     for (const assignment of architecture.assignments) {
       for (const read of assignment.reads) {
-        !architecture.isValidRead(read, this.packages) && pushReadError(read);
+        !architecture.isValidRead(read, this.packages) && this.pushReadError(read);
       }
       for (const write of assignment.writes) {
-        !architecture.isValidWrite(write) && pushWriteError(write);
+        !architecture.isValidWrite(write) && this.pushWriteError(write);
       }
     }
     for (const generate of architecture.generates) {
-      this.checkNotDeclared(generate);
+      this.checkNotDeclaredArchitecture(generate);
     }
   }
+
   checkResets() {
     if (!(this.tree instanceof OFileWithEntityAndArchitecture)) {
       return;
@@ -475,7 +503,7 @@ export class VhdlLinter {
                   const actions = [];
                   const workspaceEdit: WorkspaceEdit = {};
                   const textEdit: TextEdit = TextEdit.replace(Range.create(portMapping.name[0].range.start, portMapping.name[portMapping.name.length - 1].range.start)
-                  , bestMatch.bestMatch.target);
+                    , bestMatch.bestMatch.target);
                   workspaceEdit.changes = {};
                   workspaceEdit.changes[textDocumentUri] = [textEdit];
                   actions.push(CodeAction.create(

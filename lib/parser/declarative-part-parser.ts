@@ -117,12 +117,19 @@ export class DeclarativePartParser extends ParserBase {
         this.maybeWord('component');
         this.maybeWord(componentName);
         this.expect(';');
-      } else if (nextWord === 'function' || nextWord === 'procedure') {
+      } else if (nextWord === 'impure' || nextWord === 'function' || nextWord === 'procedure') {
+        if (nextWord === 'impure') {
+          this.getNextWord();
+        }
         const func = new OFunction(this.parent, this.pos.i, this.getEndOfLineI());
         this.getNextWord();
         func.name = this.advancePast(/^(\w+|"[^"]+")/, {returnMatch: true}).replace(/^"(.*)"$/, '$1');
-        this.expect('(');
-        func.parameter = this.advanceBrace();
+        if (this.text[this.pos.i] === '(') {
+          this.expect('(');
+          func.parameter = this.advanceBrace();
+        } else {
+          func.parameter = '';
+        }
         if (!(this.parent instanceof OPackage)) {
           this.advancePast(/\bend\b/i, {allowSemicolon: true});
           let word = this.getNextWord({consume: false});

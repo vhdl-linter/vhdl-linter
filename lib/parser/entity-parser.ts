@@ -96,8 +96,11 @@ export class EntityParser extends ParserBase {
             this.getNextWord(); // consume direction
           }
         }
+        const iBeforeType = this.pos.i;
         const {type, defaultValue} = this.getTypeDefintion();
         port.type = type;
+        port.reads = this.extractReads(port, port.type, iBeforeType);
+
         port.defaultValue = defaultValue;
         ports.push(port);
         // for (const multiPortName of multiPorts) {
