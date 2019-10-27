@@ -28,13 +28,14 @@ import {
 } from 'vscode-languageserver';
 import { VhdlLinter } from './vhdl-linter';
 import { ProjectParser } from './project-parser';
-import { OFile, OArchitecture, ORead, OWrite, OSignal, OFunction, OForLoop, OForGenerate, OInstantiation, OMapping, OEntity, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackage, ORecord, ObjectBase, OType, OReadOrMappingName, OWriteReadBase, ORecordChild, OEnum, OProcess, OStatement, OIf, OIfClause, OMap, OUseStatement } from './parser/objects';
+import { OFile, OArchitecture, ORead, OWrite, OSignal, OFunction, OForLoop, OForGenerate, OInstantiation, OMapping, OEntity, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackage, ORecord, ObjectBase, OType, OReadOrMappingName, OWriteReadBase, ORecordChild, OEnum, OProcess, OStatement, OIf, OIfClause, OMap, OUseStatement, OState } from './parser/objects';
 import { mkdtempSync, writeFile, readFile } from 'fs';
 import { tmpdir, type } from 'os';
 import { sep } from 'path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { foldingHandler } from './languageFeatures/folding';
+import { handleOnDocumentSymbol } from './languageFeatures/documentSymbol';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -137,57 +138,7 @@ connection.onCodeAction(async (params): Promise<CodeAction[]> => {
   }
   return actions;
 });
-connection.onDocumentSymbol(async (params): Promise<DocumentSymbol[]> => {
-  await initialization;
-  const linter = linters.get(params.textDocument.uri);
-  if (!linter) {
-    return [];
-  }
-  const parseArchitecture = (architecture: OArchitecture): DocumentSymbol[] => {
-    const symbols: DocumentSymbol[] = [];
-    symbols.push(...architecture.instantiations.map(instantiation => ({
-      name: instantiation.label + ': ' + instantiation.componentName,
-      detail: instantiation.label,
-      kind: SymbolKind.Object,
-      range: instantiation.range,
-      selectionRange: instantiation.range
-    })));
-    symbols.push(...architecture.processes.map(process => ({
-      name: process.label || 'no label',
-      detail: process.label,
-      kind: SymbolKind.Object,
-      range: process.range,
-      selectionRange: process.range,
-      children: process.getStates().map(state => ({
-        name: state.name,
-        kind: SymbolKind.EnumMember,
-        range: state.range,
-        selectionRange: state.range,
-      }))
-    })));
-    for (const generate of architecture.generates) {
-      symbols.push({
-        name: linter.text.split('\n')[generate.range.start.line],
-        kind: SymbolKind.Enum,
-        range: generate.range,
-        selectionRange: generate.range,
-        children: parseArchitecture(generate)
-      });
-    }
-    return symbols;
-  };
-  const returnValue: DocumentSymbol[] = [];
-
-  if (linter.tree instanceof OFileWithPackage) {
-    returnValue.push(...linter.tree.package.types.map(type => DocumentSymbol.create(type.name, undefined, SymbolKind.Enum, type.range, type.range)));
-    returnValue.push(...linter.tree.package.functions.map(func => DocumentSymbol.create(func.name, undefined, SymbolKind.Function, func.range, func.range)));
-    returnValue.push(...linter.tree.package.constants.map(constants => DocumentSymbol.create(constants.name, undefined, SymbolKind.Constant, constants.range, constants.range)));
-  }
-  if (linter.tree instanceof OFileWithEntityAndArchitecture) {
-    returnValue.push(...parseArchitecture(linter.tree.architecture));
-  }
-  return returnValue;
-});
+connection.onDocumentSymbol(handleOnDocumentSymbol);
 interface IFindDefinitionParams {
   textDocument: {
     uri: string
@@ -244,7 +195,7 @@ const findDefinition = async (params: IFindDefinitionParams) => {
     if (typeof result === 'boolean') {
       return null;
     }
-    if (result instanceof ORecordChild) {
+    if (result instanceof ORecordChild || result instanceof OState) {
       result = result.parent;
     }
     return {

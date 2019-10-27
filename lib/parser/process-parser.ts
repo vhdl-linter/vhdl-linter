@@ -118,11 +118,7 @@ export class ProcessParser extends ParserBase {
     this.expect('if');
     const position = this.pos.i;
     clause.condition = this.advancePast('then');
-    clause.conditionReads = tokenizer.tokenize(clause.condition).filter(token => (token.type === 'VARIABLE' || token.type === 'FUNCTION' || token.type === 'FUNCTION_RECORD_ELEMENT' || token.type === 'RECORD_ELEMENT')).map(token => {
-      const read = new ORead(clause, position + token.offset, position + token.offset + token.value.length);
-      read.text = token.value;
-      return read;
-    });
+    clause.conditionReads = this.extractReads(clause, clause.condition, position);
     clause.statements = this.parseStatements(clause, ['else', 'elsif', 'end']);
     clause.range.setEndBacktraceWhitespace(this.pos.i);
     if_.clauses.push(clause);
@@ -133,11 +129,7 @@ export class ProcessParser extends ParserBase {
       this.expect('elsif');
       const position = this.pos.i;
       clause.condition = this.advancePast('then');
-      clause.conditionReads = tokenizer.tokenize(clause.condition).filter(token => token.type === 'VARIABLE' || token.type === 'FUNCTION' || token.type === 'FUNCTION_RECORD_ELEMENT' || token.type === 'RECORD_ELEMENT').map(token => {
-        const read = new ORead(clause, position + token.offset, position + token.offset + token.value.length);
-        read.text = token.value;
-        return read;
-      });
+      clause.conditionReads = this.extractReads(clause, clause.condition, position);
       clause.statements = this.parseStatements(clause, ['else', 'elsif', 'end']);
       clause.range.setEndBacktraceWhitespace(this.pos.i);
       if_.clauses.push(clause);

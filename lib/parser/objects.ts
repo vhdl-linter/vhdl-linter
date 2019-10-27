@@ -237,7 +237,7 @@ export class OArchitecture extends ObjectBase {
               return state;
             }
           }
-        } else if (type instanceof ORecord) {
+        } else if (type instanceof ORecord && read instanceof OElementRead) {
           for (const child of type.children) {
             if (child.name.toLowerCase() === read.text.toLowerCase()) {
               return child;
@@ -305,6 +305,7 @@ export class ORecordChild extends OType {
 }
 export class OState extends ObjectBase {
   name: string;
+  public parent: OEnum;
 }
 export class OForGenerate extends OArchitecture {
   variable: string;
@@ -498,6 +499,9 @@ export class OEntity extends ObjectBase {
     for (const func of this.functions) {
       found = found || func.name.toLowerCase() === read.text.toLowerCase() && func;
     }
+    for (const generic of this.generics) {
+      found = found || generic.name.toLowerCase() === read.text.toLowerCase() && generic;
+    }
     return found;
   }
 }
@@ -542,30 +546,6 @@ export class OProcess extends ObjectBase {
   label?: string;
   variables: OVariable[] = [];
   private registerProcess: boolean | null = null;
-  getStates(): OState[] {
-    if (this.isRegisterProcess() === false) {
-      return [];
-    }
-    let states: OState[] = [];
-    for (const statement of this.statements) {
-      if (statement instanceof OIf) {
-        for (const clause of statement.clauses) {
-          if (clause.condition.match(/rising_edge/i)) {
-            for (const statement of clause.statements) {
-              if (statement instanceof OCase) {
-                for (const whenClause of statement.whenClauses) {
-                  const state = new OState(whenClause.parent, whenClause.range.start.i, whenClause.range.end.i);
-                  state.name = whenClause.condition.map(read => read.text).join(' ');
-                  states.push(state);
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    return states;
-  }
   isRegisterProcess(): boolean {
     if (this.registerProcess !== null) {
       return this.registerProcess;
@@ -695,6 +675,10 @@ export class OWriteReadBase extends ObjectBase {
 export class OWrite extends OWriteReadBase {
 }
 export class ORead extends OWriteReadBase {
+
+}
+// Read of Record element or something
+export class OElementRead extends ORead {
 
 }
 export class OReadOrMappingName extends ORead {

@@ -1,5 +1,5 @@
 const escapeStringRegexp = require('escape-string-regexp');
-import { ParserError, OWrite, ORead, OI } from './objects';
+import { ParserError, OWrite, ORead, OI, OElementRead } from './objects';
 import { config } from './config';
 import { tokenizer } from './tokenizer';
 
@@ -11,7 +11,7 @@ export class ParserBase {
   debug(_message: string) {
     // let pos = this.getPosition();
     if (config.debug) {
-//      console.log(`${this.constructor.name}: ${message} at ${pos.line}:${pos.col}, (${this.file})`);
+      //      console.log(`${this.constructor.name}: ${message} at ${pos.line}:${pos.col}, (${this.file})`);
     }
   }
   debugObject(_object: any) {
@@ -36,7 +36,7 @@ export class ParserBase {
     //   return target;
     // };
     // target = filter(object);
-//     console.log(`${this.constructor.name}: ${JSON.stringify(target, null, 2)} in line: ${this.getLine()}, (${this.file})`);
+    //     console.log(`${this.constructor.name}: ${JSON.stringify(target, null, 2)} in line: ${this.getLine()}, (${this.file})`);
   }
   message(message: string, severity = 'error') {
     if (severity === 'error') {
@@ -58,7 +58,7 @@ export class ParserBase {
       this.pos.i--;
     }
   }
-  advancePast(search: string | RegExp, options: {allowSemicolon?: boolean, returnMatch?: boolean} = {}) {
+  advancePast(search: string | RegExp, options: { allowSemicolon?: boolean, returnMatch?: boolean } = {}) {
     if (typeof options.allowSemicolon === 'undefined') {
       options.allowSemicolon = false;
     }
@@ -165,7 +165,7 @@ export class ParserBase {
     this.advanceWhitespace();
     return text;
   }
-  getNextWord(options: { re?: RegExp, consume?: boolean} = {}) {
+  getNextWord(options: { re?: RegExp, consume?: boolean } = {}) {
     let { re, consume } = options;
     if (!re) {
       re = /^\w+/;
@@ -228,7 +228,7 @@ export class ParserBase {
         col = 1;
       }
     }
-    return {line, col};
+    return { line, col };
   }
   expect(expected: string | string[]) {
     if (!Array.isArray(expected)) {
@@ -268,7 +268,12 @@ export class ParserBase {
   }
   extractReads(parent: any, text: string, i: number): ORead[] {
     return tokenizer.tokenize(text).filter(token => token.type === 'VARIABLE' || token.type === 'FUNCTION' || token.type === 'RECORD_ELEMENT' || token.type === 'FUNCTION_RECORD_ELEMENT').map(token => {
-      const read = new ORead(parent, i + token.offset, i + token.offset + token.value.length);
+      let read;
+      if (token.type === 'RECORD_ELEMENT' || token.type === 'FUNCTION_RECORD_ELEMENT') {
+        read = new OElementRead(parent, i + token.offset, i + token.offset + token.value.length);
+      } else {
+        read = new ORead(parent, i + token.offset, i + token.offset + token.value.length);
+      }
       read.text = token.value;
       return read;
     });
@@ -289,7 +294,12 @@ export class ParserBase {
           write.text = token.value;
           writes.push(write);
         } else {
-          const read = new ORead(parent, i + token.offset, i + token.offset + token.value.length);
+          let read;
+          if (token.type === 'RECORD_ELEMENT' || token.type === 'FUNCTION_RECORD_ELEMENT') {
+            read = new OElementRead(parent, i + token.offset, i + token.offset + token.value.length);
+          } else {
+            read = new ORead(parent, i + token.offset, i + token.offset + token.value.length);
+          }
           read.text = token.value;
           reads.push(read);
         }
