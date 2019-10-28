@@ -46,6 +46,7 @@ class Tokenizer {
     let foundToken;
     let offset = 0;
     const librariesSanitized = libraries.map(escapeStringRegexp) as string[];
+    librariesSanitized.push('work');
     const librariesRegex = new RegExp('^(' + librariesSanitized.join('|') + ')\\..*?\\.', 'i');
     // console.log(librariesRegex);
     do {
