@@ -39,13 +39,19 @@ function parseStatements(statement: OStatement): DocumentSymbol[] {
       kind: SymbolKind.Enum,
       range: statement.range,
       selectionRange: statement.range,
-      children: statement.whenClauses.map(whenClause => ({
-        name: whenClause.condition.map(read => read.text).join(' '),
+      children: statement.whenClauses.map(whenClause => {
+        let name = whenClause.condition.map(read => read.text).join(' ');
+        if (name === '') {
+          name = 'others';
+        }
+      return {
+        name,
         kind: SymbolKind.EnumMember,
         range: whenClause.range,
         selectionRange: whenClause.range,
         children: whenClause.statements.map(statement => parseStatements(statement)).flat()
-      })).flat()
+      };
+      }).flat()
     }];
     return result;
   } else if (statement instanceof OIf) {
