@@ -47,17 +47,16 @@ export class OI implements Position {
   }
   private calcPosition(): Position {
     const lines = (this.parent instanceof OFile ? this.parent : this.parent.getRoot()).text.slice(0, this.i).split('\n');
-    const row = lines.length - 1;
-    const col = lines[lines.length - 1].length;
-    return Position.create(row, col);
+    const line = lines.length - 1;
+    const character = lines[lines.length - 1].length;
+    return {character, line};
   }
   private calcI() {
-    if (!this.position) {
+    if (typeof this.position === 'undefined') {
       throw new Error('Something went wrong with OIRange');
     }
     const lines = (this.parent instanceof OFile ? this.parent : this.parent.getRoot()).text.split('\n');
-    this.i = lines.slice(0, this.position.line).join('\n').length;
-    this.i += this.position.character;
+    this.i_ = lines.slice(0, this.position.line).join('\n').length + this.position.character;
   }
 }
 export class OIRange implements Range {
@@ -257,6 +256,9 @@ export class OArchitecture extends ObjectBase {
         }
         for (const func of parent.functions) {
           found = found || func.name.toLowerCase() === read.text.toLowerCase() && func;
+        }
+        for (const type of parent.types) {
+          found = found || type.name.toLowerCase() === read.text.toLowerCase() && type;
         }
       }
       if (parent instanceof OForLoop) {
