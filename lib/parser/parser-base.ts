@@ -1,5 +1,5 @@
 const escapeStringRegexp = require('escape-string-regexp');
-import { ParserError, OWrite, ORead, OI, OElementRead } from './objects';
+import { ParserError, OWrite, ORead, OI, OElementRead, ObjectBase } from './objects';
 import { config } from './config';
 import { tokenizer } from './tokenizer';
 
@@ -266,8 +266,8 @@ export class ParserBase {
     }
     return type;
   }
-  extractReads(parent: any, text: string, i: number): ORead[] {
-    return tokenizer.tokenize(text).filter(token => token.type === 'VARIABLE' || token.type === 'FUNCTION' || token.type === 'RECORD_ELEMENT' || token.type === 'FUNCTION_RECORD_ELEMENT').map(token => {
+  extractReads(parent: ObjectBase, text: string, i: number): ORead[] {
+    return tokenizer.tokenize(text, parent.getRoot().libraries).filter(token => token.type === 'VARIABLE' || token.type === 'FUNCTION' || token.type === 'RECORD_ELEMENT' || token.type === 'FUNCTION_RECORD_ELEMENT').map(token => {
       let read;
       if (token.type === 'RECORD_ELEMENT' || token.type === 'FUNCTION_RECORD_ELEMENT') {
         read = new OElementRead(parent, i + token.offset, i + token.offset + token.value.length);
@@ -278,11 +278,11 @@ export class ParserBase {
       return read;
     });
   }
-  extractReadsOrWrite(parent: any, text: string, i: number): [ORead[], OWrite[]] {
+  extractReadsOrWrite(parent: ObjectBase, text: string, i: number): [ORead[], OWrite[]] {
     const reads: ORead[] = [];
     const writes: OWrite[] = [];
     let braceLevel = 0;
-    const tokens = tokenizer.tokenize(text);
+    const tokens = tokenizer.tokenize(text, parent.getRoot().libraries);
     let index = 0;
     for (const token of tokens) {
       // console.log(index, token);

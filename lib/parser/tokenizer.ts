@@ -3,6 +3,7 @@ export interface Token {
   value: string;
   offset: number;
 }
+const escapeStringRegexp = require('escape-string-regexp');
 
 class Tokenizer {
   readonly operators = [
@@ -40,12 +41,25 @@ class Tokenizer {
     }
 
   }
-  tokenize(text: string): Token[] {
+  tokenize(text: string, libraries: string[]): Token[] {
     const tokens: Token[] = [];
     let foundToken;
     let offset = 0;
+    const librariesSanitized = libraries.map(escapeStringRegexp) as string[];
+    const librariesRegex = new RegExp('^(' + librariesSanitized.join('|') + ')\\..*?\\.', 'i');
+    // console.log(librariesRegex);
     do {
       foundToken = false;
+      const match = text.match(librariesRegex);
+      if (match) {
+        tokens.push({
+          type: 'LIBRARY_PREFIX',
+          value: match[0],
+          offset
+        });
+        offset += match[0].length;
+        text = text.substring(match[0].length);
+      }
       for (const tokenType of this.tokenTypes) {
         let match = text.match(tokenType.regex);
         if (match) {
