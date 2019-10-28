@@ -3,8 +3,7 @@ export interface Token {
   value: string;
   offset: number;
 }
-const escapeStringRegexp = require('escape-string-regexp');
-
+import * as escapeStringRegexp from 'escape-string-regexp';
 class Tokenizer {
   readonly operators = [
     ['abs', 'not'],
@@ -45,7 +44,7 @@ class Tokenizer {
     const tokens: Token[] = [];
     let foundToken;
     let offset = 0;
-    const librariesSanitized = libraries.map(escapeStringRegexp) as string[];
+    const librariesSanitized = libraries.map(escapeStringRegexp);
     librariesSanitized.push('work');
     const librariesRegex = new RegExp('^(' + librariesSanitized.join('|') + ')\\..*?\\.', 'i');
     // console.log(librariesRegex);
