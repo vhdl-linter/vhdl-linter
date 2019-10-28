@@ -150,23 +150,23 @@ export class VhdlLinter {
     const code = this.addCodeActionCallback((textDocumentUri: string) => {
       const actions = [];
       for (const pkg of this.projectParser.getPackages()) {
-        for (const constant of pkg.constants) {
-          if (constant.name.toLowerCase() === read.text.toLowerCase()) {
-            const workspaceEdit: WorkspaceEdit = {};
-            const file = read.getRoot();
-            const pos = Position.create(0, 0);
-            if (file.useStatements.length > 0) {
-              pos.line = file.useStatements[file.useStatements.length - 1].range.end.line + 1;
-            }
-            const textEdit: TextEdit = TextEdit.insert(pos, `use ${pkg.library ? pkg.library : 'work'}.${pkg.name}.all;\n`);
-            workspaceEdit.changes = {};
-            workspaceEdit.changes[textDocumentUri] = [textEdit];
-            actions.push(CodeAction.create(
-              'add use statement for ' + pkg.name,
-              workspaceEdit,
-              CodeActionKind.QuickFix
-            ));
+        const thing = pkg.constants.find(constant => constant.name.toLowerCase() === read.text.toLowerCase()) || pkg.types.find(type => type.name.toLowerCase() === read.text.toLowerCase())
+          || pkg.functions.find(func => func.name.toLowerCase() === read.text.toLowerCase());
+        if (thing) {
+          const workspaceEdit: WorkspaceEdit = {};
+          const file = read.getRoot();
+          const pos = Position.create(0, 0);
+          if (file.useStatements.length > 0) {
+            pos.line = file.useStatements[file.useStatements.length - 1].range.end.line + 1;
           }
+          const textEdit: TextEdit = TextEdit.insert(pos, `use ${pkg.library ? pkg.library : 'work'}.${pkg.name}.all;\n`);
+          workspaceEdit.changes = {};
+          workspaceEdit.changes[textDocumentUri] = [textEdit];
+          actions.push(CodeAction.create(
+            'add use statement for ' + pkg.name,
+            workspaceEdit,
+            CodeActionKind.QuickFix
+          ));
         }
       }
       return actions;
