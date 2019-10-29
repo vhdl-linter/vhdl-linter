@@ -1,7 +1,7 @@
 import { ParserBase } from './parser-base';
 import { ProcessParser } from './process-parser';
 import { InstantiationParser } from './instantiation-parser';
-import { OArchitecture, ParserError, OForGenerate, OIfGenerate, OFile, ORead, OI} from './objects';
+import { OArchitecture, ParserError, OForGenerate, OIfGenerate, OFile, ORead, OI, OProcedureInstantiation} from './objects';
 import { AssignmentParser } from './assignment-parser';
 import { DeclarativePartParser } from './declarative-part-parser';
 
@@ -75,7 +75,14 @@ export class ArchitectureParser extends ParserBase {
         this.getNextWord();
         const processParser = new ProcessParser(this.text, this.pos, this.file, architecture);
         architecture.processes.push(processParser.parse(savedI, label));
-
+      } else if (this.test(/^\w+\s*\(/)) {
+        const procedureInstantiation = new OProcedureInstantiation(architecture, this.pos.i, this.pos.i);
+        procedureInstantiation.name = this.getNextWord();
+        this.expect('(');
+        const startI = this.pos.i;
+        procedureInstantiation.tokens = this.extractReads(procedureInstantiation, this.advanceBrace(), startI);
+        procedureInstantiation.range.end.i = this.pos.i;
+        this.expect(';');
       } else if (nextWord === 'for') {
         this.getNextWord();
         this.debug('parse for generate');

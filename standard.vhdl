@@ -10,9 +10,9 @@ package STANDARD is
 
   type BIT is ('0', '1');
 
-  type CHARACTER is (); 
-     
-    
+  type CHARACTER is ();
+
+
 
   type SEVERITY_LEVEL is (NOTE, WARNING, ERROR, FAILURE);
 
@@ -34,8 +34,17 @@ package STANDARD is
 
   -- predefined type TIME:
 
-  type TIME is range 0 to 100;
-
+type Time is range --implementation defined-- ;
+  units
+     fs;            -- femtosecond
+     ps  = 1000 fs; -- picosecond
+     ns  = 1000 ps; -- nanosecond
+     us  = 1000 ns; -- microsecond
+     ms  = 1000 us; -- millisecond
+     sec = 1000 ms; -- second
+     min = 60  sec; -- minute
+     hr  = 60  min; -- hour
+  end units;
   -- subtype used internally for checking time expressions for non-negativness:
 
 

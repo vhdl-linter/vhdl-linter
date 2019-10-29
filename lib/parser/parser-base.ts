@@ -165,6 +165,9 @@ export class ParserBase {
     this.advanceWhitespace();
     return text;
   }
+  test(re: RegExp) {
+    return re.test(this.text.substring(this.pos.i));
+  }
   getNextWord(options: { re?: RegExp, consume?: boolean } = {}) {
     let { re, consume } = options;
     if (!re) {

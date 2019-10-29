@@ -28,7 +28,7 @@ import {
 } from 'vscode-languageserver';
 import { VhdlLinter } from './vhdl-linter';
 import { ProjectParser } from './project-parser';
-import { OFile, OArchitecture, ORead, OWrite, OSignal, OFunction, OForLoop, OForGenerate, OInstantiation, OMapping, OEntity, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackage, ORecord, ObjectBase, OType, OReadOrMappingName, OWriteReadBase, ORecordChild, OEnum, OProcess, OStatement, OIf, OIfClause, OMap, OUseStatement, OState } from './parser/objects';
+import { OFile, OArchitecture, ORead, OWrite, OSignal, OFunction, OForLoop, OForGenerate, OInstantiation, OMapping, OEntity, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackage, ORecord, ObjectBase, OType, OReadOrMappingName, ORecordChild, OEnum, OProcess, OStatement, OIf, OIfClause, OMap, OUseStatement, OState, OToken, OProcedureInstantiation } from './parser/objects';
 import { mkdtempSync, writeFile, readFile } from 'fs';
 import { tmpdir, type } from 'os';
 import { sep } from 'path';
@@ -189,6 +189,20 @@ const findDefinition = async (params: IFindDefinitionParams) => {
       };
 
     }
+  } else if (candidate instanceof OProcedureInstantiation) {
+    let definition: OFunction | undefined;
+
+    linter.packages.forEach(pkg => pkg.functions.forEach(func => {
+      if (func.name.toLowerCase() === candidate.name.toLowerCase()) {
+        definition = func;
+      }}));
+    if (definition) {
+      return {
+        range: definition.range,
+        text: definition.getRoot().originalText,
+        uri: 'file://' + definition.getRoot().file
+      };
+    }
   } else if ((candidate instanceof ORead || candidate instanceof OWrite) && linter.tree instanceof OFileWithEntityAndArchitecture) {
     let result: false | ObjectBase;
     result = linter.tree.architecture.findRead(candidate, linter.packages);
@@ -254,24 +268,38 @@ connection.onDefinition(async (params): Promise<Location | null> => {
 // This handler provides the initial list of the completion items.
 connection.onCompletion(async (params: CompletionParams): Promise<CompletionItem[]> => {
   await initialization;
+  const completions: CompletionItem[] = [];
   const linter = linters.get(params.textDocument.uri);
   if (typeof linter === 'undefined') {
-    return [];
+    return completions;
   }
   if (typeof linter.tree === 'undefined') {
-    return [];
+    return completions;
   }
+  const document = documents.get(params.textDocument.uri);
+  if (document) {
+    const line = document.getText(Range.create(Position.create(params.position.line, 0), Position.create(params.position.line + 1, 0)));
+    const match = line.match(/^\s*use\s+/i);
+    if (match) {
+      for (const pkg of projectParser.getPackages()) {
+        completions.push({ label: pkg.name });
+        pkg.library && completions.push({ label: pkg.library });
+      }
+    }
+    completions.push({ label: 'all' });
+    completions.push({ label: 'work' });
+  }
+
   let startI = linter.getIFromPosition(params.position);
   const candidates = linter.tree.objectList.filter(object => object.range.start.i <= startI && startI <= object.range.end.i);
   candidates.sort((a, b) => (a.range.end.i - a.range.start.i) - (b.range.end.i - b.range.start.i));
   const obj = candidates[0];
   if (!obj) {
-    return [];
+    return completions;
   }
 
   let parent = obj.parent;
   let counter = 100;
-  const completions: CompletionItem[] = [];
   while ((parent instanceof OFile) === false) {
     // console.log(parent instanceof OFile, parent);
     if (parent instanceof OArchitecture) {
@@ -338,8 +366,8 @@ connection.onReferences(async (params: ReferenceParams): Promise<Location[]> => 
   if (!candidate) {
     return [];
   }
-  if (candidate instanceof OWriteReadBase) {
-    return linter.tree.objectList.filter(obj => obj instanceof OWriteReadBase && obj.text.toLowerCase() === candidate.text.toLowerCase() && obj !== candidate).map(obj => Location.create(params.textDocument.uri, obj.range));
+  if (candidate instanceof OToken) {
+    return linter.tree.objectList.filter(obj => obj instanceof OToken && obj.text.toLowerCase() === candidate.text.toLowerCase() && obj !== candidate).map(obj => Location.create(params.textDocument.uri, obj.range));
   }
   return [];
 });

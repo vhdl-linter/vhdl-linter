@@ -178,6 +178,7 @@ export class OArchitecture extends ObjectBase {
   assignments: OAssignment[] = [];
   types: OType[] = [];
   functions: OFunction[] = [];
+  procedures: OProcedureInstantiation[] = [];
   isValidWrite(write: OWrite): boolean {
     let found = false;
     let parent = write.parent;
@@ -227,21 +228,9 @@ export class OArchitecture extends ObjectBase {
         }
       }
       for (const type of pkg.types) {
-        if (type.name.toLowerCase() === read.text.toLowerCase()) {
-          return type;
-        }
-        if (type instanceof OEnum) {
-          for (const state of type.states) {
-            if (state.name.toLowerCase() === read.text.toLowerCase()) {
-              return state;
-            }
-          }
-        } else if (type instanceof ORecord && read instanceof OElementRead) {
-          for (const child of type.children) {
-            if (child.name.toLowerCase() === read.text.toLowerCase()) {
-              return child;
-            }
-          }
+        const typeRead = type.findRead(read);
+        if (typeRead !== false) {
+          return typeRead;
         }
       }
     }
@@ -258,7 +247,7 @@ export class OArchitecture extends ObjectBase {
           found = found || func.name.toLowerCase() === read.text.toLowerCase() && func;
         }
         for (const type of parent.types) {
-          found = found || type.name.toLowerCase() === read.text.toLowerCase() && type;
+          found = found || type.findRead(read) && type;
         }
       }
       if (parent instanceof OForLoop) {
@@ -295,6 +284,34 @@ export class OArchitecture extends ObjectBase {
 }
 export class OType extends ObjectBase {
   name: string;
+  units?: string[];
+  findRead(read: ORead) {
+    if (this.name.toLowerCase() === read.text.toLowerCase()) {
+      return this;
+    }
+    if (this.units) {
+      for (const unit of this.units) {
+        if (unit.toLowerCase() === read.text.toLowerCase()) {
+          return this;
+        }
+
+      }
+    }
+    if (this instanceof OEnum) {
+      for (const state of this.states) {
+        if (state.name.toLowerCase() === read.text.toLowerCase()) {
+          return state;
+        }
+      }
+    } else if (this instanceof ORecord && read instanceof OElementRead) {
+      for (const child of this.children) {
+        if (child.name.toLowerCase() === read.text.toLowerCase()) {
+          return child;
+        }
+      }
+    }
+    return false;
+  }
 }
 export class OEnum extends OType {
   states: OState[] = [];
@@ -661,6 +678,10 @@ export class OProcess extends ObjectBase {
     return this.resets;
   }
 }
+export class OProcedureInstantiation extends ObjectBase {
+  name: string;
+  tokens: OToken[];
+}
 export class OForLoop extends ObjectBase {
   variable: string; // TODO: FIX ME not string
   start: string;
@@ -671,12 +692,12 @@ export class OAssignment extends ObjectBase {
   writes: OWrite[] = [];
   reads: ORead[] = [];
 }
-export class OWriteReadBase extends ObjectBase {
+export class OToken extends ObjectBase {
   text: string;
 }
-export class OWrite extends OWriteReadBase {
+export class OWrite extends OToken {
 }
-export class ORead extends OWriteReadBase {
+export class ORead extends OToken {
 
 }
 // Read of Record element or something

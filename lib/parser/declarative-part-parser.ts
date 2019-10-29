@@ -73,6 +73,20 @@ export class DeclarativePartParser extends ParserBase {
           type.range.end.i = this.pos.i;
           types.push(type);
           this.expect(';');
+        } else if (this.test(/^[^;]*units/i)) {
+          this.advancePast('units');
+          type.units = [];
+          type.units.push(this.getNextWord());
+          this.advanceSemicolon();
+          while (!this.test(/^end\s+units/i)) {
+            type.units.push(this.getNextWord());
+            this.advanceSemicolon();
+          }
+          this.expect('end');
+          this.expect('units');
+          type.range.end.i = this.pos.i;
+          types.push(type);
+          this.expect(';');
         } else {
           const nextWord = this.getNextWord().toLowerCase();
           Object.setPrototypeOf(type, ORecord.prototype);
@@ -138,6 +152,7 @@ export class DeclarativePartParser extends ParserBase {
             word = this.getNextWord({consume: false});
           }
         }
+        func.range.end.i = this.pos.i;
         this.advancePast(';');
         functions.push(func);
       } else if (optional && signals.length === 0 && types.length === 0) {
