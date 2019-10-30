@@ -282,14 +282,12 @@ export class VhdlLinter {
       }
       const registerProcess = signal.getRegisterProcess();
       if (!resetFound && registerProcess) {
-        let resetBlockFound = false;
         const code = this.addCodeActionCallback((textDocumentUri: string) => {
           const actions = [];
           for (const statement of registerProcess.statements) {
             if (statement instanceof OIf) {
               for (const clause of statement.clauses) {
-                if (clause.condition.match(/res/i)) {
-                  resetBlockFound = true;
+                if (clause.condition.match(/res|rst/i)) {
                   let resetValue = null;
                   if (signal.type.match(/^std_u?logic_vector|unsigned|signed/i)) {
                     resetValue = `(others => '0')`;
@@ -319,11 +317,11 @@ export class VhdlLinter {
           }
           return actions;
         });
-        const range = Range.create(registerProcess.range.start, registerProcess.range.start);
-        range.end.character = this.text.split('\n')[range.start.line].length;
-        const message = resetBlockFound ? `Reset '${signal.name}' missing` : `Reset '${signal.name}' missing. Reset Block not found!`;
+        const endCharacter = this.text.split('\n')[registerProcess.range.start.line].length;
+        const range = Range.create(Position.create(registerProcess.range.start.line, 0), Position.create(registerProcess.range.start.line, endCharacter));
+        const message = `Reset '${signal.name}' missing`;
         this.messages.push({
-          range: range,
+          range,
           code,
           severity: DiagnosticSeverity.Error,
           message
