@@ -1,4 +1,4 @@
-const escapeStringRegexp = require('escape-string-regexp');
+import * as escapeStringRegexp from 'escape-string-regexp';
 import { ParserError, OWrite, ORead, OI, OElementRead, ObjectBase } from './objects';
 import { config } from './config';
 import { tokenizer } from './tokenizer';
