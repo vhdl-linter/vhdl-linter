@@ -24,7 +24,7 @@ const megaFunction = async (file: string) => {
   try {
     let parser = new Parser(await promisify(fs.readFile)(file, { encoding: 'utf8' }), file);
     const tree = parser.parse();
-    const result = { success: true, tree: tree.getJSONMagic() };
+    const result = { success: true, tree };
     returnValue = JSON.stringify(result);
   } catch (e) {
     if (e instanceof ParserError) {

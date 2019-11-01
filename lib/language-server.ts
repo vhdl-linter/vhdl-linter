@@ -36,6 +36,7 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import { foldingHandler } from './languageFeatures/folding';
 import { handleOnDocumentSymbol } from './languageFeatures/documentSymbol';
+import { documentHighlightHandler } from './languageFeatures/documentHightlightHandler';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -67,7 +68,8 @@ connection.onInitialize((params: InitializeParams) => {
       hoverProvider: true,
       documentFormattingProvider: true,
       referencesProvider: true,
-      foldingRangeProvider: true
+      foldingRangeProvider: true,
+      documentHighlightProvider: true
     }
   };
 });
@@ -133,7 +135,11 @@ connection.onCodeAction(async (params): Promise<CodeAction[]> => {
   const actions = [];
   for (const diagnostic of params.context.diagnostics) {
     if (typeof diagnostic.code === 'number') {
-      actions.push(...linter.diagnosticCodeActionRegistry[diagnostic.code](params.textDocument.uri));
+      const callback = linter.diagnosticCodeActionRegistry[diagnostic.code];
+      if (typeof callback === 'function') {
+        actions.push(...callback(params.textDocument.uri));
+
+      }
     }
   }
   return actions;
@@ -388,6 +394,7 @@ connection.onDocumentFormatting(async (params: DocumentFormattingParams): Promis
   }];
 });
 connection.onFoldingRanges(foldingHandler);
+connection.onDocumentHighlight(documentHighlightHandler);
 
 documents.listen(connection);
 

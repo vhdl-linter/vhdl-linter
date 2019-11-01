@@ -107,6 +107,41 @@ export class ObjectBase {
     this.root = parent;
     return parent;
   }
+
+  // getJSONMagic() {
+  //   const trampoline = fn => (...args) => {
+  //     let result = fn(...args);
+  //     while (typeof result === 'function') {
+  //       result = result()
+  //     }
+  //     return result;
+  //   }
+  //   let target: any = {};
+  //   const filter = (object: any) => {
+  //     const target: any = {};
+  //     if (!object) {
+  //       return;
+  //     }
+  //     if (typeof object === 'string') {
+  //       return object;
+  //     }
+  //     for (const key of Object.keys(object)) {
+  //       if (key === 'parent') {
+  //         continue;
+  //       } else if (Array.isArray(object[key])) {
+  //         target[key] = object[key].map(filter);
+
+  //       } else if (typeof object[key] === 'object') {
+  //         target[key] = filter(object[key]);
+  //       } else {
+  //         target[key] = object[key];
+  //       }
+  //     }
+  //     return target;
+  //   };
+  //   target = filter(this);
+  //   return target;
+  // }
   y() {
 
   }
@@ -116,32 +151,23 @@ export class OFile {
   libraries: string[] = [];
   useStatements: OUseStatement[] = [];
   objectList: ObjectBase[] = [];
-  getJSONMagic() {
-    let target: any = {};
-    const filter = (object: any) => {
-      const target: any = {};
-      if (!object) {
-        return;
-      }
-      if (typeof object === 'string') {
-        return object;
-      }
-      for (const key of Object.keys(object)) {
-        if (key === 'parent') {
-          continue;
-        } else if (Array.isArray(object[key])) {
-          target[key] = object[key].map(filter);
+  getJSON() {
+    const obj = {};
+    const seen = new WeakSet();
 
-        } else if (typeof object[key] === 'object') {
-          target[key] = filter(object[key]);
-        } else {
-          target[key] = object[key];
+    return JSON.stringify(this, (key, value) => {
+        if (['parent', 'text', 'originalText'].indexOf(key) > -1) {
+          return;
         }
-      }
-      return target;
-    };
-    target = filter(this);
-    return target;
+        if (typeof value === 'object' && value !== null) {
+          if (seen.has(value)) {
+            // debugger;
+            return;
+          }
+          seen.add(value);
+        }
+        return value;
+    });
   }
 }
 export class OFileWithEntity extends OFile {
