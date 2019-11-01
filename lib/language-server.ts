@@ -133,7 +133,11 @@ connection.onCodeAction(async (params): Promise<CodeAction[]> => {
   const actions = [];
   for (const diagnostic of params.context.diagnostics) {
     if (typeof diagnostic.code === 'number') {
-      actions.push(...linter.diagnosticCodeActionRegistry[diagnostic.code](params.textDocument.uri));
+      const callback = linter.diagnosticCodeActionRegistry[diagnostic.code];
+      if (typeof callback === 'function') {
+        actions.push(...callback(params.textDocument.uri));
+
+      }
     }
   }
   return actions;

@@ -107,7 +107,7 @@ export class ObjectBase {
     this.root = parent;
     return parent;
   }
-  
+
   // getJSONMagic() {
   //   const trampoline = fn => (...args) => {
   //     let result = fn(...args);
