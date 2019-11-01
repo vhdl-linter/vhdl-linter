@@ -81,11 +81,11 @@ export class VhdlLinter {
   checkAll() {
     if (this.tree) {
       this.parsePackages();
+      this.checkNotDeclared();
       if (this.tree instanceof OFileWithEntityAndArchitecture) {
         this.checkResets();
         this.checkUnused(this.tree.architecture, this.tree.entity);
         this.checkDoubles();
-        this.checkNotDeclared();
         this.checkPortDeclaration();
         this.checkInstantiations(this.tree.architecture);
       }
@@ -179,31 +179,19 @@ export class VhdlLinter {
     });
   }
   checkNotDeclared() {
-    if (this.tree instanceof OFileWithEntity) {
-      for (const port of this.tree.entity.ports) {
-        for (const read of port.reads) {
-          !this.tree.entity.isValidRead(read, this.packages) && this.pushReadError(read);
-
+      for (const obj of this.tree.objectList) {
+        if (obj instanceof ORead) {
+          !this.tree.isValidRead(obj, this.packages) && this.pushReadError(obj);
+        } else if (obj instanceof OWrite) {
+          !this.tree.isValidWrite(obj) && this.pushWriteError(obj);
         }
       }
-      for (const generic of this.tree.entity.generics) {
-        if (generic instanceof OGenericActual) {
-          for (const read of generic.reads) {
-            !this.tree.entity.isValidRead(read, this.packages) && this.pushReadError(read);
-          }
-
-        }
-      }
-      if (this.tree instanceof OFileWithEntityAndArchitecture) {
-        this.checkNotDeclaredArchitecture(this.tree.architecture);
-      }
-    }
   }
   private checkNotDeclaredArchitecture(architecture: OArchitecture) {
     if (this.tree instanceof OFileWithEntityAndArchitecture) {
       for (const process of architecture.processes) {
         for (const write of process.getFlatWrites()) {
-          let found = this.tree.architecture.isValidWrite(write);
+          let found = this.tree.isValidWrite(write);
           if (!found) {
             for (const variable of process.variables) {
               if (variable.name.toLowerCase() === write.text.toLowerCase()) {
@@ -214,7 +202,7 @@ export class VhdlLinter {
           !found && this.pushWriteError(write);
         }
         for (const read of process.getFlatReads()) {
-          let found = architecture.isValidRead(read, this.packages);
+          let found = architecture.getRoot().isValidRead(read, this.packages);
           for (const variable of process.variables) {
             if (variable.name.toLowerCase() === read.text.toLowerCase()) {
               found = true;
@@ -226,7 +214,7 @@ export class VhdlLinter {
     }
     for (const signal of architecture.signals) {
       for (const read of signal.reads) {
-        !architecture.isValidRead(read, this.packages) && this.pushReadError(read);
+        !architecture.getRoot().isValidRead(read, this.packages) && this.pushReadError(read);
       }
     }
 
@@ -235,7 +223,7 @@ export class VhdlLinter {
     for (const instantiation of architecture.instantiations) {
       const entity = this.getProjectEntity(instantiation);
       for (const read of instantiation.getFlatReads(entity)) {
-        !architecture.isValidRead(read, this.packages) && this.pushReadError(read);
+        !architecture.getRoot().isValidRead(read, this.packages) && this.pushReadError(read);
       }
     }
     // Writes
@@ -243,16 +231,16 @@ export class VhdlLinter {
     for (const instantiation of architecture.instantiations) {
       const entity = this.getProjectEntity(instantiation);
       for (const write of instantiation.getFlatWrites(entity)) {
-        !architecture.isValidWrite(write) && this.pushWriteError(write);
+        !architecture.getRoot().isValidWrite(write) && this.pushWriteError(write);
       }
     }
 
     for (const assignment of architecture.assignments) {
       for (const read of assignment.reads) {
-        !architecture.isValidRead(read, this.packages) && this.pushReadError(read);
+        !architecture.getRoot().isValidRead(read, this.packages) && this.pushReadError(read);
       }
       for (const write of assignment.writes) {
-        !architecture.isValidWrite(write) && this.pushWriteError(write);
+        !architecture.getRoot().isValidWrite(write) && this.pushWriteError(write);
       }
     }
     for (const generate of architecture.generates) {

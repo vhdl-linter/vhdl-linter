@@ -108,43 +108,6 @@ export class ObjectBase {
     return parent;
   }
 
-  // getJSONMagic() {
-  //   const trampoline = fn => (...args) => {
-  //     let result = fn(...args);
-  //     while (typeof result === 'function') {
-  //       result = result()
-  //     }
-  //     return result;
-  //   }
-  //   let target: any = {};
-  //   const filter = (object: any) => {
-  //     const target: any = {};
-  //     if (!object) {
-  //       return;
-  //     }
-  //     if (typeof object === 'string') {
-  //       return object;
-  //     }
-  //     for (const key of Object.keys(object)) {
-  //       if (key === 'parent') {
-  //         continue;
-  //       } else if (Array.isArray(object[key])) {
-  //         target[key] = object[key].map(filter);
-
-  //       } else if (typeof object[key] === 'object') {
-  //         target[key] = filter(object[key]);
-  //       } else {
-  //         target[key] = object[key];
-  //       }
-  //     }
-  //     return target;
-  //   };
-  //   target = filter(this);
-  //   return target;
-  // }
-  y() {
-
-  }
 }
 export class OFile {
   constructor(public text: string, public file: string, public originalText: string) { }
@@ -156,18 +119,137 @@ export class OFile {
     const seen = new WeakSet();
 
     return JSON.stringify(this, (key, value) => {
-        if (['parent', 'text', 'originalText'].indexOf(key) > -1) {
+      if (['parent', 'originalText', 'objectList', 'root'].indexOf(key) > -1) {
           return;
         }
         if (typeof value === 'object' && value !== null) {
           if (seen.has(value)) {
-            // debugger;
+            debugger;
             return;
           }
+          value.proto = value.constructor.name;
           seen.add(value);
         }
         return value;
     });
+  }
+  isValidRead(read: ORead, packages: OPackage[]): boolean {
+    return this.findRead(read, packages) !== false;
+  }
+
+  findRead(read: ORead, packages: OPackage[]): ObjectBase | false {
+    let found: ObjectBase | false = false;
+
+    for (const pkg of packages) {
+      for (const constant of pkg.constants) {
+        if (constant.name.toLowerCase() === read.text.toLowerCase()) {
+          return constant;
+        }
+      }
+      for (const func of pkg.functions) {
+        if (func.name.toLowerCase() === read.text.toLowerCase()) {
+          return func;
+        }
+      }
+      for (const type of pkg.types) {
+        const typeRead = type.findRead(read);
+        if (typeRead !== false) {
+          return typeRead;
+        }
+        if (type instanceof OEnum) {
+          for (const state of type.states) {
+            if (state.name.toLowerCase() === read.text.toLowerCase()) {
+              return state;
+            }
+          }
+        } else if (type instanceof ORecord) {
+          for (const child of type.children) {
+            if (child.name.toLowerCase() === read.text.toLowerCase()) {
+              return child;
+            }
+          }
+        }
+      }
+    }
+
+    let parent = read.parent;
+    let counter = 100;
+    while ((parent instanceof OFile) === false) {
+      if (parent instanceof OArchitecture) {
+        for (const signal of parent.signals) {
+          found = found || signal.name.toLowerCase() === read.text.toLowerCase() && signal;
+        }
+        for (const func of parent.functions) {
+          found = found || func.name.toLowerCase() === read.text.toLowerCase() && func;
+        }
+        for (const type of parent.types) {
+          found = found || type.findRead(read) && type;
+        }
+      }
+      if (parent instanceof OForLoop) {
+        found = found || parent.variable.toLowerCase() === read.text.toLowerCase() && parent;
+      }
+      if (parent instanceof OForGenerate) {
+        found = found || parent.variable.toLowerCase() === read.text.toLowerCase() && parent;
+      }
+      parent = (parent as any).parent;
+      counter--;
+      if (counter === 0) {
+        //        console.log(parent, parent.parent);
+        throw new Error('Infinite Loop?');
+      }
+    }
+    if (parent instanceof OFileWithEntityAndArchitecture) {
+      const file = (parent as any) as OFileWithEntityAndArchitecture;
+      for (const generic of file.entity.generics) {
+        found = found || generic.name.toLowerCase() === read.text.toLowerCase() && generic;
+      }
+      for (const port of file.entity.ports) {
+        found = found || port.name.toLowerCase() === read.text.toLowerCase() && port;
+      }
+    } else if (parent instanceof OFileWithPackage) {
+      for (const type of parent.package.types) {
+        found = found || type.findRead(read) && type;
+      }
+      for (const constant of parent.package.constants) {
+        found = found || constant.name.toLowerCase() === read.text.toLowerCase() && constant;
+      }
+      for (const func of parent.package.functions) {
+        found = found || func.name.toLowerCase() === read.text.toLowerCase() && func;
+      }
+    }
+    return found;
+  }
+  isValidWrite(write: OWrite): boolean {
+    let found = false;
+    let parent = write.parent;
+    let counter = 100;
+    while ((parent instanceof OFile) === false) {
+      if (parent instanceof OArchitecture) {
+        for (const signal of parent.signals) {
+          found = found || signal.name.toLowerCase() === write.text.toLowerCase();
+        }
+      }
+      parent = (parent as any).parent;
+      counter--;
+      if (counter === 0) {
+        //        console.log(parent, parent.parent);
+        throw new Error('Infinite Loop?');
+      }
+    }
+    const file = (parent as any) as OFileWithEntityAndArchitecture;
+    for (const signal of file.architecture.signals) {
+      found = found || signal.name.toLowerCase() === write.text.toLowerCase();
+    }
+    for (const port of file.entity.ports) {
+      found = found || port.name.toLowerCase() === write.text.toLowerCase();
+    }
+    for (const type of file.architecture.types) {
+      if (type instanceof OEnum && type.states.find(state => state.name.toLowerCase() === write.text.toLowerCase())) {
+        found = true;
+      }
+    }
+    return found;
   }
 }
 export class OFileWithEntity extends OFile {
@@ -205,108 +287,8 @@ export class OArchitecture extends ObjectBase {
   types: OType[] = [];
   functions: OFunction[] = [];
   procedures: OProcedureInstantiation[] = [];
-  isValidWrite(write: OWrite): boolean {
-    let found = false;
-    let parent = write.parent;
-    let counter = 100;
-    while ((parent instanceof OFile) === false) {
-      if (parent instanceof OArchitecture) {
-        for (const signal of parent.signals) {
-          found = found || signal.name.toLowerCase() === write.text.toLowerCase();
-        }
-      }
-      parent = (parent as any).parent;
-      counter--;
-      if (counter === 0) {
-        //        console.log(parent, parent.parent);
-        throw new Error('Infinite Loop?');
-      }
-    }
-    const file = (parent as any) as OFileWithEntityAndArchitecture;
-    for (const signal of file.architecture.signals) {
-      found = found || signal.name.toLowerCase() === write.text.toLowerCase();
-    }
-    for (const port of file.entity.ports) {
-      found = found || port.name.toLowerCase() === write.text.toLowerCase();
-    }
-    for (const type of file.architecture.types) {
-      if (type instanceof OEnum && type.states.find(state => state.name.toLowerCase() === write.text.toLowerCase())) {
-        found = true;
-      }
-    }
-    return found;
-  }
-  isValidRead(read: ORead, packages: OPackage[]): boolean {
-    return this.findRead(read, packages) !== false;
-  }
-  findRead(read: ORead, packages: OPackage[]): ObjectBase | false {
-    let found: ObjectBase | false = false;
 
-    for (const pkg of packages) {
-      for (const constant of pkg.constants) {
-        if (constant.name.toLowerCase() === read.text.toLowerCase()) {
-          return constant;
-        }
-      }
-      for (const func of pkg.functions) {
-        if (func.name.toLowerCase() === read.text.toLowerCase()) {
-          return func;
-        }
-      }
-      for (const type of pkg.types) {
-        const typeRead = type.findRead(read);
-        if (typeRead !== false) {
-          return typeRead;
-        }
-      }
-    }
 
-    let parent = read.parent;
-    let counter = 100;
-    while ((parent instanceof OFile) === false) {
-      // No Else if. Can be Instance of Multiple Classes (extends)
-      if (parent instanceof OArchitecture) {
-        for (const signal of parent.signals) {
-          found = found || signal.name.toLowerCase() === read.text.toLowerCase() && signal;
-        }
-        for (const func of parent.functions) {
-          found = found || func.name.toLowerCase() === read.text.toLowerCase() && func;
-        }
-        for (const type of parent.types) {
-          found = found || type.findRead(read) && type;
-        }
-      }
-      if (parent instanceof OForLoop) {
-        found = found || parent.variable.toLowerCase() === read.text.toLowerCase() && parent;
-      }
-      if (parent instanceof OForGenerate) {
-        found = found || parent.variable.toLowerCase() === read.text.toLowerCase() && parent;
-      }
-      parent = (parent as any).parent;
-      counter--;
-      if (counter === 0) {
-        //        console.log(parent, parent.parent);
-        throw new Error('Infinite Loop?');
-      }
-    }
-    if (parent instanceof OFileWithEntityAndArchitecture) {
-      const file = (parent as any) as OFileWithEntityAndArchitecture;
-      for (const generic of file.entity.generics) {
-        found = found || generic.name.toLowerCase() === read.text.toLowerCase() && generic;
-      }
-      for (const port of file.entity.ports) {
-        found = found || port.name.toLowerCase() === read.text.toLowerCase() && port;
-      }
-      for (const type of file.architecture.types) {
-        if (type instanceof OEnum) {
-          const state = type.states.find(state => state.name.toLowerCase() === read.text.toLowerCase());
-          found = found || type.name.toLowerCase() === read.text.toLowerCase() && type;
-          found = found || typeof state !== 'undefined' && state;
-        }
-      }
-    }
-    return found;
-  }
 }
 export class OType extends ObjectBase {
   name: string;
@@ -485,7 +467,7 @@ export class OMapping extends ObjectBase {
   constructor(public parent: OInstantiation, startI: number, endI: number) {
     super(parent, startI, endI);
   }
-  name: OReadOrMappingName[];
+  name: OMappingName[];
   mappingIfInput: ORead[];
   mappingIfOutput: [ORead[], OWrite[]];
 }
@@ -501,54 +483,7 @@ export class OEntity extends ObjectBase {
   generics: OGeneric[] = [];
   signals: OSignal[] = [];
   functions: OFunction[] = [];
-  isValidRead(read: ORead, packages: OPackage[]): boolean {
-    return this.findRead(read, packages) !== false;
-  }
-  findRead(read: ORead, packages: OPackage[]): ObjectBase | false {
-    let found: ObjectBase | false = false;
 
-    for (const pkg of packages) {
-      for (const constant of pkg.constants) {
-        if (constant.name.toLowerCase() === read.text.toLowerCase()) {
-          return constant;
-        }
-      }
-      for (const func of pkg.functions) {
-        if (func.name.toLowerCase() === read.text.toLowerCase()) {
-          return func;
-        }
-      }
-      for (const type of pkg.types) {
-        if (type.name.toLowerCase() === read.text.toLowerCase()) {
-          return type;
-        }
-        if (type instanceof OEnum) {
-          for (const state of type.states) {
-            if (state.name.toLowerCase() === read.text.toLowerCase()) {
-              return state;
-            }
-          }
-        } else if (type instanceof ORecord) {
-          for (const child of type.children) {
-            if (child.name.toLowerCase() === read.text.toLowerCase()) {
-              return child;
-            }
-          }
-        }
-      }
-    }
-
-    for (const signal of this.signals) {
-      found = found || signal.name.toLowerCase() === read.text.toLowerCase() && signal;
-    }
-    for (const func of this.functions) {
-      found = found || func.name.toLowerCase() === read.text.toLowerCase() && func;
-    }
-    for (const generic of this.generics) {
-      found = found || generic.name.toLowerCase() === read.text.toLowerCase() && generic;
-    }
-    return found;
-  }
 }
 export class OPort extends OSignalLike {
   direction: 'in' | 'out' | 'inout';
@@ -730,7 +665,7 @@ export class ORead extends OToken {
 export class OElementRead extends ORead {
 
 }
-export class OReadOrMappingName extends ORead {
+export class OMappingName extends OToken {
   parent: OMapping;
 }
 export class ParserError extends Error {

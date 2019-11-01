@@ -28,7 +28,7 @@ import {
 } from 'vscode-languageserver';
 import { VhdlLinter } from './vhdl-linter';
 import { ProjectParser } from './project-parser';
-import { OFile, OArchitecture, ORead, OWrite, OSignal, OFunction, OForLoop, OForGenerate, OInstantiation, OMapping, OEntity, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackage, ORecord, ObjectBase, OType, OReadOrMappingName, ORecordChild, OEnum, OProcess, OStatement, OIf, OIfClause, OMap, OUseStatement, OState, OToken, OProcedureInstantiation } from './parser/objects';
+import { OFile, OArchitecture, ORead, OWrite, OSignal, OFunction, OForLoop, OForGenerate, OInstantiation, OMapping, OEntity, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackage, ORecord, ObjectBase, OType, OMappingName, ORecordChild, OEnum, OProcess, OStatement, OIf, OIfClause, OMap, OUseStatement, OState, OToken, OProcedureInstantiation } from './parser/objects';
 import { mkdtempSync, writeFile, readFile } from 'fs';
 import { tmpdir, type } from 'os';
 import { sep } from 'path';
@@ -166,8 +166,8 @@ const findDefinition = async (params: IFindDefinitionParams) => {
     return null;
   }
 
-  if (candidate instanceof OInstantiation || candidate instanceof OMapping || candidate instanceof OReadOrMappingName) {
-    let instantiation: OInstantiation = candidate instanceof OReadOrMappingName ? candidate.parent.parent : (candidate instanceof OInstantiation ? candidate : candidate.parent);
+  if (candidate instanceof OInstantiation || candidate instanceof OMapping || candidate instanceof OMappingName) {
+    let instantiation: OInstantiation = candidate instanceof OMappingName ? candidate.parent.parent : (candidate instanceof OInstantiation ? candidate : candidate.parent);
     const entity = linter.getProjectEntity(instantiation);
     if (!entity) {
       return null;
@@ -181,7 +181,7 @@ const findDefinition = async (params: IFindDefinitionParams) => {
         uri: 'file://' + entity.getRoot().file
       };
     } else {
-      let mapping = candidate instanceof OReadOrMappingName ? candidate.parent : candidate;
+      let mapping = candidate instanceof OMappingName ? candidate.parent : candidate;
       const port = entity.ports.find(port => mapping.name.find(read => read.text.toLowerCase() === port.name.toLowerCase()));
       if (!port) {
         return null;
@@ -209,9 +209,9 @@ const findDefinition = async (params: IFindDefinitionParams) => {
         uri: 'file://' + definition.getRoot().file
       };
     }
-  } else if ((candidate instanceof ORead || candidate instanceof OWrite) && linter.tree instanceof OFileWithEntityAndArchitecture) {
+  } else if (candidate instanceof ORead || candidate instanceof OWrite) {
     let result: false | ObjectBase;
-    result = linter.tree.architecture.findRead(candidate, linter.packages);
+    result = linter.tree.findRead(candidate, linter.packages);
     if (typeof result === 'boolean') {
       return null;
     }

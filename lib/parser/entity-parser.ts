@@ -97,7 +97,8 @@ export class EntityParser extends ParserBase {
           }
         }
         const iBeforeType = this.pos.i;
-        const {type, defaultValue} = this.getTypeDefintion();
+        const { type, defaultValue, endI} = this.getTypeDefintion();
+        port.range.end.i = endI;
         port.type = type;
         port.reads = this.extractReads(port, port.type, iBeforeType);
 
@@ -140,7 +141,9 @@ export class EntityParser extends ParserBase {
         this.pos.i++;
       }
     }
-
+    this.reverseWhitespace();
+    const endI = this.pos.i;
+    this.advanceWhitespace();
     if (this.text[this.pos.i] === ';') {
       this.pos.i++;
     }
@@ -149,12 +152,14 @@ export class EntityParser extends ParserBase {
     if (defaultValue === '') {
       return {
         type: type.trim(),
+        endI
       };
 
     }
     return {
       type: type.trim(),
-      defaultValue: defaultValue
+      defaultValue: defaultValue,
+      endI
     };
   }
 }

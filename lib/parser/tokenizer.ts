@@ -24,6 +24,7 @@ class Tokenizer {
     { regex: /^x"[0-9A-F]+"/i, tokenType: 'LOGIC_LITERAL' },
     { regex: /^'[0-9]+'/i, tokenType: 'LOGIC_LITERAL' },
     { regex: /^\w+'\w+(?=\s*\()/i, tokenType: 'ATTRIBUTE_FUNCTION' },
+    { regex: /^()([a-z]\w*)\s*(?=\=>)/i, tokenType: 'RECORD_ELEMENT' },
     { regex: /^[a-z]\w*(?!\s*[(]|\w)/i, tokenType: 'VARIABLE' },
     { regex: /^(\.)([a-z]\w*)(?!\s*[(]|\w)/i, tokenType: 'RECORD_ELEMENT' },
     { regex: /^\w+(?=\s*\()/i, tokenType: 'FUNCTION' },
