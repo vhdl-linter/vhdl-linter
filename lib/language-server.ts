@@ -49,12 +49,14 @@ let documents: TextDocuments = new TextDocuments();
 let hasWorkspaceFolderCapability: boolean = false;
 // let hasDiagnosticRelatedInformationCapability: boolean = false;
 let projectParser: ProjectParser;
-
+let rootUri: string | undefined;
 connection.onInitialize((params: InitializeParams) => {
   let capabilities = params.capabilities;
   hasWorkspaceFolderCapability =
     capabilities.workspace && !!capabilities.workspace.workspaceFolders || false;
-
+  if (params.rootUri) {
+    rootUri = params.rootUri;
+  }
   return {
     capabilities: {
       textDocumentSync: documents.syncKind,
@@ -83,15 +85,6 @@ export const initialization = new Promise(resolve => {
           projectParser = new ProjectParser(folders);
           await projectParser.init();
         }
-        documents.all().forEach(validateTextDocument);
-        projectParser.events.on('change', (...args) => {
-          // console.log('projectParser.events.change', new Date().getTime(), ... args);
-          documents.all().forEach(validateTextDocument);
-        });
-        documents.onDidChangeContent(change => {
-          // console.log('onDidChangeContent', new Date().getTime());
-          validateTextDocument(change.document);
-        });
       };
       await parseWorkspaces();
       connection.workspace.onDidChangeWorkspaceFolders(async event => {
@@ -99,9 +92,22 @@ export const initialization = new Promise(resolve => {
         connection.console.log('Workspace folder change event received.');
       });
     } else {
-      projectParser = new ProjectParser([]);
+      const folders = [];
+      if (rootUri) {
+        folders.push(rootUri.replace('file://', ''));
+      }
+      projectParser = new ProjectParser(folders);
       await projectParser.init();
     }
+    documents.all().forEach(validateTextDocument);
+    projectParser.events.on('change', (...args) => {
+      // console.log('projectParser.events.change', new Date().getTime(), ... args);
+      documents.all().forEach(validateTextDocument);
+    });
+    documents.onDidChangeContent(change => {
+      // console.log('onDidChangeContent', new Date().getTime());
+      validateTextDocument(change.document);
+    });
     resolve();
   });
 });
