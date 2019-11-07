@@ -1,5 +1,5 @@
 import {tokenizer} from '../lib/parser/tokenizer';
-console.log(tokenizer.tokenize('i_avalonRX.dvals "asd"', []));
+console.log(tokenizer.tokenize('s_emptyDataA(i)', []));
 class Counter implements Iterable<number> {
     arr = ['a', 'b'];
     public [Symbol.iterator]() {

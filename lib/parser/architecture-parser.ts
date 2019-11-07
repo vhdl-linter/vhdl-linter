@@ -75,7 +75,7 @@ export class ArchitectureParser extends ParserBase {
         this.getNextWord();
         const processParser = new ProcessParser(this.text, this.pos, this.file, architecture);
         architecture.processes.push(processParser.parse(savedI, label));
-      } else if (this.test(/^\w+\s*\(/)) {
+      } else if (this.test(/^\w+\s*\([^<]*;/)) {
         const procedureInstantiation = new OProcedureInstantiation(architecture, this.pos.i, this.pos.i);
         procedureInstantiation.name = this.getNextWord();
         this.expect('(');
