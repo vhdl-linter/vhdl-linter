@@ -1,4 +1,4 @@
-import { OFile, OIf, OSignalLike, OSignal, OArchitecture, OEntity, OPort, OInstantiation, OWrite, ORead, OFileWithEntity, OFileWithPackage, OFileWithEntityAndArchitecture, ORecord, OPackage, ParserError, OEnum, OGenericActual } from './parser/objects';
+import { OFile, OIf, OSignalLike, OSignal, OArchitecture, OEntity, OPort, OInstantiation, OWrite, ORead, OFileWithEntity, OFileWithPackage, OFileWithEntityAndArchitecture, ORecord, OPackage, ParserError, OEnum, OGenericActual, OMapping } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 import { findBestMatch } from 'string-similarity';
@@ -179,75 +179,28 @@ export class VhdlLinter {
     });
   }
   checkNotDeclared() {
-      for (const obj of this.tree.objectList) {
-        if (obj instanceof ORead) {
-          !this.tree.isValidRead(obj, this.packages) && this.pushReadError(obj);
-        } else if (obj instanceof OWrite) {
-          !this.tree.isValidWrite(obj) && this.pushWriteError(obj);
+    for (const obj of this.tree.objectList) {
+      if (obj.parent instanceof OMapping) {
+        const mapping = obj.parent;
+        const entity = this.getProjectEntity(obj.parent.parent);
+        if (!entity) {
+          continue;
+        }
+        const port = entity.ports.find(port => mapping.name.find(name => name.text.toLowerCase() === port.name.toLowerCase()));
+        if (!port) {
+          continue;
+        }
+        if (port.direction === 'in' && obj instanceof OWrite) {
+          continue;
         }
       }
-  }
-  private checkNotDeclaredArchitecture(architecture: OArchitecture) {
-    if (this.tree instanceof OFileWithEntityAndArchitecture) {
-      for (const process of architecture.processes) {
-        for (const write of process.getFlatWrites()) {
-          let found = this.tree.isValidWrite(write);
-          if (!found) {
-            for (const variable of process.variables) {
-              if (variable.name.toLowerCase() === write.text.toLowerCase()) {
-                found = true;
-              }
-            }
-          }
-          !found && this.pushWriteError(write);
-        }
-        for (const read of process.getFlatReads()) {
-          let found = architecture.getRoot().isValidRead(read, this.packages);
-          for (const variable of process.variables) {
-            if (variable.name.toLowerCase() === read.text.toLowerCase()) {
-              found = true;
-            }
-          }
-          !found && this.pushReadError(read);
-        }
+      if (obj instanceof ORead) {
+        !this.tree.isValidRead(obj, this.packages) && this.pushReadError(obj);
+      } else if (obj instanceof OWrite) {
+        !this.tree.isValidWrite(obj) && this.pushWriteError(obj);
       }
-    }
-    for (const signal of architecture.signals) {
-      for (const read of signal.reads) {
-        !architecture.getRoot().isValidRead(read, this.packages) && this.pushReadError(read);
-      }
-    }
-
-
-    // Reads
-    for (const instantiation of architecture.instantiations) {
-      const entity = this.getProjectEntity(instantiation);
-      for (const read of instantiation.getFlatReads(entity)) {
-        !architecture.getRoot().isValidRead(read, this.packages) && this.pushReadError(read);
-      }
-    }
-    // Writes
-
-    for (const instantiation of architecture.instantiations) {
-      const entity = this.getProjectEntity(instantiation);
-      for (const write of instantiation.getFlatWrites(entity)) {
-        !architecture.getRoot().isValidWrite(write) && this.pushWriteError(write);
-      }
-    }
-
-    for (const assignment of architecture.assignments) {
-      for (const read of assignment.reads) {
-        !architecture.getRoot().isValidRead(read, this.packages) && this.pushReadError(read);
-      }
-      for (const write of assignment.writes) {
-        !architecture.getRoot().isValidWrite(write) && this.pushWriteError(write);
-      }
-    }
-    for (const generate of architecture.generates) {
-      this.checkNotDeclaredArchitecture(generate);
     }
   }
-
   checkResets() {
     if (!(this.tree instanceof OFileWithEntityAndArchitecture)) {
       return;
