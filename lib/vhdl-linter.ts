@@ -14,6 +14,7 @@ import {
   DiagnosticSeverity
 } from 'vscode-languageserver';
 import { ThemeIcon } from 'vscode';
+import { type } from 'os';
 export type diagnosticCodeActionCallback = (textDocumentUri: string) => CodeAction[];
 export class VhdlLinter {
   messages: Diagnostic[] = [];
@@ -98,7 +99,7 @@ export class VhdlLinter {
       return;
     }
     for (const signal of this.tree.architecture.signals) {
-      if (this.tree.architecture.signals.find(signalSearch => signal !== signalSearch && signal.name.toLowerCase() === signalSearch.name.toLowerCase())) {
+      if (this.tree.architecture.signals.find(signalSearch => signal !== signalSearch && signal.name.text.toLowerCase() === signalSearch.name.text.toLowerCase())) {
         this.messages.push({
           range: signal.range,
           severity: DiagnosticSeverity.Error,
@@ -128,7 +129,7 @@ export class VhdlLinter {
       }
     }
     for (const port of this.tree.entity.ports) {
-      if (this.tree.entity.ports.find(portSearch => port !== portSearch && port.name.toLowerCase() === portSearch.name.toLowerCase())) {
+      if (this.tree.entity.ports.find(portSearch => port !== portSearch && port.name.text.toLowerCase() === portSearch.name.text.toLowerCase())) {
         this.messages.push({
           range: port.range,
           severity: DiagnosticSeverity.Error,
@@ -150,7 +151,7 @@ export class VhdlLinter {
     const code = this.addCodeActionCallback((textDocumentUri: string) => {
       const actions = [];
       for (const pkg of this.projectParser.getPackages()) {
-        const thing = pkg.constants.find(constant => constant.name.toLowerCase() === read.text.toLowerCase()) || pkg.types.find(type => type.name.toLowerCase() === read.text.toLowerCase())
+        const thing = pkg.constants.find(constant => constant.name.text.toLowerCase() === read.text.toLowerCase()) || pkg.types.find(type => type.name.toLowerCase() === read.text.toLowerCase())
           || pkg.functions.find(func => func.name.toLowerCase() === read.text.toLowerCase());
         if (thing) {
           const workspaceEdit: WorkspaceEdit = {};
@@ -186,7 +187,7 @@ export class VhdlLinter {
         if (!entity) {
           continue;
         }
-        const port = entity.ports.find(port => mapping.name.find(name => name.text.toLowerCase() === port.name.toLowerCase()));
+        const port = entity.ports.find(port => mapping.name.find(name => name.text.toLowerCase() === port.name.text.toLowerCase()));
         if (!port) {
           continue;
         }
@@ -215,7 +216,7 @@ export class VhdlLinter {
       for (const process of this.tree.architecture.processes) {
         if (process.isRegisterProcess()) {
           for (const reset of process.getResets()) {
-            if (reset.toLowerCase() === signal.name.toLowerCase()) {
+            if (reset.toLowerCase() === signal.name.text.toLowerCase()) {
               resetFound = true;
             }
           }
@@ -274,7 +275,7 @@ export class VhdlLinter {
   private checkUnusedPerArchitecture(architecture: OArchitecture, signal: OSignal | OPort) {
     let unread = true;
     let unwritten = true;
-    const sigLowName = signal.name.toLowerCase();
+    const sigLowName = signal.name.text.toLowerCase();
     for (const process of architecture.processes) {
       if (process.getFlatReads().find(read => read.text.toLowerCase() === sigLowName)) {
         unread = false;
@@ -368,27 +369,86 @@ export class VhdlLinter {
     const tree = this.tree as OFileWithEntity;
     for (const port of tree.entity.ports) {
       if (port.direction === 'in') {
-        if (port.name.match(/^o_/i)) {
+        if (port.name.text.match(/^o_/i)) {
+          const code = this.addCodeActionCallback((textDocumentUri: string) => {
+            const actions = [];
+            const workspaceEdit: WorkspaceEdit = {};
+            const newName = port.name.text.replace(/^o_/, 'i_');
+            const textEdit: TextEdit = TextEdit.replace(port.name.range
+              , newName);
+            workspaceEdit.changes = {};
+            workspaceEdit.changes[textDocumentUri] = [textEdit];
+            actions.push(CodeAction.create(
+              `Replace portname with '${newName}`,
+              workspaceEdit,
+              CodeActionKind.QuickFix));
+            return actions;
+          });
           this.messages.push({
             range: port.range,
             severity: DiagnosticSeverity.Error,
-            message: `input port '${port.name}' begins with 'o_'!`
+            message: `input port '${port.name}' begins with 'o_'!`,
+            code
           });
-        } else if (port.name.match(/^i_/i) === null) {
+        } else if (port.name.text.match(/^i_/i) === null) {
+          const code = this.addCodeActionCallback((textDocumentUri: string) => {
+            const actions = [];
+            const workspaceEdit: WorkspaceEdit = {};
+            const newName = port.name.text.replace(/^(._|_?)/, 'i_');
+            const textEdit: TextEdit = TextEdit.replace(port.name.range
+              , newName);
+            workspaceEdit.changes = {};
+            workspaceEdit.changes[textDocumentUri] = [textEdit];
+            actions.push(CodeAction.create(
+              `Replace portname with '${newName}`,
+              workspaceEdit,
+              CodeActionKind.QuickFix));
+            return actions;
+          });
           this.messages.push({
             range: port.range,
             severity: DiagnosticSeverity.Warning,
-            message: `input port '${port.name}' should begin with i_`
+            message: `input port '${port.name}' should begin with i_`,
+            code
           });
         }
       } else if (port.direction === 'out') {
-        if (port.name.match(/^i_/i)) {
+        if (port.name.text.match(/^i_/i)) {
+          const code = this.addCodeActionCallback((textDocumentUri: string) => {
+            const actions = [];
+            const workspaceEdit: WorkspaceEdit = {};
+            const newName = port.name.text.replace(/^i_/, 'o_');
+            const textEdit: TextEdit = TextEdit.replace(port.name.range
+              , newName);
+            workspaceEdit.changes = {};
+            workspaceEdit.changes[textDocumentUri] = [textEdit];
+            actions.push(CodeAction.create(
+              `Replace portname with '${newName}`,
+              workspaceEdit,
+              CodeActionKind.QuickFix));
+            return actions;
+          });
           this.messages.push({
             range: port.range,
             severity: DiagnosticSeverity.Error,
-            message: `ouput port '${port.name}' begins with 'i_'!`
+            message: `ouput port '${port.name}' begins with 'i_'!`,
+            code
           });
-        } else if (port.name.match(/^o_/i) === null) {
+        } else if (port.name.text.match(/^o_/i) === null) {
+          const code = this.addCodeActionCallback((textDocumentUri: string) => {
+            const actions = [];
+            const workspaceEdit: WorkspaceEdit = {};
+            const newName = port.name.text.replace(/^(._|_?)/, 'o_');
+            const textEdit: TextEdit = TextEdit.replace(port.name.range
+              , newName);
+            workspaceEdit.changes = {};
+            workspaceEdit.changes[textDocumentUri] = [textEdit];
+            actions.push(CodeAction.create(
+              `Replace portname with '${newName}`,
+              workspaceEdit,
+              CodeActionKind.QuickFix));
+            return actions;
+          });
           this.messages.push({
             range: port.range,
             severity: DiagnosticSeverity.Warning,
@@ -423,21 +483,19 @@ export class VhdlLinter {
             message: `can not find entity ${instantiation.componentName}`
           });
         } else {
-          const foundPorts = [];
+          const foundPorts: OPort[] = [];
           if (instantiation.portMappings) {
             for (const portMapping of instantiation.portMappings.children) {
-              const entityPortIndex = entity.ports.findIndex(port => {
+              const entityPort = entity.ports.find(port => {
                 for (const part of portMapping.name) {
-                  if (part.text.toLowerCase() === port.name.toLowerCase()) {
+                  if (part.text.toLowerCase() === port.name.text.toLowerCase()) {
                     return true;
                   }
                 }
                 return false;
               });
-              const entityPort = entity.ports[entityPortIndex];
-              foundPorts.push(entityPortIndex);
               if (!entityPort) {
-                const bestMatch = findBestMatch(portMapping.name[0].text, entity.ports.map(port => port.name));
+                const bestMatch = findBestMatch(portMapping.name[0].text, entity.ports.map(port => port.name.text));
                 const code = this.addCodeActionCallback((textDocumentUri: string) => {
                   const actions = [];
                   const workspaceEdit: WorkspaceEdit = {};
@@ -457,11 +515,13 @@ export class VhdlLinter {
                   message: `no port ${portMapping.name.map(name => name.text).join(', ')} on entity ${instantiation.componentName}`,
                   code
                 });
+              } else {
+                foundPorts.push(entityPort);
               }
             }
           }
-          for (const [index, port] of entity.ports.entries()) {
-            if (port.direction === 'in' && port.hasDefault === false && foundPorts.findIndex(portIndex => portIndex === index) === -1) {
+          for (const port of entity.ports) {
+            if (port.direction === 'in' && typeof port.defaultValue === 'undefined' && typeof foundPorts.find(portSearch => portSearch === port) === 'undefined') {
               this.messages.push({
                 range: instantiation.range,
                 severity: DiagnosticSeverity.Error,

@@ -52,7 +52,7 @@ function instanceTemplate(entity: OEntity) {
         text += `\ngeneric map (\n`;
         const longest = longestinArray(entity.generics, 'name');
         for (let generic of entity.generics) {
-            const name = generic.name.padEnd(longest, ' ');
+            const name = generic.name.text.padEnd(longest, ' ');
             text += `${indentString}${name} => ${generic.name},\n`;
         }
         // Strip the final comma
@@ -64,7 +64,7 @@ function instanceTemplate(entity: OEntity) {
         text += `\nport map (\n`;
         const longest = longestinArray(entity.ports, 'name');
         for (let port of entity.ports) {
-            const name = port.name.padEnd(longest, ' ');
+            const name = port.name.text.padEnd(longest, ' ');
             text += `${indentString}${name} => ${port.name},\n`;
         }
         // Strip the final comma
@@ -83,7 +83,7 @@ function sysVerilogTemplate(entity: OEntity) {
         text += ` #(\n`;
         const longest = longestinArray(entity.generics, 'name');
         for (let generic of entity.generics) {
-            const name = generic.name.padEnd(longest, ' ');
+            const name = generic.name.text.padEnd(longest, ' ');
             text += `${indentString}.${name}(dut_${generic.name}),\n`;
         }
         // Strip the final comma
@@ -95,7 +95,7 @@ function sysVerilogTemplate(entity: OEntity) {
         text += ` i_dut (\n`;
         const longest = longestinArray(entity.ports, 'name');
         for (let port of entity.ports) {
-            const name = port.name.padEnd(longest, ' ');
+            const name = port.name.text.padEnd(longest, ' ');
             text += `${indentString}.${name}(dut_s_${port.name}),\n`;
         }
         // Strip the final comma
@@ -111,7 +111,7 @@ function signalsTemplate(entity: OEntity) {
     if (entity.ports.length > 0) {
         const longest = longestinArray(entity.ports, 'name');
         for (let port of entity.ports) {
-            const name = port.name.padEnd(longest, ' ');
+            const name = port.name.text.padEnd(longest, ' ');
             text += `signal s_${name} : ${port.type};\n`;
         }
     }

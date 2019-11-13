@@ -188,7 +188,7 @@ const findDefinition = async (params: IFindDefinitionParams) => {
       };
     } else {
       let mapping = candidate instanceof OMappingName ? candidate.parent : candidate;
-      const port = entity.ports.find(port => mapping.name.find(read => read.text.toLowerCase() === port.name.toLowerCase()));
+      const port = entity.ports.find(port => mapping.name.find(read => read.text.toLowerCase() === port.name.text.toLowerCase()));
       if (!port) {
         return null;
       }
@@ -316,7 +316,7 @@ connection.onCompletion(async (params: CompletionParams): Promise<CompletionItem
     // console.log(parent instanceof OFile, parent);
     if (parent instanceof OArchitecture) {
       for (const signal of parent.signals) {
-        completions.push({ label: signal.name, kind: CompletionItemKind.Variable });
+        completions.push({ label: signal.name.text, kind: CompletionItemKind.Variable });
       }
       for (const type of parent.types) {
         completions.push({ label: type.name, kind: CompletionItemKind.TypeParameter });
@@ -339,10 +339,10 @@ connection.onCompletion(async (params: CompletionParams): Promise<CompletionItem
   }
   if (parent instanceof OFileWithEntity) {
     for (const port of parent.entity.ports) {
-      completions.push({ label: port.name, kind: CompletionItemKind.Field });
+      completions.push({ label: port.name.text, kind: CompletionItemKind.Field });
     }
     for (const port of parent.entity.generics) {
-      completions.push({ label: port.name, kind: CompletionItemKind.Constant });
+      completions.push({ label: port.name.text, kind: CompletionItemKind.Constant });
     }
   }
   for (const pkg of linter.packages) {

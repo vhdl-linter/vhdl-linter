@@ -1,6 +1,6 @@
 import {ParserBase} from './parser-base';
 import { DeclarativePartParser } from './declarative-part-parser';
-import {OPort, OGeneric, OEntity, ParserError, OFileWithEntity, OGenericActual, OGenericType, OI, OIRange} from './objects';
+import {OPort, OGeneric, OEntity, ParserError, OFileWithEntity, OGenericActual, OGenericType, OI, OIRange, OName} from './objects';
 
 export class EntityParser extends ParserBase {
   constructor(text: string, pos: OI, file: string, private parent: OFileWithEntity) {
@@ -72,14 +72,18 @@ export class EntityParser extends ParserBase {
       if (this.getNextWord({ consume: false }).toLowerCase() === 'type') {
         this.getNextWord();
         port = Object.setPrototypeOf(port, OGenericType.prototype);
-        (port as OGenericType).name = this.getNextWord();
+        port.name = new OName(port, this.pos.i, this.pos.i);
+        port.name.text = this.getNextWord();
+        port.name.range.end.i = port.name.range.start.i + port.name.text.length;
         ports.push(port);
         if (this.text[this.pos.i] === ';') {
           this.pos.i++;
           this.advanceWhitespace();
         }
       } else {
-        port.name = this.getNextWord();
+        port.name = new OName(port, this.pos.i, this.pos.i);
+        port.name.text = this.getNextWord();
+        port.name.range.end.i = port.name.range.start.i + port.name.text.length;
         if (this.text[this.pos.i] === ',') {
           this.expect(',');
           // multiPorts.push(port.name);
@@ -97,7 +101,7 @@ export class EntityParser extends ParserBase {
           }
         }
         const iBeforeType = this.pos.i;
-        const { type, defaultValue, endI} = this.getTypeDefintion();
+        const { type, defaultValue, endI} = this.getTypeDefintion(port);
         port.range.end.i = endI;
         port.type = type;
         port.reads = this.extractReads(port, port.type, iBeforeType);
@@ -115,7 +119,7 @@ export class EntityParser extends ParserBase {
     }
     return ports as any;
   }
-  getTypeDefintion() {
+  getTypeDefintion(parent: OGenericActual | OPort) {
     let type = '';
     let braceLevel = 0;
     while (this.text[this.pos.i].match(/[^);:]/) || braceLevel > 0) {
@@ -128,6 +132,7 @@ export class EntityParser extends ParserBase {
       this.pos.i++;
     }
     let defaultValue = '';
+    const startI = this.pos.i + 2;
     if (this.text[this.pos.i] === ':') {
       this.pos.i += 2;
       while (this.text[this.pos.i].match(/[^);]/) || braceLevel > 0) {
@@ -158,7 +163,7 @@ export class EntityParser extends ParserBase {
     }
     return {
       type: type.trim(),
-      defaultValue: defaultValue,
+      defaultValue: this.extractReads(parent, defaultValue, startI),
       endI
     };
   }

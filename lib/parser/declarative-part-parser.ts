@@ -1,5 +1,5 @@
 import { ParserBase } from './parser-base';
-import { OSignal, OType, OArchitecture, OEntity, ParserError, OState, OFunction, OPackage, ORecord, OEnum, ORead, OI, ORecordChild } from './objects';
+import { OSignal, OType, OArchitecture, OEntity, ParserError, OState, OFunction, OPackage, ORecord, OEnum, ORead, OI, ORecordChild, OName } from './objects';
 
 export class DeclarativePartParser extends ParserBase {
   type: string;
@@ -19,7 +19,9 @@ export class DeclarativePartParser extends ParserBase {
         this.getNextWord();
 
         signal.constant = nextWord === 'constant';
-        signal.name = this.getNextWord({});
+        signal.name = new OName(signal, this.pos.i, this.pos.i);
+        signal.name.text = this.getNextWord();
+        signal.name.range.end.i = signal.name.range.start.i + signal.name.text.length;
         if (this.text[this.pos.i] === ',') {
           throw new ParserError(`Defining multiple signals not allowed!: ${this.getLine(this.pos.i)}`, this.pos.getRangeToEndLine());
           // multiSignals.push(signal.name);
@@ -41,7 +43,7 @@ export class DeclarativePartParser extends ParserBase {
         for (const multiSignalName of multiSignals) {
           const multiSignal = new OSignal(this.parent, -1, -1);
           Object.assign(signal, multiSignal);
-          multiSignal.name = multiSignalName;
+          multiSignal.name.text = multiSignalName;
           signals.push(multiSignal);
         }
         signals.push(signal);

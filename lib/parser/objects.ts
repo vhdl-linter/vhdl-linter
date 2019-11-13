@@ -154,7 +154,7 @@ export class OFile {
 
     for (const pkg of packages) {
       for (const constant of pkg.constants) {
-        if (constant.name.toLowerCase() === read.text.toLowerCase()) {
+        if (constant.name.text.toLowerCase() === read.text.toLowerCase()) {
           return constant;
         }
       }
@@ -189,7 +189,7 @@ export class OFile {
     while ((parent instanceof OFile) === false) {
       if (parent instanceof OArchitecture) {
         for (const signal of parent.signals) {
-          found = found || signal.name.toLowerCase() === read.text.toLowerCase() && signal;
+          found = found || signal.name.text.toLowerCase() === read.text.toLowerCase() && signal;
         }
         for (const func of parent.functions) {
           found = found || func.name.toLowerCase() === read.text.toLowerCase() && func;
@@ -214,17 +214,17 @@ export class OFile {
     if (parent instanceof OFileWithEntityAndArchitecture) {
       const file = (parent as any) as OFileWithEntityAndArchitecture;
       for (const generic of file.entity.generics) {
-        found = found || generic.name.toLowerCase() === read.text.toLowerCase() && generic;
+        found = found || generic.name.text.toLowerCase() === read.text.toLowerCase() && generic;
       }
       for (const port of file.entity.ports) {
-        found = found || port.name.toLowerCase() === read.text.toLowerCase() && port;
+        found = found || port.name.text.toLowerCase() === read.text.toLowerCase() && port;
       }
     } else if (parent instanceof OFileWithPackage) {
       for (const type of parent.package.types) {
         found = found || type.findRead(read) && type;
       }
       for (const constant of parent.package.constants) {
-        found = found || constant.name.toLowerCase() === read.text.toLowerCase() && constant;
+        found = found || constant.name.text.toLowerCase() === read.text.toLowerCase() && constant;
       }
       for (const func of parent.package.functions) {
         found = found || func.name.toLowerCase() === read.text.toLowerCase() && func;
@@ -239,7 +239,7 @@ export class OFile {
     while ((parent instanceof OFile) === false) {
       if (parent instanceof OArchitecture) {
         for (const signal of parent.signals) {
-          found = found || signal.name.toLowerCase() === write.text.toLowerCase();
+          found = found || signal.name.text.toLowerCase() === write.text.toLowerCase();
         }
       }
       parent = (parent as any).parent;
@@ -251,10 +251,10 @@ export class OFile {
     }
     const file = (parent as any) as OFileWithEntityAndArchitecture;
     for (const signal of file.architecture.signals) {
-      found = found || signal.name.toLowerCase() === write.text.toLowerCase();
+      found = found || signal.name.text.toLowerCase() === write.text.toLowerCase();
     }
     for (const port of file.entity.ports) {
-      found = found || port.name.toLowerCase() === write.text.toLowerCase();
+      found = found || port.name.text.toLowerCase() === write.text.toLowerCase();
     }
     for (const type of file.architecture.types) {
       if (type instanceof OEnum && type.states.find(state => state.name.toLowerCase() === write.text.toLowerCase())) {
@@ -362,9 +362,15 @@ export class OVariable extends ObjectBase {
   defaultValue: string;
 
 }
+export class OName extends ObjectBase {
+  text: string;
+  toString() {
+    return this.text;
+  }
+}
 export class OSignalLike extends ObjectBase {
   type: string;
-  name: string;
+  name: OName;
   defaultValue?: ORead[];
   private register: boolean | null = null;
   private registerProcess: OProcess | null;
@@ -381,7 +387,7 @@ export class OSignalLike extends ObjectBase {
     for (const process of processes) {
       if (process.isRegisterProcess()) {
         for (const write of process.getFlatWrites()) {
-          if (write.text.toLowerCase() === this.name.toLowerCase()) {
+          if (write.text.toLowerCase() === this.name.text.toLowerCase()) {
             this.register = true;
             this.registerProcess = process;
           }
@@ -431,7 +437,7 @@ export class OInstantiation extends ObjectBase {
         if (entity) {
           const entityPort = entity.ports.find(port => {
             for (const part of portMapping.name) {
-              if (part.text.toLowerCase() === port.name.toLowerCase()) {
+              if (part.text.toLowerCase() === port.name.text.toLowerCase()) {
                 return true;
               }
             }
@@ -465,7 +471,7 @@ export class OInstantiation extends ObjectBase {
         if (entity) {
           const entityPort = entity.ports.find(port => {
             for (const part of portMapping.name) {
-              if (part.text.toLowerCase() === port.name.toLowerCase()) {
+              if (part.text.toLowerCase() === port.name.text.toLowerCase()) {
                 return true;
               }
             }
@@ -490,7 +496,6 @@ export class OMapping extends ObjectBase {
   mappingIfInput: ORead[];
   mappingIfOutput: [ORead[], OWrite[]];
 }
-
 export class OEntity extends ObjectBase {
   constructor(public parent: OFileWithEntity, startI: number, endI: number, public library?: string) {
     super(parent, startI, endI);
@@ -506,13 +511,12 @@ export class OEntity extends ObjectBase {
 }
 export class OPort extends OSignalLike {
   direction: 'in' | 'out' | 'inout';
-  hasDefault: boolean;
 }
 export class OGenericType extends ObjectBase {
-  name: string;
+  name: OName;
 }
 export class OGenericActual extends ObjectBase {
-  name: string;
+  name: OName;
   type: string;
   defaultValue?: string;
   reads: ORead[];
