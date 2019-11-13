@@ -173,7 +173,7 @@ const findDefinition = async (params: IFindDefinitionParams) => {
   }
 
   if (candidate instanceof OInstantiation || candidate instanceof OMapping || candidate instanceof OMappingName) {
-    let instantiation: OInstantiation = candidate instanceof OMappingName ? candidate.parent.parent : (candidate instanceof OInstantiation ? candidate : candidate.parent);
+    let instantiation: OInstantiation = candidate instanceof OMappingName ? candidate.parent.parent.parent : (candidate instanceof OInstantiation ? candidate : candidate.parent.parent);
     const entity = linter.getProjectEntity(instantiation);
     if (!entity) {
       return null;

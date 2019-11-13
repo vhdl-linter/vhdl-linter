@@ -1,4 +1,4 @@
-import { OFile, OIf, OSignalLike, OSignal, OArchitecture, OEntity, OPort, OInstantiation, OWrite, ORead, OFileWithEntity, OFileWithPackage, OFileWithEntityAndArchitecture, ORecord, OPackage, ParserError, OEnum, OGenericActual, OMapping } from './parser/objects';
+import { OFile, OIf, OSignalLike, OSignal, OArchitecture, OEntity, OPort, OInstantiation, OWrite, ORead, OFileWithEntity, OFileWithPackage, OFileWithEntityAndArchitecture, ORecord, OPackage, ParserError, OEnum, OGenericActual, OMapping, OPortMap } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 import { findBestMatch } from 'string-similarity';
@@ -28,9 +28,9 @@ export class VhdlLinter {
       this.tree = this.parser.parse();
     } catch (e) {
       if (e instanceof ParserError) {
-        let range: Range = Range.create(e.pos, e.pos);
+
         this.messages.push({
-          range,
+          range: e.range,
           severity: DiagnosticSeverity.Error,
           message: e.message
         });
@@ -180,9 +180,9 @@ export class VhdlLinter {
   }
   checkNotDeclared() {
     for (const obj of this.tree.objectList) {
-      if (obj.parent instanceof OMapping) {
+      if (obj.parent instanceof OMapping && obj.parent.parent instanceof OPortMap) {
         const mapping = obj.parent;
-        const entity = this.getProjectEntity(obj.parent.parent);
+        const entity = this.getProjectEntity(obj.parent.parent.parent);
         if (!entity) {
           continue;
         }

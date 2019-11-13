@@ -40,7 +40,7 @@ export class ParserBase {
   }
   message(message: string, severity = 'error') {
     if (severity === 'error') {
-      throw new ParserError(message + ` in line: ${this.getLine()}`, this.pos);
+      throw new ParserError(message + ` in line: ${this.getLine()}`, this.pos.getRangeToEndLine());
     } else {
     }
   }
@@ -70,12 +70,12 @@ export class ParserBase {
     if (typeof search === 'string') {
       while (this.text.substr(this.pos.i, search.length).toLowerCase() !== search.toLowerCase()) {
         if (!options.allowSemicolon && this.text[this.pos.i] === ';') {
-          throw new ParserError(`could not find ${search} DEBUG-SEMICOLON`, this.pos);
+          throw new ParserError(`could not find ${search} DEBUG-SEMICOLON`, this.pos.getRangeToEndLine());
         }
         text += this.text[this.pos.i];
         this.pos.i++;
         if (this.pos.i > this.text.length) {
-          throw new ParserError(`could not find ${search}`, searchStart);
+          throw new ParserError(`could not find ${search}`, searchStart.getRangeToEndLine());
         }
       }
       if (options.returnMatch) {
@@ -86,7 +86,7 @@ export class ParserBase {
       let match = this.text.substr(this.pos.i).match(search);
       if (match !== null && typeof match.index !== 'undefined') {
         if (!options.allowSemicolon && this.text.substr(this.pos.i, match.index).indexOf(';') > -1) {
-          throw new ParserError(`could not find ${search} DEBUG-SEMICOLON`, searchStart);
+          throw new ParserError(`could not find ${search} DEBUG-SEMICOLON`, searchStart.getRangeToEndLine());
         }
         // text = match[0];
         if (options.returnMatch) {
@@ -96,7 +96,7 @@ export class ParserBase {
         }
         this.pos.i += match.index + match[0].length;
       } else {
-        throw new ParserError(`could not find ${search}`, searchStart);
+        throw new ParserError(`could not find ${search}`, searchStart.getRangeToEndLine());
       }
     }
     this.advanceWhitespace();
@@ -123,7 +123,7 @@ export class ParserBase {
       text += this.text[this.pos.i];
       this.pos.i++;
     }
-    throw new ParserError(`could not find closing brace`, new OI(this.pos.parent, this.pos.i - text.length));
+    throw new ParserError(`could not find closing brace`, new OI(this.pos.parent, this.pos.i - text.length).getRangeToEndLine());
   }
   advanceSemicolon(braceAware: boolean = false) {
     if (braceAware) {
@@ -133,7 +133,7 @@ export class ParserBase {
       while (this.text[this.pos.i]) {
         const match = /["\\();]/.exec(this.text.substring(this.pos.i));
         if (!match) {
-          throw new ParserError(`could not find closing brace`, new OI(this.pos.parent, this.pos.i - text.length));
+          throw new ParserError(`could not find closing brace`, new OI(this.pos.parent, this.pos.i - text.length).getRangeToEndLine());
         }
         if (match[0] === '"' && this.text[this.pos.i + match.index - 1] !== '\\') {
           quote = !quote;
@@ -143,7 +143,7 @@ export class ParserBase {
           if (braceLevel > 0) {
             braceLevel--;
           } else {
-            throw new ParserError(`unexpected ')'`, new OI(this.pos.parent, this.pos.i - text.length));
+            throw new ParserError(`unexpected ')'`, new OI(this.pos.parent, this.pos.i - text.length).getRangeToEndLine());
           }
         } else if (match[0] === ';' && !quote && braceLevel === 0) {
           text += this.text.substring(this.pos.i, this.pos.i + match.index);
@@ -154,11 +154,11 @@ export class ParserBase {
         text += this.text.substring(this.pos.i, this.pos.i + match.index);
         this.pos.i += match.index + 1;
       }
-      throw new ParserError(`could not find closing brace`, new OI(this.pos.parent, this.pos.i - text.length));
+      throw new ParserError(`could not find closing brace`, new OI(this.pos.parent, this.pos.i - text.length).getRangeToEndLine());
     }
     const match = /;/.exec(this.text.substring(this.pos.i));
     if (!match) {
-      throw new ParserError(`could not find semicolon`, this.pos);
+      throw new ParserError(`could not find semicolon`, this.pos.getRangeToEndLine());
     }
     const text = this.text.substring(this.pos.i, this.pos.i + match.index);
     this.pos.i += match.index + 1;
@@ -186,7 +186,7 @@ export class ParserBase {
         this.advanceWhitespace();
         return word;
       }
-      throw new ParserError(`did not find ${re}. EOF line: ${this.getLine()}`, this.pos);
+      throw new ParserError(`did not find ${re}. EOF line: ${this.getLine()}`, this.pos.getRangeToEndLine());
     }
     let word = '';
     let j = 0;
@@ -246,7 +246,7 @@ export class ParserBase {
       savedI = this.pos.i;
       this.advanceWhitespace();
     } else {
-      throw new ParserError(`expected '${expected.join(', ')}' found '${this.getNextWord()}' line: ${this.getLine()}`, this.pos);
+      throw new ParserError(`expected '${expected.join(', ')}' found '${this.getNextWord()}' line: ${this.getLine()}`, this.pos.getRangeToEndLine());
     }
     return savedI;
   }

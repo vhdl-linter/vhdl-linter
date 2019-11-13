@@ -2,7 +2,7 @@ import { Range, Position } from 'vscode-languageserver';
 
 export class OI implements Position {
   private i_: number;
-  constructor(public parent: ObjectBase | OFile, i: number) {
+  constructor(public parent: ObjectBase|OFile, i: number) {
     this.i_ = i;
   }
   set i(i: number) {
@@ -45,6 +45,17 @@ export class OI implements Position {
     this.position.character = character;
     this.calcI();
   }
+  getRangeToEndLine(): OIRange {
+    const start = this.i;
+    const text = this.parent instanceof OFile ? this.parent.text : this.parent.getRoot().text;
+    let end = text.length;
+    const match = /\n/.exec(text.substr(start));
+    if (match) {
+      end = start + match.index;
+    }
+    return new OIRange(this.parent, start, end);
+
+  }
   private calcPosition(): Position {
     const lines = (this.parent instanceof OFile ? this.parent : this.parent.getRoot()).text.slice(0, this.i).split('\n');
     const line = lines.length - 1;
@@ -62,7 +73,7 @@ export class OI implements Position {
 export class OIRange implements Range {
   public start: OI;
   public end: OI;
-  constructor(public parent: ObjectBase, start: number | OI, end: number | OI) {
+  constructor(public parent: ObjectBase|OFile, start: number | OI, end: number | OI) {
     if (start instanceof OI) {
       this.start = start;
     } else {
@@ -76,7 +87,8 @@ export class OIRange implements Range {
   }
   setEndBacktraceWhitespace(i: number) {
     this.end.i = i - 1;
-    while (this.parent.getRoot().text[this.end.i].match(/\s/)) {
+    const text = this.parent instanceof OFile ? this.parent.text : this.parent.getRoot().text;
+    while (text[this.end.i].match(/\s/)) {
       this.end.i--;
     }
   }
@@ -390,12 +402,19 @@ export class OSignal extends OSignalLike {
 }
 export class OMap extends ObjectBase {
   public children: OMapping[] = [];
+  constructor(public parent: OInstantiation, startI: number, endI: number) {
+    super(parent, startI, endI);
+  }
+}
+export class OGenericMap extends OMap {
+}
+export class OPortMap extends OMap {
 }
 export class OInstantiation extends ObjectBase {
   label?: string;
   componentName: string;
-  portMappings?: OMap;
-  genericMappings?: OMap;
+  portMappings?: OPortMap;
+  genericMappings?: OGenericMap;
   library?: string;
   entityInstantiation: boolean;
   private flatReads: ORead[] | null = null;
@@ -464,7 +483,7 @@ export class OInstantiation extends ObjectBase {
   }
 }
 export class OMapping extends ObjectBase {
-  constructor(public parent: OInstantiation, startI: number, endI: number) {
+  constructor(public parent: OMap, startI: number, endI: number) {
     super(parent, startI, endI);
   }
   name: OMappingName[];
@@ -669,7 +688,7 @@ export class OMappingName extends OToken {
   parent: OMapping;
 }
 export class ParserError extends Error {
-  constructor(message: string, public pos: OI) {
+  constructor(message: string, public range: OIRange) {
     super(message);
   }
 }

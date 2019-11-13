@@ -115,7 +115,7 @@ export class ArchitectureParser extends ParserBase {
         architecture.generates.push(ifGenerateObject);
       } else if (nextWord === 'elsif') {
         if (noElse && !ifGenerate) {
-          throw new ParserError('elsif generate without if generate', this.pos);
+          throw new ParserError('elsif generate without if generate', this.pos.getRangeToEndLine());
         } else if (noElse) {
           break;
         }
@@ -135,7 +135,7 @@ export class ArchitectureParser extends ParserBase {
         (architecture.parent as OArchitecture).generates.push(ifGenerateObject);
       } else if (ifGenerate && nextWord === 'else') {
           if (noElse && !ifGenerate) {
-            throw new ParserError('else generate without if generate', this.pos);
+            throw new ParserError('else generate without if generate', this.pos.getRangeToEndLine());
           } else if (noElse) {
             break;
           }

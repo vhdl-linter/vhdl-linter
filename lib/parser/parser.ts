@@ -17,7 +17,7 @@ export class Parser extends ParserBase {
     const file = new OFile(this.text, this.file, this.originalText);
     this.pos = new OI(file, 0);
     if (this.text.length > 500 * 1024) {
-      throw new ParserError('file too large', this.pos);
+      throw new ParserError('file too large', this.pos.getRangeToEndLine());
     }
     let entity: OEntity|undefined;
     let architecture: OArchitecture|undefined;

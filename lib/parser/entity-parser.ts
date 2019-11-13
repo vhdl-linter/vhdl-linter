@@ -42,7 +42,7 @@ export class EntityParser extends ParserBase {
         new DeclarativePartParser(this.text, this.pos, this.file, entity).parse(true);
       }
       if (lastI === this.pos.i) {
-        throw new ParserError(`Parser stuck on line ${this.getLine} in module ${this.constructor.name}`, this.pos);
+        throw new ParserError(`Parser stuck on line ${this.getLine} in module ${this.constructor.name}`, this.pos.getRangeToEndLine());
       }
       lastI = this.pos.i;
     }

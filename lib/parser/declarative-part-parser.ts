@@ -21,7 +21,7 @@ export class DeclarativePartParser extends ParserBase {
         signal.constant = nextWord === 'constant';
         signal.name = this.getNextWord({});
         if (this.text[this.pos.i] === ',') {
-          throw new ParserError(`Defining multiple signals not allowed!: ${this.getLine(this.pos.i)}`, this.pos);
+          throw new ParserError(`Defining multiple signals not allowed!: ${this.getLine(this.pos.i)}`, this.pos.getRangeToEndLine());
           // multiSignals.push(signal.name);
           // this.expect(',');
           // continue;
@@ -161,7 +161,7 @@ export class DeclarativePartParser extends ParserBase {
         this.advanceSemicolon();
       } else {
         this.getNextWord();
-        throw new ParserError(`Unknown Ding: '${nextWord}' on line ${this.getLine()}`, this.pos);
+        throw new ParserError(`Unknown Ding: '${nextWord}' on line ${this.getLine()}`, this.pos.getRangeToEndLine());
       }
       nextWord = this.getNextWord({ consume: false }).toLowerCase();
     }

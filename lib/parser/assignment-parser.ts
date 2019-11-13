@@ -12,7 +12,7 @@ export class AssignmentParser extends ParserBase {
     let leftHandSide = '';
     const match = /[<:]/.exec(this.text.substring(this.pos.i));
     if (!match) {
-      throw new ParserError(`expected <= or :=, reached end of text. Start on line`, this.pos);
+      throw new ParserError(`expected <= or :=, reached end of text. Start on line`, this.pos.getRangeToEndLine());
     }
     leftHandSide += this.text.substring(this.pos.i, this.pos.i + match.index);
     this.pos.i += match.index;

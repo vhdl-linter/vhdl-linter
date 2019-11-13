@@ -1,5 +1,5 @@
 import {ParserBase} from './parser-base';
-import {OInstantiation, OMapping, ParserError, ObjectBase, OMappingName, OI, OMap, OIRange} from './objects';
+import {OInstantiation, OMapping, ParserError, ObjectBase, OMappingName, OI, OMap, OIRange, OGenericMap, OPortMap} from './objects';
 
 export class InstantiationParser extends ParserBase {
   constructor(text: string, pos: OI, file: string, private parent: ObjectBase) {
@@ -16,7 +16,7 @@ export class InstantiationParser extends ParserBase {
       nextWord = this.getNextWord({re: /^[\w.]+/});
       let libraryMatch = nextWord.match(/^(.*)\./i);
       if (!libraryMatch) {
-        throw new ParserError(`Can not parse entity instantiation`, this.pos);
+        throw new ParserError(`Can not parse entity instantiation`, this.pos.getRangeToEndLine());
       }
       instantiation.library = libraryMatch[1];
     }
@@ -39,7 +39,7 @@ export class InstantiationParser extends ParserBase {
         instantiation.genericMappings = this.parseMapping(savedI, instantiation, true);
       }
       if (lastI === this.pos.i) {
-        throw new ParserError(`Parser stuck on line ${this.getLine} in module ${this.constructor.name}`, this.pos);
+        throw new ParserError(`Parser stuck on line ${this.getLine} in module ${this.constructor.name}`, this.pos.getRangeToEndLine());
       }
       lastI = this.pos.i;
     }
@@ -52,10 +52,10 @@ export class InstantiationParser extends ParserBase {
   parseMapping(startI: number, instantiation: OInstantiation, genericMapping = false) {
     this.debug(`parseMapping`);
 
-    const mappings = new OMap(instantiation, startI, this.pos.i);
+    const map = genericMapping ? new OGenericMap(instantiation, startI, this.pos.i) : new OPortMap(instantiation, startI, this.pos.i);
 
     while (this.pos.i < this.text.length) {
-      const mapping = new OMapping(instantiation, this.pos.i, this.getEndOfLineI());
+      const mapping = new OMapping(map, this.pos.i, this.getEndOfLineI());
       const mappingNameI = this.pos.i;
       mapping.name = this.extractReads(mapping, this.getNextWord({re: /^[^=]+/}), mappingNameI) as OMappingName[];
       for (const namePart of mapping.name) {
@@ -84,17 +84,21 @@ export class InstantiationParser extends ParserBase {
         mapping.mappingIfInput = [];
         mapping.mappingIfOutput = [[], []];
       }
-      mappings.children.push(mapping);
+      map.children.push(mapping);
       if (this.text[this.pos.i] === ',') {
+        const beforeI = this.pos.i;
         this.pos.i++;
         this.advanceWhitespace();
+        if (this.text[this.pos.i] === ')') {
+          throw new ParserError(`unexpected ','`, new OI(mapping, beforeI).getRangeToEndLine());
+        }
       } else if (this.text[this.pos.i] === ')') {
         this.pos.i++;
-        mappings.range.end.i = this.pos.i;
+        map.range.end.i = this.pos.i;
         this.advanceWhitespace();
         break;
       }
     }
-    return mappings;
+    return map;
   }
 }
