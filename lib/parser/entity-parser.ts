@@ -1,6 +1,7 @@
 import {ParserBase} from './parser-base';
 import { DeclarativePartParser } from './declarative-part-parser';
 import {OPort, OGeneric, OEntity, ParserError, OFileWithEntity, OGenericActual, OGenericType, OI, OIRange, OName} from './objects';
+import { runInThisContext } from 'vm';
 
 export class EntityParser extends ParserBase {
   constructor(text: string, pos: OI, file: string, private parent: OFileWithEntity) {
@@ -150,9 +151,13 @@ export class EntityParser extends ParserBase {
     const endI = this.pos.i;
     this.advanceWhitespace();
     if (this.text[this.pos.i] === ';') {
+      const startI = this.pos.i;
       this.pos.i++;
+      this.advanceWhitespace();
+      if (this.text[this.pos.i] === ')') {
+        throw new ParserError(`Unexpected ';' at end of port list`, new OIRange(parent, startI, startI + 1));
+      }
     }
-    this.advanceWhitespace();
     defaultValue = defaultValue.trim();
     if (defaultValue === '') {
       return {
