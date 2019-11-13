@@ -28,11 +28,27 @@ export class VhdlLinter {
       this.tree = this.parser.parse();
     } catch (e) {
       if (e instanceof ParserError) {
+        let code;
+        if (e.solution) {
+          code = this.addCodeActionCallback((textDocumentUri: string) => {
+            const actions = [];
+            actions.push(CodeAction.create(
+              e.solution.message,
+              {
+                changes: {
+                  [textDocumentUri]: e.solution.edits
+                }
+              },
+              CodeActionKind.QuickFix));
+            return actions;
+          });
+        }
 
         this.messages.push({
           range: e.range,
           severity: DiagnosticSeverity.Error,
-          message: e.message
+          message: e.message,
+          code
         });
       } else {
         throw e;

@@ -1,4 +1,4 @@
-import { Range, Position } from 'vscode-languageserver';
+import { Range, Position, TextEdit } from 'vscode-languageserver';
 
 export class OI implements Position {
   private i_: number;
@@ -693,7 +693,7 @@ export class OMappingName extends OToken {
   parent: OMapping;
 }
 export class ParserError extends Error {
-  constructor(message: string, public range: OIRange) {
+  constructor(message: string, public range: OIRange, public solution?: {message: string, edits: TextEdit[]}) {
     super(message);
   }
 }
