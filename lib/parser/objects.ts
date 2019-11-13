@@ -511,6 +511,7 @@ export class OEntity extends ObjectBase {
 }
 export class OPort extends OSignalLike {
   direction: 'in' | 'out' | 'inout';
+  directionRange: OIRange;
 }
 export class OGenericType extends ObjectBase {
   name: OName;

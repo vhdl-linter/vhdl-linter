@@ -96,8 +96,10 @@ export class EntityParser extends ParserBase {
           directionString = this.getNextWord({consume: false});
           if (directionString !== 'in' && directionString !== 'out' && directionString !== 'inout') {
             port.direction = 'inout';
+            port.directionRange = new OIRange(port, this.pos.i, this.pos.i);
           } else {
             port.direction = directionString;
+            port.directionRange = new OIRange(port, this.pos.i, this.pos.i + directionString.length);
             this.getNextWord(); // consume direction
           }
         }
