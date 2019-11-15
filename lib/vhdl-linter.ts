@@ -8,7 +8,6 @@ import {
   Position,
   CodeAction,
   Diagnostic,
-  WorkspaceEdit,
   TextEdit,
   CodeActionKind,
   DiagnosticSeverity
@@ -29,11 +28,27 @@ export class VhdlLinter {
       this.tree = this.parser.parse();
     } catch (e) {
       if (e instanceof ParserError) {
+        let code;
+        if (e.solution) {
+          code = this.addCodeActionCallback((textDocumentUri: string) => {
+            const actions = [];
+            actions.push(CodeAction.create(
+              e.solution.message,
+              {
+                changes: {
+                  [textDocumentUri]: e.solution.edits
+                }
+              },
+              CodeActionKind.QuickFix));
+            return actions;
+          });
+        }
 
         this.messages.push({
           range: e.range,
           severity: DiagnosticSeverity.Error,
-          message: e.message
+          message: e.message,
+          code
         });
       } else {
         throw e;
@@ -154,18 +169,18 @@ export class VhdlLinter {
         const thing = pkg.constants.find(constant => constant.name.text.toLowerCase() === read.text.toLowerCase()) || pkg.types.find(type => type.name.toLowerCase() === read.text.toLowerCase())
           || pkg.functions.find(func => func.name.toLowerCase() === read.text.toLowerCase());
         if (thing) {
-          const workspaceEdit: WorkspaceEdit = {};
           const file = read.getRoot();
           const pos = Position.create(0, 0);
           if (file.useStatements.length > 0) {
             pos.line = file.useStatements[file.useStatements.length - 1].range.end.line + 1;
           }
-          const textEdit: TextEdit = TextEdit.insert(pos, `use ${pkg.library ? pkg.library : 'work'}.${pkg.name}.all;\n`);
-          workspaceEdit.changes = {};
-          workspaceEdit.changes[textDocumentUri] = [textEdit];
           actions.push(CodeAction.create(
             'add use statement for ' + pkg.name,
-            workspaceEdit,
+            {
+              changes: {
+                [textDocumentUri]: [TextEdit.insert(pos, `use ${pkg.library ? pkg.library : 'work'}.${pkg.name}.all;\n`)]
+              }
+            },
             CodeActionKind.QuickFix
           ));
         }
@@ -243,13 +258,13 @@ export class VhdlLinter {
                     positionStart.line++;
                     const indent = positionStart.character + 2;
                     positionStart.character = 0;
-                    const workspaceEdit: WorkspaceEdit = {};
-                    const textEdit: TextEdit = TextEdit.insert(positionStart, ' '.repeat(indent) + `${signal.name} <= ${resetValue};\n`);
-                    workspaceEdit.changes = {};
-                    workspaceEdit.changes[textDocumentUri] = [textEdit];
                     actions.push(CodeAction.create(
                       'Add reset for ' + signal.name,
-                      workspaceEdit,
+                      {
+                        changes: {
+                          [textDocumentUri]: [TextEdit.insert(positionStart, ' '.repeat(indent) + `${signal.name} <= ${resetValue};\n`)]
+                        }
+                      },
                       CodeActionKind.QuickFix
                     ));
                   }
@@ -372,15 +387,23 @@ export class VhdlLinter {
         if (port.name.text.match(/^o_/i)) {
           const code = this.addCodeActionCallback((textDocumentUri: string) => {
             const actions = [];
-            const workspaceEdit: WorkspaceEdit = {};
             const newName = port.name.text.replace(/^o_/, 'i_');
-            const textEdit: TextEdit = TextEdit.replace(port.name.range
-              , newName);
-            workspaceEdit.changes = {};
-            workspaceEdit.changes[textDocumentUri] = [textEdit];
             actions.push(CodeAction.create(
               `Replace portname with '${newName}`,
-              workspaceEdit,
+              {
+                changes: {
+                  [textDocumentUri]: [TextEdit.replace(port.name.range, newName)]
+                }
+              },
+              CodeActionKind.QuickFix));
+            const textEdit2: TextEdit = TextEdit.replace(port.directionRange, 'out');
+            actions.push(CodeAction.create(
+              `Change port direction to output.`,
+              {
+                changes: {
+                  [textDocumentUri]: [TextEdit.replace(port.directionRange, 'out')]
+                }
+              },
               CodeActionKind.QuickFix));
             return actions;
           });
@@ -393,15 +416,14 @@ export class VhdlLinter {
         } else if (port.name.text.match(/^i_/i) === null) {
           const code = this.addCodeActionCallback((textDocumentUri: string) => {
             const actions = [];
-            const workspaceEdit: WorkspaceEdit = {};
             const newName = port.name.text.replace(/^(._|_?)/, 'i_');
-            const textEdit: TextEdit = TextEdit.replace(port.name.range
-              , newName);
-            workspaceEdit.changes = {};
-            workspaceEdit.changes[textDocumentUri] = [textEdit];
             actions.push(CodeAction.create(
               `Replace portname with '${newName}`,
-              workspaceEdit,
+              {
+                changes: {
+                  [textDocumentUri]: [TextEdit.replace(port.name.range, newName)]
+                }
+              },
               CodeActionKind.QuickFix));
             return actions;
           });
@@ -416,15 +438,22 @@ export class VhdlLinter {
         if (port.name.text.match(/^i_/i)) {
           const code = this.addCodeActionCallback((textDocumentUri: string) => {
             const actions = [];
-            const workspaceEdit: WorkspaceEdit = {};
             const newName = port.name.text.replace(/^i_/, 'o_');
-            const textEdit: TextEdit = TextEdit.replace(port.name.range
-              , newName);
-            workspaceEdit.changes = {};
-            workspaceEdit.changes[textDocumentUri] = [textEdit];
             actions.push(CodeAction.create(
               `Replace portname with '${newName}`,
-              workspaceEdit,
+              {
+                changes: {
+                  [textDocumentUri]: [TextEdit.replace(port.name.range, newName)]
+                }
+              },
+              CodeActionKind.QuickFix));
+            actions.push(CodeAction.create(
+              `Change port direction to input.`,
+              {
+                changes: {
+                  [textDocumentUri]: [TextEdit.replace(port.directionRange, 'in')]
+                }
+              },
               CodeActionKind.QuickFix));
             return actions;
           });
@@ -437,15 +466,14 @@ export class VhdlLinter {
         } else if (port.name.text.match(/^o_/i) === null) {
           const code = this.addCodeActionCallback((textDocumentUri: string) => {
             const actions = [];
-            const workspaceEdit: WorkspaceEdit = {};
             const newName = port.name.text.replace(/^(._|_?)/, 'o_');
-            const textEdit: TextEdit = TextEdit.replace(port.name.range
-              , newName);
-            workspaceEdit.changes = {};
-            workspaceEdit.changes[textDocumentUri] = [textEdit];
             actions.push(CodeAction.create(
               `Replace portname with '${newName}`,
-              workspaceEdit,
+              {
+                changes: {
+                  [textDocumentUri]: [TextEdit.replace(port.name.range, newName)]
+                }
+              },
               CodeActionKind.QuickFix));
             return actions;
           });
@@ -498,14 +526,14 @@ export class VhdlLinter {
                 const bestMatch = findBestMatch(portMapping.name[0].text, entity.ports.map(port => port.name.text));
                 const code = this.addCodeActionCallback((textDocumentUri: string) => {
                   const actions = [];
-                  const workspaceEdit: WorkspaceEdit = {};
-                  const textEdit: TextEdit = TextEdit.replace(Range.create(portMapping.name[0].range.start, portMapping.name[portMapping.name.length - 1].range.start)
-                    , bestMatch.bestMatch.target);
-                  workspaceEdit.changes = {};
-                  workspaceEdit.changes[textDocumentUri] = [textEdit];
                   actions.push(CodeAction.create(
                     `Replace with ${bestMatch.bestMatch.target} (score: ${bestMatch.bestMatch.rating})`,
-                    workspaceEdit,
+                    {
+                      changes: {
+                        [textDocumentUri]: [TextEdit.replace(Range.create(portMapping.name[0].range.start, portMapping.name[portMapping.name.length - 1].range.start)
+                          , bestMatch.bestMatch.target)]
+                      }
+                    },
                     CodeActionKind.QuickFix));
                   return actions;
                 });

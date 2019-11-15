@@ -1,6 +1,8 @@
 import {ParserBase} from './parser-base';
 import { DeclarativePartParser } from './declarative-part-parser';
 import {OPort, OGeneric, OEntity, ParserError, OFileWithEntity, OGenericActual, OGenericType, OI, OIRange, OName} from './objects';
+import { runInThisContext } from 'vm';
+import { TextEdit } from 'vscode-languageserver';
 
 export class EntityParser extends ParserBase {
   constructor(text: string, pos: OI, file: string, private parent: OFileWithEntity) {
@@ -95,8 +97,10 @@ export class EntityParser extends ParserBase {
           directionString = this.getNextWord({consume: false});
           if (directionString !== 'in' && directionString !== 'out' && directionString !== 'inout') {
             port.direction = 'inout';
+            port.directionRange = new OIRange(port, this.pos.i, this.pos.i);
           } else {
             port.direction = directionString;
+            port.directionRange = new OIRange(port, this.pos.i, this.pos.i + directionString.length);
             this.getNextWord(); // consume direction
           }
         }
@@ -150,9 +154,18 @@ export class EntityParser extends ParserBase {
     const endI = this.pos.i;
     this.advanceWhitespace();
     if (this.text[this.pos.i] === ';') {
+      const startI = this.pos.i;
       this.pos.i++;
+      this.advanceWhitespace();
+      if (this.text[this.pos.i] === ')') {
+        const range = new OIRange(parent, startI, startI + 1);
+        range.start.character = 0;
+        throw new ParserError(`Unexpected ';' at end of port list`, range, {
+          message: `Remove ';'`,
+          edits: [TextEdit.del(new OIRange(parent, startI, startI + 1))]
+        });
+      }
     }
-    this.advanceWhitespace();
     defaultValue = defaultValue.trim();
     if (defaultValue === '') {
       return {

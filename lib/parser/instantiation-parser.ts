@@ -1,5 +1,6 @@
 import {ParserBase} from './parser-base';
 import {OInstantiation, OMapping, ParserError, ObjectBase, OMappingName, OI, OMap, OIRange, OGenericMap, OPortMap} from './objects';
+import { TextEdit } from 'vscode-languageserver';
 
 export class InstantiationParser extends ParserBase {
   constructor(text: string, pos: OI, file: string, private parent: ObjectBase) {
@@ -90,7 +91,13 @@ export class InstantiationParser extends ParserBase {
         this.pos.i++;
         this.advanceWhitespace();
         if (this.text[this.pos.i] === ')') {
-          throw new ParserError(`unexpected ','`, new OI(mapping, beforeI).getRangeToEndLine());
+          const range = new OIRange(mapping, beforeI, beforeI + 1);
+          range.start.character = 0;
+
+          throw new ParserError(`Unexpected ',' at end of port map`, range, {
+            message: `Remove ','`,
+            edits: [TextEdit.del(new OIRange(mapping, beforeI, beforeI + 1))]
+          });
         }
       } else if (this.text[this.pos.i] === ')') {
         this.pos.i++;

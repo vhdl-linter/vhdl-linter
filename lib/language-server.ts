@@ -119,7 +119,7 @@ documents.onDidClose(change => {
 export const linters = new Map<string, VhdlLinter>();
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   const vhdlLinter = new VhdlLinter(textDocument.uri.replace('file://', ''), textDocument.getText(), projectParser);
-  if (typeof vhdlLinter.tree !== 'undefined') {
+  if (typeof vhdlLinter.tree !== 'undefined' || typeof linters.get(textDocument.uri) === 'undefined') {
     linters.set(textDocument.uri, vhdlLinter);
   }
   const diagnostics = vhdlLinter.checkAll();
