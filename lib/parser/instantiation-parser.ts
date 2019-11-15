@@ -45,7 +45,7 @@ export class InstantiationParser extends ParserBase {
     }
     instantiation.range.end.i = this.expect(';');
     if (!hasPortMap) {
-      throw new Error(`Instantiation has no Port Map. line ${this.getLine()}`);
+      throw new ParserError(`Instantiation has no Port Map`, this.pos.getRangeToEndLine());
     }
     return instantiation;
   }
