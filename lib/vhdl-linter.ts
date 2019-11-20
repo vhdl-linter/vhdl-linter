@@ -409,7 +409,7 @@ export class VhdlLinter {
           });
           this.messages.push({
             range: port.range,
-            severity: DiagnosticSeverity.Error,
+            severity: DiagnosticSeverity.Warning,
             message: `input port '${port.name}' begins with 'o_'!`,
             code
           });
@@ -429,7 +429,7 @@ export class VhdlLinter {
           });
           this.messages.push({
             range: port.range,
-            severity: DiagnosticSeverity.Warning,
+            severity: DiagnosticSeverity.Information,
             message: `input port '${port.name}' should begin with i_`,
             code
           });
@@ -459,7 +459,7 @@ export class VhdlLinter {
           });
           this.messages.push({
             range: port.range,
-            severity: DiagnosticSeverity.Error,
+            severity: DiagnosticSeverity.Warning,
             message: `ouput port '${port.name}' begins with 'i_'!`,
             code
           });
@@ -479,7 +479,7 @@ export class VhdlLinter {
           });
           this.messages.push({
             range: port.range,
-            severity: DiagnosticSeverity.Warning,
+            severity: DiagnosticSeverity.Information,
             message: `ouput port '${port.name}' should begin with 'o_'`
           });
         }
