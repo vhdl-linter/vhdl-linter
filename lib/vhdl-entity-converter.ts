@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import {VhdlLinter} from './vhdl-linter';
 import { ProjectParser } from './project-parser';
-import { OFileWithEntity, OEntity } from './parser/objects';
+import { OFileWithEntity, OEntity, OPort, OGeneric } from './parser/objects';
 import { EntityParser } from './parser/entity-parser';
 function getEntity() {
     const editor = vscode.window.activeTextEditor;
@@ -35,11 +35,11 @@ export function copy(type: CopyTypes) {
     vscode.window.showInformationMessage(`Instance for '${entity.name}' copied to the clipboard`);
 
 }
-function longestinArray(array: any[], attr: string) {
+function longestinArray(array: OPort[]|OGeneric[]) {
     let longest = 0;
     for (let object of array) {
-        if (object[attr].length > longest) {
-            longest = object.name.length;
+        if (object.name.text.length > longest) {
+            longest = object.name.text.length;
         }
     }
     return longest;
@@ -50,7 +50,7 @@ function instanceTemplate(entity: OEntity) {
     const indentString = '  ';
     if (entity.generics.length > 0) {
         text += `\ngeneric map (\n`;
-        const longest = longestinArray(entity.generics, 'name');
+        const longest = longestinArray(entity.generics);
         for (let generic of entity.generics) {
             const name = generic.name.text.padEnd(longest, ' ');
             text += `${indentString}${name} => ${generic.name},\n`;
@@ -62,7 +62,7 @@ function instanceTemplate(entity: OEntity) {
 
     if (entity.ports.length > 0) {
         text += `\nport map (\n`;
-        const longest = longestinArray(entity.ports, 'name');
+        const longest = longestinArray(entity.ports);
         for (let port of entity.ports) {
             const name = port.name.text.padEnd(longest, ' ');
             text += `${indentString}${name} => ${port.name},\n`;
@@ -81,7 +81,7 @@ function sysVerilogTemplate(entity: OEntity) {
     const indentString = '  ';
     if (entity.generics.length > 0) {
         text += ` #(\n`;
-        const longest = longestinArray(entity.generics, 'name');
+        const longest = longestinArray(entity.generics);
         for (let generic of entity.generics) {
             const name = generic.name.text.padEnd(longest, ' ');
             text += `${indentString}.${name}(dut_${generic.name}),\n`;
@@ -93,7 +93,7 @@ function sysVerilogTemplate(entity: OEntity) {
 
     if (entity.ports.length > 0) {
         text += ` i_dut (\n`;
-        const longest = longestinArray(entity.ports, 'name');
+        const longest = longestinArray(entity.ports);
         for (let port of entity.ports) {
             const name = port.name.text.padEnd(longest, ' ');
             text += `${indentString}.${name}(dut_s_${port.name}),\n`;
@@ -109,7 +109,7 @@ function sysVerilogTemplate(entity: OEntity) {
 function signalsTemplate(entity: OEntity) {
     let text = '';
     if (entity.ports.length > 0) {
-        const longest = longestinArray(entity.ports, 'name');
+        const longest = longestinArray(entity.ports);
         for (let port of entity.ports) {
             const name = port.name.text.padEnd(longest, ' ');
             text += `signal s_${name} : ${port.type};\n`;
