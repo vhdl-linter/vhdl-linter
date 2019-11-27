@@ -10,7 +10,7 @@ class Tokenizer {
     ['mod'],
     ['sll', 'srl', 'sla', 'sra', 'rol', 'ror'],
     ['and', 'or', 'nand', 'nor', 'xor', 'xnor'],
-    ['downto', 'to', 'others', 'when', 'else', 'range']
+    ['downto', 'to', 'others', 'when', 'else', 'range', 'elsif']
   ];
   tokenTypes = [
     { regex: /^(["])(([^"\\\n]|\\.|\\\n)*)["]/i, tokenType: 'STRING_LITERAL' },
@@ -21,7 +21,7 @@ class Tokenizer {
     { regex: /^[0-9]+/i, tokenType: 'INTEGER_LITERAL' },
     { regex: /^true|false/i, tokenType: 'BOOLEAN_LITERAL' },
     { regex: /^"[0-9]+"/i, tokenType: 'LOGIC_LITERAL' },
-    { regex: /^x"[0-9A-F]+"/i, tokenType: 'LOGIC_LITERAL' },
+    { regex: /^x"[0-9A-F_]+"/i, tokenType: 'LOGIC_LITERAL' },
     { regex: /^'[0-9]+'/i, tokenType: 'LOGIC_LITERAL' },
     { regex: /^\w+'\w+(?=\s*\()/i, tokenType: 'ATTRIBUTE_FUNCTION' },
     { regex: /^()([a-z]\w*)\s*(?=\=>)/i, tokenType: 'RECORD_ELEMENT' },

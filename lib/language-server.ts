@@ -28,7 +28,7 @@ import {
 } from 'vscode-languageserver';
 import { VhdlLinter } from './vhdl-linter';
 import { ProjectParser } from './project-parser';
-import { OFile, OArchitecture, ORead, OWrite, OSignal, OFunction, OForLoop, OForGenerate, OInstantiation, OMapping, OEntity, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackage, ORecord, ObjectBase, OType, OMappingName, ORecordChild, OEnum, OProcess, OStatement, OIf, OIfClause, OMap, OUseStatement, OState, OToken, OProcedureInstantiation } from './parser/objects';
+import { OFile, OArchitecture, ORead, OWrite, OSignal, OFunction, OForLoop, OForGenerate, OInstantiation, OMapping, OEntity, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackage, ORecord, ObjectBase, OType, OMappingName, ORecordChild, OEnum, OProcess, OStatement, OIf, OIfClause, OMap, OUseStatement, OState, OToken, OProcedureInstantiation, OName } from './parser/objects';
 import { mkdtempSync, writeFile, readFile } from 'fs';
 import { tmpdir, type } from 'os';
 import { sep } from 'path';
@@ -349,8 +349,9 @@ connection.onCompletion(async (params: CompletionParams): Promise<CompletionItem
     const ieee = pkg.parent.file.match(/ieee/i) !== null;
     for (const obj of pkg.getRoot().objectList) {
       if ((obj as any).name) {
+        const text = (obj as any).name instanceof OName ? (obj as any).name.text : (obj as any).name;
         completions.push({
-          label: ieee ? (obj as any).name.toLowerCase() : (obj as any).name,
+          label: ieee ? text.toLowerCase() : text,
           kind: CompletionItemKind.Text
         });
       }
