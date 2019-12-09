@@ -2,8 +2,16 @@ import { Range, Position, TextEdit } from 'vscode-languageserver';
 
 export class OI implements Position {
   private i_: number;
-  constructor(public parent: ObjectBase|OFile, i: number) {
-    this.i_ = i;
+  constructor(public parent: ObjectBase | OFile, i: number, j?: number) {
+    if (typeof j === 'undefined') {
+      this.i_ = i;
+    } else {
+      this.position = {
+        line : i,
+        character : j,
+      };
+      this.calcI();
+    }
   }
   set i(i: number) {
     this.position = undefined;
@@ -60,20 +68,20 @@ export class OI implements Position {
     const lines = (this.parent instanceof OFile ? this.parent : this.parent.getRoot()).text.slice(0, this.i).split('\n');
     const line = lines.length - 1;
     const character = lines[lines.length - 1].length;
-    return {character, line};
+    return { character, line };
   }
   private calcI() {
     if (typeof this.position === 'undefined') {
       throw new Error('Something went wrong with OIRange');
     }
     const lines = (this.parent instanceof OFile ? this.parent : this.parent.getRoot()).text.split('\n');
-    this.i_ = lines.slice(0, this.position.line).join('\n').length + this.position.character;
+    this.i_ = lines.slice(0, this.position.line).join('\n').length + 1 + this.position.character;
   }
 }
 export class OIRange implements Range {
   public start: OI;
   public end: OI;
-  constructor(public parent: ObjectBase|OFile, start: number | OI, end: number | OI) {
+  constructor(public parent: ObjectBase | OFile, start: number | OI, end: number | OI) {
     if (start instanceof OI) {
       this.start = start;
     } else {
@@ -126,23 +134,24 @@ export class OFile {
   libraries: string[] = [];
   useStatements: OUseStatement[] = [];
   objectList: ObjectBase[] = [];
+  magicComments: (OMagicCommentParameter | OMagicCommentDisable)[] = [];
   getJSON() {
     const obj = {};
     const seen = new WeakSet();
 
     return JSON.stringify(this, (key, value) => {
       if (['parent', 'originalText', 'objectList', 'root'].indexOf(key) > -1) {
+        return;
+      }
+      if (typeof value === 'object' && value !== null) {
+        if (seen.has(value)) {
+          debugger;
           return;
         }
-        if (typeof value === 'object' && value !== null) {
-          if (seen.has(value)) {
-            debugger;
-            return;
-          }
-          value.proto = value.constructor.name;
-          seen.add(value);
-        }
-        return value;
+        value.proto = value.constructor.name;
+        seen.add(value);
+      }
+      return value;
     });
   }
   isValidRead(read: ORead, packages: OPackage[]): boolean {
@@ -693,7 +702,26 @@ export class OMappingName extends OToken {
   parent: OMapping;
 }
 export class ParserError extends Error {
-  constructor(message: string, public range: OIRange, public solution?: {message: string, edits: TextEdit[]}) {
+  constructor(message: string, public range: OIRange, public solution?: { message: string, edits: TextEdit[] }) {
     super(message);
+  }
+}
+export enum MagicCommentType {
+  Disable,
+  Parameter
+}
+export class OMagicComment extends ObjectBase {
+  constructor(public parent: OFile, public commentType: MagicCommentType, range: OIRange) {
+    super(parent, range.start.i, range.end.i);
+  }
+}
+export class OMagicCommentDisable extends OMagicComment {
+  constructor(public parent: OFile, public commentType: MagicCommentType.Disable, range: OIRange) {
+    super(parent, commentType, range);
+  }
+}
+export class OMagicCommentParameter extends OMagicComment {
+  constructor(public parent: OFile, public commentType: MagicCommentType.Parameter, range: OIRange, public parameter: string[]) {
+    super(parent, commentType, range);
   }
 }

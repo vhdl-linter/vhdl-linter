@@ -1,4 +1,4 @@
-import { OFile, OIf, OSignalLike, OSignal, OArchitecture, OEntity, OPort, OInstantiation, OWrite, ORead, OFileWithEntity, OFileWithPackage, OFileWithEntityAndArchitecture, ORecord, OPackage, ParserError, OEnum, OGenericActual, OMapping, OPortMap } from './parser/objects';
+import { OFile, OIf, OSignalLike, OSignal, OArchitecture, OEntity, OPort, OInstantiation, OWrite, ORead, OFileWithEntity, OFileWithPackage, OFileWithEntityAndArchitecture, ORecord, OPackage, ParserError, OEnum, OGenericActual, OMapping, OPortMap, MagicCommentType } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 import { findBestMatch } from 'string-similarity';
@@ -14,6 +14,10 @@ import {
 } from 'vscode-languageserver';
 import { ThemeIcon } from 'vscode';
 import { type } from 'os';
+import { match } from 'minimatch';
+export enum LinterRules {
+  Reset
+}
 export type diagnosticCodeActionCallback = (textDocumentUri: string) => CodeAction[];
 export class VhdlLinter {
   messages: Diagnostic[] = [];
@@ -61,6 +65,25 @@ export class VhdlLinter {
   addCodeActionCallback(handler: diagnosticCodeActionCallback): number {
     return this.diagnosticCodeActionRegistry.push(handler) - 1;
   }
+  addMessage(diagnostic: Diagnostic, rule: LinterRules, parameter: string): void;
+  addMessage(diagnostic: Diagnostic): void;
+  addMessage(diagnostic: Diagnostic, rule?: LinterRules, parameter?: string) {
+    const matchingMagiComments = this.tree.magicComments.filter(magicComment => (magicComment.range.start.character <= diagnostic.range.start.character && magicComment.range.start.line <= diagnostic.range.start.line &&
+      magicComment.range.end.character >= diagnostic.range.start.character && magicComment.range.end.line >= diagnostic.range.start.line) || (magicComment.range.start.character <= diagnostic.range.end.character && magicComment.range.start.line <= diagnostic.range.end.line &&
+        magicComment.range.end.character >= diagnostic.range.end.character && magicComment.range.end.line >= diagnostic.range.end.line)).filter(magicComment => {
+          if (magicComment.commentType === MagicCommentType.Disable) {
+            return true;
+          }
+          if (magicComment.commentType === MagicCommentType.Parameter && rule === LinterRules.Reset && typeof parameter !== 'undefined' && magicComment.parameter.find(parameterFind => parameterFind.toLowerCase() === parameter.toLowerCase())) {
+            return true;
+          }
+          return false;
+        });
+    if (matchingMagiComments.length === 0) {
+      this.messages.push(diagnostic);
+    }
+
+  }
   async parsePackages() {
     const packages = this.projectParser.getPackages();
     const standard = packages.find(pkg => pkg.name.toLowerCase() === 'standard');
@@ -86,7 +109,7 @@ export class VhdlLinter {
         }
       }
       if (!found) {
-        this.messages.push({
+        this.addMessage({
           range: useStatement.range,
           severity: DiagnosticSeverity.Warning,
           message: `could not find package for ${useStatement.text}`
@@ -115,7 +138,7 @@ export class VhdlLinter {
     }
     for (const signal of this.tree.architecture.signals) {
       if (this.tree.architecture.signals.find(signalSearch => signal !== signalSearch && signal.name.text.toLowerCase() === signalSearch.name.text.toLowerCase())) {
-        this.messages.push({
+        this.addMessage({
           range: signal.range,
           severity: DiagnosticSeverity.Error,
           message: `signal ${signal.name} defined multiple times`
@@ -124,7 +147,7 @@ export class VhdlLinter {
     }
     for (const type of this.tree.architecture.types) {
       if (this.tree.architecture.types.find(typeSearch => type !== typeSearch && type.name.toLowerCase() === typeSearch.name.toLowerCase())) {
-        this.messages.push({
+        this.addMessage({
           range: type.range,
           severity: DiagnosticSeverity.Error,
           message: `type ${type.name} defined multiple times`
@@ -133,7 +156,7 @@ export class VhdlLinter {
       if (type instanceof OEnum) {
         for (const state of type.states) {
           if (type.states.find(stateSearch => state !== stateSearch && state.name.toLowerCase() === stateSearch.name.toLowerCase())) {
-            this.messages.push({
+            this.addMessage({
               range: state.range,
               severity: DiagnosticSeverity.Error,
               message: `state ${state.name} defined multiple times`
@@ -145,7 +168,7 @@ export class VhdlLinter {
     }
     for (const port of this.tree.entity.ports) {
       if (this.tree.entity.ports.find(portSearch => port !== portSearch && port.name.text.toLowerCase() === portSearch.name.text.toLowerCase())) {
-        this.messages.push({
+        this.addMessage({
           range: port.range,
           severity: DiagnosticSeverity.Error,
           message: `port ${port.name} defined multiple times`
@@ -156,7 +179,7 @@ export class VhdlLinter {
   }
 
   private pushWriteError(write: OWrite) {
-    this.messages.push({
+    this.addMessage({
       range: write.range,
       severity: DiagnosticSeverity.Error,
       message: `signal '${write.text}' is written but not declared`
@@ -187,7 +210,7 @@ export class VhdlLinter {
       }
       return actions;
     });
-    this.messages.push({
+    this.addMessage({
       range: read.range,
       code: code,
       severity: DiagnosticSeverity.Error,
@@ -267,6 +290,18 @@ export class VhdlLinter {
                       },
                       CodeActionKind.QuickFix
                     ));
+                    const change = this.tree.originalText.split('\n')[registerProcess.range.start.line - 1].match(/--\s*vhdl-linter-parameter-next-line/i) === null ?
+                      TextEdit.insert(registerProcess.range.start, `--vhdl-linter-parameter-next-line ${signal.name.text}\n` + ' '.repeat(registerProcess.range.start.character)) :
+                      TextEdit.insert(Position.create(registerProcess.range.start.line - 1, this.tree.originalText.split('\n')[registerProcess.range.start.line - 1].length), ` ${signal.name.text}`);
+                    actions.push(CodeAction.create(
+                      'Ignore reset for ' + signal.name,
+                      {
+                        changes: {
+                          [textDocumentUri]: [change]
+                        }
+                      },
+                      CodeActionKind.QuickFix
+                    ));
                   }
                 }
               }
@@ -277,12 +312,12 @@ export class VhdlLinter {
         const endCharacter = this.text.split('\n')[registerProcess.range.start.line].length;
         const range = Range.create(Position.create(registerProcess.range.start.line, 0), Position.create(registerProcess.range.start.line, endCharacter));
         const message = `Reset '${signal.name}' missing`;
-        this.messages.push({
+        this.addMessage({
           range,
           code,
           severity: DiagnosticSeverity.Error,
           message
-        });
+        }, LinterRules.Reset, signal.name.text);
       }
     }
   }
@@ -344,14 +379,14 @@ export class VhdlLinter {
       for (const port of entity.ports) {
         const [unread, unwritten] = this.checkUnusedPerArchitecture(architecture, port);
         if (unread && port.direction === 'in') {
-          this.messages.push({
+          this.addMessage({
             range: port.range,
             severity: DiagnosticSeverity.Warning,
             message: `Not reading input port '${port.name}'`
           });
         }
         if (unwritten && port.direction === 'out') {
-          this.messages.push({
+          this.addMessage({
             range: port.range,
             severity: DiagnosticSeverity.Warning,
             message: `Not writing output port '${port.name}'`
@@ -362,14 +397,14 @@ export class VhdlLinter {
     for (const signal of architecture.signals) {
       const [unread, unwritten] = this.checkUnusedPerArchitecture(architecture, signal);
       if (unread) {
-        this.messages.push({
+        this.addMessage({
           range: signal.range,
           severity: DiagnosticSeverity.Warning,
           message: `Not reading signal '${signal.name}'`
         });
       }
       if (unwritten && !signal.constant) {
-        this.messages.push({
+        this.addMessage({
           range: signal.range,
           severity: DiagnosticSeverity.Warning,
           message: `Not writing signal '${signal.name}'`
@@ -407,7 +442,7 @@ export class VhdlLinter {
               CodeActionKind.QuickFix));
             return actions;
           });
-          this.messages.push({
+          this.addMessage({
             range: port.range,
             severity: DiagnosticSeverity.Error,
             message: `input port '${port.name}' begins with 'o_'!`,
@@ -427,7 +462,7 @@ export class VhdlLinter {
               CodeActionKind.QuickFix));
             return actions;
           });
-          this.messages.push({
+          this.addMessage({
             range: port.range,
             severity: DiagnosticSeverity.Information,
             message: `input port '${port.name}' should begin with i_`,
@@ -457,7 +492,7 @@ export class VhdlLinter {
               CodeActionKind.QuickFix));
             return actions;
           });
-          this.messages.push({
+          this.addMessage({
             range: port.range,
             severity: DiagnosticSeverity.Error,
             message: `ouput port '${port.name}' begins with 'i_'!`,
@@ -477,7 +512,7 @@ export class VhdlLinter {
               CodeActionKind.QuickFix));
             return actions;
           });
-          this.messages.push({
+          this.addMessage({
             range: port.range,
             severity: DiagnosticSeverity.Information,
             message: `ouput port '${port.name}' should begin with 'o_'`
@@ -505,7 +540,7 @@ export class VhdlLinter {
       if (instantiation.entityInstantiation) {
         const entity = this.getProjectEntity(instantiation);
         if (!entity) {
-          this.messages.push({
+          this.addMessage({
             range: instantiation.range,
             severity: DiagnosticSeverity.Error,
             message: `can not find entity ${instantiation.componentName}`
@@ -537,7 +572,7 @@ export class VhdlLinter {
                     CodeActionKind.QuickFix));
                   return actions;
                 });
-                this.messages.push({
+                this.addMessage({
                   range: portMapping.range,
                   severity: DiagnosticSeverity.Error,
                   message: `no port ${portMapping.name.map(name => name.text).join(', ')} on entity ${instantiation.componentName}`,
@@ -550,7 +585,7 @@ export class VhdlLinter {
           }
           for (const port of entity.ports) {
             if (port.direction === 'in' && typeof port.defaultValue === 'undefined' && typeof foundPorts.find(portSearch => portSearch === port) === 'undefined') {
-              this.messages.push({
+              this.addMessage({
                 range: instantiation.range,
                 severity: DiagnosticSeverity.Error,
                 message: `input port ${port.name} is missing in port map and has no default value on entity ${instantiation.componentName}`
@@ -560,7 +595,7 @@ export class VhdlLinter {
 
         }
       } else {
-        this.messages.push({
+        this.addMessage({
           range: instantiation.range,
           severity: DiagnosticSeverity.Hint,
           message: `can not evaluate instantiation via component`
