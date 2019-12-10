@@ -266,20 +266,20 @@ export class VhdlLinter {
           const actions = [];
           for (const statement of registerProcess.statements) {
             if (statement instanceof OIf) {
-              const change = this.tree.originalText.split('\n')[registerProcess.range.start.line - 1].match(/--\s*vhdl-linter-parameter-next-line/i) === null ?
-                TextEdit.insert(registerProcess.range.start, `--vhdl-linter-parameter-next-line ${signal.name.text}\n` + ' '.repeat(registerProcess.range.start.character)) :
-                TextEdit.insert(Position.create(registerProcess.range.start.line - 1, this.tree.originalText.split('\n')[registerProcess.range.start.line - 1].length), ` ${signal.name.text}`);
-              actions.push(CodeAction.create(
-                'Ignore reset for ' + signal.name,
-                {
-                  changes: {
-                    [textDocumentUri]: [change]
-                  }
-                },
-                CodeActionKind.QuickFix
-              ));
               for (const clause of statement.clauses) {
                 if (clause.condition.match(/res|rst/i)) {
+                  const change = this.tree.originalText.split('\n')[registerProcess.range.start.line - 1].match(/--\s*vhdl-linter-parameter-next-line/i) === null ?
+                    TextEdit.insert(registerProcess.range.start, `--vhdl-linter-parameter-next-line ${signal.name.text}\n` + ' '.repeat(registerProcess.range.start.character)) :
+                    TextEdit.insert(Position.create(registerProcess.range.start.line - 1, this.tree.originalText.split('\n')[registerProcess.range.start.line - 1].length), ` ${signal.name.text}`);
+                  actions.push(CodeAction.create(
+                    'Ignore reset for ' + signal.name,
+                    {
+                      changes: {
+                        [textDocumentUri]: [change]
+                      }
+                    },
+                    CodeActionKind.QuickFix
+                  ));
                   let resetValue = null;
                   if (signal.type.match(/^std_u?logic_vector|unsigned|signed/i)) {
                     resetValue = `(others => '0')`;
