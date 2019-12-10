@@ -290,19 +290,19 @@ export class VhdlLinter {
                       },
                       CodeActionKind.QuickFix
                     ));
-                    const change = this.tree.originalText.split('\n')[registerProcess.range.start.line - 1].match(/--\s*vhdl-linter-parameter-next-line/i) === null ?
-                      TextEdit.insert(registerProcess.range.start, `--vhdl-linter-parameter-next-line ${signal.name.text}\n` + ' '.repeat(registerProcess.range.start.character)) :
-                      TextEdit.insert(Position.create(registerProcess.range.start.line - 1, this.tree.originalText.split('\n')[registerProcess.range.start.line - 1].length), ` ${signal.name.text}`);
-                    actions.push(CodeAction.create(
-                      'Ignore reset for ' + signal.name,
-                      {
-                        changes: {
-                          [textDocumentUri]: [change]
-                        }
-                      },
-                      CodeActionKind.QuickFix
-                    ));
                   }
+                  const change = this.tree.originalText.split('\n')[registerProcess.range.start.line - 1].match(/--\s*vhdl-linter-parameter-next-line/i) === null ?
+                    TextEdit.insert(registerProcess.range.start, `--vhdl-linter-parameter-next-line ${signal.name.text}\n` + ' '.repeat(registerProcess.range.start.character)) :
+                    TextEdit.insert(Position.create(registerProcess.range.start.line - 1, this.tree.originalText.split('\n')[registerProcess.range.start.line - 1].length), ` ${signal.name.text}`);
+                  actions.push(CodeAction.create(
+                    'Ignore reset for ' + signal.name,
+                    {
+                      changes: {
+                        [textDocumentUri]: [change]
+                      }
+                    },
+                    CodeActionKind.QuickFix
+                  ));
                 }
               }
             }
