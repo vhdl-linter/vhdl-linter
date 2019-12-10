@@ -213,6 +213,11 @@ export class OFile {
       if (parent instanceof OForGenerate) {
         found = found || parent.variable.toLowerCase() === read.text.toLowerCase() && parent;
       }
+      if (parent instanceof OProcess) {
+        for (const variable of parent.variables) {
+          found = found || variable.name.toLowerCase() === read.text.toLowerCase() && variable;
+        }
+      }
       parent = (parent as any).parent;
       counter--;
       if (counter === 0) {
@@ -249,6 +254,11 @@ export class OFile {
       if (parent instanceof OArchitecture) {
         for (const signal of parent.signals) {
           found = found || signal.name.text.toLowerCase() === write.text.toLowerCase();
+        }
+      }
+      if (parent instanceof OProcess) {
+        for (const variable of parent.variables) {
+          found = found || (variable.name.toLowerCase() === write.text.toLowerCase() && true);
         }
       }
       parent = (parent as any).parent;
