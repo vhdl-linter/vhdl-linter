@@ -71,7 +71,11 @@ connection.onInitialize((params: InitializeParams) => {
       documentFormattingProvider: true,
       referencesProvider: true,
       foldingRangeProvider: true,
-      documentHighlightProvider: true
+      documentHighlightProvider: true,
+      executeCommandProvider: { commands: ['vhdl-linter:lsp-command'] },
+      codeLensProvider: {
+        resolveProvider: true
+      }
     }
   };
 });
@@ -207,7 +211,8 @@ const findDefinition = async (params: IFindDefinitionParams) => {
     linter.packages.forEach(pkg => pkg.functions.forEach(func => {
       if (func.name.toLowerCase() === candidate.name.toLowerCase()) {
         definition = func;
-      }}));
+      }
+    }));
     if (definition) {
       return {
         range: definition.range,
@@ -402,7 +407,45 @@ connection.onDocumentFormatting(async (params: DocumentFormattingParams): Promis
 });
 connection.onFoldingRanges(foldingHandler);
 connection.onDocumentHighlight(documentHighlightHandler);
+connection.onCodeLens(async (params) => {
 
+  await initialization;
+  const linter = linters.get(params.textDocument.uri);
+  if (typeof linter === 'undefined') {
+    return [];
+  }
+  if (typeof linter.tree === 'undefined') {
+    return [];
+  }
+  return linter.getCodeLens(params.textDocument.uri);
+});
+connection.onExecuteCommand(async params => {
+  await initialization;
+  if (!params.arguments) {
+    return;
+  }
+  const textDocumentUri = params.arguments[0];
+  const linter = linters.get(textDocumentUri);
+  if (typeof linter === 'undefined') {
+    return;
+  }
+  const callback = linter.commandCallbackRegistry[parseInt(params.arguments[1], 10)];
+  const edits: TextEdit[] = [];
+  if (typeof callback === 'function') {
+    edits.push(...callback(textDocumentUri));
+  }
+  const document = documents.get(textDocumentUri);
+  if (!document) {
+    return;
+  }
+  await connection.workspace.applyEdit({
+    edit: {
+      changes: {
+        [textDocumentUri]: edits
+      }
+    }
+  });
+});
 documents.listen(connection);
 
 // Listen on the connection

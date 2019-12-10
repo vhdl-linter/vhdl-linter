@@ -1,4 +1,4 @@
-import { OFile, OIf, OSignalLike, OSignal, OArchitecture, OEntity, OPort, OInstantiation, OWrite, ORead, OFileWithEntity, OFileWithPackage, OFileWithEntityAndArchitecture, ORecord, OPackage, ParserError, OEnum, OGenericActual, OMapping, OPortMap, MagicCommentType } from './parser/objects';
+import { OFile, OIf, OSignalLike, OSignal, OArchitecture, OEntity, OPort, OInstantiation, OWrite, ORead, OFileWithEntity, OFileWithPackage, OFileWithEntityAndArchitecture, ORecord, OPackage, ParserError, OEnum, OGenericActual, OMapping, OPortMap, MagicCommentType, OProcess } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 import { findBestMatch } from 'string-similarity';
@@ -10,7 +10,9 @@ import {
   Diagnostic,
   TextEdit,
   CodeActionKind,
-  DiagnosticSeverity
+  DiagnosticSeverity,
+  CodeLens,
+  Command
 } from 'vscode-languageserver';
 import { ThemeIcon } from 'vscode';
 import { type } from 'os';
@@ -19,6 +21,7 @@ export enum LinterRules {
   Reset
 }
 export type diagnosticCodeActionCallback = (textDocumentUri: string) => CodeAction[];
+export type commandCallback = (textDocumentUri: string) => TextEdit[];
 export class VhdlLinter {
   messages: Diagnostic[] = [];
   tree: OFileWithEntityAndArchitecture | OFileWithEntity | OFileWithPackage | OFile;
@@ -65,12 +68,19 @@ export class VhdlLinter {
   addCodeActionCallback(handler: diagnosticCodeActionCallback): number {
     return this.diagnosticCodeActionRegistry.push(handler) - 1;
   }
-  addMessage(diagnostic: Diagnostic, rule: LinterRules, parameter: string): void;
-  addMessage(diagnostic: Diagnostic): void;
-  addMessage(diagnostic: Diagnostic, rule?: LinterRules, parameter?: string) {
-    const matchingMagiComments = this.tree.magicComments.filter(magicComment => (magicComment.range.start.character <= diagnostic.range.start.character && magicComment.range.start.line <= diagnostic.range.start.line &&
-      magicComment.range.end.character >= diagnostic.range.start.character && magicComment.range.end.line >= diagnostic.range.start.line) || (magicComment.range.start.character <= diagnostic.range.end.character && magicComment.range.start.line <= diagnostic.range.end.line &&
-        magicComment.range.end.character >= diagnostic.range.end.character && magicComment.range.end.line >= diagnostic.range.end.line)).filter(magicComment => {
+  commandCallbackRegistry: commandCallback[] = [];
+  addCommandCallback(title: string, textDocumentUri: string, handler: commandCallback): Command {
+    const counter = this.commandCallbackRegistry.push(handler) - 1;
+    return {
+      title,
+      command: 'vhdl-linter:lsp-command',
+      arguments: [textDocumentUri, counter]
+    };
+  }
+  checkMagicComments(range: Range, rule?: LinterRules, parameter?: string) {
+    const matchingMagiComments = this.tree.magicComments.filter(magicComment => (magicComment.range.start.character <= range.start.character && magicComment.range.start.line <= range.start.line &&
+      magicComment.range.end.character >= range.start.character && magicComment.range.end.line >= range.start.line) || (magicComment.range.start.character <= range.end.character && magicComment.range.start.line <= range.end.line &&
+        magicComment.range.end.character >= range.end.character && magicComment.range.end.line >= range.end.line)).filter(magicComment => {
           if (magicComment.commentType === MagicCommentType.Disable) {
             return true;
           }
@@ -79,7 +89,13 @@ export class VhdlLinter {
           }
           return false;
         });
-    if (matchingMagiComments.length === 0) {
+    return matchingMagiComments.length === 0;
+  }
+  addMessage(diagnostic: Diagnostic, rule: LinterRules, parameter: string): void;
+  addMessage(diagnostic: Diagnostic): void;
+  addMessage(diagnostic: Diagnostic, rule?: LinterRules, parameter?: string) {
+
+    if (this.checkMagicComments(diagnostic.range, rule, parameter)) {
       this.messages.push(diagnostic);
     }
 
@@ -239,6 +255,70 @@ export class VhdlLinter {
         !this.tree.isValidWrite(obj) && this.pushWriteError(obj);
       }
     }
+  }
+  getCodeLens(textDocumentUri: string): CodeLens[] {
+    if (!(this.tree instanceof OFileWithEntityAndArchitecture)) {
+      return [];
+    }
+    const architecture = this.tree.architecture;
+    let signalLike: OSignalLike[] = this.tree.architecture.signals;
+    signalLike = signalLike.concat(this.tree.entity.ports);
+    const signalsMissingReset = signalLike.filter(signal => {
+      if (signal.isRegister() === false) {
+        return false;
+      }
+      for (const process of architecture.processes) {
+        if (process.isRegisterProcess()) {
+          for (const reset of process.getResets()) {
+            if (reset.toLowerCase() === signal.name.text.toLowerCase()) {
+              return false;
+            }
+          }
+        }
+      }
+      const registerProcess = signal.getRegisterProcess();
+      if (!registerProcess) {
+        return false;
+      }
+      return this.checkMagicComments(registerProcess.range, LinterRules.Reset, signal.name.text);
+    });
+    if (signalsMissingReset.length === 0) {
+      return [];
+    }
+    const registerProcessMap = new Map<OProcess, OSignalLike[]>();
+    for (const signal of signalsMissingReset) {
+      const registerProcess = signal.getRegisterProcess();
+      if (!registerProcess) {
+        continue;
+      }
+      let registerProcessList = registerProcessMap.get(registerProcess);
+      if (!registerProcessList) {
+        registerProcessList = [];
+        registerProcessMap.set(registerProcess, registerProcessList);
+      }
+      registerProcessList.push(signal);
+    }
+    const codeLenses: CodeLens[] = [];
+    for (const [registerProcess, signalLikes] of registerProcessMap.entries()) {
+      const registerNameList = signalLikes.map(signalLike => signalLike.name.text).join(' ');
+      codeLenses.push({
+        range: registerProcess.range,
+        command: this.addCommandCallback('Ignore all missing resets in process ' + registerProcess.label, textDocumentUri, () => {
+          const change = this.tree.originalText.split('\n')[registerProcess.range.start.line - 1].match(/--\s*vhdl-linter-parameter-next-line/i) === null ?
+            TextEdit.insert(registerProcess.range.start, `--vhdl-linter-parameter-next-line ${registerNameList}\n` + ' '.repeat(registerProcess.range.start.character)) :
+            TextEdit.insert(Position.create(registerProcess.range.start.line - 1, this.tree.originalText.split('\n')[registerProcess.range.start.line - 1].length), ` ${registerNameList}`);
+          return [change];
+        })
+        // {
+        //   changes: {
+        //     [textDocumentUri]: [change]
+        //   }
+        // },
+        // CodeActionKind.QuickFix
+      });
+    }
+    return codeLenses;
+
   }
   checkResets() {
     if (!(this.tree instanceof OFileWithEntityAndArchitecture)) {
