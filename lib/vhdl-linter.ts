@@ -14,14 +14,16 @@ import {
   CodeLens,
   Command
 } from 'vscode-languageserver';
-import { ThemeIcon } from 'vscode';
-import { type } from 'os';
-import { match } from 'minimatch';
 export enum LinterRules {
   Reset
 }
+export interface IAddSignalCommandArguments {
+  textDocumentUri: string;
+  signalName: string;
+  range: Range;
+}
 export type diagnosticCodeActionCallback = (textDocumentUri: string) => CodeAction[];
-export type commandCallback = (textDocumentUri: string) => TextEdit[];
+export type commandCallback = (textDocumentUri: string, ...args: any[]) => TextEdit[];
 export class VhdlLinter {
   messages: Diagnostic[] = [];
   tree: OFileWithEntityAndArchitecture | OFileWithEntity | OFileWithPackage | OFile;
@@ -195,7 +197,16 @@ export class VhdlLinter {
   }
 
   private pushWriteError(write: OWrite) {
+    const code = this.addCodeActionCallback((textDocumentUri: string) => {
+      const actions = [];
+      if (this.tree instanceof OFileWithEntityAndArchitecture) {
+        const args: IAddSignalCommandArguments = { textDocumentUri, signalName: write.text, range: this.tree.architecture.range };
+        actions.push(CodeAction.create('add signal to architecture', Command.create('add signal to architecture', 'vhdl-linter:add-signal', args)));
+      }
+      return actions;
+    });
     this.addMessage({
+      code,
       range: write.range,
       severity: DiagnosticSeverity.Error,
       message: `signal '${write.text}' is written but not declared`
@@ -223,6 +234,10 @@ export class VhdlLinter {
             CodeActionKind.QuickFix
           ));
         }
+      }
+      if (this.tree instanceof OFileWithEntityAndArchitecture) {
+        const args: IAddSignalCommandArguments = { textDocumentUri, signalName: read.text, range: this.tree.architecture.range };
+        actions.push(CodeAction.create('add signal to architecture', Command.create('add signal to architecture', 'vhdl-linter:add-signal', args)));
       }
       return actions;
     });

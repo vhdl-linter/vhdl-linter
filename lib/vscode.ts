@@ -1,5 +1,5 @@
 import * as path from 'path';
-import { workspace, ExtensionContext, commands, window, env } from 'vscode';
+import { workspace, ExtensionContext, commands, window, env, Position } from 'vscode';
 
 import {
   LanguageClient,
@@ -8,7 +8,7 @@ import {
   TransportKind
 } from 'vscode-languageclient';
 import { copy, CopyTypes } from './vhdl-entity-converter';
-import { VhdlLinter } from './vhdl-linter';
+import { VhdlLinter, IAddSignalCommandArguments } from './vhdl-linter';
 import { ProjectParser } from './project-parser';
 
 let client: LanguageClient;
@@ -51,6 +51,24 @@ export function activate(context: ExtensionContext) {
 
   // Start the client. This will also launch the server
   client.start();
+  context.subscriptions.push(commands.registerCommand('vhdl-linter:add-signal', async (args: IAddSignalCommandArguments) => {
+    const editor = window.activeTextEditor;
+    if (!editor) {
+      return;
+    }
+    const length = await window.showInputBox({
+      prompt: 'Give Length for ' + args.signalName,
+      // validateInput: (value: string) => isNaN(parseInt(value, 10)) ? 'Not a Number' : ''
+    });
+    if (!length) {
+      return;
+    }
+    editor.edit(editBuilder => {
+      const type = parseInt(length, 10) === 1 ? 'std_ulogic' : `std_ulogic_vector(${ length } - 1 downto 0)`;
+      editBuilder.insert(new Position(args.range.start.line + 1, 0), `  signal ${args.signalName} : ${type};\n`);
+    });
+
+  }));
   context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-as-instance', () => copy(CopyTypes.Instance)));
   context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-as-sysverilog', () => copy(CopyTypes.Sysverilog)));
   context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-as-signals', () => copy(CopyTypes.Signals)));
