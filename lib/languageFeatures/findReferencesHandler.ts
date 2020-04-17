@@ -1,6 +1,6 @@
 import { ReferenceParams, Location, TextDocumentPositionParams, RenameParams, ResponseError, ErrorCodes, TextDocumentIdentifier, Position, WorkspaceEdit, TextEdit } from 'vscode-languageserver';
 import { initialization, linters } from '../language-server';
-import { OToken, OSignalLike, OName, OState, OPort, OGenericActual, OGenericType } from '../parser/objects';
+import { OToken, OSignalLike, OName, OState, OPort, OGenericActual, OGenericType, OMappingName } from '../parser/objects';
 
 export async function findReferences(params: { textDocument: TextDocumentIdentifier, position: Position}) {
   await initialization;
@@ -26,7 +26,7 @@ export async function findReferences(params: { textDocument: TextDocumentIdentif
   }
   if (typeof searchString !== 'undefined') {
     return linter.tree.objectList.filter(object => {
-      if (object instanceof OToken) {
+      if (object instanceof OToken && !(object instanceof OMappingName)) {
         return object.text.toLowerCase() === searchString;
       } else if (object instanceof OName) {
         return object.text.toLowerCase() === searchString;
@@ -56,7 +56,6 @@ export async function prepareRenameHandler(params: TextDocumentPositionParams) {
   const candidate = candidates[0];
   if (!candidate) {
     throw new ResponseError(ErrorCodes.InvalidRequest, 'Can not rename this element', 'Can not rename this element');
-
   }
   let searchString: string | undefined;
   if ((candidate instanceof OName)) {
@@ -66,9 +65,9 @@ export async function prepareRenameHandler(params: TextDocumentPositionParams) {
   }
   const defintion = linter.tree.objectList.find(object => {
     if (object instanceof OName) {
-      if (object.parent instanceof OPort || object.parent instanceof OGenericActual || object.parent instanceof OGenericType) {
-        return false;
-      }
+      // if (object.parent instanceof OPort || object.parent instanceof OGenericActual || object.parent instanceof OGenericType) {
+      //   return false;
+      // }
       return object.text.toLowerCase() === searchString;
     }
   });
@@ -79,6 +78,7 @@ export async function prepareRenameHandler(params: TextDocumentPositionParams) {
 }
 export async function renameHandler(params: RenameParams) {
   const references = await findReferences(params);
+  console.log(references.map(reference => `${reference.range.start.line} ${reference.range.start.character}`));
   return {
     changes: {
       [params.textDocument.uri]: references.map(reference => TextEdit.replace(reference.range, params.newName))

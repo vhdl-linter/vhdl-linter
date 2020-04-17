@@ -261,18 +261,51 @@ export class VhdlLinter {
   }
   checkNotDeclared() {
     for (const obj of this.tree.objectList) {
-      if (obj.parent instanceof OMapping && obj.parent.parent instanceof OPortMap) {
-        const mapping = obj.parent;
-        const entity = this.getProjectEntity(obj.parent.parent.parent);
-        if (!entity) {
-          continue;
+      if (obj instanceof OMapping) {
+        if (obj.parent instanceof OPortMap) {
+          const entity = this.getProjectEntity(obj.parent.parent);
+          if (!entity) {
+            continue;
+          }
+          const port = entity.ports.find(port => obj.name.find(name => name.text.toLowerCase() === port.name.text.toLowerCase()));
+          if (!port) {
+            continue;
+          }
+          if (port.direction === 'in') {
+            for (const mapping of obj.mappingIfOutput.flat()) {
+              const index = this.tree.objectList.indexOf(mapping);
+              this.tree.objectList.splice(index, 1);
+            }
+            obj.mappingIfOutput = [[], []];
+          } else {
+            for (const mapping of obj.mappingIfInput) {
+              const index = this.tree.objectList.indexOf(mapping);
+              this.tree.objectList.splice(index, 1);
+            }
+            obj.mappingIfInput = [];
+          }
         }
-        const port = entity.ports.find(port => mapping.name.find(name => name.text.toLowerCase() === port.name.text.toLowerCase()));
-        if (!port) {
-          continue;
-        }
-        if (port.direction === 'in' && obj instanceof OWrite) {
-          continue;
+      }
+    }
+    for (const obj of this.tree.objectList) {
+      if (obj.parent instanceof OMapping) {
+        if (obj.parent.parent instanceof OPortMap) {
+          const mapping = obj.parent;
+          const entity = this.getProjectEntity(obj.parent.parent.parent);
+          if (!entity) {
+            continue;
+          }
+          const port = entity.ports.find(port => mapping.name.find(name => name.text.toLowerCase() === port.name.text.toLowerCase()));
+          if (!port) {
+            continue;
+          }
+          if (port.direction === 'in' && obj instanceof OWrite) {
+            continue;
+          }
+
+
+        } else {
+          // TODO: Generic Map
         }
       }
       if (obj instanceof ORead) {
@@ -671,7 +704,7 @@ export class VhdlLinter {
                     `Replace with ${bestMatch.bestMatch.target} (score: ${bestMatch.bestMatch.rating})`,
                     {
                       changes: {
-                        [textDocumentUri]: [TextEdit.replace(Range.create(portMapping.name[0].range.start, portMapping.name[portMapping.name.length - 1].range.start)
+                        [textDocumentUri]: [TextEdit.replace(Range.create(portMapping.name[0].range.start, portMapping.name[portMapping.name.length - 1].range.end)
                           , bestMatch.bestMatch.target)]
                       }
                     },
