@@ -135,10 +135,21 @@ export class VhdlLinter {
       }
     }
   }
+  checkLibrary() {
+    if (this.tree && this.tree instanceof OFileWithEntity && typeof this.tree.entity.library === 'undefined') {
+      this.addMessage({
+        range: Range.create(Position.create(0, 0), Position.create(1, 0)),
+        severity: DiagnosticSeverity.Warning,
+        message: `Please define library magic comment \n --!@library libraryName`
+      });
+
+     }
+  }
   checkAll() {
     if (this.tree) {
       this.parsePackages();
       this.checkNotDeclared();
+      this.checkLibrary();
       if (this.tree instanceof OFileWithEntityAndArchitecture) {
         this.checkResets();
         this.checkUnused(this.tree.architecture, this.tree.entity);

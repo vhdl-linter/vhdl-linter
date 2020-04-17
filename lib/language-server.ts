@@ -24,7 +24,8 @@ import {
   FoldingRangeParams,
   CodeActionKind,
   CancellationToken,
-  ErrorCodes
+  ErrorCodes,
+  PrepareRenameRequest
 } from 'vscode-languageserver';
 import { VhdlLinter } from './vhdl-linter';
 import { ProjectParser } from './project-parser';
@@ -37,6 +38,7 @@ import { promisify } from 'util';
 import { foldingHandler } from './languageFeatures/folding';
 import { handleOnDocumentSymbol } from './languageFeatures/documentSymbol';
 import { documentHighlightHandler } from './languageFeatures/documentHightlightHandler';
+import { findReferencesHandler, prepareRenameHandler, renameHandler } from './languageFeatures/findReferencesHandler';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -75,6 +77,9 @@ connection.onInitialize((params: InitializeParams) => {
       executeCommandProvider: { commands: ['vhdl-linter:lsp-command'] },
       codeLensProvider: {
         resolveProvider: true
+      },
+      renameProvider: {
+        prepareProvider: true
       }
     }
   };
@@ -389,6 +394,8 @@ connection.onReferences(async (params: ReferenceParams): Promise<Location[]> => 
   }
   return [];
 });
+connection.onPrepareRename(prepareRenameHandler);
+connection.onRenameRequest(renameHandler);
 connection.onDocumentFormatting(async (params: DocumentFormattingParams): Promise<TextEdit[] | null> => {
   const document = documents.get(params.textDocument.uri);
   if (typeof document === 'undefined') {
@@ -419,6 +426,7 @@ connection.onCodeLens(async (params) => {
   }
   return linter.getCodeLens(params.textDocument.uri);
 });
+connection.onReferences(findReferencesHandler);
 connection.onExecuteCommand(async params => {
   await initialization;
   if (!params.arguments) {
