@@ -322,11 +322,12 @@ export class VhdlLinter {
     const architecture = this.tree.architecture;
     let signalLike: OSignalLike[] = this.tree.architecture.signals;
     signalLike = signalLike.concat(this.tree.entity.ports);
+    const processes = this.tree.objectList.filter(object => object instanceof OProcess) as OProcess[];
     const signalsMissingReset = signalLike.filter(signal => {
       if (signal.isRegister() === false) {
         return false;
       }
-      for (const process of architecture.processes) {
+      for (const process of processes) {
         if (process.isRegisterProcess()) {
           for (const reset of process.getResets()) {
             if (reset.toLowerCase() === signal.name.text.toLowerCase()) {
@@ -385,12 +386,14 @@ export class VhdlLinter {
     }
     let signalLike: OSignalLike[] = this.tree.architecture.signals;
     signalLike = signalLike.concat(this.tree.entity.ports);
+    const processes = this.tree.objectList.filter(object => object instanceof OProcess) as OProcess[];
+
     for (const signal of signalLike) {
       if (signal.isRegister() === false) {
         continue;
       }
       let resetFound = false;
-      for (const process of this.tree.architecture.processes) {
+      for (const process of processes) {
         if (process.isRegisterProcess()) {
           for (const reset of process.getResets()) {
             if (reset.toLowerCase() === signal.name.text.toLowerCase()) {
