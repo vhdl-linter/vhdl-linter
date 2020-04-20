@@ -403,10 +403,6 @@ export class OSignalLike extends ObjectBase {
     }
     this.register = false;
     // const processes = this.parent instanceof OArchitecture ? this.parent.processes : (this.parent.parent instanceof OFileWithEntityAndArchitecture ? this.parent.parent.architecture.processes : []);
-    // const root = this.getRoot();
-    // if (!(root instanceof OFileWithEntityAndArchitecture)) {
-    //   throw new Error();
-    // }
     const processes = this.getRoot().objectList.filter(object => object instanceof OProcess) as OProcess[];
     // TODO: Redeclaration of Signals
     for (const process of processes) {
