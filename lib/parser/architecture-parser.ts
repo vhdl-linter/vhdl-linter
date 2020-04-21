@@ -33,7 +33,7 @@ export class ArchitectureParser extends ParserBase {
       const { variable, start, end, startPosI } = noElse as { variable: string, start: string, end: string, startPosI: number };
       architecture = new OForGenerate(this.parent, this.pos.i, this.getEndOfLineI(), start, end);
       const variableObject = new OVariable(architecture, startPosI, startPosI + variable.length);
-      variableObject.type = 'integer';
+      variableObject.type = [];
       variableObject.name = new OName(variableObject, startPosI, startPosI + variable.length);
       variableObject.name.text = variable;
       architecture.variable = variableObject;
@@ -45,11 +45,8 @@ export class ArchitectureParser extends ParserBase {
       this.expect('is');
     }
 
-    const { signals, types, functions } = new DeclarativePartParser(this.text, this.pos, this.file, architecture).parse(structureName !== 'architecture');
+    new DeclarativePartParser(this.text, this.pos, this.file, architecture).parse(structureName !== 'architecture');
     this.maybeWord('begin');
-    architecture.signals = signals;
-    architecture.types = types;
-    architecture.functions = functions;
 
     while (this.pos.i < this.text.length) {
       this.advanceWhitespace();

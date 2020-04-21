@@ -476,11 +476,11 @@ export class VhdlLinter {
                     CodeActionKind.QuickFix
                   ));
                   let resetValue = null;
-                  if (signal.type.match(/^std_u?logic_vector|unsigned|signed/i)) {
+                  if (signal.type.map(read => read.text).join(' ').match(/^std_u?logic_vector|unsigned|signed/i)) {
                     resetValue = `(others => '0')`;
-                  } else if (signal.type.match(/^std_u?logic/i)) {
+                  } else if (signal.type.map(read => read.text).join(' ').match(/^std_u?logic/i)) {
                     resetValue = `'0'`;
-                  } else if (signal.type.match(/^integer|natural|positive/i)) {
+                  } else if (signal.type.map(read => read.text).join(' ').match(/^integer|natural|positive/i)) {
                     resetValue = `0`;
                   }
                   if (resetValue !== null) {

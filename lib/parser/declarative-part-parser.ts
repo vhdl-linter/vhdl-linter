@@ -8,9 +8,6 @@ export class DeclarativePartParser extends ParserBase {
     this.debug('start');
   }
   parse(optional: boolean = false, lastWord = 'begin') {
-    const signals: OSignal[] = [];
-    const types: OType[] = [];
-    const functions: OFunction[] = [];
     let nextWord = this.getNextWord({ consume: false }).toLowerCase();
     let multiSignals: string[] = [];
     while (nextWord !== lastWord) {
@@ -30,23 +27,23 @@ export class DeclarativePartParser extends ParserBase {
         }
         this.expect(':');
         const iBeforeType = this.pos.i;
-        signal.type = this.getType(false);
+        const { typeReads, defaultValueReads } = this.getType(signal, false);
+        signal.type = typeReads;
+        signal.defaultValue = defaultValueReads;
         signal.range.end.i = this.pos.i;
         this.advanceSemicolon();
-        if (signal.type.indexOf(':=') > -1) {
-          const split = signal.type.split(':=');
-          signal.defaultValue = this.extractReads(signal, split[1].trim(), iBeforeType + signal.type.indexOf(':=') + 2);
-          signal.type = split[0].trim();
-        }
-        signal.reads = this.extractReads(signal, signal.type, iBeforeType);
         // console.log(multiSignals, 'multiSignals');
-        for (const multiSignalName of multiSignals) {
-          const multiSignal = new OSignal(this.parent, -1, -1);
-          Object.assign(signal, multiSignal);
-          multiSignal.name.text = multiSignalName;
-          signals.push(multiSignal);
+        // for (const multiSignalName of multiSignals) {
+        //   const multiSignal = new OSignal(this.parent, -1, -1);
+        //   Object.assign(signal, multiSignal);
+        //   multiSignal.name.text = multiSignalName;
+        //   this.parent.signals.push(multiSignal);
+        // }
+        if (this.parent instanceof OPackage) {
+          this.parent.constants.push(signal);
+        } else {
+          this.parent.signals.push(signal);
         }
-        signals.push(signal);
         multiSignals = [];
       } else if (nextWord === 'attribute') {
         this.getNextWord();
@@ -73,7 +70,7 @@ export class DeclarativePartParser extends ParserBase {
             return state;
           });
           type.range.end.i = this.pos.i;
-          types.push(type);
+          this.parent.types.push(type);
           this.expect(';');
         } else if (this.test(/^[^;]*units/i)) {
           this.advancePast('units');
@@ -87,7 +84,7 @@ export class DeclarativePartParser extends ParserBase {
           this.expect('end');
           this.expect('units');
           type.range.end.i = this.pos.i;
-          types.push(type);
+          this.parent.types.push(type);
           this.expect(';');
         } else {
           const nextWord = this.getNextWord().toLowerCase();
@@ -109,7 +106,7 @@ export class DeclarativePartParser extends ParserBase {
             this.maybeWord(type.name);
           }
           type.range.end.i = this.pos.i;
-          types.push(type);
+          this.parent.types.push(type);
           this.advancePast(';');
         }
       } else if (nextWord === 'subtype') {
@@ -117,14 +114,14 @@ export class DeclarativePartParser extends ParserBase {
         this.getNextWord();
         type.name = this.getNextWord();
         this.expect('is');
-        types.push(type);
+        this.parent.types.push(type);
         this.advanceSemicolon(true);
       } else if (nextWord === 'alias') {
         const type = new OType(this.parent, this.pos.i, this.getEndOfLineI());
         this.getNextWord();
         type.name = this.getNextWord();
         this.expect('is');
-        types.push(type);
+        this.parent.types.push(type);
         this.advanceSemicolon(true);
       } else if (nextWord === 'component') {
         this.getNextWord();
@@ -156,9 +153,9 @@ export class DeclarativePartParser extends ParserBase {
         }
         func.range.end.i = this.pos.i;
         this.advancePast(';');
-        functions.push(func);
-      } else if (optional && signals.length === 0 && types.length === 0) {
-        return { signals, types, functions };
+        this.parent.functions.push(func);
+      } else if (optional) {
+        return;
       } else if (nextWord === 'package' || nextWord === 'generic') {
         this.advanceSemicolon();
       } else if (nextWord === 'file') {
@@ -169,7 +166,6 @@ export class DeclarativePartParser extends ParserBase {
       }
       nextWord = this.getNextWord({ consume: false }).toLowerCase();
     }
-    return { signals, types, functions };
   }
 
 }

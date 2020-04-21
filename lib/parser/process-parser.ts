@@ -36,12 +36,10 @@ export class ProcessParser extends ParserBase {
       }
       this.expect(':');
       const startType = this.pos.i;
-      let type = this.getType();
-      if (type.indexOf(':=') > -1) {
-        const split = type.split(':=');
-        type = split[0].trim();
-        variable.defaultValue = this.extractReads(variable, split[1], startType + type.indexOf(':=') + 2);
-      }
+      const { typeReads, defaultValueReads } = this.getType(variable, false);
+      variable.type = typeReads;
+      variable.defaultValue = defaultValueReads;
+
       // for (const multiSignalName of multiSignals) {
       //   const multiSignal = new OVariable(process, -1, -1);
       //   Object.assign(variable, multiSignal);

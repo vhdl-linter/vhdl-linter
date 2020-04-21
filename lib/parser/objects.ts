@@ -170,9 +170,9 @@ export class OFileWithPackage extends OFile {
 }
 export class OPackage extends ObjectBase {
   name: string;
-  functions: OFunction[];
-  constants: OSignal[];
-  types: OType[];
+  functions: OFunction[] = [];
+  constants: OSignal[] = [];
+  types: OType[] = [];
   parent: OFile;
   library?: string;
 }
@@ -266,7 +266,7 @@ export class OName extends ObjectBase {
 }
 
 export class OSignalLike extends OMentionable {
-  type: string;
+  type: ORead[];
   name: OName;
   defaultValue?: ORead[];
   private register: boolean | null = null;
@@ -303,7 +303,7 @@ export class OSignalLike extends OMentionable {
   }
 }
 export class OVariable extends OSignalLike {
-  type: string;
+  type: ORead[];
   constant: boolean;
 
 }
@@ -412,6 +412,8 @@ export class OEntity extends ObjectBase {
   generics: OGeneric[] = [];
   signals: OSignal[] = [];
   functions: OFunction[] = [];
+  types: OType[] = [];
+
 
 }
 export class OPort extends OSignalLike {
@@ -423,7 +425,7 @@ export class OGenericType extends OMentionable {
 }
 export class OGenericActual extends OSignalLike {
   name: OName;
-  type: string;
+  type: ORead[];
   defaultValue?: ORead[];
   reads: ORead[];
 }

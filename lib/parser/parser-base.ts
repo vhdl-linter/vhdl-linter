@@ -257,17 +257,31 @@ export class ParserBase {
       this.advanceWhitespace();
     }
   }
-  getType(advanceSemicolon = true) {
+  getType(parent: ObjectBase, advanceSemicolon = true) {
     let type = '';
+    const startI = this.pos.i;
     while (this.text[this.pos.i].match(/[^;]/)) {
       type += this.text[this.pos.i];
       this.pos.i++;
+    }
+    let defaultValueReads;
+    let typeReads;
+    if (type.indexOf(':=') > -1) {
+      const split = type.split(':=');
+      defaultValueReads = this.extractReads(parent, split[1].trim(), startI + type.indexOf(':=') + 2);
+      typeReads = this.extractReads(parent, split[0].trim(), startI);
+    } else {
+      typeReads = this.extractReads(parent, type, startI);
+
     }
     if (advanceSemicolon) {
       this.expect(';');
       this.advanceWhitespace();
     }
-    return type;
+    return {
+      typeReads,
+      defaultValueReads
+    };
   }
   extractReads(parent: ObjectBase | OMapping, text: string, i: number, asMappingName: boolean = false): ORead[] {
     return tokenizer.tokenize(text, parent.getRoot().libraries).filter(token => token.type === 'VARIABLE' || token.type === 'FUNCTION' || token.type === 'RECORD_ELEMENT' || token.type === 'FUNCTION_RECORD_ELEMENT').map(token => {

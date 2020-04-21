@@ -107,8 +107,8 @@ export class EntityParser extends ParserBase {
         const iBeforeType = this.pos.i;
         const { type, defaultValue, endI} = this.getTypeDefintion(port);
         port.range.end.i = endI;
-        port.type = type;
-        port.reads = this.extractReads(port, port.type, iBeforeType);
+        // port.type = type;
+        port.type = this.extractReads(port, type, iBeforeType);
 
         port.defaultValue = defaultValue;
         ports.push(port);

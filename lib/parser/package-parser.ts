@@ -11,10 +11,7 @@ export class PackageParser extends ParserBase {
     pkg.name = this.getNextWord();
     this.expect('is');
     const declarativePartParser = new DeclarativePartParser(this.text, this.pos, this.file, pkg);
-    const {signals, types, functions} = declarativePartParser.parse(false, 'end');
-    pkg.constants = signals;
-    pkg.types = types;
-    pkg.functions = functions;
+    declarativePartParser.parse(false, 'end');
     this.maybeWord(pkg.name);
     this.advanceSemicolon();
     return pkg;
