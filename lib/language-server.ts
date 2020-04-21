@@ -29,7 +29,7 @@ import {
 } from 'vscode-languageserver';
 import { VhdlLinter } from './vhdl-linter';
 import { ProjectParser } from './project-parser';
-import { OFile, OArchitecture, ORead, OWrite, OSignal, OFunction, OForLoop, OForGenerate, OInstantiation, OMapping, OEntity, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackage, ORecord, ObjectBase, OType, OMappingName, ORecordChild, OEnum, OProcess, OStatement, OIf, OIfClause, OMap, OUseStatement, OState, OToken, OProcedureInstantiation, OName } from './parser/objects';
+import { OFile, OArchitecture, ORead, OWrite, OSignal, OFunction, OForLoop, OForGenerate, OInstantiation, OMapping, OEntity, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackage, ORecord, ObjectBase, OType, OMappingName, ORecordChild, OEnum, OProcess, OStatement, OIf, OIfClause, OMap, OUseStatement, OState, OToken, OProcedureInstantiation, OName, OMentionable, ODefitionable } from './parser/objects';
 import { mkdtempSync, writeFile, readFile } from 'fs';
 import { tmpdir, type } from 'os';
 import { sep } from 'path';
@@ -176,87 +176,98 @@ const findDefinition = async (params: IFindDefinitionParams) => {
   let startI = linter.getIFromPosition(params.position);
   const candidates = linter.tree.objectList.filter(object => object.range.start.i <= startI && startI <= object.range.end.i);
   candidates.sort((a, b) => (a.range.end.i - a.range.start.i) - (b.range.end.i - b.range.start.i));
-  const candidate = candidates[0];
+  let candidate = candidates[0];
   if (!candidate) {
     return null;
   }
-
-  if (candidate instanceof OInstantiation || candidate instanceof OMapping || candidate instanceof OMappingName) {
-    let instantiation: OInstantiation = candidate instanceof OMappingName ? candidate.parent.parent.parent : (candidate instanceof OInstantiation ? candidate : candidate.parent.parent);
-    const entity = linter.getProjectEntity(instantiation);
-    if (!entity) {
-      return null;
-    }
-    if (candidate instanceof OInstantiation) {
-      return {
-        // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
-        range: entity.range,
-        text: entity.getRoot().originalText,
-        // targetSelectionRange:  Range.create(Position.create(0, 0), Position.create(0, 0)),
-        uri: 'file://' + entity.getRoot().file
-      };
-    } else {
-      let mapping = candidate instanceof OMappingName ? candidate.parent : candidate;
-      const port = entity.ports.find(port => mapping.name.find(read => read.text.toLowerCase() === port.name.text.toLowerCase()));
-      if (!port) {
-        return null;
-      }
-      return {
-        // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
-        range: port.range,
-        text: entity.getRoot().originalText,
-        // targetSelectionRange:  Range.create(Position.create(0, 0), Position.create(0, 0)),
-        uri: 'file://' + entity.getRoot().file
-      };
-
-    }
-  } else if (candidate instanceof OProcedureInstantiation) {
-    let definition: OFunction | undefined;
-
-    linter.packages.forEach(pkg => pkg.functions.forEach(func => {
-      if (func.name.toLowerCase() === candidate.name.toLowerCase()) {
-        definition = func;
-      }
-    }));
-    if (definition) {
-      return {
-        range: definition.range,
-        text: definition.getRoot().originalText,
-        uri: 'file://' + definition.getRoot().file
-      };
-    }
-  } else if (candidate instanceof ORead || candidate instanceof OWrite) {
-    let result: false | ObjectBase;
-    result = linter.tree.findRead(candidate, linter.packages);
-    if (typeof result === 'boolean') {
-      return null;
-    }
-    if (result instanceof ORecordChild || result instanceof OState) {
-      result = result.parent;
-    }
+  if (candidate instanceof OName) {
+    candidate = candidate.parent;
+  }
+  if (candidate instanceof ODefitionable && candidate.definition) {
     return {
       // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
-      range: result.range,
-      text: result.getRoot().originalText,
-      // targetSelectionRange: position,
-      uri: 'file://' + result.getRoot().file
-    };
-  } else if (candidate instanceof OUseStatement) {
-    const match = candidate.text.match(/[^.]+\.([^.]+).[^.]+/i);
-    if (!match) {
-      return null;
-    }
-    const packageName = match[1].toLowerCase();
-    const pkg = linter.packages.find(pkg => pkg.name.toLowerCase() === packageName);
-    if (!pkg) {
-      return null;
-    }
-    return {
-      range: pkg.range,
-      text: pkg.getRoot().originalText,
-      uri: 'file://' + pkg.getRoot().file
+      range: candidate.definition.range,
+      text: candidate.definition.getRoot().originalText,
+      // targetSelectionRange:  Range.create(Position.create(0, 0), Position.create(0, 0)),
+      uri: 'file://' + candidate.definition.getRoot().file
     };
   }
+  // if (candidate instanceof OInstantiation || candidate instanceof OMapping || candidate instanceof OMappingName) {
+  //   let instantiation: OInstantiation = candidate instanceof OMappingName ? candidate.parent.parent.parent : (candidate instanceof OInstantiation ? candidate : candidate.parent.parent);
+  //   const entity = linter.getProjectEntity(instantiation);
+  //   if (!entity) {
+  //     return null;
+  //   }
+  //   if (candidate instanceof OInstantiation) {
+  //     return {
+  //       // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
+  //       range: entity.range,
+  //       text: entity.getRoot().originalText,
+  //       // targetSelectionRange:  Range.create(Position.create(0, 0), Position.create(0, 0)),
+  //       uri: 'file://' + entity.getRoot().file
+  //     };
+  //   } else {
+  //     let mapping = candidate instanceof OMappingName ? candidate.parent : candidate;
+  //     const port = entity.ports.find(port => mapping.name.find(read => read.text.toLowerCase() === port.name.text.toLowerCase()));
+  //     if (!port) {
+  //       return null;
+  //     }
+  //     return {
+  //       // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
+  //       range: port.range,
+  //       text: entity.getRoot().originalText,
+  //       // targetSelectionRange:  Range.create(Position.create(0, 0), Position.create(0, 0)),
+  //       uri: 'file://' + entity.getRoot().file
+  //     };
+
+  //   }
+  // } else if (candidate instanceof OProcedureInstantiation) {
+  //   let definition: OFunction | undefined;
+
+  //   linter.packages.forEach(pkg => pkg.functions.forEach(func => {
+  //     if (func.name.toLowerCase() === candidate.name.toLowerCase()) {
+  //       definition = func;
+  //     }
+  //   }));
+  //   if (definition) {
+  //     return {
+  //       range: definition.range,
+  //       text: definition.getRoot().originalText,
+  //       uri: 'file://' + definition.getRoot().file
+  //     };
+  //   }
+  // } else if (candidate instanceof ORead || candidate instanceof OWrite) {
+  //   let result: false | ObjectBase;
+  //   result = linter.tree.findRead(candidate, linter.packages);
+  //   if (typeof result === 'boolean') {
+  //     return null;
+  //   }
+  //   if (result instanceof ORecordChild || result instanceof OState) {
+  //     result = result.parent;
+  //   }
+  //   return {
+  //     // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
+  //     range: result.range,
+  //     text: result.getRoot().originalText,
+  //     // targetSelectionRange: position,
+  //     uri: 'file://' + result.getRoot().file
+  //   };
+  // } else if (candidate instanceof OUseStatement) {
+  //   const match = candidate.text.match(/[^.]+\.([^.]+).[^.]+/i);
+  //   if (!match) {
+  //     return null;
+  //   }
+  //   const packageName = match[1].toLowerCase();
+  //   const pkg = linter.packages.find(pkg => pkg.name.toLowerCase() === packageName);
+  //   if (!pkg) {
+  //     return null;
+  //   }
+  //   return {
+  //     range: pkg.range,
+  //     text: pkg.getRoot().originalText,
+  //     uri: 'file://' + pkg.getRoot().file
+  //   };
+  // }
   return null;
 };
 connection.onHover(async (params, token): Promise<Hover | null> => {

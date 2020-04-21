@@ -1,7 +1,7 @@
 import { ParserBase } from './parser-base';
 import { AssignmentParser } from './assignment-parser';
 
-import { OProcess, OStatement, OForLoop, OIf, OIfClause, OCase, OWhenClause, OVariable, ORead, ObjectBase, OI, OElseClause } from './objects';
+import { OProcess, OStatement, OForLoop, OIf, OIfClause, OCase, OWhenClause, OVariable, ORead, ObjectBase, OI, OElseClause, OName } from './objects';
 import { tokenizer } from './tokenizer';
 
 export class ProcessParser extends ParserBase {
@@ -23,7 +23,10 @@ export class ProcessParser extends ParserBase {
       const variable = new OVariable(process, this.pos.i, this.getEndOfLineI());
       variable.constant = false;
       this.expect('variable');
-      variable.name = this.getNextWord();
+      const startI = this.pos.i;
+      const name = this.getNextWord();
+      variable.name = new OName(variable, startI, startI + name.length);
+      variable.name.text = name;
       let multiSignals: string[] = []; // TODO: Fix this!!
       if (this.text[this.pos.i] === ',') {
         // multiSignals.push(name);
@@ -32,18 +35,19 @@ export class ProcessParser extends ParserBase {
         continue;
       }
       this.expect(':');
+      const startType = this.pos.i;
       let type = this.getType();
       if (type.indexOf(':=') > -1) {
         const split = type.split(':=');
         type = split[0].trim();
-        variable.defaultValue = split[1].trim();
+        variable.defaultValue = this.extractReads(variable, split[1], startType + type.indexOf(':=') + 2);
       }
-      for (const multiSignalName of multiSignals) {
-        const multiSignal = new OVariable(process, -1, -1);
-        Object.assign(variable, multiSignal);
-        multiSignal.name = multiSignalName;
-        process.variables.push(multiSignal);
-      }
+      // for (const multiSignalName of multiSignals) {
+      //   const multiSignal = new OVariable(process, -1, -1);
+      //   Object.assign(variable, multiSignal);
+      //   multiSignal.name = multiSignalName;
+      //   process.variables.push(multiSignal);
+      // }
       process.variables.push(variable);
       multiSignals = [];
       nextWord = this.getNextWord({ consume: false }).toLowerCase();

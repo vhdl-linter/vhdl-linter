@@ -58,7 +58,7 @@ export class InstantiationParser extends ParserBase {
     while (this.pos.i < this.text.length) {
       const mapping = new OMapping(map, this.pos.i, this.getEndOfLineI());
       const mappingNameI = this.pos.i;
-      mapping.name = this.extractReads(mapping, this.getNextWord({re: /^[^=]+/}), mappingNameI) as OMappingName[];
+      mapping.name = this.extractReads(mapping, this.getNextWord({re: /^[^=]+/}), mappingNameI, true) as OMappingName[];
       for (const namePart of mapping.name) {
         Object.setPrototypeOf(namePart, OMappingName.prototype);
       }

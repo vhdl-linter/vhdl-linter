@@ -1,5 +1,5 @@
 import * as escapeStringRegexp from 'escape-string-regexp';
-import { ParserError, OWrite, ORead, OI, OElementRead, ObjectBase } from './objects';
+import { ParserError, OWrite, ORead, OI, OElementRead, ObjectBase, OMappingName, OMapping } from './objects';
 import { config } from './config';
 import { tokenizer } from './tokenizer';
 
@@ -269,15 +269,17 @@ export class ParserBase {
     }
     return type;
   }
-  extractReads(parent: ObjectBase, text: string, i: number): ORead[] {
+  extractReads(parent: ObjectBase | OMapping, text: string, i: number, asMappingName: boolean = false): ORead[] {
     return tokenizer.tokenize(text, parent.getRoot().libraries).filter(token => token.type === 'VARIABLE' || token.type === 'FUNCTION' || token.type === 'RECORD_ELEMENT' || token.type === 'FUNCTION_RECORD_ELEMENT').map(token => {
       let read;
       if (token.type === 'RECORD_ELEMENT' || token.type === 'FUNCTION_RECORD_ELEMENT') {
-        read = new OElementRead(parent, i + token.offset, i + token.offset + token.value.length);
+        read = new OElementRead(parent, i + token.offset, i + token.offset + token.value.length, token.value);
       } else {
-        read = new ORead(parent, i + token.offset, i + token.offset + token.value.length);
+        if (asMappingName && !(parent instanceof OMapping)) {
+          throw new Error();
+        }
+        read = asMappingName ? new OMappingName((parent as OMapping), i + token.offset, i + token.offset + token.value.length, token.value) : new ORead(parent, i + token.offset, i + token.offset + token.value.length, token.value);
       }
-      read.text = token.value;
       return read;
     });
   }
@@ -293,17 +295,15 @@ export class ParserBase {
         token.value === '(' ? braceLevel++ : braceLevel--;
       } else if (token.type === 'VARIABLE' || token.type === 'FUNCTION' || token.type === 'RECORD_ELEMENT' || token.type === 'FUNCTION_RECORD_ELEMENT') {
         if (braceLevel === 0 && !(token.type === 'RECORD_ELEMENT' || token.type === 'FUNCTION_RECORD_ELEMENT')) {
-          const write = new OWrite(parent, i + token.offset, i + token.offset + token.value.length);
-          write.text = token.value;
+          const write = new OWrite(parent, i + token.offset, i + token.offset + token.value.length, token.value);
           writes.push(write);
         } else {
           let read;
           if (token.type === 'RECORD_ELEMENT' || token.type === 'FUNCTION_RECORD_ELEMENT') {
-            read = new OElementRead(parent, i + token.offset, i + token.offset + token.value.length);
+            read = new OElementRead(parent, i + token.offset, i + token.offset + token.value.length, token.value);
           } else {
-            read = new ORead(parent, i + token.offset, i + token.offset + token.value.length);
+            read = new ORead(parent, i + token.offset, i + token.offset + token.value.length, token.value);
           }
-          read.text = token.value;
           reads.push(read);
         }
       }

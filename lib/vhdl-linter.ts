@@ -1,4 +1,4 @@
-import { OFile, OIf, OSignalLike, OSignal, OArchitecture, OEntity, OPort, OInstantiation, OWrite, ORead, OFileWithEntity, OFileWithPackage, OFileWithEntityAndArchitecture, ORecord, OPackage, ParserError, OEnum, OGenericActual, OMapping, OPortMap, MagicCommentType, OProcess } from './parser/objects';
+import { OFile, OIf, OSignalLike, OSignal, OArchitecture, OEntity, OPort, OInstantiation, OWrite, ORead, OFileWithEntity, OFileWithPackage, OFileWithEntityAndArchitecture, ORecord, OPackage, ParserError, OEnum, OGenericActual, OMapping, OPortMap, MagicCommentType, OProcess, OToken, OMappingName, OMap } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 import { findBestMatch } from 'string-similarity';
@@ -66,6 +66,7 @@ export class VhdlLinter {
     //     console.log(`done parsing: ${editorPath}`);
 
   }
+
   diagnosticCodeActionRegistry: diagnosticCodeActionCallback[] = [];
   addCodeActionCallback(handler: diagnosticCodeActionCallback): number {
     return this.diagnosticCodeActionRegistry.push(handler) - 1;
@@ -134,6 +135,76 @@ export class VhdlLinter {
         });
       }
     }
+    for (const read of this.tree.objectList.filter(object => object instanceof ORead && typeof object.definition === 'undefined') as ORead[]) {
+      for (const pkg of packages) {
+        for (const constant of pkg.constants) {
+          if (constant.name.text.toLowerCase() === read.text.toLowerCase()) {
+            read.definition = constant;
+          }
+        }
+        for (const func of pkg.functions) {
+          if (func.name.toLowerCase() === read.text.toLowerCase()) {
+            read.definition = func;
+          }
+        }
+        for (const type of pkg.types) {
+          const typeRead = type.findRead(read);
+          if (typeRead !== false) {
+            read.definition = typeRead;
+          }
+          if (type instanceof OEnum) {
+            for (const state of type.states) {
+              if (state.name.toLowerCase() === read.text.toLowerCase()) {
+                read.definition = state;
+
+              }
+            }
+          } else if (type instanceof ORecord) {
+            for (const child of type.children) {
+              if (child.name.toLowerCase() === read.text.toLowerCase()) {
+                read.definition = child;
+              }
+            }
+          }
+        }
+      }
+    }
+    for (const obj of this.tree.objectList) {
+      if (obj instanceof OMapping) {
+        if (obj.parent instanceof OMap) {
+          const entity = this.getProjectEntity(obj.parent.parent);
+          if (!entity) {
+            continue;
+          }
+          const portOrGeneric = obj.parent instanceof OPortMap ? entity.ports.find(port => obj.name.find(name => name.text.toLowerCase() === port.name.text.toLowerCase())) :
+            entity.generics.find(port => obj.name.find(name => name.text.toLowerCase() === port.name.text.toLowerCase()));
+
+          if (!portOrGeneric) {
+            continue;
+          }
+          obj.definition = portOrGeneric;
+          for (const namePart of obj.name) {
+            namePart.definition = portOrGeneric;
+          }
+          if (portOrGeneric instanceof OPort) {
+            if (portOrGeneric.direction === 'in') {
+              for (const mapping of obj.mappingIfOutput.flat()) {
+                const index = this.tree.objectList.indexOf(mapping);
+                this.tree.objectList.splice(index, 1);
+              }
+              obj.mappingIfOutput = [[], []];
+            } else {
+              for (const mapping of obj.mappingIfInput) {
+                const index = this.tree.objectList.indexOf(mapping);
+                this.tree.objectList.splice(index, 1);
+              }
+              obj.mappingIfInput = [];
+            }
+
+          }
+        }
+      }
+    }
   }
   checkLibrary() {
     if (this.tree && this.tree instanceof OFileWithEntity && typeof this.tree.entity.library === 'undefined') {
@@ -143,7 +214,7 @@ export class VhdlLinter {
         message: `Please define library magic comment \n --!@library libraryName`
       });
 
-     }
+    }
   }
   checkAll() {
     if (this.tree) {
@@ -260,58 +331,40 @@ export class VhdlLinter {
     });
   }
   checkNotDeclared() {
+    // for (const obj of this.tree.objectList) {
+    //   if (obj instanceof OMapping) {
+    //     if (obj.parent instanceof OPortMap) {
+    //       const entity = this.getProjectEntity(obj.parent.parent);
+    //       if (!entity) {
+    //         continue;
+    //       }
+    //       const port = entity.ports.find(port => obj.name.find(name => name.text.toLowerCase() === port.name.text.toLowerCase()));
+    //       if (!port) {
+    //         continue;
+    //       }
+    //       if (port.direction === 'in') {
+    //         for (const mapping of obj.mappingIfOutput.flat()) {
+    //           const index = this.tree.objectList.indexOf(mapping);
+    //           this.tree.objectList.splice(index, 1);
+    //         }
+    //         obj.mappingIfOutput = [[], []];
+    //       } else {
+    //         for (const mapping of obj.mappingIfInput) {
+    //           const index = this.tree.objectList.indexOf(mapping);
+    //           this.tree.objectList.splice(index, 1);
+    //         }
+    //         obj.mappingIfInput = [];
+    //       }
+    //     }
+    //   }
+    // }
     for (const obj of this.tree.objectList) {
-      if (obj instanceof OMapping) {
-        if (obj.parent instanceof OPortMap) {
-          const entity = this.getProjectEntity(obj.parent.parent);
-          if (!entity) {
-            continue;
-          }
-          const port = entity.ports.find(port => obj.name.find(name => name.text.toLowerCase() === port.name.text.toLowerCase()));
-          if (!port) {
-            continue;
-          }
-          if (port.direction === 'in') {
-            for (const mapping of obj.mappingIfOutput.flat()) {
-              const index = this.tree.objectList.indexOf(mapping);
-              this.tree.objectList.splice(index, 1);
-            }
-            obj.mappingIfOutput = [[], []];
-          } else {
-            for (const mapping of obj.mappingIfInput) {
-              const index = this.tree.objectList.indexOf(mapping);
-              this.tree.objectList.splice(index, 1);
-            }
-            obj.mappingIfInput = [];
-          }
-        }
-      }
-    }
-    for (const obj of this.tree.objectList) {
-      if (obj.parent instanceof OMapping) {
-        if (obj.parent.parent instanceof OPortMap) {
-          const mapping = obj.parent;
-          const entity = this.getProjectEntity(obj.parent.parent.parent);
-          if (!entity) {
-            continue;
-          }
-          const port = entity.ports.find(port => mapping.name.find(name => name.text.toLowerCase() === port.name.text.toLowerCase()));
-          if (!port) {
-            continue;
-          }
-          if (port.direction === 'in' && obj instanceof OWrite) {
-            continue;
-          }
-
-
-        } else {
-          // TODO: Generic Map
-        }
-      }
-      if (obj instanceof ORead) {
-        !this.tree.isValidRead(obj, this.packages) && this.pushReadError(obj);
-      } else if (obj instanceof OWrite) {
-        !this.tree.isValidWrite(obj) && this.pushWriteError(obj);
+      if (obj instanceof ORead && typeof obj.definition === 'undefined') {
+        this.pushReadError(obj);
+      } else if (obj instanceof OWrite && typeof obj.definition === 'undefined') {
+        this.pushWriteError(obj);
+      } else if (obj instanceof OMappingName && typeof obj.definition === 'undefined') {
+        this.pushReadError(obj);
       }
     }
   }

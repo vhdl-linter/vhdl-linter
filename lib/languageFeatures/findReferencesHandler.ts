@@ -1,8 +1,8 @@
 import { ReferenceParams, Location, TextDocumentPositionParams, RenameParams, ResponseError, ErrorCodes, TextDocumentIdentifier, Position, WorkspaceEdit, TextEdit } from 'vscode-languageserver';
 import { initialization, linters } from '../language-server';
-import { OToken, OSignalLike, OName, OState, OPort, OGenericActual, OGenericType, OMappingName } from '../parser/objects';
+import { OToken, OSignalLike, OName, OState, OPort, OGenericActual, OGenericType, OMappingName, OMentionable, ObjectBase, OFile } from '../parser/objects';
 
-export async function findReferences(params: { textDocument: TextDocumentIdentifier, position: Position}) {
+export async function findReferences(params: { textDocument: TextDocumentIdentifier, position: Position }) {
   await initialization;
   const linter = linters.get(params.textDocument.uri);
   if (typeof linter === 'undefined') {
@@ -14,26 +14,19 @@ export async function findReferences(params: { textDocument: TextDocumentIdentif
   let startI = linter.getIFromPosition(params.position);
   const candidates = linter.tree.objectList.filter(object => object.range.start.i <= startI && startI <= object.range.end.i);
   candidates.sort((a, b) => (a.range.end.i - a.range.start.i) - (b.range.end.i - b.range.start.i));
-  const candidate = candidates[0];
+  let candidate = candidates[0];
   if (!candidate) {
     return [];
   }
-  let searchString: string | undefined;
-  if ((candidate instanceof OName)) {
-    searchString = candidate.text.toLowerCase();
-  } else if (candidate instanceof OToken) {
-    searchString = candidate.text.toLowerCase();
+  if (candidate instanceof OName && candidate.parent instanceof ObjectBase) {
+    candidate = candidate.parent;
   }
-  if (typeof searchString !== 'undefined') {
-    return linter.tree.objectList.filter(object => {
-      if (object instanceof OToken && !(object instanceof OMappingName)) {
-        return object.text.toLowerCase() === searchString;
-      } else if (object instanceof OName) {
-        return object.text.toLowerCase() === searchString;
-      } else if (object instanceof OState) {
-        return object.name.toLowerCase() === searchString;
-      }
-    });
+  // debugger;
+  if (candidate instanceof OToken && candidate.definition) {
+    candidate = candidate.definition;
+  }
+  if (candidate instanceof OMentionable) {
+    return ([candidate] as ObjectBase[]).concat(candidate.mentions ?? []);
   }
   return [];
 }
@@ -61,7 +54,7 @@ export async function prepareRenameHandler(params: TextDocumentPositionParams) {
   if ((candidate instanceof OName)) {
     searchString = candidate.text.toLowerCase();
   } else if (candidate instanceof OToken) {
-     searchString = candidate.text.toLowerCase();
+    searchString = candidate.text.toLowerCase();
   }
   const defintion = linter.tree.objectList.find(object => {
     if (object instanceof OName) {
