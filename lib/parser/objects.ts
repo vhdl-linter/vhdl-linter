@@ -272,7 +272,7 @@ export class OSignalLike extends OMentionable {
   private register: boolean | null = null;
   private registerProcess: OProcess | null;
   reads: ORead[] = [];
-  constructor(public parent: OArchitecture | OEntity | OPackage | OProcess, startI: number, endI: number) {
+  constructor(public parent: OArchitecture | OEntity | OPackage | OProcess | OForLoop, startI: number, endI: number) {
     super(parent, startI, endI);
   }
   isRegister(): boolean {
@@ -575,7 +575,7 @@ export class OProcedureInstantiation extends ObjectBase {
   tokens: OToken[];
 }
 export class OForLoop extends ObjectBase {
-  variable: string; // TODO: FIX ME not string
+  variable: OVariable; // TODO: FIX ME not string
   start: string;
   end: string;
   statements: OStatement[] = [];
@@ -586,7 +586,7 @@ export class OAssignment extends ObjectBase {
 }
 
 export class OToken extends ODefitionable {
-  public scope?: OArchitecture | OProcess | OEntity;
+  public scope?: OArchitecture | OProcess | OEntity | OForLoop;
   constructor(public parent: ObjectBase, startI: number, endI: number, public text: string) {
     super(parent, startI, endI);
     let object: (OFile | ObjectBase) = this;
@@ -703,6 +703,13 @@ export class OToken extends ODefitionable {
 
             break yank;
           }
+        }
+      } else if (object instanceof OForLoop) {
+        if (object.variable.name.text.toLowerCase() === text.toLowerCase()) {
+          this.definition = object.variable;
+          this.scope = object;
+          object.variable.mentions.push(this);
+          break yank;
         }
       }
 

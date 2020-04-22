@@ -36,7 +36,7 @@ export class ProcessParser extends ParserBase {
       }
       this.expect(':');
       const startType = this.pos.i;
-      const { typeReads, defaultValueReads } = this.getType(variable, false);
+      const { typeReads, defaultValueReads } = this.getType(variable);
       variable.type = typeReads;
       variable.defaultValue = defaultValueReads;
 
@@ -97,7 +97,11 @@ export class ProcessParser extends ParserBase {
   parseFor(parent: ObjectBase, label?: string): OForLoop {
     const forLoop = new OForLoop(parent, this.pos.i, this.getEndOfLineI());
     this.expect('for');
-    forLoop.variable = this.getNextWord();
+    const startI = this.pos.i;
+    const variableName = this.getNextWord();
+    forLoop.variable = new OVariable(forLoop, startI, variableName.length + startI);
+    forLoop.variable.name = new OName(forLoop.variable, startI, variableName.length + startI);
+    forLoop.variable.name.text = variableName;
     this.expect('in');
     // forLoop.start = this.getNextWord();
     forLoop.start = this.advancePast(/\b(?:downto|to)\b/i).trim();

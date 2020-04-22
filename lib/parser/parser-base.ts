@@ -260,10 +260,16 @@ export class ParserBase {
   getType(parent: ObjectBase, advanceSemicolon = true) {
     let type = '';
     const startI = this.pos.i;
-    while (this.text[this.pos.i].match(/[^;]/)) {
-      type += this.text[this.pos.i];
-      this.pos.i++;
+    const match = /;/.exec(this.text.substr(this.pos.i));
+    if (!match) {
+      throw new ParserError(`could not find semicolon`, this.pos.getRangeToEndLine());
     }
+    type = this.text.substr(this.pos.i, match.index);
+    this.pos.i += match.index;
+    // while (this.text[this.pos.i].match(/[^;]/)) {
+    //   type += this.text[this.pos.i];
+    //   this.pos.i++;
+    // }
     let defaultValueReads;
     let typeReads;
     if (type.indexOf(':=') > -1) {
