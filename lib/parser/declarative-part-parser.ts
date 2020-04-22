@@ -1,5 +1,6 @@
 import { ParserBase } from './parser-base';
 import { OSignal, OType, OArchitecture, OEntity, ParserError, OState, OFunction, OPackage, ORecord, OEnum, ORead, OI, ORecordChild, OName } from './objects';
+import { SubtypeParser } from './subtype-parser';
 
 export class DeclarativePartParser extends ParserBase {
   type: string;
@@ -110,12 +111,10 @@ export class DeclarativePartParser extends ParserBase {
           this.advancePast(';');
         }
       } else if (nextWord === 'subtype') {
-        const type = new OType(this.parent, this.pos.i, this.getEndOfLineI());
-        this.getNextWord();
-        type.name = this.getNextWord();
-        this.expect('is');
+        const subtypeParser = new SubtypeParser(this.text, this.pos, this.file, this.parent);
+
+        const type = subtypeParser.parse();
         this.parent.types.push(type);
-        this.advanceSemicolon(true);
       } else if (nextWord === 'alias') {
         const type = new OType(this.parent, this.pos.i, this.getEndOfLineI());
         this.getNextWord();

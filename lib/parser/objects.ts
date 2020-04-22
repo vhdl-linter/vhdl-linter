@@ -228,6 +228,10 @@ export class OType extends OMentionable {
     return false;
   }
 }
+export class OSubType extends OType {
+  superType: ORead;
+  reads: ORead[];
+}
 export class OEnum extends OType {
   states: OState[] = [];
 }
@@ -648,34 +652,32 @@ export class OToken extends ODefitionable {
           this.scope = object;
           break yank;
         }
-      } else if (object instanceof OEntity) {
-        for (const signal of object.signals) {
+      } else if (object instanceof OFileWithEntity) {
+        for (const signal of object.entity.signals) {
           if (signal.name.text.toLowerCase() === text.toLowerCase()) {
             this.definition = signal;
             signal.mentions.push(this);
-            this.scope = object;
+            this.scope = object.entity;
             break yank;
           }
         }
-        for (const func of object.functions) {
+        for (const type of object.entity.types) {
+          if (type.name.toLowerCase() === text.toLowerCase()) {
+            this.definition = type;
+            type.mentions.push(this);
+            this.scope = object.entity;
+            break yank;
+          }
+        }
+        for (const func of object.entity.functions) {
           if (func.name.toLowerCase() === text.toLowerCase()) {
             this.definition = func;
-            this.scope = object;
+            this.scope = object.entity;
             func.mentions.push(this);
 
             break yank;
           }
         }
-        for (const func of object.generics) {
-          if (func.name.text.toLowerCase() === text.toLowerCase()) {
-            this.definition = func;
-            this.scope = object;
-            func.mentions.push(this);
-
-            break yank;
-          }
-        }
-      } else if (object instanceof OFileWithEntity) {
         for (const port of object.entity.ports) {
           if (port.name.text.toLowerCase() === text.toLowerCase()) {
             this.definition = port;
@@ -725,7 +727,9 @@ export class ORead extends OToken {
 }
 // Read of Record element or something
 export class OElementRead extends ORead {
-
+  constructor(public parent: ObjectBase, startI: number, endI: number, public text: string) {
+    super(parent, startI, endI, text);
+  }
 }
 export class OMappingName extends ODefitionable {
   constructor(public parent: OMapping, startI: number, endI: number, public text: string) {
