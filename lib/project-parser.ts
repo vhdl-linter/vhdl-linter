@@ -31,6 +31,7 @@ export class ProjectParser {
       files.add(pkg + '/../../standard.vhdl');
       files.add(pkg + '/../../textio.vhdl');
     }
+    console.log('files', files);
     for (const file of files) {
       let cachedFile = new OFileCache(this);
       cachedFile.path = file;

@@ -13,6 +13,9 @@ export class SubtypeParser extends ParserBase {
     const name = this.getNextWord();
     this.subtype.name = name;
     this.expect('is');
+    if (this.text[this.pos.i] === '(') { // funky vhdl stuff
+      this.advancePast(')');
+    }
     const startISuperType = this.pos.i;
     const superType = this.getNextWord();
     const startIReads = this.pos.i;

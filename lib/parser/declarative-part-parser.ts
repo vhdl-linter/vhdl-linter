@@ -10,28 +10,28 @@ export class DeclarativePartParser extends ParserBase {
   }
   parse(optional: boolean = false, lastWord = 'begin') {
     let nextWord = this.getNextWord({ consume: false }).toLowerCase();
-    let multiSignals: string[] = [];
     while (nextWord !== lastWord) {
       if (nextWord === 'signal' || nextWord === 'constant') {
-        const signal = new OSignal(this.parent, this.pos.i, this.getEndOfLineI());
-        this.getNextWord();
+        const signals = [];
+        const constant = this.getNextWord() === 'constant';
+        do {
+          this.maybeWord(',');
+          const signal = new OSignal(this.parent, this.pos.i, this.getEndOfLineI());
+          signal.constant = constant;
+          signal.name = new OName(signal, this.pos.i, this.pos.i);
+          signal.name.text = this.getNextWord();
+          signal.name.range.end.i = signal.name.range.start.i + signal.name.text.length;
+          signals.push(signal);
 
-        signal.constant = nextWord === 'constant';
-        signal.name = new OName(signal, this.pos.i, this.pos.i);
-        signal.name.text = this.getNextWord();
-        signal.name.range.end.i = signal.name.range.start.i + signal.name.text.length;
-        if (this.text[this.pos.i] === ',') {
-          throw new ParserError(`Defining multiple signals not allowed!: ${this.getLine(this.pos.i)}`, this.pos.getRangeToEndLine());
-          // multiSignals.push(signal.name);
-          // this.expect(',');
-          // continue;
-        }
+        } while (this.text[this.pos.i] === ',');
         this.expect(':');
-        const iBeforeType = this.pos.i;
-        const { typeReads, defaultValueReads } = this.getType(signal, false);
-        signal.type = typeReads;
-        signal.defaultValue = defaultValueReads;
-        signal.range.end.i = this.pos.i;
+        for (const signal of signals) {
+          const iBeforeType = this.pos.i;
+          const { typeReads, defaultValueReads } = this.getType(signal, false);
+          signal.type = typeReads;
+          signal.defaultValue = defaultValueReads;
+          signal.range.end.i = this.pos.i;
+        }
         this.advanceSemicolon();
         // console.log(multiSignals, 'multiSignals');
         // for (const multiSignalName of multiSignals) {
@@ -41,11 +41,10 @@ export class DeclarativePartParser extends ParserBase {
         //   this.parent.signals.push(multiSignal);
         // }
         if (this.parent instanceof OPackage) {
-          this.parent.constants.push(signal);
+          this.parent.constants.push(...signals);
         } else {
-          this.parent.signals.push(signal);
+          this.parent.signals.push(...signals);
         }
-        multiSignals = [];
       } else if (nextWord === 'attribute') {
         this.getNextWord();
         this.advancePast(';');
