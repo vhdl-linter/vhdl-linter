@@ -132,7 +132,7 @@ export class OMentionable extends ObjectBase {
   mentions: OToken[] = [];
 }
 export class ODefitionable extends ObjectBase {
-  public definition?: OSignalLike | OGenericType | OType | OState | OFunction | OEntity;
+  public definition?: OSignalBase | OGenericType | OType | OState | OFunction | OEntity;
 }
 export class OFile {
   constructor(public text: string, public file: string, public originalText: string) { }
@@ -187,14 +187,34 @@ export class OFunction extends OMentionable {
 }
 export class OArchitecture extends ObjectBase {
   signals: OSignal[] = [];
-  processes: OProcess[] = [];
-  instantiations: OInstantiation[] = [];
-  generates: OArchitecture[] = [];
-  assignments: OAssignment[] = [];
   types: OType[] = [];
   functions: OFunction[] = [];
   procedures: OProcedureInstantiation[] = [];
 
+  statements: (OProcess | OInstantiation | OForGenerate | OIfGenerate | OAssignment | OProcedureInstantiation)[] = [];
+  get processes() {
+    return this.statements.filter(statement => statement instanceof OProcess) as readonly OProcess[];
+  }
+  get instantiations() {
+    return this.statements.filter(statement => statement instanceof OInstantiation) as readonly OInstantiation[];
+  }
+  get generates() {
+    const generates = this.statements.filter(statement => statement instanceof OForGenerate) as OArchitecture[];
+    for (const ifObj of this.statements.filter(statement => statement instanceof OIfGenerate) as OIfGenerate[]) {
+      generates.push(...ifObj.ifGenerates);
+      if (ifObj.elseGenerate) {
+        generates.push(ifObj.elseGenerate);
+      }
+    }
+    return generates as readonly(OArchitecture)[];
+  }
+  get assignments() {
+    return this.statements.filter(statement => statement instanceof OAssignment) as readonly OAssignment[];
+  }
+  // processes: OProcess[] = [];
+  // instantiations: OInstantiation[] = [];
+  // generates: OArchitecture[] = [];
+  // assignments: OAssignment[] = [];
 
 }
 export class OType extends OMentionable {
@@ -246,7 +266,7 @@ export class OState extends OMentionable {
   public parent: OEnum;
 }
 export class OForGenerate extends OArchitecture {
-  public variable: OSignalLike;
+  public variable: OVariable;
   constructor(public parent: OArchitecture,
     startI: number,
     endI: number,
@@ -256,9 +276,18 @@ export class OForGenerate extends OArchitecture {
     super(parent, startI, endI);
   }
 }
-export class OIfGenerate extends OArchitecture {
+export class OIfGenerate extends ObjectBase {
+  ifGenerates: OIfGenerateClause[] = [];
+  elseGenerate: OElseGenerateClause;
+}
+export class OIfGenerateClause extends OArchitecture {
   conditions: string[];
   conditionReads: ORead[];
+  public parent: OIfGenerate;
+}
+export class OElseGenerateClause extends OArchitecture {
+  public parent: OIfGenerate;
+
 }
 
 export class OName extends ObjectBase {
@@ -268,14 +297,14 @@ export class OName extends ObjectBase {
     return this.text;
   }
 }
-
-export class OSignalLike extends OMentionable {
+export abstract class OVariableBase extends OMentionable {
   type: ORead[];
   name: OName;
   defaultValue?: ORead[];
+}
+export abstract class OSignalBase extends OVariableBase {
   private register: boolean | null = null;
   private registerProcess: OProcess | null;
-  reads: ORead[] = [];
   constructor(public parent: OArchitecture | OEntity | OPackage | OProcess | OForLoop, startI: number, endI: number) {
     super(parent, startI, endI);
   }
@@ -306,12 +335,12 @@ export class OSignalLike extends OMentionable {
     return this.registerProcess;
   }
 }
-export class OVariable extends OSignalLike {
+export class OVariable extends OVariableBase {
   type: ORead[];
   constant: boolean;
 
 }
-export class OSignal extends OSignalLike {
+export class OSignal extends OSignalBase {
   constant: boolean;
 }
 export class OMap extends ObjectBase {
@@ -417,17 +446,18 @@ export class OEntity extends ObjectBase {
   signals: OSignal[] = [];
   functions: OFunction[] = [];
   types: OType[] = [];
+  statements: (OProcess | OAssignment | OProcedureInstantiation)[] = [];
 
 
 }
-export class OPort extends OSignalLike {
+export class OPort extends OSignalBase {
   direction: 'in' | 'out' | 'inout';
   directionRange: OIRange;
 }
 export class OGenericType extends OMentionable {
   name: OName;
 }
-export class OGenericActual extends OSignalLike {
+export class OGenericActual extends OVariableBase {
   name: OName;
   type: ORead[];
   defaultValue?: ORead[];

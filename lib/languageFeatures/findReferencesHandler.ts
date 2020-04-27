@@ -1,6 +1,6 @@
 import { ReferenceParams, Location, TextDocumentPositionParams, RenameParams, ResponseError, ErrorCodes, TextDocumentIdentifier, Position, WorkspaceEdit, TextEdit } from 'vscode-languageserver';
 import { initialization, linters } from '../language-server';
-import { OToken, OSignalLike, OName, OState, OPort, OGenericActual, OGenericType, OMappingName, OMentionable, ObjectBase, OFile } from '../parser/objects';
+import { OToken, OSignalBase, OName, OState, OPort, OGenericActual, OGenericType, OMappingName, OMentionable, ObjectBase, OFile } from '../parser/objects';
 
 export async function findReferences(params: { textDocument: TextDocumentIdentifier, position: Position }) {
   await initialization;

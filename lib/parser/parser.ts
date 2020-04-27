@@ -61,9 +61,10 @@ export class Parser extends ParserBase {
         this.expect(';');
       } else if (nextWord === 'entity') {
         const entityParser = new EntityParser(this.text, this.pos, this.file, file as OFileWithEntity);
-        entity = entityParser.parse();
         Object.setPrototypeOf(file, OFileWithEntity.prototype);
-        (file as OFileWithEntity).entity = entity;
+        (file as OFileWithEntity).entity = entityParser.entity;
+        entity = entityParser.parse();
+
         if (this.onlyEntity) {
           return file;
         }

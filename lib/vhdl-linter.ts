@@ -1,4 +1,4 @@
-import { OFile, OIf, OSignalLike, OSignal, OArchitecture, OEntity, OPort, OInstantiation, OWrite, ORead, OFileWithEntity, OFileWithPackage, OFileWithEntityAndArchitecture, ORecord, OPackage, ParserError, OEnum, OGenericActual, OMapping, OPortMap, MagicCommentType, OProcess, OToken, OMappingName, OMap } from './parser/objects';
+import { OFile, OIf, OSignalBase, OSignal, OArchitecture, OEntity, OPort, OInstantiation, OWrite, ORead, OFileWithEntity, OFileWithPackage, OFileWithEntityAndArchitecture, ORecord, OPackage, ParserError, OEnum, OGenericActual, OMapping, OPortMap, MagicCommentType, OProcess, OToken, OMappingName, OMap, OMentionable } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 import { findBestMatch } from 'string-similarity';
@@ -373,7 +373,7 @@ export class VhdlLinter {
       return [];
     }
     const architecture = this.tree.architecture;
-    let signalLike: OSignalLike[] = this.tree.architecture.signals;
+    let signalLike: OSignalBase[] = this.tree.architecture.signals;
     signalLike = signalLike.concat(this.tree.entity.ports);
     const processes = this.tree.objectList.filter(object => object instanceof OProcess) as OProcess[];
     const signalsMissingReset = signalLike.filter(signal => {
@@ -398,7 +398,7 @@ export class VhdlLinter {
     if (signalsMissingReset.length === 0) {
       return [];
     }
-    const registerProcessMap = new Map<OProcess, OSignalLike[]>();
+    const registerProcessMap = new Map<OProcess, OSignalBase[]>();
     for (const signal of signalsMissingReset) {
       const registerProcess = signal.getRegisterProcess();
       if (!registerProcess) {
@@ -437,7 +437,7 @@ export class VhdlLinter {
     if (!(this.tree instanceof OFileWithEntityAndArchitecture)) {
       return;
     }
-    let signalLike: OSignalLike[] = this.tree.architecture.signals;
+    let signalLike: OSignalBase[] = this.tree.architecture.signals;
     signalLike = signalLike.concat(this.tree.entity.ports);
     const processes = this.tree.objectList.filter(object => object instanceof OProcess) as OProcess[];
 
@@ -517,70 +517,21 @@ export class VhdlLinter {
     }
   }
 
-  private checkUnusedPerArchitecture(architecture: OArchitecture, signal: OSignal | OPort) {
-    let unread = true;
-    let unwritten = true;
-    const sigLowName = signal.name.text.toLowerCase();
-    for (const process of architecture.processes) {
-      if (process.getFlatReads().find(read => read.text.toLowerCase() === sigLowName)) {
-        unread = false;
-      }
-      if (process.getFlatWrites().find(write => write.text.toLowerCase() === sigLowName)) {
-        unwritten = false;
-      }
-    }
-    for (const assignment of architecture.assignments) {
-      if (assignment.reads.find(read => read.text.toLowerCase() === sigLowName)) {
-        unread = false;
-      }
-      if (assignment.writes.find(write => write.text.toLowerCase() === sigLowName)) {
-        unwritten = false;
-      }
-    }
-    for (const signal of architecture.signals) {
-      if (signal.reads.find(read => read.text.toLowerCase() === sigLowName)) {
-        unread = false;
-      }
-    }
-    for (const instantiation of architecture.instantiations) {
-      const entity = this.getProjectEntity(instantiation);
-      //       console.log(instantiation.getFlatReads(entity), instantiation.getFlatWrites(entity));
-      if (instantiation.getFlatReads(entity).find(read => read.text.toLowerCase() === sigLowName)) {
-        unread = false;
-      }
-      if (instantiation.getFlatWrites(entity).find(read => read.text.toLowerCase() === sigLowName)) {
-        unwritten = false;
-      }
-    }
-    for (const generate of architecture.generates) {
-      const [unreadChild, unwrittenChild] = this.checkUnusedPerArchitecture(generate, signal);
-      if (!unreadChild) {
-        unread = false;
-      }
-      if (!unwrittenChild) {
-        unwritten = false;
-      }
-    }
-    return [unread, unwritten];
-  }
   private checkUnused(architecture: OArchitecture, entity?: OEntity) {
     if (!architecture) {
       return;
     }
-    for (const generate of architecture.generates) {
-      this.checkUnused(generate);
-    }
+
     if (entity) {
       for (const port of entity.ports) {
-        const [unread, unwritten] = this.checkUnusedPerArchitecture(architecture, port);
-        if (unread && port.direction === 'in') {
+        if (port.direction === 'in' && port.mentions.filter(token => token instanceof ORead).length === 0) {
           this.addMessage({
             range: port.range,
             severity: DiagnosticSeverity.Warning,
             message: `Not reading input port '${port.name}'`
           });
         }
-        if (unwritten && port.direction === 'out') {
+        if (port.direction === 'out' && port.mentions.filter(token => token instanceof OWrite).length === 0) {
           this.addMessage({
             range: port.range,
             severity: DiagnosticSeverity.Warning,
@@ -589,16 +540,15 @@ export class VhdlLinter {
         }
       }
     }
-    for (const signal of architecture.signals) {
-      const [unread, unwritten] = this.checkUnusedPerArchitecture(architecture, signal);
-      if (unread) {
+    for (const signal of architecture.getRoot().objectList.filter(object => object instanceof OSignal) as OSignal[]) {
+      if (signal.mentions.filter(token => token instanceof ORead).length === 0) {
         this.addMessage({
           range: signal.range,
           severity: DiagnosticSeverity.Warning,
           message: `Not reading signal '${signal.name}'`
         });
       }
-      if (unwritten && !signal.constant) {
+      if (signal.mentions.filter(token => token instanceof OWrite).length === 0) {
         this.addMessage({
           range: signal.range,
           severity: DiagnosticSeverity.Warning,

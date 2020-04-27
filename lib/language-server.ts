@@ -89,11 +89,9 @@ export const initialization = new Promise(resolve => {
     if (hasWorkspaceFolderCapability) {
       const parseWorkspaces = async () => {
         const workspaceFolders = await connection.workspace.getWorkspaceFolders();
-        if (workspaceFolders) {
-          const folders = workspaceFolders.map(workspaceFolder => workspaceFolder.uri.replace('file://', ''));
-          projectParser = new ProjectParser(folders);
-          await projectParser.init();
-        }
+        const folders = (workspaceFolders ?? []).map(workspaceFolder => workspaceFolder.uri.replace('file://', ''));
+        projectParser = new ProjectParser(folders);
+        await projectParser.init();
       };
       await parseWorkspaces();
       connection.workspace.onDidChangeWorkspaceFolders(async event => {

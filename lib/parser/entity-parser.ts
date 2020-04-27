@@ -4,17 +4,18 @@ import { OPort, OGeneric, OEntity, ParserError, OFileWithEntity, OGenericActual,
 import { runInThisContext } from 'vm';
 import { TextEdit } from 'vscode-languageserver';
 import { AssignmentParser } from './assignment-parser';
+import { StatementParser, StatementTypes } from './statement-parser';
 
 export class EntityParser extends ParserBase {
-  private entity: OEntity;
+  public entity: OEntity;
   constructor(text: string, pos: OI, file: string, private parent: OFileWithEntity) {
     super(text, pos, file);
-    this.debug(`start`);
-  }
-  parse(): OEntity {
     const match = this.parent.originalText.match(/!\s*@library\s+(\S+)/i);
     const library = match ? match[1] : undefined;
     this.entity = new OEntity(this.parent, this.pos.i, this.getEndOfLineI(), library);
+    this.debug(`start`);
+  }
+  parse(): OEntity {
     this.entity.name = this.getNextWord();
     this.expect('is');
 
@@ -41,8 +42,22 @@ export class EntityParser extends ParserBase {
         this.expect(';');
         break;
       } else if (nextWord === 'begin') {
-        new AssignmentParser(this.text, this.pos, this.file, this.entity).parse();
-        this.advancePast(/(?=end)/i, { allowSemicolon: true });
+        this.getNextWord();
+        let nextWord = this.getNextWord({consume: false}).toLowerCase();
+        while (nextWord !== 'end') {
+          new StatementParser(this.text, this.pos, this.file, this.entity).parse([
+            StatementTypes.Assert,
+            StatementTypes.ProcedureInstantiation,
+            StatementTypes.Process
+          ]);
+          nextWord = this.getNextWord({ consume: false }).toLowerCase();
+        }
+        this.getNextWord();
+        this.maybeWord('entity');
+        this.maybeWord(this.entity.name);
+        this.expect(';');
+        break;
+
       } else {
         new DeclarativePartParser(this.text, this.pos, this.file, this.entity).parse(true);
       }
