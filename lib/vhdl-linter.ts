@@ -548,7 +548,7 @@ export class VhdlLinter {
           message: `Not reading signal '${signal.name}'`
         });
       }
-      if (signal.mentions.filter(token => token instanceof OWrite).length === 0) {
+      if (!signal.constant && signal.mentions.filter(token => token instanceof OWrite).length === 0) {
         this.addMessage({
           range: signal.range,
           severity: DiagnosticSeverity.Warning,
