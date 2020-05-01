@@ -148,6 +148,10 @@ export class OFile {
       if (['parent', 'originalText', 'objectList', 'root'].indexOf(key) > -1) {
         return;
       }
+      // text of file
+      if (typeof value === 'string' && value.length > 1000) {
+        return;
+      }
       if (typeof value === 'object' && value !== null) {
         if (seen.has(value)) {
           return;
