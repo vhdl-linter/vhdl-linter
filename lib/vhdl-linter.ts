@@ -194,12 +194,26 @@ export class VhdlLinter {
               for (const mapping of obj.mappingIfOutput.flat()) {
                 const index = this.tree.objectList.indexOf(mapping);
                 this.tree.objectList.splice(index, 1);
+                for (const mentionable of this.tree.objectList.filter(object => object instanceof OMentionable) as OMentionable[]) {
+                  for (const [index, mention] of mentionable.mentions.entries()) {
+                    if (mention === mapping) {
+                      mentionable.mentions.splice(index, 1);
+                    }
+                  }
+                }
               }
               obj.mappingIfOutput = [[], []];
             } else {
               for (const mapping of obj.mappingIfInput) {
                 const index = this.tree.objectList.indexOf(mapping);
                 this.tree.objectList.splice(index, 1);
+                for (const mentionable of this.tree.objectList.filter(object => object instanceof OMentionable) as OMentionable[]) {
+                  for (const [index, mention] of mentionable.mentions.entries()) {
+                    if (mention === mapping) {
+                      mentionable.mentions.splice(index, 1);
+                    }
+                  }
+                }
               }
               obj.mappingIfInput = [];
             }
