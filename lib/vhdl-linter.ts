@@ -531,13 +531,24 @@ export class VhdlLinter {
             message: `Not reading input port '${port.name}'`
           });
         }
-        if (port.direction === 'out' && port.mentions.filter(token => token instanceof OWrite).length === 0) {
+        const writes = port.mentions.filter(token => token instanceof OWrite);
+        if (port.direction === 'out' && writes.length === 0) {
           this.addMessage({
             range: port.range,
             severity: DiagnosticSeverity.Warning,
             message: `Not writing output port '${port.name}'`
           });
         }
+        // if (port.direction === 'in') {
+        //   for (const write of writes) {
+        //     // doesn't work in port map #FIXME
+        //     this.addMessage({
+        //       range: write.range,
+        //       severity: DiagnosticSeverity.Error,
+        //       message: `Input port ${port.name} cannot be written.`
+        //     });
+        //   }
+        // }
       }
     }
     for (const signal of architecture.getRoot().objectList.filter(object => object instanceof OSignal) as OSignal[]) {
@@ -548,12 +559,22 @@ export class VhdlLinter {
           message: `Not reading signal '${signal.name}'`
         });
       }
-      if (signal.mentions.filter(token => token instanceof OWrite).length === 0) {
+      const writes = signal.mentions.filter(token => token instanceof OWrite);
+      if (!signal.constant && writes.length === 0) {
         this.addMessage({
           range: signal.range,
           severity: DiagnosticSeverity.Warning,
           message: `Not writing signal '${signal.name}'`
         });
+      }
+      if (signal.constant) {
+        for (const write of writes) {
+          this.addMessage({
+            range: write.range,
+            severity: DiagnosticSeverity.Error,
+            message: `Constant ${signal.name} cannot be written.`
+          });
+        }
       }
     }
   }
