@@ -169,6 +169,9 @@ export class VhdlLinter {
         }
       }
     }
+    for (const instantiation of this.tree.objectList.filter(object => object instanceof OInstantiation && typeof object.definition === 'undefined') as OInstantiation[]) {
+        instantiation.definition = this.getProjectEntity(instantiation);
+    }
     for (const obj of this.tree.objectList) {
       if (obj instanceof OMapping) {
         if (obj.parent instanceof OMap) {
