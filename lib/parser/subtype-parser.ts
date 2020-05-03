@@ -1,5 +1,5 @@
 import { ParserBase } from './parser-base';
-import { OI, ObjectBase, OSubType, ORead } from './objects';
+import { OI, ObjectBase, OSubType, ORead, OName } from './objects';
 
 export class SubtypeParser extends ParserBase {
   subtype: OSubType;
@@ -10,8 +10,10 @@ export class SubtypeParser extends ParserBase {
   }
   parse() {
     this.expect('subtype');
-    const name = this.getNextWord();
-    this.subtype.name = name;
+    const beforeNameText = this.pos.i;
+    const nameText = this.getNextWord();
+    this.subtype.name = new OName(this.subtype, beforeNameText, beforeNameText + nameText.length);
+    this.subtype.name.text = nameText;
     this.expect('is');
     if (this.text[this.pos.i] === '(') { // funky vhdl stuff
       this.advancePast(')');

@@ -51,7 +51,10 @@ export class DeclarativePartParser extends ParserBase {
       } else if (nextWord === 'type') {
         const type = new OType(this.parent, this.pos.i, this.getEndOfLineI());
         this.getNextWord();
-        type.name = this.getNextWord();
+        const startTypeName = this.pos.i;
+        const typeName = this.getNextWord();
+        type.name = new OName(type, startTypeName, startTypeName + typeName.length + 1);
+        type.name.text = typeName;
         this.expect('is');
         if (this.text[this.pos.i] === '(') {
           this.expect('(');
@@ -60,11 +63,13 @@ export class DeclarativePartParser extends ParserBase {
           (type as OEnum).states = this.advancePast(')').split(',').map(stateName => {
             const state = new OState(type, position, this.getEndOfLineI(position));
             const match = stateName.match(/^\s*/);
-            if (match) {
-              state.range.start.i = position + match[0].length;
+            if (!match) {
+              throw new ParserError(`Error while parsing state`, this.pos.getRangeToEndLine());
             }
-            state.name = stateName.trim();
-            state.range.end.i = state.range.start.i + state.name.length;
+            state.range.start.i = position + match[0].length;
+            state.name = new OName(state, position + match[0].length, position + match[0].length + stateName.trim().length);
+            state.name.text = stateName.trim();
+            state.range.end.i = state.range.start.i + state.name.text.length;
             position += stateName.length;
             position++;
             return state;
@@ -95,7 +100,8 @@ export class DeclarativePartParser extends ParserBase {
             let recordWord = this.getNextWord();
             while (recordWord.toLowerCase() !== 'end') {
               const child = new ORecordChild(type, position, position);
-              child.name = recordWord;
+              child.name = new OName(child, position, position + recordWord.length);
+              child.name.text = recordWord;
               (type as ORecord).children.push(child);
               this.advanceSemicolon();
               child.range.end.i = this.pos.i;
@@ -103,7 +109,7 @@ export class DeclarativePartParser extends ParserBase {
               recordWord = this.getNextWord();
             }
             this.maybeWord('record');
-            this.maybeWord(type.name);
+            this.maybeWord(type.name.text);
           }
           type.range.end.i = this.pos.i;
           this.parent.types.push(type);
@@ -117,7 +123,10 @@ export class DeclarativePartParser extends ParserBase {
       } else if (nextWord === 'alias') {
         const type = new OType(this.parent, this.pos.i, this.getEndOfLineI());
         this.getNextWord();
-        type.name = this.getNextWord();
+        const startTypeName = this.pos.i;
+        const typeName = this.getNextWord();
+        type.name = new OName(type, startTypeName, startTypeName + typeName.length + 1);
+        type.name.text = typeName;
         this.expect('is');
         this.parent.types.push(type);
         this.advanceSemicolon(true);
@@ -134,7 +143,10 @@ export class DeclarativePartParser extends ParserBase {
         }
         const func = new OFunction(this.parent, this.pos.i, this.getEndOfLineI());
         this.getNextWord();
-        func.name = this.advancePast(/^(\w+|"[^"]+")/, {returnMatch: true}).replace(/^"(.*)"$/, '$1');
+        const startName = this.pos.i;
+        const funcName = this.advancePast(/^(\w+|"[^"]+")/, { returnMatch: true }); // .replace(/^"(.*)"$/, '$1');
+        func.name = new OName(func, startName, startName + funcName.length + 1);
+        func.name.text = funcName;
         if (this.text[this.pos.i] === '(') {
           this.expect('(');
           func.parameter = this.advanceBrace();

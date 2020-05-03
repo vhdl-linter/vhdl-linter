@@ -129,6 +129,7 @@ export class ObjectBase {
   }
 }
 export class OMentionable extends ObjectBase {
+  name: OName;
   mentions: OToken[] = [];
 }
 export class ODefitionable extends ObjectBase {
@@ -182,7 +183,7 @@ export class OUseStatement extends ObjectBase {
   end: number;
 }
 export class OFunction extends OMentionable {
-  name: string;
+  // name: string;
   parameter: string;
 }
 export class OArchitecture extends ObjectBase {
@@ -218,10 +219,10 @@ export class OArchitecture extends ObjectBase {
 
 }
 export class OType extends OMentionable {
-  name: string;
+  name: OName;
   units?: string[];
   findRead(read: ORead) {
-    if (this.name.toLowerCase() === read.text.toLowerCase()) {
+    if (this.name.text.toLowerCase() === read.text.toLowerCase()) {
       return this;
     }
     if (this.units) {
@@ -234,13 +235,13 @@ export class OType extends OMentionable {
     }
     if (this instanceof OEnum) {
       for (const state of this.states) {
-        if (state.name.toLowerCase() === read.text.toLowerCase()) {
+        if (state.name.text.toLowerCase() === read.text.toLowerCase()) {
           return state;
         }
       }
     } else if (this instanceof ORecord && read instanceof OElementRead) {
       for (const child of this.children) {
-        if (child.name.toLowerCase() === read.text.toLowerCase()) {
+        if (child.name.text.toLowerCase() === read.text.toLowerCase()) {
           return child;
         }
       }
@@ -262,7 +263,7 @@ export class ORecordChild extends OType {
   public parent: ORecord;
 }
 export class OState extends OMentionable {
-  name: string;
+  name: OName;
   public parent: OEnum;
 }
 export class OForGenerate extends OArchitecture {
@@ -638,7 +639,7 @@ export class OToken extends ODefitionable {
           }
         }
         for (const func of object.functions) {
-          if (func.name.toLowerCase() === text.toLowerCase()) {
+          if (func.name.text.toLowerCase() === text.toLowerCase()) {
             this.definition = func;
             this.scope = object;
             func.mentions.push(this);
@@ -647,7 +648,7 @@ export class OToken extends ODefitionable {
           }
         }
         for (const type of object.types) {
-          if (type.name.toLowerCase() === text.toLowerCase()) {
+          if (type.name.text.toLowerCase() === text.toLowerCase()) {
             this.definition = type;
             this.scope = object;
             type.mentions.push(this);
@@ -656,7 +657,7 @@ export class OToken extends ODefitionable {
           }
           if (type instanceof OEnum) {
             for (const state of type.states) {
-              if (state.name.toLowerCase() === text.toLowerCase()) {
+              if (state.name.text.toLowerCase() === text.toLowerCase()) {
                 this.definition = state;
                 this.scope = object;
                 state.mentions.push(this);
@@ -667,7 +668,7 @@ export class OToken extends ODefitionable {
           }
           if (type instanceof ORecord) {
             for (const child of type.children) {
-              if (child.name.toLowerCase() === text.toLowerCase()) {
+              if (child.name.text.toLowerCase() === text.toLowerCase()) {
                 this.definition = child;
                 this.scope = object;
                 child.mentions.push(this);
@@ -692,7 +693,7 @@ export class OToken extends ODefitionable {
           }
         }
         for (const type of object.entity.types) {
-          if (type.name.toLowerCase() === text.toLowerCase()) {
+          if (type.name.text.toLowerCase() === text.toLowerCase()) {
             this.definition = type;
             type.mentions.push(this);
             this.scope = object.entity;
@@ -700,7 +701,7 @@ export class OToken extends ODefitionable {
           }
         }
         for (const func of object.entity.functions) {
-          if (func.name.toLowerCase() === text.toLowerCase()) {
+          if (func.name.text.toLowerCase() === text.toLowerCase()) {
             this.definition = func;
             this.scope = object.entity;
             func.mentions.push(this);

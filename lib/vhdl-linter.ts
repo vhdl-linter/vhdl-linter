@@ -143,7 +143,7 @@ export class VhdlLinter {
           }
         }
         for (const func of pkg.functions) {
-          if (func.name.toLowerCase() === read.text.toLowerCase()) {
+          if (func.name.text.toLowerCase() === read.text.toLowerCase()) {
             read.definition = func;
           }
         }
@@ -154,14 +154,14 @@ export class VhdlLinter {
           }
           if (type instanceof OEnum) {
             for (const state of type.states) {
-              if (state.name.toLowerCase() === read.text.toLowerCase()) {
+              if (state.name.text.toLowerCase() === read.text.toLowerCase()) {
                 read.definition = state;
 
               }
             }
           } else if (type instanceof ORecord) {
             for (const child of type.children) {
-              if (child.name.toLowerCase() === read.text.toLowerCase()) {
+              if (child.name.text.toLowerCase() === read.text.toLowerCase()) {
                 read.definition = child;
               }
             }
@@ -246,7 +246,7 @@ export class VhdlLinter {
       }
     }
     for (const type of this.tree.architecture.types) {
-      if (this.tree.architecture.types.find(typeSearch => type !== typeSearch && type.name.toLowerCase() === typeSearch.name.toLowerCase())) {
+      if (this.tree.architecture.types.find(typeSearch => type !== typeSearch && type.name.text.toLowerCase() === typeSearch.name.text.toLowerCase())) {
         this.addMessage({
           range: type.range,
           severity: DiagnosticSeverity.Error,
@@ -255,7 +255,7 @@ export class VhdlLinter {
       }
       if (type instanceof OEnum) {
         for (const state of type.states) {
-          if (type.states.find(stateSearch => state !== stateSearch && state.name.toLowerCase() === stateSearch.name.toLowerCase())) {
+          if (type.states.find(stateSearch => state !== stateSearch && state.name.text.toLowerCase() === stateSearch.name.text.toLowerCase())) {
             this.addMessage({
               range: state.range,
               severity: DiagnosticSeverity.Error,
@@ -298,8 +298,8 @@ export class VhdlLinter {
     const code = this.addCodeActionCallback((textDocumentUri: string) => {
       const actions = [];
       for (const pkg of this.projectParser.getPackages()) {
-        const thing = pkg.constants.find(constant => constant.name.text.toLowerCase() === read.text.toLowerCase()) || pkg.types.find(type => type.name.toLowerCase() === read.text.toLowerCase())
-          || pkg.functions.find(func => func.name.toLowerCase() === read.text.toLowerCase());
+        const thing = pkg.constants.find(constant => constant.name.text.toLowerCase() === read.text.toLowerCase()) || pkg.types.find(type => type.name.text.toLowerCase() === read.text.toLowerCase())
+          || pkg.functions.find(func => func.name.text.toLowerCase() === read.text.toLowerCase());
         if (thing) {
           const file = read.getRoot();
           const pos = Position.create(0, 0);

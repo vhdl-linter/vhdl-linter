@@ -338,11 +338,11 @@ connection.onCompletion(async (params: CompletionParams): Promise<CompletionItem
         completions.push({ label: signal.name.text, kind: CompletionItemKind.Variable });
       }
       for (const type of parent.types) {
-        completions.push({ label: type.name, kind: CompletionItemKind.TypeParameter });
+        completions.push({ label: type.name.text, kind: CompletionItemKind.TypeParameter });
         if (type instanceof OEnum) {
           completions.push(...type.states.map(state => {
             return {
-              label: state.name,
+              label: state.name.text,
               kind: CompletionItemKind.EnumMember
             };
           }));

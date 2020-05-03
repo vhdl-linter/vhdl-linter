@@ -70,7 +70,12 @@ export async function prepareRenameHandler(params: TextDocumentPositionParams) {
   throw new ResponseError(ErrorCodes.InvalidRequest, 'Can not rename this element', 'Can not rename this element');
 }
 export async function renameHandler(params: RenameParams) {
-  const references = await findReferences(params);
+  const references = (await findReferences(params)).map(reference => {
+    if (reference instanceof OMentionable) {
+      return reference.name;
+    }
+    return reference;
+  });
   console.log(references.map(reference => `${reference.range.start.line} ${reference.range.start.character}`));
   return {
     changes: {
