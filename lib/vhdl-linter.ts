@@ -190,7 +190,7 @@ export class VhdlLinter {
             namePart.definition = portOrGeneric;
           }
           if (portOrGeneric instanceof OPort) {
-            if (portOrGeneric.direction === 'in') {
+            if (portOrGeneric.utdirection === 'in') {
               for (const mapping of obj.mappingIfOutput.flat()) {
                 const index = this.tree.objectList.indexOf(mapping);
                 this.tree.objectList.splice(index, 1);

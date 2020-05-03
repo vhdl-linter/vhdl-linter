@@ -1,5 +1,5 @@
 import { ReferenceParams, Location, TextDocumentPositionParams, RenameParams, ResponseError, ErrorCodes, TextDocumentIdentifier, Position, WorkspaceEdit, TextEdit } from 'vscode-languageserver';
-import { initialization, linters } from '../language-server';
+import { initialization, linters, lintersValid } from '../language-server';
 import { OToken, OSignalBase, OName, OState, OPort, OGenericActual, OGenericType, OMappingName, OMentionable, ObjectBase, OFile } from '../parser/objects';
 
 export async function findReferences(params: { textDocument: TextDocumentIdentifier, position: Position }) {
@@ -37,6 +37,9 @@ export async function findReferencesHandler(params: ReferenceParams, ) {
 export async function prepareRenameHandler(params: TextDocumentPositionParams) {
   await initialization;
   const linter = linters.get(params.textDocument.uri);
+  if (lintersValid.get(params.textDocument.uri) !== true) {
+    throw new ResponseError(ErrorCodes.InvalidRequest, 'Document not valid. Renaming only supported for parsable documents.', 'Document not valid. Renaming only supported for parsable documents.');
+  }
   if (typeof linter === 'undefined') {
     throw new ResponseError(ErrorCodes.InvalidRequest, 'Parser not ready', 'Parser not ready');
   }

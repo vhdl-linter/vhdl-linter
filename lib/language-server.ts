@@ -124,10 +124,14 @@ documents.onDidClose(change => {
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
 export const linters = new Map<string, VhdlLinter>();
+export const lintersValid = new Map<string, boolean>();
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   const vhdlLinter = new VhdlLinter(textDocument.uri.replace('file://', ''), textDocument.getText(), projectParser);
   if (typeof vhdlLinter.tree !== 'undefined' || typeof linters.get(textDocument.uri) === 'undefined') {
     linters.set(textDocument.uri, vhdlLinter);
+    lintersValid.set(textDocument.uri, true);
+  } else {
+    lintersValid.set(textDocument.uri, false);
   }
   const diagnostics = vhdlLinter.checkAll();
   const test = JSON.stringify(diagnostics);
