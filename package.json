@@ -134,7 +134,7 @@
 		"tslint": "^5.20.1",
 		"tslint-microsoft-contrib": "^5.2.1",
 		"typescript": "^3.5.1",
-		"vsce": "^1.69.0",
+		"vsce": "^1.71.0",
 		"vscode-languageserver-types": "^3.14.0"
 	},
 	"__metadata": {
