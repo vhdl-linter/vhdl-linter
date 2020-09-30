@@ -31,6 +31,11 @@
 				"key": "ctrl+alt+t",
 				"command": "vhdl-linter:copy-tree",
 				"when": "editorLangId == vhdl"
+			},
+			{
+				"key": "ctrl+alt+l",
+				"command": "vhdl-linter:copy-file-listing",
+				"when": "editorLangId == vhdl"
 			}
 		],
 		"menus": {
@@ -49,6 +54,10 @@
 				},
 				{
 					"command": "vhdl-linter:copy-tree",
+					"when": "editorLangId == vhdl"
+				},
+				{
+					"command": "vhdl-linter:copy-file-listing",
 					"when": "editorLangId == vhdl"
 				}
 			]
@@ -69,6 +78,10 @@
 			{
 				"command": "vhdl-linter:copy-tree",
 				"title": "Copy Vhdl Tree"
+			},
+			{
+				"command": "vhdl-linter:copy-file-listing",
+				"title": "Copy File Listing"
 			}
 		],
 		"configuration": {
@@ -101,7 +114,6 @@
 	},
 	"husky": {
 		"hooks": {
-			"pre-commit": "npm run lint",
 			"post-merge": "npm ci && npm run compile && echo '#####################\nRestart Atom\n#####################'"
 		}
 	},

@@ -194,82 +194,7 @@ const findDefinition = async (params: IFindDefinitionParams) => {
       uri: 'file://' + candidate.definition.getRoot().file
     };
   }
-  // if (candidate instanceof OInstantiation || candidate instanceof OMapping || candidate instanceof OMappingName) {
-  //   let instantiation: OInstantiation = candidate instanceof OMappingName ? candidate.parent.parent.parent : (candidate instanceof OInstantiation ? candidate : candidate.parent.parent);
-  //   const entity = linter.getProjectEntity(instantiation);
-  //   if (!entity) {
-  //     return null;
-  //   }
-  //   if (candidate instanceof OInstantiation) {
-  //     return {
-  //       // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
-  //       range: entity.range,
-  //       text: entity.getRoot().originalText,
-  //       // targetSelectionRange:  Range.create(Position.create(0, 0), Position.create(0, 0)),
-  //       uri: 'file://' + entity.getRoot().file
-  //     };
-  //   } else {
-  //     let mapping = candidate instanceof OMappingName ? candidate.parent : candidate;
-  //     const port = entity.ports.find(port => mapping.name.find(read => read.text.toLowerCase() === port.name.text.toLowerCase()));
-  //     if (!port) {
-  //       return null;
-  //     }
-  //     return {
-  //       // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
-  //       range: port.range,
-  //       text: entity.getRoot().originalText,
-  //       // targetSelectionRange:  Range.create(Position.create(0, 0), Position.create(0, 0)),
-  //       uri: 'file://' + entity.getRoot().file
-  //     };
 
-  //   }
-  // } else if (candidate instanceof OProcedureInstantiation) {
-  //   let definition: OFunction | undefined;
-
-  //   linter.packages.forEach(pkg => pkg.functions.forEach(func => {
-  //     if (func.name.toLowerCase() === candidate.name.toLowerCase()) {
-  //       definition = func;
-  //     }
-  //   }));
-  //   if (definition) {
-  //     return {
-  //       range: definition.range,
-  //       text: definition.getRoot().originalText,
-  //       uri: 'file://' + definition.getRoot().file
-  //     };
-  //   }
-  // } else if (candidate instanceof ORead || candidate instanceof OWrite) {
-  //   let result: false | ObjectBase;
-  //   result = linter.tree.findRead(candidate, linter.packages);
-  //   if (typeof result === 'boolean') {
-  //     return null;
-  //   }
-  //   if (result instanceof ORecordChild || result instanceof OState) {
-  //     result = result.parent;
-  //   }
-  //   return {
-  //     // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
-  //     range: result.range,
-  //     text: result.getRoot().originalText,
-  //     // targetSelectionRange: position,
-  //     uri: 'file://' + result.getRoot().file
-  //   };
-  // } else if (candidate instanceof OUseStatement) {
-  //   const match = candidate.text.match(/[^.]+\.([^.]+).[^.]+/i);
-  //   if (!match) {
-  //     return null;
-  //   }
-  //   const packageName = match[1].toLowerCase();
-  //   const pkg = linter.packages.find(pkg => pkg.name.toLowerCase() === packageName);
-  //   if (!pkg) {
-  //     return null;
-  //   }
-  //   return {
-  //     range: pkg.range,
-  //     text: pkg.getRoot().originalText,
-  //     uri: 'file://' + pkg.getRoot().file
-  //   };
-  // }
   return null;
 };
 connection.onHover(async (params, token): Promise<Hover | null> => {
@@ -445,6 +370,7 @@ connection.onExecuteCommand(async params => {
   if (!params.arguments) {
     return;
   }
+  console.log(params);
   const textDocumentUri = params.arguments[0];
   const linter = linters.get(textDocumentUri);
   if (typeof linter === 'undefined') {
@@ -466,6 +392,37 @@ connection.onExecuteCommand(async params => {
       }
     }
   });
+});
+connection.onRequest('vhdl-linter/listing', async (params: any, b: any) => {
+  await initialization;
+  const textDocumentUri = params.textDocument.uri;
+  const linter = linters.get(textDocumentUri);
+  if (typeof linter === 'undefined') {
+    return;
+  }
+  const files: OFile[] = [];
+  function parseTree(file: OFile) {
+    files.push(file);
+    for (const object of file?.objectList ?? []) {
+      if (object instanceof OInstantiation) {
+        if (object.definition) {
+          const vhdlLinter = new VhdlLinter(object.definition.parent.file, object.definition.parent.originalText, projectParser);
+          vhdlLinter.checkAll();
+          parseTree(vhdlLinter.tree);
+        } else {
+          // throw new Error(`Can not find ${object.componentName}`);
+        }
+      }
+    }
+
+  }
+
+  parseTree(linter.tree);
+  return files.map(file => {
+    if (file instanceof OFileWithEntity) {
+      return [file.file.replace((rootUri ?? '').replace('file://', ''), ''), file.entity.name, file.entity.library];
+    }
+  }).filter(file => file);
 });
 documents.listen(connection);
 

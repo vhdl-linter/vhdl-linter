@@ -84,6 +84,17 @@ export function activate(context: ExtensionContext) {
 
     }
   }));
+  context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-file-listing', async () => {
+    const editor = window.activeTextEditor;
+    if (!editor) {
+      return;
+    }
+    const vhdlLinter = new VhdlLinter(editor.document.uri.path, editor.document.getText(), new ProjectParser([]));
+    const result = await client.sendRequest('vhdl-linter/listing', { textDocument: {uri: editor.document.uri.toString()}});
+    console.log('bb', result);
+    env.clipboard.writeText(JSON.stringify(result));
+    window.showInformationMessage(`copied`);
+  }));
 }
 
 export function deactivate(): Thenable<void> | undefined {
