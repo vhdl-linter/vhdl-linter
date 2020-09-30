@@ -7,8 +7,8 @@ export class OI implements Position {
       this.i_ = i;
     } else {
       this.position = {
-        line : i,
-        character : j,
+        line: i,
+        character: j,
       };
       this.calcI();
     }
@@ -127,7 +127,13 @@ export class ObjectBase {
     this.root = parent;
     return parent;
   }
-
+}
+export class OMentionable extends ObjectBase {
+  name: OName;
+  mentions: OToken[] = [];
+}
+export class ODefitionable extends ObjectBase {
+  public definition?: OSignalBase | OGenericType | OType | OState | OFunction | OEntity;
 }
 export class OFile {
   constructor(public text: string, public file: string, public originalText: string) { }
@@ -143,9 +149,12 @@ export class OFile {
       if (['parent', 'originalText', 'objectList', 'root'].indexOf(key) > -1) {
         return;
       }
+      // text of file
+      if (typeof value === 'string' && value.length > 1000) {
+        return;
+      }
       if (typeof value === 'object' && value !== null) {
         if (seen.has(value)) {
-          debugger;
           return;
         }
         value.proto = value.constructor.name;
@@ -153,134 +162,6 @@ export class OFile {
       }
       return value;
     });
-  }
-  isValidRead(read: ORead, packages: OPackage[]): boolean {
-    return this.findRead(read, packages) !== false;
-  }
-
-  findRead(read: ORead, packages: OPackage[]): ObjectBase | false {
-    let found: ObjectBase | false = false;
-
-    for (const pkg of packages) {
-      for (const constant of pkg.constants) {
-        if (constant.name.text.toLowerCase() === read.text.toLowerCase()) {
-          return constant;
-        }
-      }
-      for (const func of pkg.functions) {
-        if (func.name.toLowerCase() === read.text.toLowerCase()) {
-          return func;
-        }
-      }
-      for (const type of pkg.types) {
-        const typeRead = type.findRead(read);
-        if (typeRead !== false) {
-          return typeRead;
-        }
-        if (type instanceof OEnum) {
-          for (const state of type.states) {
-            if (state.name.toLowerCase() === read.text.toLowerCase()) {
-              return state;
-            }
-          }
-        } else if (type instanceof ORecord) {
-          for (const child of type.children) {
-            if (child.name.toLowerCase() === read.text.toLowerCase()) {
-              return child;
-            }
-          }
-        }
-      }
-    }
-
-    let parent = read.parent;
-    let counter = 100;
-    while ((parent instanceof OFile) === false) {
-      if (parent instanceof OArchitecture) {
-        for (const signal of parent.signals) {
-          found = found || signal.name.text.toLowerCase() === read.text.toLowerCase() && signal;
-        }
-        for (const func of parent.functions) {
-          found = found || func.name.toLowerCase() === read.text.toLowerCase() && func;
-        }
-        for (const type of parent.types) {
-          found = found || type.findRead(read) && type;
-        }
-      }
-      if (parent instanceof OForLoop) {
-        found = found || parent.variable.toLowerCase() === read.text.toLowerCase() && parent;
-      }
-      if (parent instanceof OForGenerate) {
-        found = found || parent.variable.toLowerCase() === read.text.toLowerCase() && parent;
-      }
-      if (parent instanceof OProcess) {
-        for (const variable of parent.variables) {
-          found = found || variable.name.toLowerCase() === read.text.toLowerCase() && variable;
-        }
-      }
-      parent = (parent as any).parent;
-      counter--;
-      if (counter === 0) {
-        //        console.log(parent, parent.parent);
-        throw new Error('Infinite Loop?');
-      }
-    }
-    if (parent instanceof OFileWithEntityAndArchitecture) {
-      const file = (parent as any) as OFileWithEntityAndArchitecture;
-      for (const generic of file.entity.generics) {
-        found = found || generic.name.text.toLowerCase() === read.text.toLowerCase() && generic;
-      }
-      for (const port of file.entity.ports) {
-        found = found || port.name.text.toLowerCase() === read.text.toLowerCase() && port;
-      }
-    } else if (parent instanceof OFileWithPackage) {
-      for (const type of parent.package.types) {
-        found = found || type.findRead(read) && type;
-      }
-      for (const constant of parent.package.constants) {
-        found = found || constant.name.text.toLowerCase() === read.text.toLowerCase() && constant;
-      }
-      for (const func of parent.package.functions) {
-        found = found || func.name.toLowerCase() === read.text.toLowerCase() && func;
-      }
-    }
-    return found;
-  }
-  isValidWrite(write: OWrite): boolean {
-    let found = false;
-    let parent = write.parent;
-    let counter = 100;
-    while ((parent instanceof OFile) === false) {
-      if (parent instanceof OArchitecture) {
-        for (const signal of parent.signals) {
-          found = found || signal.name.text.toLowerCase() === write.text.toLowerCase();
-        }
-      }
-      if (parent instanceof OProcess) {
-        for (const variable of parent.variables) {
-          found = found || (variable.name.toLowerCase() === write.text.toLowerCase() && true);
-        }
-      }
-      parent = (parent as any).parent;
-      counter--;
-      if (counter === 0) {
-        //        console.log(parent, parent.parent);
-        throw new Error('Infinite Loop?');
-      }
-    }
-    const file = (parent as any) as OFileWithEntityAndArchitecture;
-    for (const signal of file.architecture.signals) {
-      found = found || signal.name.text.toLowerCase() === write.text.toLowerCase();
-    }
-    for (const port of file.entity.ports) {
-      found = found || port.name.text.toLowerCase() === write.text.toLowerCase();
-    }
-    for (const type of file.architecture.types) {
-      if (type instanceof OEnum && type.states.find(state => state.name.toLowerCase() === write.text.toLowerCase())) {
-        found = true;
-      }
-    }
-    return found;
   }
 }
 export class OFileWithEntity extends OFile {
@@ -294,9 +175,9 @@ export class OFileWithPackage extends OFile {
 }
 export class OPackage extends ObjectBase {
   name: string;
-  functions: OFunction[];
-  constants: OSignal[];
-  types: OType[];
+  functions: OFunction[] = [];
+  constants: OSignal[] = [];
+  types: OType[] = [];
   parent: OFile;
   library?: string;
 }
@@ -305,27 +186,47 @@ export class OUseStatement extends ObjectBase {
   begin: number;
   end: number;
 }
-export class OFunction extends ObjectBase {
-  name: string;
+export class OFunction extends OMentionable {
+  // name: string;
   parameter: string;
 }
 export class OArchitecture extends ObjectBase {
   signals: OSignal[] = [];
-  processes: OProcess[] = [];
-  instantiations: OInstantiation[] = [];
-  generates: OArchitecture[] = [];
-  assignments: OAssignment[] = [];
   types: OType[] = [];
   functions: OFunction[] = [];
   procedures: OProcedureInstantiation[] = [];
 
+  statements: (OProcess | OInstantiation | OForGenerate | OIfGenerate | OAssignment | OProcedureInstantiation)[] = [];
+  get processes() {
+    return this.statements.filter(statement => statement instanceof OProcess) as readonly OProcess[];
+  }
+  get instantiations() {
+    return this.statements.filter(statement => statement instanceof OInstantiation) as readonly OInstantiation[];
+  }
+  get generates() {
+    const generates = this.statements.filter(statement => statement instanceof OForGenerate) as OArchitecture[];
+    for (const ifObj of this.statements.filter(statement => statement instanceof OIfGenerate) as OIfGenerate[]) {
+      generates.push(...ifObj.ifGenerates);
+      if (ifObj.elseGenerate) {
+        generates.push(ifObj.elseGenerate);
+      }
+    }
+    return generates as readonly(OArchitecture)[];
+  }
+  get assignments() {
+    return this.statements.filter(statement => statement instanceof OAssignment) as readonly OAssignment[];
+  }
+  // processes: OProcess[] = [];
+  // instantiations: OInstantiation[] = [];
+  // generates: OArchitecture[] = [];
+  // assignments: OAssignment[] = [];
 
 }
-export class OType extends ObjectBase {
-  name: string;
+export class OType extends OMentionable {
+  name: OName;
   units?: string[];
   findRead(read: ORead) {
-    if (this.name.toLowerCase() === read.text.toLowerCase()) {
+    if (this.name.text.toLowerCase() === read.text.toLowerCase()) {
       return this;
     }
     if (this.units) {
@@ -338,13 +239,13 @@ export class OType extends ObjectBase {
     }
     if (this instanceof OEnum) {
       for (const state of this.states) {
-        if (state.name.toLowerCase() === read.text.toLowerCase()) {
+        if (state.name.text.toLowerCase() === read.text.toLowerCase()) {
           return state;
         }
       }
     } else if (this instanceof ORecord && read instanceof OElementRead) {
       for (const child of this.children) {
-        if (child.name.toLowerCase() === read.text.toLowerCase()) {
+        if (child.name.text.toLowerCase() === read.text.toLowerCase()) {
           return child;
         }
       }
@@ -352,49 +253,64 @@ export class OType extends ObjectBase {
     return false;
   }
 }
+export class OSubType extends OType {
+  superType: ORead;
+  reads: ORead[];
+}
 export class OEnum extends OType {
   states: OState[] = [];
 }
 export class ORecord extends OType {
-  children: OType[];
+  children: ORecordChild[];
 }
 export class ORecordChild extends OType {
   public parent: ORecord;
 }
-export class OState extends ObjectBase {
-  name: string;
+export class OState extends OMentionable {
+  name: OName;
   public parent: OEnum;
 }
 export class OForGenerate extends OArchitecture {
-  variable: string;
-  start: string;
-  end: string;
+  public variable: OVariable;
+  constructor(public parent: OArchitecture,
+    startI: number,
+    endI: number,
+    public start: string,
+    public end: string,
+  ) {
+    super(parent, startI, endI);
+  }
 }
-export class OIfGenerate extends OArchitecture {
+export class OIfGenerate extends ObjectBase {
+  ifGenerates: OIfGenerateClause[] = [];
+  elseGenerate: OElseGenerateClause;
+}
+export class OIfGenerateClause extends OArchitecture {
   conditions: string[];
   conditionReads: ORead[];
+  public parent: OIfGenerate;
 }
-export class OVariable extends ObjectBase {
-  name: string;
-  type: string;
-  constant: boolean;
-  defaultValue: string;
+export class OElseGenerateClause extends OArchitecture {
+  public parent: OIfGenerate;
 
 }
+
 export class OName extends ObjectBase {
   text: string;
+  public parent: ObjectBase;
   toString() {
     return this.text;
   }
 }
-export class OSignalLike extends ObjectBase {
-  type: string;
+export abstract class OVariableBase extends OMentionable {
+  type: ORead[];
   name: OName;
   defaultValue?: ORead[];
+}
+export abstract class OSignalBase extends OVariableBase {
   private register: boolean | null = null;
   private registerProcess: OProcess | null;
-  reads: ORead[] = [];
-  constructor(public parent: OArchitecture | OEntity | OPackage, startI: number, endI: number) {
+  constructor(public parent: OArchitecture | OEntity | OPackage | OProcess | OForLoop, startI: number, endI: number) {
     super(parent, startI, endI);
   }
   isRegister(): boolean {
@@ -402,7 +318,9 @@ export class OSignalLike extends ObjectBase {
       return this.register;
     }
     this.register = false;
-    const processes = this.parent instanceof OArchitecture ? this.parent.processes : (this.parent.parent instanceof OFileWithEntityAndArchitecture ? this.parent.parent.architecture.processes : []);
+    // const processes = this.parent instanceof OArchitecture ? this.parent.processes : (this.parent.parent instanceof OFileWithEntityAndArchitecture ? this.parent.parent.architecture.processes : []);
+    const processes = this.getRoot().objectList.filter(object => object instanceof OProcess) as OProcess[];
+    // TODO: Redeclaration of Signals
     for (const process of processes) {
       if (process.isRegisterProcess()) {
         for (const write of process.getFlatWrites()) {
@@ -422,7 +340,12 @@ export class OSignalLike extends ObjectBase {
     return this.registerProcess;
   }
 }
-export class OSignal extends OSignalLike {
+export class OVariable extends OVariableBase {
+  type: ORead[];
+  constant: boolean;
+
+}
+export class OSignal extends OSignalBase {
   constant: boolean;
 }
 export class OMap extends ObjectBase {
@@ -435,8 +358,9 @@ export class OGenericMap extends OMap {
 }
 export class OPortMap extends OMap {
 }
-export class OInstantiation extends ObjectBase {
+export class OInstantiation extends ODefitionable {
   label?: string;
+  definition?: OEntity;
   componentName: string;
   portMappings?: OPortMap;
   genericMappings?: OGenericMap;
@@ -507,7 +431,7 @@ export class OInstantiation extends ObjectBase {
     return this.flatWrites;
   }
 }
-export class OMapping extends ObjectBase {
+export class OMapping extends ODefitionable {
   constructor(public parent: OMap, startI: number, endI: number) {
     super(parent, startI, endI);
   }
@@ -526,19 +450,22 @@ export class OEntity extends ObjectBase {
   generics: OGeneric[] = [];
   signals: OSignal[] = [];
   functions: OFunction[] = [];
+  types: OType[] = [];
+  statements: (OProcess | OAssignment | OProcedureInstantiation)[] = [];
+
 
 }
-export class OPort extends OSignalLike {
+export class OPort extends OSignalBase {
   direction: 'in' | 'out' | 'inout';
   directionRange: OIRange;
 }
-export class OGenericType extends ObjectBase {
+export class OGenericType extends OMentionable {
   name: OName;
 }
-export class OGenericActual extends ObjectBase {
+export class OGenericActual extends OVariableBase {
   name: OName;
-  type: string;
-  defaultValue?: string;
+  type: ORead[];
+  defaultValue?: ORead[];
   reads: ORead[];
 }
 export type OGeneric = OGenericType | OGenericActual;
@@ -687,7 +614,7 @@ export class OProcedureInstantiation extends ObjectBase {
   tokens: OToken[];
 }
 export class OForLoop extends ObjectBase {
-  variable: string; // TODO: FIX ME not string
+  variable: OVariable; // TODO: FIX ME not string
   start: string;
   end: string;
   statements: OStatement[] = [];
@@ -696,8 +623,137 @@ export class OAssignment extends ObjectBase {
   writes: OWrite[] = [];
   reads: ORead[] = [];
 }
-export class OToken extends ObjectBase {
-  text: string;
+
+export class OToken extends ODefitionable {
+  public scope?: OArchitecture | OProcess | OEntity | OForLoop;
+  constructor(public parent: ObjectBase, startI: number, endI: number, public text: string) {
+    super(parent, startI, endI);
+    let object: (OFile | ObjectBase) = this;
+
+    yank: do {
+      object = object.parent;
+      if (object instanceof OArchitecture) {
+        for (const signal of object.signals) {
+          if (signal.name.text.toLowerCase() === text.toLowerCase()) {
+            this.definition = signal;
+            this.scope = object;
+            signal.mentions.push(this);
+
+            break yank;
+          }
+        }
+        for (const func of object.functions) {
+          if (func.name.text.toLowerCase() === text.toLowerCase()) {
+            this.definition = func;
+            this.scope = object;
+            func.mentions.push(this);
+
+            break yank;
+          }
+        }
+        for (const type of object.types) {
+          if (type.name.text.toLowerCase() === text.toLowerCase()) {
+            this.definition = type;
+            this.scope = object;
+            type.mentions.push(this);
+
+            break yank;
+          }
+          if (type instanceof OEnum) {
+            for (const state of type.states) {
+              if (state.name.text.toLowerCase() === text.toLowerCase()) {
+                this.definition = state;
+                this.scope = object;
+                state.mentions.push(this);
+
+                break yank;
+              }
+            }
+          }
+          if (type instanceof ORecord) {
+            for (const child of type.children) {
+              if (child.name.text.toLowerCase() === text.toLowerCase()) {
+                this.definition = child;
+                this.scope = object;
+                child.mentions.push(this);
+
+                break yank;
+              }
+            }
+          }
+        }
+        if (object instanceof OForGenerate && object.variable.name.text.toLowerCase() === text.toLowerCase()) {
+          this.definition = object.variable;
+          this.scope = object;
+          break yank;
+        }
+      } else if (object instanceof OFileWithEntity) {
+        for (const signal of object.entity.signals) {
+          if (signal.name.text.toLowerCase() === text.toLowerCase()) {
+            this.definition = signal;
+            signal.mentions.push(this);
+            this.scope = object.entity;
+            break yank;
+          }
+        }
+        for (const type of object.entity.types) {
+          if (type.name.text.toLowerCase() === text.toLowerCase()) {
+            this.definition = type;
+            type.mentions.push(this);
+            this.scope = object.entity;
+            break yank;
+          }
+        }
+        for (const func of object.entity.functions) {
+          if (func.name.text.toLowerCase() === text.toLowerCase()) {
+            this.definition = func;
+            this.scope = object.entity;
+            func.mentions.push(this);
+
+            break yank;
+          }
+        }
+        for (const port of object.entity.ports) {
+          if (port.name.text.toLowerCase() === text.toLowerCase()) {
+            this.definition = port;
+            this.scope = object.entity;
+            port.mentions.push(this);
+
+            break yank;
+          }
+        }
+        for (const generic of object.entity.generics) {
+          if (generic.name.text.toLowerCase() === text.toLowerCase()) {
+            this.definition = generic;
+            this.scope = object.entity;
+            generic.mentions.push(this);
+
+            break yank;
+          }
+        }
+      } else if (object instanceof OProcess) {
+        for (const variable of object.variables) {
+          if (variable.name.text.toLowerCase() === text.toLowerCase()) {
+            this.definition = variable;
+            this.scope = object;
+            variable.mentions.push(this);
+
+            break yank;
+          }
+        }
+      } else if (object instanceof OForLoop) {
+        if (object.variable.name.text.toLowerCase() === text.toLowerCase()) {
+          this.definition = object.variable;
+          this.scope = object;
+          object.variable.mentions.push(this);
+          break yank;
+        }
+      }
+
+
+    } while (!(object instanceof OFile));
+
+  }
 }
 export class OWrite extends OToken {
 }
@@ -706,10 +762,17 @@ export class ORead extends OToken {
 }
 // Read of Record element or something
 export class OElementRead extends ORead {
-
+  constructor(public parent: ObjectBase, startI: number, endI: number, public text: string) {
+    super(parent, startI, endI, text);
+  }
 }
-export class OMappingName extends OToken {
-  parent: OMapping;
+export class OMappingName extends ODefitionable {
+  constructor(public parent: OMapping, startI: number, endI: number, public text: string) {
+    super(parent, startI, endI);
+  }
+
+
+
 }
 export class ParserError extends Error {
   constructor(message: string, public range: OIRange, public solution?: { message: string, edits: TextEdit[] }) {

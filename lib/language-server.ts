@@ -24,11 +24,12 @@ import {
   FoldingRangeParams,
   CodeActionKind,
   CancellationToken,
-  ErrorCodes
+  ErrorCodes,
+  PrepareRenameRequest
 } from 'vscode-languageserver';
 import { VhdlLinter } from './vhdl-linter';
 import { ProjectParser } from './project-parser';
-import { OFile, OArchitecture, ORead, OWrite, OSignal, OFunction, OForLoop, OForGenerate, OInstantiation, OMapping, OEntity, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackage, ORecord, ObjectBase, OType, OMappingName, ORecordChild, OEnum, OProcess, OStatement, OIf, OIfClause, OMap, OUseStatement, OState, OToken, OProcedureInstantiation, OName } from './parser/objects';
+import { OFile, OArchitecture, ORead, OWrite, OSignal, OFunction, OForLoop, OForGenerate, OInstantiation, OMapping, OEntity, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackage, ORecord, ObjectBase, OType, OMappingName, ORecordChild, OEnum, OProcess, OStatement, OIf, OIfClause, OMap, OUseStatement, OState, OToken, OProcedureInstantiation, OName, OMentionable, ODefitionable } from './parser/objects';
 import { mkdtempSync, writeFile, readFile } from 'fs';
 import { tmpdir, type } from 'os';
 import { sep } from 'path';
@@ -37,6 +38,7 @@ import { promisify } from 'util';
 import { foldingHandler } from './languageFeatures/folding';
 import { handleOnDocumentSymbol } from './languageFeatures/documentSymbol';
 import { documentHighlightHandler } from './languageFeatures/documentHightlightHandler';
+import { findReferencesHandler, prepareRenameHandler, renameHandler } from './languageFeatures/findReferencesHandler';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -75,6 +77,9 @@ connection.onInitialize((params: InitializeParams) => {
       executeCommandProvider: { commands: ['vhdl-linter:lsp-command'] },
       codeLensProvider: {
         resolveProvider: true
+      },
+      renameProvider: {
+        prepareProvider: true
       }
     }
   };
@@ -84,11 +89,9 @@ export const initialization = new Promise(resolve => {
     if (hasWorkspaceFolderCapability) {
       const parseWorkspaces = async () => {
         const workspaceFolders = await connection.workspace.getWorkspaceFolders();
-        if (workspaceFolders) {
-          const folders = workspaceFolders.map(workspaceFolder => workspaceFolder.uri.replace('file://', ''));
-          projectParser = new ProjectParser(folders);
-          await projectParser.init();
-        }
+        const folders = (workspaceFolders ?? []).map(workspaceFolder => workspaceFolder.uri.replace('file://', ''));
+        projectParser = new ProjectParser(folders);
+        await projectParser.init();
       };
       await parseWorkspaces();
       connection.workspace.onDidChangeWorkspaceFolders(async event => {
@@ -121,10 +124,14 @@ documents.onDidClose(change => {
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
 export const linters = new Map<string, VhdlLinter>();
+export const lintersValid = new Map<string, boolean>();
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   const vhdlLinter = new VhdlLinter(textDocument.uri.replace('file://', ''), textDocument.getText(), projectParser);
   if (typeof vhdlLinter.tree !== 'undefined' || typeof linters.get(textDocument.uri) === 'undefined') {
     linters.set(textDocument.uri, vhdlLinter);
+    lintersValid.set(textDocument.uri, true);
+  } else {
+    lintersValid.set(textDocument.uri, false);
   }
   const diagnostics = vhdlLinter.checkAll();
   const test = JSON.stringify(diagnostics);
@@ -171,87 +178,98 @@ const findDefinition = async (params: IFindDefinitionParams) => {
   let startI = linter.getIFromPosition(params.position);
   const candidates = linter.tree.objectList.filter(object => object.range.start.i <= startI && startI <= object.range.end.i);
   candidates.sort((a, b) => (a.range.end.i - a.range.start.i) - (b.range.end.i - b.range.start.i));
-  const candidate = candidates[0];
+  let candidate = candidates[0];
   if (!candidate) {
     return null;
   }
-
-  if (candidate instanceof OInstantiation || candidate instanceof OMapping || candidate instanceof OMappingName) {
-    let instantiation: OInstantiation = candidate instanceof OMappingName ? candidate.parent.parent.parent : (candidate instanceof OInstantiation ? candidate : candidate.parent.parent);
-    const entity = linter.getProjectEntity(instantiation);
-    if (!entity) {
-      return null;
-    }
-    if (candidate instanceof OInstantiation) {
-      return {
-        // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
-        range: entity.range,
-        text: entity.getRoot().originalText,
-        // targetSelectionRange:  Range.create(Position.create(0, 0), Position.create(0, 0)),
-        uri: 'file://' + entity.getRoot().file
-      };
-    } else {
-      let mapping = candidate instanceof OMappingName ? candidate.parent : candidate;
-      const port = entity.ports.find(port => mapping.name.find(read => read.text.toLowerCase() === port.name.text.toLowerCase()));
-      if (!port) {
-        return null;
-      }
-      return {
-        // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
-        range: port.range,
-        text: entity.getRoot().originalText,
-        // targetSelectionRange:  Range.create(Position.create(0, 0), Position.create(0, 0)),
-        uri: 'file://' + entity.getRoot().file
-      };
-
-    }
-  } else if (candidate instanceof OProcedureInstantiation) {
-    let definition: OFunction | undefined;
-
-    linter.packages.forEach(pkg => pkg.functions.forEach(func => {
-      if (func.name.toLowerCase() === candidate.name.toLowerCase()) {
-        definition = func;
-      }
-    }));
-    if (definition) {
-      return {
-        range: definition.range,
-        text: definition.getRoot().originalText,
-        uri: 'file://' + definition.getRoot().file
-      };
-    }
-  } else if (candidate instanceof ORead || candidate instanceof OWrite) {
-    let result: false | ObjectBase;
-    result = linter.tree.findRead(candidate, linter.packages);
-    if (typeof result === 'boolean') {
-      return null;
-    }
-    if (result instanceof ORecordChild || result instanceof OState) {
-      result = result.parent;
-    }
+  if (candidate instanceof OName) {
+    candidate = candidate.parent;
+  }
+  if (candidate instanceof ODefitionable && candidate.definition) {
     return {
       // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
-      range: result.range,
-      text: result.getRoot().originalText,
-      // targetSelectionRange: position,
-      uri: 'file://' + result.getRoot().file
-    };
-  } else if (candidate instanceof OUseStatement) {
-    const match = candidate.text.match(/[^.]+\.([^.]+).[^.]+/i);
-    if (!match) {
-      return null;
-    }
-    const packageName = match[1].toLowerCase();
-    const pkg = linter.packages.find(pkg => pkg.name.toLowerCase() === packageName);
-    if (!pkg) {
-      return null;
-    }
-    return {
-      range: pkg.range,
-      text: pkg.getRoot().originalText,
-      uri: 'file://' + pkg.getRoot().file
+      range: candidate.definition.range,
+      text: candidate.definition.getRoot().originalText,
+      // targetSelectionRange:  Range.create(Position.create(0, 0), Position.create(0, 0)),
+      uri: 'file://' + candidate.definition.getRoot().file
     };
   }
+  // if (candidate instanceof OInstantiation || candidate instanceof OMapping || candidate instanceof OMappingName) {
+  //   let instantiation: OInstantiation = candidate instanceof OMappingName ? candidate.parent.parent.parent : (candidate instanceof OInstantiation ? candidate : candidate.parent.parent);
+  //   const entity = linter.getProjectEntity(instantiation);
+  //   if (!entity) {
+  //     return null;
+  //   }
+  //   if (candidate instanceof OInstantiation) {
+  //     return {
+  //       // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
+  //       range: entity.range,
+  //       text: entity.getRoot().originalText,
+  //       // targetSelectionRange:  Range.create(Position.create(0, 0), Position.create(0, 0)),
+  //       uri: 'file://' + entity.getRoot().file
+  //     };
+  //   } else {
+  //     let mapping = candidate instanceof OMappingName ? candidate.parent : candidate;
+  //     const port = entity.ports.find(port => mapping.name.find(read => read.text.toLowerCase() === port.name.text.toLowerCase()));
+  //     if (!port) {
+  //       return null;
+  //     }
+  //     return {
+  //       // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
+  //       range: port.range,
+  //       text: entity.getRoot().originalText,
+  //       // targetSelectionRange:  Range.create(Position.create(0, 0), Position.create(0, 0)),
+  //       uri: 'file://' + entity.getRoot().file
+  //     };
+
+  //   }
+  // } else if (candidate instanceof OProcedureInstantiation) {
+  //   let definition: OFunction | undefined;
+
+  //   linter.packages.forEach(pkg => pkg.functions.forEach(func => {
+  //     if (func.name.toLowerCase() === candidate.name.toLowerCase()) {
+  //       definition = func;
+  //     }
+  //   }));
+  //   if (definition) {
+  //     return {
+  //       range: definition.range,
+  //       text: definition.getRoot().originalText,
+  //       uri: 'file://' + definition.getRoot().file
+  //     };
+  //   }
+  // } else if (candidate instanceof ORead || candidate instanceof OWrite) {
+  //   let result: false | ObjectBase;
+  //   result = linter.tree.findRead(candidate, linter.packages);
+  //   if (typeof result === 'boolean') {
+  //     return null;
+  //   }
+  //   if (result instanceof ORecordChild || result instanceof OState) {
+  //     result = result.parent;
+  //   }
+  //   return {
+  //     // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
+  //     range: result.range,
+  //     text: result.getRoot().originalText,
+  //     // targetSelectionRange: position,
+  //     uri: 'file://' + result.getRoot().file
+  //   };
+  // } else if (candidate instanceof OUseStatement) {
+  //   const match = candidate.text.match(/[^.]+\.([^.]+).[^.]+/i);
+  //   if (!match) {
+  //     return null;
+  //   }
+  //   const packageName = match[1].toLowerCase();
+  //   const pkg = linter.packages.find(pkg => pkg.name.toLowerCase() === packageName);
+  //   if (!pkg) {
+  //     return null;
+  //   }
+  //   return {
+  //     range: pkg.range,
+  //     text: pkg.getRoot().originalText,
+  //     uri: 'file://' + pkg.getRoot().file
+  //   };
+  // }
   return null;
 };
 connection.onHover(async (params, token): Promise<Hover | null> => {
@@ -324,11 +342,11 @@ connection.onCompletion(async (params: CompletionParams): Promise<CompletionItem
         completions.push({ label: signal.name.text, kind: CompletionItemKind.Variable });
       }
       for (const type of parent.types) {
-        completions.push({ label: type.name, kind: CompletionItemKind.TypeParameter });
+        completions.push({ label: type.name.text, kind: CompletionItemKind.TypeParameter });
         if (type instanceof OEnum) {
           completions.push(...type.states.map(state => {
             return {
-              label: state.name,
+              label: state.name.text,
               kind: CompletionItemKind.EnumMember
             };
           }));
@@ -389,6 +407,8 @@ connection.onReferences(async (params: ReferenceParams): Promise<Location[]> => 
   }
   return [];
 });
+connection.onPrepareRename(prepareRenameHandler);
+connection.onRenameRequest(renameHandler);
 connection.onDocumentFormatting(async (params: DocumentFormattingParams): Promise<TextEdit[] | null> => {
   const document = documents.get(params.textDocument.uri);
   if (typeof document === 'undefined') {
@@ -419,6 +439,7 @@ connection.onCodeLens(async (params) => {
   }
   return linter.getCodeLens(params.textDocument.uri);
 });
+connection.onReferences(findReferencesHandler);
 connection.onExecuteCommand(async params => {
   await initialization;
   if (!params.arguments) {

@@ -2,7 +2,7 @@
 	"name": "vhdl-linter",
 	"publisher": "g0t00",
 	"main": "./dist/lib/vscode.js",
-	"version": "0.8.21",
+	"version": "0.12.3",
 	"description": "A typescript based linter for vhdl",
 	"keywords": [],
 	"repository": "https://github.com/g0t00/vhdl-linter",
@@ -133,7 +133,7 @@
 		"prettyjson": "^1.2.1",
 		"tslint": "^5.20.1",
 		"tslint-microsoft-contrib": "^5.2.1",
-		"typescript": "^3.5.1",
+		"typescript": "^3.8.3",
 		"vsce": "^1.71.0",
 		"vscode-languageserver-types": "^3.14.0"
 	},

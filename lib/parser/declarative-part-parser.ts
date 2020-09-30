@@ -1,5 +1,6 @@
 import { ParserBase } from './parser-base';
 import { OSignal, OType, OArchitecture, OEntity, ParserError, OState, OFunction, OPackage, ORecord, OEnum, ORead, OI, ORecordChild, OName } from './objects';
+import { SubtypeParser } from './subtype-parser';
 
 export class DeclarativePartParser extends ParserBase {
   type: string;
@@ -8,53 +9,52 @@ export class DeclarativePartParser extends ParserBase {
     this.debug('start');
   }
   parse(optional: boolean = false, lastWord = 'begin') {
-    const signals: OSignal[] = [];
-    const types: OType[] = [];
-    const functions: OFunction[] = [];
     let nextWord = this.getNextWord({ consume: false }).toLowerCase();
-    let multiSignals: string[] = [];
     while (nextWord !== lastWord) {
       if (nextWord === 'signal' || nextWord === 'constant') {
-        const signal = new OSignal(this.parent, this.pos.i, this.getEndOfLineI());
-        this.getNextWord();
+        const signals = [];
+        const constant = this.getNextWord() === 'constant';
+        do {
+          this.maybeWord(',');
+          const signal = new OSignal(this.parent, this.pos.i, this.getEndOfLineI());
+          signal.constant = constant;
+          signal.name = new OName(signal, this.pos.i, this.pos.i);
+          signal.name.text = this.getNextWord();
+          signal.name.range.end.i = signal.name.range.start.i + signal.name.text.length;
+          signals.push(signal);
 
-        signal.constant = nextWord === 'constant';
-        signal.name = new OName(signal, this.pos.i, this.pos.i);
-        signal.name.text = this.getNextWord();
-        signal.name.range.end.i = signal.name.range.start.i + signal.name.text.length;
-        if (this.text[this.pos.i] === ',') {
-          throw new ParserError(`Defining multiple signals not allowed!: ${this.getLine(this.pos.i)}`, this.pos.getRangeToEndLine());
-          // multiSignals.push(signal.name);
-          // this.expect(',');
-          // continue;
-        }
+        } while (this.text[this.pos.i] === ',');
         this.expect(':');
-        const iBeforeType = this.pos.i;
-        signal.type = this.getType(false);
-        signal.range.end.i = this.pos.i;
+        for (const signal of signals) {
+          const iBeforeType = this.pos.i;
+          const { typeReads, defaultValueReads } = this.getType(signal, false);
+          signal.type = typeReads;
+          signal.defaultValue = defaultValueReads;
+          signal.range.end.i = this.pos.i;
+        }
         this.advanceSemicolon();
-        if (signal.type.indexOf(':=') > -1) {
-          const split = signal.type.split(':=');
-          signal.defaultValue = this.extractReads(signal, split[1].trim(), iBeforeType + signal.type.indexOf(':=') + 2);
-          signal.type = split[0].trim();
-        }
-        signal.reads = this.extractReads(signal, signal.type, iBeforeType);
         // console.log(multiSignals, 'multiSignals');
-        for (const multiSignalName of multiSignals) {
-          const multiSignal = new OSignal(this.parent, -1, -1);
-          Object.assign(signal, multiSignal);
-          multiSignal.name.text = multiSignalName;
-          signals.push(multiSignal);
+        // for (const multiSignalName of multiSignals) {
+        //   const multiSignal = new OSignal(this.parent, -1, -1);
+        //   Object.assign(signal, multiSignal);
+        //   multiSignal.name.text = multiSignalName;
+        //   this.parent.signals.push(multiSignal);
+        // }
+        if (this.parent instanceof OPackage) {
+          this.parent.constants.push(...signals);
+        } else {
+          this.parent.signals.push(...signals);
         }
-        signals.push(signal);
-        multiSignals = [];
       } else if (nextWord === 'attribute') {
         this.getNextWord();
         this.advancePast(';');
       } else if (nextWord === 'type') {
         const type = new OType(this.parent, this.pos.i, this.getEndOfLineI());
         this.getNextWord();
-        type.name = this.getNextWord();
+        const startTypeName = this.pos.i;
+        const typeName = this.getNextWord();
+        type.name = new OName(type, startTypeName, startTypeName + typeName.length + 1);
+        type.name.text = typeName;
         this.expect('is');
         if (this.text[this.pos.i] === '(') {
           this.expect('(');
@@ -63,17 +63,19 @@ export class DeclarativePartParser extends ParserBase {
           (type as OEnum).states = this.advancePast(')').split(',').map(stateName => {
             const state = new OState(type, position, this.getEndOfLineI(position));
             const match = stateName.match(/^\s*/);
-            if (match) {
-              state.range.start.i = position + match[0].length;
+            if (!match) {
+              throw new ParserError(`Error while parsing state`, this.pos.getRangeToEndLine());
             }
-            state.name = stateName.trim();
-            state.range.end.i = state.range.start.i + state.name.length;
+            state.range.start.i = position + match[0].length;
+            state.name = new OName(state, position + match[0].length, position + match[0].length + stateName.trim().length);
+            state.name.text = stateName.trim();
+            state.range.end.i = state.range.start.i + state.name.text.length;
             position += stateName.length;
             position++;
             return state;
           });
           type.range.end.i = this.pos.i;
-          types.push(type);
+          this.parent.types.push(type);
           this.expect(';');
         } else if (this.test(/^[^;]*units/i)) {
           this.advancePast('units');
@@ -87,7 +89,7 @@ export class DeclarativePartParser extends ParserBase {
           this.expect('end');
           this.expect('units');
           type.range.end.i = this.pos.i;
-          types.push(type);
+          this.parent.types.push(type);
           this.expect(';');
         } else {
           const nextWord = this.getNextWord().toLowerCase();
@@ -98,7 +100,8 @@ export class DeclarativePartParser extends ParserBase {
             let recordWord = this.getNextWord();
             while (recordWord.toLowerCase() !== 'end') {
               const child = new ORecordChild(type, position, position);
-              child.name = recordWord;
+              child.name = new OName(child, position, position + recordWord.length);
+              child.name.text = recordWord;
               (type as ORecord).children.push(child);
               this.advanceSemicolon();
               child.range.end.i = this.pos.i;
@@ -106,25 +109,26 @@ export class DeclarativePartParser extends ParserBase {
               recordWord = this.getNextWord();
             }
             this.maybeWord('record');
-            this.maybeWord(type.name);
+            this.maybeWord(type.name.text);
           }
           type.range.end.i = this.pos.i;
-          types.push(type);
+          this.parent.types.push(type);
           this.advancePast(';');
         }
       } else if (nextWord === 'subtype') {
-        const type = new OType(this.parent, this.pos.i, this.getEndOfLineI());
-        this.getNextWord();
-        type.name = this.getNextWord();
-        this.expect('is');
-        types.push(type);
-        this.advanceSemicolon(true);
+        const subtypeParser = new SubtypeParser(this.text, this.pos, this.file, this.parent);
+
+        const type = subtypeParser.parse();
+        this.parent.types.push(type);
       } else if (nextWord === 'alias') {
         const type = new OType(this.parent, this.pos.i, this.getEndOfLineI());
         this.getNextWord();
-        type.name = this.getNextWord();
+        const startTypeName = this.pos.i;
+        const typeName = this.getNextWord();
+        type.name = new OName(type, startTypeName, startTypeName + typeName.length + 1);
+        type.name.text = typeName;
         this.expect('is');
-        types.push(type);
+        this.parent.types.push(type);
         this.advanceSemicolon(true);
       } else if (nextWord === 'component') {
         this.getNextWord();
@@ -139,7 +143,10 @@ export class DeclarativePartParser extends ParserBase {
         }
         const func = new OFunction(this.parent, this.pos.i, this.getEndOfLineI());
         this.getNextWord();
-        func.name = this.advancePast(/^(\w+|"[^"]+")/, {returnMatch: true}).replace(/^"(.*)"$/, '$1');
+        const startName = this.pos.i;
+        const funcName = this.advancePast(/^(\w+|"[^"]+")/, { returnMatch: true }); // .replace(/^"(.*)"$/, '$1');
+        func.name = new OName(func, startName, startName + funcName.length + 1);
+        func.name.text = funcName;
         if (this.text[this.pos.i] === '(') {
           this.expect('(');
           func.parameter = this.advanceBrace();
@@ -156,10 +163,12 @@ export class DeclarativePartParser extends ParserBase {
         }
         func.range.end.i = this.pos.i;
         this.advancePast(';');
-        functions.push(func);
-      } else if (optional && signals.length === 0 && types.length === 0) {
-        return { signals, types, functions };
+        this.parent.functions.push(func);
+      } else if (optional) {
+        return;
       } else if (nextWord === 'package' || nextWord === 'generic') {
+        this.advanceSemicolon();
+      } else if (nextWord === 'file') {
         this.advanceSemicolon();
       } else {
         this.getNextWord();
@@ -167,7 +176,6 @@ export class DeclarativePartParser extends ParserBase {
       }
       nextWord = this.getNextWord({ consume: false }).toLowerCase();
     }
-    return { signals, types, functions };
   }
 
 }

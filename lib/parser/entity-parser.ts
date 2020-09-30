@@ -1,19 +1,22 @@
-import {ParserBase} from './parser-base';
+import { ParserBase } from './parser-base';
 import { DeclarativePartParser } from './declarative-part-parser';
-import {OPort, OGeneric, OEntity, ParserError, OFileWithEntity, OGenericActual, OGenericType, OI, OIRange, OName} from './objects';
+import { OPort, OGeneric, OEntity, ParserError, OFileWithEntity, OGenericActual, OGenericType, OI, OIRange, OName } from './objects';
 import { runInThisContext } from 'vm';
 import { TextEdit } from 'vscode-languageserver';
+import { AssignmentParser } from './assignment-parser';
+import { StatementParser, StatementTypes } from './statement-parser';
 
 export class EntityParser extends ParserBase {
+  public entity: OEntity;
   constructor(text: string, pos: OI, file: string, private parent: OFileWithEntity) {
     super(text, pos, file);
+    const match = this.parent.originalText.match(/!\s*@library\s+(\S+)/i);
+    const library = match ? match[1] : undefined;
+    this.entity = new OEntity(this.parent, this.pos.i, this.getEndOfLineI(), library);
     this.debug(`start`);
   }
   parse(): OEntity {
-    const match = this.parent.originalText.match(/!\s*@library\s+(\S+)/i);
-    const library = match ? match[1] : undefined;
-    const entity = new OEntity(this.parent, this.pos.i, this.getEndOfLineI(), library);
-    entity.name = this.getNextWord();
+    this.entity.name = this.getNextWord();
     this.expect('is');
 
     let lastI;
@@ -22,43 +25,57 @@ export class EntityParser extends ParserBase {
         this.pos.i++;
         continue;
       }
-      let nextWord = this.getNextWord({consume: false}).toLowerCase();
+      let nextWord = this.getNextWord({ consume: false }).toLowerCase();
       const savedI = this.pos.i;
       if (nextWord === 'port') {
         this.getNextWord();
-        entity.ports = this.parsePortsAndGenerics(false, entity);
-        entity.portRange = new OIRange(entity, savedI, this.pos.i);
+        this.parsePortsAndGenerics(false, this.entity);
+        this.entity.portRange = new OIRange(this.entity, savedI, this.pos.i);
       } else if (nextWord === 'generic') {
         this.getNextWord();
-        entity.generics = this.parsePortsAndGenerics(true, entity);
-        entity.genericRange = new OIRange(entity, savedI, this.pos.i);
+        this.parsePortsAndGenerics(true, this.entity);
+        this.entity.genericRange = new OIRange(this.entity, savedI, this.pos.i);
       } else if (nextWord === 'end') {
         this.getNextWord();
         this.maybeWord('entity');
-        this.maybeWord(entity.name);
+        this.maybeWord(this.entity.name);
         this.expect(';');
         break;
       } else if (nextWord === 'begin') {
-         this.advancePast(/(?=end)/i, {allowSemicolon: true});
+        this.getNextWord();
+        let nextWord = this.getNextWord({consume: false}).toLowerCase();
+        while (nextWord !== 'end') {
+          new StatementParser(this.text, this.pos, this.file, this.entity).parse([
+            StatementTypes.Assert,
+            StatementTypes.ProcedureInstantiation,
+            StatementTypes.Process
+          ]);
+          nextWord = this.getNextWord({ consume: false }).toLowerCase();
+        }
+        this.getNextWord();
+        this.maybeWord('entity');
+        this.maybeWord(this.entity.name);
+        this.expect(';');
+        break;
+
       } else {
-        new DeclarativePartParser(this.text, this.pos, this.file, entity).parse(true);
+        new DeclarativePartParser(this.text, this.pos, this.file, this.entity).parse(true);
       }
       if (lastI === this.pos.i) {
         throw new ParserError(`Parser stuck on line ${this.getLine} in module ${this.constructor.name}`, this.pos.getRangeToEndLine());
       }
       lastI = this.pos.i;
     }
-    entity.range.end.i = this.pos.i;
+    this.entity.range.end.i = this.pos.i;
 
-    return entity;
+    return this.entity;
   }
-  parsePortsAndGenerics(generics: false, entity: any): OPort[];
-  parsePortsAndGenerics(generics: true, entity: any): OGeneric[];
-  parsePortsAndGenerics(generics: false|true , entity: any): OPort[]|OGeneric[] {
+  parsePortsAndGenerics(generics: false, entity: any): void;
+  parsePortsAndGenerics(generics: true, entity: any): void;
+  parsePortsAndGenerics(generics: false | true, entity: any) {
     this.debug('start ports');
     this.expect('(');
     // let multiPorts: string[] = [];
-    const ports = [];
     while (this.pos.i < this.text.length) {
       this.advanceWhitespace();
       let port = generics ?
@@ -77,7 +94,11 @@ export class EntityParser extends ParserBase {
         port.name = new OName(port, this.pos.i, this.pos.i);
         port.name.text = this.getNextWord();
         port.name.range.end.i = port.name.range.start.i + port.name.text.length;
-        ports.push(port);
+        if (generics) {
+          this.entity.generics.push(port);
+        } else {
+          this.entity.ports.push(port as any);
+        }
         if (this.text[this.pos.i] === ';') {
           this.pos.i++;
           this.advanceWhitespace();
@@ -94,7 +115,7 @@ export class EntityParser extends ParserBase {
         this.expect(':');
         let directionString;
         if (port instanceof OPort) {
-          directionString = this.getNextWord({consume: false});
+          directionString = this.getNextWord({ consume: false });
           if (directionString !== 'in' && directionString !== 'out' && directionString !== 'inout') {
             port.direction = 'inout';
             port.directionRange = new OIRange(port, this.pos.i, this.pos.i);
@@ -105,13 +126,17 @@ export class EntityParser extends ParserBase {
           }
         }
         const iBeforeType = this.pos.i;
-        const { type, defaultValue, endI} = this.getTypeDefintion(port);
+        const { type, defaultValue, endI } = this.getTypeDefintion(port);
         port.range.end.i = endI;
-        port.type = type;
-        port.reads = this.extractReads(port, port.type, iBeforeType);
+        // port.type = type;
+        port.type = this.extractReads(port, type, iBeforeType);
 
         port.defaultValue = defaultValue;
-        ports.push(port);
+        if (generics) {
+          this.entity.generics.push(port);
+        } else {
+          this.entity.ports.push(port as any);
+        }
         // for (const multiPortName of multiPorts) {
         //   const multiPort = new OPort(this.parent, -1);
         //   Object.assign(port, multiPort);
@@ -121,7 +146,6 @@ export class EntityParser extends ParserBase {
         // multiPorts = [];
       }
     }
-    return ports as any;
   }
   getTypeDefintion(parent: OGenericActual | OPort) {
     let type = '';
