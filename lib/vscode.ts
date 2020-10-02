@@ -92,7 +92,7 @@ export function activate(context: ExtensionContext) {
     const vhdlLinter = new VhdlLinter(editor.document.uri.path, editor.document.getText(), new ProjectParser([]));
     const result = await client.sendRequest('vhdl-linter/listing', { textDocument: {uri: editor.document.uri.toString()}});
     console.log('bb', result);
-    env.clipboard.writeText(JSON.stringify(result));
+    env.clipboard.writeText(result as string);
     window.showInformationMessage(`copied`);
   }));
 }

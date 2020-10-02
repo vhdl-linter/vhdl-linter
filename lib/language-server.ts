@@ -401,8 +401,12 @@ connection.onRequest('vhdl-linter/listing', async (params: any, b: any) => {
     return;
   }
   const files: OFile[] = [];
+
   function parseTree(file: OFile) {
-    files.push(file);
+    if (files.findIndex(fileSearch => fileSearch?.file === file?.file) === -1) {
+      // debugger;
+      files.push(file);
+    }
     for (const object of file?.objectList ?? []) {
       if (object instanceof OInstantiation) {
         if (object.definition) {
@@ -410,7 +414,7 @@ connection.onRequest('vhdl-linter/listing', async (params: any, b: any) => {
           vhdlLinter.checkAll();
           parseTree(vhdlLinter.tree);
         } else {
-          // throw new Error(`Can not find ${object.componentName}`);
+          // throw new Error(`Can not find ${object.componentName}`);q
         }
       }
     }
@@ -418,11 +422,11 @@ connection.onRequest('vhdl-linter/listing', async (params: any, b: any) => {
   }
 
   parseTree(linter.tree);
-  return files.map(file => {
+  return (files.map(file => {
     if (file instanceof OFileWithEntity) {
-      return [file.file.replace((rootUri ?? '').replace('file://', ''), ''), file.entity.name, file.entity.library];
+      return [file.file.replace((rootUri ?? '').replace('file://', ''), ''), file.entity.library];
     }
-  }).filter(file => file);
+  }).filter(file => file) as [string, string][]).map(a => `${a[0]}\t${a[1]}`).join(`\n`);
 });
 documents.listen(connection);
 
