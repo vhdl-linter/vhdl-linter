@@ -1,7 +1,7 @@
 import { EntityParser } from './entity-parser';
 import { ArchitectureParser } from './architecture-parser';
 import { ParserBase } from './parser-base';
-import { OFile, OUseStatement, ParserError, OEntity, OArchitecture, OPackage, OFileWithEntity, OFileWithPackage, OFileWithEntityAndArchitecture, OI, ObjectBase, OMagicComment, MagicCommentType, OIRange, ORead, OMagicCommentParameter, OMagicCommentDisable } from './objects';
+import { OFile, OUseStatement, ParserError, OEntity, OArchitecture, OPackage, OFileWithEntity, OFileWithPackage, OFileWithEntityAndArchitecture, OI, ObjectBase, OMagicComment, MagicCommentType, OIRange, ORead, OMagicCommentParameter, OMagicCommentDisable, OMagicCommentTodo } from './objects';
 import { PackageParser } from './package-parser';
 import * as escapeStringRegexp from 'escape-string-regexp';
 
@@ -52,6 +52,12 @@ export class Parser extends ParserBase {
           // });
           file.magicComments.push(new OMagicCommentParameter(file, MagicCommentType.Parameter, nextLineRange, parameter));
         }
+      }
+
+      match = /(--\s*)(.*TODO.*)/.exec(line);
+      if (match) {
+        const todoRange = new OIRange(file, new OI(file, lineNumber, line.length-match[2].length), new OI(file, lineNumber, line.length));
+        file.magicComments.push(new OMagicCommentTodo(file, MagicCommentType.Todo, todoRange, match[2].toString()));
       }
 
     }

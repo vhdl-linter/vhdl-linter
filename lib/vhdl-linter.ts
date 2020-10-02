@@ -94,6 +94,18 @@ export class VhdlLinter {
         });
     return matchingMagiComments.length === 0;
   }
+  checkTodos() {
+    this.tree.magicComments.forEach(magicComment => {
+      if (magicComment.commentType === MagicCommentType.Todo) {
+        this.messages.push({
+          range: magicComment.range,
+          severity: DiagnosticSeverity.Information,
+          message: magicComment.message
+        })
+      }
+    });
+  }
+
   addMessage(diagnostic: Diagnostic, rule: LinterRules, parameter: string): void;
   addMessage(diagnostic: Diagnostic): void;
   addMessage(diagnostic: Diagnostic, rule?: LinterRules, parameter?: string) {
@@ -238,6 +250,7 @@ export class VhdlLinter {
       this.parsePackages();
       this.checkNotDeclared();
       this.checkLibrary();
+      this.checkTodos();
       if (this.tree instanceof OFileWithEntityAndArchitecture) {
         this.checkResets();
         this.checkUnused(this.tree.architecture, this.tree.entity);
