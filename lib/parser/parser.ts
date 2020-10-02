@@ -16,6 +16,7 @@ export class Parser extends ParserBase {
   }
   parse(): OFileWithPackage | OFileWithEntity | OFile {
     const file = new OFile(this.text, this.file, this.originalText);
+    let disabledRangeStart = undefined;
     for (const [lineNumber, line] of this.originalText.split('\n').entries()) {
       let match = /(--\s*vhdl-linter)(.*)/.exec(line); // vhdl-linter-disable-next-line //vhdl-linter-disable-this-line
 
@@ -26,6 +27,16 @@ export class Parser extends ParserBase {
           file.magicComments.push(new OMagicCommentDisable(file, MagicCommentType.Disable, new OIRange(file, new OI(file, lineNumber, 0), new OI(file, lineNumber, line.length - 1))));
         } else if ((innerMatch = match[2].match('-disable-next-line')) !== null) {// TODO: next nonempty line
           file.magicComments.push(new OMagicCommentDisable(file, MagicCommentType.Disable, nextLineRange));
+        } else if ((innerMatch = match[2].match('-disable')) !== null) {
+          if (disabledRangeStart === undefined) {
+            disabledRangeStart = lineNumber;
+          }
+        } else if ((innerMatch = match[2].match('-enable')) !== null) {
+          if (disabledRangeStart !== undefined) {
+            let disabledRange =  new OIRange(file, new OI(file, disabledRangeStart, 0), new OI(file, lineNumber, line.length - 1));
+            file.magicComments.push(new OMagicCommentDisable(file, MagicCommentType.Disable, disabledRange));
+            disabledRangeStart = undefined;
+          }
         } else if ((innerMatch = match[2].match(/(-parameter-next-line\s+)(.*)/)) !== null) {// TODO: next nonempty line
           const parameter = innerMatch[2].split(/,?\s+/);
           // .map(parameter => {
@@ -42,6 +53,7 @@ export class Parser extends ParserBase {
           file.magicComments.push(new OMagicCommentParameter(file, MagicCommentType.Parameter, nextLineRange, parameter));
         }
       }
+
     }
     this.pos = new OI(file, 0);
     if (this.text.length > 500 * 1024) {
