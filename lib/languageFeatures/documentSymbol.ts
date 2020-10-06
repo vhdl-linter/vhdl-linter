@@ -1,6 +1,6 @@
 import { DocumentSymbolParams, DocumentSymbol, SymbolKind } from 'vscode-languageserver';
 import { initialization, linters } from '../language-server';
-import { OArchitecture, OFileWithPackage, OFileWithEntityAndArchitecture, OProcess, OStatement, OCase, OIf, OForLoop } from '../parser/objects';
+import { OArchitecture, OFileWithPackage, OFileWithEntityAndArchitecture, OStatement, OCase, OIf, OForLoop } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
 
 function parseArchitecture(architecture: OArchitecture, linter: VhdlLinter): DocumentSymbol[] {
@@ -13,12 +13,12 @@ function parseArchitecture(architecture: OArchitecture, linter: VhdlLinter): Doc
     selectionRange: instantiation.range
   })));
   symbols.push(...architecture.processes.map(process => ({
-      name: process.label || 'no label',
-      detail: process.label,
-      kind: SymbolKind.Object,
-      range: process.range,
-      selectionRange: process.range,
-      children: process.statements.map(statement => parseStatements(statement)).flat()
+    name: process.label || 'no label',
+    detail: process.label,
+    kind: SymbolKind.Object,
+    range: process.range,
+    selectionRange: process.range,
+    children: process.statements.map(statement => parseStatements(statement)).flat()
   })));
   for (const generate of architecture.generates) {
     symbols.push({
@@ -44,19 +44,19 @@ function parseStatements(statement: OStatement): DocumentSymbol[] {
         if (name === '') {
           name = 'others';
         }
-      return {
-        name,
-        kind: SymbolKind.EnumMember,
-        range: whenClause.range,
-        selectionRange: whenClause.range,
-        children: whenClause.statements.map(statement => parseStatements(statement)).flat()
-      };
+        return {
+          name,
+          kind: SymbolKind.EnumMember,
+          range: whenClause.range,
+          selectionRange: whenClause.range,
+          children: whenClause.statements.map(statement => parseStatements(statement)).flat()
+        };
       }).flat()
     }];
     return result;
   } else if (statement instanceof OIf) {
     const symbols: DocumentSymbol[] = [];
-    symbols.push(... statement.clauses.map(clause => clause.statements.map(parseStatements)).flat(2));
+    symbols.push(...statement.clauses.map(clause => clause.statements.map(parseStatements)).flat(2));
     if (statement.else) {
       for (const statement_ of statement.else.statements) {
         symbols.push(...parseStatements(statement_));

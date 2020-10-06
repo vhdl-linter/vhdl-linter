@@ -101,7 +101,7 @@ export class VhdlLinter {
           range: magicComment.range,
           severity: DiagnosticSeverity.Information,
           message: magicComment.message
-        })
+        });
       }
     });
   }

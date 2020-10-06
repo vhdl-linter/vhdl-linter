@@ -25,18 +25,18 @@ import {
   CodeActionKind,
   CancellationToken,
   ErrorCodes,
-  PrepareRenameRequest
+  PrepareRenameRequest, SymbolInformation
 } from 'vscode-languageserver';
 import { VhdlLinter } from './vhdl-linter';
 import { ProjectParser } from './project-parser';
 import { OFile, OArchitecture, ORead, OWrite, OSignal, OFunction, OForLoop, OForGenerate, OInstantiation, OMapping, OEntity, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackage, ORecord, ObjectBase, OType, OMappingName, ORecordChild, OEnum, OProcess, OStatement, OIf, OIfClause, OMap, OUseStatement, OState, OToken, OProcedureInstantiation, OName, OMentionable, ODefitionable } from './parser/objects';
-import { mkdtempSync, writeFile, readFile } from 'fs';
+import { promises as fs } from 'fs';
 import { tmpdir, type } from 'os';
 import { sep } from 'path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { foldingHandler } from './languageFeatures/folding';
-import { handleOnDocumentSymbol } from './languageFeatures/documentSymbol';
+import { handleOnDocumentSymbol, handleOnWorkspaceSymbol } from './languageFeatures/documentSymbol';
 import { documentHighlightHandler } from './languageFeatures/documentHightlightHandler';
 import { findReferencesHandler, prepareRenameHandler, renameHandler } from './languageFeatures/findReferencesHandler';
 
@@ -50,7 +50,7 @@ let documents: TextDocuments = new TextDocuments();
 
 let hasWorkspaceFolderCapability: boolean = false;
 // let hasDiagnosticRelatedInformationCapability: boolean = false;
-let projectParser: ProjectParser;
+export let projectParser: ProjectParser;
 let rootUri: string | undefined;
 connection.onInitialize((params: InitializeParams) => {
   let capabilities = params.capabilities;
@@ -80,7 +80,8 @@ connection.onInitialize((params: InitializeParams) => {
       },
       renameProvider: {
         prepareProvider: true
-      }
+      },
+      workspaceSymbolProvider: true
     }
   };
 });
@@ -340,14 +341,14 @@ connection.onDocumentFormatting(async (params: DocumentFormattingParams): Promis
     return null;
   }
   const text = document.getText();
-  const path = mkdtempSync(tmpdir() + sep);
+  const path = await fs.mkdtemp(tmpdir() + sep);
   const tmpFile = path + sep + 'beautify';
-  await promisify(writeFile)(tmpFile, text);
+  await fs.writeFile(tmpFile, text);
   const emacs_script_path = __dirname + '/../../emacs-vhdl-formating-script.lisp';
   await promisify(exec)(`emacs --batch -l ${emacs_script_path} -f vhdl-batch-indent-region ${tmpFile}`);
   return [{
     range: Range.create(document.positionAt(0), document.positionAt(text.length)),
-    newText: await promisify(readFile)(tmpFile, { encoding: 'utf8' })
+    newText: await fs.readFile(tmpFile, { encoding: 'utf8' })
   }];
 });
 connection.onFoldingRanges(foldingHandler);
@@ -393,6 +394,7 @@ connection.onExecuteCommand(async params => {
     }
   });
 });
+connection.onWorkspaceSymbol(params => handleOnWorkspaceSymbol(params, connection));
 connection.onRequest('vhdl-linter/listing', async (params: any, b: any) => {
   await initialization;
   const textDocumentUri = params.textDocument.uri;
