@@ -36,9 +36,15 @@ import { sep } from 'path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { foldingHandler } from './languageFeatures/folding';
-import { handleOnDocumentSymbol, handleOnWorkspaceSymbol } from './languageFeatures/documentSymbol';
+import { handleOnDocumentSymbol } from './languageFeatures/documentSymbol';
 import { documentHighlightHandler } from './languageFeatures/documentHightlightHandler';
 import { findReferencesHandler, prepareRenameHandler, renameHandler } from './languageFeatures/findReferencesHandler';
+import { handleOnWorkspaceSymbol } from './languageFeatures/workspaceSymbols';
+import { handleCompletion } from './languageFeatures/completion';
+import { handleReferences } from './languageFeatures/references';
+import { handleCodeLens } from './languageFeatures/codeLens';
+import { handleDocumentFormatting } from './languageFeatures/handleDocumentFormatting';
+import { handleExecuteCommand } from './languageFeatures/executeCommand';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -46,7 +52,7 @@ export const connection = createConnection(ProposedFeatures.all);
 
 // Create a simple text document manager. The text document manager
 // supports full document sync only
-let documents: TextDocuments = new TextDocuments();
+export const documents: TextDocuments = new TextDocuments();
 
 let hasWorkspaceFolderCapability: boolean = false;
 // let hasDiagnosticRelatedInformationCapability: boolean = false;
@@ -222,179 +228,19 @@ connection.onHover(async (params, token): Promise<Hover | null> => {
     }
   };
 });
-connection.onDefinition(async (params): Promise<Location | null> => {
-  await initialization;
-  return await findDefinition(params);
-});
+connection.onDefinition(findDefinition);
 // This handler provides the initial list of the completion items.
-connection.onCompletion(async (params: CompletionParams): Promise<CompletionItem[]> => {
-  await initialization;
-  const completions: CompletionItem[] = [];
-  const linter = linters.get(params.textDocument.uri);
-  if (typeof linter === 'undefined') {
-    return completions;
-  }
-  if (typeof linter.tree === 'undefined') {
-    return completions;
-  }
-  const document = documents.get(params.textDocument.uri);
-  if (document) {
-    const line = document.getText(Range.create(Position.create(params.position.line, 0), Position.create(params.position.line + 1, 0)));
-    const match = line.match(/^\s*use\s+/i);
-    if (match) {
-      for (const pkg of projectParser.getPackages()) {
-        completions.push({ label: pkg.name });
-        pkg.library && completions.push({ label: pkg.library });
-      }
-    }
-    completions.push({ label: 'all' });
-    completions.push({ label: 'work' });
-  }
-
-  let startI = linter.getIFromPosition(params.position);
-  const candidates = linter.tree.objectList.filter(object => object.range.start.i <= startI && startI <= object.range.end.i);
-  candidates.sort((a, b) => (a.range.end.i - a.range.start.i) - (b.range.end.i - b.range.start.i));
-  const obj = candidates[0];
-  if (!obj) {
-    return completions;
-  }
-
-  let parent = obj.parent;
-  let counter = 100;
-  while ((parent instanceof OFile) === false) {
-    // console.log(parent instanceof OFile, parent);
-    if (parent instanceof OArchitecture) {
-      for (const signal of parent.signals) {
-        completions.push({ label: signal.name.text, kind: CompletionItemKind.Variable });
-      }
-      for (const type of parent.types) {
-        completions.push({ label: type.name.text, kind: CompletionItemKind.TypeParameter });
-        if (type instanceof OEnum) {
-          completions.push(...type.states.map(state => {
-            return {
-              label: state.name.text,
-              kind: CompletionItemKind.EnumMember
-            };
-          }));
-        }
-      }
-    }
-    parent = (parent as any).parent;
-    counter--;
-    if (counter === 0) {
-      //        console.log(parent, parent.parent);
-      throw new Error('Infinite Loop?');
-    }
-  }
-  if (parent instanceof OFileWithEntity) {
-    for (const port of parent.entity.ports) {
-      completions.push({ label: port.name.text, kind: CompletionItemKind.Field });
-    }
-    for (const port of parent.entity.generics) {
-      completions.push({ label: port.name.text, kind: CompletionItemKind.Constant });
-    }
-  }
-  for (const pkg of linter.packages) {
-    const ieee = pkg.parent.file.match(/ieee/i) !== null;
-    for (const obj of pkg.getRoot().objectList) {
-      if ((obj as any).name) {
-        const text = (obj as any).name instanceof OName ? (obj as any).name.text : (obj as any).name;
-        completions.push({
-          label: ieee ? text.toLowerCase() : text,
-          kind: CompletionItemKind.Text
-        });
-      }
-    }
-  }
-  const completionsUnique = completions.filter((completion, completionI) =>
-    completions.slice(0, completionI).findIndex(completionFind => completion.label.toLowerCase() === completionFind.label.toLowerCase()) === -1
-  );
-  return completionsUnique;
-}
-);
-connection.onReferences(async (params: ReferenceParams): Promise<Location[]> => {
-  await initialization;
-  const linter = linters.get(params.textDocument.uri);
-  if (typeof linter === 'undefined') {
-    return [];
-  }
-  if (typeof linter.tree === 'undefined') {
-    return [];
-  }
-  let startI = linter.getIFromPosition(params.position);
-  const candidates = linter.tree.objectList.filter(object => object.range.start.i <= startI && startI <= object.range.end.i);
-  candidates.sort((a, b) => (a.range.end.i - a.range.start.i) - (b.range.end.i - b.range.start.i));
-  const candidate = candidates[0];
-  if (!candidate) {
-    return [];
-  }
-  if (candidate instanceof OToken) {
-    return linter.tree.objectList.filter(obj => obj instanceof OToken && obj.text.toLowerCase() === candidate.text.toLowerCase() && obj !== candidate).map(obj => Location.create(params.textDocument.uri, obj.range));
-  }
-  return [];
-});
+connection.onCompletion(handleCompletion);
+connection.onReferences(handleReferences);
 connection.onPrepareRename(prepareRenameHandler);
 connection.onRenameRequest(renameHandler);
-connection.onDocumentFormatting(async (params: DocumentFormattingParams): Promise<TextEdit[] | null> => {
-  const document = documents.get(params.textDocument.uri);
-  if (typeof document === 'undefined') {
-    return null;
-  }
-  const text = document.getText();
-  const path = await fs.mkdtemp(tmpdir() + sep);
-  const tmpFile = path + sep + 'beautify';
-  await fs.writeFile(tmpFile, text);
-  const emacs_script_path = __dirname + '/../../emacs-vhdl-formating-script.lisp';
-  await promisify(exec)(`emacs --batch -l ${emacs_script_path} -f vhdl-batch-indent-region ${tmpFile}`);
-  return [{
-    range: Range.create(document.positionAt(0), document.positionAt(text.length)),
-    newText: await fs.readFile(tmpFile, { encoding: 'utf8' })
-  }];
-});
+connection.onDocumentFormatting(handleDocumentFormatting);
 connection.onFoldingRanges(foldingHandler);
 connection.onDocumentHighlight(documentHighlightHandler);
-connection.onCodeLens(async (params) => {
-
-  await initialization;
-  const linter = linters.get(params.textDocument.uri);
-  if (typeof linter === 'undefined') {
-    return [];
-  }
-  if (typeof linter.tree === 'undefined') {
-    return [];
-  }
-  return linter.getCodeLens(params.textDocument.uri);
-});
+connection.onCodeLens(handleCodeLens);
 connection.onReferences(findReferencesHandler);
-connection.onExecuteCommand(async params => {
-  await initialization;
-  if (!params.arguments) {
-    return;
-  }
-  console.log(params);
-  const textDocumentUri = params.arguments[0];
-  const linter = linters.get(textDocumentUri);
-  if (typeof linter === 'undefined') {
-    return;
-  }
-  const callback = linter.commandCallbackRegistry[parseInt(params.arguments[1], 10)];
-  const edits: TextEdit[] = [];
-  if (typeof callback === 'function') {
-    edits.push(...callback(textDocumentUri));
-  }
-  const document = documents.get(textDocumentUri);
-  if (!document) {
-    return;
-  }
-  await connection.workspace.applyEdit({
-    edit: {
-      changes: {
-        [textDocumentUri]: edits
-      }
-    }
-  });
-});
-connection.onWorkspaceSymbol(params => handleOnWorkspaceSymbol(params, connection));
+connection.onExecuteCommand(handleExecuteCommand);
+connection.onWorkspaceSymbol(handleOnWorkspaceSymbol);
 connection.onRequest('vhdl-linter/listing', async (params: any, b: any) => {
   await initialization;
   const textDocumentUri = params.textDocument.uri;

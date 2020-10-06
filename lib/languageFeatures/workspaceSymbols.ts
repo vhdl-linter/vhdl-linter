@@ -2,7 +2,7 @@ import { WorkspaceSymbolParams, Connection, SymbolInformation, SymbolKind } from
 import { projectParser } from '../language-server';
 import { OInstantiation, OProcess, OFunction, OPackage, OEntity } from '../parser/objects';
 
-export async function handleOnWorkspaceSymbol(params: WorkspaceSymbolParams, connection: Connection): Promise<SymbolInformation[] | null> {
+export async function handleOnWorkspaceSymbol(params: WorkspaceSymbolParams): Promise<SymbolInformation[] | null> {
 
   const symbols: SymbolInformation[] = [];
   for (const cachedFile of projectParser.cachedFiles) {
