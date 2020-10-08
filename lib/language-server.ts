@@ -43,7 +43,7 @@ import { handleOnWorkspaceSymbol } from './languageFeatures/workspaceSymbols';
 import { handleCompletion } from './languageFeatures/completion';
 import { handleReferences } from './languageFeatures/references';
 import { handleCodeLens } from './languageFeatures/codeLens';
-import { handleDocumentFormatting } from './languageFeatures/handleDocumentFormatting';
+import { handleDocumentFormatting } from './languageFeatures/documentFormatting';
 import { handleExecuteCommand } from './languageFeatures/executeCommand';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.

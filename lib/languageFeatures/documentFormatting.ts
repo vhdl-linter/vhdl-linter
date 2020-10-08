@@ -15,7 +15,7 @@ export async function handleDocumentFormatting (params: DocumentFormattingParams
   const path = await promises.mkdtemp(tmpdir() + sep);
   const tmpFile = path + sep + 'beautify';
   await promises.writeFile(tmpFile, text);
-  const emacs_script_path = __dirname + '/../../emacs-vhdl-formating-script.lisp';
+  const emacs_script_path = __dirname + '/../../../emacs-vhdl-formating-script.lisp';
   await promisify(exec)(`emacs --batch -l ${emacs_script_path} -f vhdl-batch-indent-region ${tmpFile}`);
   return [{
     range: Range.create(document.positionAt(0), document.positionAt(text.length)),
