@@ -6,72 +6,75 @@ package STANDARD is
 
   -- predefined enumeration types:
 
-  type BOOLEAN is (FALSE, TRUE);
+  type boolean is (false, true);
 
-  type BIT is ('0', '1');
+  type bit is ('0', '1');
 
-  type CHARACTER is ();
+  type character is ();
 
 
 
-  type SEVERITY_LEVEL is (NOTE, WARNING, ERROR, FAILURE);
+  type severity_level is (note, warning, error, failure);
 
   -- predefined numeric types:
 
   -- Do INTEGER first to aid implicit declarations of "**".
-  type INTEGER is range -2147483647 to 2147483647;
+  type integer is range -2147483647 to 2147483647;
+  type integer_vector is array (natural range <>) of integer;
+  type boolean_vector is array (natural range <>) of boolean;
+  type real_vector is array (natural range <>) of integer;
 
-  function "*" ($LEFT: $UNIVERSAL_REAL; $RIGHT: $UNIVERSAL_INTEGER)
-	return $UNIVERSAL_REAL;
+  function "*" ($left : $UNIVERSAL_REAL; $right : $UNIVERSAL_INTEGER)
+    return $UNIVERSAL_REAL;
 
-  function "*" ($LEFT: $UNIVERSAL_INTEGER; $RIGHT: $UNIVERSAL_REAL)
-	return $UNIVERSAL_REAL;
+  function "*" ($left : $UNIVERSAL_INTEGER; $right : $UNIVERSAL_REAL)
+    return $UNIVERSAL_REAL;
 
-  function "/" ($LEFT: $UNIVERSAL_REAL; $RIGHT: $UNIVERSAL_INTEGER)
-	return $UNIVERSAL_REAL;
+  function "/" ($left : $UNIVERSAL_REAL; $right : $UNIVERSAL_INTEGER)
+    return $UNIVERSAL_REAL;
 
-  type REAL is range $-. to $+.;
+  type real is range $-. to $+.;
 
   -- predefined type TIME:
 
-type Time is range --implementation defined-- ;
-  units
-     fs;            -- femtosecond
-     ps  = 1000 fs; -- picosecond
-     ns  = 1000 ps; -- nanosecond
-     us  = 1000 ns; -- microsecond
-     ms  = 1000 us; -- millisecond
-     sec = 1000 ms; -- second
-     min = 60  sec; -- minute
-     hr  = 60  min; -- hour
-  end units;
+  type time is range                    --implementation defined-- ;
+    units
+      fs;                               -- femtosecond
+      ps = 1000 fs;                     -- picosecond
+      ns = 1000 ps;                     -- nanosecond
+      us = 1000 ns;                     -- microsecond
+      ms = 1000 us;                     -- millisecond
+      sec = 1000 ms;                    -- second
+      min = 60 sec;                     -- minute
+      hr = 60 min;                      -- hour
+    end units;
   -- subtype used internally for checking time expressions for non-negativness:
 
 
-  subtype DELAY_LENGTH is TIME range 0 fs to TIME'HIGH;
+  subtype delay_length is time range 0 fs to time'high;
 
   -- function that returns the current simulation time:
 
-  impure function NOW return TIME;
+  impure function NOW return time;
 
   -- predefined numeric subtypes:
 
-  subtype NATURAL is INTEGER range 0 to INTEGER'HIGH;
+  subtype natural is integer range 0 to integer'high;
 
-  subtype POSITIVE is INTEGER range 1 to INTEGER'HIGH;
+  subtype positive is integer range 1 to integer'high;
 
   -- predefined array types:
 
-  type STRING is array (POSITIVE range <>) of CHARACTER;
+  type string is array (positive range <>) of character;
 
-  type BIT_VECTOR is array (NATURAL range <>) of BIT;
+  type bit_vector is array (natural range <>) of bit;
 
 --type FILE_OPEN_KIND is (READ_OPEN, WRITE_OPEN, APPEND_OPEN);
 
-  type FILE_OPEN_KIND is (READ_MODE, WRITE_MODE, APPEND_MODE);
+  type file_open_kind is (read_mode, write_mode, append_mode);
 
-  type FILE_OPEN_STATUS is (OPEN_OK, STATUS_ERROR, NAME_ERROR, MODE_ERROR);
+  type file_open_status is (open_ok, status_error, name_error, mode_error);
 
-  attribute FOREIGN: STRING;
+  attribute FOREIGN : string;
 
 end STANDARD;
