@@ -23,51 +23,48 @@ export class ProcedureParser extends ParserBase {
     } else {
       procedure.parameter = '';
     }
-    let nextWord = this.getNextWord({consume: false});
-    if (nextWord === 'is') {
-      this.expect('is');
-      // debugger;
-      nextWord = this.getNextWord({ consume: false }).toLowerCase();
-      while (nextWord !== 'begin') {
-        const variable = new OVariable(procedure, this.pos.i, this.getEndOfLineI());
-        variable.constant = false;
-        this.expect('variable');
-        const startI = this.pos.i;
-        const name = this.getNextWord();
-        variable.name = new OName(variable, startI, startI + name.length);
-        variable.name.text = name;
-        let multiSignals: string[] = []; // TODO: Fix this!!
-        if (this.text[this.pos.i] === ',') {
-          // multiSignals.push(name);
-          this.expect(',');
+    this.maybeWord('is');
+    // debugger;
+    let nextWord = this.getNextWord({ consume: false }).toLowerCase();
+    while (nextWord !== 'begin') {
+      const variable = new OVariable(procedure, this.pos.i, this.getEndOfLineI());
+      variable.constant = false;
+      this.expect('variable');
+      const startI = this.pos.i;
+      const name = this.getNextWord();
+      variable.name = new OName(variable, startI, startI + name.length);
+      variable.name.text = name;
+      let multiSignals: string[] = []; // TODO: Fix this!!
+      if (this.text[this.pos.i] === ',') {
+        // multiSignals.push(name);
+        this.expect(',');
 
-          continue;
-        }
-        this.expect(':');
-        const startType = this.pos.i;
-        const { typeReads, defaultValueReads } = this.getType(variable);
-        variable.type = typeReads;
-        variable.defaultValue = defaultValueReads;
-
-        // for (const multiSignalName of multiSignals) {
-        //   const multiSignal = new OVariable(process, -1, -1);
-        //   Object.assign(variable, multiSignal);
-        //   multiSignal.name = multiSignalName;
-        //   process.variables.push(multiSignal);
-        // }
-        procedure.variables.push(variable);
-        multiSignals = [];
-        nextWord = this.getNextWord({ consume: false }).toLowerCase();
+        continue;
       }
-      this.expect('begin');
-      procedure.statements = this.parseStatements(procedure, ['end']);
-      this.expect('end');
-      this.expect('procedure');
-      this.maybeWord(name);
-      procedure.range.end.i = this.pos.i;
+      this.expect(':');
+      const startType = this.pos.i;
+      const { typeReads, defaultValueReads } = this.getType(variable);
+      variable.type = typeReads;
+      variable.defaultValue = defaultValueReads;
 
+      // for (const multiSignalName of multiSignals) {
+      //   const multiSignal = new OVariable(process, -1, -1);
+      //   Object.assign(variable, multiSignal);
+      //   multiSignal.name = multiSignalName;
+      //   process.variables.push(multiSignal);
+      // }
+      procedure.variables.push(variable);
+      multiSignals = [];
+      nextWord = this.getNextWord({ consume: false }).toLowerCase();
     }
+    this.expect('begin');
+    procedure.statements = this.parseStatements(procedure, ['end']);
+    this.expect('end');
+    this.expect('procedure');
+    this.maybeWord(name);
+    procedure.range.end.i = this.pos.i;
     this.expect(';');
+    console.log(`quit procedure ${name} ${new OI(this.parent, this.pos.i).line}`);
 
     return procedure;
   }
@@ -82,7 +79,6 @@ export class ProcedureParser extends ParserBase {
         this.expect(':');
         nextWord = this.getNextWord({ consume: false });
       }
-      const statementText = this.advanceSemicolon(true, { consume: false });
       if (nextWord.toLowerCase() === 'if') {
         statements.push(this.parseIf(parent, label));
       } else if (exitConditions.indexOf(nextWord.toLowerCase()) > -1) {
@@ -102,11 +98,11 @@ export class ProcedureParser extends ParserBase {
         this.advancePast(';');
       } else if (nextWord.toLowerCase() === 'while') {
         statements.push(this.parseWhile(parent, label));
-      } else if (statementText.match(/:=|<=/)) {
+      } else if (this.text.substr(this.pos.i).match(/^\w+\s*\([^<]*;/)) {
+        this.advanceSemicolon(true);
+      } else {
         const assignmentParser = new AssignmentParser(this.text, this.pos, this.file, parent);
         statements.push(assignmentParser.parse());
-      } else {
-        this.advanceSemicolon(true);
       }
     }
     return statements;
