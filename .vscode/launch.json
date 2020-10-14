@@ -20,9 +20,11 @@
 			"name": "Attach to Server",
 			"port": 6011,
 			"restart": true,
-			"outFiles": ["${workspaceRoot}/server/out/**/*.js"]
+			"outFiles": [
+				"${workspaceRoot}/dist/lib/*.js"
+			],
 		}
-	
+
 	],
 	"compounds": [
 		{
