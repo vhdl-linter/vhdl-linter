@@ -42,6 +42,7 @@ export class ProjectParser {
         this.events.emit('change', 'add', path);
       });
       watcher.on('change', async (path) => {
+        // console.log('change', path);
         const cachedFile = this.cachedFiles.find(cachedFile => cachedFile.path === path);
         if (cachedFile) {
           cachedFile.reparse();
@@ -127,7 +128,10 @@ export class OFileCache {
     this.parseEntity();
   }
   reparse() {
+    this.text = readFileSync(this.path, { encoding: 'utf8' });
     this.linter = new VhdlLinter(this.path, this.text, this.projectParser);
+    this.parsePackage();
+    this.parseEntity();
   }
   private parsePackage(): void {
     if ((this.linter.tree instanceof OFileWithPackage)) {
