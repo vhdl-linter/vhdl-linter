@@ -130,6 +130,10 @@ export class StatementParser extends ParserBase {
       const beforeI = this.pos.i;
       const readText = this.getNextWord();
       const afterI = this.pos.i;
+      if (this.test(/^\(/)) {
+        this.pos.i++;
+        this.advanceBrace();
+      }
       this.getNextWord();
       const assignmentParser = new AssignmentParser(this.text, this.pos, this.file, this.parent);
       const assignment = assignmentParser.parse();
