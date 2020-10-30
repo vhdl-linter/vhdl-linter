@@ -23,7 +23,7 @@ export async function foldingHandler (params: FoldingRangeParams): Promise<Foldi
       result.push(FoldingRange.create(linter.tree.entity.genericRange.start.line, linter.tree.entity.genericRange.end.line));
     }
   }
-  result.push(...blockFolding(linter.text));
+  result.push(...blockFolding(documents.get(params.textDocument.uri)?.getText() ?? ''));
 
 
 
