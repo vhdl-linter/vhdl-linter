@@ -1,14 +1,12 @@
-import { initialization, linters} from '../language-server';
+import { connection, documents, initialization, linters} from '../language-server';
 import { FoldingRangeParams, FoldingRange } from 'vscode-languageserver';
 import { OIfClause, OProcess, OInstantiation, OMap, OEntity, OFileWithEntity, OElseClause, OWhenClause, OCase, OIfGenerateClause, OForGenerate } from '../parser/objects';
+import { readFile } from 'fs';
 export async function foldingHandler (params: FoldingRangeParams): Promise<FoldingRange[]> {
   await initialization;
   const linter = linters.get(params.textDocument.uri);
-  if (typeof linter === 'undefined') {
-    return [];
-  }
-  if (typeof linter.tree === 'undefined') {
-    return [];
+  if (typeof linter === 'undefined' || typeof linter.tree === 'undefined') {
+    return blockFolding(documents.get(params.textDocument.uri)?.getText() ?? '');
   }
   const result: FoldingRange[] = [];
   for (const obj of linter.tree.objectList) {
@@ -25,11 +23,22 @@ export async function foldingHandler (params: FoldingRangeParams): Promise<Foldi
       result.push(FoldingRange.create(linter.tree.entity.genericRange.start.line, linter.tree.entity.genericRange.end.line));
     }
   }
+  result.push(...blockFolding(linter.text));
 
+
+
+  const match = linter.text.match(/^(\s*--.*\n)*/);
+  if (match) {
+    result.push(FoldingRange.create(0, match[0].split('\n').length, undefined, undefined, 'comment'));
+  }
+  return result;
+}
+function blockFolding(text: string) {
+  const result = [];
   let blockStart = undefined;
-  const lines = linter.text.split('\n');
+  const lines = text.split('\n');
   for (let i = 2; i < lines.length; i++) {
-    let match:RegExpMatchArray|null = lines[i].match(/^\s*--+\s*/);
+    let match: RegExpMatchArray | null = lines[i].match(/^\s*--+\s*/);
     if (blockStart === undefined) {
       if (!/^\s*--+\s*$/.test(lines[i]) || !/^\s*--+[^-]*$/.test(lines[i - 1]) || !/^\s*--+\s*/.test(lines[i - 2])) {
         continue;
@@ -42,14 +51,8 @@ export async function foldingHandler (params: FoldingRangeParams): Promise<Foldi
       continue;
     }
 
-    result.push(FoldingRange.create(blockStart-1, i-1, undefined, undefined, 'comment'));
+    result.push(FoldingRange.create(blockStart - 1, i - 1, undefined, undefined, 'comment'));
     blockStart = undefined;
-  }
-
-
-  const match = linter.text.match(/^(\s*--.*\n)*/);
-  if (match) {
-    result.push(FoldingRange.create(0, match[0].split('\n').length, undefined, undefined, 'comment'));
   }
   return result;
 }
