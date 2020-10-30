@@ -28,56 +28,64 @@ export async function foldingHandler (params: FoldingRangeParams): Promise<Foldi
 }
 
 function blockFolding(text: string) {
-  const result = [];
-  const lines = text.split('\n');
+  const result: FoldingRange[] = [];
+  const indent2divider = new Map();
+  const indent2compactDivider = new Map();
+  const foldBlock : [number,number][] = [];
+  const foldCompact : [number,number][] = [];
+  let indentBlockHeader : number|undefined = undefined;
+  text.split('\n').forEach((line,index) => {
+    const match = line.match(/^(\s*)(-*)(\s*[^-]*\s*)(-*)/);
+    if (match) {
+      const indent    = match[1]?.length ?? 0;
+      const isComment = match[2]?.length >= 2;
+      const isDivider = match[2]?.length >= 4 && match[3]?.length === 0 && match[4]?.length === 0;
+      const isCompact = match[2]?.length >= 3 && match[3]?.length !== 0 && match[4]?.length >= 3;
+      if (isDivider) {
+        if (indentBlockHeader === indent) {
+          foldBlock.push([indent,index-1])
+          indentBlockHeader = undefined;
+        } else {
+          const dividers = indent2divider.get(indent) ?? []
+          dividers.push(index);
+          indent2divider.set(indent,dividers);
 
-  let blockHeaderStart = undefined;
-  let blockHeaderIndent = undefined;
-  let blockHeaderStop  = undefined;
+          const compactDividers = indent2compactDivider.get(indent) ?? []
+          compactDividers.push(index);
+          indent2compactDivider.set(indent,compactDividers);
 
-  var i = 0;
-  while(/^\s*--.*$/.test(lines[i])) {
-    i++;
-  }
-  if (i > 0) {
-    result.push(FoldingRange.create(0, i-1, undefined, undefined, 'comment'));
-  }
-  for (i; i < lines.length; i++) {
-    if (blockHeaderStart === undefined) {
-      const match = lines[i].match(/^(\s*)----+\s*$/);
-      if (match) {
-        blockHeaderStart = i;
-        blockHeaderIndent = match[1];
-        // debugger
+          indentBlockHeader = indent;
+        }
+      } else if (isCompact) {
+        foldCompact.push([indent,index])
+        const compactDividers = indent2compactDivider.get(indent) ?? []
+        compactDividers.push(index);
+        indent2compactDivider.set(indent, compactDividers);
+      } else if (!isComment) {
+        indentBlockHeader = undefined;
       }
-      continue;
     }
-    if (blockHeaderStop === undefined) {
-      const match = lines[i].match(/^(\s*)(--+).*$/);
-      if(!match) {
-        blockHeaderStart = undefined;
-        blockHeaderIndent = undefined;
-        continue;
-      }
-      if (match[2].length > 4 && match[1] === blockHeaderIndent) {
-        blockHeaderStop = i;
-      }
-      continue;
+  });
+  foldCompact.forEach((compact) => {
+    const [indent,index] = compact;
+    let nextDivider = indent2compactDivider.get(indent).shift(); 
+    while(nextDivider <= index) {
+      nextDivider = indent2compactDivider.get(indent).shift();
     }
+    if (nextDivider !== undefined) {
+      result.push(FoldingRange.create(index, nextDivider-1, undefined, undefined, 'comment'));
+    }
+  });
 
-    for(let j=i; j < lines.length; j++) {
-      const match = lines[j].match(/^(\s*)----+\s*$/);
-      if (!match || match[1] !== blockHeaderIndent) {
-        continue;
-      }
-      // debugger
-      result.push(FoldingRange.create(blockHeaderStop-1, j-1, undefined, undefined, 'comment'));
-      blockHeaderStart = i;
-      blockHeaderStop = undefined;
+  foldBlock.forEach((block) => {
+    const [indent,index] = block;
+    let nextDivider = indent2divider.get(indent).shift(); 
+    while(nextDivider <= index) {
+      nextDivider = indent2divider.get(indent).shift();
     }
-    blockHeaderStart  = undefined;
-    blockHeaderStop   = undefined;
-    blockHeaderIndent = undefined;
-  }
+    if (nextDivider !== undefined) {
+      result.push(FoldingRange.create(index, nextDivider-1, undefined, undefined, 'comment'));
+    }
+  });
   return result;
 }
