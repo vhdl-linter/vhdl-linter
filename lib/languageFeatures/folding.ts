@@ -32,6 +32,7 @@ function blockFolding(text: string) {
   const lines = text.split('\n');
 
   let blockHeaderStart = undefined;
+  let blockHeaderIndent = undefined;
   let blockHeaderStop  = undefined;
 
   var i = 0;
@@ -41,35 +42,42 @@ function blockFolding(text: string) {
   if (i > 0) {
     result.push(FoldingRange.create(0, i-1, undefined, undefined, 'comment'));
   }
-
   for (i; i < lines.length; i++) {
-    let match:RegExpMatchArray|null = lines[i].match(/^\s*--+\s*/);
     if (blockHeaderStart === undefined) {
-      if (!/^\s*----+\s*$/.test(lines[i])) {
-        continue;
+      const match = lines[i].match(/^(\s*)----+\s*$/);
+      if (match) {
+        blockHeaderStart = i;
+        blockHeaderIndent = match[1];
+        // debugger
       }
-      blockHeaderStart = i;
       continue;
     }
     if (blockHeaderStop === undefined) {
-      if(/^\s*--[^-]+.*$/.test(lines[i])) {
-        continue;
-      }
-      if (!/^\s*----+\s*$/.test(lines[i])) {
+      const match = lines[i].match(/^(\s*)(--+).*$/);
+      if(!match) {
         blockHeaderStart = undefined;
+        blockHeaderIndent = undefined;
         continue;
       }
-      blockHeaderStop = i;
+      if (match[2].length > 4 && match[1] === blockHeaderIndent) {
+        blockHeaderStop = i;
+      }
       continue;
     }
 
-    if (!/^\s*----+\s*$/.test(lines[i])) {
-      continue;
+    for(let j=i; j < lines.length; j++) {
+      const match = lines[j].match(/^(\s*)----+\s*$/);
+      if (!match || match[1] !== blockHeaderIndent) {
+        continue;
+      }
+      // debugger
+      result.push(FoldingRange.create(blockHeaderStop-1, j-1, undefined, undefined, 'comment'));
+      blockHeaderStart = i;
+      blockHeaderStop = undefined;
     }
-
-    result.push(FoldingRange.create(blockHeaderStop-1, i-1, undefined, undefined, 'comment'));
-    blockHeaderStart = i;
-    blockHeaderStop = undefined;
+    blockHeaderStart  = undefined;
+    blockHeaderStop   = undefined;
+    blockHeaderIndent = undefined;
   }
   return result;
 }
