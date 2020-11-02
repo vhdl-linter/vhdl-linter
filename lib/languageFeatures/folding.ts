@@ -34,6 +34,7 @@ function blockFolding(text: string) {
   const foldBlock : [number,number][] = [];
   const foldCompact : [number,number][] = [];
   let indentBlockHeader : number|undefined = undefined;
+  let indentCompactDivider : number|undefined = undefined;
   text.split('\n').forEach((line,index) => {
     const match = line.match(/^(\s*)(-*)(\s*[^-]*\s*)(-*)/);
     if (match) {
@@ -50,9 +51,11 @@ function blockFolding(text: string) {
           dividers.push(index);
           indent2divider.set(indent,dividers);
 
-          const compactDividers = indent2compactDivider.get(indent) ?? []
-          compactDividers.push(index);
-          indent2compactDivider.set(indent,compactDividers);
+          if (indentCompactDivider !== undefined) {
+            const compactDividers = indent2compactDivider.get(indentCompactDivider) ?? []
+            compactDividers.push(index);
+            indent2compactDivider.set(indentCompactDivider, compactDividers);
+          }
 
           indentBlockHeader = indent;
         }
@@ -61,6 +64,7 @@ function blockFolding(text: string) {
         const compactDividers = indent2compactDivider.get(indent) ?? []
         compactDividers.push(index);
         indent2compactDivider.set(indent, compactDividers);
+        indentCompactDivider = indent;
       } else if (!isComment) {
         indentBlockHeader = undefined;
       }
