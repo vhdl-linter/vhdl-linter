@@ -1,10 +1,28 @@
-import { CompletionParams, CompletionItem, Position, CompletionItemKind, Range } from 'vscode-languageserver';
+import { CompletionParams, CompletionItem, Position, CompletionItemKind, Range, InsertTextFormat } from 'vscode-languageserver';
 import { documents, initialization, linters, projectParser } from '../language-server';
 import { OFile, OArchitecture, OEnum, OFileWithEntity, OName } from '../parser/objects';
 
 export async function handleCompletion(params: CompletionParams): Promise<CompletionItem[]> {
   await initialization;
   const completions: CompletionItem[] = [];
+  const document = documents.get(params.textDocument.uri);
+
+  if (document) {
+    const range = Range.create(Position.create(params.position.line, 0), Position.create(params.position.line + 1, 0));
+    const line = document.getText(range);
+    let match = line.match(/^(\s*)-*\s*(.*)/)
+    if (match) {
+      completions.push({
+        label: "Block comment",
+        commitCharacters: ['-'],
+        insertText: '-'.repeat(80-match[1].length) + '\n-- ' + match[2] + '${1}\n' + '-'.repeat(80-match[1].length),
+        insertTextFormat: InsertTextFormat.Snippet,
+        preselect: true,
+        kind: CompletionItemKind.Snippet
+      });
+    }
+  }
+
   const linter = linters.get(params.textDocument.uri);
   if (typeof linter === 'undefined') {
     return completions;
@@ -12,7 +30,6 @@ export async function handleCompletion(params: CompletionParams): Promise<Comple
   if (typeof linter.tree === 'undefined') {
     return completions;
   }
-  const document = documents.get(params.textDocument.uri);
   if (document) {
     const line = document.getText(Range.create(Position.create(params.position.line, 0), Position.create(params.position.line + 1, 0)));
     const match = line.match(/^\s*use\s+/i);
