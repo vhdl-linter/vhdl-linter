@@ -17,6 +17,7 @@ export class Parser extends ParserBase {
   parse(): OFileWithPackage | OFileWithEntity | OFile {
     const file = new OFile(this.text, this.file, this.originalText);
     let disabledRangeStart = undefined;
+    let ignoreRegex : RegExp[] = [];
     for (const [lineNumber, line] of this.originalText.split('\n').entries()) {
       let match = /(--\s*vhdl-linter)(.*)/.exec(line); // vhdl-linter-disable-next-line //vhdl-linter-disable-this-line
 
@@ -51,6 +52,8 @@ export class Parser extends ParserBase {
           //   return read;
           // });
           file.magicComments.push(new OMagicCommentParameter(file, MagicCommentType.Parameter, nextLineRange, parameter));
+        } else if ((innerMatch = match[2].match(/-ignore\s+\/([^\/]*)\/(.)?/)) !== null) {
+          ignoreRegex.push(RegExp(innerMatch[1], innerMatch[2]));
         }
       }
 
@@ -60,6 +63,14 @@ export class Parser extends ParserBase {
         file.magicComments.push(new OMagicCommentTodo(file, MagicCommentType.Todo, todoRange, match[2].toString()));
       }
 
+    }
+    for (const regex of ignoreRegex) {
+      const ignores = this.text.match(regex);
+      if (ignores === null) continue;
+      for (const ignore of ignores) {
+        const replacement = ignore.replace(/\S/g,' ');
+        this.text = this.text.replace(ignore, replacement);
+      }
     }
     this.pos = new OI(file, 0);
     if (this.text.length > 500 * 1024) {
