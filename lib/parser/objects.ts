@@ -197,6 +197,7 @@ export class OProcedure extends OFunction {
   ports: OPort[] = [];
 
 }
+
 export class OArchitecture extends ObjectBase {
   signals: OSignal[] = [];
   types: OType[] = [];
@@ -204,12 +205,15 @@ export class OArchitecture extends ObjectBase {
   procedureInstantiations: OProcedureInstantiation[] = [];
   procedures: OProcedure[] = [];
 
-  statements: (OProcess | OInstantiation | OForGenerate | OIfGenerate | OAssignment | OProcedureInstantiation)[] = [];
+  statements: (OProcess | OInstantiation | OForGenerate | OIfGenerate | OAssignment | OProcedureInstantiation | OBlock)[] = [];
   get processes() {
     return this.statements.filter(statement => statement instanceof OProcess) as readonly OProcess[];
   }
   get instantiations() {
     return this.statements.filter(statement => statement instanceof OInstantiation) as readonly OInstantiation[];
+  }
+  get blocks() {
+    return this.statements.filter(statement => statement instanceof OBlock) as readonly OBlock[];
   }
   get generates() {
     const generates = this.statements.filter(statement => statement instanceof OForGenerate) as OArchitecture[];
@@ -228,6 +232,10 @@ export class OArchitecture extends ObjectBase {
   // instantiations: OInstantiation[] = [];
   // generates: OArchitecture[] = [];
   // assignments: OAssignment[] = [];
+
+}
+export class OBlock extends OArchitecture {
+  label: string;
 
 }
 export class OType extends OMentionable {
