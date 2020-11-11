@@ -8,6 +8,8 @@ import { StatementParser, StatementTypes } from './statement-parser';
 
 export class ArchitectureParser extends ParserBase {
   name: string;
+  type?: string;
+
   constructor(text: string, pos: OI, file: string, private parent: OArchitecture | OFile | OIfGenerate, name?: string) {
     super(text, pos, file);
     this.debug('start');
@@ -61,6 +63,10 @@ export class ArchitectureParser extends ParserBase {
         } else {
           this.maybeWord(structureName);
         }
+        if (typeof this.type !== 'undefined') {
+          this.maybeWord(this.type);
+        }
+
         if (this.name) {
           this.maybeWord(this.name);
         }
