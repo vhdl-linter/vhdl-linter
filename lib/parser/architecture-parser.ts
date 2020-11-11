@@ -1,14 +1,15 @@
 import { ParserBase } from './parser-base';
 import { ProcessParser } from './process-parser';
 import { InstantiationParser } from './instantiation-parser';
-import { OArchitecture, ParserError, OForGenerate, OIfGenerateClause, OFile, ORead, OI, OProcedureInstantiation, OVariable, OName, OIfGenerate } from './objects';
+import { OArchitecture, ParserError, OForGenerate, OIfGenerateClause, OFile, ORead, OI, OProcedureInstantiation, OVariable, OName, OIfGenerate, OBlock } from './objects';
 import { AssignmentParser } from './assignment-parser';
 import { DeclarativePartParser } from './declarative-part-parser';
 import { StatementParser, StatementTypes } from './statement-parser';
 
 export class ArchitectureParser extends ParserBase {
   name: string;
-  type: string;
+  type?: string;
+
   constructor(text: string, pos: OI, file: string, private parent: OArchitecture | OFile | OIfGenerate, name?: string) {
     super(text, pos, file);
     this.debug('start');
@@ -20,11 +21,14 @@ export class ArchitectureParser extends ParserBase {
   parse(): OArchitecture;
   // parse(skipStart: boolean, structureName: 'generate'): OForGenerate;
   parse(skipStart: boolean, structureName: 'generate'): OIfGenerateClause;
+  parse(skipStart: boolean, structureName: 'block'): OBlock;
   parse(skipStart: boolean, structureName: 'generate', variable: { variable: string, start: string, end: string, startPosI: number }): OForGenerate;
-  parse(skipStart = false, structureName: 'architecture' | 'generate' = 'architecture', forShit?: { variable: string, start: string, end: string, startPosI: number }): OArchitecture | OForGenerate | OIfGenerateClause {
+  parse(skipStart = false, structureName: 'architecture' | 'generate' | 'block' = 'architecture', forShit?: { variable: string, start: string, end: string, startPosI: number }): OArchitecture | OForGenerate | OIfGenerateClause {
     this.debug(`parse`);
     if (structureName === 'architecture') {
       this.architecture = new OArchitecture(this.parent, this.pos.i, this.getEndOfLineI());
+    } else if (structureName === 'block') {
+      this.architecture = new OBlock(this.parent, this.pos.i, this.getEndOfLineI());
     } else if (!forShit) {
       this.architecture = new OIfGenerateClause(this.parent, this.pos.i, this.getEndOfLineI());
     } else {
@@ -54,10 +58,15 @@ export class ArchitectureParser extends ParserBase {
       let nextWord = this.getNextWord({ consume: false }).toLowerCase();
       if (nextWord === 'end') {
         this.getNextWord();
-        this.maybeWord(structureName);
-        if (this.type) {
+        if (structureName === 'block') {
+          this.expect(structureName);
+        } else {
+          this.maybeWord(structureName);
+        }
+        if (typeof this.type !== 'undefined') {
           this.maybeWord(this.type);
         }
+
         if (this.name) {
           this.maybeWord(this.name);
         }
@@ -69,6 +78,7 @@ export class ArchitectureParser extends ParserBase {
         StatementTypes.Assert,
         StatementTypes.Assignment,
         StatementTypes.Generate,
+        StatementTypes.Block,
         StatementTypes.ProcedureInstantiation,
         StatementTypes.Process
       ], this.architecture)) {

@@ -25,8 +25,9 @@ export class ProjectParser {
     if (pkg) {
       //       console.log(pkg, new Directory(pkg + '/ieee2008'));
       (await this.parseDirectory(join(pkg, '/../../ieee2008'))).forEach(file => files.add(file));
-      files.add(join(pkg, '/../../standard.vhdl'));
-      files.add(join(pkg, '/../../textio.vhdl'));
+      files.add(join(pkg, '/../../standard.vhd'));
+      files.add(join(pkg, '/../../textio.vhd'));
+      files.add(join(pkg, '/../../env.vhd'));
     }
     for (const file of files) {
       let cachedFile = new OFileCache(file, this);

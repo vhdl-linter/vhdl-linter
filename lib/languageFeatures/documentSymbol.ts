@@ -12,6 +12,13 @@ function parseArchitecture(architecture: OArchitecture, linter: VhdlLinter): Doc
     range: instantiation.range,
     selectionRange: instantiation.range
   })));
+  symbols.push(...architecture.blocks.map(block => ({
+    name: block.label + 'block',
+    detail: block.label,
+    kind: SymbolKind.Object,
+    range: block.range,
+    selectionRange: block.range
+  })));
   symbols.push(...architecture.processes.map(process => ({
     name: process.label || 'no label',
     detail: process.label,

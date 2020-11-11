@@ -9,7 +9,8 @@ export enum StatementTypes {
   ProcedureInstantiation,
   Generate,
   Assignment,
-  Assert
+  Assert,
+  Block
 }
 export class StatementParser extends ParserBase {
   constructor(text: string, pos: OI, file: string, private parent: OArchitecture | OEntity) {
@@ -34,15 +35,28 @@ export class StatementParser extends ParserBase {
       this.getNextWord();
       const processParser = new ProcessParser(this.text, this.pos, this.file, this.parent);
       this.parent.statements.push(processParser.parse(savedI, label));
+    } else if (nextWord === 'block' && allowedStatements.includes(StatementTypes.Block)) {
+      this.getNextWord();
+      this.debug('parse block');
 
+
+      const subarchitecture = new ArchitectureParser(this.text, this.pos, this.file, (this.parent as OArchitecture), label);
+      const block = subarchitecture.parse(true, 'block');
+      block.label = label ?? 'no label';
+      block.range.start.i = savedI;
+      this.reverseWhitespace();
+      block.range.end.i = this.pos.i;
+      this.advanceWhitespace();
+      //        console.log(generate, generate.constructor.name);
+      (this.parent as OArchitecture).statements.push(block);
     } else if (nextWord === 'for' && allowedStatements.includes(StatementTypes.Generate)) {
       this.getNextWord();
       this.debug('parse for generate');
+
       const startI = this.pos.i;
       let variable = this.advancePast(/\bin\b/i);
       let start = this.advancePast(/\b(to|downto)\b/i);
       let end = this.advancePast(/\bgenerate\b/i);
-
       const subarchitecture = new ArchitectureParser(this.text, this.pos, this.file, (this.parent as OArchitecture), label);
       const generate: OForGenerate = subarchitecture.parse(true, 'generate', { variable, start, end, startPosI: startI });
       generate.range.start.i = savedI;
