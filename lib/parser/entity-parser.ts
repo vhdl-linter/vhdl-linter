@@ -28,12 +28,12 @@ export class EntityParser extends ParserBase {
       const savedI = this.pos.i;
       if (nextWord === 'port') {
         this.getNextWord();
-        this.entity.ports = this.parsePortsAndGenerics(false, this.entity);
+        this.parsePortsAndGenerics(false, this.entity);
         this.entity.portRange = new OIRange(this.entity, savedI, this.pos.i);
         this.expect(';');
       } else if (nextWord === 'generic') {
         this.getNextWord();
-        this.entity.generics = this.parsePortsAndGenerics(true, this.entity);
+        this.parsePortsAndGenerics(true, this.entity);
         this.entity.genericRange = new OIRange(this.entity, savedI, this.pos.i);
         this.expect(';');
       } else if (nextWord === 'end') {

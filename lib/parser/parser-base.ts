@@ -1,5 +1,5 @@
 import * as escapeStringRegexp from 'escape-string-regexp';
-import { ParserError, OWrite, ORead, OI, OElementRead, ObjectBase, OMappingName, OMapping, OGenericActual, OGenericType, OIRange, OName, OPort, OGeneric } from './objects';
+import { ParserError, OWrite, ORead, OI, OElementRead, ObjectBase, OMappingName, OMapping, OGenericActual, OGenericType, OIRange, OName, OPort, OGeneric, OEntity, OProcedure } from './objects';
 import { config } from './config';
 import { tokenizer } from './tokenizer';
 import { TextEdit } from 'vscode-languageserver';
@@ -39,12 +39,20 @@ export class ParserBase {
     // target = filter(object);
     //     console.log(`${this.constructor.name}: ${JSON.stringify(target, null, 2)} in line: ${this.getLine()}, (${this.file})`);
   }
-  parsePortsAndGenerics(generics: false, entity: any): OPort[];
-  parsePortsAndGenerics(generics: true, entity: any): OGeneric[];
-  parsePortsAndGenerics(generics: false | true, entity: any) {
+  parsePortsAndGenerics(generics: false, entity: OEntity|OProcedure): void;
+  parsePortsAndGenerics(generics: true, entity: OEntity): void;
+  parsePortsAndGenerics(generics: false | true, entity: OEntity|OProcedure) {
     this.debug('start ports');
     this.expect('(');
-    const ports = [];
+    const ports: any[] = [];
+    if (generics) {
+      if (entity instanceof OProcedure) {
+        throw new Error('Blub');
+      }
+      entity.generics = ports;
+    } else {
+      entity.ports = ports;
+    }
     // let multiPorts: string[] = [];
     while (this.pos.i < this.text.length) {
       this.advanceWhitespace();
@@ -118,7 +126,6 @@ export class ParserBase {
         // multiPorts = [];
       }
     }
-    return ports;
   }
   getTypeDefintion(parent: OGenericActual | OPort) {
     let type = '';

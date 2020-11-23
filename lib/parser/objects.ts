@@ -670,9 +670,6 @@ export class OToken extends ODefitionable {
   public scope?: OArchitecture | OProcess | OEntity | OForLoop | OProcedure;
   constructor(public parent: ObjectBase, startI: number, endI: number, public text: string) {
     super(parent, startI, endI);
-    if (this.text === 'i_PIOWaitReq') {
-      // debugger;
-    }
     let object: (OFile | ObjectBase) = this;
 
     yank: do {

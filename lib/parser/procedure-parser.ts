@@ -20,7 +20,7 @@ export class ProcedureParser extends ProcessLikeParser {
 
     if (this.text[this.pos.i] === '(') {
       // this.expect('(');
-      procedure.ports = this.parsePortsAndGenerics(false, procedure);
+      this.parsePortsAndGenerics(false, procedure);
     } else {
       procedure.parameter = '';
     }
