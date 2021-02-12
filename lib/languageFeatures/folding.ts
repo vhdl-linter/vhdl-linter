@@ -29,14 +29,14 @@ export async function foldingHandler (params: FoldingRangeParams): Promise<Foldi
 
 function blockFolding(text: string) {
   const result: FoldingRange[] = [];
-  const indent2divider = new Map();
-  const indent2compactDivider = new Map();
-  const foldBlock : [number,number][] = [];
-  const foldCompact : [number,number][] = [];
-  let indentBlockHeader : number|undefined = undefined;
-  let lastIndentBlockHeader : number = 0;
-  let indentCompactDivider : number|undefined = undefined;
-  text.split('\n').forEach((line,index) => {
+  const indent2divider = new Map<number, number[]>();
+  const indent2compactDivider = new Map<number, number[]>();
+  const foldBlock: [number, number][] = [];
+  const foldCompact: [number, number][] = [];
+  let indentBlockHeader: number|undefined = undefined;
+  let lastIndentBlockHeader: number = 0;
+  let indentCompactDivider: number|undefined = undefined;
+  text.split('\n').forEach((line, index) => {
     const match = line.match(/^(\s*)(-*)(\s*[^-]*\s*)(-*)/);
     if (match) {
       const indent    = match[1]?.length ?? 0;
@@ -45,21 +45,21 @@ function blockFolding(text: string) {
       const isCompact = match[2]?.length >= 3 && match[3]?.length !== 0 && match[4]?.length >= 3;
       if (isDivider) {
         if (indentBlockHeader === indent) {
-          foldBlock.push([indent,index-1])
+          foldBlock.push([indent, index - 1]);
           lastIndentBlockHeader = indentBlockHeader;
           indentBlockHeader = undefined;
         } else {
-          const dividers = indent2divider.get(indent) ?? []
+          const dividers = indent2divider.get(indent) ?? [];
           dividers.push(index);
           indent2divider.set(indent, dividers);
-          for (let i = indent+1; i <= lastIndentBlockHeader; i++) {
-            const dividers = indent2divider.get(i) ?? []
+          for (let i = indent + 1; i <= lastIndentBlockHeader; i++) {
+            const dividers = indent2divider.get(i) ?? [];
             dividers.push(index);
-            indent2divider.set(i,dividers);
+            indent2divider.set(i, dividers);
           }
 
           if (indentCompactDivider !== undefined) {
-            const compactDividers = indent2compactDivider.get(indentCompactDivider) ?? []
+            const compactDividers = indent2compactDivider.get(indentCompactDivider) ?? [];
             compactDividers.push(index);
             indent2compactDivider.set(indentCompactDivider, compactDividers);
           }
@@ -67,8 +67,8 @@ function blockFolding(text: string) {
           indentBlockHeader = indent;
         }
       } else if (isCompact) {
-        foldCompact.push([indent,index])
-        const compactDividers = indent2compactDivider.get(indent) ?? []
+        foldCompact.push([indent, index]);
+        const compactDividers = indent2compactDivider.get(indent) ?? [];
         compactDividers.push(index);
         indent2compactDivider.set(indent, compactDividers);
         indentCompactDivider = indent;
@@ -78,25 +78,25 @@ function blockFolding(text: string) {
     }
   });
   foldCompact.forEach((compact) => {
-    const [indent,index] = compact;
-    let nextDivider = indent2compactDivider.get(indent).shift(); 
-    while(nextDivider <= index) {
-      nextDivider = indent2compactDivider.get(indent).shift();
+    const [indent, index] = compact;
+    let nextDivider = indent2compactDivider.get(indent)?.shift();
+    while (nextDivider !== undefined && nextDivider <= index) {
+      nextDivider = indent2compactDivider.get(indent)?.shift();
     }
     if (nextDivider !== undefined) {
-      result.push(FoldingRange.create(index, nextDivider-1, undefined, undefined, 'comment'));
+      result.push(FoldingRange.create(index, nextDivider - 1, undefined, undefined, 'comment'));
     }
   });
 
   foldBlock.forEach((block) => {
-    const [indent,index] = block;
+    const [indent, index] = block;
     const dividers = indent2divider.get(indent);
-    let nextDivider = dividers.shift(); 
-    while(nextDivider <= index) {
-      nextDivider = dividers.shift();
+    let nextDivider = dividers?.shift();
+    while (nextDivider !== undefined && nextDivider <= index) {
+      nextDivider = dividers?.shift();
     }
     if (nextDivider !== undefined) {
-      result.push(FoldingRange.create(index, nextDivider-1, undefined, undefined, 'comment'));
+      result.push(FoldingRange.create(index, nextDivider - 1, undefined, undefined, 'comment'));
     }
   });
   return result;
