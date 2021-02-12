@@ -34,6 +34,7 @@ function blockFolding(text: string) {
   const foldBlock : [number,number][] = [];
   const foldCompact : [number,number][] = [];
   let indentBlockHeader : number|undefined = undefined;
+  let lastIndentBlockHeader : number = 0;
   let indentCompactDivider : number|undefined = undefined;
   text.split('\n').forEach((line,index) => {
     const match = line.match(/^(\s*)(-*)(\s*[^-]*\s*)(-*)/);
@@ -45,11 +46,17 @@ function blockFolding(text: string) {
       if (isDivider) {
         if (indentBlockHeader === indent) {
           foldBlock.push([indent,index-1])
+          lastIndentBlockHeader = indentBlockHeader;
           indentBlockHeader = undefined;
         } else {
           const dividers = indent2divider.get(indent) ?? []
           dividers.push(index);
-          indent2divider.set(indent,dividers);
+          indent2divider.set(indent, dividers);
+          for (let i = indent+1; i <= lastIndentBlockHeader; i++) {
+            const dividers = indent2divider.get(i) ?? []
+            dividers.push(index);
+            indent2divider.set(i,dividers);
+          }
 
           if (indentCompactDivider !== undefined) {
             const compactDividers = indent2compactDivider.get(indentCompactDivider) ?? []
@@ -83,9 +90,10 @@ function blockFolding(text: string) {
 
   foldBlock.forEach((block) => {
     const [indent,index] = block;
-    let nextDivider = indent2divider.get(indent).shift(); 
+    const dividers = indent2divider.get(indent);
+    let nextDivider = dividers.shift(); 
     while(nextDivider <= index) {
-      nextDivider = indent2divider.get(indent).shift();
+      nextDivider = dividers.shift();
     }
     if (nextDivider !== undefined) {
       result.push(FoldingRange.create(index, nextDivider-1, undefined, undefined, 'comment'));
