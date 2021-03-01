@@ -278,11 +278,11 @@ export class ParserBase {
       let braceLevel = 0;
       let quote = false;
       while (this.text[this.pos.i + offset]) {
-        const match = /["\\();]/.exec(this.text.substring(this.pos.i + offset));
+        const match = /[\\();]|(?<!")(?:"")*"(?!")/.exec(this.text.substring(this.pos.i + offset));
         if (!match) {
           throw new ParserError(`could not find closing brace`, new OI(this.pos.parent, this.pos.i + offset - text.length).getRangeToEndLine());
         }
-        if (match[0] === '"' && this.text[this.pos.i + offset + match.index - 1] !== '\\') {
+        if (match[0][0] === '"' && this.text[this.pos.i + offset + match.index - 1] !== '\\') {
           quote = !quote;
         } else if (match[0] === '(' && !quote) {
           braceLevel++;
@@ -301,8 +301,8 @@ export class ParserBase {
           }
           return text.trim();
         }
-        text += this.text.substring(this.pos.i + offset, this.pos.i + offset + match.index);
-        offset += match.index + 1;
+        text += this.text.substring(this.pos.i + offset, this.pos.i + offset + match.index + match[0].length - 1);
+        offset += match.index + match[0].length;
       }
       throw new ParserError(`could not find closing brace`, new OI(this.pos.parent, this.pos.i + offset - text.length).getRangeToEndLine());
     }

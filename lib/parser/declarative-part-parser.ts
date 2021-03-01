@@ -53,7 +53,7 @@ export class DeclarativePartParser extends ParserBase {
         }
       } else if (nextWord === 'attribute') {
         this.getNextWord();
-        this.advancePast(';');
+        this.advanceSemicolon(true);
       } else if (nextWord === 'type') {
         const type = new OType(this.parent, this.pos.i, this.getEndOfLineI());
         this.getNextWord();
