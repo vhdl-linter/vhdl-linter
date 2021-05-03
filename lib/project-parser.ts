@@ -3,7 +3,7 @@ import { OEntity, OFileWithEntity, OPackage, OFileWithPackage } from './parser/o
 import { VhdlLinter } from './vhdl-linter';
 import { watch, FSWatcher } from 'chokidar';
 import { EventEmitter } from 'events';
-import { join, resolve } from 'path';
+import { join, resolve, sep } from 'path';
 
 export class ProjectParser {
 
@@ -24,10 +24,10 @@ export class ProjectParser {
     const pkg = __dirname;
     if (pkg) {
       //       console.log(pkg, new Directory(pkg + '/ieee2008'));
-      (await this.parseDirectory(join(pkg, '/../../ieee2008'))).forEach(file => files.add(file));
-      files.add(join(pkg, '/../../standard.vhd'));
-      files.add(join(pkg, '/../../textio.vhd'));
-      files.add(join(pkg, '/../../env.vhd'));
+      (await this.parseDirectory(join(pkg, `${sep}..${sep}..${sep}ieee2008`))).forEach(file => files.add(file));
+      files.add(join(pkg, `${sep}..${sep}..${sep}standard.vhd`));
+      files.add(join(pkg, `${sep}..${sep}..${sep}textio.vhd`));
+      files.add(join(pkg, `${sep}..${sep}..${sep}env.vhd`));
     }
     for (const file of files) {
       let cachedFile = new OFileCache(file, this);
@@ -35,7 +35,7 @@ export class ProjectParser {
     }
     this.fetchEntitesAndPackages();
     for (const workspace of this.workspaces) {
-      const watcher = watch(workspace + '/**/*.vhd', { ignoreInitial: true });
+      const watcher = watch(workspace.replace(sep, '/') + '/**/*.vhd', { ignoreInitial: true });
       watcher.on('add', async (path) => {
         let cachedFile = new OFileCache(path, this);
         this.cachedFiles.push(cachedFile);
@@ -98,7 +98,7 @@ export class ProjectParser {
   }
   watcher: FSWatcher;
   addFolders(folders: string[]) {
-    this.watcher.add(folders.map(folder => folder + '/**/*.vhd'));
+    this.watcher.add(folders.map(folder => folder.replace(sep, '/') + '/**/*.vhd'));
   }
   public getPackages(): OPackage[] {
     return this.packages;
