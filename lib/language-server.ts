@@ -32,7 +32,7 @@ import { ProjectParser } from './project-parser';
 import { OFile, OArchitecture, ORead, OWrite, OSignal, OFunction, OForLoop, OForGenerate, OInstantiation, OMapping, OEntity, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackage, ORecord, ObjectBase, OType, OMappingName, ORecordChild, OEnum, OProcess, OStatement, OIf, OIfClause, OMap, OUseStatement, OState, OToken, OProcedureInstantiation, OName, OMentionable, ODefitionable } from './parser/objects';
 import { promises as fs } from 'fs';
 import { tmpdir, type } from 'os';
-import { sep } from 'path';
+import { posix, sep } from 'path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { foldingHandler } from './languageFeatures/folding';
@@ -45,6 +45,7 @@ import { handleReferences } from './languageFeatures/references';
 import { handleCodeLens } from './languageFeatures/codeLens';
 import { handleDocumentFormatting } from './languageFeatures/documentFormatting';
 import { handleExecuteCommand } from './languageFeatures/executeCommand';
+import { URI } from 'vscode-uri'
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -91,25 +92,27 @@ connection.onInitialize((params: InitializeParams) => {
     }
   };
 });
-export const initialization = new Promise(resolve => {
+export const initialization = new Promise<void>(resolve => {
   connection.onInitialized(async () => {
     if (hasWorkspaceFolderCapability) {
       const parseWorkspaces = async () => {
         const workspaceFolders = await connection.workspace.getWorkspaceFolders();
-        const folders = (workspaceFolders ?? []).map(workspaceFolder => workspaceFolder.uri.replace('file://', ''));
+        const folders = (workspaceFolders ?? []).map(workspaceFolder => URI.parse(workspaceFolder.uri).fsPath);
+
         projectParser = new ProjectParser(folders);
         await projectParser.init();
       };
       await parseWorkspaces();
       connection.workspace.onDidChangeWorkspaceFolders(async event => {
-        projectParser.addFolders(event.added.map(folder => folder.uri.replace('file://', '')));
+        projectParser.addFolders(event.added.map(folder => URI.parse(folder.uri).fsPath));
         connection.console.log('Workspace folder change event received.');
       });
     } else {
       const folders = [];
       if (rootUri) {
-        folders.push(rootUri.replace('file://', ''));
+        folders.push(URI.parse(rootUri).fsPath);
       }
+      console.log('folders', folders);
       projectParser = new ProjectParser(folders);
       await projectParser.init();
     }
@@ -133,7 +136,7 @@ documents.onDidClose(change => {
 export const linters = new Map<string, VhdlLinter>();
 export const lintersValid = new Map<string, boolean>();
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
-  const vhdlLinter = new VhdlLinter(textDocument.uri.replace('file://', ''), textDocument.getText(), projectParser);
+  const vhdlLinter = new VhdlLinter(URI.parse(textDocument.uri).fsPath, textDocument.getText(), projectParser);
   if (typeof vhdlLinter.tree !== 'undefined' || typeof linters.get(textDocument.uri) === 'undefined') {
     linters.set(textDocument.uri, vhdlLinter);
     lintersValid.set(textDocument.uri, true);
@@ -198,7 +201,7 @@ const findDefinition = async (params: IFindDefinitionParams) => {
       range: candidate.definition.range,
       text: candidate.definition.getRoot().originalText,
       // targetSelectionRange:  Range.create(Position.create(0, 0), Position.create(0, 0)),
-      uri: 'file://' + candidate.definition.getRoot().file
+      uri: URI.file(candidate.definition.getRoot().file).toString()
     };
   }
 

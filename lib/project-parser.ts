@@ -15,6 +15,7 @@ export class ProjectParser {
   async init() {
     let files = new Set<string>();
     await Promise.all(this.workspaces.map(async (directory) => {
+      console.log('dir', directory)
       const directories = await this.parseDirectory(directory);
       return (await Promise.all(directories.map(file => promises.realpath(file)))).forEach(file => files.add(file));
     }));
