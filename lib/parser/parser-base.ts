@@ -95,7 +95,7 @@ export class ParserBase {
         this.expect(':');
         let directionString;
         if (port instanceof OPort) {
-          directionString = this.getNextWord({ consume: false });
+          directionString = this.getNextWord({ consume: false }).toLowerCase();
           if (directionString !== 'in' && directionString !== 'out' && directionString !== 'inout') {
             port.direction = 'inout';
             port.directionRange = new OIRange(port, this.pos.i, this.pos.i);
