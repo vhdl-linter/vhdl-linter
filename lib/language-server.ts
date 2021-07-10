@@ -29,7 +29,7 @@ import {
 } from 'vscode-languageserver';
 import { VhdlLinter } from './vhdl-linter';
 import { ProjectParser } from './project-parser';
-import { OFile, OArchitecture, ORead, OWrite, OSignal, OFunction, OForLoop, OForGenerate, OInstantiation, OMapping, OEntity, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackage, ORecord, ObjectBase, OType, OMappingName, ORecordChild, OEnum, OProcess, OStatement, OIf, OIfClause, OMap, OUseStatement, OState, OToken, OProcedureInstantiation, OName, OMentionable, ODefitionable } from './parser/objects';
+import { OFile, OArchitecture, ORead, OWrite, OSignal, OFunction, OForLoop, OForGenerate, OInstantiation, OMapping, OEntity, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackages, ORecord, ObjectBase, OType, OMappingName, ORecordChild, OEnum, OProcess, OStatement, OIf, OIfClause, OMap, OUseStatement, OState, OToken, OProcedureInstantiation, OName, OMentionable, ODefitionable } from './parser/objects';
 import { promises as fs } from 'fs';
 import { tmpdir, type } from 'os';
 import { posix, sep } from 'path';

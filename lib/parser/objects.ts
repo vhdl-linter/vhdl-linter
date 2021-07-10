@@ -170,10 +170,20 @@ export class OFileWithEntity extends OFile {
 export class OFileWithEntityAndArchitecture extends OFileWithEntity {
   architecture: OArchitecture;
 }
-export class OFileWithPackage extends OFile {
-  package: OPackage;
+export class OFileWithPackages extends OFile {
+  packages: OPackage[];
 }
 export class OPackage extends ObjectBase {
+  name: string;
+  functions: OFunction[] = [];
+  procedures: OProcedure[] = [];
+  constants: OSignal[] = [];
+  types: OType[] = [];
+  parent: OFile;
+  library?: string;
+}
+
+export class OPackageBody extends ObjectBase {
   name: string;
   functions: OFunction[] = [];
   procedures: OProcedure[] = [];

@@ -1,6 +1,6 @@
 import { DocumentSymbolParams, DocumentSymbol, SymbolKind } from 'vscode-languageserver';
 import { initialization, linters } from '../language-server';
-import { OArchitecture, OFileWithPackage, OFileWithEntityAndArchitecture, OStatement, OCase, OIf, OForLoop } from '../parser/objects';
+import { OArchitecture, OFileWithPackages, OFileWithEntityAndArchitecture, OStatement, OCase, OIf, OForLoop } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
 
 function parseArchitecture(architecture: OArchitecture, linter: VhdlLinter): DocumentSymbol[] {
@@ -83,10 +83,10 @@ export async function handleOnDocumentSymbol(params: DocumentSymbolParams): Prom
   }
   const returnValue: DocumentSymbol[] = [];
 
-  if (linter.tree instanceof OFileWithPackage) {
-    returnValue.push(...linter.tree.package.types.map(type => DocumentSymbol.create(type.name.text, undefined, SymbolKind.Enum, type.range, type.range)));
-    returnValue.push(...linter.tree.package.functions.map(func => DocumentSymbol.create(func.name.text, undefined, SymbolKind.Function, func.range, func.range)));
-    returnValue.push(...linter.tree.package.constants.map(constants => DocumentSymbol.create(constants.name.text, undefined, SymbolKind.Constant, constants.range, constants.range)));
+  if (linter.tree instanceof OFileWithPackages) {
+    returnValue.push(...linter.tree.packages.map(pkg => pkg.types).flat().map(type => DocumentSymbol.create(type.name.text, undefined, SymbolKind.Enum, type.range, type.range)));
+    returnValue.push(...linter.tree.packages.map(pkg => pkg.functions).flat().map(func => DocumentSymbol.create(func.name.text, undefined, SymbolKind.Function, func.range, func.range)));
+    returnValue.push(...linter.tree.packages.map(pkg => pkg.constants).flat().map(constants => DocumentSymbol.create(constants.name.text, undefined, SymbolKind.Constant, constants.range, constants.range)));
   }
   if (linter.tree instanceof OFileWithEntityAndArchitecture) {
     returnValue.push(...parseArchitecture(linter.tree.architecture, linter));

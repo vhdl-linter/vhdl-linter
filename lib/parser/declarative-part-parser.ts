@@ -1,12 +1,12 @@
 import { ParserBase } from './parser-base';
-import { OSignal, OType, OArchitecture, OEntity, ParserError, OState, OFunction, OPackage, ORecord, OEnum, ORead, OI, ORecordChild, OName, OProcedure } from './objects';
+import { OSignal, OType, OArchitecture, OEntity, ParserError, OState, OFunction, OPackage, ORecord, OEnum, ORead, OI, ORecordChild, OName, OProcedure, OPackageBody } from './objects';
 import { SubtypeParser } from './subtype-parser';
 import { StatementParser, StatementTypes } from './statement-parser';
 import { ProcedureParser } from './procedure-parser';
 
 export class DeclarativePartParser extends ParserBase {
   type: string;
-  constructor(text: string, pos: OI, file: string, private parent: OArchitecture | OEntity | OPackage) {
+  constructor(text: string, pos: OI, file: string, private parent: OArchitecture | OEntity | OPackage | OPackageBody) {
     super(text, pos, file);
     this.debug('start');
   }
@@ -46,7 +46,7 @@ export class DeclarativePartParser extends ParserBase {
         //   multiSignal.name.text = multiSignalName;
         //   this.parent.signals.push(multiSignal);
         // }
-        if (this.parent instanceof OPackage) {
+        if (this.parent instanceof OPackage || this.parent instanceof OPackageBody) {
           this.parent.constants.push(...signals);
         } else {
           this.parent.signals.push(...signals);
@@ -181,8 +181,8 @@ export class DeclarativePartParser extends ParserBase {
       } else if (nextWord === 'file') {
         this.advanceSemicolon();
       } else {
-        this.getNextWord();
         throw new ParserError(`Unknown Ding: '${nextWord}' on line ${this.getLine()}`, this.pos.getRangeToEndLine());
+        this.getNextWord();
       }
       nextWord = this.getNextWord({ consume: false }).toLowerCase();
     }

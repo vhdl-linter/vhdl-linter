@@ -1,4 +1,4 @@
-import { OFile, OIf, OSignalBase, OSignal, OArchitecture, OEntity, OPort, OInstantiation, OWrite, ORead, OFileWithEntity, OFileWithPackage, OFileWithEntityAndArchitecture, ORecord, OPackage, ParserError, OEnum, OGenericActual, OMapping, OPortMap, MagicCommentType, OProcess, OToken, OMappingName, OMap, OMentionable, OGenericMap, OProcedureCall } from './parser/objects';
+import { OFile, OIf, OSignalBase, OSignal, OArchitecture, OEntity, OPort, OInstantiation, OWrite, ORead, OFileWithEntity, OFileWithPackages, OFileWithEntityAndArchitecture, ORecord, OPackage, ParserError, OEnum, OGenericActual, OMapping, OPortMap, MagicCommentType, OProcess, OToken, OMappingName, OMap, OMentionable, OGenericMap, OProcedureCall } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 import { findBestMatch } from 'string-similarity';
@@ -26,7 +26,7 @@ export type diagnosticCodeActionCallback = (textDocumentUri: string) => CodeActi
 export type commandCallback = (textDocumentUri: string, ...args: any[]) => TextEdit[];
 export class VhdlLinter {
   messages: Diagnostic[] = [];
-  tree: OFileWithEntityAndArchitecture | OFileWithEntity | OFileWithPackage | OFile;
+  tree: OFileWithEntityAndArchitecture | OFileWithEntity | OFileWithPackages | OFile;
   parser: Parser;
   packages: OPackage[] = [];
   constructor(private editorPath: string, public text: string, public projectParser: ProjectParser, public onlyEntity: boolean = false) {

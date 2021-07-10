@@ -1,7 +1,7 @@
 import { EntityParser } from './entity-parser';
 import { ArchitectureParser } from './architecture-parser';
 import { ParserBase } from './parser-base';
-import { OFile, OUseStatement, ParserError, OEntity, OArchitecture, OPackage, OFileWithEntity, OFileWithPackage, OFileWithEntityAndArchitecture, OI, ObjectBase, OMagicComment, MagicCommentType, OIRange, ORead, OMagicCommentParameter, OMagicCommentDisable, OMagicCommentTodo } from './objects';
+import { OFile, OUseStatement, ParserError, OEntity, OArchitecture, OPackage, OFileWithEntity, OFileWithPackages, OFileWithEntityAndArchitecture, OI, ObjectBase, OMagicComment, MagicCommentType, OIRange, ORead, OMagicCommentParameter, OMagicCommentDisable, OMagicCommentTodo, OPackageBody } from './objects';
 import { PackageParser } from './package-parser';
 import * as escapeStringRegexp from 'escape-string-regexp';
 
@@ -14,7 +14,7 @@ export class Parser extends ParserBase {
     this.originalText = text;
     this.removeComments();
   }
-  parse(): OFileWithPackage | OFileWithEntity | OFile {
+  parse(): OFileWithPackages | OFileWithEntity | OFile {
     const file = new OFile(this.text, this.file, this.originalText);
     let disabledRangeStart = undefined;
     let ignoreRegex : RegExp[] = [];
@@ -78,7 +78,7 @@ export class Parser extends ParserBase {
     }
     let entity: OEntity | undefined;
     let architecture: OArchitecture | undefined;
-    let pkg: OPackage | undefined;
+    const packages: OPackage|OPackageBody[] = [];
     while (this.pos.i < this.text.length) {
       this.advanceWhitespace();
       let nextWord = this.getNextWord().toLowerCase();
@@ -106,10 +106,7 @@ export class Parser extends ParserBase {
         architecture = architectureParser.parse();
       } else if (nextWord === 'package') {
         const packageParser = new PackageParser(this.text, this.pos, this.file);
-        pkg = packageParser.parse(file);
-        Object.setPrototypeOf(file, OFileWithPackage.prototype);
-        (file as OFileWithPackage).package = pkg;
-        return file;
+        packages.push(packageParser.parse(file));
       } else {
         this.pos.i++;
       }
@@ -118,9 +115,9 @@ export class Parser extends ParserBase {
       Object.setPrototypeOf(file, OFileWithEntityAndArchitecture.prototype);
       (file as OFileWithEntityAndArchitecture).architecture = architecture;
       (file as OFileWithEntityAndArchitecture).entity = entity;
-    } else if (pkg) {
-      Object.setPrototypeOf(file, OFileWithPackage.prototype);
-      (file as OFileWithPackage).package = pkg;
+    } else if (packages.length > 0) {
+      Object.setPrototypeOf(file, OFileWithPackages.prototype);
+      (file as OFileWithPackages).packages = packages;
     }
     return file;
   }

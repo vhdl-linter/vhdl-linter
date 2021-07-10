@@ -1,5 +1,5 @@
 import { readFileSync, promises } from 'fs';
-import { OEntity, OFileWithEntity, OPackage, OFileWithPackage } from './parser/objects';
+import { OEntity, OFileWithEntity, OPackage, OFileWithPackages } from './parser/objects';
 import { VhdlLinter } from './vhdl-linter';
 import { watch, FSWatcher } from 'chokidar';
 import { EventEmitter } from 'events';
@@ -92,8 +92,8 @@ export class ProjectParser {
       if (cachedFile.entity) {
         this.entities.push(cachedFile.entity);
       }
-      if (cachedFile.package) {
-        this.packages.push(cachedFile.package);
+      if (cachedFile.packages) {
+        this.packages.push(...cachedFile.packages);
       }
     }
   }
@@ -113,7 +113,7 @@ export class OFileCache {
 
   path: string;
   digest: string;
-  package?: OPackage;
+  packages?: OPackage[];
   entity?: OEntity;
   text: string;
   linter: VhdlLinter;
@@ -126,18 +126,18 @@ export class OFileCache {
     // this.digest = await file.getDigest();
     this.path = file;
     this.linter = new VhdlLinter(this.path, this.text, this.projectParser);
-    this.parsePackage();
+    this.parsePackages();
     this.parseEntity();
   }
   reparse() {
     this.text = readFileSync(this.path, { encoding: 'utf8' });
     this.linter = new VhdlLinter(this.path, this.text, this.projectParser);
-    this.parsePackage();
+    this.parsePackages();
     this.parseEntity();
   }
-  private parsePackage(): void {
-    if ((this.linter.tree instanceof OFileWithPackage)) {
-      this.package = this.linter.tree.package;
+  private parsePackages(): void {
+    if ((this.linter.tree instanceof OFileWithPackages)) {
+      this.packages = this.linter.tree.packages;
     }
 
 
