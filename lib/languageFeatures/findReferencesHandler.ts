@@ -53,24 +53,7 @@ export async function prepareRenameHandler(params: TextDocumentPositionParams) {
   if (!candidate) {
     throw new ResponseError(ErrorCodes.InvalidRequest, 'Can not rename this element', 'Can not rename this element');
   }
-  let searchString: string | undefined;
-  if ((candidate instanceof OName)) {
-    searchString = candidate.text.toLowerCase();
-  } else if (candidate instanceof OToken) {
-    searchString = candidate.text.toLowerCase();
-  }
-  const defintion = linter.tree.objectList.find(object => {
-    if (object instanceof OName) {
-      // if (object.parent instanceof OPort || object.parent instanceof OGenericActual || object.parent instanceof OGenericType) {
-      //   return false;
-      // }
-      return object.text.toLowerCase() === searchString;
-    }
-  });
-  if (defintion) {
-    return defintion.range;
-  }
-  throw new ResponseError(ErrorCodes.InvalidRequest, 'Can not rename this element', 'Can not rename this element');
+  return candidate.range;
 }
 export async function renameHandler(params: RenameParams) {
   const references = (await findReferences(params)).map(reference => {
