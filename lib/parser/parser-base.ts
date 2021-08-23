@@ -81,7 +81,8 @@ export class ParserBase {
           this.advanceWhitespace();
         }
       } else {
-        if (this.getNextWord({ consume: false }).toLowerCase() === 'signal' || this.getNextWord({ consume: false }).toLowerCase() === 'file') {
+        const next = this.getNextWord({ consume: false }).toLowerCase();
+        if (next === 'signal' || next === 'variable' || next === 'constant' || next === 'file') {
           this.getNextWord();
         }
         port.name = new OName(port, this.pos.i, this.pos.i);
