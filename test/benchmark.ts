@@ -1,4 +1,4 @@
-import {VhdlLinter} from '../lib/vhdl-linter';
+import {defaultLinterArguments, VhdlLinter} from '../lib/vhdl-linter';
 import * as glob from 'glob';
 import {promisify} from 'util';
 import {readFileSync} from 'fs';
@@ -12,7 +12,7 @@ interface BenchmarkFile {
   linter?: VhdlLinter;
 }
 const filesCache: BenchmarkFile[] = [];
-const projectParser = new ProjectParser([]);
+const projectParser = new ProjectParser([], defaultLinterArguments());
 (async () => {
   const files = await promisify(glob)('test/**/*.vhd');
   console.log(`Found ${files.length} vhdl files.`);
@@ -28,7 +28,7 @@ const projectParser = new ProjectParser([]);
   console.log(`Read all files after ${time2 - time1} ms`);
   for (const file of filesCache) {
     const before = new Date().getTime();
-    file.linter = new VhdlLinter(file.path, file.text, projectParser, true);
+    file.linter = new VhdlLinter(file.path, file.text, projectParser, defaultLinterArguments(), true);
     const after = new Date().getTime();
     file.time = after - before;
   }

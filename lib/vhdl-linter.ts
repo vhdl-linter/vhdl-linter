@@ -22,6 +22,16 @@ export interface IAddSignalCommandArguments {
   signalName: string;
   range: Range;
 }
+export interface ILinterArguments {
+  outRegex: RegExp;
+  inRegex: RegExp;
+}
+export function defaultLinterArguments(): ILinterArguments {
+  return {
+    outRegex: /^o_/i,
+    inRegex: /^i_/i
+  }
+}
 export type diagnosticCodeActionCallback = (textDocumentUri: string) => CodeAction[];
 export type commandCallback = (textDocumentUri: string, ...args: any[]) => TextEdit[];
 export class VhdlLinter {
@@ -29,7 +39,7 @@ export class VhdlLinter {
   tree: OFileWithEntityAndArchitecture | OFileWithEntity | OFileWithPackages | OFile;
   parser: Parser;
   packages: OPackage[] = [];
-  constructor(private editorPath: string, public text: string, public projectParser: ProjectParser, public onlyEntity: boolean = false) {
+  constructor(private editorPath: string, public text: string, public projectParser: ProjectParser, public linterArguments: ILinterArguments, public onlyEntity: boolean = false) {
     //     console.log('lint');
     this.parser = new Parser(this.text, this.editorPath, onlyEntity);
     //     console.log(`parsing: ${editorPath}`);
@@ -576,10 +586,11 @@ export class VhdlLinter {
     if (this.tree instanceof OFileWithEntity === false) {
       return;
     }
+
     const tree = this.tree as OFileWithEntity;
     for (const port of tree.entity.ports) {
       if (port.direction === 'in') {
-        if (port.name.text.match(/^o_/i)) {
+        if (port.name.text.match(this.linterArguments.outRegex)) {
           const code = this.addCodeActionCallback((textDocumentUri: string) => {
             const actions = [];
             const newName = port.name.text.replace(/^o_/, 'i_');
@@ -591,9 +602,8 @@ export class VhdlLinter {
                 }
               },
               CodeActionKind.QuickFix));
-            const textEdit2: TextEdit = TextEdit.replace(port.directionRange, 'out');
             actions.push(CodeAction.create(
-              `Change port direction to output.`,
+              `Change port name.`,
               {
                 changes: {
                   [textDocumentUri]: [TextEdit.replace(port.directionRange, 'out')]
@@ -605,10 +615,10 @@ export class VhdlLinter {
           this.addMessage({
             range: port.range,
             severity: DiagnosticSeverity.Error,
-            message: `input port '${port.name}' begins with 'o_'!`,
+            message: `input port '${port.name}' matches output regex ${this.linterArguments.outRegex}!`,
             code
           });
-        } else if (port.name.text.match(/^i_/i) === null) {
+        } else if (port.name.text.match(this.linterArguments.inRegex) === null) {
           const code = this.addCodeActionCallback((textDocumentUri: string) => {
             const actions = [];
             const newName = port.name.text.replace(/^(._|_?)/, 'i_');
@@ -625,12 +635,12 @@ export class VhdlLinter {
           this.addMessage({
             range: port.range,
             severity: DiagnosticSeverity.Information,
-            message: `input port '${port.name}' should begin with i_`,
+            message: `input port '${port.name}' should match input regex ${this.linterArguments.inRegex}`,
             code
           });
         }
       } else if (port.direction === 'out') {
-        if (port.name.text.match(/^i_/i)) {
+        if (port.name.text.match(this.linterArguments.inRegex)) {
           const code = this.addCodeActionCallback((textDocumentUri: string) => {
             const actions = [];
             const newName = port.name.text.replace(/^i_/, 'o_');
@@ -643,7 +653,7 @@ export class VhdlLinter {
               },
               CodeActionKind.QuickFix));
             actions.push(CodeAction.create(
-              `Change port direction to input.`,
+              `Change port name.`,
               {
                 changes: {
                   [textDocumentUri]: [TextEdit.replace(port.directionRange, 'in')]
@@ -655,10 +665,10 @@ export class VhdlLinter {
           this.addMessage({
             range: port.range,
             severity: DiagnosticSeverity.Error,
-            message: `ouput port '${port.name}' begins with 'i_'!`,
+            message: `ouput port '${port.name}' matches input regex ${this.linterArguments.inRegex}!`,
             code
           });
-        } else if (port.name.text.match(/^o_/i) === null) {
+        } else if (port.name.text.match(this.linterArguments.outRegex) === null) {
           const code = this.addCodeActionCallback((textDocumentUri: string) => {
             const actions = [];
             const newName = port.name.text.replace(/^(._|_?)/, 'o_');
@@ -675,7 +685,7 @@ export class VhdlLinter {
           this.addMessage({
             range: port.range,
             severity: DiagnosticSeverity.Information,
-            message: `ouput port '${port.name}' should begin with 'o_'`
+            message: `ouput port '${port.name}' should match output regex ${this.linterArguments.outRegex}`
           });
         }
       }

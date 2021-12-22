@@ -8,7 +8,7 @@ import {
   TransportKind
 } from 'vscode-languageclient';
 import { copy, CopyTypes } from './vhdl-entity-converter';
-import { VhdlLinter, IAddSignalCommandArguments } from './vhdl-linter';
+import { VhdlLinter, IAddSignalCommandArguments, defaultLinterArguments } from './vhdl-linter';
 import { ProjectParser } from './project-parser';
 
 let client: LanguageClient;
@@ -22,11 +22,30 @@ export function activate(context: ExtensionContext) {
 
   // If the extension is launched in debug mode then the debug server options are used
   // Otherwise the run options are used
+    const portConfig = workspace.getConfiguration('VhdlLinter.ports');
+    let outRegex = "^o_";
+    try {
+      const str = portConfig.get('outRegex') as string;
+      new RegExp(str, 'i');
+      outRegex = str;
+    } catch {}
+    let inRegex = "^i_";
+    try {
+      const str = portConfig.get('inRegex') as string;
+      new RegExp(str, 'i');
+      inRegex = str;
+    } catch {}
+  const args = [`inRegex="${inRegex}"`, `outRegex="${outRegex}"`]
   let serverOptions: ServerOptions = {
-    run: { module: serverModule, transport: TransportKind.ipc },
+    run: {
+      module: serverModule,
+      transport: TransportKind.ipc,
+      args
+    },
     debug: {
       module: serverModule,
       transport: TransportKind.ipc,
+      args,
       options: debugOptions
     }
   };
@@ -77,7 +96,7 @@ export function activate(context: ExtensionContext) {
     if (!editor) {
       return;
     }
-    const vhdlLinter = new VhdlLinter(editor.document.uri.path, editor.document.getText(), new ProjectParser([]));
+    const vhdlLinter = new VhdlLinter(editor.document.uri.path, editor.document.getText(), new ProjectParser([], defaultLinterArguments()), defaultLinterArguments());
     if (vhdlLinter.tree) {
       env.clipboard.writeText(vhdlLinter.tree.getJSON());
       window.showInformationMessage(`VHDL file as JSON copied to clipboard`);
@@ -89,7 +108,7 @@ export function activate(context: ExtensionContext) {
     if (!editor) {
       return;
     }
-    const vhdlLinter = new VhdlLinter(editor.document.uri.path, editor.document.getText(), new ProjectParser([]));
+    const vhdlLinter = new VhdlLinter(editor.document.uri.path, editor.document.getText(), new ProjectParser([], defaultLinterArguments()), defaultLinterArguments());
     const result = await client.sendRequest('vhdl-linter/listing', { textDocument: {uri: editor.document.uri.toString()}});
     console.log('bb', result);
     env.clipboard.writeText(result as string);

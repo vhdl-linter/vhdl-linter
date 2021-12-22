@@ -1,6 +1,6 @@
 import { readFileSync, promises } from 'fs';
 import { OEntity, OFileWithEntity, OPackage, OFileWithPackages } from './parser/objects';
-import { VhdlLinter } from './vhdl-linter';
+import { ILinterArguments, VhdlLinter } from './vhdl-linter';
 import { watch, FSWatcher } from 'chokidar';
 import { EventEmitter } from 'events';
 import { join, resolve, sep } from 'path';
@@ -11,7 +11,7 @@ export class ProjectParser {
   private packages: OPackage[];
   private entities: OEntity[];
   events = new EventEmitter();
-  constructor(public workspaces: string[]) { }
+  constructor(public workspaces: string[], public linterArguments: ILinterArguments) { }
   async init() {
     let files = new Set<string>();
     await Promise.all(this.workspaces.map(async (directory) => {
@@ -125,13 +125,13 @@ export class OFileCache {
     this.text = text;
     // this.digest = await file.getDigest();
     this.path = file;
-    this.linter = new VhdlLinter(this.path, this.text, this.projectParser);
+    this.linter = new VhdlLinter(this.path, this.text, this.projectParser, this.projectParser.linterArguments);
     this.parsePackages();
     this.parseEntity();
   }
   reparse() {
     this.text = readFileSync(this.path, { encoding: 'utf8' });
-    this.linter = new VhdlLinter(this.path, this.text, this.projectParser);
+    this.linter = new VhdlLinter(this.path, this.text, this.projectParser, this.projectParser.linterArguments);
     this.parsePackages();
     this.parseEntity();
   }

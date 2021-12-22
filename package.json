@@ -127,6 +127,18 @@
 					],
 					"default": "off",
 					"description": "Traces the communication between VS Code and the language server."
+				},
+				"VhdlLinter.ports.outRegex": {
+					"scope": "window",
+					"type": "string",
+					"default": "^o_",
+					"description": "A regular expression to match output ports."
+				},
+				"VhdlLinter.ports.inRegex": {
+					"scope": "window",
+					"type": "string",
+					"default": "^i_",
+					"description": "A regular expression to match input ports."
 				}
 			}
 		}

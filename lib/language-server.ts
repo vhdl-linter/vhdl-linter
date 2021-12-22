@@ -27,7 +27,7 @@ import {
   ErrorCodes,
   PrepareRenameRequest, SymbolInformation
 } from 'vscode-languageserver';
-import { VhdlLinter } from './vhdl-linter';
+import { ILinterArguments, VhdlLinter } from './vhdl-linter';
 import { ProjectParser } from './project-parser';
 import { OFile, OArchitecture, ORead, OWrite, OSignal, OFunction, OForLoop, OForGenerate, OInstantiation, OMapping, OEntity, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackages, ORecord, ObjectBase, OType, OMappingName, ORecordChild, OEnum, OProcess, OStatement, OIf, OIfClause, OMap, OUseStatement, OState, OToken, OProcedureInstantiation, OName, OMentionable, ODefitionable } from './parser/objects';
 import { promises as fs } from 'fs';
@@ -50,6 +50,25 @@ import { URI } from 'vscode-uri'
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
 export const connection = createConnection(ProposedFeatures.all);
+
+const linterArguments: ILinterArguments = {
+  outRegex: /^o_/i,
+  inRegex: /^i_/i,
+};
+for (const argument of process.argv) {
+  let match = argument.match(/outRegex="([^"]*)"/);
+  if (match) {
+    try {
+      linterArguments.outRegex = new RegExp(match[1], 'i');
+    } catch {}
+  }
+  match = argument.match(/inRegex="([^"]*)"/);
+  if (match) {
+    try {
+      linterArguments.inRegex = new RegExp(match[1], 'i');
+    } catch {}
+  }
+}
 
 // Create a simple text document manager. The text document manager
 // supports full document sync only
@@ -99,7 +118,7 @@ export const initialization = new Promise<void>(resolve => {
         const workspaceFolders = await connection.workspace.getWorkspaceFolders();
         const folders = (workspaceFolders ?? []).map(workspaceFolder => URI.parse(workspaceFolder.uri).fsPath);
 
-        projectParser = new ProjectParser(folders);
+        projectParser = new ProjectParser(folders, linterArguments);
         await projectParser.init();
       };
       await parseWorkspaces();
@@ -113,7 +132,7 @@ export const initialization = new Promise<void>(resolve => {
         folders.push(URI.parse(rootUri).fsPath);
       }
       console.log('folders', folders);
-      projectParser = new ProjectParser(folders);
+      projectParser = new ProjectParser(folders, linterArguments);
       await projectParser.init();
     }
     documents.all().forEach(validateTextDocument);
@@ -136,7 +155,7 @@ documents.onDidClose(change => {
 export const linters = new Map<string, VhdlLinter>();
 export const lintersValid = new Map<string, boolean>();
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
-  const vhdlLinter = new VhdlLinter(URI.parse(textDocument.uri).fsPath, textDocument.getText(), projectParser);
+  const vhdlLinter = new VhdlLinter(URI.parse(textDocument.uri).fsPath, textDocument.getText(), projectParser, linterArguments);
   if (typeof vhdlLinter.tree !== 'undefined' || typeof linters.get(textDocument.uri) === 'undefined') {
     linters.set(textDocument.uri, vhdlLinter);
     lintersValid.set(textDocument.uri, true);
@@ -261,7 +280,7 @@ connection.onRequest('vhdl-linter/listing', async (params: any, b: any) => {
     for (const object of file?.objectList ?? []) {
       if (object instanceof OInstantiation) {
         if (object.definition) {
-          const vhdlLinter = new VhdlLinter(object.definition.parent.file, object.definition.parent.originalText, projectParser);
+          const vhdlLinter = new VhdlLinter(object.definition.parent.file, object.definition.parent.originalText, projectParser, linterArguments);
           vhdlLinter.checkAll();
           parseTree(vhdlLinter.tree);
         } else {

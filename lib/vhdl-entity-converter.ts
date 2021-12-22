@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import {VhdlLinter} from './vhdl-linter';
+import {defaultLinterArguments, VhdlLinter} from './vhdl-linter';
 import { ProjectParser } from './project-parser';
 import { OFileWithEntity, OEntity, OPort, OGeneric } from './parser/objects';
 import { EntityParser } from './parser/entity-parser';
@@ -8,7 +8,7 @@ function getEntity() {
     if (!editor) {
         return;
     }
-    const vhdlLinter = new VhdlLinter(editor.document.uri.path, editor.document.getText(), new ProjectParser([]), true);
+    const vhdlLinter = new VhdlLinter(editor.document.uri.path, editor.document.getText(), new ProjectParser([], defaultLinterArguments()), defaultLinterArguments(), true);
     if (vhdlLinter.tree instanceof OFileWithEntity) {
         return vhdlLinter.tree.entity;
     }
