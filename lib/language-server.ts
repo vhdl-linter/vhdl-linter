@@ -206,6 +206,9 @@ const findDefinition = async (params: IFindDefinitionParams) => {
 
   let startI = linter.getIFromPosition(params.position);
   const candidates = linter.tree?.objectList.filter(object => object.range.start.i <= startI && startI <= object.range.end.i) ?? [];
+  if (linter.tree instanceof OFileWithEntityAndArchitecture) {
+    candidates.push(...linter.tree.architecture.components.filter(object => object.range.start.i <= startI && startI <= object.range.end.i));
+  }
   candidates.sort((a, b) => (a.range.end.i - a.range.start.i) - (b.range.end.i - b.range.start.i));
   let candidate = candidates[0];
   if (!candidate) {
@@ -279,7 +282,7 @@ connection.onRequest('vhdl-linter/listing', async (params: any, b: any) => {
     }
     for (const object of file?.objectList ?? []) {
       if (object instanceof OInstantiation) {
-        if (object.definition) {
+        if (object.definition && object.definition.parent instanceof OFileWithEntity) {
           const vhdlLinter = new VhdlLinter(object.definition.parent.file, object.definition.parent.originalText, projectParser, linterArguments);
           vhdlLinter.checkAll();
           parseTree(vhdlLinter.tree);

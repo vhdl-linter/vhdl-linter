@@ -10,9 +10,9 @@ export class ParserBase {
 
   }
   debug(_message: string) {
-    // let pos = this.getPosition();
+    let pos = this.getPosition();
     if (config.debug) {
-      //      console.log(`${this.constructor.name}: ${message} at ${pos.line}:${pos.col}, (${this.file})`);
+           console.log(`${this.constructor.name}: ${_message} at ${pos.line}:${pos.col}, (${this.file})`);
     }
   }
   debugObject(_object: any) {

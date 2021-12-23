@@ -1,4 +1,4 @@
-import { OFile, OIf, OSignalBase, OSignal, OArchitecture, OEntity, OPort, OInstantiation, OWrite, ORead, OFileWithEntity, OFileWithPackages, OFileWithEntityAndArchitecture, ORecord, OPackage, ParserError, OEnum, OGenericActual, OMapping, OPortMap, MagicCommentType, OProcess, OToken, OMappingName, OMap, OMentionable, OGenericMap, OProcedureCall } from './parser/objects';
+import { OFile, OIf, OSignalBase, OSignal, OArchitecture, OEntity, OPort, OInstantiation, OWrite, ORead, OFileWithEntity, OFileWithPackages, OFileWithEntityAndArchitecture, ORecord, OPackage, ParserError, OEnum, OGenericActual, OMapping, OPortMap, MagicCommentType, OProcess, OToken, OMappingName, OMap, OMentionable, OGenericMap, OProcedureCall, OGeneric } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 import { findBestMatch } from 'string-similarity';
@@ -192,12 +192,23 @@ export class VhdlLinter {
       }
     }
     for (const instantiation of this.tree.objectList.filter(object => object instanceof OInstantiation && typeof object.definition === 'undefined') as OInstantiation[]) {
-      instantiation.definition = this.getProjectEntity(instantiation);
+      if (instantiation.entityInstantiation) {
+        instantiation.definition = this.getProjectEntity(instantiation);
+      } else {
+        instantiation.definition = this.getComponentEntity(instantiation);
+      }
+    }
+    if (this.tree instanceof OFileWithEntityAndArchitecture) {
+      for (const component of this.tree.architecture.components.filter(comp => typeof comp.definition === 'undefined')) {
+        component.definition = this.getProjectEntity(component);
+      }
     }
     for (const obj of this.tree.objectList) {
       if (obj instanceof OMapping) {
         if (obj.parent instanceof OGenericMap || obj.parent instanceof OPortMap) {
-          const entity = this.getProjectEntity(obj.parent.parent);
+          const entity = obj.parent.parent.entityInstantiation
+            ? this.getProjectEntity(obj.parent.parent)
+            : this.getComponentEntity(obj.parent.parent);
           if (!entity) {
             continue;
           }
@@ -258,6 +269,7 @@ export class VhdlLinter {
   checkAll() {
     if (this.tree) {
       this.parsePackages();
+      this.checkComponents();
       this.checkNotDeclared();
       this.checkLibrary();
       this.checkTodos();
@@ -272,6 +284,62 @@ export class VhdlLinter {
       // this.parser.debugObject(this.tree);
     }
     return this.messages;
+  }
+  checkComponents() {
+    if (!(this.tree instanceof OFileWithEntityAndArchitecture)) {
+      return;
+    }
+    for (const component of this.tree.architecture.components) {
+      const realEntity = this.getProjectEntity(component);
+      if (!realEntity) {
+        this.addMessage({
+        range: component.range,
+        severity: DiagnosticSeverity.Warning,
+        message: `Could not find an entity declaration for this component (${component.name}).`
+      });
+        return;
+      }
+      // generics not in realEntity
+      for (const generic of component.generics) {
+        if (!realEntity.generics.find(gen => gen.name.text.toLowerCase() === generic.name.text.toLowerCase())) {
+          this.addMessage({
+            range: component.genericRange ?? component.range,
+            severity: DiagnosticSeverity.Error,
+            message: `no generic ${generic.name.text} on entity ${component.name}`
+          });
+        }
+      }
+      // generics not in this component
+      for (const generic of realEntity.generics) {
+        if (!component.generics.find(gen => gen.name.text.toLowerCase() === generic.name.text.toLowerCase())) {
+          this.addMessage({
+            range: component.range,
+            severity: DiagnosticSeverity.Error,
+            message: `generic ${generic.name.text} is missing in this component declaration`
+          });
+        }
+      }
+      // ports not in realEntity
+      for (const port of component.ports) {
+        if (!realEntity.ports.find(p => p.name.text.toLowerCase() === port.name.text.toLowerCase())) {
+          this.addMessage({
+            range: component.genericRange ?? component.range,
+            severity: DiagnosticSeverity.Error,
+            message: `no port ${port.name.text} on entity ${component.name}`
+          });
+        }
+      }
+      // generics not in this component
+      for (const port of realEntity.ports) {
+        if (!component.ports.find(p => p.name.text.toLowerCase() === port.name.text.toLowerCase())) {
+          this.addMessage({
+            range: component.range,
+            severity: DiagnosticSeverity.Error,
+            message: `port ${port.name.text} is missing in this component declaration`
+          });
+        }
+      }
+    }
   }
   checkDoubles() {
     if (!(this.tree instanceof OFileWithEntityAndArchitecture)) {
@@ -691,15 +759,22 @@ export class VhdlLinter {
       }
     }
   }
-  getProjectEntity(instantiation: OInstantiation): OEntity | undefined {
+  getComponentEntity(instantiation: OInstantiation): OEntity | undefined {
+    if (this.tree instanceof OFileWithEntityAndArchitecture) {
+      return this.tree.architecture.components.find(component => component.name.toLowerCase() === instantiation.componentName.toLowerCase());
+    }
+    return undefined;
+  }
+  getProjectEntity(instantiation: OInstantiation | OEntity): OEntity | undefined {
+    const name = instantiation instanceof OInstantiation ? instantiation.componentName : instantiation.name;
     const projectEntities: OEntity[] = this.projectParser.getEntities();
     if (instantiation.library) {
-      const entityWithLibrary = projectEntities.find(entity => entity.name.toLowerCase() === instantiation.componentName.toLowerCase() && typeof entity.library !== 'undefined' && typeof instantiation.library !== 'undefined' && entity.library.toLowerCase() === instantiation.library.toLowerCase());
+      const entityWithLibrary = projectEntities.find(entity => entity.name.toLowerCase() === name.toLowerCase() && typeof entity.library !== 'undefined' && typeof instantiation.library !== 'undefined' && entity.library.toLowerCase() === instantiation.library.toLowerCase());
       if (entityWithLibrary) {
         return entityWithLibrary;
       }
     }
-    return projectEntities.find(entity => entity.name.toLowerCase() === instantiation.componentName.toLowerCase());
+    return projectEntities.find(entity => entity.name.toLowerCase() === name.toLowerCase());
 
   }
   checkInstantiations(architecture: OArchitecture) {
@@ -707,69 +782,66 @@ export class VhdlLinter {
       return;
     }
     for (const instantiation of architecture.instantiations) {
+      let entity: OEntity | undefined = undefined;
       if (instantiation.entityInstantiation) {
-        const entity = this.getProjectEntity(instantiation);
-        if (!entity) {
-          this.addMessage({
-            range: instantiation.range,
-            severity: DiagnosticSeverity.Error,
-            message: `can not find entity ${instantiation.componentName}`
-          });
-        } else {
-          const foundPorts: OPort[] = [];
-          if (instantiation.portMappings) {
-            for (const portMapping of instantiation.portMappings.children) {
-              const entityPort = entity.ports.find(port => {
-                for (const part of portMapping.name) {
-                  if (part.text.toLowerCase() === port.name.text.toLowerCase()) {
-                    return true;
-                  }
-                }
-                return false;
-              });
-              if (!entityPort) {
-                const bestMatch = findBestMatch(portMapping.name[0].text, entity.ports.map(port => port.name.text));
-                const code = this.addCodeActionCallback((textDocumentUri: string) => {
-                  const actions = [];
-                  actions.push(CodeAction.create(
-                    `Replace with ${bestMatch.bestMatch.target} (score: ${bestMatch.bestMatch.rating})`,
-                    {
-                      changes: {
-                        [textDocumentUri]: [TextEdit.replace(Range.create(portMapping.name[0].range.start, portMapping.name[portMapping.name.length - 1].range.end)
-                          , bestMatch.bestMatch.target)]
-                      }
-                    },
-                    CodeActionKind.QuickFix));
-                  return actions;
-                });
-                this.addMessage({
-                  range: portMapping.range,
-                  severity: DiagnosticSeverity.Error,
-                  message: `no port ${portMapping.name.map(name => name.text).join(', ')} on entity ${instantiation.componentName}`,
-                  code
-                });
-              } else {
-                foundPorts.push(entityPort);
-              }
-            }
-          }
-          for (const port of entity.ports) {
-            if (port.direction === 'in' && typeof port.defaultValue === 'undefined' && typeof foundPorts.find(portSearch => portSearch === port) === 'undefined') {
-              this.addMessage({
-                range: instantiation.range,
-                severity: DiagnosticSeverity.Error,
-                message: `input port ${port.name} is missing in port map and has no default value on entity ${instantiation.componentName}`
-              });
-            }
-          }
-
-        }
+        entity = this.getProjectEntity(instantiation);
       } else {
+        entity = architecture.components.find(comp => comp.name.toLowerCase() === instantiation.componentName.toLowerCase());
+      }
+      if (!entity) {
         this.addMessage({
           range: instantiation.range,
-          severity: DiagnosticSeverity.Hint,
-          message: `can not evaluate instantiation via component`
+          severity: DiagnosticSeverity.Error,
+          message: `can not find entity ${instantiation.componentName}`
         });
+      } else {
+        const foundPorts: OPort[] = [];
+        if (instantiation.portMappings) {
+          for (const portMapping of instantiation.portMappings.children) {
+            const entityPort = entity.ports.find(port => {
+              for (const part of portMapping.name) {
+                if (part.text.toLowerCase() === port.name.text.toLowerCase()) {
+                  return true;
+                }
+              }
+              return false;
+            });
+            if (!entityPort) {
+              const bestMatch = findBestMatch(portMapping.name[0].text, entity.ports.map(port => port.name.text));
+              const code = this.addCodeActionCallback((textDocumentUri: string) => {
+                const actions = [];
+                actions.push(CodeAction.create(
+                  `Replace with ${bestMatch.bestMatch.target} (score: ${bestMatch.bestMatch.rating})`,
+                  {
+                    changes: {
+                      [textDocumentUri]: [TextEdit.replace(Range.create(portMapping.name[0].range.start, portMapping.name[portMapping.name.length - 1].range.end)
+                        , bestMatch.bestMatch.target)]
+                    }
+                  },
+                  CodeActionKind.QuickFix));
+                return actions;
+              });
+              this.addMessage({
+                range: portMapping.range,
+                severity: DiagnosticSeverity.Error,
+                message: `no port ${portMapping.name.map(name => name.text).join(', ')} on entity ${instantiation.componentName}`,
+                code
+              });
+            } else {
+              foundPorts.push(entityPort);
+            }
+          }
+        }
+        for (const port of entity.ports) {
+          if (port.direction === 'in' && typeof port.defaultValue === 'undefined' && typeof foundPorts.find(portSearch => portSearch === port) === 'undefined') {
+            this.addMessage({
+              range: instantiation.range,
+              severity: DiagnosticSeverity.Error,
+              message: `input port ${port.name} is missing in port map and has no default value on entity ${instantiation.componentName}`
+            });
+          }
+        }
+
       }
     }
     for (const generate of architecture.generates) {

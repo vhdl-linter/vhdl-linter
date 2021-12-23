@@ -3,6 +3,7 @@ import { OSignal, OType, OArchitecture, OEntity, ParserError, OState, OFunction,
 import { SubtypeParser } from './subtype-parser';
 import { StatementParser, StatementTypes } from './statement-parser';
 import { ProcedureParser } from './procedure-parser';
+import { EntityParser } from './entity-parser';
 
 export class DeclarativePartParser extends ParserBase {
   type: string;
@@ -138,11 +139,16 @@ export class DeclarativePartParser extends ParserBase {
         this.advanceSemicolon(true);
       } else if (nextWord === 'component') {
         this.getNextWord();
-        const componentName = this.getNextWord();
-        this.advancePast(/\bend\b/i, { allowSemicolon: true });
-        this.maybeWord('component');
-        this.maybeWord(componentName);
-        this.expect(';');
+        if (this.parent instanceof OArchitecture) {
+          const entityParser = new EntityParser(this.text, this.pos, this.file, this.parent);
+          this.parent.components.push(entityParser.parse());
+        } else {
+          const componentName = this.getNextWord();
+          this.advancePast(/\bend\b/i, { allowSemicolon: true });
+          this.maybeWord('component');
+          this.maybeWord(componentName);
+          this.expect(';');
+        }
       } else if (nextWord === 'procedure') {
         this.getNextWord();
         const procedureParser = new ProcedureParser(this.text, this.pos, this.file, this.parent);

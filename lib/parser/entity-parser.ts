@@ -1,16 +1,19 @@
 import { ParserBase } from './parser-base';
 import { DeclarativePartParser } from './declarative-part-parser';
-import { OPort, OGeneric, OEntity, ParserError, OFileWithEntity, OGenericActual, OGenericType, OI, OIRange, OName } from './objects';
+import { OPort, OGeneric, OEntity, ParserError, OFileWithEntity, OGenericActual, OGenericType, OI, OIRange, OName, OArchitecture } from './objects';
 import { runInThisContext } from 'vm';
 import { AssignmentParser } from './assignment-parser';
 import { StatementParser, StatementTypes } from './statement-parser';
 
 export class EntityParser extends ParserBase {
   public entity: OEntity;
-  constructor(text: string, pos: OI, file: string, private parent: OFileWithEntity) {
+  constructor(text: string, pos: OI, file: string, private parent: OFileWithEntity | OArchitecture) {
     super(text, pos, file);
-    const match = this.parent.originalText.match(/!\s*@library\s+(\S+)/i);
-    const library = match ? match[1] : undefined;
+    let library: string | undefined = undefined;
+    if (this.parent instanceof OFileWithEntity) {
+      const match = this.parent.originalText.match(/!\s*@library\s+(\S+)/i);
+      library = match ? match[1] : undefined;
+    }
     this.entity = new OEntity(this.parent, this.pos.i, this.getEndOfLineI(), library);
     this.debug(`start`);
   }
@@ -38,7 +41,11 @@ export class EntityParser extends ParserBase {
         this.expect(';');
       } else if (nextWord === 'end') {
         this.getNextWord();
-        this.maybeWord('entity');
+        if (this.parent instanceof OFileWithEntity) {
+          this.maybeWord('entity');
+        } else {
+          this.maybeWord('component');
+        }
         this.maybeWord(this.entity.name);
         this.expect(';');
         break;
@@ -54,7 +61,11 @@ export class EntityParser extends ParserBase {
           nextWord = this.getNextWord({ consume: false }).toLowerCase();
         }
         this.getNextWord();
-        this.maybeWord('entity');
+        if (this.parent instanceof OFileWithEntity) {
+          this.maybeWord('entity');
+        } else {
+          this.maybeWord('component');
+        }
         this.maybeWord(this.entity.name);
         this.expect(';');
         break;

@@ -1,6 +1,6 @@
 
 class Config {
-  public debug: boolean = false;
+  public debug: boolean = true;
 }
 
 export const config = new Config();

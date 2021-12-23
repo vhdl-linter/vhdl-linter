@@ -1,7 +1,7 @@
 import { EntityParser } from './entity-parser';
 import { ArchitectureParser } from './architecture-parser';
 import { ParserBase } from './parser-base';
-import { OFile, OUseStatement, ParserError, OEntity, OArchitecture, OPackage, OFileWithEntity, OFileWithPackages, OFileWithEntityAndArchitecture, OI, ObjectBase, OMagicComment, MagicCommentType, OIRange, ORead, OMagicCommentParameter, OMagicCommentDisable, OMagicCommentTodo, OPackageBody } from './objects';
+import { OFile, OUseStatement, ParserError, OEntity, OArchitecture, OPackage, OFileWithEntity, OFileWithPackages, OFileWithEntityAndArchitecture, OI, ObjectBase, OMagicComment, MagicCommentType, OIRange, ORead, OMagicCommentParameter, OMagicCommentDisable, OMagicCommentTodo, OPackageBody, OInstantiation } from './objects';
 import { PackageParser } from './package-parser';
 import * as escapeStringRegexp from 'escape-string-regexp';
 

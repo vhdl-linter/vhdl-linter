@@ -215,6 +215,8 @@ export class OArchitecture extends ObjectBase {
   procedureInstantiations: OProcedureInstantiation[] = [];
   procedures: OProcedure[] = [];
 
+  components: OEntity[] = [];
+
   statements: (OProcess | OInstantiation | OForGenerate | OIfGenerate | OAssignment | OProcedureInstantiation | OBlock)[] = [];
   get processes() {
     return this.statements.filter(statement => statement instanceof OProcess) as readonly OProcess[];
@@ -479,8 +481,8 @@ export class OMapping extends ODefitionable {
   mappingIfInput: ORead[];
   mappingIfOutput: [ORead[], OWrite[]];
 }
-export class OEntity extends ObjectBase {
-  constructor(public parent: OFileWithEntity, startI: number, endI: number, public library?: string) {
+export class OEntity extends ODefitionable {
+  constructor(public parent: OFileWithEntity | OArchitecture, startI: number, endI: number, public library?: string) {
     super(parent, startI, endI);
   }
   name: string;
@@ -493,8 +495,7 @@ export class OEntity extends ObjectBase {
   procedures: OProcedure[] = [];
   types: OType[] = [];
   statements: (OProcess | OAssignment | OProcedureInstantiation)[] = [];
-
-
+  definition?: OEntity;
 }
 export class OPort extends OSignalBase {
   direction: 'in' | 'out' | 'inout';
