@@ -592,7 +592,7 @@ export class VhdlLinter {
         this.addMessage({
           range,
           code,
-          severity: DiagnosticSeverity.Error,
+          severity: DiagnosticSeverity.Warning,
           message
         }, LinterRules.Reset, signal.name.text);
       }
