@@ -133,7 +133,7 @@ export class VhdlLinter {
     }
     //     console.log(packages);
     for (const useStatement of this.tree.useStatements) {
-      let match = useStatement.text.match(/([^.]+)\.([^.]+)\.all/i);
+      let match = useStatement.text.match(/([^.]+)\.([^.]+)\.([^.]+)/i);
       let found = false;
       if (match) {
         const library = match[1];
