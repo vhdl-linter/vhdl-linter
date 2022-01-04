@@ -14,6 +14,8 @@ import {
   CodeLens,
   Command
 } from 'vscode-languageserver';
+import { getDocumentSettings, ISettings } from './language-server';
+import { URI } from 'vscode-uri';
 export enum LinterRules {
   Reset
 }
@@ -22,16 +24,6 @@ export interface IAddSignalCommandArguments {
   signalName: string;
   range: Range;
 }
-export interface ILinterArguments {
-  outRegex: RegExp;
-  inRegex: RegExp;
-}
-export function defaultLinterArguments(): ILinterArguments {
-  return {
-    outRegex: /^o_/i,
-    inRegex: /^i_/i
-  }
-}
 export type diagnosticCodeActionCallback = (textDocumentUri: string) => CodeAction[];
 export type commandCallback = (textDocumentUri: string, ...args: any[]) => TextEdit[];
 export class VhdlLinter {
@@ -39,7 +31,7 @@ export class VhdlLinter {
   tree: OFileWithEntityAndArchitecture | OFileWithEntity | OFileWithPackages | OFile;
   parser: Parser;
   packages: OPackage[] = [];
-  constructor(private editorPath: string, public text: string, public projectParser: ProjectParser, public linterArguments: ILinterArguments, public onlyEntity: boolean = false) {
+  constructor(private editorPath: string, public text: string, public projectParser: ProjectParser, public onlyEntity: boolean = false) {
     //     console.log('lint');
     this.parser = new Parser(this.text, this.editorPath, onlyEntity);
     //     console.log(`parsing: ${editorPath}`);
@@ -256,8 +248,10 @@ export class VhdlLinter {
       }
     }
   }
-  checkLibrary() {
-    if (this.tree && this.tree instanceof OFileWithEntity && typeof this.tree.entity.library === 'undefined') {
+  async checkLibrary() {
+    const settings = await getDocumentSettings(URI.file(this.editorPath).toString());
+
+    if (settings.rules.warnLibrary && this.tree && this.tree instanceof OFileWithEntity && typeof this.tree.entity.library === 'undefined') {
       this.addMessage({
         range: Range.create(Position.create(0, 0), Position.create(1, 0)),
         severity: DiagnosticSeverity.Warning,
@@ -266,18 +260,18 @@ export class VhdlLinter {
 
     }
   }
-  checkAll() {
+  async checkAll() {
     if (this.tree) {
       this.parsePackages();
       this.checkComponents();
       this.checkNotDeclared();
-      this.checkLibrary();
+      await this.checkLibrary();
       this.checkTodos();
       if (this.tree instanceof OFileWithEntityAndArchitecture) {
         this.checkResets();
         this.checkUnused(this.tree.architecture, this.tree.entity);
         this.checkDoubles();
-        this.checkPortDeclaration();
+        await this.checkPortDeclaration();
         this.checkInstantiations(this.tree.architecture);
         this.checkProcedures(this.tree.architecture);
       }
@@ -293,10 +287,10 @@ export class VhdlLinter {
       const realEntity = this.getProjectEntity(component);
       if (!realEntity) {
         this.addMessage({
-        range: component.range,
-        severity: DiagnosticSeverity.Warning,
-        message: `Could not find an entity declaration for this component (${component.name}).`
-      });
+          range: component.range,
+          severity: DiagnosticSeverity.Warning,
+          message: `Could not find an entity declaration for this component (${component.name}).`
+        });
         return;
       }
       // generics not in realEntity
@@ -650,111 +644,115 @@ export class VhdlLinter {
       }
     }
   }
-  checkPortDeclaration() {
+  async checkPortDeclaration() {
     if (this.tree instanceof OFileWithEntity === false) {
       return;
     }
 
     const tree = this.tree as OFileWithEntity;
-    for (const port of tree.entity.ports) {
-      if (port.direction === 'in') {
-        if (port.name.text.match(this.linterArguments.outRegex)) {
-          const code = this.addCodeActionCallback((textDocumentUri: string) => {
-            const actions = [];
-            const newName = port.name.text.replace(/^o_/, 'i_');
-            actions.push(CodeAction.create(
-              `Replace portname with '${newName}`,
-              {
-                changes: {
-                  [textDocumentUri]: [TextEdit.replace(port.name.range, newName)]
-                }
-              },
-              CodeActionKind.QuickFix));
-            actions.push(CodeAction.create(
-              `Change port name.`,
-              {
-                changes: {
-                  [textDocumentUri]: [TextEdit.replace(port.directionRange, 'out')]
-                }
-              },
-              CodeActionKind.QuickFix));
-            return actions;
-          });
-          this.addMessage({
-            range: port.range,
-            severity: DiagnosticSeverity.Error,
-            message: `input port '${port.name}' matches output regex ${this.linterArguments.outRegex}!`,
-            code
-          });
-        } else if (port.name.text.match(this.linterArguments.inRegex) === null) {
-          const code = this.addCodeActionCallback((textDocumentUri: string) => {
-            const actions = [];
-            const newName = port.name.text.replace(/^(._|_?)/, 'i_');
-            actions.push(CodeAction.create(
-              `Replace portname with '${newName}`,
-              {
-                changes: {
-                  [textDocumentUri]: [TextEdit.replace(port.name.range, newName)]
-                }
-              },
-              CodeActionKind.QuickFix));
-            return actions;
-          });
-          this.addMessage({
-            range: port.range,
-            severity: DiagnosticSeverity.Information,
-            message: `input port '${port.name}' should match input regex ${this.linterArguments.inRegex}`,
-            code
-          });
-        }
-      } else if (port.direction === 'out') {
-        if (port.name.text.match(this.linterArguments.inRegex)) {
-          const code = this.addCodeActionCallback((textDocumentUri: string) => {
-            const actions = [];
-            const newName = port.name.text.replace(/^i_/, 'o_');
-            actions.push(CodeAction.create(
-              `Replace portname with '${newName}`,
-              {
-                changes: {
-                  [textDocumentUri]: [TextEdit.replace(port.name.range, newName)]
-                }
-              },
-              CodeActionKind.QuickFix));
-            actions.push(CodeAction.create(
-              `Change port name.`,
-              {
-                changes: {
-                  [textDocumentUri]: [TextEdit.replace(port.directionRange, 'in')]
-                }
-              },
-              CodeActionKind.QuickFix));
-            return actions;
-          });
-          this.addMessage({
-            range: port.range,
-            severity: DiagnosticSeverity.Error,
-            message: `ouput port '${port.name}' matches input regex ${this.linterArguments.inRegex}!`,
-            code
-          });
-        } else if (port.name.text.match(this.linterArguments.outRegex) === null) {
-          const code = this.addCodeActionCallback((textDocumentUri: string) => {
-            const actions = [];
-            const newName = port.name.text.replace(/^(._|_?)/, 'o_');
-            actions.push(CodeAction.create(
-              `Replace portname with '${newName}`,
-              {
-                changes: {
-                  [textDocumentUri]: [TextEdit.replace(port.name.range, newName)]
-                }
-              },
-              CodeActionKind.QuickFix));
-            return actions;
-          });
-          this.addMessage({
-            range: port.range,
-            severity: DiagnosticSeverity.Information,
-            message: `ouput port '${port.name}' should match output regex ${this.linterArguments.outRegex}`
-          });
+    const portSettings = (await getDocumentSettings(URI.file(this.editorPath).toString())).ports;
+    if (portSettings.enablePortStyle) {
+
+      for (const port of tree.entity.ports) {
+        if (port.direction === 'in') {
+          if (port.name.text.match(new RegExp(portSettings.outRegex, 'i'))) {
+            const code = this.addCodeActionCallback((textDocumentUri: string) => {
+              const actions = [];
+              const newName = port.name.text.replace(new RegExp(portSettings.outRegex, 'i'), 'i_');
+              actions.push(CodeAction.create(
+                `Replace portname with '${newName}`,
+                {
+                  changes: {
+                    [textDocumentUri]: [TextEdit.replace(port.name.range, newName)]
+                  }
+                },
+                CodeActionKind.QuickFix));
+              actions.push(CodeAction.create(
+                `Change port name.`,
+                {
+                  changes: {
+                    [textDocumentUri]: [TextEdit.replace(port.directionRange, 'out')]
+                  }
+                },
+                CodeActionKind.QuickFix));
+              return actions;
+            });
+            this.addMessage({
+              range: port.range,
+              severity: DiagnosticSeverity.Error,
+              message: `input port '${port.name}' matches output regex ${portSettings.outRegex}!`,
+              code
+            });
+          } else if (port.name.text.match(new RegExp(portSettings.inRegex, 'i')) === null) {
+            const code = this.addCodeActionCallback((textDocumentUri: string) => {
+              const actions = [];
+              const newName = port.name.text.replace(/^(._|_?)/, 'i_');
+              actions.push(CodeAction.create(
+                `Replace portname with '${newName}`,
+                {
+                  changes: {
+                    [textDocumentUri]: [TextEdit.replace(port.name.range, newName)]
+                  }
+                },
+                CodeActionKind.QuickFix));
+              return actions;
+            });
+            this.addMessage({
+              range: port.range,
+              severity: DiagnosticSeverity.Information,
+              message: `input port '${port.name}' should match input regex ${portSettings.inRegex}`,
+              code
+            });
+          }
+        } else if (port.direction === 'out') {
+          if (port.name.text.match(new RegExp(portSettings.inRegex, 'i'))) {
+            const code = this.addCodeActionCallback((textDocumentUri: string) => {
+              const actions = [];
+              const newName = port.name.text.replace(/^i_/, 'o_');
+              actions.push(CodeAction.create(
+                `Replace portname with '${newName}`,
+                {
+                  changes: {
+                    [textDocumentUri]: [TextEdit.replace(port.name.range, newName)]
+                  }
+                },
+                CodeActionKind.QuickFix));
+              actions.push(CodeAction.create(
+                `Change port name.`,
+                {
+                  changes: {
+                    [textDocumentUri]: [TextEdit.replace(port.directionRange, 'in')]
+                  }
+                },
+                CodeActionKind.QuickFix));
+              return actions;
+            });
+            this.addMessage({
+              range: port.range,
+              severity: DiagnosticSeverity.Error,
+              message: `ouput port '${port.name}' matches input regex ${portSettings.inRegex}!`,
+              code
+            });
+          } else if (port.name.text.match(new RegExp(portSettings.outRegex, 'i')) === null) {
+            const code = this.addCodeActionCallback((textDocumentUri: string) => {
+              const actions = [];
+              const newName = port.name.text.replace(/^(._|_?)/, 'o_');
+              actions.push(CodeAction.create(
+                `Replace portname with '${newName}`,
+                {
+                  changes: {
+                    [textDocumentUri]: [TextEdit.replace(port.name.range, newName)]
+                  }
+                },
+                CodeActionKind.QuickFix));
+              return actions;
+            });
+            this.addMessage({
+              range: port.range,
+              severity: DiagnosticSeverity.Information,
+              message: `ouput port '${port.name}' should match output regex ${portSettings.outRegex}`
+            });
+          }
         }
       }
     }

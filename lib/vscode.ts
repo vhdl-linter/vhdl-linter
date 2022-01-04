@@ -8,7 +8,7 @@ import {
   TransportKind
 } from 'vscode-languageclient';
 import { copy, CopyTypes } from './vhdl-entity-converter';
-import { VhdlLinter, IAddSignalCommandArguments, defaultLinterArguments } from './vhdl-linter';
+import { VhdlLinter, IAddSignalCommandArguments } from './vhdl-linter';
 import { ProjectParser } from './project-parser';
 
 let client: LanguageClient;
@@ -22,30 +22,16 @@ export function activate(context: ExtensionContext) {
 
   // If the extension is launched in debug mode then the debug server options are used
   // Otherwise the run options are used
-    const portConfig = workspace.getConfiguration('VhdlLinter.ports');
-    let outRegex = "^o_";
-    try {
-      const str = portConfig.get('outRegex') as string;
-      new RegExp(str, 'i');
-      outRegex = str;
-    } catch {}
-    let inRegex = "^i_";
-    try {
-      const str = portConfig.get('inRegex') as string;
-      new RegExp(str, 'i');
-      inRegex = str;
-    } catch {}
-  const args = [`inRegex="${inRegex}"`, `outRegex="${outRegex}"`]
+
+
   let serverOptions: ServerOptions = {
     run: {
       module: serverModule,
       transport: TransportKind.ipc,
-      args
     },
     debug: {
       module: serverModule,
       transport: TransportKind.ipc,
-      args,
       options: debugOptions
     }
   };
@@ -69,7 +55,7 @@ export function activate(context: ExtensionContext) {
   );
 
   // Start the client. This will also launch the server
-  client.start();
+  let disposable = client.start();
   context.subscriptions.push(commands.registerCommand('vhdl-linter:add-signal', async (args: IAddSignalCommandArguments) => {
     const editor = window.activeTextEditor;
     if (!editor) {
@@ -83,7 +69,7 @@ export function activate(context: ExtensionContext) {
       return;
     }
     editor.edit(editBuilder => {
-      const type = parseInt(length, 10) === 1 ? 'std_ulogic' : `std_ulogic_vector(${ length } - 1 downto 0)`;
+      const type = parseInt(length, 10) === 1 ? 'std_ulogic' : `std_ulogic_vector(${length} - 1 downto 0)`;
       editBuilder.insert(new Position(args.range.start.line + 1, 0), `  signal ${args.signalName} : ${type};\n`);
     });
 
@@ -96,7 +82,7 @@ export function activate(context: ExtensionContext) {
     if (!editor) {
       return;
     }
-    const vhdlLinter = new VhdlLinter(editor.document.uri.path, editor.document.getText(), new ProjectParser([], defaultLinterArguments()), defaultLinterArguments());
+    const vhdlLinter = new VhdlLinter(editor.document.uri.path, editor.document.getText(), new ProjectParser([]));
     if (vhdlLinter.tree) {
       env.clipboard.writeText(vhdlLinter.tree.getJSON());
       window.showInformationMessage(`VHDL file as JSON copied to clipboard`);
@@ -108,12 +94,13 @@ export function activate(context: ExtensionContext) {
     if (!editor) {
       return;
     }
-    const vhdlLinter = new VhdlLinter(editor.document.uri.path, editor.document.getText(), new ProjectParser([], defaultLinterArguments()), defaultLinterArguments());
-    const result = await client.sendRequest('vhdl-linter/listing', { textDocument: {uri: editor.document.uri.toString()}});
+    const vhdlLinter = new VhdlLinter(editor.document.uri.path, editor.document.getText(), new ProjectParser([]));
+    const result = await client.sendRequest('vhdl-linter/listing', { textDocument: { uri: editor.document.uri.toString() } });
     console.log('bb', result);
     env.clipboard.writeText(result as string);
     window.showInformationMessage(`copied`);
   }));
+  context.subscriptions.push(disposable);
 }
 
 export function deactivate(): Thenable<void> | undefined {

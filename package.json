@@ -128,6 +128,18 @@
 					"default": "off",
 					"description": "Traces the communication between VS Code and the language server."
 				},
+				"VhdlLinter.rules.warnLibrary": {
+					"scope": "window",
+					"type": "boolean",
+					"default": true,
+					"description": "Enables checking for library magic comment."
+				},
+				"VhdlLinter.ports.enablePortStyle": {
+					"scope": "window",
+					"type": "boolean",
+					"default": true,
+					"description": "Enables checking of naming style of ports."
+				},
 				"VhdlLinter.ports.outRegex": {
 					"scope": "window",
 					"type": "string",
@@ -189,7 +201,7 @@
 		"tslint-microsoft-contrib": "^5.2.1",
 		"typescript": "^3.8.3",
 		"vsce": "^1.88.0",
-		"vscode-languageserver-types": "^3.14.0"
+		"vscode-languageserver-types": "^3.16.0"
 	},
 	"__metadata": {
 		"id": "a14f930c-c182-41bd-8a6b-61417ee49e7e",
