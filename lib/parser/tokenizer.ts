@@ -10,7 +10,7 @@ class Tokenizer {
     ['mod'],
     ['sll', 'srl', 'sla', 'sra', 'rol', 'ror'],
     ['and', 'or', 'nand', 'nor', 'xor', 'xnor'],
-    ['downto', 'to', 'others', 'when', 'else', 'range', 'elsif']
+    ['downto', 'to', 'others', 'when', 'else', 'range', 'elsif', 'after']
   ];
   tokenTypes = [
     { regex: /^(["])(([^"\\\n]|\\.|\\\n)*)["]/i, tokenType: 'STRING_LITERAL' },
