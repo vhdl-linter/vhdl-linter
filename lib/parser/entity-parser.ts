@@ -19,7 +19,11 @@ export class EntityParser extends ParserBase {
   }
   parse(): OEntity {
     this.entity.name = this.getNextWord();
-    this.expect('is');
+    if (this.parent instanceof OArchitecture) {
+      this.maybeWord('is');
+    } else {
+      this.expect('is');
+    }
 
     let lastI;
     while (this.pos.i < this.text.length) {
