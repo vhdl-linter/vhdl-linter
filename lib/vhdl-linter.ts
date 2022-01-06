@@ -788,7 +788,7 @@ export class VhdlLinter {
       }
       if (!entity) {
         this.addMessage({
-          range: instantiation.range,
+          range: instantiation.range.start.getRangeToEndLine(),
           severity: DiagnosticSeverity.Warning,
           message: `can not find entity ${instantiation.componentName}`
         });
