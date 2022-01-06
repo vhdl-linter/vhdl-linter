@@ -48,12 +48,12 @@ export class EntityParser extends ParserBase {
         if (this.parent instanceof OFileWithEntity) {
           this.maybeWord('entity');
         } else {
-          this.maybeWord('component');
+          this.expect('component');
         }
         this.maybeWord(this.entity.name);
         this.expect(';');
         break;
-      } else if (nextWord === 'begin') {
+      } else if (nextWord === 'begin' && this.parent instanceof OFileWithEntity) {
         this.getNextWord();
         let nextWord = this.getNextWord({consume: false}).toLowerCase();
         while (nextWord !== 'end') {
@@ -74,7 +74,7 @@ export class EntityParser extends ParserBase {
         this.expect(';');
         break;
 
-      } else {
+      } else if (this.parent instanceof OFileWithEntity) {
         new DeclarativePartParser(this.text, this.pos, this.file, this.entity).parse(true);
       }
       if (lastI === this.pos.i) {

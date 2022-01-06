@@ -153,8 +153,8 @@ export class DeclarativePartParser extends ParserBase {
         this.getNextWord();
         const procedureParser = new ProcedureParser(this.text, this.pos, this.file, this.parent);
         this.parent.procedures.push(procedureParser.parse(this.pos.i));
-      } else if (nextWord === 'impure' || nextWord === 'function') {
-        if (nextWord === 'impure') {
+      } else if (nextWord === 'impure' || nextWord === 'pure' || nextWord === 'function') {
+        if (nextWord === 'impure' || nextWord === 'pure') {
           this.getNextWord();
         }
         const func = new OFunction(this.parent, this.pos.i, this.getEndOfLineI());
@@ -180,15 +180,16 @@ export class DeclarativePartParser extends ParserBase {
         func.range.end.i = this.pos.i;
         this.advancePast(';');
         this.parent.functions.push(func);
-      } else if (optional) {
-        return;
       } else if (nextWord === 'package' || nextWord === 'generic') {
         this.advanceSemicolon();
       } else if (nextWord === 'file') {
         this.advanceSemicolon();
-      } else {
+      } else if (nextWord === 'disconnect') {
+        this.advanceSemicolon();
+      } else if (optional) {
+        return;
+      }  else {
         throw new ParserError(`Unknown Ding: '${nextWord}' on line ${this.getLine()}`, this.pos.getRangeToEndLine());
-        this.getNextWord();
       }
       nextWord = this.getNextWord({ consume: false }).toLowerCase();
     }
