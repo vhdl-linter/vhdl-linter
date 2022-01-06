@@ -823,6 +823,16 @@ export class OToken extends ODefitionable {
           object.variable.mentions.push(this);
           break yank;
         }
+      } else if (object instanceof OEntity && object.parent instanceof OArchitecture) {
+        // ORead in port of component declaration
+        for (const generic of object.generics) {
+          if (generic.name.text.toLowerCase() === text.toLowerCase()) {
+            this.definition = generic;
+            this.scope = object;
+            generic.mentions.push(this);
+            break yank;
+          }
+        }
       }
 
 
