@@ -451,7 +451,9 @@ export class ParserBase {
         if (asMappingName && !(parent instanceof OMapping)) {
           throw new Error();
         }
-        read = asMappingName ? new OMappingName((parent as OMapping), i + token.offset, i + token.offset + token.value.length, token.value) : new ORead(parent, i + token.offset, i + token.offset + token.value.length, token.value);
+        read = asMappingName
+        ? new OMappingName((parent as OMapping), i + token.offset, i + token.offset + token.value.length, token.value)
+        : new ORead(parent, i + token.offset, i + token.offset + token.value.length, token.value);
       }
       return read;
     });

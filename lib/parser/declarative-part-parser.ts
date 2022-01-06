@@ -97,9 +97,9 @@ export class DeclarativePartParser extends ParserBase {
           this.expect(';');
         } else {
           const nextWord = this.getNextWord().toLowerCase();
-          Object.setPrototypeOf(type, ORecord.prototype);
-          (type as ORecord).children = [];
           if (nextWord === 'record') {
+            Object.setPrototypeOf(type, ORecord.prototype);
+            (type as ORecord).children = [];
             let position = this.pos.i;
             let recordWord = this.getNextWord();
             while (recordWord.toLowerCase() !== 'end') {
@@ -114,6 +114,15 @@ export class DeclarativePartParser extends ParserBase {
             }
             this.maybeWord('record');
             this.maybeWord(type.name.text);
+          } else if (nextWord === 'array') {
+            const startI = this.pos.i;
+            const match = /;/.exec(this.text.substr(this.pos.i));
+            if (!match) {
+              throw new ParserError(`could not find semicolon`, this.pos.getRangeToEndLine());
+            }
+            const text = this.text.substr(this.pos.i, match.index);
+            this.pos.i += match.index;
+            type.reads.push(...this.extractReads(type, text, startI));
           }
           type.range.end.i = this.pos.i;
           this.parent.types.push(type);

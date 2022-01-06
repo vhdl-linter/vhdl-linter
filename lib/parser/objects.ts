@@ -253,6 +253,7 @@ export class OBlock extends OArchitecture {
 export class OType extends OMentionable {
   name: OName;
   units?: string[];
+  reads: ORead[] = [];
   findRead(read: ORead) {
     if (this.name.text.toLowerCase() === read.text.toLowerCase()) {
       return this;
