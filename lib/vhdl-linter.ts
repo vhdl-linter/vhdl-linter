@@ -854,7 +854,7 @@ export class VhdlLinter {
       if (obj instanceof OProcedureCall) {
         let searchObj = obj.parent;
         while (!(searchObj instanceof OFile)) {
-          if (searchObj instanceof OArchitecture) {
+          if (searchObj instanceof OArchitecture || searchObj instanceof OProcess) {
             for (const procedureSearch of searchObj.procedures) {
               if (procedureSearch.name.text === obj.procedureName.text) {
                 obj.definition = procedureSearch;

@@ -51,7 +51,8 @@ export class EntityParser extends ParserBase {
           this.expect('component');
         }
         this.maybeWord(this.entity.name);
-        this.expect(';');
+        
+        this.entity.range.end.i = this.expect(';');
         break;
       } else if (nextWord === 'begin' && this.parent instanceof OFileWithEntity) {
         this.getNextWord();
@@ -71,7 +72,7 @@ export class EntityParser extends ParserBase {
           this.maybeWord('component');
         }
         this.maybeWord(this.entity.name);
-        this.expect(';');
+        this.entity.range.end.i = this.expect(';');
         break;
 
       } else if (this.parent instanceof OFileWithEntity) {
@@ -82,7 +83,6 @@ export class EntityParser extends ParserBase {
       }
       lastI = this.pos.i;
     }
-    this.entity.range.end.i = this.pos.i;
 
     return this.entity;
   }

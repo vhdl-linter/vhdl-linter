@@ -540,6 +540,9 @@ export class OProcess extends ObjectBase {
   statements: OStatement[] = [];
   sensitivityList: string;
   label?: string;
+  types: OType[] = [];
+  procedures: OProcedure[] = [];
+  functions: OFunction[] = [];
   variables: OVariable[] = [];
   private registerProcess: boolean | null = null;
   isRegisterProcess(): boolean {
