@@ -297,7 +297,7 @@ export class VhdlLinter {
       for (const generic of component.generics) {
         if (!realEntity.generics.find(gen => gen.name.text.toLowerCase() === generic.name.text.toLowerCase())) {
           this.addMessage({
-            range: component.genericRange ?? component.range,
+            range: generic.name.range,
             severity: DiagnosticSeverity.Error,
             message: `no generic ${generic.name.text} on entity ${component.name}`
           });
@@ -307,7 +307,7 @@ export class VhdlLinter {
       for (const generic of realEntity.generics) {
         if (!component.generics.find(gen => gen.name.text.toLowerCase() === generic.name.text.toLowerCase())) {
           this.addMessage({
-            range: component.range,
+            range: component.genericRange ?? component.range,
             severity: DiagnosticSeverity.Error,
             message: `generic ${generic.name.text} is missing in this component declaration`
           });
@@ -317,7 +317,7 @@ export class VhdlLinter {
       for (const port of component.ports) {
         if (!realEntity.ports.find(p => p.name.text.toLowerCase() === port.name.text.toLowerCase())) {
           this.addMessage({
-            range: component.genericRange ?? component.range,
+            range: port.name.range,
             severity: DiagnosticSeverity.Error,
             message: `no port ${port.name.text} on entity ${component.name}`
           });
@@ -327,7 +327,7 @@ export class VhdlLinter {
       for (const port of realEntity.ports) {
         if (!component.ports.find(p => p.name.text.toLowerCase() === port.name.text.toLowerCase())) {
           this.addMessage({
-            range: component.range,
+            range: component.portRange ?? component.range,
             severity: DiagnosticSeverity.Error,
             message: `port ${port.name.text} is missing in this component declaration`
           });
@@ -788,8 +788,8 @@ export class VhdlLinter {
       }
       if (!entity) {
         this.addMessage({
-          range: instantiation.range,
-          severity: DiagnosticSeverity.Error,
+          range: instantiation.range.start.getRangeToEndLine(),
+          severity: DiagnosticSeverity.Warning,
           message: `can not find entity ${instantiation.componentName}`
         });
       } else {
@@ -854,7 +854,7 @@ export class VhdlLinter {
       if (obj instanceof OProcedureCall) {
         let searchObj = obj.parent;
         while (!(searchObj instanceof OFile)) {
-          if (searchObj instanceof OArchitecture) {
+          if (searchObj instanceof OArchitecture || searchObj instanceof OProcess) {
             for (const procedureSearch of searchObj.procedures) {
               if (procedureSearch.name.text === obj.procedureName.text) {
                 obj.definition = procedureSearch;

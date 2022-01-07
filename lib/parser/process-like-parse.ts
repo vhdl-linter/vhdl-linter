@@ -32,6 +32,10 @@ export class ProcessLikeParser extends ParserBase {
         statements.push(this.parseWait(parent));
       } else if (nextWord.toLowerCase() === 'exit') {
         this.advancePast(';');
+      } else if (nextWord.toLowerCase() === 'return') {
+        this.advancePast(';');
+      } else if (nextWord.toLowerCase() === 'null') {
+        this.advancePast(';');
       } else if (nextWord.toLowerCase() === 'while') {
         statements.push(this.parseWhile(parent, label));
       } else if (statementText.match(/:=|<=/)) {

@@ -253,6 +253,7 @@ export class OBlock extends OArchitecture {
 export class OType extends OMentionable {
   name: OName;
   units?: string[];
+  reads: ORead[] = [];
   findRead(read: ORead) {
     if (this.name.text.toLowerCase() === read.text.toLowerCase()) {
       return this;
@@ -540,6 +541,9 @@ export class OProcess extends ObjectBase {
   statements: OStatement[] = [];
   sensitivityList: string;
   label?: string;
+  types: OType[] = [];
+  procedures: OProcedure[] = [];
+  functions: OFunction[] = [];
   variables: OVariable[] = [];
   private registerProcess: boolean | null = null;
   isRegisterProcess(): boolean {
@@ -819,6 +823,16 @@ export class OToken extends ODefitionable {
           this.scope = object;
           object.variable.mentions.push(this);
           break yank;
+        }
+      } else if (object instanceof OEntity && object.parent instanceof OArchitecture) {
+        // ORead in port of component declaration
+        for (const generic of object.generics) {
+          if (generic.name.text.toLowerCase() === text.toLowerCase()) {
+            this.definition = generic;
+            this.scope = object;
+            generic.mentions.push(this);
+            break yank;
+          }
         }
       }
 

@@ -1,29 +1,32 @@
 import { ParserBase } from './parser-base';
-import { OSignal, OType, OArchitecture, OEntity, ParserError, OState, OFunction, OPackage, ORecord, OEnum, ORead, OI, ORecordChild, OName, OProcedure, OPackageBody } from './objects';
+import { OSignal, OType, OArchitecture, OEntity, ParserError, OState, OFunction, OPackage, ORecord, OEnum, ORead, OI, ORecordChild, OName, OProcedure, OPackageBody, OProcess, OVariable } from './objects';
 import { SubtypeParser } from './subtype-parser';
-import { StatementParser, StatementTypes } from './statement-parser';
 import { ProcedureParser } from './procedure-parser';
 import { EntityParser } from './entity-parser';
 
 export class DeclarativePartParser extends ParserBase {
   type: string;
-  constructor(text: string, pos: OI, file: string, private parent: OArchitecture | OEntity | OPackage | OPackageBody) {
+  constructor(text: string, pos: OI, file: string, private parent: OArchitecture | OEntity | OPackage | OPackageBody | OProcess) {
     super(text, pos, file);
     this.debug('start');
   }
   parse(optional: boolean = false, lastWord = 'begin') {
     let nextWord = this.getNextWord({ consume: false }).toLowerCase();
     while (nextWord !== lastWord) {
-      if (nextWord === 'signal' || nextWord === 'constant' || nextWord === 'shared' || nextWord === 'variable') {
+      if ((nextWord === 'signal' && !(this.parent instanceof OProcess))
+       || nextWord === 'constant'
+       || nextWord === 'shared'
+       || nextWord === 'variable') {
         if (nextWord === 'shared') {
           this.getNextWord();
-          // this.expect('variable');
         }
         const signals = [];
         const constant = this.getNextWord() === 'constant';
         do {
           this.maybeWord(',');
-          const signal = new OSignal(this.parent, this.pos.i, this.getEndOfLineI());
+          const signal = this.parent instanceof OProcess
+            ? new OVariable(this.parent, this.pos.i, this.getEndOfLineI())
+            : new OSignal(this.parent, this.pos.i, this.getEndOfLineI());
           signal.constant = constant;
           signal.name = new OName(signal, this.pos.i, this.pos.i);
           signal.name.text = this.getNextWord();
@@ -33,24 +36,18 @@ export class DeclarativePartParser extends ParserBase {
         } while (this.text[this.pos.i] === ',');
         this.expect(':');
         for (const signal of signals) {
-          const iBeforeType = this.pos.i;
           const { typeReads, defaultValueReads } = this.getType(signal, false);
           signal.type = typeReads;
           signal.defaultValue = defaultValueReads;
           signal.range.end.i = this.pos.i;
         }
         this.advanceSemicolon();
-        // console.log(multiSignals, 'multiSignals');
-        // for (const multiSignalName of multiSignals) {
-        //   const multiSignal = new OSignal(this.parent, -1, -1);
-        //   Object.assign(signal, multiSignal);
-        //   multiSignal.name.text = multiSignalName;
-        //   this.parent.signals.push(multiSignal);
-        // }
         if (this.parent instanceof OPackage || this.parent instanceof OPackageBody) {
-          this.parent.constants.push(...signals);
+          this.parent.constants.push(...signals as OSignal[]);
+        } else if (this.parent instanceof OProcess) {
+          this.parent.variables.push(...signals);
         } else {
-          this.parent.signals.push(...signals);
+          this.parent.signals.push(...signals as OSignal[]);
         }
       } else if (nextWord === 'attribute') {
         this.getNextWord();
@@ -100,9 +97,9 @@ export class DeclarativePartParser extends ParserBase {
           this.expect(';');
         } else {
           const nextWord = this.getNextWord().toLowerCase();
-          Object.setPrototypeOf(type, ORecord.prototype);
-          (type as ORecord).children = [];
           if (nextWord === 'record') {
+            Object.setPrototypeOf(type, ORecord.prototype);
+            (type as ORecord).children = [];
             let position = this.pos.i;
             let recordWord = this.getNextWord();
             while (recordWord.toLowerCase() !== 'end') {
@@ -117,6 +114,15 @@ export class DeclarativePartParser extends ParserBase {
             }
             this.maybeWord('record');
             this.maybeWord(type.name.text);
+          } else if (nextWord === 'array') {
+            const startI = this.pos.i;
+            const match = /;/.exec(this.text.substr(this.pos.i));
+            if (!match) {
+              throw new ParserError(`could not find semicolon`, this.pos.getRangeToEndLine());
+            }
+            const text = this.text.substr(this.pos.i, match.index);
+            this.pos.i += match.index;
+            type.reads.push(...this.extractReads(type, text, startI));
           }
           type.range.end.i = this.pos.i;
           this.parent.types.push(type);
@@ -153,8 +159,8 @@ export class DeclarativePartParser extends ParserBase {
         this.getNextWord();
         const procedureParser = new ProcedureParser(this.text, this.pos, this.file, this.parent);
         this.parent.procedures.push(procedureParser.parse(this.pos.i));
-      } else if (nextWord === 'impure' || nextWord === 'function') {
-        if (nextWord === 'impure') {
+      } else if (nextWord === 'impure' || nextWord === 'pure' || nextWord === 'function') {
+        if (nextWord === 'impure' || nextWord === 'pure') {
           this.getNextWord();
         }
         const func = new OFunction(this.parent, this.pos.i, this.getEndOfLineI());
@@ -180,15 +186,16 @@ export class DeclarativePartParser extends ParserBase {
         func.range.end.i = this.pos.i;
         this.advancePast(';');
         this.parent.functions.push(func);
-      } else if (optional) {
-        return;
       } else if (nextWord === 'package' || nextWord === 'generic') {
         this.advanceSemicolon();
       } else if (nextWord === 'file') {
         this.advanceSemicolon();
-      } else {
+      } else if (nextWord === 'disconnect') {
+        this.advanceSemicolon();
+      } else if (optional) {
+        return;
+      }  else {
         throw new ParserError(`Unknown Ding: '${nextWord}' on line ${this.getLine()}`, this.pos.getRangeToEndLine());
-        this.getNextWord();
       }
       nextWord = this.getNextWord({ consume: false }).toLowerCase();
     }
