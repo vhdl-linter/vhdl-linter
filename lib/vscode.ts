@@ -69,7 +69,8 @@ export function activate(context: ExtensionContext) {
       return;
     }
     editor.edit(editBuilder => {
-      const type = parseInt(length, 10) === 1 ? 'std_ulogic' : `std_ulogic_vector(${length} - 1 downto 0)`;
+      const { preferedLogicType } = workspace.getConfiguration('VhdlLinter.style');
+      const type = parseInt(length, 10) === 1 ? preferedLogicType : `${preferedLogicType}_vector(${length} - 1 downto 0)`;
       editBuilder.insert(new Position(args.range.start.line + 1, 0), `  signal ${args.signalName} : ${type};\n`);
     });
 

@@ -134,6 +134,16 @@
 					"default": true,
 					"description": "Enables checking for library magic comment."
 				},
+				"VhdlLinter.style.preferedLogicType": {
+					"scope": "window",
+					"type": "string",
+					"enum": [
+						"std_logic",
+						"std_ulogic"
+					],
+					"default": "std_ulogic",
+					"description": "Enables checking for library magic comment."
+				},
 				"VhdlLinter.ports.enablePortStyle": {
 					"scope": "window",
 					"type": "boolean",
