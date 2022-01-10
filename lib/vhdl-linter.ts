@@ -274,6 +274,7 @@ export class VhdlLinter {
         await this.checkPortDeclaration();
         this.checkInstantiations(this.tree.architecture);
         this.checkProcedures(this.tree.architecture);
+        await this.checkPortType();
       }
       // this.parser.debugObject(this.tree);
     }
@@ -753,6 +754,46 @@ export class VhdlLinter {
               message: `ouput port '${port.name}' should match output regex ${portSettings.outRegex}`
             });
           }
+        }
+      }
+    }
+  }
+  async checkPortType() {
+    if (this.tree instanceof OFileWithEntity === false) {
+      return;
+    }
+
+    const tree = this.tree as OFileWithEntity;
+    const settings = (await getDocumentSettings(URI.file(this.editorPath).toString()));
+    if (settings.rules.warnLogicType) {
+      for (const port of tree.entity.ports) {
+        console.log(port.type);
+        let match;
+        if ((settings.style.preferedLogicType === 'std_logic' && port.type[0].text.match(/^std_ulogic/i))
+          || (settings.style.preferedLogicType === 'std_ulogic' && port.type[0].text.match(/^std_logic/i))) {
+          const code = this.addCodeActionCallback((textDocumentUri: string) => {
+            const actions = [];
+            const match = port.type[0].text.match(/^std_u?logic/i);
+            if (match) {
+              const replacement = port.type[0].text.replace(match[0], settings.style.preferedLogicType);
+              actions.push(CodeAction.create(
+                `Replace with ${replacement}`,
+                {
+                  changes: {
+                    [textDocumentUri]: [TextEdit.replace(port.type[0].range
+                      , replacement)]
+                  }
+                },
+                CodeActionKind.QuickFix));
+            }
+            return actions;
+          });
+          this.addMessage({
+            range: port.type[0].range,
+            severity: DiagnosticSeverity.Information,
+            message: `Port should be ${settings.style.preferedLogicType} is ${port.type[0].text}`,
+            code
+          });
         }
       }
     }

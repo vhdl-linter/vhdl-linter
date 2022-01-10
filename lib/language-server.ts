@@ -66,8 +66,12 @@ export interface ISettings {
     inRegex: string;
     enablePortStyle: boolean;
   };
+  style: {
+    preferedLogicType: 'std_logic' | 'std_ulogic';
+  };
   rules: {
     warnLibrary: boolean;
+    warnLogicType: boolean;
   };
 }
 const defaultSettings: ISettings = {
@@ -76,10 +80,14 @@ const defaultSettings: ISettings = {
     inRegex: '^i_',
     enablePortStyle: true,
   },
+  style: {
+    preferedLogicType: 'std_ulogic'
+  },
   rules: {
+    warnLogicType: true,
     warnLibrary: true
   }
- };
+};
 let globalSettings: ISettings = defaultSettings;
 let hasConfigurationCapability: boolean = false;
 // Cache the settings of all open documents

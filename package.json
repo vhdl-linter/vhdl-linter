@@ -134,6 +134,12 @@
 					"default": true,
 					"description": "Enables checking for library magic comment."
 				},
+				"VhdlLinter.rules.warnLogicType": {
+					"scope": "window",
+					"type": "boolean",
+					"default": true,
+					"description": "Enables checking for preferred logic type."
+				},
 				"VhdlLinter.style.preferedLogicType": {
 					"scope": "window",
 					"type": "string",
