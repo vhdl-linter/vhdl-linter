@@ -1,4 +1,4 @@
-import { OFile, OIf, OSignalBase, OSignal, OArchitecture, OEntity, OPort, OInstantiation, OWrite, ORead, OFileWithEntity, OFileWithPackages, OFileWithEntityAndArchitecture, ORecord, OPackage, ParserError, OEnum, OGenericActual, OMapping, OPortMap, MagicCommentType, OProcess, OToken, OMappingName, OMap, OMentionable, OGenericMap, OProcedureCall, OGeneric } from './parser/objects';
+import { OFile, OIf, OSignalBase, OSignal, OArchitecture, OEntity, OPort, OInstantiation, OWrite, ORead, OFileWithEntity, OFileWithPackages, OFileWithEntityAndArchitecture, ORecord, OPackage, ParserError, OEnum, OGenericActual, OMapping, OPortMap, MagicCommentType, OProcess, OToken, OMappingName, OMap, OMentionable, OGenericMap, OProcedureCall, OGeneric, OProcedureCallPortMap } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 import { findBestMatch } from 'string-similarity';
@@ -636,11 +636,19 @@ export class VhdlLinter {
       }
       if (signal.constant) {
         for (const write of writes) {
-          this.addMessage({
-            range: write.range,
-            severity: DiagnosticSeverity.Error,
-            message: `Constant ${signal.name} cannot be written.`
-          });
+          if (write.parent instanceof OMapping && write.parent.parent instanceof OProcedureCallPortMap) {
+            this.addMessage({
+              range: write.range,
+              severity: DiagnosticSeverity.Information,
+              message: `Constant ${signal.name} might be written in the procedure.`
+            });
+          } else {
+            this.addMessage({
+              range: write.range,
+              severity: DiagnosticSeverity.Error,
+              message: `Constant ${signal.name} cannot be written.`
+            });
+          }
         }
       }
     }
@@ -914,42 +922,31 @@ export class VhdlLinter {
 
         } else {
           if (obj.portMap) {
+            if (obj.definition.ports.length !== obj.portMap.children.length) {
+              this.addMessage({
+                range: obj.portMap.range,
+                severity: DiagnosticSeverity.Error,
+                message: `Expected ${obj.definition.ports.length} ports but got ${obj.portMap.children.length}.`
+              });
+              continue;
+            }
             for (const [index, portMapping] of obj.portMap.children.entries()) {
-              if (obj.definition.ports.length - 1 < index) {
-                this.addMessage({
-                  range: portMapping.range,
-                  severity: DiagnosticSeverity.Error,
-                  message: `Too many Ports in Procedure Instantiation`
-                });
-              } else {
-                if (obj.definition.ports[index].direction === 'in') {
-
-                  for (const mapping of portMapping.mappingIfOutput.flat()) {
-                    const index = this.tree.objectList.indexOf(mapping);
-                    this.tree.objectList.splice(index, 1);
-                    for (const mentionable of this.tree.objectList.filter(object => object instanceof OMentionable) as OMentionable[]) {
-                      for (const [index, mention] of mentionable.mentions.entries()) {
-                        if (mention === mapping) {
-                          mentionable.mentions.splice(index, 1);
-                        }
+              if (obj.definition.ports[index].direction === 'in') {
+                for (const mapping of portMapping.mappingIfOutput.flat()) {
+                  const index = this.tree.objectList.indexOf(mapping);
+                  this.tree.objectList.splice(index, 1);
+                  for (const mentionable of this.tree.objectList.filter(object => object instanceof OMentionable) as OMentionable[]) {
+                    for (const [index, mention] of mentionable.mentions.entries()) {
+                      if (mention === mapping) {
+                        mentionable.mentions.splice(index, 1);
                       }
                     }
                   }
-                  portMapping.mappingIfOutput = [[], []];
                 }
+                portMapping.mappingIfOutput = [[], []];
               }
             }
           }
-          // for (const port of entity.ports) {
-          //   if (port.direction === 'in' && typeof port.defaultValue === 'undefined' && typeof foundPorts.find(portSearch => portSearch === port) === 'undefined') {
-          //     this.addMessage({
-          //       range: instantiation.range,
-          //       severity: DiagnosticSeverity.Error,
-          //       message: `input port ${port.name} is missing in port map and has no default value on entity ${instantiation.componentName}`
-          //     });
-          //   }
-          // }
-
         }
       }
     }

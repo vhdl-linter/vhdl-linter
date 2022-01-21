@@ -69,6 +69,9 @@ export class ProcessLikeParser extends ParserBase {
       const matches = text.matchAll(/([^,]*)(,|$)/g);
       // console.log(text);
       for (const match of matches) {
+        if (match[1].trim() === '') {
+          continue;
+        }
         const map = new OMapping(procedureCall.portMap, startI + (match.index ?? 0), startI + (match.index ?? 0) + match[1].length);
         map.mappingIfInput = this.extractReads(map, match[1], startI + (match.index ?? 0));
         map.mappingIfOutput = this.extractReadsOrWrite(map, match[1], startI + (match.index ?? 0));

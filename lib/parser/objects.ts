@@ -205,7 +205,9 @@ export class OProcedure extends OFunction {
   variables: OVariable[] = [];
   statements: OStatement[] = [];
   ports: OPort[] = [];
-
+  types: OType[] = [];
+  procedures: OProcedure[] = [];
+  functions: OFunction[] = [];
 }
 
 export class OArchitecture extends ObjectBase {

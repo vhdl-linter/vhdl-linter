@@ -6,14 +6,15 @@ import { EntityParser } from './entity-parser';
 
 export class DeclarativePartParser extends ParserBase {
   type: string;
-  constructor(text: string, pos: OI, file: string, private parent: OArchitecture | OEntity | OPackage | OPackageBody | OProcess) {
+  constructor(text: string, pos: OI, file: string, private parent: OArchitecture | OEntity | OPackage | OPackageBody | OProcess | OProcedure) {
     super(text, pos, file);
     this.debug('start');
   }
   parse(optional: boolean = false, lastWord = 'begin') {
+    const canHaveSignal = !(this.parent instanceof OProcess || this.parent instanceof OProcedure);
     let nextWord = this.getNextWord({ consume: false }).toLowerCase();
     while (nextWord !== lastWord) {
-      if ((nextWord === 'signal' && !(this.parent instanceof OProcess))
+      if ((nextWord === 'signal' && canHaveSignal)
        || nextWord === 'constant'
        || nextWord === 'shared'
        || nextWord === 'variable') {
@@ -24,9 +25,9 @@ export class DeclarativePartParser extends ParserBase {
         const constant = this.getNextWord() === 'constant';
         do {
           this.maybeWord(',');
-          const signal = this.parent instanceof OProcess
-            ? new OVariable(this.parent, this.pos.i, this.getEndOfLineI())
-            : new OSignal(this.parent, this.pos.i, this.getEndOfLineI());
+          const signal = canHaveSignal
+            ? new OSignal(this.parent, this.pos.i, this.getEndOfLineI())
+            : new OVariable(this.parent, this.pos.i, this.getEndOfLineI());
           signal.constant = constant;
           signal.name = new OName(signal, this.pos.i, this.pos.i);
           signal.name.text = this.getNextWord();
@@ -44,7 +45,8 @@ export class DeclarativePartParser extends ParserBase {
         this.advanceSemicolon();
         if (this.parent instanceof OPackage || this.parent instanceof OPackageBody) {
           this.parent.constants.push(...signals as OSignal[]);
-        } else if (this.parent instanceof OProcess) {
+        } else if (this.parent instanceof OProcess || this.parent instanceof OProcedure) { //. should be canHaveSignal but linter doesn't like it
+          
           this.parent.variables.push(...signals);
         } else {
           this.parent.signals.push(...signals as OSignal[]);
