@@ -673,7 +673,7 @@ export class OProcedureInstantiation extends ObjectBase {
   tokens: OToken[];
 }
 export class OForLoop extends ObjectBase {
-  variable: OVariable; // TODO: FIX ME not string
+  variable: OVariable;
   start: string;
   end: string;
   statements: OStatement[] = [];
@@ -684,30 +684,60 @@ export class OAssignment extends ObjectBase {
 }
 
 export class OToken extends ODefitionable {
-  public scope?: OArchitecture | OProcess | OEntity | OForLoop | OProcedure;
+  public scope?: OArchitecture | OProcess | OEntity | OForLoop | OProcedure | OPackage;
   constructor(public parent: ObjectBase, startI: number, endI: number, public text: string) {
     super(parent, startI, endI);
     let object: (OFile | ObjectBase) = this;
 
-    yank: do {
+    findDefinition: do {
       object = object.parent;
-      if (object instanceof OArchitecture) {
+      if (object instanceof OArchitecture
+        || object instanceof OEntity) {
         for (const signal of object.signals) {
           if (signal.name.text.toLowerCase() === text.toLowerCase()) {
             this.definition = signal;
             this.scope = object;
             signal.mentions.push(this);
 
-            break yank;
+            break findDefinition;
           }
         }
+      }
+      if (object instanceof OPackage
+        || object instanceof OPackageBody) {
+        for (const constant of object.constants) {
+          if (constant.name.text.toLowerCase() === text.toLowerCase()) {
+            this.definition = constant;
+            this.scope = object;
+            constant.mentions.push(this);
+
+            break findDefinition;
+          }
+        }
+      }
+      if (object instanceof OPackage
+        || object instanceof OPackageBody
+        || object instanceof OProcedure
+        || object instanceof OArchitecture
+        || object instanceof OEntity
+        || object instanceof OProcess
+        ) {
         for (const func of object.functions) {
           if (func.name.text.toLowerCase() === text.toLowerCase()) {
             this.definition = func;
             this.scope = object;
             func.mentions.push(this);
 
-            break yank;
+            break findDefinition;
+          }
+        }
+        for (const proc of object.procedures) {
+          if (proc.name.text.toLowerCase() === text.toLowerCase()) {
+            this.definition = proc;
+            this.scope = object;
+            proc.mentions.push(this);
+
+            break findDefinition;
           }
         }
         for (const type of object.types) {
@@ -716,7 +746,7 @@ export class OToken extends ODefitionable {
             this.scope = object;
             type.mentions.push(this);
 
-            break yank;
+            break findDefinition;
           }
           if (type instanceof OEnum) {
             for (const state of type.states) {
@@ -725,7 +755,7 @@ export class OToken extends ODefitionable {
                 this.scope = object;
                 state.mentions.push(this);
 
-                break yank;
+                break findDefinition;
               }
             }
           }
@@ -736,23 +766,62 @@ export class OToken extends ODefitionable {
                 this.scope = object;
                 child.mentions.push(this);
 
-                break yank;
+                break findDefinition;
               }
             }
           }
         }
-        if (object instanceof OForGenerate && object.variable.name.text.toLowerCase() === text.toLowerCase()) {
+      }
+      if (object instanceof OProcess
+      || object instanceof OProcedure) {
+        for (const variable of object.variables) {
+          if (variable.name.text.toLowerCase() === text.toLowerCase()) {
+            this.definition = variable;
+            this.scope = object;
+            variable.mentions.push(this);
+
+            break findDefinition;
+          }
+        }
+      }
+      if (object instanceof OProcedure
+        || object instanceof OEntity) {
+        for (const port of object.ports) {
+          if (port.name.text.toLowerCase() === text.toLowerCase()) {
+            this.definition = port;
+            this.scope = object;
+            port.mentions.push(this);
+
+            break findDefinition;
+          }
+        }
+      }
+      if (object instanceof OForLoop
+        || object instanceof OForGenerate) {
+        if (object.variable.name.text.toLowerCase() === text.toLowerCase()) {
           this.definition = object.variable;
           this.scope = object;
-          break yank;
+          object.variable.mentions.push(this);
+          break findDefinition;
         }
-      } else if (object instanceof OFileWithEntity) {
+      }
+      if (object instanceof OEntity) {
+        for (const generic of object.generics) {
+          if (generic.name.text.toLowerCase() === text.toLowerCase()) {
+            this.definition = generic;
+            this.scope = object;
+            generic.mentions.push(this);
+            break findDefinition;
+          }
+        }
+      }
+      if (object instanceof OFileWithEntity) {
         for (const signal of object.entity.signals) {
           if (signal.name.text.toLowerCase() === text.toLowerCase()) {
             this.definition = signal;
             signal.mentions.push(this);
             this.scope = object.entity;
-            break yank;
+            break findDefinition;
           }
         }
         for (const type of object.entity.types) {
@@ -760,7 +829,7 @@ export class OToken extends ODefitionable {
             this.definition = type;
             type.mentions.push(this);
             this.scope = object.entity;
-            break yank;
+            break findDefinition;
           }
         }
         for (const func of object.entity.functions) {
@@ -769,7 +838,16 @@ export class OToken extends ODefitionable {
             this.scope = object.entity;
             func.mentions.push(this);
 
-            break yank;
+            break findDefinition;
+          }
+        }
+        for (const proc of object.entity.procedures) {
+          if (proc.name.text.toLowerCase() === text.toLowerCase()) {
+            this.definition = proc;
+            this.scope = object.entity;
+            proc.mentions.push(this);
+
+            break findDefinition;
           }
         }
         for (const port of object.entity.ports) {
@@ -778,7 +856,7 @@ export class OToken extends ODefitionable {
             this.scope = object.entity;
             port.mentions.push(this);
 
-            break yank;
+            break findDefinition;
           }
         }
         for (const generic of object.entity.generics) {
@@ -787,53 +865,7 @@ export class OToken extends ODefitionable {
             this.scope = object.entity;
             generic.mentions.push(this);
 
-            break yank;
-          }
-        }
-      } else if (object instanceof OProcess) {
-        for (const variable of object.variables) {
-          if (variable.name.text.toLowerCase() === text.toLowerCase()) {
-            this.definition = variable;
-            this.scope = object;
-            variable.mentions.push(this);
-
-            break yank;
-          }
-        }
-      } else if (object instanceof OProcedure) {
-        for (const variable of object.variables) {
-          if (variable.name.text.toLowerCase() === text.toLowerCase()) {
-            this.definition = variable;
-            this.scope = object;
-            variable.mentions.push(this);
-
-            break yank;
-          }
-        }
-        for (const port of object.ports) {
-          if (port.name.text.toLowerCase() === text.toLowerCase()) {
-            this.definition = port;
-            this.scope = object;
-            port.mentions.push(this);
-
-            break yank;
-          }
-        }
-      } else if (object instanceof OForLoop) {
-        if (object.variable.name.text.toLowerCase() === text.toLowerCase()) {
-          this.definition = object.variable;
-          this.scope = object;
-          object.variable.mentions.push(this);
-          break yank;
-        }
-      } else if (object instanceof OEntity && object.parent instanceof OArchitecture) {
-        // ORead in port of component declaration
-        for (const generic of object.generics) {
-          if (generic.name.text.toLowerCase() === text.toLowerCase()) {
-            this.definition = generic;
-            this.scope = object;
-            generic.mentions.push(this);
-            break yank;
+            break findDefinition;
           }
         }
       }
