@@ -1,4 +1,4 @@
-import { OFile, OIf, OSignalBase, OSignal, OArchitecture, OEntity, OPort, OInstantiation, OWrite, ORead, OFileWithEntity, OFileWithPackages, OFileWithEntityAndArchitecture, ORecord, OPackage, ParserError, OEnum, OGenericActual, OMapping, OPortMap, MagicCommentType, OProcess, OToken, OMappingName, OMap, OMentionable, OGenericMap, OProcedureCall, OGeneric, OProcedureCallPortMap } from './parser/objects';
+import { OFile, OIf, OSignalBase, OSignal, OArchitecture, OEntity, OPort, OInstantiation, OWrite, ORead, OFileWithEntity, OFileWithPackages, OFileWithEntityAndArchitecture, ORecord, OPackage, ParserError, OEnum, OGenericActual, OMapping, OPortMap, MagicCommentType, OProcess, OToken, OMappingName, OMap, OMentionable, OGenericMap, OProcedureCall, OGeneric, OProcedureCallPortMap, ObjectBase } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 import { findBestMatch } from 'string-similarity';
@@ -833,7 +833,16 @@ export class VhdlLinter {
       if (instantiation.entityInstantiation) {
         entity = this.getProjectEntity(instantiation);
       } else {
-        entity = architecture.components.find(comp => comp.name.toLowerCase() === instantiation.componentName.toLowerCase());
+        // find all defined components in current scope (architecture might be a generate in another architecture)
+        const components: OEntity[] = [];
+        let arch: ObjectBase|OFile = architecture;
+        while (arch instanceof ObjectBase) {
+          if (arch instanceof OArchitecture) {
+            components.push(...arch.components);
+          }
+          arch = arch.parent;
+        }
+        entity = components.find(comp => comp.name.toLowerCase() === instantiation.componentName.toLowerCase());
       }
       if (!entity) {
         this.addMessage({
