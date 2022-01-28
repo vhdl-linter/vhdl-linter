@@ -7,29 +7,37 @@ function parseArchitecture(architecture: OArchitecture, linter: VhdlLinter): Doc
   const symbols: DocumentSymbol[] = [];
   symbols.push(...architecture.instantiations.map(instantiation => ({
     name: instantiation.label + ': ' + instantiation.componentName,
-    detail: instantiation.label,
-    kind: SymbolKind.Object,
+    detail: 'instantiation',
+    kind: SymbolKind.Module,
     range: instantiation.range,
     selectionRange: instantiation.range
   })));
   symbols.push(...architecture.blocks.map(block => ({
-    name: block.label + 'block',
-    detail: block.label,
+    name: block.label,
+    detail: 'block',
     kind: SymbolKind.Object,
     range: block.range,
-    selectionRange: block.range
+    selectionRange: block.range,
+    children: parseArchitecture(block, linter)
   })));
   symbols.push(...architecture.processes.map(process => ({
     name: process.label || 'no label',
-    detail: process.label,
-    kind: SymbolKind.Object,
+    detail: 'process',
+    kind: SymbolKind.Function,
     range: process.range,
     selectionRange: process.range,
     children: process.statements.map(statement => parseStatements(statement)).flat()
+      .concat(process.procedures.map(procedure => ({
+        name: procedure.name.text,
+        detail: 'procedure',
+        kind: SymbolKind.Method,
+        range: procedure.range,
+        selectionRange: procedure.range,
+      }))).sort((a, b) => a.range.start.line - b.range.start.line)
   })));
   for (const generate of architecture.generates) {
     symbols.push({
-      name: linter.text.split('\n')[generate.range.start.line],
+      name: linter.text.split('\n')[generate.range.start.line].trim(),
       kind: SymbolKind.Enum,
       range: generate.range,
       selectionRange: generate.range,

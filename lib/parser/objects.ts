@@ -557,7 +557,7 @@ export class OProcess extends ObjectBase {
     for (const statement of this.statements) {
       if (statement instanceof OIf) {
         for (const clause of statement.clauses) {
-          if (clause.condition.match(/rising_edge/i)) {
+          if (clause.condition.match(/rising_edge|falling_edge/i)) {
             this.registerProcess = true;
           }
         }
