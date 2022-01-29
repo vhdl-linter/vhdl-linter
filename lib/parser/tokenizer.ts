@@ -10,7 +10,7 @@ class Tokenizer {
     ['mod'],
     ['sll', 'srl', 'sla', 'sra', 'rol', 'ror'],
     ['and', 'or', 'nand', 'nor', 'xor', 'xnor'],
-    ['downto', 'to', 'others', 'when', 'else', 'range', 'elsif', 'after', 'transport', 'reject', 'intertial'],
+    ['downto', 'to', 'others', 'when', 'else', 'range', 'elsif', 'after', 'transport', 'reject', 'inertial'],
     ['of']
   ];
   tokenTypes = [
