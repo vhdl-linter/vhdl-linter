@@ -14,9 +14,9 @@ export class ProcessParser extends ProcessLikeParser {
   }
   parse(startI: number, label?: string): OProcess {
     const process = new OProcess(this.parent, startI, this.getEndOfLineI());
+    process.label = label;
     if (this.text[this.pos.i] === '(') {
       this.expect('(');
-      process.label = label;
       process.sensitivityList = this.advanceBrace();
     }
     this.maybeWord('is');
