@@ -1,4 +1,4 @@
-import { OFile, OIf, OSignalBase, OSignal, OArchitecture, OEntity, OPort, OInstantiation, OWrite, ORead, OFileWithEntity, OFileWithPackages, OFileWithEntityAndArchitecture, ORecord, OPackage, ParserError, OEnum, OGenericActual, OMapping, OPortMap, MagicCommentType, OProcess, OToken, OMappingName, OMap, OMentionable, OGenericMap, OProcedureCall, OGeneric, OProcedureCallPortMap, ObjectBase } from './parser/objects';
+import { OFile, OIf, OSignalBase, OSignal, OArchitecture, OEntity, OPort, OInstantiation, OWrite, ORead, OFileWithEntity, OFileWithPackages, OFileWithEntityAndArchitecture, ORecord, OPackage, ParserError, OEnum, OGenericActual, OMapping, OPortMap, MagicCommentType, OProcess, OToken, OMappingName, OMap, OMentionable, OGenericMap, OProcedureCall, OGeneric, OProcedureCallPortMap, ObjectBase, OType } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 import { findBestMatch } from 'string-similarity';
@@ -288,11 +288,11 @@ export class VhdlLinter {
       const realEntity = this.getProjectEntity(component);
       if (!realEntity) {
         this.addMessage({
-          range: component.range,
+          range: component.name.range,
           severity: DiagnosticSeverity.Warning,
-          message: `Could not find an entity declaration for this component (${component.name}).`
+          message: `Could not find an entity declaration for this component (${component.name})`
         });
-        return;
+        continue;
       }
       // generics not in realEntity
       for (const generic of component.generics) {
@@ -618,10 +618,28 @@ export class VhdlLinter {
         }
       }
     }
+    for (const type of architecture.types) {
+      if (type.mentions.length === 0) {
+        this.addMessage({
+          range: type.name.range,
+          severity: DiagnosticSeverity.Warning,
+          message: `Not using type ${type.name.text}`
+        })
+      }
+    }
+    for (const component of architecture.components) {
+      if (component.mentions.length === 0) {
+        this.addMessage({
+          range: component.name.range,
+          severity: DiagnosticSeverity.Warning,
+          message: `Not using component ${component.name.text}`
+        })
+      }
+    }
     for (const signal of architecture.getRoot().objectList.filter(object => object instanceof OSignal) as OSignal[]) {
       if (signal.mentions.filter(token => token instanceof ORead).length === 0) {
         this.addMessage({
-          range: signal.range,
+          range: signal.name.range,
           severity: DiagnosticSeverity.Warning,
           message: `Not reading signal '${signal.name}'`
         });
@@ -629,7 +647,7 @@ export class VhdlLinter {
       const writes = signal.mentions.filter(token => token instanceof OWrite);
       if (!signal.constant && writes.length === 0) {
         this.addMessage({
-          range: signal.range,
+          range: signal.name.range,
           severity: DiagnosticSeverity.Warning,
           message: `Not writing signal '${signal.name}'`
         });
@@ -640,13 +658,13 @@ export class VhdlLinter {
             this.addMessage({
               range: write.range,
               severity: DiagnosticSeverity.Information,
-              message: `Constant ${signal.name} might be written in the procedure.`
+              message: `Constant ${signal.name} could be written in the procedure`
             });
           } else {
             this.addMessage({
               range: write.range,
               severity: DiagnosticSeverity.Error,
-              message: `Constant ${signal.name} cannot be written.`
+              message: `Constant ${signal.name} cannot be written`
             });
           }
         }
@@ -689,7 +707,7 @@ export class VhdlLinter {
             this.addMessage({
               range: port.range,
               severity: DiagnosticSeverity.Error,
-              message: `input port '${port.name}' matches output regex ${portSettings.outRegex}!`,
+              message: `input port '${port.name}' matches output regex ${portSettings.outRegex}`,
               code
             });
           } else if (port.name.text.match(new RegExp(portSettings.inRegex, 'i')) === null) {
@@ -739,7 +757,7 @@ export class VhdlLinter {
             this.addMessage({
               range: port.range,
               severity: DiagnosticSeverity.Error,
-              message: `ouput port '${port.name}' matches input regex ${portSettings.inRegex}!`,
+              message: `ouput port '${port.name}' matches input regex ${portSettings.inRegex}`,
               code
             });
           } else if (port.name.text.match(new RegExp(portSettings.outRegex, 'i')) === null) {
@@ -808,20 +826,22 @@ export class VhdlLinter {
   }
   getComponentEntity(instantiation: OInstantiation): OEntity | undefined {
     if (this.tree instanceof OFileWithEntityAndArchitecture) {
-      return this.tree.architecture.components.find(component => component.name.toLowerCase() === instantiation.componentName.toLowerCase());
+      const entity = this.tree.architecture.components.find(component => component.name.text.toLowerCase() === instantiation.componentName.toLowerCase());
+      entity?.mentions.push(instantiation);
+      return entity;
     }
     return undefined;
   }
   getProjectEntity(instantiation: OInstantiation | OEntity): OEntity | undefined {
-    const name = instantiation instanceof OInstantiation ? instantiation.componentName : instantiation.name;
+    const name = instantiation instanceof OInstantiation ? instantiation.componentName : instantiation.name.text;
     const projectEntities: OEntity[] = this.projectParser.getEntities();
     if (instantiation.library) {
-      const entityWithLibrary = projectEntities.find(entity => entity.name.toLowerCase() === name.toLowerCase() && typeof entity.library !== 'undefined' && typeof instantiation.library !== 'undefined' && entity.library.toLowerCase() === instantiation.library.toLowerCase());
+      const entityWithLibrary = projectEntities.find(entity => entity.name.text.toLowerCase() === name.toLowerCase() && typeof entity.library !== 'undefined' && typeof instantiation.library !== 'undefined' && entity.library.toLowerCase() === instantiation.library.toLowerCase());
       if (entityWithLibrary) {
         return entityWithLibrary;
       }
     }
-    return projectEntities.find(entity => entity.name.toLowerCase() === name.toLowerCase());
+    return projectEntities.find(entity => entity.name.text.toLowerCase() === name.toLowerCase());
 
   }
   checkInstantiations(architecture: OArchitecture) {
@@ -842,7 +862,7 @@ export class VhdlLinter {
           }
           arch = arch.parent;
         }
-        entity = components.find(comp => comp.name.toLowerCase() === instantiation.componentName.toLowerCase());
+        entity = components.find(comp => comp.name.text.toLowerCase() === instantiation.componentName.toLowerCase());
       }
       if (!entity) {
         this.addMessage({
@@ -935,7 +955,7 @@ export class VhdlLinter {
               this.addMessage({
                 range: obj.portMap.range,
                 severity: DiagnosticSeverity.Error,
-                message: `Expected ${obj.definition.ports.length} ports but got ${obj.portMap.children.length}.`
+                message: `Expected ${obj.definition.ports.length} ports but got ${obj.portMap.children.length}`
               });
               continue;
             }

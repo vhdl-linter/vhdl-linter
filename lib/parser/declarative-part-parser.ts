@@ -59,7 +59,7 @@ export class DeclarativePartParser extends ParserBase {
         this.getNextWord();
         const startTypeName = this.pos.i;
         const typeName = this.getNextWord();
-        type.name = new OName(type, startTypeName, startTypeName + typeName.length + 1);
+        type.name = new OName(type, startTypeName, startTypeName + typeName.length);
         type.name.text = typeName;
         this.expect('is');
         if (this.text[this.pos.i] === '(') {

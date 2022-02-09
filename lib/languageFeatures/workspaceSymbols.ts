@@ -21,7 +21,7 @@ export async function handleOnWorkspaceSymbol(params: WorkspaceSymbolParams): Pr
         symbols.push(SymbolInformation.create(object.name ?? '', SymbolKind.Object, object.range, URI.file(cachedFile.path).toString()));
       }
       if (object instanceof OEntity) {
-        symbols.push(SymbolInformation.create(object.name ?? '', SymbolKind.Object, object.range, URI.file(cachedFile.path).toString()));
+        symbols.push(SymbolInformation.create(object.name.text ?? '', SymbolKind.Object, object.range, URI.file(cachedFile.path).toString()));
       }
     }
   }

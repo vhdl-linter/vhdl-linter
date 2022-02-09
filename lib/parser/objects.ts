@@ -1,4 +1,5 @@
 import { Range, Position, TextEdit } from 'vscode-languageserver';
+import { ParserBase } from './parser-base';
 
 export class OI implements Position {
   private i_: number;
@@ -488,7 +489,7 @@ export class OEntity extends ODefitionable {
   constructor(public parent: OFileWithEntity | OArchitecture, startI: number, endI: number, public library?: string) {
     super(parent, startI, endI);
   }
-  name: string;
+  name: OName;
   portRange?: OIRange;
   genericRange?: OIRange;
   ports: OPort[] = [];
@@ -497,6 +498,7 @@ export class OEntity extends ODefitionable {
   functions: OFunction[] = [];
   procedures: OProcedure[] = [];
   types: OType[] = [];
+  mentions: OInstantiation[] = [];
   statements: (OProcess | OAssignment | OProcedureInstantiation)[] = [];
   definition?: OEntity;
 }

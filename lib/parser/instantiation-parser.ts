@@ -20,6 +20,8 @@ export class InstantiationParser extends ParserBase {
         throw new ParserError(`Can not parse entity instantiation`, this.pos.getRangeToEndLine());
       }
       instantiation.library = libraryMatch[1];
+    } else if (nextWord === 'component') {
+      nextWord = this.getNextWord().toLowerCase();
     }
     instantiation.componentName = nextWord.replace(/^.*\./, '');
     let hasPortMap = false;

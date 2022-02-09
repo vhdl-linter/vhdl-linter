@@ -77,7 +77,7 @@ function instanceTemplate(entity: OEntity) {
 }
 
 function sysVerilogTemplate(entity: OEntity) {
-    let text = entity.name;
+    let text = entity.name.text;
     const indentString = '  ';
     if (entity.generics.length > 0) {
         text += ` #(\n`;

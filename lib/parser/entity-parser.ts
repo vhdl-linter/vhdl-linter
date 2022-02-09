@@ -18,7 +18,10 @@ export class EntityParser extends ParserBase {
     this.debug(`start`);
   }
   parse(): OEntity {
-    this.entity.name = this.getNextWord();
+    const preNameI = this.pos.i;
+    const nameText = this.getNextWord();
+    this.entity.name = new OName(this.entity, preNameI, preNameI + nameText.length);
+    this.entity.name.text = nameText;
     if (this.parent instanceof OArchitecture) {
       this.maybeWord('is');
     } else {
@@ -50,7 +53,7 @@ export class EntityParser extends ParserBase {
         } else {
           this.expect('component');
         }
-        this.maybeWord(this.entity.name);
+        this.maybeWord(this.entity.name.text);
         
         this.entity.range.end.i = this.expect(';');
         break;
@@ -71,7 +74,7 @@ export class EntityParser extends ParserBase {
         } else {
           this.maybeWord('component');
         }
-        this.maybeWord(this.entity.name);
+        this.maybeWord(this.entity.name.text);
         this.entity.range.end.i = this.expect(';');
         break;
 
