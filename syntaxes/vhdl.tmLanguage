@@ -557,19 +557,19 @@
 				</dict>
 				<dict>
 					<key>match</key>
-					<string>[xX]"[0-9a-fA-F_uUxXzZwWlLhH\-]+"</string>
+					<string>\d*[sSuU]?[xX]"[0-9a-fA-F_uUxXzZwWlLhH\-]+"</string>
 					<key>name</key>
 					<string>constant.numeric.quoted.double.string.hex.vhdl</string>
 				</dict>
 				<dict>
 					<key>match</key>
-					<string>[oO]"[0-7_uUxXzZwWlLhH\-]+"</string>
+					<string>\d*[sSuU]?[oO]"[0-7_uUxXzZwWlLhH\-]+"</string>
 					<key>name</key>
 					<string>constant.numeric.quoted.double.string.octal.vhdl</string>
 				</dict>
 				<dict>
 					<key>match</key>
-					<string>[bB]?"[01_uUxXzZwWlLhH\-]+"</string>
+					<string>\d*[sSuU]?[bB]?"[01_uUxXzZwWlLhH\-]+"</string>
 					<key>name</key>
 					<string>constant.numeric.quoted.double.string.binary.vhdl</string>
 				</dict>
