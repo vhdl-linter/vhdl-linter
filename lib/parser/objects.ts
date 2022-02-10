@@ -354,7 +354,7 @@ export abstract class OSignalBase extends OVariableBase {
     const processes = this.getRoot().objectList.filter(object => object instanceof OProcess) as OProcess[];
     // TODO: Redeclaration of Signals
     for (const process of processes) {
-      if (process.isRegisterProcess()) {
+      if (process.registerProcess) {
         for (const write of process.getFlatWrites()) {
           if (write.text.toLowerCase() === this.name.text.toLowerCase()) {
             this.register = true;
@@ -543,30 +543,14 @@ export class OWhenClause extends ObjectBase {
 }
 export class OProcess extends ObjectBase {
   statements: OStatement[] = [];
-  sensitivityList: string;
+  sensitivityList: ORead[] = [];
   label?: string;
   types: OType[] = [];
   procedures: OProcedure[] = [];
   functions: OFunction[] = [];
   variables: OVariable[] = [];
-  private registerProcess: boolean | null = null;
-  isRegisterProcess(): boolean {
-    if (this.registerProcess !== null) {
-      return this.registerProcess;
-    }
-
-    this.registerProcess = false;
-    for (const statement of this.statements) {
-      if (statement instanceof OIf) {
-        for (const clause of statement.clauses) {
-          if (clause.condition.match(/rising_edge|falling_edge/i)) {
-            this.registerProcess = true;
-          }
-        }
-      }
-    }
-    return this.registerProcess;
-  }
+  resetClause?: OIfClause;
+  registerProcess: boolean = false;
   private flatWrites: OWrite[] | null = null;
   getFlatWrites(): OWrite[] {
     if (this.flatWrites !== null) {
@@ -651,20 +635,12 @@ export class OProcess extends ObjectBase {
       return this.resets;
     }
     this.resets = [];
-    if (!this.isRegisterProcess()) {
+    if (!this.registerProcess) {
       return this.resets;
     }
-    for (const statement of this.statements) {
-      if (statement instanceof OIf) {
-        for (const clause of statement.clauses) {
-          if (clause.condition.match(/res/i)) {
-            for (const subStatement of clause.statements) {
-              if (subStatement instanceof OAssignment) {
-                this.resets = this.resets.concat(subStatement.writes.map(write => write.text));
-              }
-            }
-          }
-        }
+    for (const statement of this.resetClause?.statements ?? []) {
+      if (statement instanceof OAssignment) {
+        this.resets.push(...statement.writes.map(write => write.text));
       }
     }
     return this.resets;
@@ -723,7 +699,7 @@ export class OToken extends ODefitionable {
         || object instanceof OArchitecture
         || object instanceof OEntity
         || object instanceof OProcess
-        ) {
+      ) {
         for (const func of object.functions) {
           if (func.name.text.toLowerCase() === text.toLowerCase()) {
             this.definition = func;
@@ -775,7 +751,7 @@ export class OToken extends ODefitionable {
         }
       }
       if (object instanceof OProcess
-      || object instanceof OProcedure) {
+        || object instanceof OProcedure) {
         for (const variable of object.variables) {
           if (variable.name.text.toLowerCase() === text.toLowerCase()) {
             this.definition = variable;

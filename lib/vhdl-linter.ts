@@ -458,7 +458,7 @@ export class VhdlLinter {
         return false;
       }
       for (const process of processes) {
-        if (process.isRegisterProcess()) {
+        if (process.registerProcess) {
           for (const reset of process.getResets()) {
             if (reset.toLowerCase() === signal.name.text.toLowerCase()) {
               return false;
@@ -524,7 +524,7 @@ export class VhdlLinter {
       }
       let resetFound = false;
       for (const process of processes) {
-        if (process.isRegisterProcess()) {
+        if (process.registerProcess) {
           for (const reset of process.getResets()) {
             if (reset.toLowerCase() === signal.name.text.toLowerCase()) {
               resetFound = true;
@@ -536,48 +536,41 @@ export class VhdlLinter {
       if (!resetFound && registerProcess) {
         const code = this.addCodeActionCallback((textDocumentUri: string) => {
           const actions = [];
-          for (const statement of registerProcess.statements) {
-            if (statement instanceof OIf) {
-              for (const clause of statement.clauses) {
-                if (clause.condition.match(/res|rst/i)) {
-                  const change = this.tree.originalText.split('\n')[registerProcess.range.start.line - 1].match(/--\s*vhdl-linter-parameter-next-line/i) === null ?
-                    TextEdit.insert(registerProcess.range.start, `--vhdl-linter-parameter-next-line ${signal.name.text}\n` + ' '.repeat(registerProcess.range.start.character)) :
-                    TextEdit.insert(Position.create(registerProcess.range.start.line - 1, this.tree.originalText.split('\n')[registerProcess.range.start.line - 1].length), ` ${signal.name.text}`);
-                  actions.push(CodeAction.create(
-                    'Ignore reset for ' + signal.name,
-                    {
-                      changes: {
-                        [textDocumentUri]: [change]
-                      }
-                    },
-                    CodeActionKind.QuickFix
-                  ));
-                  let resetValue = null;
-                  if (signal.type.map(read => read.text).join(' ').match(/^std_u?logic_vector|unsigned|signed/i)) {
-                    resetValue = `(others => '0')`;
-                  } else if (signal.type.map(read => read.text).join(' ').match(/^std_u?logic/i)) {
-                    resetValue = `'0'`;
-                  } else if (signal.type.map(read => read.text).join(' ').match(/^integer|natural|positive/i)) {
-                    resetValue = `0`;
-                  }
-                  if (resetValue !== null) {
-                    let positionStart = Position.create(clause.range.start.line, clause.range.start.character);
-                    positionStart.line++;
-                    const indent = positionStart.character + 2;
-                    positionStart.character = 0;
-                    actions.push(CodeAction.create(
-                      'Add reset for ' + signal.name,
-                      {
-                        changes: {
-                          [textDocumentUri]: [TextEdit.insert(positionStart, ' '.repeat(indent) + `${signal.name} <= ${resetValue};\n`)]
-                        }
-                      },
-                      CodeActionKind.QuickFix
-                    ));
-                  }
-                }
+
+          const change = this.tree.originalText.split('\n')[registerProcess.range.start.line - 1].match(/--\s*vhdl-linter-parameter-next-line/i) === null ?
+            TextEdit.insert(registerProcess.range.start, `--vhdl-linter-parameter-next-line ${signal.name.text}\n` + ' '.repeat(registerProcess.range.start.character)) :
+            TextEdit.insert(Position.create(registerProcess.range.start.line - 1, this.tree.originalText.split('\n')[registerProcess.range.start.line - 1].length), ` ${signal.name.text}`);
+          actions.push(CodeAction.create(
+            'Ignore reset for ' + signal.name,
+            {
+              changes: {
+                [textDocumentUri]: [change]
               }
-            }
+            },
+            CodeActionKind.QuickFix
+          ));
+          let resetValue = null;
+          if (signal.type.map(read => read.text).join(' ').match(/^std_u?logic_vector|unsigned|signed/i)) {
+            resetValue = `(others => '0')`;
+          } else if (signal.type.map(read => read.text).join(' ').match(/^std_u?logic/i)) {
+            resetValue = `'0'`;
+          } else if (signal.type.map(read => read.text).join(' ').match(/^integer|natural|positive/i)) {
+            resetValue = `0`;
+          }
+          if (resetValue !== null && typeof registerProcess.resetClause !== 'undefined') {
+            let positionStart = Position.create(registerProcess.resetClause.range.start.line, registerProcess.resetClause.range.start.character);
+            positionStart.line++;
+            const indent = positionStart.character + 2;
+            positionStart.character = 0;
+            actions.push(CodeAction.create(
+              'Add reset for ' + signal.name,
+              {
+                changes: {
+                  [textDocumentUri]: [TextEdit.insert(positionStart, ' '.repeat(indent) + `${signal.name} <= ${resetValue};\n`)]
+                }
+              },
+              CodeActionKind.QuickFix
+            ));
           }
           return actions;
         });
@@ -855,7 +848,7 @@ export class VhdlLinter {
       } else {
         // find all defined components in current scope (architecture might be a generate in another architecture)
         const components: OEntity[] = [];
-        let arch: ObjectBase|OFile = architecture;
+        let arch: ObjectBase | OFile = architecture;
         while (arch instanceof ObjectBase) {
           if (arch instanceof OArchitecture) {
             components.push(...arch.components);
