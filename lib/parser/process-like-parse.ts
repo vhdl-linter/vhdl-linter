@@ -124,10 +124,9 @@ export class ProcessLikeParser extends ParserBase {
     forLoop.variable.name = new OName(forLoop.variable, startI, variableName.length + startI);
     forLoop.variable.name.text = variableName;
     this.expect('in');
-    // forLoop.start = this.getNextWord();
-    forLoop.start = this.advancePast(/\b(?:downto|to)\b/i).trim();
-    // this.expect(['downto', 'to']);
-    forLoop.end = this.advancePast('loop').trim();
+    const rangeI = this.pos.i;
+    const rangeText = this.advancePast(/\bloop\b/i).trim();
+    forLoop.variableRange = this.extractReads(forLoop, rangeText, rangeI);
     forLoop.statements = this.parseStatements(forLoop, ['end']);
     this.expect('end');
     this.expect('loop');

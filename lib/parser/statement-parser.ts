@@ -55,10 +55,12 @@ export class StatementParser extends ParserBase {
 
       const startI = this.pos.i;
       let variable = this.advancePast(/\bin\b/i);
-      let start = this.advancePast(/\b(to|downto)\b/i);
-      let end = this.advancePast(/\bgenerate\b/i);
+
+      const rangeI = this.pos.i;
+      const rangeText = this.advancePast(/\bgenerate\b/i).trim();
+      const variableRange = this.extractReads(this.parent, rangeText, rangeI);
       const subarchitecture = new ArchitectureParser(this.text, this.pos, this.file, (this.parent as OArchitecture), label);
-      const generate: OForGenerate = subarchitecture.parse(true, 'generate', { variable, start, end, startPosI: startI });
+      const generate: OForGenerate = subarchitecture.parse(true, 'generate', { variable, variableRange, startPosI: startI });
       generate.range.start.i = savedI;
       this.reverseWhitespace();
       generate.range.end.i = this.pos.i;

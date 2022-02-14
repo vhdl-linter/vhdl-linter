@@ -307,8 +307,7 @@ export class OForGenerate extends OArchitecture {
   constructor(public parent: OArchitecture,
     startI: number,
     endI: number,
-    public start: string,
-    public end: string,
+    public variableRange: ORead[],
   ) {
     super(parent, startI, endI);
   }
@@ -652,8 +651,7 @@ export class OProcedureInstantiation extends ObjectBase {
 }
 export class OForLoop extends ObjectBase {
   variable: OVariable;
-  start: string;
-  end: string;
+  variableRange: ORead[];
   statements: OStatement[] = [];
 }
 export class OAssignment extends ObjectBase {
