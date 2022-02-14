@@ -8,38 +8,49 @@ export class InstantiationParser extends ParserBase {
     this.debug(`start`);
 
   }
-  parse(nextWord: string, label: string, startI: number): OInstantiation {
+  parse(nextWord: string, label: string|undefined, startI: number, procedure: boolean): OInstantiation {
     const instantiation = new OInstantiation(this.parent, startI, this.getEndOfLineI());
     instantiation.label = label;
-    instantiation.entityInstantiation = false;
-    if (nextWord === 'entity') {
-      instantiation.entityInstantiation = true;
-      nextWord = this.getNextWord({re: /^[\w.]+/});
-      let libraryMatch = nextWord.match(/^(.*)\./i);
-      if (!libraryMatch) {
-        throw new ParserError(`Can not parse entity instantiation`, this.pos.getRangeToEndLine());
+    if (procedure) {
+      instantiation.type = 'procedure';
+      nextWord = this.getNextWord({re: /^[\w.]+/}).toLowerCase();
+    } else {
+      instantiation.type = 'component';
+      if (nextWord === 'entity') {
+        instantiation.type = 'entity';
+        nextWord = this.getNextWord({re: /^[\w.]+/});
+        let libraryMatch = nextWord.match(/^(.*)\./i);
+        if (!libraryMatch) {
+          throw new ParserError(`Can not parse entity instantiation`, this.pos.getRangeToEndLine());
+        }
+        instantiation.library = libraryMatch[1];
+      } else if (nextWord === 'component') {
+        nextWord = this.getNextWord({re: /^[\w.]+/}).toLowerCase();
       }
-      instantiation.library = libraryMatch[1];
-    } else if (nextWord === 'component') {
-      nextWord = this.getNextWord().toLowerCase();
     }
     instantiation.componentName = nextWord.replace(/^.*\./, '');
     let hasPortMap = false;
     let lastI;
     while (this.text[this.pos.i] !== ';') {
       const savedI = this.pos.i;
-      nextWord = this.getNextWord().toLowerCase();
-//       console.log(nextWord, 'nextWord');
-      if (nextWord === 'port') {
-        hasPortMap = true;
-        this.expect('map');
+      //       console.log(nextWord, 'nextWord');
+      if (procedure) {
         this.expect('(');
         instantiation.portMappings = this.parseMapping(savedI, instantiation);
+        hasPortMap = true;
+      } else {
+        nextWord = this.getNextWord().toLowerCase();
+        if (nextWord === 'port') {
+          hasPortMap = true;
+          this.expect('map');
+          this.expect('(');
+          instantiation.portMappings = this.parseMapping(savedI, instantiation);
 
-      } else if (nextWord === 'generic') {
-        this.expect('map');
-        this.expect('(');
-        instantiation.genericMappings = this.parseMapping(savedI, instantiation, true);
+        } else if (nextWord === 'generic') {
+          this.expect('map');
+          this.expect('(');
+          instantiation.genericMappings = this.parseMapping(savedI, instantiation, true);
+        }
       }
       if (lastI === this.pos.i) {
         throw new ParserError(`Parser stuck on line ${this.getLine} in module ${this.constructor.name}`, this.pos.getRangeToEndLine());

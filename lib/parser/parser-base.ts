@@ -1,5 +1,5 @@
 import * as escapeStringRegexp from 'escape-string-regexp';
-import { ParserError, OWrite, ORead, OI, OElementRead, ObjectBase, OMappingName, OMapping, OGenericActual, OGenericType, OIRange, OName, OPort, OGeneric, OEntity, OProcedure } from './objects';
+import { ParserError, OWrite, ORead, OI, OElementRead, ObjectBase, OMappingName, OMapping, OGenericActual, OGenericType, OIRange, OName, OPort, OGeneric, OEntity, OProcedure, OInstantiation, OGenericMap, OPortMap } from './objects';
 import { config } from './config';
 import { tokenizer } from './tokenizer';
 import { TextEdit } from 'vscode-languageserver';
@@ -82,7 +82,11 @@ export class ParserBase {
         }
       } else {
         const next = this.getNextWord({ consume: false }).toLowerCase();
+        let constant: boolean | undefined;
         if (next === 'signal' || next === 'variable' || next === 'constant' || next === 'file') {
+          if (next === 'constant') {
+            constant = true;
+          }
           this.getNextWord();
         }
         port.name = new OName(port, this.pos.i, this.pos.i);
@@ -98,7 +102,7 @@ export class ParserBase {
         if (port instanceof OPort) {
           directionString = this.getNextWord({ consume: false }).toLowerCase();
           if (directionString !== 'in' && directionString !== 'out' && directionString !== 'inout') {
-            port.direction = 'inout';
+            port.direction = constant ? 'in' : 'inout';
             port.directionRange = new OIRange(port, this.pos.i, this.pos.i);
           } else {
             port.direction = directionString;

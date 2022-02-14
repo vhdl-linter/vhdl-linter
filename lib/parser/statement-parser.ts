@@ -1,5 +1,5 @@
 import { ParserBase } from './parser-base';
-import { OI, OEntity, OArchitecture, OProcedureInstantiation, OForGenerate, ParserError, ORead, OIfGenerateClause, OIfGenerate, OProcedure } from './objects';
+import { OI, OEntity, OArchitecture, OForGenerate, ParserError, ORead, OIfGenerateClause, OIfGenerate, OProcedure, OName } from './objects';
 import { ProcessParser } from './process-parser';
 import { AssignmentParser } from './assignment-parser';
 import { InstantiationParser } from './instantiation-parser';
@@ -160,20 +160,14 @@ export class StatementParser extends ParserBase {
       this.getNextWord();
       //        console.log('report');
       this.advancePast(';');
-    } else if (this.test(/^\w+\s*\([^<]*;/) && allowedStatements.includes(StatementTypes.ProcedureInstantiation)) {
-      const procedureInstantiation = new OProcedureInstantiation(this.parent, this.pos.i, this.pos.i);
-      procedureInstantiation.name = this.getNextWord();
-      this.expect('(');
-      const startI = this.pos.i;
-      procedureInstantiation.tokens = this.extractReads(procedureInstantiation, this.advanceBrace(), startI);
-      procedureInstantiation.range.end.i = this.pos.i;
-      this.parent.statements.push(procedureInstantiation);
-      this.expect(';');
+    } else if (this.test(/^[\w.]+\s*\([^<]*;/) && allowedStatements.includes(StatementTypes.ProcedureInstantiation)) {
+      const instantiationParser = new InstantiationParser(this.text, this.pos, this.file, this.parent);
+      (this.parent as OArchitecture).statements.push(instantiationParser.parse(nextWord, label, savedI, true));
     } else if (allowedStatements.includes(StatementTypes.Assignment)) { // TODO  others
       if (label) {
         this.getNextWord();
         const instantiationParser = new InstantiationParser(this.text, this.pos, this.file, this.parent);
-        (this.parent as OArchitecture).statements.push(instantiationParser.parse(nextWord, label, savedI));
+        (this.parent as OArchitecture).statements.push(instantiationParser.parse(nextWord, label, savedI, false));
       } else { // statement;
         const assignmentParser = new AssignmentParser(this.text, this.pos, this.file, this.parent);
         const assignment = assignmentParser.parse();

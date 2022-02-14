@@ -1,4 +1,4 @@
-import { OFile, OIf, OSignalBase, OSignal, OArchitecture, OEntity, OPort, OInstantiation, OWrite, ORead, OFileWithEntity, OFileWithPackages, OFileWithEntityAndArchitecture, ORecord, OPackage, ParserError, OEnum, OGenericActual, OMapping, OPortMap, MagicCommentType, OProcess, OToken, OMappingName, OMap, OMentionable, OGenericMap, OProcedureCall, OGeneric, OProcedureCallPortMap, ObjectBase, OType } from './parser/objects';
+import { OFile, OIf, OSignalBase, OSignal, OArchitecture, OEntity, OPort, OInstantiation, OWrite, ORead, OFileWithEntity, OFileWithPackages, OFileWithEntityAndArchitecture, ORecord, OPackage, ParserError, OEnum, OGenericActual, OMapping, OPortMap, MagicCommentType, OProcess, OToken, OMappingName, OMap, OMentionable, OGenericMap, OProcedureCall, OGeneric, OProcedureCallPortMap, ObjectBase, OType, OProcedure } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 import { findBestMatch } from 'string-similarity';
@@ -184,10 +184,16 @@ export class VhdlLinter {
       }
     }
     for (const instantiation of this.tree.objectList.filter(object => object instanceof OInstantiation && typeof object.definition === 'undefined') as OInstantiation[]) {
-      if (instantiation.entityInstantiation) {
-        instantiation.definition = this.getProjectEntity(instantiation);
-      } else {
-        instantiation.definition = this.getComponentEntity(instantiation);
+      switch (instantiation.type) {
+        case 'component':
+          instantiation.definition = this.getComponentEntity(instantiation);
+          break;
+        case 'entity':
+          instantiation.definition = this.getProjectEntity(instantiation);
+          break;
+        case 'procedure':
+          instantiation.definition = this.getProjectProcedures(instantiation);
+          break;
       }
     }
     if (this.tree instanceof OFileWithEntityAndArchitecture) {
@@ -198,14 +204,26 @@ export class VhdlLinter {
     for (const obj of this.tree.objectList) {
       if (obj instanceof OMapping) {
         if (obj.parent instanceof OGenericMap || obj.parent instanceof OPortMap) {
-          const entity = obj.parent.parent.entityInstantiation
-            ? this.getProjectEntity(obj.parent.parent)
-            : this.getComponentEntity(obj.parent.parent);
-          if (!entity) {
+          if (!(obj.parent.parent instanceof OInstantiation)) {
             continue;
           }
-          const portOrGeneric = obj.parent instanceof OPortMap ? entity.ports.find(port => obj.name.find(name => name.text.toLowerCase() === port.name.text.toLowerCase())) :
-            entity.generics.find(port => obj.name.find(name => name.text.toLowerCase() === port.name.text.toLowerCase()));
+          let entityOrProcedure;
+          switch (obj.parent.parent.type) {
+            case 'component':
+              entityOrProcedure = this.getComponentEntity(obj.parent.parent);
+              break;
+            case 'entity':
+              entityOrProcedure = this.getProjectEntity(obj.parent.parent);
+              break;
+            case 'procedure':
+              entityOrProcedure = this.getProjectProcedures(obj.parent.parent);
+              break;
+          }
+          if (!entityOrProcedure) {
+            continue;
+          }
+          const portOrGeneric = obj.parent instanceof OPortMap ? entityOrProcedure.ports.find(port => obj.name.find(name => name.text.toLowerCase() === port.name.text.toLowerCase())) :
+            (entityOrProcedure instanceof OEntity) ? entityOrProcedure.generics.find(port => obj.name.find(name => name.text.toLowerCase() === port.name.text.toLowerCase())): undefined;
 
           if (!portOrGeneric) {
             continue;
@@ -817,13 +835,26 @@ export class VhdlLinter {
       }
     }
   }
-  getComponentEntity(instantiation: OInstantiation): OEntity | undefined {
-    if (this.tree instanceof OFileWithEntityAndArchitecture) {
-      const entity = this.tree.architecture.components.find(component => component.name.text.toLowerCase() === instantiation.componentName.toLowerCase());
-      entity?.mentions.push(instantiation);
-      return entity;
+  getComponentEntity(instantiation: OInstantiation, architecture?: OArchitecture): OEntity | undefined {
+
+
+    // find all defined components in current scope (architecture might be a generate in another architecture)
+    const components: OEntity[] = [];
+    let arch: ObjectBase | OFile | undefined = architecture;
+    if (!arch) {
+      if (this.tree instanceof OFileWithEntityAndArchitecture) {
+        arch = this.tree.architecture;
+      } else {
+        return undefined;
+      }
     }
-    return undefined;
+    while (arch instanceof ObjectBase) {
+      if (arch instanceof OArchitecture) {
+        components.push(...arch.components);
+      }
+      arch = arch.parent;
+    }
+    return components.find(comp => comp.name.text.toLowerCase() === instantiation.componentName.toLowerCase());
   }
   getProjectEntity(instantiation: OInstantiation | OEntity): OEntity | undefined {
     const name = instantiation instanceof OInstantiation ? instantiation.componentName : instantiation.name.text;
@@ -835,39 +866,42 @@ export class VhdlLinter {
       }
     }
     return projectEntities.find(entity => entity.name.text.toLowerCase() === name.toLowerCase());
-
   }
+  getProjectProcedures(instantiation: OInstantiation) {
+    const name = instantiation.componentName;
+    return this.projectParser.getEntities().flatMap(ent => ent.procedures).concat(
+      ...this.projectParser.getPackages().flatMap(pack => pack.procedures)
+    ).find(proc => proc.name.text.toLowerCase() === name.toLowerCase());
+  }
+
   checkInstantiations(architecture: OArchitecture) {
     if (!architecture) {
       return;
     }
     for (const instantiation of architecture.instantiations) {
-      let entity: OEntity | undefined = undefined;
-      if (instantiation.entityInstantiation) {
-        entity = this.getProjectEntity(instantiation);
-      } else {
-        // find all defined components in current scope (architecture might be a generate in another architecture)
-        const components: OEntity[] = [];
-        let arch: ObjectBase | OFile = architecture;
-        while (arch instanceof ObjectBase) {
-          if (arch instanceof OArchitecture) {
-            components.push(...arch.components);
-          }
-          arch = arch.parent;
-        }
-        entity = components.find(comp => comp.name.text.toLowerCase() === instantiation.componentName.toLowerCase());
+      let entityOrProcedure;
+      switch (instantiation.type) {
+        case 'component':
+          entityOrProcedure = this.getComponentEntity(instantiation, architecture);
+          break;
+        case 'entity':
+          entityOrProcedure = this.getProjectEntity(instantiation);
+          break;
+        case 'procedure':
+          entityOrProcedure = this.getProjectProcedures(instantiation);
+          break;
       }
-      if (!entity) {
+      if (!entityOrProcedure) {
         this.addMessage({
           range: instantiation.range.start.getRangeToEndLine(),
           severity: DiagnosticSeverity.Warning,
-          message: `can not find entity ${instantiation.componentName}`
+          message: `can not find entity/procedure ${instantiation.componentName}`
         });
       } else {
         const foundPorts: OPort[] = [];
         if (instantiation.portMappings) {
           for (const portMapping of instantiation.portMappings.children) {
-            const entityPort = entity.ports.find(port => {
+            const entityPort = entityOrProcedure.ports.find(port => {
               for (const part of portMapping.name) {
                 if (part.text.toLowerCase() === port.name.text.toLowerCase()) {
                   return true;
@@ -876,7 +910,7 @@ export class VhdlLinter {
               return false;
             });
             if (!entityPort) {
-              const bestMatch = findBestMatch(portMapping.name[0].text, entity.ports.map(port => port.name.text));
+              const bestMatch = findBestMatch(portMapping.name[0].text, entityOrProcedure.ports.map(port => port.name.text));
               const code = this.addCodeActionCallback((textDocumentUri: string) => {
                 const actions = [];
                 actions.push(CodeAction.create(
@@ -893,7 +927,7 @@ export class VhdlLinter {
               this.addMessage({
                 range: portMapping.range,
                 severity: DiagnosticSeverity.Error,
-                message: `no port ${portMapping.name.map(name => name.text).join(', ')} on entity ${instantiation.componentName}`,
+                message: `no port ${portMapping.name.map(name => name.text).join(', ')} on entity/procedure ${entityOrProcedure.name.text}`,
                 code
               });
             } else {
@@ -901,7 +935,7 @@ export class VhdlLinter {
             }
           }
         }
-        for (const port of entity.ports) {
+        for (const port of entityOrProcedure.ports) {
           if (port.direction === 'in' && typeof port.defaultValue === 'undefined' && typeof foundPorts.find(portSearch => portSearch === port) === 'undefined') {
             this.addMessage({
               range: instantiation.range,

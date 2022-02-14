@@ -215,12 +215,11 @@ export class OArchitecture extends ObjectBase {
   signals: OSignal[] = [];
   types: OType[] = [];
   functions: OFunction[] = [];
-  procedureInstantiations: OProcedureInstantiation[] = [];
   procedures: OProcedure[] = [];
 
   components: OEntity[] = [];
 
-  statements: (OProcess | OInstantiation | OForGenerate | OIfGenerate | OAssignment | OProcedureInstantiation | OBlock)[] = [];
+  statements: (OProcess | OInstantiation | OForGenerate | OIfGenerate | OAssignment | OBlock)[] = [];
   get processes() {
     return this.statements.filter(statement => statement instanceof OProcess) as readonly OProcess[];
   }
@@ -395,12 +394,12 @@ export class OPortMap extends OMap {
 }
 export class OInstantiation extends ODefitionable {
   label?: string;
-  definition?: OEntity;
+  definition?: OEntity|OProcedure;
   componentName: string;
   portMappings?: OPortMap;
   genericMappings?: OGenericMap;
   library?: string;
-  entityInstantiation: boolean;
+  type: 'entity' | 'component' | 'procedure';
   private flatReads: ORead[] | null = null;
   private flatWrites: OWrite[] | null = null;
   getFlatReads(entity: OEntity | undefined): ORead[] {
@@ -498,7 +497,7 @@ export class OEntity extends ODefitionable {
   procedures: OProcedure[] = [];
   types: OType[] = [];
   mentions: OInstantiation[] = [];
-  statements: (OProcess | OAssignment | OProcedureInstantiation)[] = [];
+  statements: (OProcess | OAssignment)[] = [];
   definition?: OEntity;
 }
 export class OPort extends OSignalBase {
@@ -515,14 +514,10 @@ export class OGenericActual extends OVariableBase {
   reads: ORead[];
 }
 export type OGeneric = OGenericType | OGenericActual;
-export type OStatement = OCase | OAssignment | OIf | OForLoop | OWhileLoop | OProcedureCall;
+export type OStatement = OCase | OAssignment | OIf | OLoop | OProcedureCall;
 export class OIf extends ObjectBase {
   clauses: OIfClause[] = [];
   else?: OElseClause;
-}
-export class OWhileLoop extends ObjectBase {
-  conditionReads: ORead[];
-  statements: OStatement[] = [];
 }
 export class OElseClause extends ObjectBase {
   statements: OStatement[] = [];
@@ -645,14 +640,16 @@ export class OProcess extends ObjectBase {
     return this.resets;
   }
 }
-export class OProcedureInstantiation extends ObjectBase {
-  name: string;
-  tokens: OToken[];
+
+export class OLoop extends ObjectBase {
+  statements: OStatement[] = [];
 }
-export class OForLoop extends ObjectBase {
+export class OForLoop extends OLoop {
   variable: OVariable;
   variableRange: ORead[];
-  statements: OStatement[] = [];
+}
+export class OWhileLoop extends OLoop {
+  conditionReads: ORead[];
 }
 export class OAssignment extends ObjectBase {
   writes: OWrite[] = [];

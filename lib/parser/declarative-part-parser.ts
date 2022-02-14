@@ -142,6 +142,13 @@ export class DeclarativePartParser extends ParserBase {
         const typeName = this.getNextWord();
         type.name = new OName(type, startTypeName, startTypeName + typeName.length + 1);
         type.name.text = typeName;
+        if (this.text[this.pos.i] === ':') {
+          this.pos.i++;
+          this.advanceWhitespace();
+          const startI = this.pos.i;
+          const readName = this.getNextWord();
+          type.reads.push(new ORead(type, startI, startI + readName.length, readName));
+        }
         this.expect('is');
         this.parent.types.push(type);
         this.advanceSemicolon(true);

@@ -1,5 +1,5 @@
 import { AssignmentParser } from './assignment-parser';
-import { ObjectBase, OStatement, OWhileLoop, OForLoop, OVariable, OName, OIf, OIfClause, OElseClause, OCase, OWhenClause, OAssignment, OProcedureCall, OPortMap, OProcedureCallPortMap, OMapping } from './objects';
+import { ObjectBase, OStatement, OWhileLoop, OForLoop, OVariable, OName, OIf, OIfClause, OElseClause, OCase, OWhenClause, OAssignment, OProcedureCall, OPortMap, OProcedureCallPortMap, OMapping, OLoop } from './objects';
 import { ParserBase } from './parser-base';
 
 export class ProcessLikeParser extends ParserBase {
@@ -24,6 +24,17 @@ export class ProcessLikeParser extends ParserBase {
         statements.push(this.parseCase(parent, label));
       } else if (nextWord.toLowerCase() === 'for') {
         statements.push(this.parseFor(parent, label));
+      } else if (nextWord.toLowerCase() === 'loop') {
+        this.expect('loop');
+        const loop = new OLoop(parent, this.pos.i, this.getEndOfLineI());
+        loop.statements = this.parseStatements(loop, ['end']);
+        statements.push(loop);
+        this.expect('end');
+        this.expect('loop');
+        if (label) {
+          this.maybeWord(label);
+        }
+        this.expect(';');
       } else if (nextWord.toLowerCase() === 'report') {
         this.advancePast(';');
       } else if (nextWord.toLowerCase() === 'assert') {

@@ -1,7 +1,7 @@
 import { ParserBase } from './parser-base';
 import { ProcessParser } from './process-parser';
 import { InstantiationParser } from './instantiation-parser';
-import { OArchitecture, ParserError, OForGenerate, OIfGenerateClause, OFile, ORead, OI, OProcedureInstantiation, OVariable, OName, OIfGenerate, OBlock } from './objects';
+import { OArchitecture, ParserError, OForGenerate, OIfGenerateClause, OFile, ORead, OI, OVariable, OName, OIfGenerate, OBlock } from './objects';
 import { AssignmentParser } from './assignment-parser';
 import { DeclarativePartParser } from './declarative-part-parser';
 import { StatementParser, StatementTypes } from './statement-parser';
