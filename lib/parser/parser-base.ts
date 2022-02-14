@@ -417,7 +417,7 @@ export class ParserBase {
   getType(parent: ObjectBase, advanceSemicolon = true) {
     let type = '';
     const startI = this.pos.i;
-    const match = /;/.exec(this.text.substr(this.pos.i));
+    const match = /;|\bis\b/.exec(this.text.substr(this.pos.i));
     if (!match) {
       throw new ParserError(`could not find semicolon`, this.pos.getRangeToEndLine());
     }

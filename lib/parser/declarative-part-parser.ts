@@ -147,7 +147,8 @@ export class DeclarativePartParser extends ParserBase {
           this.advanceWhitespace();
           const startI = this.pos.i;
           const readName = this.getNextWord();
-          type.reads.push(new ORead(type, startI, startI + readName.length, readName));
+          const { typeReads, defaultValueReads } = this.getType(type, false);
+          type.reads.push(...typeReads);
         }
         this.expect('is');
         this.parent.types.push(type);
