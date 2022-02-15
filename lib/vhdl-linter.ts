@@ -192,7 +192,7 @@ export class VhdlLinter {
           instantiation.definition = this.getProjectEntity(instantiation);
           break;
         case 'procedure':
-          instantiation.definition = this.getProjectProcedures(instantiation);
+          instantiation.definition = this.getProjectProcedures(instantiation.componentName);
           break;
       }
     }
@@ -216,7 +216,7 @@ export class VhdlLinter {
               entityOrProcedure = this.getProjectEntity(obj.parent.parent);
               break;
             case 'procedure':
-              entityOrProcedure = this.getProjectProcedures(obj.parent.parent);
+              entityOrProcedure = this.getProjectProcedures(obj.parent.parent.componentName);
               break;
           }
           if (!entityOrProcedure) {
@@ -871,8 +871,7 @@ export class VhdlLinter {
     }
     return projectEntities.find(entity => entity.name.text.toLowerCase() === name.toLowerCase());
   }
-  getProjectProcedures(instantiation: OInstantiation) {
-    const name = instantiation.componentName;
+  getProjectProcedures(name: string) {
     return this.projectParser.getEntities().flatMap(ent => ent.subprograms).concat(
       ...this.projectParser.getPackages().flatMap(pack => pack.subprograms)
     ).find(proc => proc.name.text.toLowerCase() === name.toLowerCase());
@@ -892,7 +891,7 @@ export class VhdlLinter {
           entityOrSubprogram = this.getProjectEntity(instantiation);
           break;
         case 'procedure':
-          entityOrSubprogram = this.getProjectProcedures(instantiation);
+          entityOrSubprogram = this.getProjectProcedures(instantiation.componentName);
           break;
       }
       if (!entityOrSubprogram) {
@@ -961,18 +960,19 @@ export class VhdlLinter {
     }
     for (const obj of architecture.getRoot().objectList) {
       if (obj instanceof OProcedureCall) {
-        let searchObj = obj.parent;
-        while (!(searchObj instanceof OFile)) {
-          if (searchObj instanceof OArchitecture || searchObj instanceof OProcess) {
-            for (const procedureSearch of searchObj.subprograms) {
-              if (procedureSearch.name.text === obj.procedureName.text) {
-                obj.definition = procedureSearch;
-                break;
-              }
-            }
-          }
-          searchObj = searchObj.parent;
-        }
+        obj.definition = this.getProjectProcedures(obj.procedureName.text);
+        // let searchObj = obj.parent;
+        // while (!(searchObj instanceof OFile)) {
+        //   if (searchObj instanceof OArchitecture || searchObj instanceof OProcess) {
+        //     for (const procedureSearch of searchObj.subprograms) {
+        //       if (procedureSearch.name.text.toLowerCase() === obj.procedureName.text.toLowerCase()) {
+        //         obj.definition = procedureSearch;
+        //         break;
+        //       }
+        //     }
+        //   }
+        //   searchObj = searchObj.parent;
+        // }
         if (!obj.definition) {
           this.addMessage({
             range: obj.procedureName.range,
