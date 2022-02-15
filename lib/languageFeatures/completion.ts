@@ -35,7 +35,7 @@ export async function handleCompletion(params: CompletionParams): Promise<Comple
     const match = line.match(/^\s*use\s+/i);
     if (match) {
       for (const pkg of projectParser.getPackages()) {
-        completions.push({ label: pkg.name });
+        completions.push({ label: pkg.name.text });
         pkg.library && completions.push({ label: pkg.library });
       }
     }

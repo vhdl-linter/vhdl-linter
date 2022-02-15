@@ -1,8 +1,9 @@
 import { OProcess, OIf, ObjectBase, OI } from './objects';
-import { ProcessLikeParser } from './process-like-parse';
+import { SequentialStatementParser } from './sequential-statement-parser';
 import { DeclarativePartParser } from './declarative-part-parser';
+import { ParserBase } from './parser-base';
 
-export class ProcessParser extends ProcessLikeParser {
+export class ProcessParser extends ParserBase {
   constructor(text: string, pos: OI, file: string, private parent: ObjectBase) {
     super(text, pos, file);
     this.debug(`start`);
@@ -20,7 +21,7 @@ export class ProcessParser extends ProcessLikeParser {
     this.maybeWord('is');
     new DeclarativePartParser(this.text, this.pos, this.file, process).parse();
     this.expect('begin');
-    process.statements = this.parseStatements(process, ['end']);
+    process.statements = new SequentialStatementParser(this.text, this.pos, this.file).parse(process, ['end']);
     this.expect('end');
     this.expect('process');
     if (label) {

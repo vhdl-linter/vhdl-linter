@@ -29,7 +29,7 @@ import {
 } from 'vscode-languageserver';
 import { VhdlLinter } from './vhdl-linter';
 import { ProjectParser } from './project-parser';
-import { OFile, OArchitecture, ORead, OWrite, OSignal, OFunction, OForLoop, OForGenerate, OInstantiation, OMapping, OEntity, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackages, ORecord, ObjectBase, OType, OMappingName, ORecordChild, OEnum, OProcess, OStatement, OIf, OIfClause, OMap, OUseStatement, OState, OToken, OName, OMentionable, ODefitionable } from './parser/objects';
+import { OFile, OArchitecture, ORead, OWrite, OSignal, OForLoop, OForGenerate, OInstantiation, OAssociation, OEntity, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackages, ORecord, ObjectBase, OType, OAssociationFormal, ORecordChild, OEnum, OProcess, OStatement, OIf, OIfClause, OAssociationList, OUseStatement, OState, OToken, OName, IMentionable, IDefitionable, implementsIDefinitionable } from './parser/objects';
 import { promises as fs } from 'fs';
 import { tmpdir, type } from 'os';
 import { posix, sep } from 'path';
@@ -267,7 +267,7 @@ const findDefinition = async (params: IFindDefinitionParams) => {
   if (candidate instanceof OName) {
     candidate = candidate.parent;
   }
-  if (candidate instanceof ODefitionable && candidate.definition) {
+  if (implementsIDefinitionable(candidate) && candidate.definition) {
     return {
       // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
       range: candidate.definition.range,

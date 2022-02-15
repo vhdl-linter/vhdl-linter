@@ -107,6 +107,7 @@ export class OIRange implements Range {
 }
 
 export class ObjectBase {
+  name: OName;
   public range: OIRange;
   constructor(public parent: ObjectBase | OFile, startI: number, endI: number) {
     this.range = new OIRange(this, startI, endI);
@@ -129,12 +130,17 @@ export class ObjectBase {
     return parent;
   }
 }
-export class OMentionable extends ObjectBase {
-  name: OName;
-  mentions: OToken[] = [];
+export interface IMentionable {
+  mentions: OToken[];
 }
-export class ODefitionable extends ObjectBase {
-  public definition?: OSignalBase | OGenericType | OType | OState | OFunction | OEntity;
+export function implementsIMentionable(obj: unknown): obj is IMentionable {
+  return (obj as IMentionable).mentions !== undefined;
+}
+export interface IDefitionable {
+  definition?: ObjectBase;
+}
+export function implementsIDefinitionable(obj: unknown): obj is IDefitionable {
+  return (obj as IDefitionable).definition !== undefined;
 }
 export class OFile {
   constructor(public text: string, public file: string, public originalText: string) { }
@@ -172,24 +178,23 @@ export class OFileWithEntityAndArchitecture extends OFileWithEntity {
   architecture: OArchitecture;
 }
 export class OFileWithPackages extends OFile {
-  packages: OPackage[];
+  packages: OPackage[] = [];
 }
 export class OPackage extends ObjectBase {
-  name: string;
-  functions: OFunction[] = [];
-  procedures: OProcedure[] = [];
+  subprograms: OSubprogram[] = [];
   constants: OSignal[] = [];
   types: OType[] = [];
+  genericRange?: OIRange;
+  generics: OGeneric[] = [];
   parent: OFile;
   library?: string;
 }
 
 export class OPackageBody extends ObjectBase {
-  name: string;
-  functions: OFunction[] = [];
-  procedures: OProcedure[] = [];
+  subprograms: OSubprogram[] = [];
   constants: OSignal[] = [];
   types: OType[] = [];
+  generics: OGeneric[] = [];
   parent: OFile;
   library?: string;
 }
@@ -198,28 +203,23 @@ export class OUseStatement extends ObjectBase {
   begin: number;
   end: number;
 }
-export class OFunction extends OMentionable {
-  // name: string;
-  parameter: string;
-}
-export class OProcedure extends OFunction {
+export class OSubprogram extends ObjectBase implements IMentionable {
+  mentions: OToken[] = [];
   variables: OVariable[] = [];
   statements: OStatement[] = [];
   ports: OPort[] = [];
   types: OType[] = [];
-  procedures: OProcedure[] = [];
-  functions: OFunction[] = [];
+  subprograms: OSubprogram[] = [];
+  return: ORead[] = [];
 }
 
 export class OArchitecture extends ObjectBase {
   signals: OSignal[] = [];
   types: OType[] = [];
-  functions: OFunction[] = [];
-  procedures: OProcedure[] = [];
-
+  subprograms: OSubprogram[] = [];
   components: OEntity[] = [];
-
   statements: (OProcess | OInstantiation | OForGenerate | OIfGenerate | OAssignment | OBlock)[] = [];
+
   get processes() {
     return this.statements.filter(statement => statement instanceof OProcess) as readonly OProcess[];
   }
@@ -242,20 +242,18 @@ export class OArchitecture extends ObjectBase {
   get assignments() {
     return this.statements.filter(statement => statement instanceof OAssignment) as readonly OAssignment[];
   }
-  // processes: OProcess[] = [];
-  // instantiations: OInstantiation[] = [];
-  // generates: OArchitecture[] = [];
-  // assignments: OAssignment[] = [];
-
 }
 export class OBlock extends OArchitecture {
   label: string;
 
 }
-export class OType extends OMentionable {
-  name: OName;
-  units?: string[];
+export class OType extends ObjectBase implements IMentionable {
+  types: OType[] = [];
+  subprograms: OSubprogram[] = [];
+  mentions: OToken[] = [];
+  units?: string[] = [];
   reads: ORead[] = [];
+  signals: OSignal[] = [];
   findRead(read: ORead) {
     if (this.name.text.toLowerCase() === read.text.toLowerCase()) {
       return this;
@@ -286,19 +284,19 @@ export class OType extends OMentionable {
 }
 export class OSubType extends OType {
   superType: ORead;
-  reads: ORead[];
+  reads: ORead[] = [];
 }
 export class OEnum extends OType {
   states: OState[] = [];
 }
 export class ORecord extends OType {
-  children: ORecordChild[];
+  children: ORecordChild[] = [];
 }
 export class ORecordChild extends OType {
   public parent: ORecord;
 }
-export class OState extends OMentionable {
-  name: OName;
+export class OState extends ObjectBase implements IMentionable {
+  mentions: OToken[] = [];
   public parent: OEnum;
 }
 export class OForGenerate extends OArchitecture {
@@ -316,8 +314,8 @@ export class OIfGenerate extends ObjectBase {
   elseGenerate: OElseGenerateClause;
 }
 export class OIfGenerateClause extends OArchitecture {
-  conditions: string[];
-  conditionReads: ORead[];
+  conditions: string[] = [];
+  conditionReads: ORead[] = [];
   public parent: OIfGenerate;
 }
 export class OElseGenerateClause extends OArchitecture {
@@ -332,15 +330,15 @@ export class OName extends ObjectBase {
     return this.text;
   }
 }
-export abstract class OVariableBase extends OMentionable {
-  type: ORead[];
-  name: OName;
-  defaultValue?: ORead[];
+export abstract class OVariableBase extends ObjectBase implements IMentionable {
+  mentions: OToken[] = [];
+  type: ORead[] = [];
+  defaultValue?: ORead[] = [];
 }
 export abstract class OSignalBase extends OVariableBase {
   private register: boolean | null = null;
   private registerProcess: OProcess | null;
-  constructor(public parent: OArchitecture | OEntity | OPackage | OProcess | OForLoop | OProcedure, startI: number, endI: number) {
+  constructor(public parent: OArchitecture | OEntity | OPackage | OProcess | OForLoop | OSubprogram | OType, startI: number, endI: number) {
     super(parent, startI, endI);
   }
   isRegister(): boolean {
@@ -371,33 +369,33 @@ export abstract class OSignalBase extends OVariableBase {
   }
 }
 export class OVariable extends OVariableBase {
-  type: ORead[];
+  type: ORead[] = [];
   constant: boolean;
 
 }
 export class OSignal extends OSignalBase {
   constant: boolean;
 }
-export class OMap extends ObjectBase {
-  public children: OMapping[] = [];
+export class OAssociationList extends ObjectBase {
+  public children: OAssociation[] = [];
 
 }
-export class OGenericMap extends OMap {
+export class OGenericMap extends OAssociationList {
   constructor(public parent: OInstantiation, startI: number, endI: number) {
     super(parent, startI, endI);
   }
 }
-export class OPortMap extends OMap {
+export class OPortMap extends OAssociationList {
   constructor(public parent: OInstantiation, startI: number, endI: number) {
     super(parent, startI, endI);
   }
 }
-export class OInstantiation extends ODefitionable {
+export class OInstantiation extends ObjectBase implements IDefitionable {
   label?: string;
-  definition?: OEntity|OProcedure;
+  definition?: OEntity|OSubprogram;
   componentName: string;
-  portMappings?: OPortMap;
-  genericMappings?: OGenericMap;
+  portMap?: OPortMap;
+  genericMap?: OGenericMap;
   library?: string;
   type: 'entity' | 'component' | 'procedure';
   private flatReads: ORead[] | null = null;
@@ -409,11 +407,11 @@ export class OInstantiation extends ODefitionable {
       return this.flatReads;
     }
     this.flatReads = [];
-    if (this.portMappings) {
-      for (const portMapping of this.portMappings.children) {
+    if (this.portMap) {
+      for (const portAssociation of this.portMap.children) {
         if (entity) {
           const entityPort = entity.ports.find(port => {
-            for (const part of portMapping.name) {
+            for (const part of portAssociation.formalPart) {
               if (part.text.toLowerCase() === port.name.text.toLowerCase()) {
                 return true;
               }
@@ -421,18 +419,18 @@ export class OInstantiation extends ODefitionable {
             return false;
           });
           if (entityPort && (entityPort.direction === 'in' || entityPort.direction === 'inout')) {
-            this.flatReads.push(...portMapping.mappingIfInput);
+            this.flatReads.push(...portAssociation.actualIfInput);
           } else if (entityPort && entityPort.direction === 'out') {
-            this.flatReads.push(...portMapping.mappingIfOutput[0]);
+            this.flatReads.push(...portAssociation.actualIfOutput[0]);
           }
         } else {
-          this.flatReads.push(...portMapping.mappingIfInput);
+          this.flatReads.push(...portAssociation.actualIfInput);
         }
       }
     }
-    if (this.genericMappings) {
-      for (const portMapping of this.genericMappings.children) {
-        this.flatReads.push(...portMapping.mappingIfInput);
+    if (this.genericMap) {
+      for (const association of this.genericMap.children) {
+        this.flatReads.push(...association.actualIfInput);
       }
     }
     return this.flatReads;
@@ -443,11 +441,11 @@ export class OInstantiation extends ODefitionable {
       return this.flatWrites;
     }
     this.flatWrites = [];
-    if (this.portMappings) {
-      for (const portMapping of this.portMappings.children) {
+    if (this.portMap) {
+      for (const association of this.portMap.children) {
         if (entity) {
           const entityPort = entity.ports.find(port => {
-            for (const part of portMapping.name) {
+            for (const part of association.formalPart) {
               if (part.text.toLowerCase() === port.name.text.toLowerCase()) {
                 return true;
               }
@@ -455,46 +453,45 @@ export class OInstantiation extends ODefitionable {
             return false;
           });
           if (entityPort && (entityPort.direction === 'out' || entityPort.direction === 'inout')) {
-            this.flatWrites.push(...portMapping.mappingIfOutput[1]);
+            this.flatWrites.push(...association.actualIfOutput[1]);
           }
         } else {
-          this.flatWrites.push(...portMapping.mappingIfInput);
+          this.flatWrites.push(...association.actualIfInput);
         }
       }
     }
     return this.flatWrites;
   }
 }
-export class OProcedureCallPortMap extends OMap {
+export class OProcedureCallPortMap extends OAssociationList {
   constructor(public parent: OProcedureCall, startI: number, endI: number) {
     super(parent, startI, endI);
   }
 }
-export class OProcedureCall extends ODefitionable {
+export class OProcedureCall extends ObjectBase implements IDefitionable {
   procedureName: OName;
-  definition?: OProcedure;
+  definition?: OSubprogram;
   portMap?: OProcedureCallPortMap;
 }
-export class OMapping extends ODefitionable {
-  constructor(public parent: OMap, startI: number, endI: number) {
+export class OAssociation extends ObjectBase implements IDefitionable {
+  constructor(public parent: OAssociationList, startI: number, endI: number) {
     super(parent, startI, endI);
   }
-  name: OMappingName[];
-  mappingIfInput: ORead[];
-  mappingIfOutput: [ORead[], OWrite[]];
+  definition?: ObjectBase;
+  formalPart: OAssociationFormal[] = [];
+  actualIfInput: ORead[] = [];
+  actualIfOutput: [ORead[], OWrite[]] = [[], []];
 }
-export class OEntity extends ODefitionable {
+export class OEntity extends ObjectBase implements IDefitionable {
   constructor(public parent: OFileWithEntity | OArchitecture, startI: number, endI: number, public library?: string) {
     super(parent, startI, endI);
   }
-  name: OName;
   portRange?: OIRange;
   genericRange?: OIRange;
   ports: OPort[] = [];
   generics: OGeneric[] = [];
   signals: OSignal[] = [];
-  functions: OFunction[] = [];
-  procedures: OProcedure[] = [];
+  subprograms: OSubprogram[] = [];
   types: OType[] = [];
   mentions: OInstantiation[] = [];
   statements: (OProcess | OAssignment)[] = [];
@@ -504,16 +501,11 @@ export class OPort extends OSignalBase {
   direction: 'in' | 'out' | 'inout';
   directionRange: OIRange;
 }
-export class OGenericType extends OMentionable {
-  name: OName;
+export class OGeneric extends OVariableBase {
+  type: ORead[] = [];
+  defaultValue?: ORead[] = [];
+  reads: ORead[] = [];
 }
-export class OGenericActual extends OVariableBase {
-  name: OName;
-  type: ORead[];
-  defaultValue?: ORead[];
-  reads: ORead[];
-}
-export type OGeneric = OGenericType | OGenericActual;
 export type OStatement = OCase | OAssignment | OIf | OLoop | OProcedureCall;
 export class OIf extends ObjectBase {
   clauses: OIfClause[] = [];
@@ -524,15 +516,15 @@ export class OElseClause extends ObjectBase {
 }
 export class OIfClause extends ObjectBase {
   condition: string;
-  conditionReads: ORead[];
+  conditionReads: ORead[] = [];
   statements: OStatement[] = [];
 }
 export class OCase extends ObjectBase {
-  variable: ORead[];
+  variable: ORead[] = [];
   whenClauses: OWhenClause[] = [];
 }
 export class OWhenClause extends ObjectBase {
-  condition: ORead[];
+  condition: ORead[] = [];
   statements: OStatement[] = [];
 }
 export class OProcess extends ObjectBase {
@@ -540,8 +532,7 @@ export class OProcess extends ObjectBase {
   sensitivityList: ORead[] = [];
   label?: string;
   types: OType[] = [];
-  procedures: OProcedure[] = [];
-  functions: OFunction[] = [];
+  subprograms: OSubprogram[] = [];
   variables: OVariable[] = [];
   resetClause?: OIfClause;
   registerProcess: boolean = false;
@@ -646,18 +637,20 @@ export class OLoop extends ObjectBase {
 }
 export class OForLoop extends OLoop {
   variable: OVariable;
-  variableRange: ORead[];
+  variableRange: ORead[] = [];
 }
 export class OWhileLoop extends OLoop {
-  conditionReads: ORead[];
+  conditionReads: ORead[] = [];
 }
 export class OAssignment extends ObjectBase {
   writes: OWrite[] = [];
   reads: ORead[] = [];
 }
 
-export class OToken extends ODefitionable {
-  public scope?: OArchitecture | OProcess | OEntity | OForLoop | OProcedure | OPackage;
+export class OToken extends ObjectBase implements IDefitionable {
+  definition?: ObjectBase;
+
+  public scope?: OArchitecture | OProcess | OEntity | OForLoop | OSubprogram | OPackage;
   constructor(public parent: ObjectBase, startI: number, endI: number, public text: string) {
     super(parent, startI, endI);
     let object: (OFile | ObjectBase) = this;
@@ -690,25 +683,16 @@ export class OToken extends ODefitionable {
       }
       if (object instanceof OPackage
         || object instanceof OPackageBody
-        || object instanceof OProcedure
+        || object instanceof OSubprogram
         || object instanceof OArchitecture
         || object instanceof OEntity
         || object instanceof OProcess
       ) {
-        for (const func of object.functions) {
-          if (func.name.text.toLowerCase() === text.toLowerCase()) {
-            this.definition = func;
+        for (const subprogram of object.subprograms) {
+          if (subprogram.name.text.toLowerCase() === text.toLowerCase()) {
+            this.definition = subprogram;
             this.scope = object;
-            func.mentions.push(this);
-
-            break findDefinition;
-          }
-        }
-        for (const proc of object.procedures) {
-          if (proc.name.text.toLowerCase() === text.toLowerCase()) {
-            this.definition = proc;
-            this.scope = object;
-            proc.mentions.push(this);
+            subprogram.mentions.push(this);
 
             break findDefinition;
           }
@@ -746,7 +730,7 @@ export class OToken extends ODefitionable {
         }
       }
       if (object instanceof OProcess
-        || object instanceof OProcedure) {
+        || object instanceof OSubprogram) {
         for (const variable of object.variables) {
           if (variable.name.text.toLowerCase() === text.toLowerCase()) {
             this.definition = variable;
@@ -757,7 +741,7 @@ export class OToken extends ODefitionable {
           }
         }
       }
-      if (object instanceof OProcedure
+      if (object instanceof OSubprogram
         || object instanceof OEntity) {
         for (const port of object.ports) {
           if (port.name.text.toLowerCase() === text.toLowerCase()) {
@@ -805,20 +789,11 @@ export class OToken extends ODefitionable {
             break findDefinition;
           }
         }
-        for (const func of object.entity.functions) {
-          if (func.name.text.toLowerCase() === text.toLowerCase()) {
-            this.definition = func;
+        for (const subprogram of object.entity.subprograms) {
+          if (subprogram.name.text.toLowerCase() === text.toLowerCase()) {
+            this.definition = subprogram;
             this.scope = object.entity;
-            func.mentions.push(this);
-
-            break findDefinition;
-          }
-        }
-        for (const proc of object.entity.procedures) {
-          if (proc.name.text.toLowerCase() === text.toLowerCase()) {
-            this.definition = proc;
-            this.scope = object.entity;
-            proc.mentions.push(this);
+            subprogram.mentions.push(this);
 
             break findDefinition;
           }
@@ -859,13 +834,11 @@ export class OElementRead extends ORead {
     super(parent, startI, endI, text);
   }
 }
-export class OMappingName extends ODefitionable {
-  constructor(public parent: OMapping, startI: number, endI: number, public text: string) {
+export class OAssociationFormal extends ObjectBase implements IDefitionable {
+  definition?: ObjectBase;
+  constructor(public parent: OAssociation, startI: number, endI: number, public text: string) {
     super(parent, startI, endI);
   }
-
-
-
 }
 export class ParserError extends Error {
   constructor(message: string, public range: OIRange, public solution?: { message: string, edits: TextEdit[] }) {

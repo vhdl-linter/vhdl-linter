@@ -1,9 +1,8 @@
 import { ParserBase } from './parser-base';
 import { DeclarativePartParser } from './declarative-part-parser';
-import { OPort, OGeneric, OEntity, ParserError, OFileWithEntity, OGenericActual, OGenericType, OI, OIRange, OName, OArchitecture } from './objects';
-import { runInThisContext } from 'vm';
-import { AssignmentParser } from './assignment-parser';
-import { StatementParser, StatementTypes } from './statement-parser';
+import {OEntity, ParserError, OFileWithEntity, OI, OIRange, OName, OArchitecture } from './objects';
+import { ConcurrentStatementParser, ConcurrentStatementTypes } from './concurrent-statement-parser';
+import { InterfaceListParser } from './interface-list-parser';
 
 export class EntityParser extends ParserBase {
   public entity: OEntity;
@@ -38,12 +37,14 @@ export class EntityParser extends ParserBase {
       const savedI = this.pos.i;
       if (nextWord === 'port') {
         this.getNextWord();
-        this.parsePortsAndGenerics(false, this.entity);
+        const interfaceListParser = new InterfaceListParser(this.text, this.pos, this.file, this.entity);
+        interfaceListParser.parse(false);
         this.entity.portRange = new OIRange(this.entity, savedI, this.pos.i);
         this.expect(';');
       } else if (nextWord === 'generic') {
         this.getNextWord();
-        this.parsePortsAndGenerics(true, this.entity);
+        const interfaceListParser = new InterfaceListParser(this.text, this.pos, this.file, this.entity);
+        interfaceListParser.parse(true);
         this.entity.genericRange = new OIRange(this.entity, savedI, this.pos.i);
         this.expect(';');
       } else if (nextWord === 'end') {
@@ -61,10 +62,10 @@ export class EntityParser extends ParserBase {
         this.getNextWord();
         let nextWord = this.getNextWord({consume: false}).toLowerCase();
         while (nextWord !== 'end') {
-          new StatementParser(this.text, this.pos, this.file, this.entity).parse([
-            StatementTypes.Assert,
-            StatementTypes.ProcedureInstantiation,
-            StatementTypes.Process
+          new ConcurrentStatementParser(this.text, this.pos, this.file, this.entity).parse([
+            ConcurrentStatementTypes.Assert,
+            ConcurrentStatementTypes.ProcedureInstantiation,
+            ConcurrentStatementTypes.Process
           ]);
           nextWord = this.getNextWord({ consume: false }).toLowerCase();
         }

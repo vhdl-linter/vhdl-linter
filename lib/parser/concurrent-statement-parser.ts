@@ -1,10 +1,10 @@
 import { ParserBase } from './parser-base';
-import { OI, OEntity, OArchitecture, OForGenerate, ParserError, ORead, OIfGenerateClause, OIfGenerate, OProcedure, OName } from './objects';
+import { OI, OEntity, OArchitecture, OForGenerate, ParserError, ORead, OIfGenerateClause, OIfGenerate, OSubprogram, OName } from './objects';
 import { ProcessParser } from './process-parser';
 import { AssignmentParser } from './assignment-parser';
 import { InstantiationParser } from './instantiation-parser';
 import { ArchitectureParser } from './architecture-parser';
-export enum StatementTypes {
+export enum ConcurrentStatementTypes {
   Process,
   ProcedureInstantiation,
   Generate,
@@ -12,12 +12,12 @@ export enum StatementTypes {
   Assert,
   Block
 }
-export class StatementParser extends ParserBase {
+export class ConcurrentStatementParser extends ParserBase {
   constructor(text: string, pos: OI, file: string, private parent: OArchitecture | OEntity) {
     super(text, pos, file);
     this.debug('start');
   }
-  parse(allowedStatements: StatementTypes[], previousArchitecture?: OArchitecture) {
+  parse(allowedStatements: ConcurrentStatementTypes[], previousArchitecture?: OArchitecture) {
     let nextWord = this.getNextWord({ consume: false }).toLowerCase();
 
     let label;
@@ -31,11 +31,11 @@ export class StatementParser extends ParserBase {
       nextWord = this.getNextWord({ consume: false }).toLowerCase();
     }
 
-    if (nextWord === 'process' && allowedStatements.includes(StatementTypes.Process)) {
+    if (nextWord === 'process' && allowedStatements.includes(ConcurrentStatementTypes.Process)) {
       this.getNextWord();
       const processParser = new ProcessParser(this.text, this.pos, this.file, this.parent);
       this.parent.statements.push(processParser.parse(savedI, label));
-    } else if (nextWord === 'block' && allowedStatements.includes(StatementTypes.Block)) {
+    } else if (nextWord === 'block' && allowedStatements.includes(ConcurrentStatementTypes.Block)) {
       this.getNextWord();
       this.debug('parse block');
 
@@ -49,7 +49,7 @@ export class StatementParser extends ParserBase {
       this.advanceWhitespace();
       //        console.log(generate, generate.constructor.name);
       (this.parent as OArchitecture).statements.push(block);
-    } else if (nextWord === 'for' && allowedStatements.includes(StatementTypes.Generate)) {
+    } else if (nextWord === 'for' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {
       this.getNextWord();
       this.debug('parse for generate');
 
@@ -67,7 +67,7 @@ export class StatementParser extends ParserBase {
       this.advanceWhitespace();
       //        console.log(generate, generate.constructor.name);
       (this.parent as OArchitecture).statements.push(generate);
-    } else if (nextWord === 'if' && allowedStatements.includes(StatementTypes.Generate)) {
+    } else if (nextWord === 'if' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {
       const ifGenerate = new OIfGenerate(this.parent, this.pos.i, this.pos.i);
       this.getNextWord();
       let conditionI = this.pos.i;
@@ -89,7 +89,7 @@ export class StatementParser extends ParserBase {
       ifGenerate.range.end.i = this.pos.i;
       ifGenerateClause.range.end.i = this.pos.i;
       this.advanceWhitespace();
-    } else if (nextWord === 'elsif' && allowedStatements.includes(StatementTypes.Generate)) {
+    } else if (nextWord === 'elsif' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {
       if (!(this.parent instanceof OIfGenerateClause)) {
         throw new ParserError('elsif generate without if generate', this.pos.getRangeToEndLine());
       }
@@ -114,7 +114,7 @@ export class StatementParser extends ParserBase {
       }
       this.parent.parent.ifGenerates.push(ifGenerateObject);
       return true;
-    } else if (nextWord === 'else' && allowedStatements.includes(StatementTypes.Generate)) {
+    } else if (nextWord === 'else' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {
       if (!(this.parent instanceof OIfGenerateClause)) {
         throw new ParserError('elsif generate without if generate', this.pos.getRangeToEndLine());
       }
@@ -141,7 +141,7 @@ export class StatementParser extends ParserBase {
       // }
       // this.debug('parse else generate ' + this.name);
       // this.advancePast(/\bgenerate\b/i);
-    } else if (nextWord === 'with' && allowedStatements.includes(StatementTypes.Assignment)) {
+    } else if (nextWord === 'with' && allowedStatements.includes(ConcurrentStatementTypes.Assignment)) {
       this.getNextWord();
       const beforeI = this.pos.i;
       const readText = this.getNextWord();
@@ -156,14 +156,14 @@ export class StatementParser extends ParserBase {
       const read = new ORead(assignment, beforeI, afterI, readText);
       assignment.reads.push(read);
       this.parent.statements.push(assignment);
-    } else if (nextWord === 'assert' && allowedStatements.includes(StatementTypes.Assert)) {
+    } else if (nextWord === 'assert' && allowedStatements.includes(ConcurrentStatementTypes.Assert)) {
       this.getNextWord();
       //        console.log('report');
       this.advancePast(';');
-    } else if (this.test(/^[\w.]+\s*\([^<]*;/) && allowedStatements.includes(StatementTypes.ProcedureInstantiation)) {
+    } else if (this.test(/^[\w.]+\s*\([^<]*;/) && allowedStatements.includes(ConcurrentStatementTypes.ProcedureInstantiation)) {
       const instantiationParser = new InstantiationParser(this.text, this.pos, this.file, this.parent);
       (this.parent as OArchitecture).statements.push(instantiationParser.parse(nextWord, label, savedI, true));
-    } else if (allowedStatements.includes(StatementTypes.Assignment)) { // TODO  others
+    } else if (allowedStatements.includes(ConcurrentStatementTypes.Assignment)) { // TODO  others
       if (label) {
         this.getNextWord();
         const instantiationParser = new InstantiationParser(this.text, this.pos, this.file, this.parent);

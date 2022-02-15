@@ -7,9 +7,9 @@ import {
   ServerOptions,
   TransportKind
 } from 'vscode-languageclient';
-import { copy, CopyTypes } from './vhdl-entity-converter';
-import { VhdlLinter, IAddSignalCommandArguments } from './vhdl-linter';
-import { ProjectParser } from './project-parser';
+// import { copy, CopyTypes } from './vhdl-entity-converter';
+// import { VhdlLinter, IAddSignalCommandArguments } from './vhdl-linter';
+// import { ProjectParser } from './project-parser';
 
 let client: LanguageClient;
 
@@ -56,7 +56,7 @@ export function activate(context: ExtensionContext) {
 
   // Start the client. This will also launch the server
   let disposable = client.start();
-  context.subscriptions.push(commands.registerCommand('vhdl-linter:add-signal', async (args: IAddSignalCommandArguments) => {
+  context.subscriptions.push(commands.registerCommand('vhdl-linter:add-signal', async (args: any) => {
     const editor = window.activeTextEditor;
     if (!editor) {
       return;
@@ -75,27 +75,27 @@ export function activate(context: ExtensionContext) {
     });
 
   }));
-  context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-as-instance', () => copy(CopyTypes.Instance)));
-  context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-as-sysverilog', () => copy(CopyTypes.Sysverilog)));
-  context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-as-signals', () => copy(CopyTypes.Signals)));
+  context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-as-instance', () => console.log()));
+  context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-as-sysverilog', () => console.log()));
+  context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-as-signals', () => console.log()));
   context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-tree', () => {
     const editor = window.activeTextEditor;
     if (!editor) {
       return;
     }
-    const vhdlLinter = new VhdlLinter(editor.document.uri.path, editor.document.getText(), new ProjectParser([]));
-    if (vhdlLinter.tree) {
-      env.clipboard.writeText(vhdlLinter.tree.getJSON());
-      window.showInformationMessage(`VHDL file as JSON copied to clipboard`);
+    // const vhdlLinter = new VhdlLinter(editor.document.uri.path, editor.document.getText(), new ProjectParser([]));
+    // if (vhdlLinter.tree) {
+    //   env.clipboard.writeText(vhdlLinter.tree.getJSON());
+    //   window.showInformationMessage(`VHDL file as JSON copied to clipboard`);
 
-    }
+    // }
   }));
   context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-file-listing', async () => {
     const editor = window.activeTextEditor;
     if (!editor) {
       return;
     }
-    const vhdlLinter = new VhdlLinter(editor.document.uri.path, editor.document.getText(), new ProjectParser([]));
+    // const vhdlLinter = new VhdlLinter(editor.document.uri.path, editor.document.getText(), new ProjectParser([]));
     const result = await client.sendRequest('vhdl-linter/listing', { textDocument: { uri: editor.document.uri.toString() } });
     console.log('bb', result);
     env.clipboard.writeText(result as string);

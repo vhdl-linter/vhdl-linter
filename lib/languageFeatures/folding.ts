@@ -1,6 +1,6 @@
 import { connection, documents, initialization, linters} from '../language-server';
 import { FoldingRangeParams, FoldingRange } from 'vscode-languageserver';
-import { OIfClause, OProcess, OInstantiation, OMap, OEntity, OFileWithEntity, OElseClause, OWhenClause, OCase, OIfGenerateClause, OForGenerate, OProcedure } from '../parser/objects';
+import { OIfClause, OProcess, OInstantiation, OAssociationList, OEntity, OFileWithEntity, OElseClause, OWhenClause, OCase, OIfGenerateClause, OForGenerate, OSubprogram } from '../parser/objects';
 import { readFile } from 'fs';
 export async function foldingHandler (params: FoldingRangeParams): Promise<FoldingRange[]> {
   await initialization;
@@ -11,7 +11,7 @@ export async function foldingHandler (params: FoldingRangeParams): Promise<Foldi
   const result: FoldingRange[] = [];
   for (const obj of linter.tree.objectList) {
     if (obj instanceof OProcess || obj instanceof OIfClause || obj instanceof OInstantiation || obj instanceof OIfGenerateClause || obj instanceof OForGenerate ||
-      obj instanceof OMap || obj instanceof OEntity || obj instanceof OElseClause || obj instanceof OCase || obj instanceof OWhenClause || obj instanceof OProcedure ||
+      obj instanceof OAssociationList || obj instanceof OEntity || obj instanceof OElseClause || obj instanceof OCase || obj instanceof OWhenClause || obj instanceof OSubprogram ||
       obj instanceof OCase) {
       result.push(FoldingRange.create(obj.range.start.line, obj.range.end.line));
     }

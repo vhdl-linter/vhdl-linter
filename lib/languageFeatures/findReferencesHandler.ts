@@ -1,6 +1,6 @@
 import { ReferenceParams, Location, TextDocumentPositionParams, RenameParams, ResponseError, ErrorCodes, TextDocumentIdentifier, Position, WorkspaceEdit, TextEdit } from 'vscode-languageserver';
 import { initialization, linters, lintersValid } from '../language-server';
-import { OToken, OSignalBase, OName, OState, OPort, OGenericActual, OGenericType, OMappingName, OMentionable, ObjectBase, OFile } from '../parser/objects';
+import { OToken, OName, ObjectBase, implementsIMentionable } from '../parser/objects';
 
 export async function findReferences(params: { textDocument: TextDocumentIdentifier, position: Position }) {
   await initialization;
@@ -25,7 +25,7 @@ export async function findReferences(params: { textDocument: TextDocumentIdentif
   if (candidate instanceof OToken && candidate.definition) {
     candidate = candidate.definition;
   }
-  if (candidate instanceof OMentionable) {
+  if (implementsIMentionable(candidate)) {
     return ([candidate] as ObjectBase[]).concat(candidate.mentions ?? []);
   }
   return [];
@@ -57,7 +57,7 @@ export async function prepareRenameHandler(params: TextDocumentPositionParams) {
 }
 export async function renameHandler(params: RenameParams) {
   const references = (await findReferences(params)).map(reference => {
-    if (reference instanceof OMentionable) {
+    if (implementsIMentionable(reference)) {
       return reference.name;
     }
     return reference;

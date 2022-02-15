@@ -27,7 +27,7 @@ function parseArchitecture(architecture: OArchitecture, linter: VhdlLinter): Doc
     range: process.range,
     selectionRange: process.range,
     children: process.statements.map(statement => parseStatements(statement)).flat()
-      .concat(process.procedures.map(procedure => ({
+      .concat(process.subprograms.map(procedure => ({
         name: procedure.name.text,
         detail: 'procedure',
         kind: SymbolKind.Method,
@@ -93,7 +93,7 @@ export async function handleOnDocumentSymbol(params: DocumentSymbolParams): Prom
 
   if (linter.tree instanceof OFileWithPackages) {
     returnValue.push(...linter.tree.packages.map(pkg => pkg.types).flat().map(type => DocumentSymbol.create(type.name.text, undefined, SymbolKind.Enum, type.range, type.range)));
-    returnValue.push(...linter.tree.packages.map(pkg => pkg.functions).flat().map(func => DocumentSymbol.create(func.name.text, undefined, SymbolKind.Function, func.range, func.range)));
+    returnValue.push(...linter.tree.packages.map(pkg => pkg.subprograms).flat().map(subprogram => DocumentSymbol.create(subprogram.name.text, undefined, SymbolKind.Function, subprogram.range, subprogram.range)));
     returnValue.push(...linter.tree.packages.map(pkg => pkg.constants).flat().map(constants => DocumentSymbol.create(constants.name.text, undefined, SymbolKind.Constant, constants.range, constants.range)));
   }
   if (linter.tree instanceof OFileWithEntityAndArchitecture) {

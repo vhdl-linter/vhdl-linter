@@ -1,5 +1,5 @@
 import * as escapeStringRegexp from 'escape-string-regexp';
-import { ParserError, OWrite, ORead, OI, OElementRead, ObjectBase, OMappingName, OMapping, OGenericActual, OGenericType, OIRange, OName, OPort, OGeneric, OEntity, OProcedure, OInstantiation, OGenericMap, OPortMap } from './objects';
+import { ParserError, OWrite, ORead, OI, OElementRead, ObjectBase, OAssociationFormal, OAssociation, OIRange, OName, OPort, OEntity, OSubprogram, OPackage, OGeneric } from './objects';
 import { config } from './config';
 import { tokenizer } from './tokenizer';
 import { TextEdit } from 'vscode-languageserver';
@@ -39,100 +39,7 @@ export class ParserBase {
     // target = filter(object);
     //     console.log(`${this.constructor.name}: ${JSON.stringify(target, null, 2)} in line: ${this.getLine()}, (${this.file})`);
   }
-  parsePortsAndGenerics(generics: false, entity: OEntity|OProcedure): void;
-  parsePortsAndGenerics(generics: true, entity: OEntity): void;
-  parsePortsAndGenerics(generics: false | true, entity: OEntity|OProcedure) {
-    this.debug('start ports');
-    this.expect('(');
-    const ports: any[] = [];
-    if (generics) {
-      if (entity instanceof OProcedure) {
-        throw new Error('Blub');
-      }
-      entity.generics = ports;
-    } else {
-      entity.ports = ports;
-    }
-    // let multiPorts: string[] = [];
-    while (this.pos.i < this.text.length) {
-      this.advanceWhitespace();
-      let port = generics ?
-        new OGenericActual(entity, this.pos.i, this.getEndOfLineI()) :
-        new OPort(entity, this.pos.i, this.getEndOfLineI());
-
-      if (this.text[this.pos.i] === ')') {
-        this.pos.i++;
-        this.advanceWhitespace();
-        break;
-      }
-      if (this.getNextWord({ consume: false }).toLowerCase() === 'type') {
-        this.getNextWord();
-        port = Object.setPrototypeOf(port, OGenericType.prototype);
-        port.name = new OName(port, this.pos.i, this.pos.i);
-        port.name.text = this.getNextWord();
-        port.name.range.end.i = port.name.range.start.i + port.name.text.length;
-        if (generics) {
-          ports.push(port);
-        } else {
-          ports.push(port as any);
-        }
-        if (this.text[this.pos.i] === ';') {
-          this.pos.i++;
-          this.advanceWhitespace();
-        }
-      } else {
-        const next = this.getNextWord({ consume: false }).toLowerCase();
-        let constant: boolean | undefined;
-        if (next === 'signal' || next === 'variable' || next === 'constant' || next === 'file') {
-          if (next === 'constant') {
-            constant = true;
-          }
-          this.getNextWord();
-        }
-        port.name = new OName(port, this.pos.i, this.pos.i);
-        port.name.text = this.getNextWord();
-        port.name.range.end.i = port.name.range.start.i + port.name.text.length;
-        if (this.text[this.pos.i] === ',') {
-          this.expect(',');
-          // multiPorts.push(port.name);
-          continue;
-        }
-        this.expect(':');
-        let directionString;
-        if (port instanceof OPort) {
-          directionString = this.getNextWord({ consume: false }).toLowerCase();
-          if (directionString !== 'in' && directionString !== 'out' && directionString !== 'inout') {
-            port.direction = constant ? 'in' : 'inout';
-            port.directionRange = new OIRange(port, this.pos.i, this.pos.i);
-          } else {
-            port.direction = directionString;
-            port.directionRange = new OIRange(port, this.pos.i, this.pos.i + directionString.length);
-            this.getNextWord(); // consume direction
-          }
-        }
-        const iBeforeType = this.pos.i;
-        const { type, defaultValue, endI } = this.getTypeDefintion(port);
-        port.range.end.i = endI;
-        // port.type = type;
-        port.type = this.extractReads(port, type, iBeforeType);
-
-        port.defaultValue = defaultValue;
-        if (generics) {
-          ports.push(port);
-        } else {
-          ports.push(port as any);
-        }
-        // for (const multiPortName of multiPorts) {
-        //   const multiPort = new OPort(this.parent, -1);
-        //   Object.assign(port, multiPort);
-        //   multiPort.name = multiPortName;
-        //   ports.push(multiPort);
-        // }
-        // multiPorts = [];
-      }
-    }
-  }
-  getTypeDefintion(parent: OGenericActual | OPort) {
+  getTypeDefintion(parent: OGeneric | OPort) {
     let type = '';
     let braceLevel = 0;
     while (this.text[this.pos.i].match(/[^);:]/) || braceLevel > 0) {
@@ -257,6 +164,7 @@ export class ParserBase {
     let text = '';
     let braceLevel = 0;
     let quote = false;
+    const savedI = this.pos;
     while (this.text[this.pos.i]) {
       if (this.text[this.pos.i] === '"' && this.text[this.pos.i - 1] !== '\\') {
         quote = !quote;
@@ -274,7 +182,7 @@ export class ParserBase {
       text += this.text[this.pos.i];
       this.pos.i++;
     }
-    throw new ParserError(`could not find closing brace`, new OI(this.pos.parent, this.pos.i - text.length).getRangeToEndLine());
+    throw new ParserError(`could not find closing brace`, savedI.getRangeToEndLine());
   }
   advanceSemicolon(braceAware: boolean = false, {consume} = {consume: true}) {
     if (braceAware) {
@@ -282,10 +190,11 @@ export class ParserBase {
       let text = '';
       let braceLevel = 0;
       let quote = false;
+      const savedI = this.pos;
       while (this.text[this.pos.i + offset]) {
         const match = /[\\();]|(?<!")(?:"")*"(?!")/.exec(this.text.substring(this.pos.i + offset));
         if (!match) {
-          throw new ParserError(`could not find closing brace`, new OI(this.pos.parent, this.pos.i + offset - text.length).getRangeToEndLine());
+          throw new ParserError(`could not find closing brace`, savedI.getRangeToEndLine());
         }
         if (match[0][0] === '"' && this.text[this.pos.i + offset + match.index - 1] !== '\\') {
           quote = !quote;
@@ -309,7 +218,7 @@ export class ParserBase {
         text += this.text.substring(this.pos.i + offset, this.pos.i + offset + match.index + match[0].length - 1);
         offset += match.index + match[0].length;
       }
-      throw new ParserError(`could not find closing brace`, new OI(this.pos.parent, this.pos.i + offset - text.length).getRangeToEndLine());
+      throw new ParserError(`could not find closing brace`, savedI.getRangeToEndLine());
     }
     const match = /;/.exec(this.text.substring(this.pos.i));
     if (!match) {
@@ -446,17 +355,17 @@ export class ParserBase {
       defaultValueReads
     };
   }
-  extractReads(parent: ObjectBase | OMapping, text: string, i: number, asMappingName: boolean = false): ORead[] {
+  extractReads(parent: ObjectBase | OAssociation, text: string, i: number, asMappingName: boolean = false): ORead[] {
     return tokenizer.tokenize(text, parent.getRoot().libraries).filter(token => token.type === 'VARIABLE' || token.type === 'FUNCTION' || token.type === 'RECORD_ELEMENT' || token.type === 'FUNCTION_RECORD_ELEMENT').map(token => {
       let read;
       if (token.type === 'RECORD_ELEMENT' || token.type === 'FUNCTION_RECORD_ELEMENT') {
         read = new OElementRead(parent, i + token.offset, i + token.offset + token.value.length, token.value);
       } else {
-        if (asMappingName && !(parent instanceof OMapping)) {
+        if (asMappingName && !(parent instanceof OAssociation)) {
           throw new Error();
         }
         read = asMappingName
-        ? new OMappingName((parent as OMapping), i + token.offset, i + token.offset + token.value.length, token.value)
+        ? new OAssociationFormal((parent as OAssociation), i + token.offset, i + token.offset + token.value.length, token.value)
         : new ORead(parent, i + token.offset, i + token.offset + token.value.length, token.value);
       }
       return read;

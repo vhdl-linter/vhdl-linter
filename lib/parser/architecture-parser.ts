@@ -4,7 +4,7 @@ import { InstantiationParser } from './instantiation-parser';
 import { OArchitecture, ParserError, OForGenerate, OIfGenerateClause, OFile, ORead, OI, OVariable, OName, OIfGenerate, OBlock } from './objects';
 import { AssignmentParser } from './assignment-parser';
 import { DeclarativePartParser } from './declarative-part-parser';
-import { StatementParser, StatementTypes } from './statement-parser';
+import { ConcurrentStatementParser, ConcurrentStatementTypes } from './concurrent-statement-parser';
 
 export class ArchitectureParser extends ParserBase {
   name: string;
@@ -73,14 +73,14 @@ export class ArchitectureParser extends ParserBase {
         this.expect(';');
         break;
       }
-      const statementParser = new StatementParser(this.text, this.pos, this.file, this.architecture);
+      const statementParser = new ConcurrentStatementParser(this.text, this.pos, this.file, this.architecture);
       if (statementParser.parse([
-        StatementTypes.Assert,
-        StatementTypes.Assignment,
-        StatementTypes.Generate,
-        StatementTypes.Block,
-        StatementTypes.ProcedureInstantiation,
-        StatementTypes.Process
+        ConcurrentStatementTypes.Assert,
+        ConcurrentStatementTypes.Assignment,
+        ConcurrentStatementTypes.Generate,
+        ConcurrentStatementTypes.Block,
+        ConcurrentStatementTypes.ProcedureInstantiation,
+        ConcurrentStatementTypes.Process
       ], this.architecture)) {
         break;
       }

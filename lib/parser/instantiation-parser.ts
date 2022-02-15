@@ -1,5 +1,5 @@
 import {ParserBase} from './parser-base';
-import {OInstantiation, OMapping, ParserError, ObjectBase, OMappingName, OI, OMap, OIRange, OGenericMap, OPortMap} from './objects';
+import {OInstantiation, OAssociation, ParserError, ObjectBase, OAssociationFormal, OI, OAssociationList, OIRange, OGenericMap, OPortMap} from './objects';
 import { TextEdit } from 'vscode-languageserver';
 
 export class InstantiationParser extends ParserBase {
@@ -36,7 +36,7 @@ export class InstantiationParser extends ParserBase {
       //       console.log(nextWord, 'nextWord');
       if (procedure) {
         this.expect('(');
-        instantiation.portMappings = this.parseMapping(savedI, instantiation);
+        instantiation.portMap = this.parseMapping(savedI, instantiation);
         hasPortMap = true;
       } else {
         nextWord = this.getNextWord().toLowerCase();
@@ -44,12 +44,12 @@ export class InstantiationParser extends ParserBase {
           hasPortMap = true;
           this.expect('map');
           this.expect('(');
-          instantiation.portMappings = this.parseMapping(savedI, instantiation);
+          instantiation.portMap = this.parseMapping(savedI, instantiation);
 
         } else if (nextWord === 'generic') {
           this.expect('map');
           this.expect('(');
-          instantiation.genericMappings = this.parseMapping(savedI, instantiation, true);
+          instantiation.genericMap = this.parseMapping(savedI, instantiation, true);
         }
       }
       if (lastI === this.pos.i) {
@@ -69,11 +69,11 @@ export class InstantiationParser extends ParserBase {
     const map = genericMapping ? new OGenericMap(instantiation, startI, this.pos.i) : new OPortMap(instantiation, startI, this.pos.i);
 
     while (this.pos.i < this.text.length) {
-      const mapping = new OMapping(map, this.pos.i, this.getEndOfLineI());
+      const mapping = new OAssociation(map, this.pos.i, this.getEndOfLineI());
       const mappingNameI = this.pos.i;
-      mapping.name = this.extractReads(mapping, this.getNextWord({re: /^[^=]+/}), mappingNameI, true) as OMappingName[];
-      for (const namePart of mapping.name) {
-        Object.setPrototypeOf(namePart, OMappingName.prototype);
+      mapping.formalPart = this.extractReads(mapping, this.getNextWord({re: /^[^=]+/}), mappingNameI, true) as OAssociationFormal[];
+      for (const namePart of mapping.formalPart) {
+        Object.setPrototypeOf(namePart, OAssociationFormal.prototype);
       }
       this.expect('=>');
       let mappingStringStartI = this.pos.i;
@@ -90,13 +90,13 @@ export class InstantiationParser extends ParserBase {
       }
       // mapping.name = mapping.name.trim();
       if (mappingString.trim().toLowerCase() !== 'open') {
-        mapping.mappingIfInput = this.extractReads(mapping, mappingString, mappingStringStartI);
+        mapping.actualIfInput = this.extractReads(mapping, mappingString, mappingStringStartI);
         if (genericMapping === false) {
-          mapping.mappingIfOutput = this.extractReadsOrWrite(mapping, mappingString, mappingStringStartI);
+          mapping.actualIfOutput = this.extractReadsOrWrite(mapping, mappingString, mappingStringStartI);
         }
       } else {
-        mapping.mappingIfInput = [];
-        mapping.mappingIfOutput = [[], []];
+        mapping.actualIfInput = [];
+        mapping.actualIfOutput = [[], []];
       }
       map.children.push(mapping);
       if (this.text[this.pos.i] === ',') {

@@ -1,9 +1,13 @@
 import { AssignmentParser } from './assignment-parser';
-import { ObjectBase, OStatement, OWhileLoop, OForLoop, OVariable, OName, OIf, OIfClause, OElseClause, OCase, OWhenClause, OAssignment, OProcedureCall, OPortMap, OProcedureCallPortMap, OMapping, OLoop } from './objects';
+import { ObjectBase, OStatement, OWhileLoop, OForLoop, OVariable, OName, OIf, OIfClause, OElseClause, OCase, OWhenClause, OAssignment, OProcedureCall, OPortMap, OProcedureCallPortMap, OAssociation, OLoop, OI } from './objects';
 import { ParserBase } from './parser-base';
 
-export class ProcessLikeParser extends ParserBase {
-  parseStatements(parent: ObjectBase, exitConditions: string[]): OStatement[] {
+export class SequentialStatementParser extends ParserBase {
+  constructor(text: string, pos: OI, file: string) {
+    super(text, pos, file);
+    this.debug('start');
+  }
+  parse(parent: ObjectBase, exitConditions: string[]): OStatement[] {
     const statements = [];
     while (this.pos.i < this.text.length) {
       let nextWord = this.getNextWord({ consume: false });
@@ -27,7 +31,7 @@ export class ProcessLikeParser extends ParserBase {
       } else if (nextWord.toLowerCase() === 'loop') {
         this.expect('loop');
         const loop = new OLoop(parent, this.pos.i, this.getEndOfLineI());
-        loop.statements = this.parseStatements(loop, ['end']);
+        loop.statements = this.parse(loop, ['end']);
         statements.push(loop);
         this.expect('end');
         this.expect('loop');
@@ -46,6 +50,8 @@ export class ProcessLikeParser extends ParserBase {
       } else if (nextWord.toLowerCase() === 'return') {
         this.advancePast(';');
       } else if (nextWord.toLowerCase() === 'null') {
+        this.advancePast(';');
+      } else if (nextWord.toLowerCase() === 'next') {
         this.advancePast(';');
       } else if (nextWord.toLowerCase() === 'while') {
         statements.push(this.parseWhile(parent, label));
@@ -83,9 +89,9 @@ export class ProcessLikeParser extends ParserBase {
         if (match[1].trim() === '') {
           continue;
         }
-        const map = new OMapping(procedureCall.portMap, startI + (match.index ?? 0), startI + (match.index ?? 0) + match[1].length);
-        map.mappingIfInput = this.extractReads(map, match[1], startI + (match.index ?? 0));
-        map.mappingIfOutput = this.extractReadsOrWrite(map, match[1], startI + (match.index ?? 0));
+        const map = new OAssociation(procedureCall.portMap, startI + (match.index ?? 0), startI + (match.index ?? 0) + match[1].length);
+        map.actualIfInput = this.extractReads(map, match[1], startI + (match.index ?? 0));
+        map.actualIfOutput = this.extractReadsOrWrite(map, match[1], startI + (match.index ?? 0));
         procedureCall.portMap.children.push(map);
       }
     }
@@ -117,7 +123,7 @@ export class ProcessLikeParser extends ParserBase {
     const position = this.pos.i;
     const condition = this.advancePast('loop');
     whileLoop.conditionReads = this.extractReads(whileLoop, condition, position);
-    whileLoop.statements = this.parseStatements(whileLoop, ['end']);
+    whileLoop.statements = this.parse(whileLoop, ['end']);
     this.expect('end');
     this.expect('loop');
     if (label) {
@@ -138,7 +144,7 @@ export class ProcessLikeParser extends ParserBase {
     const rangeI = this.pos.i;
     const rangeText = this.advancePast(/\bloop\b/i).trim();
     forLoop.variableRange = this.extractReads(forLoop, rangeText, rangeI);
-    forLoop.statements = this.parseStatements(forLoop, ['end']);
+    forLoop.statements = this.parse(forLoop, ['end']);
     this.expect('end');
     this.expect('loop');
     if (label) {
@@ -156,7 +162,7 @@ export class ProcessLikeParser extends ParserBase {
     const position = this.pos.i;
     clause.condition = this.advancePast('then');
     clause.conditionReads = this.extractReads(clause, clause.condition, position);
-    clause.statements = this.parseStatements(clause, ['else', 'elsif', 'end']);
+    clause.statements = this.parse(clause, ['else', 'elsif', 'end']);
     clause.range.setEndBacktraceWhitespace(this.pos.i);
     if_.clauses.push(clause);
     let nextWord = this.getNextWord({ consume: false }).toLowerCase();
@@ -167,7 +173,7 @@ export class ProcessLikeParser extends ParserBase {
       const position = this.pos.i;
       clause.condition = this.advancePast('then');
       clause.conditionReads = this.extractReads(clause, clause.condition, position);
-      clause.statements = this.parseStatements(clause, ['else', 'elsif', 'end']);
+      clause.statements = this.parse(clause, ['else', 'elsif', 'end']);
       clause.range.setEndBacktraceWhitespace(this.pos.i);
       if_.clauses.push(clause);
       nextWord = this.getNextWord({ consume: false }).toLowerCase();
@@ -175,7 +181,7 @@ export class ProcessLikeParser extends ParserBase {
     if (nextWord === 'else') {
       this.expect('else');
       if_.else = new OElseClause(if_, this.pos.i, this.pos.i);
-      if_.else.statements = this.parseStatements(if_, ['end']);
+      if_.else.statements = this.parse(if_, ['end']);
       if_.else.range.setEndBacktraceWhitespace(this.pos.i);
 
     }
@@ -201,7 +207,7 @@ export class ProcessLikeParser extends ParserBase {
       const whenClause = new OWhenClause(case_, this.pos.i, this.getEndOfLineI());
       const pos = this.pos.i;
       whenClause.condition = this.extractReads(whenClause, this.advancePast('=>'), pos);
-      whenClause.statements = this.parseStatements(whenClause, ['when', 'end']);
+      whenClause.statements = this.parse(whenClause, ['when', 'end']);
       whenClause.range.setEndBacktraceWhitespace(this.pos.i);
       case_.whenClauses.push(whenClause);
       nextWord = this.getNextWord().toLowerCase();

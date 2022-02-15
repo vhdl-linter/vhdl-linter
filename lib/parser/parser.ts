@@ -121,8 +121,28 @@ export class Parser extends ParserBase {
     }
     return file;
   }
+// a
   removeComments() {
-    this.text = this.text.replace(/--.*/g, match => ' '.repeat(match.length));
+    this.text = this.text.split('\n').map(s => {
+      let quotes = false;
+      let result = '';
+      for (let i = 0; i < s.length - 1; i++) {
+        // "" is valid string (value '')
+        // " asf""das" is valid string (value ' asf"das')
+        if ((!quotes && s[i] === '"') || (s[i] === '"' && s[i+1] !== '"')) {
+          quotes = !quotes;
+        }
+        if (!quotes && s[i] === '-' && s[i+1] === '-') {
+          result += ' '.repeat(s.length - i);
+          return result;
+        }
+        result += s[i];
+      }
+      if (s.length > 0) {
+        result += s[s.length - 1];
+      }
+      return result;
+    }).join('\n');
   }
 
   getUseStatement(file: OFile) {
