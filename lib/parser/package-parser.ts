@@ -1,7 +1,7 @@
-import { ParserBase } from './parser-base';
-import { OFile, OIRange, OName, OPackage, OPackageBody } from './objects';
 import { DeclarativePartParser } from './declarative-part-parser';
 import { InterfaceListParser } from './interface-list-parser';
+import { OFile, OIRange, OName, OPackage, OPackageBody } from './objects';
+import { ParserBase } from './parser-base';
 
 export class PackageParser extends ParserBase {
   parse(parent: OFile): OPackage|OPackageBody {

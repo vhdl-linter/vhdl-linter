@@ -1,10 +1,7 @@
-import { ParserBase } from './parser-base';
-import { ProcessParser } from './process-parser';
-import { InstantiationParser } from './instantiation-parser';
-import { OArchitecture, ParserError, OForGenerate, OIfGenerateClause, OFile, ORead, OI, OVariable, OName, OIfGenerate, OBlock } from './objects';
-import { AssignmentParser } from './assignment-parser';
-import { DeclarativePartParser } from './declarative-part-parser';
 import { ConcurrentStatementParser, ConcurrentStatementTypes } from './concurrent-statement-parser';
+import { DeclarativePartParser } from './declarative-part-parser';
+import { OArchitecture, OBlock, OFile, OForGenerate, OI, OIfGenerate, OIfGenerateClause, OName, ORead, OVariable, ParserError } from './objects';
+import { ParserBase } from './parser-base';
 
 export class ArchitectureParser extends ParserBase {
   name: string;

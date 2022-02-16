@@ -1,8 +1,8 @@
-import { ObjectBase, OI, OName, OSubprogram } from './objects';
-import { SequentialStatementParser } from './sequential-statement-parser';
 import { DeclarativePartParser } from './declarative-part-parser';
 import { InterfaceListParser } from './interface-list-parser';
+import { ObjectBase, OI, OName, OSubprogram } from './objects';
 import { ParserBase } from './parser-base';
+import { SequentialStatementParser } from './sequential-statement-parser';
 
 export class SubprogramParser extends ParserBase {
   constructor(text: string, pos: OI, file: string, private parent: ObjectBase) {

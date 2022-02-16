@@ -1,6 +1,5 @@
-import { type } from "os";
 import { DeclarativePartParser } from "./declarative-part-parser";
-import { OI, OEntity, OSubprogram, OPackage, OEnum, OName, ORecord, ORecordChild, OState, OType, ParserError, OArchitecture, OPackageBody, OProcess } from "./objects";
+import { OArchitecture, OEntity, OEnum, OI, OName, OPackage, OPackageBody, OProcess, ORecord, ORecordChild, OState, OSubprogram, OType, ParserError } from "./objects";
 import { ParserBase } from "./parser-base";
 
 

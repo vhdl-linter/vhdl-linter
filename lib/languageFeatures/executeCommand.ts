@@ -1,5 +1,5 @@
 import { ExecuteCommandParams, TextEdit } from 'vscode-languageserver';
-import { initialization, linters, documents, connection } from '../language-server';
+import { connection, documents, initialization, linters } from '../language-server';
 
 export async function handleExecuteCommand(params: ExecuteCommandParams) {
   await initialization;

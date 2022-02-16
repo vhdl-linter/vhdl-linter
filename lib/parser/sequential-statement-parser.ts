@@ -1,5 +1,5 @@
 import { AssignmentParser } from './assignment-parser';
-import { ObjectBase, OStatement, OWhileLoop, OForLoop, OVariable, OName, OIf, OIfClause, OElseClause, OCase, OWhenClause, OAssignment, OProcedureCall, OPortMap, OProcedureCallPortMap, OAssociation, OLoop, OI } from './objects';
+import { OAssignment, OAssociation, ObjectBase, OCase, OElseClause, OForLoop, OI, OIf, OIfClause, OLoop, OName, OProcedureCall, OProcedureCallPortMap, OStatement, OVariable, OWhenClause, OWhileLoop } from './objects';
 import { ParserBase } from './parser-base';
 
 export class SequentialStatementParser extends ParserBase {

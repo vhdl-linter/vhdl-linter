@@ -1,8 +1,8 @@
-import { ParserBase } from './parser-base';
-import { DeclarativePartParser } from './declarative-part-parser';
-import {OEntity, ParserError, OFileWithEntity, OI, OIRange, OName, OArchitecture } from './objects';
 import { ConcurrentStatementParser, ConcurrentStatementTypes } from './concurrent-statement-parser';
+import { DeclarativePartParser } from './declarative-part-parser';
 import { InterfaceListParser } from './interface-list-parser';
+import { OArchitecture, OEntity, OFileWithEntity, OI, OIRange, OName, ParserError } from './objects';
+import { ParserBase } from './parser-base';
 
 export class EntityParser extends ParserBase {
   public entity: OEntity;

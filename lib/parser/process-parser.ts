@@ -1,7 +1,7 @@
-import { OProcess, OIf, ObjectBase, OI } from './objects';
-import { SequentialStatementParser } from './sequential-statement-parser';
 import { DeclarativePartParser } from './declarative-part-parser';
+import { ObjectBase, OI, OIf, OProcess } from './objects';
 import { ParserBase } from './parser-base';
+import { SequentialStatementParser } from './sequential-statement-parser';
 
 export class ProcessParser extends ParserBase {
   constructor(text: string, pos: OI, file: string, private parent: ObjectBase) {

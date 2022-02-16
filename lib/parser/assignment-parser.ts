@@ -1,5 +1,5 @@
-import {ParserBase} from './parser-base';
-import {OAssignment, ParserError, ObjectBase, OI} from './objects';
+import { OAssignment, ObjectBase, OI, ParserError } from './objects';
+import { ParserBase } from './parser-base';
 
 export class AssignmentParser extends ParserBase {
   constructor(text: string, pos: OI, file: string, private parent: ObjectBase) {

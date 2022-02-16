@@ -1,15 +1,14 @@
-import * as path from 'path';
-import { workspace, ExtensionContext, commands, window, env, Position } from 'vscode';
-
+import { commands, env, ExtensionContext, Position, window, workspace } from 'vscode';
 import {
   LanguageClient,
   LanguageClientOptions,
   ServerOptions,
   TransportKind
 } from 'vscode-languageclient';
-import { copy, CopyTypes } from './vhdl-entity-converter';
-import { VhdlLinter, IAddSignalCommandArguments } from './vhdl-linter';
 import { ProjectParser } from './project-parser';
+import { copy, CopyTypes } from './vhdl-entity-converter';
+import { IAddSignalCommandArguments, VhdlLinter } from './vhdl-linter';
+
 
 let client: LanguageClient;
 
@@ -95,7 +94,6 @@ export function activate(context: ExtensionContext) {
     if (!editor) {
       return;
     }
-    const vhdlLinter = new VhdlLinter(editor.document.uri.path, editor.document.getText(), new ProjectParser([]));
     const result = await client.sendRequest('vhdl-linter/listing', { textDocument: { uri: editor.document.uri.toString() } });
     console.log('bb', result);
     env.clipboard.writeText(result as string);

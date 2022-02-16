@@ -1,51 +1,20 @@
 import {
-  createConnection,
-  SymbolKind,
-  TextDocuments,
-  TextDocument,
-  Diagnostic,
-  DiagnosticSeverity,
-  ProposedFeatures,
-  InitializeParams,
-  CompletionItem,
-  CodeAction,
-  CompletionItemKind,
-  CompletionParams,
-  WorkspaceEdit,
-  TextEdit,
-  Location,
-  DocumentSymbol,
-  Range,
-  Position,
-  Hover,
-  DocumentFormattingParams,
-  ReferenceParams,
-  FoldingRange,
-  FoldingRangeParams,
-  CodeActionKind,
-  CancellationToken,
-  ErrorCodes,
-  PrepareRenameRequest, SymbolInformation, DidChangeConfigurationNotification, IPCMessageReader, IPCMessageWriter
+  CodeAction, createConnection, DidChangeConfigurationNotification, ErrorCodes, Hover, InitializeParams, IPCMessageReader, IPCMessageWriter, Position, ProposedFeatures, TextDocument, TextDocuments
 } from 'vscode-languageserver';
-import { VhdlLinter } from './vhdl-linter';
-import { ProjectParser } from './project-parser';
-import { OFile, OArchitecture, ORead, OWrite, OSignal, OForLoop, OForGenerate, OInstantiation, OAssociation, OEntity, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackages, ORecord, ObjectBase, OType, OAssociationFormal, ORecordChild, OEnum, OProcess, OStatement, OIf, OIfClause, OAssociationList, OUseStatement, OState, OToken, OName, IMentionable, IDefitionable, implementsIDefinitionable } from './parser/objects';
-import { promises as fs } from 'fs';
-import { tmpdir, type } from 'os';
-import { posix, sep } from 'path';
-import { exec } from 'child_process';
-import { promisify } from 'util';
-import { foldingHandler } from './languageFeatures/folding';
-import { handleOnDocumentSymbol } from './languageFeatures/documentSymbol';
-import { documentHighlightHandler } from './languageFeatures/documentHightlightHandler';
-import { findReferencesHandler, prepareRenameHandler, renameHandler } from './languageFeatures/findReferencesHandler';
-import { handleOnWorkspaceSymbol } from './languageFeatures/workspaceSymbols';
-import { handleCompletion } from './languageFeatures/completion';
-import { handleReferences } from './languageFeatures/references';
-import { handleCodeLens } from './languageFeatures/codeLens';
-import { handleDocumentFormatting } from './languageFeatures/documentFormatting';
-import { handleExecuteCommand } from './languageFeatures/executeCommand';
 import { URI } from 'vscode-uri';
+import { handleCodeLens } from './languageFeatures/codeLens';
+import { handleCompletion } from './languageFeatures/completion';
+import { handleDocumentFormatting } from './languageFeatures/documentFormatting';
+import { documentHighlightHandler } from './languageFeatures/documentHightlightHandler';
+import { handleOnDocumentSymbol } from './languageFeatures/documentSymbol';
+import { handleExecuteCommand } from './languageFeatures/executeCommand';
+import { findReferencesHandler, prepareRenameHandler, renameHandler } from './languageFeatures/findReferencesHandler';
+import { foldingHandler } from './languageFeatures/folding';
+import { handleReferences } from './languageFeatures/references';
+import { handleOnWorkspaceSymbol } from './languageFeatures/workspaceSymbols';
+import { implementsIDefinitionable, OFile, OFileWithEntity, OFileWithEntityAndArchitecture, OInstantiation, OName } from './parser/objects';
+import { ProjectParser } from './project-parser';
+import { VhdlLinter } from './vhdl-linter';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.

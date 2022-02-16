@@ -1,5 +1,4 @@
-import { Range, Position, TextEdit } from 'vscode-languageserver';
-import { ParserBase } from './parser-base';
+import { Position, Range, TextEdit } from 'vscode-languageserver';
 
 export class OI implements Position {
   private i_: number;
@@ -181,29 +180,31 @@ export class OFileWithPackages extends OFile {
   packages: OPackage[] = [];
 }
 export class OPackage extends ObjectBase {
+  parent: OFile;
   subprograms: OSubprogram[] = [];
   constants: OSignal[] = [];
   types: OType[] = [];
   genericRange?: OIRange;
   generics: OGeneric[] = [];
-  parent: OFile;
   library?: string;
 }
 
 export class OPackageBody extends ObjectBase {
+  parent: OFile;
   subprograms: OSubprogram[] = [];
   constants: OSignal[] = [];
   types: OType[] = [];
   generics: OGeneric[] = [];
-  parent: OFile;
   library?: string;
 }
 export class OUseStatement extends ObjectBase {
+  parent: OFile;
   text: string;
   begin: number;
   end: number;
 }
 export class OSubprogram extends ObjectBase implements IMentionable {
+  parent: OPackage;
   mentions: OToken[] = [];
   variables: OVariable[] = [];
   statements: OStatement[] = [];

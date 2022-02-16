@@ -1,6 +1,6 @@
-import { DocumentHighlight, TextDocumentPositionParams, DocumentHighlightKind } from 'vscode-languageserver';
+import { DocumentHighlight, DocumentHighlightKind, TextDocumentPositionParams } from 'vscode-languageserver';
 import { initialization, linters } from '../language-server';
-import { OWrite, OToken } from '../parser/objects';
+import { OToken, OWrite } from '../parser/objects';
 
 export async function documentHighlightHandler(params: TextDocumentPositionParams): Promise<DocumentHighlight[] | null> {
     await initialization;

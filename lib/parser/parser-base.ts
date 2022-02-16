@@ -1,8 +1,8 @@
 import * as escapeStringRegexp from 'escape-string-regexp';
-import { ParserError, OWrite, ORead, OI, OElementRead, ObjectBase, OAssociationFormal, OAssociation, OIRange, OName, OPort, OEntity, OSubprogram, OPackage, OGeneric } from './objects';
-import { config } from './config';
-import { tokenizer } from './tokenizer';
 import { TextEdit } from 'vscode-languageserver';
+import { config } from './config';
+import { OAssociation, OAssociationFormal, ObjectBase, OElementRead, OGeneric, OI, OIRange, OPort, ORead, OWrite, ParserError } from './objects';
+import { tokenizer } from './tokenizer';
 
 
 export class ParserBase {

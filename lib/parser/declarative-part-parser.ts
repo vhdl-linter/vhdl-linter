@@ -1,8 +1,8 @@
-import { ParserBase } from './parser-base';
-import { OSignal, OType, OArchitecture, OEntity, ParserError, OState, OPackage, ORecord, OEnum, ORead, OI, ORecordChild, OName, OSubprogram, OPackageBody, OProcess, OVariable } from './objects';
-import { SubtypeParser } from './subtype-parser';
-import { SubprogramParser } from './subprogram-parser';
 import { EntityParser } from './entity-parser';
+import { OArchitecture, OEntity, OI, OName, OPackage, OPackageBody, OProcess, OSignal, OSubprogram, OType, OVariable, ParserError } from './objects';
+import { ParserBase } from './parser-base';
+import { SubprogramParser } from './subprogram-parser';
+import { SubtypeParser } from './subtype-parser';
 import { TypeParser } from './type-parser';
 
 export class DeclarativePartParser extends ParserBase {

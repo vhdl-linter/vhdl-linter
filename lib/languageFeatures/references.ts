@@ -1,5 +1,5 @@
-import { ReferenceParams, Location } from 'vscode-languageserver';
-import { initialization, linters, } from '../language-server';
+import { Location, ReferenceParams } from 'vscode-languageserver';
+import { initialization, linters } from '../language-server';
 import { OToken } from '../parser/objects';
 
 export async function handleReferences (params: ReferenceParams): Promise<Location[]> {

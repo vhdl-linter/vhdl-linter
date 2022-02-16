@@ -1,5 +1,5 @@
+import { ObjectBase, OI, OName, ORead, OSubType } from './objects';
 import { ParserBase } from './parser-base';
-import { OI, ObjectBase, OSubType, ORead, OName } from './objects';
 
 export class SubtypeParser extends ParserBase {
   subtype: OSubType;

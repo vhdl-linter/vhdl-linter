@@ -1,10 +1,9 @@
-import { readFileSync, promises } from 'fs';
-import { OEntity, OFileWithEntity, OPackage, OFileWithPackages } from './parser/objects';
-import { VhdlLinter } from './vhdl-linter';
-import { watch, FSWatcher } from 'chokidar';
+import { FSWatcher, watch } from 'chokidar';
 import { EventEmitter } from 'events';
-import { join, resolve, sep } from 'path';
-import { ISettings } from './language-server';
+import { promises, readFileSync } from 'fs';
+import { join, sep } from 'path';
+import { OEntity, OFileWithEntity, OFileWithPackages, OPackage } from './parser/objects';
+import { VhdlLinter } from './vhdl-linter';
 
 export class ProjectParser {
 
@@ -46,7 +45,9 @@ export class ProjectParser {
       });
       watcher.on('change', async (path) => {
         // console.log('change', path);
-        const cachedFile = this.cachedFiles.find(cachedFile => cachedFile.path === path);
+        const cachedFile = process.platform === 'win32'
+        ? this.cachedFiles.find(cachedFile => cachedFile.path.toLowerCase() === path.toLowerCase())
+        : this.cachedFiles.find(cachedFile => cachedFile.path === path);
         if (cachedFile) {
           cachedFile.reparse();
         } else {

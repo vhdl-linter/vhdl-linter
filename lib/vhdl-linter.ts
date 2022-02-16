@@ -1,21 +1,13 @@
-import { OFile, OSignalBase, OSignal, OArchitecture, OEntity, OPort, OInstantiation, OWrite, ORead, OFileWithEntity, OFileWithPackages, OFileWithEntityAndArchitecture, ORecord, OPackage, ParserError, OEnum, OAssociation, OPortMap, MagicCommentType, OProcess, OToken, OAssociationFormal, OAssociationList, IMentionable, OGenericMap, OProcedureCall, OGeneric, OProcedureCallPortMap, ObjectBase, OType, OSubprogram, implementsIMentionable } from './parser/objects';
+import { findBestMatch } from 'string-similarity';
+import {
+  CodeAction, CodeActionKind, CodeLens,
+  Command, Diagnostic, DiagnosticSeverity, Position, Range, TextEdit
+} from 'vscode-languageserver';
+import { URI } from 'vscode-uri';
+import { getDocumentSettings } from './language-server';
+import { implementsIMentionable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, ObjectBase, OEntity, OEnum, OFile, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackages, OGenericMap, OInstantiation, OPackage, OPort, OPortMap, OProcedureCall, OProcedureCallPortMap, OProcess, ORead, ORecord, OSignal, OSignalBase, OWrite, ParserError } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
-import { findBestMatch } from 'string-similarity';
-import { EventEmitter } from 'events';
-import {
-  Range,
-  Position,
-  CodeAction,
-  Diagnostic,
-  TextEdit,
-  CodeActionKind,
-  DiagnosticSeverity,
-  CodeLens,
-  Command
-} from 'vscode-languageserver';
-import { getDocumentSettings, ISettings } from './language-server';
-import { URI } from 'vscode-uri';
 export enum LinterRules {
   Reset
 }

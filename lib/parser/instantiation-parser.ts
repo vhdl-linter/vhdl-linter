@@ -1,6 +1,6 @@
-import {ParserBase} from './parser-base';
-import {OInstantiation, OAssociation, ParserError, ObjectBase, OAssociationFormal, OI, OAssociationList, OIRange, OGenericMap, OPortMap} from './objects';
 import { TextEdit } from 'vscode-languageserver';
+import { OAssociation, OAssociationFormal, ObjectBase, OGenericMap, OI, OInstantiation, OIRange, OPortMap, ParserError } from './objects';
+import { ParserBase } from './parser-base';
 
 export class InstantiationParser extends ParserBase {
   constructor(text: string, pos: OI, file: string, private parent: ObjectBase) {

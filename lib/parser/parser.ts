@@ -1,9 +1,8 @@
-import { EntityParser } from './entity-parser';
 import { ArchitectureParser } from './architecture-parser';
-import { ParserBase } from './parser-base';
-import { OFile, OUseStatement, ParserError, OEntity, OArchitecture, OPackage, OFileWithEntity, OFileWithPackages, OFileWithEntityAndArchitecture, OI, ObjectBase, OMagicComment, MagicCommentType, OIRange, ORead, OMagicCommentParameter, OMagicCommentDisable, OMagicCommentTodo, OPackageBody, OInstantiation } from './objects';
+import { EntityParser } from './entity-parser';
+import { MagicCommentType, OArchitecture, OEntity, OFile, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackages, OI, OIRange, OMagicCommentDisable, OMagicCommentParameter, OMagicCommentTodo, OPackage, OPackageBody, OUseStatement, ParserError } from './objects';
 import { PackageParser } from './package-parser';
-import * as escapeStringRegexp from 'escape-string-regexp';
+import { ParserBase } from './parser-base';
 
 
 export class Parser extends ParserBase {

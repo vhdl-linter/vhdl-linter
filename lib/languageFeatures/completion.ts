@@ -1,6 +1,6 @@
-import { CompletionParams, CompletionItem, Position, CompletionItemKind, Range, InsertTextFormat } from 'vscode-languageserver';
+import { CompletionItem, CompletionItemKind, CompletionParams, InsertTextFormat, Position, Range } from 'vscode-languageserver';
 import { documents, initialization, linters, projectParser } from '../language-server';
-import { OFile, OArchitecture, OEnum, OFileWithEntity, OName } from '../parser/objects';
+import { OArchitecture, OEnum, OFile, OFileWithEntity, OName } from '../parser/objects';
 
 export async function handleCompletion(params: CompletionParams): Promise<CompletionItem[]> {
   await initialization;

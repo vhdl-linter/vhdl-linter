@@ -1,7 +1,6 @@
-import { connection, documents, initialization, linters} from '../language-server';
-import { FoldingRangeParams, FoldingRange } from 'vscode-languageserver';
-import { OIfClause, OProcess, OInstantiation, OAssociationList, OEntity, OFileWithEntity, OElseClause, OWhenClause, OCase, OIfGenerateClause, OForGenerate, OSubprogram } from '../parser/objects';
-import { readFile } from 'fs';
+import { FoldingRange, FoldingRangeParams } from 'vscode-languageserver';
+import { documents, initialization, linters } from '../language-server';
+import { OAssociationList, OCase, OElseClause, OEntity, OFileWithEntity, OForGenerate, OIfClause, OIfGenerateClause, OInstantiation, OProcess, OSubprogram, OWhenClause } from '../parser/objects';
 export async function foldingHandler (params: FoldingRangeParams): Promise<FoldingRange[]> {
   await initialization;
   const linter = linters.get(params.textDocument.uri);

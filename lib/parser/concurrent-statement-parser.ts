@@ -1,9 +1,9 @@
-import { ParserBase } from './parser-base';
-import { OI, OEntity, OArchitecture, OForGenerate, ParserError, ORead, OIfGenerateClause, OIfGenerate, OSubprogram, OName } from './objects';
-import { ProcessParser } from './process-parser';
+import { ArchitectureParser } from './architecture-parser';
 import { AssignmentParser } from './assignment-parser';
 import { InstantiationParser } from './instantiation-parser';
-import { ArchitectureParser } from './architecture-parser';
+import { OArchitecture, OEntity, OForGenerate, OI, OIfGenerate, OIfGenerateClause, ORead, ParserError } from './objects';
+import { ParserBase } from './parser-base';
+import { ProcessParser } from './process-parser';
 export enum ConcurrentStatementTypes {
   Process,
   ProcedureInstantiation,

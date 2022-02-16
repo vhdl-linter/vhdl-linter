@@ -1,6 +1,6 @@
-import { DocumentSymbolParams, DocumentSymbol, SymbolKind } from 'vscode-languageserver';
+import { DocumentSymbol, DocumentSymbolParams, SymbolKind } from 'vscode-languageserver';
 import { initialization, linters } from '../language-server';
-import { OArchitecture, OFileWithPackages, OFileWithEntityAndArchitecture, OStatement, OCase, OIf, OForLoop } from '../parser/objects';
+import { OArchitecture, OCase, OFileWithEntityAndArchitecture, OFileWithPackages, OForLoop, OIf, OStatement } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
 
 function parseArchitecture(architecture: OArchitecture, linter: VhdlLinter): DocumentSymbol[] {

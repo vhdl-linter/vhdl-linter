@@ -1,7 +1,7 @@
-import { WorkspaceSymbolParams, Connection, SymbolInformation, SymbolKind } from 'vscode-languageserver';
+import { SymbolInformation, SymbolKind, WorkspaceSymbolParams } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { projectParser } from '../language-server';
-import { OInstantiation, OProcess, OPackage, OEntity, OSubprogram } from '../parser/objects';
+import { OEntity, OInstantiation, OPackage, OProcess, OSubprogram } from '../parser/objects';
 
 export async function handleOnWorkspaceSymbol(params: WorkspaceSymbolParams): Promise<SymbolInformation[] | null> {
 
