@@ -177,15 +177,17 @@ export class OFileWithEntityAndArchitecture extends OFileWithEntity {
   architecture: OArchitecture;
 }
 export class OFileWithPackages extends OFile {
-  packages: OPackage[] = [];
+  packages: (OPackage|OPackageBody)[] = [];
 }
 export class OPackage extends ObjectBase {
   parent: OFile;
+  uninstantiatedPackageName?: OName;
   subprograms: OSubprogram[] = [];
   constants: OSignal[] = [];
   types: OType[] = [];
   genericRange?: OIRange;
   generics: OGeneric[] = [];
+  genericAssociationList?: OGenericAssociationList;
   library?: string;
 }
 
@@ -194,7 +196,6 @@ export class OPackageBody extends ObjectBase {
   subprograms: OSubprogram[] = [];
   constants: OSignal[] = [];
   types: OType[] = [];
-  generics: OGeneric[] = [];
   library?: string;
 }
 export class OUseStatement extends ObjectBase {
@@ -339,7 +340,7 @@ export abstract class OVariableBase extends ObjectBase implements IMentionable {
 export abstract class OSignalBase extends OVariableBase {
   private register: boolean | null = null;
   private registerProcess: OProcess | null;
-  constructor(public parent: OArchitecture | OEntity | OPackage | OProcess | OForLoop | OSubprogram | OType, startI: number, endI: number) {
+  constructor(public parent: OArchitecture | OEntity | OPackage | OPackageBody | OProcess | OForLoop | OSubprogram | OType, startI: number, endI: number) {
     super(parent, startI, endI);
   }
   isRegister(): boolean {
@@ -381,13 +382,13 @@ export class OAssociationList extends ObjectBase {
   public children: OAssociation[] = [];
 
 }
-export class OGenericMap extends OAssociationList {
-  constructor(public parent: OInstantiation, startI: number, endI: number) {
+export class OGenericAssociationList extends OAssociationList {
+  constructor(public parent: OInstantiation|OProcedureCall|OPackage, startI: number, endI: number) {
     super(parent, startI, endI);
   }
 }
-export class OPortMap extends OAssociationList {
-  constructor(public parent: OInstantiation, startI: number, endI: number) {
+export class OPortAssociationList extends OAssociationList {
+  constructor(public parent: OInstantiation|OProcedureCall|OPackage, startI: number, endI: number) {
     super(parent, startI, endI);
   }
 }
@@ -395,8 +396,8 @@ export class OInstantiation extends ObjectBase implements IDefitionable {
   label?: string;
   definition?: OEntity|OSubprogram;
   componentName: string;
-  portMap?: OPortMap;
-  genericMap?: OGenericMap;
+  portAssociationList?: OPortAssociationList;
+  genericAssociationList?: OGenericAssociationList;
   library?: string;
   type: 'entity' | 'component' | 'procedure';
   private flatReads: ORead[] | null = null;
@@ -408,8 +409,8 @@ export class OInstantiation extends ObjectBase implements IDefitionable {
       return this.flatReads;
     }
     this.flatReads = [];
-    if (this.portMap) {
-      for (const portAssociation of this.portMap.children) {
+    if (this.portAssociationList) {
+      for (const portAssociation of this.portAssociationList.children) {
         if (entity) {
           const entityPort = entity.ports.find(port => {
             for (const part of portAssociation.formalPart) {
@@ -429,8 +430,8 @@ export class OInstantiation extends ObjectBase implements IDefitionable {
         }
       }
     }
-    if (this.genericMap) {
-      for (const association of this.genericMap.children) {
+    if (this.genericAssociationList) {
+      for (const association of this.genericAssociationList.children) {
         this.flatReads.push(...association.actualIfInput);
       }
     }
@@ -442,8 +443,8 @@ export class OInstantiation extends ObjectBase implements IDefitionable {
       return this.flatWrites;
     }
     this.flatWrites = [];
-    if (this.portMap) {
-      for (const association of this.portMap.children) {
+    if (this.portAssociationList) {
+      for (const association of this.portAssociationList.children) {
         if (entity) {
           const entityPort = entity.ports.find(port => {
             for (const part of association.formalPart) {
@@ -464,15 +465,10 @@ export class OInstantiation extends ObjectBase implements IDefitionable {
     return this.flatWrites;
   }
 }
-export class OProcedureCallPortMap extends OAssociationList {
-  constructor(public parent: OProcedureCall, startI: number, endI: number) {
-    super(parent, startI, endI);
-  }
-}
 export class OProcedureCall extends ObjectBase implements IDefitionable {
   procedureName: OName;
   definition?: OSubprogram;
-  portMap?: OProcedureCallPortMap;
+  portMap?: OPortAssociationList;
 }
 export class OAssociation extends ObjectBase implements IDefitionable {
   constructor(public parent: OAssociationList, startI: number, endI: number) {
@@ -651,7 +647,7 @@ export class OAssignment extends ObjectBase {
 export class OToken extends ObjectBase implements IDefitionable {
   definition?: ObjectBase;
 
-  public scope?: OArchitecture | OProcess | OEntity | OForLoop | OSubprogram | OPackage;
+  public scope?: OArchitecture | OProcess | OEntity | OForLoop | OSubprogram | OPackage | OPackageBody;
   constructor(public parent: ObjectBase, startI: number, endI: number, public text: string) {
     super(parent, startI, endI);
     let object: (OFile | ObjectBase) = this;

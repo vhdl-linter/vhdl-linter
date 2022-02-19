@@ -5,7 +5,7 @@ import {
 } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { getDocumentSettings } from './language-server';
-import { implementsIMentionable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, ObjectBase, OEntity, OEnum, OFile, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackages, OGenericMap, OInstantiation, OPackage, OPort, OPortMap, OProcedureCall, OProcedureCallPortMap, OProcess, ORead, ORecord, OSignal, OSignalBase, OWrite, ParserError } from './parser/objects';
+import { implementsIMentionable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, ObjectBase, OEntity, OEnum, OFile, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackages, OGenericAssociationList, OInstantiation, OPackage, OPackageBody, OPort, OPortAssociationList, OProcedureCall, OProcess, ORead, ORecord, OSignal, OSignalBase, OWrite, ParserError } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 export enum LinterRules {
@@ -22,7 +22,7 @@ export class VhdlLinter {
   messages: Diagnostic[] = [];
   tree: OFileWithEntityAndArchitecture | OFileWithEntity | OFileWithPackages | OFile;
   parser: Parser;
-  packages: OPackage[] = [];
+  packages: (OPackage|OPackageBody)[] = [];
   constructor(private editorPath: string, public text: string, public projectParser: ProjectParser, public onlyEntity: boolean = false) {
     //     console.log('lint');
     this.parser = new Parser(this.text, this.editorPath, onlyEntity);
@@ -195,7 +195,7 @@ export class VhdlLinter {
     }
     for (const obj of this.tree.objectList) {
       if (obj instanceof OAssociation) {
-        if (obj.parent instanceof OGenericMap || obj.parent instanceof OPortMap) {
+        if (obj.parent instanceof OGenericAssociationList || obj.parent instanceof OPortAssociationList) {
           if (!(obj.parent.parent instanceof OInstantiation)) {
             continue;
           }
@@ -214,7 +214,7 @@ export class VhdlLinter {
           if (!entityOrProcedure) {
             continue;
           }
-          const portOrGeneric = obj.parent instanceof OPortMap ? entityOrProcedure.ports.find(port => obj.formalPart.find(name => name.text.toLowerCase() === port.name.text.toLowerCase())) :
+          const portOrGeneric = obj.parent instanceof OPortAssociationList ? entityOrProcedure.ports.find(port => obj.formalPart.find(name => name.text.toLowerCase() === port.name.text.toLowerCase())) :
             (entityOrProcedure instanceof OEntity) ? entityOrProcedure.generics.find(port => obj.formalPart.find(name => name.text.toLowerCase() === port.name.text.toLowerCase())) : undefined;
 
           if (!portOrGeneric) {
@@ -661,7 +661,7 @@ export class VhdlLinter {
       }
       if (signal.constant) {
         for (const write of writes) {
-          if (write.parent instanceof OAssociation && write.parent.parent instanceof OProcedureCallPortMap) {
+          if (write.parent instanceof OAssociation && write.parent.parent instanceof OPortAssociationList) {
             this.addMessage({
               range: write.range,
               severity: DiagnosticSeverity.Information,
@@ -894,8 +894,8 @@ export class VhdlLinter {
         });
       } else {
         const foundPorts: OPort[] = [];
-        if (instantiation.portMap) {
-          for (const portMap of instantiation.portMap.children) {
+        if (instantiation.portAssociationList) {
+          for (const portMap of instantiation.portAssociationList.children) {
             const entityPort = entityOrSubprogram.ports.find(port => {
               for (const part of portMap.formalPart) {
                 if (part.text.toLowerCase() === port.name.text.toLowerCase()) {

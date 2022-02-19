@@ -1,3 +1,4 @@
+import { AssociationListParser } from './association-list-parser';
 import { DeclarativePartParser } from './declarative-part-parser';
 import { InterfaceListParser } from './interface-list-parser';
 import { OFile, OIRange, OName, OPackage, OPackageBody } from './objects';
@@ -28,12 +29,28 @@ export class PackageParser extends ParserBase {
       const match = parent.originalText.match(/!\s*@library\s+(\S+)/i);
       pkg.library = match ? match[1] : undefined;
 
-      const savedI = this.pos.i;
+      let savedI = this.pos.i;
       const name = nextWord;
       pkg.name = new OName(pkg, savedI, savedI + name.length);
       pkg.name.text = name;
       this.expect('is');
       nextWord = this.getNextWord({consume: false}).toLowerCase();
+      if (nextWord === 'new') {
+        this.getNextWord();
+        savedI = this.pos.i;
+        const uninstantiatedPackage = this.getNextWord({re: /[\w.]+/}).split('.');
+        pkg.uninstantiatedPackageName = new OName(pkg, savedI, savedI + uninstantiatedPackage.join('.').length);
+        pkg.uninstantiatedPackageName.text = uninstantiatedPackage[uninstantiatedPackage.length - 1];
+
+        nextWord = this.getNextWord({consume: false}).toLowerCase();
+        if (nextWord === 'generic') {
+          this.expect('generic');
+          this.expect('map');
+          pkg.genericAssociationList = new AssociationListParser(this.text, this.pos, this.file, pkg).parse('generic');
+        }
+        this.expect(';');
+        return pkg;
+      }
       if (nextWord === 'generic') {
         this.getNextWord();
         const savedI = this.pos.i;

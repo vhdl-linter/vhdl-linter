@@ -1,5 +1,6 @@
 import { AssignmentParser } from './assignment-parser';
-import { OAssignment, OAssociation, ObjectBase, OCase, OElseClause, OForLoop, OI, OIf, OIfClause, OLoop, OName, OProcedureCall, OProcedureCallPortMap, OStatement, OVariable, OWhenClause, OWhileLoop } from './objects';
+import { AssociationListParser } from './association-list-parser';
+import { OAssignment, ObjectBase, OCase, OElseClause, OForLoop, OI, OIf, OIfClause, OLoop, OName, OProcedureCall, OStatement, OVariable, OWhenClause, OWhileLoop } from './objects';
 import { ParserBase } from './parser-base';
 
 export class SequentialStatementParser extends ParserBase {
@@ -78,22 +79,7 @@ export class SequentialStatementParser extends ParserBase {
 
     }
     if (this.text[this.pos.i] === '(') {
-      procedureCall.portMap = new OProcedureCallPortMap(procedureCall, this.pos.i, this.getEndOfLineI());
-      this.expect('(');
-      let startI = this.pos.i;
-      let text = this.advanceBrace();
-      procedureCall.portMap.range.end.i = this.pos.i;
-      const matches = text.matchAll(/([^,]*)(,|$)/g);
-      // console.log(text);
-      for (const match of matches) {
-        if (match[1].trim() === '') {
-          continue;
-        }
-        const map = new OAssociation(procedureCall.portMap, startI + (match.index ?? 0), startI + (match.index ?? 0) + match[1].length);
-        map.actualIfInput = this.extractReads(map, match[1], startI + (match.index ?? 0));
-        map.actualIfOutput = this.extractReadsOrWrite(map, match[1], startI + (match.index ?? 0));
-        procedureCall.portMap.children.push(map);
-      }
+      procedureCall.portMap = new AssociationListParser(this.text, this.pos, this.file, procedureCall).parse();
     }
     procedureCall.range.end.i = this.pos.i;
     this.expect(';');

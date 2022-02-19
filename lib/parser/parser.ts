@@ -11,7 +11,7 @@ export class Parser extends ParserBase {
   constructor(text: string, file: string, public onlyEntity: boolean = false) {
     super(text, {} as OI, file);
     this.originalText = text;
-    this.removeComments();
+    this.removeCommentsAndStrings();
   }
   parse(): OFileWithPackages | OFileWithEntity | OFile {
     const file = new OFile(this.text, this.file, this.originalText);
@@ -77,7 +77,7 @@ export class Parser extends ParserBase {
     }
     let entity: OEntity | undefined;
     let architecture: OArchitecture | undefined;
-    const packages: OPackage|OPackageBody[] = [];
+    const packages: (OPackage|OPackageBody)[] = [];
     while (this.pos.i < this.text.length) {
       this.advanceWhitespace();
       let nextWord = this.getNextWord().toLowerCase();
@@ -121,7 +121,7 @@ export class Parser extends ParserBase {
     return file;
   }
 // a
-  removeComments() {
+  removeCommentsAndStrings() {
     this.text = this.text.split('\n').map(s => {
       let quotes = false;
       let result = '';
@@ -130,8 +130,10 @@ export class Parser extends ParserBase {
         // " asf""das" is valid string (value ' asf"das')
         if ((!quotes && s[i] === '"') || (s[i] === '"' && s[i+1] !== '"')) {
           quotes = !quotes;
-        }
-        if (!quotes && s[i] === '-' && s[i+1] === '-') {
+        } else if (quotes) {
+          result += 's';
+          continue;
+        } else if (!quotes && s[i] === '-' && s[i+1] === '-') {
           result += ' '.repeat(s.length - i);
           return result;
         }

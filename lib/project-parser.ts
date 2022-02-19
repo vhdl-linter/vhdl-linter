@@ -2,13 +2,13 @@ import { FSWatcher, watch } from 'chokidar';
 import { EventEmitter } from 'events';
 import { promises, readFileSync } from 'fs';
 import { join, sep } from 'path';
-import { OEntity, OFileWithEntity, OFileWithPackages, OPackage } from './parser/objects';
+import { OEntity, OFileWithEntity, OFileWithPackages, OPackage, OPackageBody } from './parser/objects';
 import { VhdlLinter } from './vhdl-linter';
 
 export class ProjectParser {
 
   public cachedFiles: OFileCache[] = [];
-  private packages: OPackage[];
+  private packages: (OPackage|OPackageBody)[];
   private entities: OEntity[];
   events = new EventEmitter();
   constructor(public workspaces: string[]) { }
@@ -103,10 +103,10 @@ export class ProjectParser {
   addFolders(folders: string[]) {
     this.watcher.add(folders.map(folder => folder.replace(sep, '/') + '/**/*.vhd'));
   }
-  public getPackages(): OPackage[] {
+  public getPackages() {
     return this.packages;
   }
-  public getEntities(): OEntity[] {
+  public getEntities() {
     return this.entities;
   }
 }
@@ -115,7 +115,7 @@ export class OFileCache {
 
   path: string;
   digest: string;
-  packages?: OPackage[];
+  packages?: (OPackage|OPackageBody)[];
   entity?: OEntity;
   text: string;
   linter: VhdlLinter;

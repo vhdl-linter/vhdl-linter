@@ -166,7 +166,7 @@ export class ParserBase {
     let quote = false;
     const savedI = this.pos;
     while (this.text[this.pos.i]) {
-      if (this.text[this.pos.i] === '"' && this.text[this.pos.i - 1] !== '\\') {
+      if (this.text[this.pos.i] === '"' && this.text[this.pos.i - 1] !== '"') {
         quote = !quote;
       } else if (this.text[this.pos.i] === '(' && !quote) {
         braceLevel++;
@@ -183,6 +183,29 @@ export class ParserBase {
       this.pos.i++;
     }
     throw new ParserError(`could not find closing brace`, savedI.getRangeToEndLine());
+  }
+  advanceBraceAware(searchChars: string[]) {
+    const savedI = this.pos;
+    let braceLevel = 0;
+    let result = '';
+    while (this.text[this.pos.i]) {
+      if (braceLevel === 0) {
+        if (searchChars.includes(this.text[this.pos.i])) {
+          const lastChar = this.text[this.pos.i];
+          this.pos.i++;
+          this.advanceWhitespace();
+          return [ result, lastChar ];
+        }
+      }
+      if (this.text[this.pos.i] === '(') {
+        braceLevel++;
+      } else if (this.text[this.pos.i] === ')') {
+        braceLevel--;
+      }
+      result += this.text[this.pos.i];
+      this.pos.i++;
+    }
+    throw new ParserError(`could not find ${searchChars}`, savedI.getRangeToEndLine());
   }
   advanceSemicolon(braceAware: boolean = false, {consume} = {consume: true}) {
     if (braceAware) {
