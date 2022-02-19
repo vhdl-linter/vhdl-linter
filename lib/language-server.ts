@@ -216,11 +216,11 @@ interface IFindDefinitionParams {
   };
   position: Position;
 }
-const findDefinition = async (params: IFindDefinitionParams) => {
+const findDefinitions = async (params: IFindDefinitionParams) => {
   await initialization;
   const linter = linters.get(params.textDocument.uri);
   if (!linter) {
-    return null;
+    return [];
   }
 
   let startI = linter.getIFromPosition(params.position);
@@ -231,30 +231,39 @@ const findDefinition = async (params: IFindDefinitionParams) => {
   candidates.sort((a, b) => (a.range.end.i - a.range.start.i) - (b.range.end.i - b.range.start.i));
   let candidate = candidates[0];
   if (!candidate) {
-    return null;
+    return [];
   }
   if (candidate instanceof OName) {
     candidate = candidate.parent;
   }
-  if (implementsIDefinitionable(candidate) && candidate.definition) {
-    return {
-      // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
-      range: candidate.definition.range,
-      text: candidate.definition.getRoot().originalText,
-      // targetSelectionRange:  Range.create(Position.create(0, 0), Position.create(0, 0)),
-      uri: URI.file(candidate.definition.getRoot().file).toString()
-    };
+  if (implementsIDefinitionable(candidate) && candidate.definitions) {
+    return candidate.definitions.map(definition => {
+      return {
+        // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
+        range: definition.range,
+        text: definition.getRoot().originalText,
+        // targetSelectionRange:  Range.create(Position.create(0, 0), Position.create(0, 0)),
+        uri: URI.file(definition.getRoot().file).toString()
+      };
+    });
   }
-
-  return null;
+  return [];
 };
+const findBestDefinition = async (params: IFindDefinitionParams) => {
+  const definitions = await findDefinitions(params);
+  if (definitions.length === 0) {
+    return null;
+  }
+  return definitions[0];
+}
+
 connection.onHover(async (params, token): Promise<Hover | null> => {
   await initialization;
   if (token.isCancellationRequested) {
     console.log('hover canceld');
     throw ErrorCodes.RequestCancelled;
   }
-  const definition = await findDefinition(params);
+  const definition = await findBestDefinition(params);
   if (definition === null) {
     return null;
   }
@@ -272,7 +281,7 @@ connection.onHover(async (params, token): Promise<Hover | null> => {
     }
   };
 });
-connection.onDefinition(findDefinition);
+connection.onDefinition(findBestDefinition);
 // This handler provides the initial list of the completion items.
 connection.onCompletion(handleCompletion);
 connection.onReferences(handleReferences);
@@ -301,8 +310,8 @@ connection.onRequest('vhdl-linter/listing', async (params: any, b: any) => {
     }
     for (const object of file?.objectList ?? []) {
       if (object instanceof OInstantiation) {
-        if (object.definition && object.definition.parent instanceof OFileWithEntity) {
-          const vhdlLinter = new VhdlLinter(object.definition.parent.file, object.definition.parent.originalText, projectParser);
+        if (object.definitions && object.definitions[0].parent instanceof OFileWithEntity) {
+          const vhdlLinter = new VhdlLinter(object.definitions[0].parent.file, object.definitions[0].parent.originalText, projectParser);
           await vhdlLinter.checkAll();
           await parseTree(vhdlLinter.tree);
         } else {

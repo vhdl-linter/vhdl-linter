@@ -5,7 +5,7 @@ import {
 } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { getDocumentSettings } from './language-server';
-import { implementsIMentionable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, ObjectBase, OEntity, OEnum, OFile, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackages, OGenericAssociationList, OInstantiation, OPackage, OPackageBody, OPort, OPortAssociationList, OProcedureCall, OProcess, ORead, ORecord, OSignal, OSignalBase, OWrite, ParserError } from './parser/objects';
+import { implementsIMentionable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, ObjectBase, OEntity, OEnum, OFile, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackages, OGeneric, OGenericAssociationList, OInstantiation, OPackage, OPackageBody, OPort, OPortAssociationList, OProcess, ORead, ORecord, OSignal, OSignalBase, OSubprogram, OWrite, ParserError } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 export enum LinterRules {
@@ -22,7 +22,7 @@ export class VhdlLinter {
   messages: Diagnostic[] = [];
   tree: OFileWithEntityAndArchitecture | OFileWithEntity | OFileWithPackages | OFile;
   parser: Parser;
-  packages: (OPackage|OPackageBody)[] = [];
+  packages: (OPackage | OPackageBody)[] = [];
   constructor(private editorPath: string, public text: string, public projectParser: ProjectParser, public onlyEntity: boolean = false) {
     //     console.log('lint');
     this.parser = new Parser(this.text, this.editorPath, onlyEntity);
@@ -141,56 +141,56 @@ export class VhdlLinter {
         });
       }
     }
-    for (const read of this.tree.objectList.filter(object => object instanceof ORead && typeof object.definition === 'undefined') as ORead[]) {
+    for (const read of this.tree.objectList.filter(object => object instanceof ORead) as ORead[]) {
       for (const pkg of packages) {
         for (const constant of pkg.constants) {
           if (constant.name.text.toLowerCase() === read.text.toLowerCase()) {
-            read.definition = constant;
+            read.definitions.push(constant);
           }
         }
         for (const subprogram of pkg.subprograms) {
           if (subprogram.name.text.toLowerCase() === read.text.toLowerCase()) {
-            read.definition = subprogram;
+            read.definitions.push(subprogram);
           }
         }
         for (const type of pkg.types) {
           const typeRead = type.findRead(read);
           if (typeRead !== false) {
-            read.definition = typeRead;
+            read.definitions.push(typeRead);
           }
           if (type instanceof OEnum) {
             for (const state of type.states) {
               if (state.name.text.toLowerCase() === read.text.toLowerCase()) {
-                read.definition = state;
+                read.definitions.push(state);
 
               }
             }
           } else if (type instanceof ORecord) {
             for (const child of type.children) {
               if (child.name.text.toLowerCase() === read.text.toLowerCase()) {
-                read.definition = child;
+                read.definitions.push(child);
               }
             }
           }
         }
       }
     }
-    for (const instantiation of this.tree.objectList.filter(object => object instanceof OInstantiation && typeof object.definition === 'undefined') as OInstantiation[]) {
+    for (const instantiation of this.tree.objectList.filter(object => object instanceof OInstantiation) as OInstantiation[]) {
       switch (instantiation.type) {
         case 'component':
-          instantiation.definition = this.getComponentEntity(instantiation);
+          instantiation.definitions.push(...this.getComponentEntities(instantiation));
           break;
         case 'entity':
-          instantiation.definition = this.getProjectEntity(instantiation);
+          instantiation.definitions.push(...this.getProjectEntities(instantiation));
           break;
         case 'procedure':
-          instantiation.definition = this.getProjectProcedures(instantiation.componentName);
+          instantiation.definitions.push(...this.getProjectProcedures(instantiation.componentName.text));
           break;
       }
     }
     if (this.tree instanceof OFileWithEntityAndArchitecture) {
-      for (const component of this.tree.architecture.components.filter(comp => typeof comp.definition === 'undefined')) {
-        component.definition = this.getProjectEntity(component);
+      for (const component of this.tree.architecture.components) {
+        component.definitions.push(...this.getProjectEntities(component));
       }
     }
     for (const obj of this.tree.objectList) {
@@ -199,64 +199,75 @@ export class VhdlLinter {
           if (!(obj.parent.parent instanceof OInstantiation)) {
             continue;
           }
-          let entityOrProcedure;
+          let entitiesOrProcedures = [];
           switch (obj.parent.parent.type) {
             case 'component':
-              entityOrProcedure = this.getComponentEntity(obj.parent.parent);
+              entitiesOrProcedures = this.getComponentEntities(obj.parent.parent);
               break;
             case 'entity':
-              entityOrProcedure = this.getProjectEntity(obj.parent.parent);
+              entitiesOrProcedures = this.getProjectEntities(obj.parent.parent);
               break;
             case 'procedure':
-              entityOrProcedure = this.getProjectProcedures(obj.parent.parent.componentName);
+            case 'procedure-call':
+              entitiesOrProcedures = this.getProjectProcedures(obj.parent.parent.componentName.text);
               break;
           }
-          if (!entityOrProcedure) {
+          if (entitiesOrProcedures.length === 0) {
             continue;
           }
-          const portOrGeneric = obj.parent instanceof OPortAssociationList ? entityOrProcedure.ports.find(port => obj.formalPart.find(name => name.text.toLowerCase() === port.name.text.toLowerCase())) :
-            (entityOrProcedure instanceof OEntity) ? entityOrProcedure.generics.find(port => obj.formalPart.find(name => name.text.toLowerCase() === port.name.text.toLowerCase())) : undefined;
 
-          if (!portOrGeneric) {
-            continue;
-          }
-          obj.definition = portOrGeneric;
-          for (const namePart of obj.formalPart) {
-            namePart.definition = portOrGeneric;
-          }
-          if (portOrGeneric instanceof OPort) {
-            if (portOrGeneric.direction === 'in') {
-              for (const mapping of obj.actualIfOutput.flat()) {
-                const index = this.tree.objectList.indexOf(mapping);
-                this.tree.objectList.splice(index, 1);
-                for (const mentionable of this.tree.objectList) {
-                  if (implementsIMentionable(mentionable)) {
-                    for (const [index, mention] of mentionable.mentions.entries()) {
-                      if (mention === mapping) {
-                        mentionable.mentions.splice(index, 1);
-                      }
-                    }
-                  }
-                }
+          let ports: (OPort | OGeneric)[] = [];
+          if (obj.parent instanceof OPortAssociationList) {
+            ports.push(...entitiesOrProcedures.flatMap(ep => ep.ports.filter(port => obj.formalPart.find(name => name.text.toLowerCase() === port.name.text.toLowerCase()))));
+          } else {
+            for (const ep of entitiesOrProcedures) {
+              if (ep instanceof OEntity) {
+                ports.push(...ep.generics.filter(port => obj.formalPart.find(name => name.text.toLowerCase() === port.name.text.toLowerCase())));
               }
-              obj.actualIfOutput = [[], []];
-            } else {
-              for (const mapping of obj.actualIfInput) {
-                const index = this.tree.objectList.indexOf(mapping);
-                this.tree.objectList.splice(index, 1);
-                for (const mentionable of this.tree.objectList) {
-                  if (implementsIMentionable(mentionable)) {
-                    for (const [index, mention] of mentionable.mentions.entries()) {
-                      if (mention === mapping) {
-                        mentionable.mentions.splice(index, 1);
-                      }
-                    }
-                  }
-                }
-              }
-              obj.actualIfInput = [];
             }
+          }
 
+          if (!ports) {
+            continue;
+          }
+          obj.definitions.push(...ports);
+          for (const namePart of obj.formalPart) {
+            namePart.definitions.push(...ports);
+          }
+          for (const portOrGeneric of ports) {
+            if (portOrGeneric instanceof OPort) {
+              if (portOrGeneric.direction === 'in') {
+                for (const mapping of obj.actualIfOutput.flat()) {
+                  const index = this.tree.objectList.indexOf(mapping);
+                  this.tree.objectList.splice(index, 1);
+                  for (const mentionable of this.tree.objectList) {
+                    if (implementsIMentionable(mentionable)) {
+                      for (const [index, mention] of mentionable.mentions.entries()) {
+                        if (mention === mapping) {
+                          mentionable.mentions.splice(index, 1);
+                        }
+                      }
+                    }
+                  }
+                }
+                obj.actualIfOutput = [[], []];
+              } else {
+                for (const mapping of obj.actualIfInput) {
+                  const index = this.tree.objectList.indexOf(mapping);
+                  this.tree.objectList.splice(index, 1);
+                  for (const mentionable of this.tree.objectList) {
+                    if (implementsIMentionable(mentionable)) {
+                      for (const [index, mention] of mentionable.mentions.entries()) {
+                        if (mention === mapping) {
+                          mentionable.mentions.splice(index, 1);
+                        }
+                      }
+                    }
+                  }
+                }
+                obj.actualIfInput = [];
+              }
+            }
           }
         }
       }
@@ -299,8 +310,8 @@ export class VhdlLinter {
       return;
     }
     for (const component of this.tree.architecture.components) {
-      const realEntity = this.getProjectEntity(component);
-      if (!realEntity) {
+      const realEntities = this.getProjectEntities(component);
+      if (realEntities.length === 0) {
         this.addMessage({
           range: component.name.range,
           severity: DiagnosticSeverity.Warning,
@@ -308,9 +319,11 @@ export class VhdlLinter {
         });
         continue;
       }
+      // list of generics (possibly multiple occurences)
+      const realGenerics = realEntities.flatMap(e => e.generics);
       // generics not in realEntity
-      for (const generic of component.generics) {
-        if (!realEntity.generics.find(gen => gen.name.text.toLowerCase() === generic.name.text.toLowerCase())) {
+      for (const generic of realGenerics) {
+        if (!realGenerics.find(gen => gen.name.text.toLowerCase() === generic.name.text.toLowerCase())) {
           this.addMessage({
             range: generic.name.range,
             severity: DiagnosticSeverity.Error,
@@ -319,7 +332,7 @@ export class VhdlLinter {
         }
       }
       // generics not in this component
-      for (const generic of realEntity.generics) {
+      for (const generic of realGenerics) {
         if (!component.generics.find(gen => gen.name.text.toLowerCase() === generic.name.text.toLowerCase())) {
           this.addMessage({
             range: component.genericRange ?? component.range,
@@ -328,9 +341,11 @@ export class VhdlLinter {
           });
         }
       }
+      // list of ports (possibly multiple occurences)
+      const realPorts = realEntities.flatMap(e => e.ports);
       // ports not in realEntity
       for (const port of component.ports) {
-        if (!realEntity.ports.find(p => p.name.text.toLowerCase() === port.name.text.toLowerCase())) {
+        if (!realPorts.find(p => p.name.text.toLowerCase() === port.name.text.toLowerCase())) {
           this.addMessage({
             range: port.name.range,
             severity: DiagnosticSeverity.Error,
@@ -339,7 +354,7 @@ export class VhdlLinter {
         }
       }
       // generics not in this component
-      for (const port of realEntity.ports) {
+      for (const port of realPorts) {
         if (!component.ports.find(p => p.name.text.toLowerCase() === port.name.text.toLowerCase())) {
           this.addMessage({
             range: component.portRange ?? component.range,
@@ -450,11 +465,11 @@ export class VhdlLinter {
   }
   checkNotDeclared() {
     for (const obj of this.tree.objectList) {
-      if (obj instanceof ORead && typeof obj.definition === 'undefined') {
+      if (obj instanceof ORead && obj.definitions.length === 0) {
         this.pushReadError(obj);
-      } else if (obj instanceof OWrite && typeof obj.definition === 'undefined') {
+      } else if (obj instanceof OWrite && obj.definitions.length === 0) {
         this.pushWriteError(obj);
-      } else if (obj instanceof OAssociationFormal && typeof obj.definition === 'undefined') {
+      } else if (obj instanceof OAssociationFormal && obj.definitions.length === 0) {
         this.pushReadError(obj);
       }
     }
@@ -831,7 +846,7 @@ export class VhdlLinter {
       }
     }
   }
-  getComponentEntity(instantiation: OInstantiation, architecture?: OArchitecture): OEntity | undefined {
+  getComponentEntities(instantiation: OInstantiation, architecture?: OArchitecture): OEntity[] {
 
 
     // find all defined components in current scope (architecture might be a generate in another architecture)
@@ -841,7 +856,7 @@ export class VhdlLinter {
       if (this.tree instanceof OFileWithEntityAndArchitecture) {
         arch = this.tree.architecture;
       } else {
-        return undefined;
+        return [];
       }
     }
     while (arch instanceof ObjectBase) {
@@ -850,23 +865,124 @@ export class VhdlLinter {
       }
       arch = arch.parent;
     }
-    return components.find(comp => comp.name.text.toLowerCase() === instantiation.componentName.toLowerCase());
+    return components.filter(comp => comp.name.text.toLowerCase() === instantiation.componentName.text.toLowerCase());
   }
-  getProjectEntity(instantiation: OInstantiation | OEntity): OEntity | undefined {
-    const name = instantiation instanceof OInstantiation ? instantiation.componentName : instantiation.name.text;
+  getProjectEntities(instantiation: OInstantiation | OEntity): OEntity[] {
+    const name = instantiation instanceof OInstantiation ? instantiation.componentName.text : instantiation.name.text;
     const projectEntities: OEntity[] = this.projectParser.getEntities();
     if (instantiation.library) {
-      const entityWithLibrary = projectEntities.find(entity => entity.name.text.toLowerCase() === name.toLowerCase() && typeof entity.library !== 'undefined' && typeof instantiation.library !== 'undefined' && entity.library.toLowerCase() === instantiation.library.toLowerCase());
-      if (entityWithLibrary) {
+      const entityWithLibrary = projectEntities.filter(entity => entity.name.text.toLowerCase() === name.toLowerCase() && typeof entity.library !== 'undefined' && typeof instantiation.library !== 'undefined' && entity.library.toLowerCase() === instantiation.library.toLowerCase());
+      if (entityWithLibrary.length > 0) {
         return entityWithLibrary;
       }
     }
-    return projectEntities.find(entity => entity.name.text.toLowerCase() === name.toLowerCase());
+    return projectEntities.filter(entity => entity.name.text.toLowerCase() === name.toLowerCase());
   }
-  getProjectProcedures(name: string) {
+  getProjectProcedures(name: string): OSubprogram[] {
     return this.projectParser.getEntities().flatMap(ent => ent.subprograms).concat(
       ...this.projectParser.getPackages().flatMap(pack => pack.subprograms)
-    ).find(proc => proc.name.text.toLowerCase() === name.toLowerCase());
+    ).filter(proc => proc.name.text.toLowerCase() === name.toLowerCase());
+  }
+
+  checkPortMaps(entitiesOrSubprograms: (OEntity|OSubprogram)[], instantiation: OInstantiation) {
+    if (entitiesOrSubprograms.length === 0) {
+      this.addMessage({
+        range: instantiation.range.start.getRangeToEndLine(),
+        severity: DiagnosticSeverity.Warning,
+        message: `can not find entity/procedure ${instantiation.componentName}`
+      });
+    } else {
+      const availablePortsDup = entitiesOrSubprograms.flatMap(e => e.ports);
+      const availablePorts = availablePortsDup.filter((v, i, self) => self.findIndex(o => o.name.text.toLowerCase() === v.name.text.toLowerCase()) === i);
+      const foundPorts: OPort[] = [];
+      let portsWithoutFormal = false;
+      let allPortsWithoutFormal = true;
+      if (instantiation.portAssociationList) {
+        for (const portAssociation of instantiation.portAssociationList.children) {
+          if (portAssociation.formalPart.length === 0) {
+            portsWithoutFormal = true;
+            continue;
+          }
+          allPortsWithoutFormal = false;
+          const entityPort = availablePorts.find(port => {
+            for (const part of portAssociation.formalPart) {
+              if (part.text.toLowerCase() === port.name.text.toLowerCase()) {
+                return true;
+              }
+            }
+            return false;
+          });
+          if (!entityPort) {
+            const bestMatch = findBestMatch(portAssociation.formalPart[0].text, availablePorts.map(port => port.name.text));
+            const code = this.addCodeActionCallback((textDocumentUri: string) => {
+              const actions = [];
+              actions.push(CodeAction.create(
+                `Replace with ${bestMatch.bestMatch.target} (score: ${bestMatch.bestMatch.rating})`,
+                {
+                  changes: {
+                    [textDocumentUri]: [TextEdit.replace(Range.create(portAssociation.formalPart[0].range.start, portAssociation.formalPart[portAssociation.formalPart.length - 1].range.end)
+                      , bestMatch.bestMatch.target)]
+                  }
+                },
+                CodeActionKind.QuickFix));
+              return actions;
+            });
+            this.addMessage({
+              range: portAssociation.range,
+              severity: DiagnosticSeverity.Error,
+              message: `no port ${portAssociation.formalPart.map(name => name.text).join(', ')} on entity/procedure ${entitiesOrSubprograms[0].name.text}`,
+              code
+            });
+          } else {
+            foundPorts.push(entityPort);
+          }
+        }
+      }
+      if (allPortsWithoutFormal) {
+        const portCounts = [...new Set(entitiesOrSubprograms.flatMap(e => {
+          const totalLength = e.ports.length;
+          const portsWithDefault = e.ports.filter(p => typeof p.defaultValue === 'undefined').length;
+          const result = [];
+          for (let i = totalLength; i >= totalLength - portsWithDefault; i--) {
+            result.push(i);
+          }
+          return result;
+        }))].sort((a, b) => a - b);
+        const actualCount = instantiation.portAssociationList?.children.length ?? 0;
+        if (!portCounts.includes(actualCount)) {
+          let portCountString: string;
+          if (portCounts.length > 1) {
+            const last = portCounts.pop();
+            portCountString = `${portCounts.join(', ')} or ${last}`;
+          } else {
+            portCountString = `${portCounts[0]}`;
+          }
+          this.addMessage({
+            range: instantiation.range,
+            severity: DiagnosticSeverity.Error,
+            message: `Got ${actualCount} ports but expected ${portCountString} ports.`
+          });
+        }
+      } else {
+        for (const port of availablePorts) {
+          if (port.direction === 'in' && typeof port.defaultValue === 'undefined' && typeof foundPorts.find(portSearch => portSearch === port) === 'undefined') {
+            if (portsWithoutFormal) {
+              this.addMessage({
+                range: instantiation.componentName.range,
+                severity: DiagnosticSeverity.Information,
+                message: `some ports have no formal part and input port ${port.name} cannot be found.`
+              });
+            } else {
+              this.addMessage({
+                range: instantiation.componentName.range,
+                severity: DiagnosticSeverity.Warning,
+                message: `input port ${port.name} might be missing port map and has no default value on entity/portmap ${instantiation.componentName}`
+              });
+            }
+          }
+        }
+      }
+    }
   }
 
   checkInstantiations(architecture: OArchitecture) {
@@ -874,134 +990,35 @@ export class VhdlLinter {
       return;
     }
     for (const instantiation of architecture.instantiations) {
-      let entityOrSubprogram;
+      let entitiesOrSubprograms;
       switch (instantiation.type) {
         case 'component':
-          entityOrSubprogram = this.getComponentEntity(instantiation, architecture);
+          entitiesOrSubprograms = this.getComponentEntities(instantiation, architecture);
           break;
         case 'entity':
-          entityOrSubprogram = this.getProjectEntity(instantiation);
+          entitiesOrSubprograms = this.getProjectEntities(instantiation);
           break;
         case 'procedure':
-          entityOrSubprogram = this.getProjectProcedures(instantiation.componentName);
+        case 'procedure-call':
+          entitiesOrSubprograms = this.getProjectProcedures(instantiation.componentName.text);
           break;
       }
-      if (!entityOrSubprogram) {
-        this.addMessage({
-          range: instantiation.range.start.getRangeToEndLine(),
-          severity: DiagnosticSeverity.Warning,
-          message: `can not find entity/procedure ${instantiation.componentName}`
-        });
-      } else {
-        const foundPorts: OPort[] = [];
-        if (instantiation.portAssociationList) {
-          for (const portMap of instantiation.portAssociationList.children) {
-            const entityPort = entityOrSubprogram.ports.find(port => {
-              for (const part of portMap.formalPart) {
-                if (part.text.toLowerCase() === port.name.text.toLowerCase()) {
-                  return true;
-                }
-              }
-              return false;
-            });
-            if (!entityPort) {
-              const bestMatch = findBestMatch(portMap.formalPart[0].text, entityOrSubprogram.ports.map(port => port.name.text));
-              const code = this.addCodeActionCallback((textDocumentUri: string) => {
-                const actions = [];
-                actions.push(CodeAction.create(
-                  `Replace with ${bestMatch.bestMatch.target} (score: ${bestMatch.bestMatch.rating})`,
-                  {
-                    changes: {
-                      [textDocumentUri]: [TextEdit.replace(Range.create(portMap.formalPart[0].range.start, portMap.formalPart[portMap.formalPart.length - 1].range.end)
-                        , bestMatch.bestMatch.target)]
-                    }
-                  },
-                  CodeActionKind.QuickFix));
-                return actions;
-              });
-              this.addMessage({
-                range: portMap.range,
-                severity: DiagnosticSeverity.Error,
-                message: `no port ${portMap.formalPart.map(name => name.text).join(', ')} on entity/procedure ${entityOrSubprogram.name.text}`,
-                code
-              });
-            } else {
-              foundPorts.push(entityPort);
-            }
-          }
-        }
-        for (const port of entityOrSubprogram.ports) {
-          if (port.direction === 'in' && typeof port.defaultValue === 'undefined' && typeof foundPorts.find(portSearch => portSearch === port) === 'undefined') {
-            this.addMessage({
-              range: instantiation.range,
-              severity: DiagnosticSeverity.Error,
-              message: `input port ${port.name} is missing in port map and has no default value on entity ${instantiation.componentName}`
-            });
-          }
-        }
-
-      }
+      this.checkPortMaps(entitiesOrSubprograms, instantiation);
     }
     for (const generate of architecture.generates) {
       this.checkInstantiations(generate);
     }
   }
+
+
   checkProcedures(architecture: OArchitecture) {
     if (!architecture) {
       return;
     }
     for (const obj of architecture.getRoot().objectList) {
-      if (obj instanceof OProcedureCall) {
-        obj.definition = this.getProjectProcedures(obj.procedureName.text);
-        // let searchObj = obj.parent;
-        // while (!(searchObj instanceof OFile)) {
-        //   if (searchObj instanceof OArchitecture || searchObj instanceof OProcess) {
-        //     for (const procedureSearch of searchObj.subprograms) {
-        //       if (procedureSearch.name.text.toLowerCase() === obj.procedureName.text.toLowerCase()) {
-        //         obj.definition = procedureSearch;
-        //         break;
-        //       }
-        //     }
-        //   }
-        //   searchObj = searchObj.parent;
-        // }
-        if (!obj.definition) {
-          this.addMessage({
-            range: obj.procedureName.range,
-            severity: DiagnosticSeverity.Error,
-            message: `procedure '${obj.procedureName.text}' is not declared`
-          });
-
-        } else {
-          if (obj.portMap) {
-            if (obj.definition.ports.length !== obj.portMap.children.length) {
-              this.addMessage({
-                range: obj.portMap.range,
-                severity: DiagnosticSeverity.Error,
-                message: `Expected ${obj.definition.ports.length} ports but got ${obj.portMap.children.length}`
-              });
-              continue;
-            }
-            for (const [index, portMapping] of obj.portMap.children.entries()) {
-              if (obj.definition.ports[index].direction === 'in') {
-                for (const mapping of portMapping.actualIfOutput.flat()) {
-                  const index = this.tree.objectList.indexOf(mapping);
-                  this.tree.objectList.splice(index, 1);
-                  for (const mentionable of this.tree.objectList) {
-                    if (implementsIMentionable(mentionable)) {
-                      for (const [index, mention] of mentionable.mentions.entries()) {
-                        if (mention === mapping) {
-                          mentionable.mentions.splice(index, 1);
-                        }
-                      }
-                    }
-                  }
-                }
-                portMapping.actualIfOutput = [[], []];
-              }
-            }
-          }
-        }
+      if (obj instanceof OInstantiation && obj.type === 'procedure-call') {
+        obj.definitions = this.getProjectProcedures(obj.componentName.text);
+        this.checkPortMaps(obj.definitions, obj);
       }
     }
   }

@@ -22,8 +22,10 @@ export async function findReferences(params: { textDocument: TextDocumentIdentif
     candidate = candidate.parent;
   }
   // debugger;
-  if (candidate instanceof OToken && candidate.definition) {
-    candidate = candidate.definition;
+  if (candidate instanceof OToken && candidate.definitions) {
+    return candidate.definitions.concat(candidate.definitions.flatMap(c => {
+      return implementsIMentionable(c) ? c.mentions : [];
+    }));
   }
   if (implementsIMentionable(candidate)) {
     return ([candidate] as ObjectBase[]).concat(candidate.mentions ?? []);

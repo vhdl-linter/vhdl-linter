@@ -1,10 +1,10 @@
 import { TextEdit } from 'vscode-languageserver';
-import { OI, OInstantiation, OAssociation, OAssociationFormal, OGenericAssociationList as OGenericAssociationList, OIRange, OPortAssociationList as OPortAssotiationList, ParserError, OProcedureCall, OPackage } from "./objects";
+import { OI, OInstantiation, OAssociation, OAssociationFormal, OGenericAssociationList as OGenericAssociationList, OIRange, OPortAssociationList as OPortAssotiationList, ParserError, OPackage } from "./objects";
 import { ParserBase } from "./parser-base";
 
 
 export class AssociationListParser extends ParserBase {
-  constructor(text: string, pos: OI, file: string, private parent: OInstantiation|OProcedureCall|OPackage) {
+  constructor(text: string, pos: OI, file: string, private parent: OInstantiation|OPackage) {
     super(text, pos, file);
     this.debug(`start`);
   }
@@ -18,30 +18,32 @@ export class AssociationListParser extends ParserBase {
       const savedI = this.pos.i;
       // let associationString = this.advancePast(/[,)]/, {returnMatch: true});
       let [associationString, lastChar] = this.advanceBraceAware([',', ')']);
-      let actualStart = savedI;
-      const association = new OAssociation(list, savedI, savedI + associationString.length);
-      if (associationString.includes('=>')) {
-        const [formalString, actualString] = associationString.split('=>');
-        association.formalPart = this.extractReads(association, formalString, savedI, true) as OAssociationFormal[];
-        for (const namePart of association.formalPart) {
-          Object.setPrototypeOf(namePart, OAssociationFormal.prototype);
+      if (associationString.length > 0) {
+        let actualStart = savedI;
+        const association = new OAssociation(list, savedI, savedI + associationString.length);
+        if (associationString.includes('=>')) {
+          const [formalString, actualString] = associationString.split('=>');
+          association.formalPart = this.extractReads(association, formalString, savedI, true) as OAssociationFormal[];
+          for (const namePart of association.formalPart) {
+            Object.setPrototypeOf(namePart, OAssociationFormal.prototype);
+          }
+          associationString = actualString;
+          actualStart += formalString.length + 2;
         }
-        associationString = actualString;
-        actualStart += formalString.length + 2;
-      }
-      if (associationString.trim().toLowerCase() !== 'open') {
-        association.actualIfInput = this.extractReads(association, associationString, actualStart);
-        if (type === 'port') {
-          association.actualIfOutput = this.extractReadsOrWrite(association, associationString, actualStart);
+        if (associationString.trim().toLowerCase() !== 'open') {
+          association.actualIfInput = this.extractReads(association, associationString, actualStart);
+          if (type === 'port') {
+            association.actualIfOutput = this.extractReadsOrWrite(association, associationString, actualStart);
+          }
+        } else {
+          association.actualIfInput = [];
+          association.actualIfOutput = [[], []];
         }
-      } else {
-        association.actualIfInput = [];
-        association.actualIfOutput = [[], []];
+        list.children.push(association);
       }
-      list.children.push(association);
       if (lastChar === ',') {
         if (this.text[this.pos.i] === ')') {
-          const range = new OIRange(association, this.pos.i, this.pos.i + 1);
+          const range = new OIRange(list, this.pos.i, this.pos.i + 1);
           range.start.character = 0;
 
           throw new ParserError(`Unexpected ',' at end of association list`, range);

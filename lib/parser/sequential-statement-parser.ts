@@ -1,6 +1,6 @@
 import { AssignmentParser } from './assignment-parser';
 import { AssociationListParser } from './association-list-parser';
-import { OAssignment, ObjectBase, OCase, OElseClause, OForLoop, OI, OIf, OIfClause, OLoop, OName, OProcedureCall, OStatement, OVariable, OWhenClause, OWhileLoop } from './objects';
+import { OArchitecture, OAssignment, ObjectBase, OCase, OElseClause, OEntity, OForLoop, OI, OIf, OIfClause, OInstantiation, OLoop, OName, OProcess, OStatement, OVariable, OWhenClause, OWhileLoop } from './objects';
 import { ParserBase } from './parser-base';
 
 export class SequentialStatementParser extends ParserBase {
@@ -8,7 +8,7 @@ export class SequentialStatementParser extends ParserBase {
     super(text, pos, file);
     this.debug('start');
   }
-  parse(parent: ObjectBase, exitConditions: string[]): OStatement[] {
+  parse(parent: OProcess | OLoop | OIf, exitConditions: string[]): OStatement[] {
     const statements = [];
     while (this.pos.i < this.text.length) {
       let nextWord = this.getNextWord({ consume: false });
@@ -66,20 +66,20 @@ export class SequentialStatementParser extends ParserBase {
     }
     return statements;
   }
-  parseProcedureCall(parent: ObjectBase) {
-    const procedureCall = new OProcedureCall(parent, this.pos.i, this.getEndOfLineI());
-    procedureCall.procedureName = new OName(procedureCall, this.pos.i, this.pos.i);
-    procedureCall.procedureName.text = this.getNextWord();
-    procedureCall.procedureName.range.end.i = procedureCall.procedureName.range.start.i + procedureCall.procedureName.text.length;
+  parseProcedureCall(parent: OProcess | OLoop | OIf) {
+    const procedureCall = new OInstantiation(parent, this.pos.i, this.getEndOfLineI(), 'procedure-call');
+    procedureCall.componentName = new OName(procedureCall, this.pos.i, this.pos.i);
+    procedureCall.componentName.text = this.getNextWord();
+    procedureCall.componentName.range.end.i = procedureCall.componentName.range.start.i + procedureCall.componentName.text.length;
     while (this.text[this.pos.i] === '.') {
       this.expect('.');
-      procedureCall.procedureName.range.start.i = this.pos.i;
-      procedureCall.procedureName.text = this.getNextWord();
-      procedureCall.procedureName.range.end.i = procedureCall.procedureName.range.start.i + procedureCall.procedureName.text.length;
+      procedureCall.componentName.range.start.i = this.pos.i;
+      procedureCall.componentName.text = this.getNextWord();
+      procedureCall.componentName.range.end.i = procedureCall.componentName.range.start.i + procedureCall.componentName.text.length;
 
     }
     if (this.text[this.pos.i] === '(') {
-      procedureCall.portMap = new AssociationListParser(this.text, this.pos, this.file, procedureCall).parse();
+      procedureCall.portAssociationList = new AssociationListParser(this.text, this.pos, this.file, procedureCall).parse();
     }
     procedureCall.range.end.i = this.pos.i;
     this.expect(';');
@@ -87,7 +87,7 @@ export class SequentialStatementParser extends ParserBase {
   }
   parseWait(parent: ObjectBase) {
     this.expect('wait');
-    let nextWord = this.getNextWord({consume: false});
+    let nextWord = this.getNextWord({ consume: false });
     if (['until', 'on', 'for'].indexOf(nextWord.toLowerCase()) > -1) {
       this.getNextWord();
       let assignment = new OAssignment(parent, this.pos.i, this.getEndOfLineI());

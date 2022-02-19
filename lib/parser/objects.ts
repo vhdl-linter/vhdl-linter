@@ -136,10 +136,10 @@ export function implementsIMentionable(obj: unknown): obj is IMentionable {
   return (obj as IMentionable).mentions !== undefined;
 }
 export interface IDefitionable {
-  definition?: ObjectBase;
+  definitions: ObjectBase[];
 }
 export function implementsIDefinitionable(obj: unknown): obj is IDefitionable {
-  return (obj as IDefitionable).definition !== undefined;
+  return (obj as IDefitionable).definitions !== undefined;
 }
 export class OFile {
   constructor(public text: string, public file: string, public originalText: string) { }
@@ -177,7 +177,7 @@ export class OFileWithEntityAndArchitecture extends OFileWithEntity {
   architecture: OArchitecture;
 }
 export class OFileWithPackages extends OFile {
-  packages: (OPackage|OPackageBody)[] = [];
+  packages: (OPackage | OPackageBody)[] = [];
 }
 export class OPackage extends ObjectBase {
   parent: OFile;
@@ -383,27 +383,28 @@ export class OAssociationList extends ObjectBase {
 
 }
 export class OGenericAssociationList extends OAssociationList {
-  constructor(public parent: OInstantiation|OProcedureCall|OPackage, startI: number, endI: number) {
+  constructor(public parent: OInstantiation | OPackage, startI: number, endI: number) {
     super(parent, startI, endI);
   }
 }
 export class OPortAssociationList extends OAssociationList {
-  constructor(public parent: OInstantiation|OProcedureCall|OPackage, startI: number, endI: number) {
+  constructor(public parent: OInstantiation | OPackage, startI: number, endI: number) {
     super(parent, startI, endI);
   }
 }
 export class OInstantiation extends ObjectBase implements IDefitionable {
+  constructor(public parent: OArchitecture | OEntity | OProcess | OLoop | OIf, startI: number, endI: number, public type: 'entity' | 'component' | 'procedure' | 'procedure-call') {
+    super(parent, startI, endI);
+  }
   label?: string;
-  definition?: OEntity|OSubprogram;
-  componentName: string;
+  definitions: (OEntity | OSubprogram)[] = [];
+  componentName: OName;
   portAssociationList?: OPortAssociationList;
   genericAssociationList?: OGenericAssociationList;
   library?: string;
-  type: 'entity' | 'component' | 'procedure';
   private flatReads: ORead[] | null = null;
   private flatWrites: OWrite[] | null = null;
   getFlatReads(entity: OEntity | undefined): ORead[] {
-    //     console.log(entity, 'asd2');
 
     if (this.flatReads !== null) {
       return this.flatReads;
@@ -465,16 +466,11 @@ export class OInstantiation extends ObjectBase implements IDefitionable {
     return this.flatWrites;
   }
 }
-export class OProcedureCall extends ObjectBase implements IDefitionable {
-  procedureName: OName;
-  definition?: OSubprogram;
-  portMap?: OPortAssociationList;
-}
 export class OAssociation extends ObjectBase implements IDefitionable {
   constructor(public parent: OAssociationList, startI: number, endI: number) {
     super(parent, startI, endI);
   }
-  definition?: ObjectBase;
+  definitions: (OPort | OGeneric)[] = [];
   formalPart: OAssociationFormal[] = [];
   actualIfInput: ORead[] = [];
   actualIfOutput: [ORead[], OWrite[]] = [[], []];
@@ -492,7 +488,7 @@ export class OEntity extends ObjectBase implements IDefitionable {
   types: OType[] = [];
   mentions: OInstantiation[] = [];
   statements: (OProcess | OAssignment)[] = [];
-  definition?: OEntity;
+  definitions: OEntity[] = [];
 }
 export class OPort extends OSignalBase {
   direction: 'in' | 'out' | 'inout';
@@ -503,7 +499,7 @@ export class OGeneric extends OVariableBase {
   defaultValue?: ORead[] = [];
   reads: ORead[] = [];
 }
-export type OStatement = OCase | OAssignment | OIf | OLoop | OProcedureCall;
+export type OStatement = OCase | OAssignment | OIf | OLoop | OInstantiation;
 export class OIf extends ObjectBase {
   clauses: OIfClause[] = [];
   else?: OElseClause;
@@ -556,7 +552,7 @@ export class OProcess extends ObjectBase {
           }
         } else if (object instanceof OForLoop || object instanceof OWhileLoop) {
           flatWrites.push(...flatten(object.statements));
-        } else if (object instanceof OProcedureCall) {
+        } else if (object instanceof OInstantiation) {
           // TODO
         } else {
           throw new Error('UUPS');
@@ -598,7 +594,7 @@ export class OProcess extends ObjectBase {
         } else if (object instanceof OWhileLoop) {
           flatReads.push(...flatten(object.statements));
           flatReads.push(...object.conditionReads);
-        } else if (object instanceof OProcedureCall) {
+        } else if (object instanceof OInstantiation) {
           // TODO
         } else {
           throw new Error('UUPS');
@@ -645,24 +641,22 @@ export class OAssignment extends ObjectBase {
 }
 
 export class OToken extends ObjectBase implements IDefitionable {
-  definition?: ObjectBase;
+  definitions: ObjectBase[] = [];
 
   public scope?: OArchitecture | OProcess | OEntity | OForLoop | OSubprogram | OPackage | OPackageBody;
   constructor(public parent: ObjectBase, startI: number, endI: number, public text: string) {
     super(parent, startI, endI);
     let object: (OFile | ObjectBase) = this;
 
-    findDefinition: do {
+    do {
       object = object.parent;
       if (object instanceof OArchitecture
         || object instanceof OEntity) {
         for (const signal of object.signals) {
           if (signal.name.text.toLowerCase() === text.toLowerCase()) {
-            this.definition = signal;
+            this.definitions.push(signal);
             this.scope = object;
             signal.mentions.push(this);
-
-            break findDefinition;
           }
         }
       }
@@ -670,11 +664,9 @@ export class OToken extends ObjectBase implements IDefitionable {
         || object instanceof OPackageBody) {
         for (const constant of object.constants) {
           if (constant.name.text.toLowerCase() === text.toLowerCase()) {
-            this.definition = constant;
+            this.definitions.push(constant);
             this.scope = object;
             constant.mentions.push(this);
-
-            break findDefinition;
           }
         }
       }
@@ -687,40 +679,32 @@ export class OToken extends ObjectBase implements IDefitionable {
       ) {
         for (const subprogram of object.subprograms) {
           if (subprogram.name.text.toLowerCase() === text.toLowerCase()) {
-            this.definition = subprogram;
+            this.definitions.push(subprogram);
             this.scope = object;
             subprogram.mentions.push(this);
-
-            break findDefinition;
           }
         }
         for (const type of object.types) {
           if (type.name.text.toLowerCase() === text.toLowerCase()) {
-            this.definition = type;
+            this.definitions.push(type);
             this.scope = object;
             type.mentions.push(this);
-
-            break findDefinition;
           }
           if (type instanceof OEnum) {
             for (const state of type.states) {
               if (state.name.text.toLowerCase() === text.toLowerCase()) {
-                this.definition = state;
+                this.definitions.push(state);
                 this.scope = object;
                 state.mentions.push(this);
-
-                break findDefinition;
               }
             }
           }
           if (type instanceof ORecord) {
             for (const child of type.children) {
               if (child.name.text.toLowerCase() === text.toLowerCase()) {
-                this.definition = child;
+                this.definitions.push(child);
                 this.scope = object;
                 child.mentions.push(this);
-
-                break findDefinition;
               }
             }
           }
@@ -730,11 +714,9 @@ export class OToken extends ObjectBase implements IDefitionable {
         || object instanceof OSubprogram) {
         for (const variable of object.variables) {
           if (variable.name.text.toLowerCase() === text.toLowerCase()) {
-            this.definition = variable;
+            this.definitions.push(variable);
             this.scope = object;
             variable.mentions.push(this);
-
-            break findDefinition;
           }
         }
       }
@@ -742,75 +724,63 @@ export class OToken extends ObjectBase implements IDefitionable {
         || object instanceof OEntity) {
         for (const port of object.ports) {
           if (port.name.text.toLowerCase() === text.toLowerCase()) {
-            this.definition = port;
+            this.definitions.push(port);
             this.scope = object;
             port.mentions.push(this);
-
-            break findDefinition;
           }
         }
       }
       if (object instanceof OForLoop
         || object instanceof OForGenerate) {
         if (object.variable.name.text.toLowerCase() === text.toLowerCase()) {
-          this.definition = object.variable;
+          this.definitions.push(object.variable);
           this.scope = object;
           object.variable.mentions.push(this);
-          break findDefinition;
         }
       }
       if (object instanceof OEntity) {
         for (const generic of object.generics) {
           if (generic.name.text.toLowerCase() === text.toLowerCase()) {
-            this.definition = generic;
+            this.definitions.push(generic);
             this.scope = object;
             generic.mentions.push(this);
-            break findDefinition;
           }
         }
       }
       if (object instanceof OFileWithEntity) {
         for (const signal of object.entity.signals) {
           if (signal.name.text.toLowerCase() === text.toLowerCase()) {
-            this.definition = signal;
+            this.definitions.push(signal);
             signal.mentions.push(this);
             this.scope = object.entity;
-            break findDefinition;
           }
         }
         for (const type of object.entity.types) {
           if (type.name.text.toLowerCase() === text.toLowerCase()) {
-            this.definition = type;
+            this.definitions.push(type);
             type.mentions.push(this);
             this.scope = object.entity;
-            break findDefinition;
           }
         }
         for (const subprogram of object.entity.subprograms) {
           if (subprogram.name.text.toLowerCase() === text.toLowerCase()) {
-            this.definition = subprogram;
+            this.definitions.push(subprogram);
             this.scope = object.entity;
             subprogram.mentions.push(this);
-
-            break findDefinition;
           }
         }
         for (const port of object.entity.ports) {
           if (port.name.text.toLowerCase() === text.toLowerCase()) {
-            this.definition = port;
+            this.definitions.push(port);
             this.scope = object.entity;
             port.mentions.push(this);
-
-            break findDefinition;
           }
         }
         for (const generic of object.entity.generics) {
           if (generic.name.text.toLowerCase() === text.toLowerCase()) {
-            this.definition = generic;
+            this.definitions.push(generic);
             this.scope = object.entity;
             generic.mentions.push(this);
-
-            break findDefinition;
           }
         }
       }
@@ -832,7 +802,7 @@ export class OElementRead extends ORead {
   }
 }
 export class OAssociationFormal extends ObjectBase implements IDefitionable {
-  definition?: ObjectBase;
+  definitions: (OPort | OGeneric)[] = [];
   constructor(public parent: OAssociation, startI: number, endI: number, public text: string) {
     super(parent, startI, endI);
   }
