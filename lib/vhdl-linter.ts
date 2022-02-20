@@ -874,13 +874,23 @@ export class VhdlLinter {
     }
     // find project subprograms
     // in packages
-    const addTypes = (...type: OType[]) => {
-      subprograms.push(...type.flatMap(t => t.subprograms));
-      addTypes(...type.flatMap(t => t.types));
+    let recursionCounter = 5000;
+    const addTypes = (types: OType[]) => {
+      subprograms.push(...types.flatMap(t => t.subprograms));
+      recursionCounter--;
+      if (recursionCounter > 0) {
+        const children = types.flatMap(t => t.types);
+        if (children.length > 0) {
+          addTypes(children);
+        }
+      } else {
+        throw new ParserError('Recursion Limit reached', instantiation.range);
+      }
     };
+
     for (const pkg of this.packages) {
       subprograms.push(...pkg.subprograms);
-      // addTypes(...pkg.types);
+      addTypes(pkg.types);
     }
     // in entities
     subprograms.push(...this.projectParser.getEntities().flatMap(ent => ent.subprograms));
