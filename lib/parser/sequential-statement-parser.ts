@@ -1,6 +1,6 @@
 import { AssignmentParser } from './assignment-parser';
 import { AssociationListParser } from './association-list-parser';
-import { OArchitecture, OAssignment, ObjectBase, OCase, OElseClause, OEntity, OForLoop, OI, OIf, OIfClause, OInstantiation, OLoop, OName, OProcess, OStatement, OVariable, OWhenClause, OWhileLoop } from './objects';
+import { OArchitecture, OAssignment, ObjectBase, OCase, OElseClause, OEntity, OForLoop, OHasSequentialStatements, OI, OIf, OIfClause, OInstantiation, OLoop, OName, OProcess, OSequentialStatement, OVariable, OWhenClause, OWhileLoop } from './objects';
 import { ParserBase } from './parser-base';
 
 export class SequentialStatementParser extends ParserBase {
@@ -8,8 +8,8 @@ export class SequentialStatementParser extends ParserBase {
     super(text, pos, file);
     this.debug('start');
   }
-  parse(parent: OProcess | OLoop | OIf, exitConditions: string[]): OStatement[] {
-    const statements = [];
+  parse(parent: OHasSequentialStatements | OIf, exitConditions: string[]): OSequentialStatement[] {
+    const statements: OSequentialStatement[] = [];
     while (this.pos.i < this.text.length) {
       let nextWord = this.getNextWord({ consume: false });
       let label;
@@ -66,7 +66,7 @@ export class SequentialStatementParser extends ParserBase {
     }
     return statements;
   }
-  parseProcedureCall(parent: OProcess | OLoop | OIf) {
+  parseProcedureCall(parent: OHasSequentialStatements | OIf) {
     const procedureCall = new OInstantiation(parent, this.pos.i, this.getEndOfLineI(), 'procedure-call');
     procedureCall.componentName = new OName(procedureCall, this.pos.i, this.pos.i);
     procedureCall.componentName.text = this.getNextWord();
@@ -85,7 +85,7 @@ export class SequentialStatementParser extends ParserBase {
     this.expect(';');
     return procedureCall;
   }
-  parseWait(parent: ObjectBase) {
+  parseWait(parent: OHasSequentialStatements | OIf) {
     this.expect('wait');
     let nextWord = this.getNextWord({ consume: false });
     if (['until', 'on', 'for'].indexOf(nextWord.toLowerCase()) > -1) {
@@ -102,7 +102,7 @@ export class SequentialStatementParser extends ParserBase {
       return assignment;
     }
   }
-  parseWhile(parent: ObjectBase, label?: string): OWhileLoop {
+  parseWhile(parent: OHasSequentialStatements | OIf, label?: string): OWhileLoop {
     const whileLoop = new OWhileLoop(parent, this.pos.i, this.getEndOfLineI());
     this.expect('while');
     const startI = this.pos.i;
@@ -118,7 +118,7 @@ export class SequentialStatementParser extends ParserBase {
     this.expect(';');
     return whileLoop;
   }
-  parseFor(parent: ObjectBase, label?: string): OForLoop {
+  parseFor(parent: OHasSequentialStatements | OIf, label?: string): OForLoop {
     const forLoop = new OForLoop(parent, this.pos.i, this.getEndOfLineI());
     this.expect('for');
     const startI = this.pos.i;
@@ -139,7 +139,7 @@ export class SequentialStatementParser extends ParserBase {
     this.expect(';');
     return forLoop;
   }
-  parseIf(parent: ObjectBase, label?: string): OIf {
+  parseIf(parent: OHasSequentialStatements | OIf, label?: string) {
     this.debug(`parseIf`);
 
     const if_ = new OIf(parent, this.pos.i, this.getEndOfLineI());

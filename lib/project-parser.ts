@@ -2,7 +2,7 @@ import { FSWatcher, watch } from 'chokidar';
 import { EventEmitter } from 'events';
 import { promises, readFileSync } from 'fs';
 import { join, sep } from 'path';
-import { OEntity, OFileWithEntity, OFileWithPackages, OPackage, OPackageBody } from './parser/objects';
+import { OEntity, OFileWithEntity, OFileWithPackages, OPackage, OPackageBody, OSubprogram } from './parser/objects';
 import { VhdlLinter } from './vhdl-linter';
 
 export class ProjectParser {

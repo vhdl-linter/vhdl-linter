@@ -1,3 +1,4 @@
+import { text } from 'blessed';
 import {
   CodeAction, createConnection, DidChangeConfigurationNotification, ErrorCodes, Hover, InitializeParams, IPCMessageReader, IPCMessageWriter, Position, ProposedFeatures, TextDocument, TextDocuments
 } from 'vscode-languageserver';
@@ -12,7 +13,7 @@ import { findReferencesHandler, prepareRenameHandler, renameHandler } from './la
 import { foldingHandler } from './languageFeatures/folding';
 import { handleReferences } from './languageFeatures/references';
 import { handleOnWorkspaceSymbol } from './languageFeatures/workspaceSymbols';
-import { implementsIDefinitionable, OFile, OFileWithEntity, OFileWithEntityAndArchitecture, OInstantiation, OName } from './parser/objects';
+import { implementsIHasDefinitions, OFile, OFileWithEntity, OFileWithEntityAndArchitecture, OInstantiation, OName } from './parser/objects';
 import { ProjectParser } from './project-parser';
 import { VhdlLinter } from './vhdl-linter';
 
@@ -174,6 +175,7 @@ documents.onDidClose(change => {
 export const linters = new Map<string, VhdlLinter>();
 export const lintersValid = new Map<string, boolean>();
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
+  console.log(textDocument.uri);
   const vhdlLinter = new VhdlLinter(URI.parse(textDocument.uri).fsPath, textDocument.getText(), projectParser);
   if (typeof vhdlLinter.tree !== 'undefined' || typeof linters.get(textDocument.uri) === 'undefined') {
     linters.set(textDocument.uri, vhdlLinter);
@@ -236,7 +238,7 @@ const findDefinitions = async (params: IFindDefinitionParams) => {
   if (candidate instanceof OName) {
     candidate = candidate.parent;
   }
-  if (implementsIDefinitionable(candidate) && candidate.definitions) {
+  if (implementsIHasDefinitions(candidate) && candidate.definitions) {
     return candidate.definitions.map(definition => {
       return {
         // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),

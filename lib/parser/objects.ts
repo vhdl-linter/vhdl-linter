@@ -135,11 +135,23 @@ export interface IMentionable {
 export function implementsIMentionable(obj: unknown): obj is IMentionable {
   return (obj as IMentionable).mentions !== undefined;
 }
-export interface IDefitionable {
+export interface IHasDefinitions {
   definitions: ObjectBase[];
 }
-export function implementsIDefinitionable(obj: unknown): obj is IDefitionable {
-  return (obj as IDefitionable).definitions !== undefined;
+export function implementsIHasDefinitions(obj: unknown): obj is IHasDefinitions {
+  return (obj as IHasDefinitions).definitions !== undefined;
+}
+export interface IHasSubprograms {
+  subprograms: OSubprogram[];
+}
+export function implementsIHasSubprograms(obj: unknown): obj is IHasSubprograms {
+  return (obj as IHasSubprograms).subprograms !== undefined;
+}
+export interface IHasInstantiations {
+  instantiations: OInstantiation[];
+}
+export function implementsIHasInstantiations(obj: unknown): obj is IHasInstantiations {
+  return (obj as IHasInstantiations).instantiations !== undefined;
 }
 export class OFile {
   constructor(public text: string, public file: string, public originalText: string) { }
@@ -179,7 +191,7 @@ export class OFileWithEntityAndArchitecture extends OFileWithEntity {
 export class OFileWithPackages extends OFile {
   packages: (OPackage | OPackageBody)[] = [];
 }
-export class OPackage extends ObjectBase {
+export class OPackage extends ObjectBase implements IHasSubprograms {
   parent: OFile;
   uninstantiatedPackageName?: OName;
   subprograms: OSubprogram[] = [];
@@ -191,7 +203,7 @@ export class OPackage extends ObjectBase {
   library?: string;
 }
 
-export class OPackageBody extends ObjectBase {
+export class OPackageBody extends ObjectBase implements IHasSubprograms {
   parent: OFile;
   subprograms: OSubprogram[] = [];
   constants: OSignal[] = [];
@@ -204,52 +216,51 @@ export class OUseStatement extends ObjectBase {
   begin: number;
   end: number;
 }
-export class OSubprogram extends ObjectBase implements IMentionable {
-  parent: OPackage;
-  mentions: OToken[] = [];
-  variables: OVariable[] = [];
-  statements: OStatement[] = [];
-  ports: OPort[] = [];
-  types: OType[] = [];
-  subprograms: OSubprogram[] = [];
-  return: ORead[] = [];
+export type OConcurrentStatements = OProcess | OInstantiation | OIfGenerate | OForGenerate | OBlock | OAssignment;
+export class OHasConcurrentStatements extends ObjectBase{
 }
 
-export class OArchitecture extends ObjectBase {
+export class OArchitecture extends ObjectBase implements IHasSubprograms, IHasInstantiations {
   signals: OSignal[] = [];
   types: OType[] = [];
   subprograms: OSubprogram[] = [];
   components: OEntity[] = [];
-  statements: (OProcess | OInstantiation | OForGenerate | OIfGenerate | OAssignment | OBlock)[] = [];
-
+  statements: OConcurrentStatements[];
   get processes() {
-    return this.statements.filter(statement => statement instanceof OProcess) as readonly OProcess[];
+    return this.statements.filter(s => s instanceof OProcess) as OProcess[];
   }
   get instantiations() {
-    return this.statements.filter(statement => statement instanceof OInstantiation) as readonly OInstantiation[];
+    return this.statements.filter(s => s instanceof OInstantiation) as OInstantiation[];
+  }
+  get ifGenerates() {
+    return this.statements.filter(s => s instanceof OIfGenerate) as OIfGenerate[];
+  }
+  get forGenerates() {
+    return this.statements.filter(s => s instanceof OForGenerate) as OForGenerate[];
   }
   get blocks() {
-    return this.statements.filter(statement => statement instanceof OBlock) as readonly OBlock[];
+    return this.statements.filter(s => s instanceof OBlock) as OBlock[];
   }
+  get assignments() {
+    return this.statements.filter(s => s instanceof OAssignment) as OAssignment[];
+  }
+
   get generates() {
-    const generates = this.statements.filter(statement => statement instanceof OForGenerate) as OArchitecture[];
-    for (const ifObj of this.statements.filter(statement => statement instanceof OIfGenerate) as OIfGenerate[]) {
+    const generates = this.forGenerates as OArchitecture[];
+    for (const ifObj of this.ifGenerates) {
       generates.push(...ifObj.ifGenerates);
       if (ifObj.elseGenerate) {
         generates.push(ifObj.elseGenerate);
       }
     }
-    return generates as readonly (OArchitecture)[];
-  }
-  get assignments() {
-    return this.statements.filter(statement => statement instanceof OAssignment) as readonly OAssignment[];
+    return generates as readonly OArchitecture[];
   }
 }
 export class OBlock extends OArchitecture {
   label: string;
 
 }
-export class OType extends ObjectBase implements IMentionable {
+export class OType extends ObjectBase implements IMentionable, IHasSubprograms {
   types: OType[] = [];
   subprograms: OSubprogram[] = [];
   mentions: OToken[] = [];
@@ -338,36 +349,16 @@ export abstract class OVariableBase extends ObjectBase implements IMentionable {
   defaultValue?: ORead[] = [];
 }
 export abstract class OSignalBase extends OVariableBase {
-  private register: boolean | null = null;
-  private registerProcess: OProcess | null;
+  registerProcess?: OProcess;
   constructor(public parent: OArchitecture | OEntity | OPackage | OPackageBody | OProcess | OForLoop | OSubprogram | OType, startI: number, endI: number) {
     super(parent, startI, endI);
-  }
-  isRegister(): boolean {
-    if (this.register !== null) {
-      return this.register;
-    }
-    this.register = false;
-    // const processes = this.parent instanceof OArchitecture ? this.parent.processes : (this.parent.parent instanceof OFileWithEntityAndArchitecture ? this.parent.parent.architecture.processes : []);
-    const processes = this.getRoot().objectList.filter(object => object instanceof OProcess) as OProcess[];
-    // TODO: Redeclaration of Signals
-    for (const process of processes) {
-      if (process.registerProcess) {
-        for (const write of process.getFlatWrites()) {
-          if (write.text.toLowerCase() === this.name.text.toLowerCase()) {
-            this.register = true;
-            this.registerProcess = process;
-          }
-        }
+    let p = parent;
+    while (p instanceof ObjectBase) {
+      if (p instanceof OProcess && p.registerProcess) {
+        this.registerProcess = p;
+        break;
       }
     }
-    return this.register;
-  }
-  getRegisterProcess(): OProcess | null {
-    if (this.isRegister === null) {
-      return null;
-    }
-    return this.registerProcess;
   }
 }
 export class OVariable extends OVariableBase {
@@ -392,7 +383,7 @@ export class OPortAssociationList extends OAssociationList {
     super(parent, startI, endI);
   }
 }
-export class OInstantiation extends ObjectBase implements IDefitionable {
+export class OInstantiation extends ObjectBase implements IHasDefinitions {
   constructor(public parent: OArchitecture | OEntity | OProcess | OLoop | OIf, startI: number, endI: number, public type: 'entity' | 'component' | 'procedure' | 'procedure-call') {
     super(parent, startI, endI);
   }
@@ -466,7 +457,7 @@ export class OInstantiation extends ObjectBase implements IDefitionable {
     return this.flatWrites;
   }
 }
-export class OAssociation extends ObjectBase implements IDefitionable {
+export class OAssociation extends ObjectBase implements IHasDefinitions {
   constructor(public parent: OAssociationList, startI: number, endI: number) {
     super(parent, startI, endI);
   }
@@ -475,7 +466,7 @@ export class OAssociation extends ObjectBase implements IDefitionable {
   actualIfInput: ORead[] = [];
   actualIfOutput: [ORead[], OWrite[]] = [[], []];
 }
-export class OEntity extends ObjectBase implements IDefitionable {
+export class OEntity extends ObjectBase implements IHasDefinitions, IHasSubprograms {
   constructor(public parent: OFileWithEntity | OArchitecture, startI: number, endI: number, public library?: string) {
     super(parent, startI, endI);
   }
@@ -499,29 +490,43 @@ export class OGeneric extends OVariableBase {
   defaultValue?: ORead[] = [];
   reads: ORead[] = [];
 }
-export type OStatement = OCase | OAssignment | OIf | OLoop | OInstantiation;
+export type OSequentialStatement = OCase | OAssignment | OIf | OLoop | OInstantiation;
 export class OIf extends ObjectBase {
   clauses: OIfClause[] = [];
   else?: OElseClause;
 }
-export class OElseClause extends ObjectBase {
-  statements: OStatement[] = [];
+export class OHasSequentialStatements extends ObjectBase implements IHasInstantiations {
+  statements: OSequentialStatement[] = [];
+  get cases() {
+    return this.statements.filter(s => s instanceof OCase) as OCase[];
+  }
+  get assignments() {
+    return this.statements.filter(s => s instanceof OAssignment) as OAssignment[];
+  }
+  get ifs() {
+    return this.statements.filter(s => s instanceof OIf) as OIf[];
+  }
+  get loops() {
+    return this.statements.filter(s => s instanceof OLoop) as OLoop[];
+  }
+  get instantiations() {
+    return this.statements.filter(s => s instanceof OInstantiation) as OInstantiation[];
+  }
 }
-export class OIfClause extends ObjectBase {
+export class OElseClause extends OHasSequentialStatements {
+}
+export class OIfClause extends OHasSequentialStatements implements IHasInstantiations {
   condition: string;
   conditionReads: ORead[] = [];
-  statements: OStatement[] = [];
 }
 export class OCase extends ObjectBase {
   variable: ORead[] = [];
   whenClauses: OWhenClause[] = [];
 }
-export class OWhenClause extends ObjectBase {
+export class OWhenClause extends OHasSequentialStatements implements IHasInstantiations {
   condition: ORead[] = [];
-  statements: OStatement[] = [];
 }
-export class OProcess extends ObjectBase {
-  statements: OStatement[] = [];
+export class OProcess extends OHasSequentialStatements implements IHasSubprograms, IHasInstantiations {
   sensitivityList: ORead[] = [];
   label?: string;
   types: OType[] = [];
@@ -529,84 +534,6 @@ export class OProcess extends ObjectBase {
   variables: OVariable[] = [];
   resetClause?: OIfClause;
   registerProcess: boolean = false;
-  private flatWrites: OWrite[] | null = null;
-  getFlatWrites(): OWrite[] {
-    if (this.flatWrites !== null) {
-      return this.flatWrites;
-    }
-    const flatten = (objects: OStatement[]) => {
-      const flatWrites: OWrite[] = [];
-      for (const object of objects) {
-        if (object instanceof OAssignment) {
-          flatWrites.push(...object.writes);
-        } else if (object instanceof OIf) {
-          if (object.else) {
-            flatWrites.push(...flatten(object.else.statements));
-          }
-          for (const clause of object.clauses) {
-            flatWrites.push(...flatten(clause.statements));
-          }
-        } else if (object instanceof OCase) {
-          for (const whenClause of object.whenClauses) {
-            flatWrites.push(...flatten(whenClause.statements));
-          }
-        } else if (object instanceof OForLoop || object instanceof OWhileLoop) {
-          flatWrites.push(...flatten(object.statements));
-        } else if (object instanceof OInstantiation) {
-          // TODO
-        } else {
-          throw new Error('UUPS');
-        }
-
-
-      }
-      return flatWrites;
-    };
-    this.flatWrites = flatten(this.statements);
-    return this.flatWrites;
-  }
-  private flatReads: ORead[] | null = null;
-  getFlatReads(): ORead[] {
-    if (this.flatReads !== null) {
-      return this.flatReads;
-    }
-    const flatten = (objects: OStatement[]) => {
-      const flatReads: ORead[] = [];
-      for (const object of objects) {
-        if (object instanceof OAssignment) {
-          flatReads.push(...object.reads);
-        } else if (object instanceof OIf) {
-          if (object.else) {
-            flatReads.push(...flatten(object.else.statements));
-          }
-          for (const clause of object.clauses) {
-            flatReads.push(...clause.conditionReads);
-            flatReads.push(...flatten(clause.statements));
-          }
-        } else if (object instanceof OCase) {
-          flatReads.push(...object.variable);
-          for (const whenClause of object.whenClauses) {
-            flatReads.push(...whenClause.condition);
-            flatReads.push(...flatten(whenClause.statements));
-          }
-        } else if (object instanceof OForLoop) {
-          flatReads.push(...flatten(object.statements));
-        } else if (object instanceof OWhileLoop) {
-          flatReads.push(...flatten(object.statements));
-          flatReads.push(...object.conditionReads);
-        } else if (object instanceof OInstantiation) {
-          // TODO
-        } else {
-          throw new Error('UUPS');
-        }
-
-
-      }
-      return flatReads;
-    };
-    this.flatReads = flatten(this.statements);
-    return this.flatReads;
-  }
   private resets: string[] | null = null;
   getResets(): string[] {
     if (this.resets !== null) {
@@ -616,17 +543,14 @@ export class OProcess extends ObjectBase {
     if (!this.registerProcess) {
       return this.resets;
     }
-    for (const statement of this.resetClause?.statements ?? []) {
-      if (statement instanceof OAssignment) {
-        this.resets.push(...statement.writes.map(write => write.text));
-      }
+    for (const assignments of this.resetClause?.assignments ?? []) {
+        this.resets.push(...assignments.writes.map(write => write.text));
     }
     return this.resets;
   }
 }
 
-export class OLoop extends ObjectBase {
-  statements: OStatement[] = [];
+export class OLoop extends OHasSequentialStatements implements IHasInstantiations {
 }
 export class OForLoop extends OLoop {
   variable: OVariable;
@@ -640,7 +564,7 @@ export class OAssignment extends ObjectBase {
   reads: ORead[] = [];
 }
 
-export class OToken extends ObjectBase implements IDefitionable {
+export class OToken extends ObjectBase implements IHasDefinitions {
   definitions: ObjectBase[] = [];
 
   public scope?: OArchitecture | OProcess | OEntity | OForLoop | OSubprogram | OPackage | OPackageBody;
@@ -801,7 +725,7 @@ export class OElementRead extends ORead {
     super(parent, startI, endI, text);
   }
 }
-export class OAssociationFormal extends ObjectBase implements IDefitionable {
+export class OAssociationFormal extends ObjectBase implements IHasDefinitions {
   definitions: (OPort | OGeneric)[] = [];
   constructor(public parent: OAssociation, startI: number, endI: number, public text: string) {
     super(parent, startI, endI);
@@ -838,4 +762,13 @@ export class OMagicCommentParameter extends OMagicComment {
   constructor(public parent: OFile, public commentType: MagicCommentType.Parameter, range: OIRange, public parameter: string[]) {
     super(parent, commentType, range);
   }
+}
+export class OSubprogram extends OHasSequentialStatements implements IMentionable, IHasSubprograms, IHasInstantiations {
+  parent: OPackage;
+  mentions: OToken[] = [];
+  variables: OVariable[] = [];
+  ports: OPort[] = [];
+  types: OType[] = [];
+  subprograms: OSubprogram[] = [];
+  return: ORead[] = [];
 }

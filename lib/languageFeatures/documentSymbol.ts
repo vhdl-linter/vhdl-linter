@@ -1,6 +1,6 @@
 import { DocumentSymbol, DocumentSymbolParams, SymbolKind } from 'vscode-languageserver';
 import { initialization, linters } from '../language-server';
-import { OArchitecture, OCase, OFileWithEntityAndArchitecture, OFileWithPackages, OForLoop, OIf, OStatement } from '../parser/objects';
+import { OArchitecture, OCase, OFileWithEntityAndArchitecture, OFileWithPackages, OForLoop, OIf, OSequentialStatement } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
 
 function parseArchitecture(architecture: OArchitecture, linter: VhdlLinter): DocumentSymbol[] {
@@ -46,7 +46,7 @@ function parseArchitecture(architecture: OArchitecture, linter: VhdlLinter): Doc
   }
   return symbols;
 }
-function parseStatements(statement: OStatement): DocumentSymbol[] {
+function parseStatements(statement: OSequentialStatement): DocumentSymbol[] {
   // OCase | OAssignment | OIf | OForLoop
   if (statement instanceof OCase) {
     const result = [{
