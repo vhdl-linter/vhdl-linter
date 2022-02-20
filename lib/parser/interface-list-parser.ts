@@ -4,12 +4,13 @@ import { SubprogramParser } from "./subprogram-parser";
 
 
 export class InterfaceListParser extends ParserBase {
-  constructor(text: string, pos: OI, file: string, private parent: OEntity|OSubprogram|OPackage) {
+  constructor(text: string, pos: OI, file: string, private parent: OEntity | OSubprogram | OPackage) {
     super(text, pos, file);
     this.debug('start');
   }
 
   parse(genericMap: boolean) {
+    this.debug('parse');
     this.expect('(');
     const ports: any[] = [];
     if (genericMap) {
@@ -24,7 +25,10 @@ export class InterfaceListParser extends ParserBase {
       this.parent.ports = ports;
     }
     while (this.pos.i < this.text.length) {
+      this.debug('parse i ' + this.pos.i);
+
       this.advanceWhitespace();
+
       let port = genericMap ?
         new OGeneric(this.parent, this.pos.i, this.getEndOfLineI()) :
         new OPort(this.parent, this.pos.i, this.getEndOfLineI());
@@ -34,6 +38,7 @@ export class InterfaceListParser extends ParserBase {
         this.advanceWhitespace();
         break;
       }
+
       const nextWord = this.getNextWord({ consume: false }).toLowerCase();
       if (nextWord === 'type') {
         this.getNextWord();
@@ -93,5 +98,7 @@ export class InterfaceListParser extends ParserBase {
         }
       }
     }
+    this.debug('parseEnd');
+
   }
 }

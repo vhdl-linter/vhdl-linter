@@ -1,4 +1,5 @@
 import { Position, Range, TextEdit } from 'vscode-languageserver';
+import { config } from './config';
 
 export class OI implements Position {
   private i_: number;
@@ -110,9 +111,14 @@ export class ObjectBase {
   public range: OIRange;
   constructor(public parent: ObjectBase | OFile, startI: number, endI: number) {
     this.range = new OIRange(this, startI, endI);
+    let maximumIterationCounter = 5000;
     let p = parent;
     while (!(p instanceof OFile)) {
       p = p.parent;
+      maximumIterationCounter--;
+      if (maximumIterationCounter === 0) {
+        throw new ParserError('Maximum Iteraction Counter overrung', new OIRange(parent, startI, endI));
+      }
     }
     p.objectList.push(this);
   }
@@ -217,7 +223,7 @@ export class OUseStatement extends ObjectBase {
   end: number;
 }
 export type OConcurrentStatements = OProcess | OInstantiation | OIfGenerate | OForGenerate | OBlock | OAssignment;
-export class OHasConcurrentStatements extends ObjectBase{
+export class OHasConcurrentStatements extends ObjectBase {
 }
 
 export class OArchitecture extends ObjectBase implements IHasSubprograms, IHasInstantiations {
@@ -225,7 +231,7 @@ export class OArchitecture extends ObjectBase implements IHasSubprograms, IHasIn
   types: OType[] = [];
   subprograms: OSubprogram[] = [];
   components: OEntity[] = [];
-  statements: OConcurrentStatements[];
+  statements: OConcurrentStatements[] = [];
   get processes() {
     return this.statements.filter(s => s instanceof OProcess) as OProcess[];
   }
@@ -352,11 +358,23 @@ export abstract class OSignalBase extends OVariableBase {
   registerProcess?: OProcess;
   constructor(public parent: OArchitecture | OEntity | OPackage | OPackageBody | OProcess | OForLoop | OSubprogram | OType, startI: number, endI: number) {
     super(parent, startI, endI);
-    let p = parent;
+    let pos = new OIRange(parent, startI, endI);
+    if (config.debug) {
+      console.log(`${this.constructor.name}:   at ${pos.start.line}:${pos.start.character})`);
+    }
+
+    let maximumIterationCounter = 5000;
+    let p: ObjectBase | OFile = parent;
     while (p instanceof ObjectBase) {
       if (p instanceof OProcess && p.registerProcess) {
         this.registerProcess = p;
         break;
+      }
+      p = p.parent;
+      maximumIterationCounter--;
+      if (maximumIterationCounter === 0) {
+        throw new ParserError('Maximum Iteraction Counter overrung', new OIRange(parent, startI, endI));
+
       }
     }
   }
@@ -544,7 +562,7 @@ export class OProcess extends OHasSequentialStatements implements IHasSubprogram
       return this.resets;
     }
     for (const assignments of this.resetClause?.assignments ?? []) {
-        this.resets.push(...assignments.writes.map(write => write.text));
+      this.resets.push(...assignments.writes.map(write => write.text));
     }
     return this.resets;
   }

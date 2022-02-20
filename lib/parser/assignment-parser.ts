@@ -7,6 +7,7 @@ export class AssignmentParser extends ParserBase {
     this.debug(`start`);
   }
   parse(): OAssignment {
+    this.debug('parse');
     let assignment = new OAssignment(this.parent, this.pos.i, this.getEndOfLineI());
     let leftHandSideI = this.pos.i;
     let leftHandSide = '';
@@ -22,6 +23,7 @@ export class AssignmentParser extends ParserBase {
     const rightHandSide = this.advanceSemicolon();
     assignment.reads.push(...this.extractReads(assignment, rightHandSide, rightHandSideI));
     assignment.range.end.i = this.pos.i;
+    this.debug('parse end');
     return assignment;
   }
 

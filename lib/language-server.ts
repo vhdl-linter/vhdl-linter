@@ -13,7 +13,7 @@ import { findReferencesHandler, prepareRenameHandler, renameHandler } from './la
 import { foldingHandler } from './languageFeatures/folding';
 import { handleReferences } from './languageFeatures/references';
 import { handleOnWorkspaceSymbol } from './languageFeatures/workspaceSymbols';
-import { implementsIHasDefinitions, OFile, OFileWithEntity, OFileWithEntityAndArchitecture, OInstantiation, OName } from './parser/objects';
+import { implementsIHasDefinitions, OFile, OFileWithEntity, OFileWithEntityAndArchitecture, OInstantiation, OName, OMagicCommentDisable } from './parser/objects';
 import { ProjectParser } from './project-parser';
 import { VhdlLinter } from './vhdl-linter';
 
@@ -129,10 +129,12 @@ connection.onInitialize((params: InitializeParams) => {
 });
 export const initialization = new Promise<void>(resolve => {
   connection.onInitialized(async () => {
+    debugger;
     if (hasConfigurationCapability) {
       // Register for all configuration changes.
       connection.client.register(DidChangeConfigurationNotification.type, undefined);
     }
+
     if (hasWorkspaceFolderCapability) {
       const parseWorkspaces = async () => {
         const workspaceFolders = await connection.workspace.getWorkspaceFolders();
@@ -155,11 +157,13 @@ export const initialization = new Promise<void>(resolve => {
       projectParser = new ProjectParser(folders);
       await projectParser.init();
     }
+
     documents.all().forEach(validateTextDocument);
     projectParser.events.on('change', (...args) => {
       // console.log('projectParser.events.change', new Date().getTime(), ... args);
       documents.all().forEach(validateTextDocument);
     });
+
     documents.onDidChangeContent(change => {
       // console.log('onDidChangeContent', new Date().getTime());
       validateTextDocument(change.document);

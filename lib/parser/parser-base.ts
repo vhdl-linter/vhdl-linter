@@ -40,6 +40,7 @@ export class ParserBase {
     //     console.log(`${this.constructor.name}: ${JSON.stringify(target, null, 2)} in line: ${this.getLine()}, (${this.file})`);
   }
   getTypeDefintion(parent: OGeneric | OPort) {
+    this.debug('getTypeDefintion');
     let type = '';
     let braceLevel = 0;
     while (this.text[this.pos.i].match(/[^);:]/) || braceLevel > 0) {

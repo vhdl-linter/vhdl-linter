@@ -171,7 +171,13 @@ export class ConcurrentStatementParser extends ParserBase {
       } else { // statement;
         const assignmentParser = new AssignmentParser(this.text, this.pos, this.file, this.parent);
         const assignment = assignmentParser.parse();
-        this.parent.statements.push(assignment);
+        try {
+          this.parent.statements.push(assignment);
+        } catch (err) {
+          debugger;
+          throw new ParserError(`AAA`, this.pos.getRangeToEndLine());
+
+        }
 
       }
     } else {

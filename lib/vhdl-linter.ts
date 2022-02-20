@@ -198,10 +198,10 @@ export class VhdlLinter {
           if (!(obj.parent.parent instanceof OInstantiation)) {
             continue;
           }
-          let entitiesOrProcedures: (OEntity|OSubprogram)[] = [];
+          let entitiesOrProcedures: (OEntity | OSubprogram)[] = [];
           switch (obj.parent.parent.type) {
             case 'component':
-              case 'entity':
+            case 'entity':
               entitiesOrProcedures = this.getEntities(obj.parent.parent);
               break;
             case 'procedure':
@@ -829,7 +829,7 @@ export class VhdlLinter {
       }
     }
   }
-  getEntities(instantiation: OInstantiation|OEntity): OEntity[] {
+  getEntities(instantiation: OInstantiation | OEntity): OEntity[] {
     const entities: OEntity[] = [];
     if (instantiation instanceof OInstantiation) {
       // find all defined components in current scope
@@ -859,7 +859,6 @@ export class VhdlLinter {
 
   getSubprograms(instantiation: OInstantiation): OSubprogram[] {
     const subprograms: OSubprogram[] = [];
-
     // find all defined subprograms in current scope
     let parent: ObjectBase | OFile | undefined = instantiation.parent;
     if (!parent) {
@@ -878,10 +877,10 @@ export class VhdlLinter {
     const addTypes = (...type: OType[]) => {
       subprograms.push(...type.flatMap(t => t.subprograms));
       addTypes(...type.flatMap(t => t.types));
-    }
+    };
     for (const pkg of this.packages) {
       subprograms.push(...pkg.subprograms);
-      addTypes(...pkg.types);
+      // addTypes(...pkg.types);
     }
     // in entities
     subprograms.push(...this.projectParser.getEntities().flatMap(ent => ent.subprograms));
@@ -994,63 +993,63 @@ export class VhdlLinter {
       return;
     }
     if (implementsIHasInstantiations(object))
-    for (const instantiation of object.instantiations) {
-      let entitiesOrSubprograms;
-      switch (instantiation.type) {
-        case 'component':
+      for (const instantiation of object.instantiations) {
+        let entitiesOrSubprograms;
+        switch (instantiation.type) {
+          case 'component':
           case 'entity':
-          entitiesOrSubprograms = this.getEntities(instantiation);
-          break;
-        case 'procedure':
-        case 'procedure-call':
-          entitiesOrSubprograms = this.getSubprograms(instantiation);
-          break;
+            entitiesOrSubprograms = this.getEntities(instantiation);
+            break;
+          case 'procedure':
+          case 'procedure-call':
+            entitiesOrSubprograms = this.getSubprograms(instantiation);
+            break;
+        }
+        this.checkPortMaps(entitiesOrSubprograms, instantiation);
       }
-      this.checkPortMaps(entitiesOrSubprograms, instantiation);
+    if (implementsIHasSubprograms(object)) {
+      for (const subprograms of object.subprograms) {
+        this.checkInstantiations(subprograms);
+      }
     }
-    // if (implementsIHasSubprograms(object)) {
-    //   for (const subprograms of object.subprograms) {
-    //     this.checkInstantiations(subprograms);
-    //   }
-    // }
-    // if (object instanceof OArchitecture) {
-    //   for (const generate of object.generates) {
-    //     this.checkInstantiations(generate);
-    //   }
-    //   for (const block of object.blocks) {
-    //     this.checkInstantiations(block);
-    //   }
-    // }
-    // if (object instanceof OIf) {
-    //   for (const clause of object.clauses) {
-    //     this.checkInstantiations(clause);
-    //   }
-    //   if (object.else) {
-    //     this.checkInstantiations(object.else);
-    //   }
-    // }
-    // if (object instanceof OCase) {
-    //   for (const clause of object.whenClauses) {
-    //     this.checkInstantiations(clause);
-    //   }
-    // }
-    // if (object instanceof OHasSequentialStatements) {
-    //   for (const cases of object.cases) {
-    //     this.checkInstantiations(cases);
-    //   }
-    //   for (const assignments of object.assignments) {
-    //     this.checkInstantiations(assignments);
-    //   }
-    //   for (const ifs of object.ifs) {
-    //     this.checkInstantiations(ifs);
-    //   }
-    //   for (const loops of object.loops) {
-    //     this.checkInstantiations(loops);
-    //   }
-    //   for (const instantiations of object.instantiations) {
-    //     this.checkInstantiations(instantiations);
-    //   }
-    // }
+    if (object instanceof OArchitecture) {
+      for (const generate of object.generates) {
+        this.checkInstantiations(generate);
+      }
+      for (const block of object.blocks) {
+        this.checkInstantiations(block);
+      }
+    }
+    if (object instanceof OIf) {
+      for (const clause of object.clauses) {
+        this.checkInstantiations(clause);
+      }
+      if (object.else) {
+        this.checkInstantiations(object.else);
+      }
+    }
+    if (object instanceof OCase) {
+      for (const clause of object.whenClauses) {
+        this.checkInstantiations(clause);
+      }
+    }
+    if (object instanceof OHasSequentialStatements) {
+      for (const cases of object.cases) {
+        this.checkInstantiations(cases);
+      }
+      for (const assignments of object.assignments) {
+        this.checkInstantiations(assignments);
+      }
+      for (const ifs of object.ifs) {
+        this.checkInstantiations(ifs);
+      }
+      for (const loops of object.loops) {
+        this.checkInstantiations(loops);
+      }
+      for (const instantiations of object.instantiations) {
+        this.checkInstantiations(instantiations);
+      }
+    }
   }
   getIFromPosition(p: Position): number {
     let text = this.text.split('\n').slice(0, p.line);
