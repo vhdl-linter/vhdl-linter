@@ -9,11 +9,11 @@ export class InterfaceListParser extends ParserBase {
     this.debug('start');
   }
 
-  parse(genericMap: boolean) {
+  parse(generics: boolean) {
     this.debug('parse');
     this.expect('(');
     const ports: any[] = [];
-    if (genericMap) {
+    if (generics) {
       if (this.parent instanceof OSubprogram) {
         throw new Error('Subprogram cannot have generics');
       }
@@ -29,7 +29,7 @@ export class InterfaceListParser extends ParserBase {
 
       this.advanceWhitespace();
 
-      let port = genericMap ?
+      let port = generics ?
         new OGeneric(this.parent, this.pos.i, this.getEndOfLineI()) :
         new OPort(this.parent, this.pos.i, this.getEndOfLineI());
 
@@ -45,7 +45,7 @@ export class InterfaceListParser extends ParserBase {
         port.name = new OName(port, this.pos.i, this.pos.i);
         port.name.text = this.getNextWord();
         port.name.range.end.i = port.name.range.start.i + port.name.text.length;
-        if (genericMap) {
+        if (generics) {
           ports.push(port);
         } else {
           ports.push(port as any);
@@ -57,12 +57,12 @@ export class InterfaceListParser extends ParserBase {
       } else if (nextWord === 'procedure' || nextWord === 'impure' || nextWord === 'pure' || nextWord === 'function') {
         const subprogramParser = new SubprogramParser(this.text, this.pos, this.file, this.parent);
         this.parent.subprograms.push(subprogramParser.parse(this.pos.i));
+        if (this.text[this.pos.i] === ';') {
+          this.pos.i++;
+          this.advanceWhitespace();
+        }
       } else {
-        let constant: boolean | undefined;
         if (nextWord === 'signal' || nextWord === 'variable' || nextWord === 'constant' || nextWord === 'file') {
-          if (nextWord === 'constant') {
-            constant = true;
-          }
           this.getNextWord();
         }
         port.name = new OName(port, this.pos.i, this.pos.i);
@@ -77,7 +77,7 @@ export class InterfaceListParser extends ParserBase {
         if (port instanceof OPort) {
           directionString = this.getNextWord({ consume: false }).toLowerCase();
           if (directionString !== 'in' && directionString !== 'out' && directionString !== 'inout') {
-            port.direction = constant ? 'in' : 'inout';
+            port.direction = 'in';
             port.directionRange = new OIRange(port, this.pos.i, this.pos.i);
           } else {
             port.direction = directionString;
@@ -91,7 +91,7 @@ export class InterfaceListParser extends ParserBase {
         port.type = this.extractReads(port, type, iBeforeType);
 
         port.defaultValue = defaultValue;
-        if (genericMap) {
+        if (generics) {
           ports.push(port);
         } else {
           ports.push(port as any);

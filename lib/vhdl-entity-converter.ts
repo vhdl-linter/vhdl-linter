@@ -8,8 +8,8 @@ function getEntity() {
         return;
     }
     const vhdlLinter = new VhdlLinter(editor.document.uri.path, editor.document.getText(), new ProjectParser([]), true);
-    if (vhdlLinter.tree instanceof OFileWithEntity) {
-        return vhdlLinter.tree.entity;
+    if (vhdlLinter.file instanceof OFileWithEntity) {
+        return vhdlLinter.file.entity;
     }
 }
 export enum CopyTypes {

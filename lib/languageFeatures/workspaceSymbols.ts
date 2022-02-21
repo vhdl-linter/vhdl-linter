@@ -7,7 +7,7 @@ export async function handleOnWorkspaceSymbol(params: WorkspaceSymbolParams): Pr
 
   const symbols: SymbolInformation[] = [];
   for (const cachedFile of projectParser.cachedFiles) {
-    for (const object of cachedFile.linter.tree?.objectList ?? []) {
+    for (const object of cachedFile.linter.file?.objectList ?? []) {
       if (object instanceof OInstantiation) {
         symbols.push(SymbolInformation.create(object.label + ': ' + object.componentName, SymbolKind.Object, object.range, URI.file(cachedFile.path).toString()));
       }

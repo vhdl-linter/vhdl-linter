@@ -8,18 +8,18 @@ export async function handleReferences (params: ReferenceParams): Promise<Locati
   if (typeof linter === 'undefined') {
     return [];
   }
-  if (typeof linter.tree === 'undefined') {
+  if (typeof linter.file === 'undefined') {
     return [];
   }
   let startI = linter.getIFromPosition(params.position);
-  const candidates = linter.tree.objectList.filter(object => object.range.start.i <= startI && startI <= object.range.end.i);
+  const candidates = linter.file.objectList.filter(object => object.range.start.i <= startI && startI <= object.range.end.i);
   candidates.sort((a, b) => (a.range.end.i - a.range.start.i) - (b.range.end.i - b.range.start.i));
   const candidate = candidates[0];
   if (!candidate) {
     return [];
   }
   if (candidate instanceof OToken) {
-    return linter.tree.objectList.filter(obj => obj instanceof OToken && obj.text.toLowerCase() === candidate.text.toLowerCase() && obj !== candidate).map(obj => Location.create(params.textDocument.uri, obj.range));
+    return linter.file.objectList.filter(obj => obj instanceof OToken && obj.text.toLowerCase() === candidate.text.toLowerCase() && obj !== candidate).map(obj => Location.create(params.textDocument.uri, obj.range));
   }
   return [];
 }

@@ -1,5 +1,5 @@
 import { DeclarativePartParser } from "./declarative-part-parser";
-import { OArchitecture, OEntity, OEnum, OI, OName, OPackage, OPackageBody, OProcess, ORecord, ORecordChild, OState, OSubprogram, OType, ParserError } from "./objects";
+import { OArchitecture, OEntity, OEnum, OI, OName, OPackage, OPackageBody, OProcess, ORecord, ORecordChild, OEnumLiteral, OSubprogram, OType, ParserError } from "./objects";
 import { ParserBase } from "./parser-base";
 
 
@@ -17,7 +17,10 @@ export class TypeParser extends ParserBase {
     const typeName = this.getNextWord();
     type.name = new OName(type, startTypeName, startTypeName + typeName.length);
     type.name.text = typeName;
-
+    if (this.text[this.pos.i] === ';') {
+      this.advancePast(';');
+      return type;
+    }
     if (this.getNextWord().toLowerCase() === 'is') {
       if (this.text[this.pos.i] === '(') {
         this.expect('(');
@@ -45,8 +48,8 @@ export class TypeParser extends ParserBase {
           i++;
         }
 
-        (type as OEnum).states = enumItems.map(item => {
-          const state = new OState(type, item.start, item.end);
+        (type as OEnum).literals = enumItems.map(item => {
+          const state = new OEnumLiteral(type, item.start, item.end);
           state.name = new OName(state, item.start, item.start + item.text.length);
           state.name.text = item.text;
           state.range.end.i = state.range.start.i + state.name.text.length;

@@ -42,7 +42,6 @@ export class SubprogramParser extends ParserBase {
       subprogram.range.end.i = this.pos.i;
 
     }
-    this.expect(';');
 
     return subprogram;
   }

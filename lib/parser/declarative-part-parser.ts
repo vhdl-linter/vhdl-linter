@@ -92,6 +92,7 @@ export class DeclarativePartParser extends ParserBase {
       } else if (nextWord === 'procedure' || nextWord === 'impure' || nextWord === 'pure' || nextWord === 'function') {
         const subprogramParser = new SubprogramParser(this.text, this.pos, this.file, this.parent);
         this.parent.subprograms.push(subprogramParser.parse(this.pos.i));
+        this.expect(';');
       } else if (nextWord === 'package' || nextWord === 'generic') {
         this.advanceSemicolon();
       } else if (nextWord === 'file') {

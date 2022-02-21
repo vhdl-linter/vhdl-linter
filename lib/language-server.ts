@@ -129,7 +129,6 @@ connection.onInitialize((params: InitializeParams) => {
 });
 export const initialization = new Promise<void>(resolve => {
   connection.onInitialized(async () => {
-    debugger;
     if (hasConfigurationCapability) {
       // Register for all configuration changes.
       connection.client.register(DidChangeConfigurationNotification.type, undefined);
@@ -181,7 +180,7 @@ export const lintersValid = new Map<string, boolean>();
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   console.log(textDocument.uri);
   const vhdlLinter = new VhdlLinter(URI.parse(textDocument.uri).fsPath, textDocument.getText(), projectParser);
-  if (typeof vhdlLinter.tree !== 'undefined' || typeof linters.get(textDocument.uri) === 'undefined') {
+  if (typeof vhdlLinter.file !== 'undefined' || typeof linters.get(textDocument.uri) === 'undefined') {
     linters.set(textDocument.uri, vhdlLinter);
     lintersValid.set(textDocument.uri, true);
   } else {
@@ -230,9 +229,9 @@ const findDefinitions = async (params: IFindDefinitionParams) => {
   }
 
   let startI = linter.getIFromPosition(params.position);
-  const candidates = linter.tree?.objectList.filter(object => object.range.start.i <= startI && startI <= object.range.end.i) ?? [];
-  if (linter.tree instanceof OFileWithEntityAndArchitecture) {
-    candidates.push(...linter.tree.architecture.components.filter(object => object.range.start.i <= startI && startI <= object.range.end.i));
+  const candidates = linter.file?.objectList.filter(object => object.range.start.i <= startI && startI <= object.range.end.i) ?? [];
+  if (linter.file instanceof OFileWithEntityAndArchitecture) {
+    candidates.push(...linter.file.architecture.components.filter(object => object.range.start.i <= startI && startI <= object.range.end.i));
   }
   candidates.sort((a, b) => (a.range.end.i - a.range.start.i) - (b.range.end.i - b.range.start.i));
   let candidate = candidates[0];
@@ -319,7 +318,7 @@ connection.onRequest('vhdl-linter/listing', async (params: any, b: any) => {
         if (object.definitions && object.definitions[0].parent instanceof OFileWithEntity) {
           const vhdlLinter = new VhdlLinter(object.definitions[0].parent.file, object.definitions[0].parent.originalText, projectParser);
           await vhdlLinter.checkAll();
-          await parseTree(vhdlLinter.tree);
+          await parseTree(vhdlLinter.file);
         } else {
           // throw new Error(`Can not find ${object.componentName}`);q
         }
@@ -328,7 +327,7 @@ connection.onRequest('vhdl-linter/listing', async (params: any, b: any) => {
 
   }
 
-  await parseTree(linter.tree);
+  await parseTree(linter.file);
   return (files.map(file => {
     if (file instanceof OFileWithEntity) {
       return [file.file.replace((rootUri ?? '').replace('file://', ''), ''), file.entity.library];

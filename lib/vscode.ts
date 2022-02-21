@@ -83,8 +83,8 @@ export function activate(context: ExtensionContext) {
       return;
     }
     const vhdlLinter = new VhdlLinter(editor.document.uri.path, editor.document.getText(), new ProjectParser([]));
-    if (vhdlLinter.tree) {
-      env.clipboard.writeText(vhdlLinter.tree.getJSON());
+    if (vhdlLinter.file) {
+      env.clipboard.writeText(vhdlLinter.file.getJSON());
       window.showInformationMessage(`VHDL file as JSON copied to clipboard`);
 
     }

@@ -162,8 +162,10 @@ export function implementsIHasInstantiations(obj: unknown): obj is IHasInstantia
 export class OFile {
   constructor(public text: string, public file: string, public originalText: string) { }
   libraries: string[] = [];
-  useStatements: OUseStatement[] = [];
+  useClauses: OUseClause[] = [];
   objectList: ObjectBase[] = [];
+  contexts: OContext[] = [];
+  contextReferences: OContextReference[] = [];
   magicComments: (OMagicCommentParameter | OMagicCommentDisable | OMagicCommentTodo)[] = [];
   getJSON() {
     const obj = {};
@@ -216,11 +218,23 @@ export class OPackageBody extends ObjectBase implements IHasSubprograms {
   types: OType[] = [];
   library?: string;
 }
-export class OUseStatement extends ObjectBase {
+export class OUseClause extends ObjectBase {
+  constructor(public parent: OFile|OContext, startI: number, endI: number, public library: string, public packageName: string, public suffix: string) {
+    super(parent, startI, endI);
+  }
+}
+
+export class OContextReference extends ObjectBase {
+  constructor(public parent: OFile|OContext, startI: number, endI: number, public library: string, public contextName: string) {
+    super(parent, startI, endI);
+  }
+}
+export class OContext extends ObjectBase {
   parent: OFile;
-  text: string;
-  begin: number;
-  end: number;
+  name: OName;
+  useClauses: OUseClause[] = [];
+  contextReferences: OContextReference[] = [];
+  libraries: string[] = [];
 }
 export type OConcurrentStatements = OProcess | OInstantiation | OIfGenerate | OForGenerate | OBlock | OAssignment;
 export class OHasConcurrentStatements extends ObjectBase {
@@ -232,6 +246,7 @@ export class OArchitecture extends ObjectBase implements IHasSubprograms, IHasIn
   subprograms: OSubprogram[] = [];
   components: OEntity[] = [];
   statements: OConcurrentStatements[] = [];
+
   get processes() {
     return this.statements.filter(s => s instanceof OProcess) as OProcess[];
   }
@@ -286,7 +301,7 @@ export class OType extends ObjectBase implements IMentionable, IHasSubprograms {
       }
     }
     if (this instanceof OEnum) {
-      for (const state of this.states) {
+      for (const state of this.literals) {
         if (state.name.text.toLowerCase() === read.text.toLowerCase()) {
           return state;
         }
@@ -306,7 +321,7 @@ export class OSubType extends OType {
   reads: ORead[] = [];
 }
 export class OEnum extends OType {
-  states: OState[] = [];
+  literals: OEnumLiteral[] = [];
 }
 export class ORecord extends OType {
   children: ORecordChild[] = [];
@@ -314,7 +329,7 @@ export class ORecord extends OType {
 export class ORecordChild extends OType {
   public parent: ORecord;
 }
-export class OState extends ObjectBase implements IMentionable {
+export class OEnumLiteral extends ObjectBase implements IMentionable {
   mentions: OToken[] = [];
   public parent: OEnum;
 }
@@ -633,7 +648,7 @@ export class OToken extends ObjectBase implements IHasDefinitions {
             type.mentions.push(this);
           }
           if (type instanceof OEnum) {
-            for (const state of type.states) {
+            for (const state of type.literals) {
               if (state.name.text.toLowerCase() === text.toLowerCase()) {
                 this.definitions.push(state);
                 this.scope = object;

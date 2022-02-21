@@ -2,13 +2,14 @@ import { FSWatcher, watch } from 'chokidar';
 import { EventEmitter } from 'events';
 import { promises, readFileSync } from 'fs';
 import { join, sep } from 'path';
-import { OEntity, OFileWithEntity, OFileWithPackages, OPackage, OPackageBody, OSubprogram } from './parser/objects';
+import { OContext, OEntity, OFile, OFileWithEntity, OFileWithPackages, OPackage, OPackageBody, OSubprogram } from './parser/objects';
 import { VhdlLinter } from './vhdl-linter';
 
 export class ProjectParser {
 
   public cachedFiles: OFileCache[] = [];
   private packages: (OPackage|OPackageBody)[];
+  private contexts: OContext[] = [];
   private entities: OEntity[];
   events = new EventEmitter();
   constructor(public workspaces: string[]) { }
@@ -25,22 +26,19 @@ export class ProjectParser {
     const pkg = __dirname;
     if (pkg) {
       //       console.log(pkg, new Directory(pkg + '/ieee2008'));
-      (await this.parseDirectory(join(pkg, `${sep}..${sep}..${sep}ieee2008`))).forEach(file => files.add(file));
-      files.add(join(pkg, `${sep}..${sep}..${sep}standard.vhd`));
-      files.add(join(pkg, `${sep}..${sep}..${sep}textio.vhd`));
-      files.add(join(pkg, `${sep}..${sep}..${sep}env.vhd`));
+      (await this.parseDirectory(join(pkg, `${sep}..${sep}..${sep}ieee2008`))).forEach(file => files.add(file));;
     }
     for (const file of files) {
       let cachedFile = new OFileCache(file, this);
       this.cachedFiles.push(cachedFile);
     }
-    this.fetchEntitesAndPackages();
+    this.fetchEntitesAndPackagesAndContexts();
     for (const workspace of this.workspaces) {
       const watcher = watch(workspace.replace(sep, '/') + '/**/*.vhd', { ignoreInitial: true });
       watcher.on('add', async (path) => {
         let cachedFile = new OFileCache(path, this);
         this.cachedFiles.push(cachedFile);
-        this.fetchEntitesAndPackages();
+        this.fetchEntitesAndPackagesAndContexts();
         this.events.emit('change', 'add', path);
       });
       watcher.on('change', async (path) => {
@@ -53,13 +51,13 @@ export class ProjectParser {
         } else {
           console.error('modified file not found', path);
         }
-        this.fetchEntitesAndPackages();
+        this.fetchEntitesAndPackagesAndContexts();
         this.events.emit('change', 'change', path);
       });
       watcher.on('unlink', path => {
         const cachedFileIndex = this.cachedFiles.findIndex(cachedFile => cachedFile.path === path);
         this.cachedFiles.splice(cachedFileIndex, 1);
-        this.fetchEntitesAndPackages();
+        this.fetchEntitesAndPackagesAndContexts();
         this.events.emit('change', 'unlink', path);
       });
 
@@ -86,7 +84,7 @@ export class ProjectParser {
     }));
     return files;
   }
-  private fetchEntitesAndPackages() {
+  private fetchEntitesAndPackagesAndContexts() {
     //     console.log(this.cachedFiles);
     this.packages = [];
     this.entities = [];
@@ -97,6 +95,9 @@ export class ProjectParser {
       if (cachedFile.packages) {
         this.packages.push(...cachedFile.packages);
       }
+      if (cachedFile.contexts) {
+        this.contexts.push(...cachedFile.contexts);
+      }
     }
   }
   watcher: FSWatcher;
@@ -105,6 +106,9 @@ export class ProjectParser {
   }
   public getPackages() {
     return this.packages;
+  }
+  public getContexts() {
+    return this.contexts;
   }
   public getEntities() {
     return this.entities;
@@ -116,6 +120,7 @@ export class OFileCache {
   path: string;
   digest: string;
   packages?: (OPackage|OPackageBody)[];
+  contexts: OContext[] = [];
   entity?: OEntity;
   text: string;
   linter: VhdlLinter;
@@ -130,24 +135,28 @@ export class OFileCache {
     this.linter = new VhdlLinter(this.path, this.text, this.projectParser);
     this.parsePackages();
     this.parseEntity();
+    this.parseContexts();
   }
   reparse() {
     this.text = readFileSync(this.path, { encoding: 'utf8' });
     this.linter = new VhdlLinter(this.path, this.text, this.projectParser);
     this.parsePackages();
     this.parseEntity();
+    this.parseContexts();
   }
   private parsePackages(): void {
-    if ((this.linter.tree instanceof OFileWithPackages)) {
-      this.packages = this.linter.tree.packages;
+    if (this.linter.file instanceof OFileWithPackages) {
+      this.packages = this.linter.file.packages;
     }
-
-
+  }
+  private parseContexts(): void {
+    if (this.linter.file instanceof OFile) {
+      this.contexts = this.linter.file.contexts;
+    }
   }
   private parseEntity(): void {
-    if ((this.linter.tree instanceof OFileWithEntity)) {
-      this.entity = this.linter.tree.entity;
+    if (this.linter.file instanceof OFileWithEntity) {
+      this.entity = this.linter.file.entity;
     }
   }
 }
-// type t_packet is (p_NONE, p_CM_REQ, p_CM_REJ, p_CM_REP, p_CM_RTU, p_CM_DREQ, p_CM_DREP, p_RC_MR, p_RC_SIZE, p_RC_DECLINE, p_RDMA_F, p_RDMA_M, p_RDMA_L, p_RDMA_O, p_ACK);

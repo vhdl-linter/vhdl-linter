@@ -1,8 +1,11 @@
 import { ArchitectureParser } from './architecture-parser';
+import { ContextParser } from './context-parser';
+import { ContextReferenceParser } from './context-reference-parser';
 import { EntityParser } from './entity-parser';
-import { MagicCommentType, OArchitecture, OEntity, OFile, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackages, OI, OIRange, OMagicCommentDisable, OMagicCommentParameter, OMagicCommentTodo, OPackage, OPackageBody, OUseStatement, ParserError } from './objects';
+import { MagicCommentType, OArchitecture, OContextReference, OEntity, OFile, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackages, OI, OIRange, OMagicCommentDisable, OMagicCommentParameter, OMagicCommentTodo, OPackage, OPackageBody, OUseClause, ParserError } from './objects';
 import { PackageParser } from './package-parser';
 import { ParserBase } from './parser-base';
+import { UseClauseParser } from './use-clause-parser';
 
 
 export class Parser extends ParserBase {
@@ -81,12 +84,20 @@ export class Parser extends ParserBase {
     while (this.pos.i < this.text.length) {
       this.advanceWhitespace();
       let nextWord = this.getNextWord().toLowerCase();
-      if (nextWord === 'library') {
+      if (nextWord === 'context') {
+        if (this.advanceSemicolon(true, {consume: false}).match(/\bis\b/i)) {
+          const contextParser = new ContextParser(this.text, this.pos, this.file, file);
+          file.contexts.push(contextParser.parse());
+        } else {
+          const contextReferenceParser = new ContextReferenceParser(this.text, this.pos, this.file, file);
+          file.contextReferences.push(contextReferenceParser.parse());
+        }
+      } else if (nextWord === 'library') {
         file.libraries.push(this.getNextWord());
         this.expect(';');
       } else if (nextWord === 'use') {
-        file.useStatements.push(this.getUseStatement(file));
-        this.expect(';');
+        const useClauseParser = new UseClauseParser(this.text, this.pos, this.file, file);
+        file.useClauses.push(useClauseParser.parse());
       } else if (nextWord === 'entity') {
         const entityParser = new EntityParser(this.text, this.pos, this.file, file as OFileWithEntity);
         Object.setPrototypeOf(file, OFileWithEntity.prototype);
@@ -145,18 +156,4 @@ export class Parser extends ParserBase {
       return result;
     }).join('\n');
   }
-
-  getUseStatement(file: OFile) {
-    let useStatement = new OUseStatement(file, this.pos.i, this.getEndOfLineI());
-    useStatement.begin = this.pos.i;
-    useStatement.text = '';
-    while (this.text[this.pos.i].match(/[\w.]/)) {
-      useStatement.text += this.text[this.pos.i];
-      this.pos.i++;
-    }
-    useStatement.end = useStatement.begin + useStatement.text.length;
-    this.advanceWhitespace();
-    return useStatement;
-  }
-
 }

@@ -4,23 +4,23 @@ import { OAssociationList, OCase, OElseClause, OEntity, OFileWithEntity, OForGen
 export async function foldingHandler (params: FoldingRangeParams): Promise<FoldingRange[]> {
   await initialization;
   const linter = linters.get(params.textDocument.uri);
-  if (typeof linter === 'undefined' || typeof linter.tree === 'undefined') {
+  if (typeof linter === 'undefined' || typeof linter.file === 'undefined') {
     return blockFolding(documents.get(params.textDocument.uri)?.getText() ?? '');
   }
   const result: FoldingRange[] = [];
-  for (const obj of linter.tree.objectList) {
+  for (const obj of linter.file.objectList) {
     if (obj instanceof OProcess || obj instanceof OIfClause || obj instanceof OInstantiation || obj instanceof OIfGenerateClause || obj instanceof OForGenerate ||
       obj instanceof OAssociationList || obj instanceof OEntity || obj instanceof OElseClause || obj instanceof OCase || obj instanceof OWhenClause || obj instanceof OSubprogram ||
       obj instanceof OCase) {
       result.push(FoldingRange.create(obj.range.start.line, obj.range.end.line));
     }
   }
-  if (linter.tree instanceof OFileWithEntity) {
-    if (linter.tree.entity.portRange) {
-      result.push(FoldingRange.create(linter.tree.entity.portRange.start.line, linter.tree.entity.portRange.end.line));
+  if (linter.file instanceof OFileWithEntity) {
+    if (linter.file.entity.portRange) {
+      result.push(FoldingRange.create(linter.file.entity.portRange.start.line, linter.file.entity.portRange.end.line));
     }
-    if (linter.tree.entity.genericRange) {
-      result.push(FoldingRange.create(linter.tree.entity.genericRange.start.line, linter.tree.entity.genericRange.end.line));
+    if (linter.file.entity.genericRange) {
+      result.push(FoldingRange.create(linter.file.entity.genericRange.start.line, linter.file.entity.genericRange.end.line));
     }
   }
   result.push(...blockFolding(documents.get(params.textDocument.uri)?.getText() ?? ''));

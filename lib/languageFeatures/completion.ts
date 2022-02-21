@@ -27,7 +27,7 @@ export async function handleCompletion(params: CompletionParams): Promise<Comple
   if (typeof linter === 'undefined') {
     return completions;
   }
-  if (typeof linter.tree === 'undefined') {
+  if (typeof linter.file === 'undefined') {
     return completions;
   }
   if (document) {
@@ -44,7 +44,7 @@ export async function handleCompletion(params: CompletionParams): Promise<Comple
   }
 
   let startI = linter.getIFromPosition(params.position);
-  const candidates = linter.tree.objectList.filter(object => object.range.start.i <= startI && startI <= object.range.end.i);
+  const candidates = linter.file.objectList.filter(object => object.range.start.i <= startI && startI <= object.range.end.i);
   candidates.sort((a, b) => (a.range.end.i - a.range.start.i) - (b.range.end.i - b.range.start.i));
   const obj = candidates[0];
   if (!obj) {
@@ -62,7 +62,7 @@ export async function handleCompletion(params: CompletionParams): Promise<Comple
       for (const type of parent.types) {
         completions.push({ label: type.name.text, kind: CompletionItemKind.TypeParameter });
         if (type instanceof OEnum) {
-          completions.push(...type.states.map(state => {
+          completions.push(...type.literals.map(state => {
             return {
               label: state.name.text,
               kind: CompletionItemKind.EnumMember

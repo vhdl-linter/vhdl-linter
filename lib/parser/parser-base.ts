@@ -185,17 +185,20 @@ export class ParserBase {
     }
     throw new ParserError(`could not find closing brace`, savedI.getRangeToEndLine());
   }
-  advanceBraceAware(searchChars: string[]) {
+  advanceBraceAware(searchStrings: string[], consume = true) {
     const savedI = this.pos;
     let braceLevel = 0;
     let result = '';
     while (this.text[this.pos.i]) {
       if (braceLevel === 0) {
-        if (searchChars.includes(this.text[this.pos.i])) {
-          const lastChar = this.text[this.pos.i];
-          this.pos.i++;
-          this.advanceWhitespace();
-          return [ result, lastChar ];
+        const found = searchStrings.find(s => s.toLowerCase() === this.text.substring(this.pos.i, this.pos.i + s.length).toLowerCase());
+        if (typeof found !== 'undefined') {
+          const lastString = found;
+          if (consume) {
+            this.pos.i += found.length;
+            this.advanceWhitespace();
+          }
+          return [ result, lastString ];
         }
       }
       if (this.text[this.pos.i] === '(') {
@@ -206,7 +209,7 @@ export class ParserBase {
       result += this.text[this.pos.i];
       this.pos.i++;
     }
-    throw new ParserError(`could not find ${searchChars}`, savedI.getRangeToEndLine());
+    throw new ParserError(`could not find ${searchStrings}`, savedI.getRangeToEndLine());
   }
   advanceSemicolon(braceAware: boolean = false, {consume} = {consume: true}) {
     if (braceAware) {
@@ -347,15 +350,19 @@ export class ParserBase {
       this.advanceWhitespace();
     }
   }
-  getType(parent: ObjectBase, advanceSemicolon = true) {
+  getType(parent: ObjectBase, advanceSemicolon = true, endWithBrace = false) {
     let type = '';
     const startI = this.pos.i;
-    const match = /;|\bis\b/.exec(this.text.substr(this.pos.i));
-    if (!match) {
-      throw new ParserError(`could not find semicolon`, this.pos.getRangeToEndLine());
+    if (endWithBrace) {
+      [type] = this.advanceBraceAware([';', ' is', ')'], false);
+    } else {
+      const match = /;|\bis\b/.exec(this.text.substr(this.pos.i));
+      if (!match) {
+        throw new ParserError(`could not find semicolon`, this.pos.getRangeToEndLine());
+      }
+      type = this.text.substr(this.pos.i, match.index);
+      this.pos.i += match.index;
     }
-    type = this.text.substr(this.pos.i, match.index);
-    this.pos.i += match.index;
     // while (this.text[this.pos.i].match(/[^;]/)) {
     //   type += this.text[this.pos.i];
     //   this.pos.i++;

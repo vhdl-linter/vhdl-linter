@@ -9,13 +9,13 @@ export async function documentHighlightHandler(params: TextDocumentPositionParam
         return null;
     }
     let startI = linter.getIFromPosition(params.position);
-    const candidates = linter.tree?.objectList.filter(object => object.range.start.i <= startI && startI <= object.range.end.i) ?? [];
+    const candidates = linter.file?.objectList.filter(object => object.range.start.i <= startI && startI <= object.range.end.i) ?? [];
     candidates.sort((a, b) => (a.range.end.i - a.range.start.i) - (b.range.end.i - b.range.start.i));
     const candidate = candidates[0];
     if (!candidate || !(candidate instanceof OToken)) {
         return null;
     }
-    return (linter.tree.objectList.filter(object => object instanceof OToken && object.text.toLowerCase() === candidate.text.toLowerCase()) as OToken[])
+    return (linter.file.objectList.filter(object => object instanceof OToken && object.text.toLowerCase() === candidate.text.toLowerCase()) as OToken[])
         .map(object => ({
             range: object.range,
             kind: object instanceof OWrite ? DocumentHighlightKind.Write : DocumentHighlightKind.Read

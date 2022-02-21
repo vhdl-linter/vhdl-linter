@@ -91,13 +91,13 @@ export async function handleOnDocumentSymbol(params: DocumentSymbolParams): Prom
   }
   const returnValue: DocumentSymbol[] = [];
 
-  if (linter.tree instanceof OFileWithPackages) {
-    returnValue.push(...linter.tree.packages.map(pkg => pkg.types).flat().map(type => DocumentSymbol.create(type.name.text, undefined, SymbolKind.Enum, type.range, type.range)));
-    returnValue.push(...linter.tree.packages.map(pkg => pkg.subprograms).flat().map(subprogram => DocumentSymbol.create(subprogram.name.text, undefined, SymbolKind.Function, subprogram.range, subprogram.range)));
-    returnValue.push(...linter.tree.packages.map(pkg => pkg.constants).flat().map(constants => DocumentSymbol.create(constants.name.text, undefined, SymbolKind.Constant, constants.range, constants.range)));
+  if (linter.file instanceof OFileWithPackages) {
+    returnValue.push(...linter.file.packages.map(pkg => pkg.types).flat().map(type => DocumentSymbol.create(type.name.text, undefined, SymbolKind.Enum, type.range, type.range)));
+    returnValue.push(...linter.file.packages.map(pkg => pkg.subprograms).flat().map(subprogram => DocumentSymbol.create(subprogram.name.text, undefined, SymbolKind.Function, subprogram.range, subprogram.range)));
+    returnValue.push(...linter.file.packages.map(pkg => pkg.constants).flat().map(constants => DocumentSymbol.create(constants.name.text, undefined, SymbolKind.Constant, constants.range, constants.range)));
   }
-  if (linter.tree instanceof OFileWithEntityAndArchitecture) {
-    returnValue.push(...parseArchitecture(linter.tree.architecture, linter));
+  if (linter.file instanceof OFileWithEntityAndArchitecture) {
+    returnValue.push(...parseArchitecture(linter.file.architecture, linter));
   }
   return returnValue;
 }

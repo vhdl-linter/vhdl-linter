@@ -7,7 +7,7 @@ export async function handleCodeLens (params: CodeLensParams) {
   if (typeof linter === 'undefined') {
     return [];
   }
-  if (typeof linter.tree === 'undefined') {
+  if (typeof linter.file === 'undefined') {
     return [];
   }
   return linter.getCodeLens(params.textDocument.uri);

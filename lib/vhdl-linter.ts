@@ -5,7 +5,7 @@ import {
 } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { getDocumentSettings } from './language-server';
-import { IHasDefinitions, IHasInstantiations, implementsIHasInstantiations, implementsIHasSubprograms, implementsIMentionable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, ObjectBase, OCase, OEntity, OEnum, OFile, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackages, OGeneric, OGenericAssociationList, OHasSequentialStatements, OIf, OInstantiation, OPackage, OPackageBody, OPort, OPortAssociationList, OProcess, ORead, ORecord, OSignal, OSignalBase, OSubprogram, OType, OWhenClause, OWrite, ParserError } from './parser/objects';
+import { IHasDefinitions, IHasInstantiations, implementsIHasInstantiations, implementsIHasSubprograms, implementsIMentionable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, ObjectBase, OCase, OContext, OEntity, OEnum, OFile, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackages, OGeneric, OGenericAssociationList, OHasSequentialStatements, OIf, OInstantiation, OPackage, OPackageBody, OPort, OPortAssociationList, OProcess, ORead, ORecord, OSignal, OSignalBase, OSubprogram, OType, OUseClause, OWhenClause, OWrite, ParserError } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 export enum LinterRules {
@@ -20,7 +20,7 @@ export type diagnosticCodeActionCallback = (textDocumentUri: string) => CodeActi
 export type commandCallback = (textDocumentUri: string, ...args: any[]) => TextEdit[];
 export class VhdlLinter {
   messages: Diagnostic[] = [];
-  tree: OFileWithEntityAndArchitecture | OFileWithEntity | OFileWithPackages | OFile;
+  file: OFileWithEntityAndArchitecture | OFileWithEntity | OFileWithPackages | OFile;
   parser: Parser;
   packages: (OPackage | OPackageBody)[] = [];
   constructor(private editorPath: string, public text: string, public projectParser: ProjectParser, public onlyEntity: boolean = false) {
@@ -28,7 +28,7 @@ export class VhdlLinter {
     this.parser = new Parser(this.text, this.editorPath, onlyEntity);
     //     console.log(`parsing: ${editorPath}`);
     try {
-      this.tree = this.parser.parse();
+      this.file = this.parser.parse();
     } catch (e) {
       if (e instanceof ParserError) {
         let code;
@@ -75,7 +75,7 @@ export class VhdlLinter {
     };
   }
   checkMagicComments(range: Range, rule?: LinterRules, parameter?: string) {
-    const matchingMagiComments = this.tree.magicComments.filter(magicComment => (magicComment.range.start.character <= range.start.character && magicComment.range.start.line <= range.start.line &&
+    const matchingMagiComments = this.file.magicComments.filter(magicComment => (magicComment.range.start.character <= range.start.character && magicComment.range.start.line <= range.start.line &&
       magicComment.range.end.character >= range.start.character && magicComment.range.end.line >= range.start.line) || (magicComment.range.start.character <= range.end.character && magicComment.range.start.line <= range.end.line &&
         magicComment.range.end.character >= range.end.character && magicComment.range.end.line >= range.end.line)).filter(magicComment => {
           if (magicComment.commentType === MagicCommentType.Disable) {
@@ -89,7 +89,7 @@ export class VhdlLinter {
     return matchingMagiComments.length === 0;
   }
   checkTodos() {
-    this.tree.magicComments.forEach(magicComment => {
+    this.file.magicComments.forEach(magicComment => {
       if (magicComment.commentType === MagicCommentType.Todo) {
         this.messages.push({
           range: magicComment.range,
@@ -109,39 +109,67 @@ export class VhdlLinter {
     }
 
   }
-  async parsePackages() {
+  getUseClauses(parent: OFile|OContext) {
+    const useClauses = parent.useClauses.slice();
+    if (parent.contextReferences.length > 0) {
+      const contexts = this.projectParser.getContexts();
+      for (const reference of parent.contextReferences) {
+        const context = contexts.find(c => c.name.text.toLowerCase() === reference.contextName.toLowerCase());
+        if (!context) {
+          if (parent instanceof OFile) {
+            this.addMessage({
+              range: reference.range,
+              severity: DiagnosticSeverity.Warning,
+              message: `could not find context for ${reference.library}.${reference.contextName}`
+            });
+          }
+        } else {
+          useClauses.push(...this.getUseClauses(context));
+        }
+      }
+    }
+    return useClauses;
+  }
+  async elaborate() {
     const packages = this.projectParser.getPackages();
     const standard = packages.find(pkg => pkg.name.text.toLowerCase() === 'standard');
     if (standard) {
       this.packages.push(standard);
     }
     //     console.log(packages);
-    for (const useStatement of this.tree.useStatements) {
-      let match = useStatement.text.match(/([^.]+)\.([^.]+)\.([^.]+)/i);
+    for (const useClause of this.getUseClauses(this.file)) {
       let found = false;
-      if (match) {
-        const library = match[1];
-        const pkg = match[2];
-        if (library.toLowerCase() === 'altera_mf') {
-          found = true;
-        } else {
-          for (const foundPkg of packages) {
-            if (foundPkg.name.text.toLowerCase() === pkg.toLowerCase()) {
-              this.packages.push(foundPkg);
+      for (let foundPkg of packages) {
+        if (foundPkg.name.text.toLowerCase() === useClause.packageName.toLowerCase()) {
+          if (foundPkg instanceof OPackage && typeof foundPkg.uninstantiatedPackageName !== 'undefined') {
+            const uninstantiatedPackage = packages.find(p => p.name.text.toLowerCase() === (foundPkg as OPackage).uninstantiatedPackageName?.text.toLowerCase());
+            if (uninstantiatedPackage) {
+              foundPkg = uninstantiatedPackage;
+            } else {
               found = true;
+              this.addMessage({
+                range: useClause.range,
+                severity: DiagnosticSeverity.Warning,
+                message: `could not find instantiated package from package ${useClause.library}.${useClause.packageName}`
+              })
+              break;
             }
           }
+          this.packages.push(foundPkg);
+          found = true;
         }
       }
       if (!found) {
-        this.addMessage({
-          range: useStatement.range,
-          severity: DiagnosticSeverity.Warning,
-          message: `could not find package for ${useStatement.text}`
-        });
+        if (useClause.getRoot().file === this.file.file) {
+          this.addMessage({
+            range: useClause.range,
+            severity: DiagnosticSeverity.Warning,
+            message: `could not find package for ${useClause.library}.${useClause.packageName}`
+          });
+        }
       }
     }
-    for (const read of this.tree.objectList.filter(object => object instanceof ORead) as ORead[]) {
+    for (const read of this.file.objectList.filter(object => object instanceof ORead) as ORead[]) {
       for (const pkg of packages) {
         for (const constant of pkg.constants) {
           if (constant.name.text.toLowerCase() === read.text.toLowerCase()) {
@@ -159,7 +187,7 @@ export class VhdlLinter {
             read.definitions.push(typeRead);
           }
           if (type instanceof OEnum) {
-            for (const state of type.states) {
+            for (const state of type.literals) {
               if (state.name.text.toLowerCase() === read.text.toLowerCase()) {
                 read.definitions.push(state);
 
@@ -175,7 +203,7 @@ export class VhdlLinter {
         }
       }
     }
-    for (const instantiation of this.tree.objectList.filter(object => object instanceof OInstantiation) as OInstantiation[]) {
+    for (const instantiation of this.file.objectList.filter(object => object instanceof OInstantiation) as OInstantiation[]) {
       switch (instantiation.type) {
         case 'component':
         case 'entity':
@@ -187,12 +215,12 @@ export class VhdlLinter {
           break;
       }
     }
-    if (this.tree instanceof OFileWithEntityAndArchitecture) {
-      for (const component of this.tree.architecture.components) {
+    if (this.file instanceof OFileWithEntityAndArchitecture) {
+      for (const component of this.file.architecture.components) {
         component.definitions.push(...this.getEntities(component));
       }
     }
-    for (const obj of this.tree.objectList) {
+    for (const obj of this.file.objectList) {
       if (obj instanceof OAssociation) {
         if (obj.parent instanceof OGenericAssociationList || obj.parent instanceof OPortAssociationList) {
           if (!(obj.parent.parent instanceof OInstantiation)) {
@@ -215,7 +243,13 @@ export class VhdlLinter {
 
           let ports: (OPort | OGeneric)[] = [];
           if (obj.parent instanceof OPortAssociationList) {
-            ports.push(...entitiesOrProcedures.flatMap(ep => ep.ports.filter(port => obj.formalPart.find(name => name.text.toLowerCase() === port.name.text.toLowerCase()))));
+            ports.push(...entitiesOrProcedures.flatMap(ep => ep.ports.filter((port, portNumber) => {
+              const formalMatch = obj.formalPart.find(name => name.text.toLowerCase() === port.name.text.toLowerCase());
+              if (formalMatch) {
+                return true;
+              }
+              return portNumber === obj.parent.children.findIndex(o => o === obj);
+            })));
           } else {
             for (const ep of entitiesOrProcedures) {
               if (ep instanceof OEntity) {
@@ -224,7 +258,7 @@ export class VhdlLinter {
             }
           }
 
-          if (!ports) {
+          if (ports.length === 0) {
             continue;
           }
           obj.definitions.push(...ports);
@@ -235,9 +269,9 @@ export class VhdlLinter {
             if (portOrGeneric instanceof OPort) {
               if (portOrGeneric.direction === 'in') {
                 for (const mapping of obj.actualIfOutput.flat()) {
-                  const index = this.tree.objectList.indexOf(mapping);
-                  this.tree.objectList.splice(index, 1);
-                  for (const mentionable of this.tree.objectList) {
+                  const index = this.file.objectList.indexOf(mapping);
+                  this.file.objectList.splice(index, 1);
+                  for (const mentionable of this.file.objectList) {
                     if (implementsIMentionable(mentionable)) {
                       for (const [index, mention] of mentionable.mentions.entries()) {
                         if (mention === mapping) {
@@ -250,9 +284,9 @@ export class VhdlLinter {
                 obj.actualIfOutput = [[], []];
               } else {
                 for (const mapping of obj.actualIfInput) {
-                  const index = this.tree.objectList.indexOf(mapping);
-                  this.tree.objectList.splice(index, 1);
-                  for (const mentionable of this.tree.objectList) {
+                  const index = this.file.objectList.indexOf(mapping);
+                  this.file.objectList.splice(index, 1);
+                  for (const mentionable of this.file.objectList) {
                     if (implementsIMentionable(mentionable)) {
                       for (const [index, mention] of mentionable.mentions.entries()) {
                         if (mention === mapping) {
@@ -273,7 +307,7 @@ export class VhdlLinter {
   async checkLibrary() {
     const settings = await getDocumentSettings(URI.file(this.editorPath).toString());
 
-    if (settings.rules.warnLibrary && this.tree && this.tree instanceof OFileWithEntity && typeof this.tree.entity.library === 'undefined') {
+    if (settings.rules.warnLibrary && this.file && this.file instanceof OFileWithEntity && typeof this.file.entity.library === 'undefined') {
       this.addMessage({
         range: Range.create(Position.create(0, 0), Position.create(1, 0)),
         severity: DiagnosticSeverity.Warning,
@@ -283,18 +317,18 @@ export class VhdlLinter {
     }
   }
   async checkAll() {
-    if (this.tree) {
-      this.parsePackages();
+    if (this.file) {
+      this.elaborate();
       this.checkComponents();
       this.checkNotDeclared();
       await this.checkLibrary();
       this.checkTodos();
-      if (this.tree instanceof OFileWithEntityAndArchitecture) {
+      if (this.file instanceof OFileWithEntityAndArchitecture) {
         this.checkResets();
-        this.checkUnused(this.tree.architecture, this.tree.entity);
+        this.checkUnused(this.file.architecture, this.file.entity);
         this.checkDoubles();
         await this.checkPortDeclaration();
-        this.checkInstantiations(this.tree.architecture);
+        this.checkInstantiations(this.file.architecture);
         await this.checkPortType();
       }
       // this.parser.debugObject(this.tree);
@@ -302,10 +336,10 @@ export class VhdlLinter {
     return this.messages;
   }
   checkComponents() {
-    if (!(this.tree instanceof OFileWithEntityAndArchitecture)) {
+    if (!(this.file instanceof OFileWithEntityAndArchitecture)) {
       return;
     }
-    for (const component of this.tree.architecture.components) {
+    for (const component of this.file.architecture.components) {
       const realEntities = this.getEntities(component);
       if (realEntities.length === 0) {
         this.addMessage({
@@ -362,11 +396,11 @@ export class VhdlLinter {
     }
   }
   checkDoubles() {
-    if (!(this.tree instanceof OFileWithEntityAndArchitecture)) {
+    if (!(this.file instanceof OFileWithEntityAndArchitecture)) {
       return;
     }
-    for (const signal of this.tree.architecture.signals) {
-      if (this.tree.architecture.signals.find(signalSearch => signal !== signalSearch && signal.name.text.toLowerCase() === signalSearch.name.text.toLowerCase())) {
+    for (const signal of this.file.architecture.signals) {
+      if (this.file.architecture.signals.find(signalSearch => signal !== signalSearch && signal.name.text.toLowerCase() === signalSearch.name.text.toLowerCase())) {
         this.addMessage({
           range: signal.range,
           severity: DiagnosticSeverity.Error,
@@ -374,8 +408,8 @@ export class VhdlLinter {
         });
       }
     }
-    for (const type of this.tree.architecture.types) {
-      if (this.tree.architecture.types.find(typeSearch => type !== typeSearch && type.name.text.toLowerCase() === typeSearch.name.text.toLowerCase())) {
+    for (const type of this.file.architecture.types) {
+      if (this.file.architecture.types.find(typeSearch => type !== typeSearch && type.name.text.toLowerCase() === typeSearch.name.text.toLowerCase())) {
         this.addMessage({
           range: type.range,
           severity: DiagnosticSeverity.Error,
@@ -383,8 +417,8 @@ export class VhdlLinter {
         });
       }
       if (type instanceof OEnum) {
-        for (const state of type.states) {
-          if (type.states.find(stateSearch => state !== stateSearch && state.name.text.toLowerCase() === stateSearch.name.text.toLowerCase())) {
+        for (const state of type.literals) {
+          if (type.literals.find(stateSearch => state !== stateSearch && state.name.text.toLowerCase() === stateSearch.name.text.toLowerCase())) {
             this.addMessage({
               range: state.range,
               severity: DiagnosticSeverity.Error,
@@ -395,8 +429,8 @@ export class VhdlLinter {
         }
       }
     }
-    for (const port of this.tree.entity.ports) {
-      if (this.tree.entity.ports.find(portSearch => port !== portSearch && port.name.text.toLowerCase() === portSearch.name.text.toLowerCase())) {
+    for (const port of this.file.entity.ports) {
+      if (this.file.entity.ports.find(portSearch => port !== portSearch && port.name.text.toLowerCase() === portSearch.name.text.toLowerCase())) {
         this.addMessage({
           range: port.range,
           severity: DiagnosticSeverity.Error,
@@ -410,8 +444,8 @@ export class VhdlLinter {
   private pushWriteError(write: OWrite) {
     const code = this.addCodeActionCallback((textDocumentUri: string) => {
       const actions = [];
-      if (this.tree instanceof OFileWithEntityAndArchitecture) {
-        const args: IAddSignalCommandArguments = { textDocumentUri, signalName: write.text, range: this.tree.architecture.range };
+      if (this.file instanceof OFileWithEntityAndArchitecture) {
+        const args: IAddSignalCommandArguments = { textDocumentUri, signalName: write.text, range: this.file.architecture.range };
         actions.push(CodeAction.create('add signal to architecture', Command.create('add signal to architecture', 'vhdl-linter:add-signal', args)));
       }
       return actions;
@@ -432,8 +466,8 @@ export class VhdlLinter {
         if (thing) {
           const file = read.getRoot();
           const pos = Position.create(0, 0);
-          if (file.useStatements.length > 0) {
-            pos.line = file.useStatements[file.useStatements.length - 1].range.end.line + 1;
+          if (file.useClauses.length > 0) {
+            pos.line = file.useClauses[file.useClauses.length - 1].range.end.line + 1;
           }
           actions.push(CodeAction.create(
             'add use statement for ' + pkg.name,
@@ -446,8 +480,8 @@ export class VhdlLinter {
           ));
         }
       }
-      if (this.tree instanceof OFileWithEntityAndArchitecture) {
-        const args: IAddSignalCommandArguments = { textDocumentUri, signalName: read.text, range: this.tree.architecture.range };
+      if (this.file instanceof OFileWithEntityAndArchitecture) {
+        const args: IAddSignalCommandArguments = { textDocumentUri, signalName: read.text, range: this.file.architecture.range };
         actions.push(CodeAction.create('add signal to architecture', Command.create('add signal to architecture', 'vhdl-linter:add-signal', args)));
       }
       return actions;
@@ -460,7 +494,7 @@ export class VhdlLinter {
     });
   }
   checkNotDeclared() {
-    for (const obj of this.tree.objectList) {
+    for (const obj of this.file.objectList) {
       if (obj instanceof ORead && obj.definitions.length === 0) {
         this.pushReadError(obj);
       } else if (obj instanceof OWrite && obj.definitions.length === 0) {
@@ -471,12 +505,12 @@ export class VhdlLinter {
     }
   }
   getCodeLens(textDocumentUri: string): CodeLens[] {
-    if (!(this.tree instanceof OFileWithEntityAndArchitecture)) {
+    if (!(this.file instanceof OFileWithEntityAndArchitecture)) {
       return [];
     }
-    let signalLike: OSignalBase[] = this.tree.architecture.signals;
-    signalLike = signalLike.concat(this.tree.entity.ports);
-    const processes = this.tree.objectList.filter(object => object instanceof OProcess) as OProcess[];
+    let signalLike: OSignalBase[] = this.file.architecture.signals;
+    signalLike = signalLike.concat(this.file.entity.ports);
+    const processes = this.file.objectList.filter(object => object instanceof OProcess) as OProcess[];
     const signalsMissingReset = signalLike.filter(signal => {
       if (typeof signal.registerProcess === 'undefined') {
         return false;
@@ -510,9 +544,9 @@ export class VhdlLinter {
       codeLenses.push({
         range: registerProcess.range,
         command: this.addCommandCallback('Ignore all missing resets in process ' + registerProcess.label, textDocumentUri, () => {
-          const change = this.tree.originalText.split('\n')[registerProcess.range.start.line - 1].match(/--\s*vhdl-linter-parameter-next-line/i) === null ?
+          const change = this.file.originalText.split('\n')[registerProcess.range.start.line - 1].match(/--\s*vhdl-linter-parameter-next-line/i) === null ?
             TextEdit.insert(registerProcess.range.start, `--vhdl-linter-parameter-next-line ${registerNameList}\n` + ' '.repeat(registerProcess.range.start.character)) :
-            TextEdit.insert(Position.create(registerProcess.range.start.line - 1, this.tree.originalText.split('\n')[registerProcess.range.start.line - 1].length), ` ${registerNameList}`);
+            TextEdit.insert(Position.create(registerProcess.range.start.line - 1, this.file.originalText.split('\n')[registerProcess.range.start.line - 1].length), ` ${registerNameList}`);
           return [change];
         })
         // {
@@ -527,12 +561,12 @@ export class VhdlLinter {
 
   }
   checkResets() {
-    if (!(this.tree instanceof OFileWithEntityAndArchitecture)) {
+    if (!(this.file instanceof OFileWithEntityAndArchitecture)) {
       return;
     }
-    let signalLike: OSignalBase[] = this.tree.architecture.signals;
-    signalLike = signalLike.concat(this.tree.entity.ports);
-    const processes = this.tree.objectList.filter(object => object instanceof OProcess) as OProcess[];
+    let signalLike: OSignalBase[] = this.file.architecture.signals;
+    signalLike = signalLike.concat(this.file.entity.ports);
+    const processes = this.file.objectList.filter(object => object instanceof OProcess) as OProcess[];
 
     for (const signal of signalLike) {
       if (typeof signal.registerProcess === 'undefined') {
@@ -549,9 +583,9 @@ export class VhdlLinter {
         const code = this.addCodeActionCallback((textDocumentUri: string) => {
           const actions = [];
 
-          const change = this.tree.originalText.split('\n')[registerProcess.range.start.line - 1].match(/--\s*vhdl-linter-parameter-next-line/i) === null ?
+          const change = this.file.originalText.split('\n')[registerProcess.range.start.line - 1].match(/--\s*vhdl-linter-parameter-next-line/i) === null ?
             TextEdit.insert(registerProcess.range.start, `--vhdl-linter-parameter-next-line ${signal.name.text}\n` + ' '.repeat(registerProcess.range.start.character)) :
-            TextEdit.insert(Position.create(registerProcess.range.start.line - 1, this.tree.originalText.split('\n')[registerProcess.range.start.line - 1].length), ` ${signal.name.text}`);
+            TextEdit.insert(Position.create(registerProcess.range.start.line - 1, this.file.originalText.split('\n')[registerProcess.range.start.line - 1].length), ` ${signal.name.text}`);
           actions.push(CodeAction.create(
             'Ignore reset for ' + signal.name,
             {
@@ -677,11 +711,11 @@ export class VhdlLinter {
     }
   }
   async checkPortDeclaration() {
-    if (this.tree instanceof OFileWithEntity === false) {
+    if (this.file instanceof OFileWithEntity === false) {
       return;
     }
 
-    const tree = this.tree as OFileWithEntity;
+    const tree = this.file as OFileWithEntity;
     const portSettings = (await getDocumentSettings(URI.file(this.editorPath).toString())).ports;
     if (portSettings.enablePortStyle) {
 
@@ -790,11 +824,11 @@ export class VhdlLinter {
     }
   }
   async checkPortType() {
-    if (this.tree instanceof OFileWithEntity === false) {
+    if (this.file instanceof OFileWithEntity === false) {
       return;
     }
 
-    const tree = this.tree as OFileWithEntity;
+    const tree = this.file as OFileWithEntity;
     const settings = (await getDocumentSettings(URI.file(this.editorPath).toString()));
     if (settings.rules.warnLogicType) {
       for (const port of tree.entity.ports) {
@@ -835,8 +869,8 @@ export class VhdlLinter {
       // find all defined components in current scope
       let parent: ObjectBase | OFile | undefined = instantiation.parent;
       if (!parent) {
-        if (this.tree instanceof OFileWithEntityAndArchitecture) {
-          parent = this.tree.architecture;
+        if (this.file instanceof OFileWithEntityAndArchitecture) {
+          parent = this.file.architecture;
         }
       }
       while (parent instanceof ObjectBase) {
@@ -862,8 +896,8 @@ export class VhdlLinter {
     // find all defined subprograms in current scope
     let parent: ObjectBase | OFile | undefined = instantiation.parent;
     if (!parent) {
-      if (this.tree instanceof OFileWithEntityAndArchitecture) {
-        parent = this.tree.architecture;
+      if (this.file instanceof OFileWithEntityAndArchitecture) {
+        parent = this.file.architecture;
       }
     }
     while (parent instanceof ObjectBase) {
@@ -1002,7 +1036,7 @@ export class VhdlLinter {
     if (!object) {
       return;
     }
-    if (implementsIHasInstantiations(object))
+    if (implementsIHasInstantiations(object)) {
       for (const instantiation of object.instantiations) {
         let entitiesOrSubprograms;
         switch (instantiation.type) {
@@ -1017,17 +1051,15 @@ export class VhdlLinter {
         }
         this.checkPortMaps(entitiesOrSubprograms, instantiation);
       }
+    }
     if (implementsIHasSubprograms(object)) {
       for (const subprograms of object.subprograms) {
         this.checkInstantiations(subprograms);
       }
     }
     if (object instanceof OArchitecture) {
-      for (const generate of object.generates) {
-        this.checkInstantiations(generate);
-      }
-      for (const block of object.blocks) {
-        this.checkInstantiations(block);
+      for (const statement of object.statements) {
+        this.checkInstantiations(statement);
       }
     }
     if (object instanceof OIf) {
