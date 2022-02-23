@@ -1,10 +1,10 @@
-import { OEntity, OGeneric, OI, OIRange, OName, OPackage, OPort, OSubprogram } from "./objects";
+import { OComponent, OEntity, OGeneric, OI, OIRange, OName, OPackage, OPort, OSubprogram } from "./objects";
 import { ParserBase } from "./parser-base";
 import { SubprogramParser } from "./subprogram-parser";
 
 
 export class InterfaceListParser extends ParserBase {
-  constructor(text: string, pos: OI, file: string, private parent: OEntity | OSubprogram | OPackage) {
+  constructor(text: string, pos: OI, file: string, private parent: OEntity | OSubprogram | OPackage | OComponent) {
     super(text, pos, file);
     this.debug('start');
   }

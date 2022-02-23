@@ -153,11 +153,35 @@ export interface IHasSubprograms {
 export function implementsIHasSubprograms(obj: unknown): obj is IHasSubprograms {
   return (obj as IHasSubprograms).subprograms !== undefined;
 }
+export interface IHasComponents {
+  components: OComponent[];
+}
+export function implementsIHasComponents(obj: unknown): obj is IHasComponents {
+  return (obj as IHasComponents).components !== undefined;
+}
 export interface IHasInstantiations {
   instantiations: OInstantiation[];
 }
 export function implementsIHasInstantiations(obj: unknown): obj is IHasInstantiations {
   return (obj as IHasInstantiations).instantiations !== undefined;
+}
+export interface IHasSignals {
+  signals: OSignal[];
+}
+export function implementsIHasSignals(obj: unknown): obj is IHasSignals {
+  return (obj as IHasSignals).signals !== undefined;
+}
+export interface IHasConstants {
+  constants: OConstant[];
+}
+export function implementsIHasConstants(obj: unknown): obj is IHasConstants {
+  return (obj as IHasConstants).constants !== undefined;
+}
+export interface IHasVariables {
+  variables: OVariable[];
+}
+export function implementsIHasVariables(obj: unknown): obj is IHasVariables {
+  return (obj as IHasVariables).variables !== undefined;
 }
 export class OFile {
   constructor(public text: string, public file: string, public originalText: string) { }
@@ -199,11 +223,14 @@ export class OFileWithEntityAndArchitecture extends OFileWithEntity {
 export class OFileWithPackages extends OFile {
   packages: (OPackage | OPackageBody)[] = [];
 }
-export class OPackage extends ObjectBase implements IHasSubprograms {
+export class OPackage extends ObjectBase implements IHasSubprograms, IHasComponents, IHasSignals, IHasConstants, IHasVariables {
   parent: OFile;
   uninstantiatedPackageName?: OName;
   subprograms: OSubprogram[] = [];
-  constants: OSignal[] = [];
+  components: OComponent[] = [];
+  signals: OSignal[] = [];
+  constants: OConstant[] = [];
+  variables: OVariable[] = [];
   types: OType[] = [];
   genericRange?: OIRange;
   generics: OGeneric[] = [];
@@ -211,10 +238,11 @@ export class OPackage extends ObjectBase implements IHasSubprograms {
   library?: string;
 }
 
-export class OPackageBody extends ObjectBase implements IHasSubprograms {
+export class OPackageBody extends ObjectBase implements IHasSubprograms, IHasConstants, IHasVariables {
   parent: OFile;
   subprograms: OSubprogram[] = [];
-  constants: OSignal[] = [];
+  constants: OConstant[] = [];
+  variables: OVariable[] = [];
   types: OType[] = [];
   library?: string;
 }
@@ -240,11 +268,13 @@ export type OConcurrentStatements = OProcess | OInstantiation | OIfGenerate | OF
 export class OHasConcurrentStatements extends ObjectBase {
 }
 
-export class OArchitecture extends ObjectBase implements IHasSubprograms, IHasInstantiations {
+export class OArchitecture extends ObjectBase implements IHasSubprograms, IHasComponents, IHasInstantiations, IHasSignals, IHasConstants, IHasVariables {
   signals: OSignal[] = [];
+  constants: OConstant[] = [];
+  variables: OVariable[] = [];
   types: OType[] = [];
   subprograms: OSubprogram[] = [];
-  components: OEntity[] = [];
+  components: OComponent[] = [];
   statements: OConcurrentStatements[] = [];
 
   get processes() {
@@ -281,13 +311,15 @@ export class OBlock extends OArchitecture {
   label: string;
 
 }
-export class OType extends ObjectBase implements IMentionable, IHasSubprograms {
+export class OType extends ObjectBase implements IMentionable, IHasSubprograms, IHasSignals, IHasConstants, IHasVariables {
   types: OType[] = [];
   subprograms: OSubprogram[] = [];
+  variables: OVariable[] = [];
+  constants: OConstant[] = [];
+  signals: OSignal[] = [];
   mentions: OToken[] = [];
   units?: string[] = [];
   reads: ORead[] = [];
-  signals: OSignal[] = [];
   findRead(read: ORead) {
     if (this.name.text.toLowerCase() === read.text.toLowerCase()) {
       return this;
@@ -371,7 +403,7 @@ export abstract class OVariableBase extends ObjectBase implements IMentionable {
 }
 export abstract class OSignalBase extends OVariableBase {
   registerProcess?: OProcess;
-  constructor(public parent: OArchitecture | OEntity | OPackage | OPackageBody | OProcess | OForLoop | OSubprogram | OType, startI: number, endI: number) {
+  constructor(public parent: ObjectBase, startI: number, endI: number) {
     super(parent, startI, endI);
     let pos = new OIRange(parent, startI, endI);
     if (config.debug) {
@@ -395,14 +427,25 @@ export abstract class OSignalBase extends OVariableBase {
   }
 }
 export class OVariable extends OVariableBase {
+  constructor(parent: IHasVariables, startI: number, endI: number) {
+    super((parent as unknown) as ObjectBase, startI, endI);
+  }
   type: ORead[] = [];
-  constant: boolean;
-
 }
 export class OSignal extends OSignalBase {
-  constant: boolean;
+  constructor(parent: IHasSignals, startI: number, endI: number) {
+    super((parent as unknown) as ObjectBase, startI, endI);
+  }
+}
+export class OConstant extends OSignalBase {
+  constructor(parent: IHasConstants, startI: number, endI: number) {
+    super((parent as unknown) as ObjectBase, startI, endI);
+  }
 }
 export class OAssociationList extends ObjectBase {
+  constructor(public parent: OInstantiation | OPackage, startI: number, endI: number) {
+    super(parent, startI, endI);
+  }
   public children: OAssociation[] = [];
 
 }
@@ -417,11 +460,11 @@ export class OPortAssociationList extends OAssociationList {
   }
 }
 export class OInstantiation extends ObjectBase implements IHasDefinitions {
-  constructor(public parent: OArchitecture | OEntity | OProcess | OLoop | OIf, startI: number, endI: number, public type: 'entity' | 'component' | 'procedure' | 'procedure-call') {
+  constructor(public parent: OArchitecture | OEntity | OProcess | OLoop | OIf, startI: number, endI: number, public type: 'entity' | 'component' | 'subprogram' | 'subprogram-call') {
     super(parent, startI, endI);
   }
   label?: string;
-  definitions: (OEntity | OSubprogram)[] = [];
+  definitions: (OEntity | OSubprogram | OComponent)[] = [];
   componentName: OName;
   portAssociationList?: OPortAssociationList;
   genericAssociationList?: OGenericAssociationList;
@@ -499,8 +542,8 @@ export class OAssociation extends ObjectBase implements IHasDefinitions {
   actualIfInput: ORead[] = [];
   actualIfOutput: [ORead[], OWrite[]] = [[], []];
 }
-export class OEntity extends ObjectBase implements IHasDefinitions, IHasSubprograms {
-  constructor(public parent: OFileWithEntity | OArchitecture, startI: number, endI: number, public library?: string) {
+export class OEntity extends ObjectBase implements IHasDefinitions, IHasSubprograms, IHasSignals, IHasConstants, IHasVariables {
+  constructor(public parent: OFileWithEntity, startI: number, endI: number, public library?: string) {
     super(parent, startI, endI);
   }
   portRange?: OIRange;
@@ -508,10 +551,23 @@ export class OEntity extends ObjectBase implements IHasDefinitions, IHasSubprogr
   ports: OPort[] = [];
   generics: OGeneric[] = [];
   signals: OSignal[] = [];
+  constants: OConstant[] = [];
+  variables: OVariable[] = [];
   subprograms: OSubprogram[] = [];
   types: OType[] = [];
-  mentions: OInstantiation[] = [];
   statements: (OProcess | OAssignment)[] = [];
+  definitions: OEntity[] = [];
+}
+export class OComponent extends ObjectBase implements IHasDefinitions, IHasSubprograms {
+  constructor(parent: IHasComponents, startI: number, endI: number) {
+    super((parent as unknown) as ObjectBase, startI, endI);
+  }
+  subprograms: OSubprogram[] = [];
+  portRange?: OIRange;
+  genericRange?: OIRange;
+  ports: OPort[] = [];
+  generics: OGeneric[] = [];
+  mentions: OInstantiation[] = [];
   definitions: OEntity[] = [];
 }
 export class OPort extends OSignalBase {
@@ -559,12 +615,13 @@ export class OCase extends ObjectBase {
 export class OWhenClause extends OHasSequentialStatements implements IHasInstantiations {
   condition: ORead[] = [];
 }
-export class OProcess extends OHasSequentialStatements implements IHasSubprograms, IHasInstantiations {
+export class OProcess extends OHasSequentialStatements implements IHasSubprograms, IHasInstantiations, IHasConstants, IHasVariables {
   sensitivityList: ORead[] = [];
   label?: string;
   types: OType[] = [];
   subprograms: OSubprogram[] = [];
   variables: OVariable[] = [];
+  constants: OConstant[] = [];
   resetClause?: OIfClause;
   registerProcess: boolean = false;
   private resets: string[] | null = null;
@@ -585,8 +642,8 @@ export class OProcess extends OHasSequentialStatements implements IHasSubprogram
 
 export class OLoop extends OHasSequentialStatements implements IHasInstantiations {
 }
-export class OForLoop extends OLoop {
-  variable: OVariable;
+export class OForLoop extends OLoop implements IHasVariables {
+  variables: OVariable[] = [];
   variableRange: ORead[] = [];
 }
 export class OWhileLoop extends OLoop {
@@ -600,30 +657,42 @@ export class OAssignment extends ObjectBase {
 export class OToken extends ObjectBase implements IHasDefinitions {
   definitions: ObjectBase[] = [];
 
-  public scope?: OArchitecture | OProcess | OEntity | OForLoop | OSubprogram | OPackage | OPackageBody;
+  public scope?: ObjectBase;
   constructor(public parent: ObjectBase, startI: number, endI: number, public text: string) {
     super(parent, startI, endI);
     let object: (OFile | ObjectBase) = this;
+    let lastIteration = false;
+    let stop = false;
 
     do {
-      object = object.parent;
-      if (object instanceof OArchitecture
-        || object instanceof OEntity) {
+      stop = lastIteration;
+      if (!lastIteration) {
+        object = object.parent;
+      }
+      if (implementsIHasSignals(object)) {
         for (const signal of object.signals) {
           if (signal.name.text.toLowerCase() === text.toLowerCase()) {
             this.definitions.push(signal);
-            this.scope = object;
+            this.scope = object as ObjectBase;
             signal.mentions.push(this);
           }
         }
       }
-      if (object instanceof OPackage
-        || object instanceof OPackageBody) {
+      if (implementsIHasConstants(object)) {
         for (const constant of object.constants) {
           if (constant.name.text.toLowerCase() === text.toLowerCase()) {
             this.definitions.push(constant);
-            this.scope = object;
+            this.scope = object as ObjectBase;
             constant.mentions.push(this);
+          }
+        }
+      }
+      if (implementsIHasSubprograms(object)) {
+        for (const subprogram of object.subprograms) {
+          if (subprogram.name.text.toLowerCase() === text.toLowerCase()) {
+            this.definitions.push(subprogram);
+            this.scope = object as ObjectBase;
+            subprogram.mentions.push(this);
           }
         }
       }
@@ -634,13 +703,6 @@ export class OToken extends ObjectBase implements IHasDefinitions {
         || object instanceof OEntity
         || object instanceof OProcess
       ) {
-        for (const subprogram of object.subprograms) {
-          if (subprogram.name.text.toLowerCase() === text.toLowerCase()) {
-            this.definitions.push(subprogram);
-            this.scope = object;
-            subprogram.mentions.push(this);
-          }
-        }
         for (const type of object.types) {
           if (type.name.text.toLowerCase() === text.toLowerCase()) {
             this.definitions.push(type);
@@ -667,18 +729,18 @@ export class OToken extends ObjectBase implements IHasDefinitions {
           }
         }
       }
-      if (object instanceof OProcess
-        || object instanceof OSubprogram) {
+      if (implementsIHasVariables(object)) {
         for (const variable of object.variables) {
           if (variable.name.text.toLowerCase() === text.toLowerCase()) {
             this.definitions.push(variable);
-            this.scope = object;
+            this.scope = object as ObjectBase;
             variable.mentions.push(this);
           }
         }
       }
       if (object instanceof OSubprogram
-        || object instanceof OEntity) {
+        || object instanceof OEntity
+        || object instanceof OComponent) {
         for (const port of object.ports) {
           if (port.name.text.toLowerCase() === text.toLowerCase()) {
             this.definitions.push(port);
@@ -687,15 +749,7 @@ export class OToken extends ObjectBase implements IHasDefinitions {
           }
         }
       }
-      if (object instanceof OForLoop
-        || object instanceof OForGenerate) {
-        if (object.variable.name.text.toLowerCase() === text.toLowerCase()) {
-          this.definitions.push(object.variable);
-          this.scope = object;
-          object.variable.mentions.push(this);
-        }
-      }
-      if (object instanceof OEntity) {
+      if (object instanceof OEntity || object instanceof OComponent) {
         for (const generic of object.generics) {
           if (generic.name.text.toLowerCase() === text.toLowerCase()) {
             this.definitions.push(generic);
@@ -705,45 +759,10 @@ export class OToken extends ObjectBase implements IHasDefinitions {
         }
       }
       if (object instanceof OFileWithEntity) {
-        for (const signal of object.entity.signals) {
-          if (signal.name.text.toLowerCase() === text.toLowerCase()) {
-            this.definitions.push(signal);
-            signal.mentions.push(this);
-            this.scope = object.entity;
-          }
-        }
-        for (const type of object.entity.types) {
-          if (type.name.text.toLowerCase() === text.toLowerCase()) {
-            this.definitions.push(type);
-            type.mentions.push(this);
-            this.scope = object.entity;
-          }
-        }
-        for (const subprogram of object.entity.subprograms) {
-          if (subprogram.name.text.toLowerCase() === text.toLowerCase()) {
-            this.definitions.push(subprogram);
-            this.scope = object.entity;
-            subprogram.mentions.push(this);
-          }
-        }
-        for (const port of object.entity.ports) {
-          if (port.name.text.toLowerCase() === text.toLowerCase()) {
-            this.definitions.push(port);
-            this.scope = object.entity;
-            port.mentions.push(this);
-          }
-        }
-        for (const generic of object.entity.generics) {
-          if (generic.name.text.toLowerCase() === text.toLowerCase()) {
-            this.definitions.push(generic);
-            this.scope = object.entity;
-            generic.mentions.push(this);
-          }
-        }
+        object = object.entity;
+        lastIteration = true;
       }
-
-
-    } while (!(object instanceof OFile));
+    } while (!(object instanceof OFile || stop));
 
   }
 }
@@ -796,10 +815,11 @@ export class OMagicCommentParameter extends OMagicComment {
     super(parent, commentType, range);
   }
 }
-export class OSubprogram extends OHasSequentialStatements implements IMentionable, IHasSubprograms, IHasInstantiations {
+export class OSubprogram extends OHasSequentialStatements implements IMentionable, IHasSubprograms, IHasInstantiations, IHasConstants, IHasVariables {
   parent: OPackage;
   mentions: OToken[] = [];
   variables: OVariable[] = [];
+  constants: OConstant[] = [];
   ports: OPort[] = [];
   types: OType[] = [];
   subprograms: OSubprogram[] = [];

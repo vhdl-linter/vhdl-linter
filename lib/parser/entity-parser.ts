@@ -6,7 +6,7 @@ import { ParserBase } from './parser-base';
 
 export class EntityParser extends ParserBase {
   public entity: OEntity;
-  constructor(text: string, pos: OI, file: string, private parent: OFileWithEntity | OArchitecture) {
+  constructor(text: string, pos: OI, file: string, private parent: OFileWithEntity) {
     super(text, pos, file);
     let library: string | undefined = undefined;
     if (this.parent instanceof OFileWithEntity) {

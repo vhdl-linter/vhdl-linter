@@ -5,7 +5,7 @@ import {
 } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { getDocumentSettings } from './language-server';
-import { IHasDefinitions, IHasInstantiations, implementsIHasInstantiations, implementsIHasSubprograms, implementsIMentionable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, ObjectBase, OCase, OContext, OEntity, OEnum, OFile, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackages, OGeneric, OGenericAssociationList, OHasSequentialStatements, OIf, OInstantiation, OPackage, OPackageBody, OPort, OPortAssociationList, OProcess, ORead, ORecord, OSignal, OSignalBase, OSubprogram, OType, OUseClause, OWhenClause, OWrite, ParserError } from './parser/objects';
+import { IHasDefinitions, IHasInstantiations, implementsIHasInstantiations, implementsIHasSubprograms, implementsIMentionable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, ObjectBase, OCase, OComponent, OConstant, OContext, OEntity, OEnum, OFile, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackages, OGeneric, OGenericAssociationList, OHasSequentialStatements, OIf, OInstantiation, OPackage, OPackageBody, OPort, OPortAssociationList, OProcess, ORead, ORecord, OSignal, OSignalBase, OSubprogram, OType, OUseClause, OWhenClause, OWrite, ParserError } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 export enum LinterRules {
@@ -206,11 +206,17 @@ export class VhdlLinter {
     for (const instantiation of this.file.objectList.filter(object => object instanceof OInstantiation) as OInstantiation[]) {
       switch (instantiation.type) {
         case 'component':
+          const components = this.getComponents(instantiation);
+          instantiation.definitions.push(...components);
+          for (const component of components) {
+            component.mentions.push(instantiation);
+          }
+          break;
         case 'entity':
           instantiation.definitions.push(...this.getEntities(instantiation));
           break;
-        case 'procedure':
-        case 'procedure-call':
+        case 'subprogram':
+        case 'subprogram-call':
           instantiation.definitions.push(...this.getSubprograms(instantiation));
           break;
       }
@@ -226,24 +232,26 @@ export class VhdlLinter {
           if (!(obj.parent.parent instanceof OInstantiation)) {
             continue;
           }
-          let entitiesOrProcedures: (OEntity | OSubprogram)[] = [];
+          let definitions: (OComponent|OEntity|OSubprogram)[];
           switch (obj.parent.parent.type) {
             case 'component':
-            case 'entity':
-              entitiesOrProcedures = this.getEntities(obj.parent.parent);
+              definitions = this.getComponents(obj.parent.parent);
               break;
-            case 'procedure':
-            case 'procedure-call':
-              entitiesOrProcedures = this.getSubprograms(obj.parent.parent);
+            case 'entity':
+              definitions = this.getEntities(obj.parent.parent);
+              break;
+            case 'subprogram':
+            case 'subprogram-call':
+              definitions = this.getSubprograms(obj.parent.parent);
               break;
           }
-          if (entitiesOrProcedures.length === 0) {
+          if (definitions.length === 0) {
             continue;
           }
 
           let ports: (OPort | OGeneric)[] = [];
           if (obj.parent instanceof OPortAssociationList) {
-            ports.push(...entitiesOrProcedures.flatMap(ep => ep.ports.filter((port, portNumber) => {
+            ports.push(...definitions.flatMap(ep => ep.ports.filter((port, portNumber) => {
               const formalMatch = obj.formalPart.find(name => name.text.toLowerCase() === port.name.text.toLowerCase());
               if (formalMatch) {
                 return true;
@@ -251,7 +259,7 @@ export class VhdlLinter {
               return portNumber === obj.parent.children.findIndex(o => o === obj);
             })));
           } else {
-            for (const ep of entitiesOrProcedures) {
+            for (const ep of definitions) {
               if (ep instanceof OEntity) {
                 ports.push(...ep.generics.filter(port => obj.formalPart.find(name => name.text.toLowerCase() === port.name.text.toLowerCase())));
               }
@@ -340,8 +348,8 @@ export class VhdlLinter {
       return;
     }
     for (const component of this.file.architecture.components) {
-      const realEntities = this.getEntities(component);
-      if (realEntities.length === 0) {
+      const entities = this.getEntities(component);
+      if (entities.length === 0) {
         this.addMessage({
           range: component.name.range,
           severity: DiagnosticSeverity.Warning,
@@ -350,7 +358,7 @@ export class VhdlLinter {
         continue;
       }
       // list of generics (possibly multiple occurences)
-      const realGenerics = realEntities.flatMap(e => e.generics);
+      const realGenerics = entities.flatMap(e => e.generics);
       // generics not in realEntity
       for (const generic of realGenerics) {
         if (!realGenerics.find(gen => gen.name.text.toLowerCase() === generic.name.text.toLowerCase())) {
@@ -372,7 +380,7 @@ export class VhdlLinter {
         }
       }
       // list of ports (possibly multiple occurences)
-      const realPorts = realEntities.flatMap(e => e.ports);
+      const realPorts = entities.flatMap(e => e.ports);
       // ports not in realEntity
       for (const port of component.ports) {
         if (!realPorts.find(p => p.name.text.toLowerCase() === port.name.text.toLowerCase())) {
@@ -460,7 +468,7 @@ export class VhdlLinter {
   private pushReadError(read: ORead) {
     const code = this.addCodeActionCallback((textDocumentUri: string) => {
       const actions = [];
-      for (const pkg of this.projectParser.getPackages()) {
+      for (const pkg of this.packages) {
         const thing = pkg.constants.find(constant => constant.name.text.toLowerCase() === read.text.toLowerCase()) || pkg.types.find(type => type.name.text.toLowerCase() === read.text.toLowerCase())
           || pkg.subprograms.find(subprogram => subprogram.name.text.toLowerCase() === read.text.toLowerCase());
         if (thing) {
@@ -500,7 +508,11 @@ export class VhdlLinter {
       } else if (obj instanceof OWrite && obj.definitions.length === 0) {
         this.pushWriteError(obj);
       } else if (obj instanceof OAssociationFormal && obj.definitions.length === 0) {
-        this.pushReadError(obj);
+        const instOrPackage =  obj.parent.parent.parent;
+        // if instantiations entity/component/subprogram is not found, don't report read errors
+        if (instOrPackage instanceof OInstantiation && instOrPackage.definitions.length > 0) {
+          this.pushReadError(obj);
+        }
       }
     }
   }
@@ -675,7 +687,7 @@ export class VhdlLinter {
         })
       }
     }
-    for (const signal of architecture.getRoot().objectList.filter(object => object instanceof OSignal) as OSignal[]) {
+    for (const signal of architecture.getRoot().objectList .filter(object => object instanceof OSignal) as OSignal[]) {
       if (signal.mentions.filter(token => token instanceof ORead).length === 0) {
         this.addMessage({
           range: signal.name.range,
@@ -684,28 +696,37 @@ export class VhdlLinter {
         });
       }
       const writes = signal.mentions.filter(token => token instanceof OWrite);
-      if (!signal.constant && writes.length === 0) {
+      if (writes.length === 0) {
         this.addMessage({
           range: signal.name.range,
           severity: DiagnosticSeverity.Warning,
           message: `Not writing signal '${signal.name}'`
         });
       }
-      if (signal.constant) {
-        for (const write of writes) {
-          if (write.parent instanceof OAssociation && write.parent.parent instanceof OPortAssociationList) {
-            this.addMessage({
-              range: write.range,
-              severity: DiagnosticSeverity.Information,
-              message: `Constant ${signal.name} could be written in the procedure`
-            });
-          } else {
-            this.addMessage({
-              range: write.range,
-              severity: DiagnosticSeverity.Error,
-              message: `Constant ${signal.name} cannot be written`
-            });
-          }
+    }
+    for (const constant of architecture.getRoot().objectList
+    .filter(object => object instanceof OConstant) as OConstant[]) {
+      if (constant.mentions.filter(token => token instanceof ORead).length === 0) {
+        this.addMessage({
+          range: constant.name.range,
+          severity: DiagnosticSeverity.Warning,
+          message: `Not reading constant '${constant.name}'`
+        });
+      }
+      const writes = constant.mentions.filter(token => token instanceof OWrite);
+      for (const write of writes) {
+        if (write.parent instanceof OAssociation && write.parent.parent instanceof OPortAssociationList) {
+          this.addMessage({
+            range: write.range,
+            severity: DiagnosticSeverity.Information,
+            message: `Constant ${constant.name} could be written in the procedure`
+          });
+        } else {
+          this.addMessage({
+            range: write.range,
+            severity: DiagnosticSeverity.Error,
+            message: `Constant ${constant.name} cannot be written`
+          });
         }
       }
     }
@@ -863,26 +884,14 @@ export class VhdlLinter {
       }
     }
   }
-  getEntities(instantiation: OInstantiation | OEntity): OEntity[] {
+  getEntities(instantiation: OInstantiation | OComponent): OEntity[] {
     const entities: OEntity[] = [];
     if (instantiation instanceof OInstantiation && instantiation.type === 'component') {
-      // find all defined components in current scope
-      let parent: ObjectBase | OFile | undefined = instantiation.parent;
-      if (!parent) {
-        if (this.file instanceof OFileWithEntityAndArchitecture) {
-          parent = this.file.architecture;
-        }
-      }
-      while (parent instanceof ObjectBase) {
-        if (parent instanceof OArchitecture) {
-          entities.push(...parent.components);
-        }
-        parent = parent.parent;
-      }
+      return [];
     }
     // find project entities
     const projectEntities = this.projectParser.getEntities();
-    if (typeof instantiation.library !== 'undefined') {
+    if (instantiation instanceof OInstantiation && typeof instantiation.library !== 'undefined') {
       entities.push(...projectEntities.filter(entity => {
         if (entity.library !== undefined) {
           return entity.library.toLowerCase() === instantiation.library?.toLowerCase() ?? '';
@@ -895,6 +904,30 @@ export class VhdlLinter {
     }
     const name = (instantiation instanceof OInstantiation) ? instantiation.componentName : instantiation.name;
     return entities.filter(e => e.name.text.toLowerCase() === name.text.toLowerCase());
+  }
+  getComponents(instantiation: OInstantiation): OComponent[] {
+    const components: OComponent[] = [];
+    if (instantiation.type !== 'component') {
+      return components;
+    }
+    // find all defined components in current scope
+    let parent: ObjectBase | OFile | undefined = instantiation.parent;
+    if (!parent) {
+      if (this.file instanceof OFileWithEntityAndArchitecture) {
+        parent = this.file.architecture;
+      }
+    }
+    while (parent instanceof ObjectBase) {
+      if (parent instanceof OArchitecture) {
+        components.push(...parent.components);
+      }
+      parent = parent.parent;
+    }
+    // find project components
+    const projectComponents = this.packages.flatMap(pkg => (pkg instanceof OPackage) ? pkg.components : []);
+    components.push(...projectComponents);
+    const name = instantiation.componentName;
+    return components.filter(e => e.name.text.toLowerCase() === name.text.toLowerCase());
   }
 
   getSubprograms(instantiation: OInstantiation): OSubprogram[] {
@@ -937,15 +970,23 @@ export class VhdlLinter {
     return subprograms.filter(e => e.name.text.toLowerCase() === instantiation.componentName.text.toLowerCase());
   }
 
-  checkPortMaps(entitiesOrSubprograms: (OEntity | OSubprogram)[], instantiation: OInstantiation) {
-    if (entitiesOrSubprograms.length === 0) {
+  checkPortMaps(definitions: (OEntity | OSubprogram | OComponent)[], instantiation: OInstantiation) {
+    if (definitions.length === 0) {
+      let name;
+      switch (instantiation.type) {
+        case 'subprogram-call':
+          name = 'subprogram';
+          break;
+        default:
+          name = instantiation.type;
+      }
       this.addMessage({
         range: instantiation.range.start.getRangeToEndLine(),
         severity: DiagnosticSeverity.Warning,
-        message: `can not find entity/procedure ${instantiation.componentName}`
+        message: `can not find ${name} ${instantiation.componentName}`
       });
     } else {
-      const availablePortsDup = entitiesOrSubprograms.flatMap(e => e.ports);
+      const availablePortsDup = definitions.flatMap(e => e.ports);
       const availablePorts = availablePortsDup.filter((v, i, self) => self.findIndex(o => o.name.text.toLowerCase() === v.name.text.toLowerCase()) === i);
       const foundPorts: OPort[] = [];
       let portsWithoutFormal = false;
@@ -983,7 +1024,7 @@ export class VhdlLinter {
             this.addMessage({
               range: portAssociation.range,
               severity: DiagnosticSeverity.Error,
-              message: `no port ${portAssociation.formalPart.map(name => name.text).join(', ')} on entity/procedure ${entitiesOrSubprograms[0].name.text}`,
+              message: `no port ${portAssociation.formalPart.map(name => name.text).join(', ')} on entity/procedure ${definitions[0].name.text}`,
               code
             });
           } else {
@@ -992,7 +1033,7 @@ export class VhdlLinter {
         }
       }
       if (allPortsWithoutFormal) {
-        const portCounts = [...new Set(entitiesOrSubprograms.flatMap(e => {
+        const portCounts = [...new Set(definitions.flatMap(e => {
           const totalLength = e.ports.length;
           const portsWithDefault = e.ports.filter(p => typeof p.defaultValue === 'undefined').length;
           const result = [];
@@ -1044,18 +1085,20 @@ export class VhdlLinter {
     }
     if (implementsIHasInstantiations(object)) {
       for (const instantiation of object.instantiations) {
-        let entitiesOrSubprograms;
+        let definitions: (OComponent|OEntity|OSubprogram)[];
         switch (instantiation.type) {
           case 'component':
-          case 'entity':
-            entitiesOrSubprograms = this.getEntities(instantiation);
+            definitions = this.getComponents(instantiation);
             break;
-          case 'procedure':
-          case 'procedure-call':
-            entitiesOrSubprograms = this.getSubprograms(instantiation);
+          case 'entity':
+            definitions = this.getEntities(instantiation);
+            break;
+          case 'subprogram':
+          case 'subprogram-call':
+            definitions = this.getSubprograms(instantiation);
             break;
         }
-        this.checkPortMaps(entitiesOrSubprograms, instantiation);
+        this.checkPortMaps(definitions, instantiation);
       }
     }
     if (implementsIHasSubprograms(object)) {

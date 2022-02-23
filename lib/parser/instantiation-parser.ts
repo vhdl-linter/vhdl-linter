@@ -10,7 +10,7 @@ export class InstantiationParser extends ParserBase {
 
   }
   parse(nextWord: string, label: string | undefined, startI: number, procedure: boolean): OInstantiation {
-    const instantiation = new OInstantiation(this.parent, startI, this.getEndOfLineI(), procedure ? 'procedure' : 'component');
+    const instantiation = new OInstantiation(this.parent, startI, this.getEndOfLineI(), procedure ? 'subprogram' : 'component');
     instantiation.label = label;
     const savedI = this.pos.i;
     if (procedure) {

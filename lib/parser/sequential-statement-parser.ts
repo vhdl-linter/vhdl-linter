@@ -60,30 +60,30 @@ export class SequentialStatementParser extends ParserBase {
         const assignmentParser = new AssignmentParser(this.text, this.pos, this.file, parent);
         statements.push(assignmentParser.parse());
       } else {
-        statements.push(this.parseProcedureCall(parent));
+        statements.push(this.parseSubprogramCall(parent));
 
       }
     }
     return statements;
   }
-  parseProcedureCall(parent: OHasSequentialStatements | OIf) {
-    const procedureCall = new OInstantiation(parent, this.pos.i, this.getEndOfLineI(), 'procedure-call');
-    procedureCall.componentName = new OName(procedureCall, this.pos.i, this.pos.i);
-    procedureCall.componentName.text = this.getNextWord();
-    procedureCall.componentName.range.end.i = procedureCall.componentName.range.start.i + procedureCall.componentName.text.length;
+  parseSubprogramCall(parent: OHasSequentialStatements | OIf) {
+    const subprogramCall = new OInstantiation(parent, this.pos.i, this.getEndOfLineI(), 'subprogram-call');
+    subprogramCall.componentName = new OName(subprogramCall, this.pos.i, this.pos.i);
+    subprogramCall.componentName.text = this.getNextWord();
+    subprogramCall.componentName.range.end.i = subprogramCall.componentName.range.start.i + subprogramCall.componentName.text.length;
     while (this.text[this.pos.i] === '.') {
       this.expect('.');
-      procedureCall.componentName.range.start.i = this.pos.i;
-      procedureCall.componentName.text = this.getNextWord();
-      procedureCall.componentName.range.end.i = procedureCall.componentName.range.start.i + procedureCall.componentName.text.length;
+      subprogramCall.componentName.range.start.i = this.pos.i;
+      subprogramCall.componentName.text = this.getNextWord();
+      subprogramCall.componentName.range.end.i = subprogramCall.componentName.range.start.i + subprogramCall.componentName.text.length;
 
     }
     if (this.text[this.pos.i] === '(') {
-      procedureCall.portAssociationList = new AssociationListParser(this.text, this.pos, this.file, procedureCall).parse();
+      subprogramCall.portAssociationList = new AssociationListParser(this.text, this.pos, this.file, subprogramCall).parse();
     }
-    procedureCall.range.end.i = this.pos.i;
+    subprogramCall.range.end.i = this.pos.i;
     this.expect(';');
-    return procedureCall;
+    return subprogramCall;
   }
   parseWait(parent: OHasSequentialStatements | OIf) {
     this.expect('wait');
@@ -123,9 +123,10 @@ export class SequentialStatementParser extends ParserBase {
     this.expect('for');
     const startI = this.pos.i;
     const variableName = this.getNextWord();
-    forLoop.variable = new OVariable(forLoop, startI, variableName.length + startI);
-    forLoop.variable.name = new OName(forLoop.variable, startI, variableName.length + startI);
-    forLoop.variable.name.text = variableName;
+    const variable = new OVariable(forLoop, startI, variableName.length + startI)
+    variable.name = new OName(variable, startI, variableName.length + startI);
+    variable.name.text = variableName;
+    forLoop.variables.push(variable);
     this.expect('in');
     const rangeI = this.pos.i;
     const rangeText = this.advancePast(/\bloop\b/i).trim();

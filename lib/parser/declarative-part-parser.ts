@@ -1,5 +1,7 @@
+import { ComponentParser } from './component-parser';
 import { EntityParser } from './entity-parser';
-import { OArchitecture, OEntity, OI, OName, OPackage, OPackageBody, OProcess, OSignal, OSubprogram, OType, OVariable, ParserError } from './objects';
+import { ObjectDeclarationParser } from './object-declaration-parser';
+import { implementsIHasComponents, implementsIHasSubprograms, OArchitecture, OEntity, OI, OName, OPackage, OPackageBody, OProcess, OSignal, OSubprogram, OType, OVariable, ParserError } from './objects';
 import { ParserBase } from './parser-base';
 import { SubprogramParser } from './subprogram-parser';
 import { SubtypeParser } from './subtype-parser';
@@ -12,46 +14,14 @@ export class DeclarativePartParser extends ParserBase {
     this.debug('start');
   }
   parse(optional: boolean = false, lastWord = 'begin') {
-    const canHaveSignal = !(this.parent instanceof OProcess || this.parent instanceof OSubprogram);
     let nextWord = this.getNextWord({ consume: false }).toLowerCase();
     while (nextWord !== lastWord) {
-      if ((nextWord === 'signal' && canHaveSignal)
+      if (nextWord === 'signal'
        || nextWord === 'constant'
        || nextWord === 'shared'
        || nextWord === 'variable') {
-        if (nextWord === 'shared') {
-          this.getNextWord();
-        }
-        const signals = [];
-        const constant = this.getNextWord() === 'constant';
-        do {
-          this.maybeWord(',');
-          const signal = canHaveSignal
-            ? new OSignal(this.parent, this.pos.i, this.getEndOfLineI())
-            : new OVariable(this.parent, this.pos.i, this.getEndOfLineI());
-          signal.constant = constant;
-          signal.name = new OName(signal, this.pos.i, this.pos.i);
-          signal.name.text = this.getNextWord();
-          signal.name.range.end.i = signal.name.range.start.i + signal.name.text.length;
-          signals.push(signal);
-
-        } while (this.text[this.pos.i] === ',');
-        this.expect(':');
-        for (const signal of signals) {
-          const { typeReads, defaultValueReads } = this.getType(signal, false);
-          signal.type = typeReads;
-          signal.defaultValue = defaultValueReads;
-          signal.range.end.i = this.pos.i;
-        }
-        this.advanceSemicolon();
-        if (this.parent instanceof OPackage || this.parent instanceof OPackageBody) {
-          this.parent.constants.push(...signals as OSignal[]);
-        } else if (this.parent instanceof OProcess || this.parent instanceof OSubprogram) { //. should be canHaveSignal but linter doesn't like it
-          
-          this.parent.variables.push(...signals);
-        } else {
-          this.parent.signals.push(...signals as OSignal[]);
-        }
+        const objectDeclarationParser = new ObjectDeclarationParser(this.text, this.pos, this.file, this.parent);
+        objectDeclarationParser.parse(nextWord);
       } else if (nextWord === 'attribute') {
         this.getNextWord();
         this.advanceSemicolon(true);
@@ -77,18 +47,10 @@ export class DeclarativePartParser extends ParserBase {
         this.expect('is');
         this.parent.types.push(type);
         this.advanceSemicolon(true);
-      } else if (nextWord === 'component') {
+      } else if (nextWord === 'component' && implementsIHasComponents(this.parent)) {
         this.getNextWord();
-        if (this.parent instanceof OArchitecture) {
-          const entityParser = new EntityParser(this.text, this.pos, this.file, this.parent);
-          this.parent.components.push(entityParser.parse());
-        } else {
-          const componentName = this.getNextWord();
-          this.advancePast(/\bend\b/i, { allowSemicolon: true });
-          this.maybeWord('component');
-          this.maybeWord(componentName);
-          this.expect(';');
-        }
+        const componentParser = new ComponentParser(this.text, this.pos, this.file, this.parent);
+        this.parent.components.push(componentParser.parse());
       } else if (nextWord === 'procedure' || nextWord === 'impure' || nextWord === 'pure' || nextWord === 'function') {
         const subprogramParser = new SubprogramParser(this.text, this.pos, this.file, this.parent);
         this.parent.subprograms.push(subprogramParser.parse(this.pos.i));
