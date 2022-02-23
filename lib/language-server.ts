@@ -36,6 +36,9 @@ export interface ISettings {
     inRegex: string;
     enablePortStyle: boolean;
   };
+  paths: {
+    additional: string[]
+  };
   style: {
     preferedLogicType: 'std_logic' | 'std_ulogic';
   };
@@ -49,6 +52,9 @@ const defaultSettings: ISettings = {
     outRegex: '^o_',
     inRegex: '^i_',
     enablePortStyle: true,
+  },
+  paths: {
+    additional: []
   },
   style: {
     preferedLogicType: 'std_ulogic'
@@ -69,7 +75,7 @@ connection.onDidChangeConfiguration(change => {
     documentSettings.clear();
   } else {
     globalSettings = <ISettings>(
-      (change.settings.VhdlLinter.ports || defaultSettings)
+      (change.settings.VhdlLinter || defaultSettings)
     );
   }
 
@@ -138,7 +144,11 @@ export const initialization = new Promise<void>(resolve => {
       const parseWorkspaces = async () => {
         const workspaceFolders = await connection.workspace.getWorkspaceFolders();
         const folders = (workspaceFolders ?? []).map(workspaceFolder => URI.parse(workspaceFolder.uri).fsPath);
-
+        const configuration = (await connection.workspace.getConfiguration({
+          section: 'VhdlLinter'
+        })) as ISettings;
+        console.log(configuration, 'configuration');
+        folders.push(... configuration.paths.additional);
         projectParser = new ProjectParser(folders);
         await projectParser.init();
       };

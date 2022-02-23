@@ -167,6 +167,14 @@
 					"type": "string",
 					"default": "^i_",
 					"description": "A regular expression to match input ports."
+				},
+				"VhdlLinter.paths.additional": {
+					"scope": "window",
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"description": "Additional Pathes to be included (for verification library etc.)"
 				}
 			}
 		}

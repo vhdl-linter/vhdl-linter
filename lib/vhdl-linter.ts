@@ -865,7 +865,7 @@ export class VhdlLinter {
   }
   getEntities(instantiation: OInstantiation | OEntity): OEntity[] {
     const entities: OEntity[] = [];
-    if (instantiation instanceof OInstantiation) {
+    if (instantiation instanceof OInstantiation && instantiation.type === 'component') {
       // find all defined components in current scope
       let parent: ObjectBase | OFile | undefined = instantiation.parent;
       if (!parent) {
@@ -883,7 +883,13 @@ export class VhdlLinter {
     // find project entities
     const projectEntities = this.projectParser.getEntities();
     if (typeof instantiation.library !== 'undefined') {
-      entities.push(...projectEntities.filter(entity => entity.library?.toLowerCase() ?? '' === instantiation.library?.toLowerCase()));
+      entities.push(...projectEntities.filter(entity => {
+        if (entity.library !== undefined) {
+          return entity.library.toLowerCase() === instantiation.library?.toLowerCase() ?? '';
+        }
+        return true;
+
+      }));
     } else {
       entities.push(...projectEntities);
     }
