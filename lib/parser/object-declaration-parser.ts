@@ -15,17 +15,18 @@ export class ObjectDeclarationParser extends ParserBase {
     }
     const objects = [];
     const constant = nextWord === 'constant';
-    const variable = nextWord === 'variable';
-    if (variable && !implementsIHasVariables(this.parent)) {
+    const variable = nextWord === 'variable' || nextWord === 'file';
+    const file = nextWord === 'file';
+    if ((variable || file) && !implementsIHasVariables(this.parent)) {
       throw new ParserError(`No variables allowed here.`, this.pos.getRangeToEndLine());
     }
     if (constant && !implementsIHasConstants(this.parent)) {
       throw new ParserError(`No constants allowed here.`, this.pos.getRangeToEndLine());
     }
-    if (!variable && !constant && !implementsIHasSignals(this.parent)) {
+    if (!variable  && !constant && !implementsIHasSignals(this.parent)) {
       throw new ParserError(`No signals allowed here`, this.pos.getRangeToEndLine());
     }
-    this.getNextWord()
+    this.getNextWord();
     do {
       this.maybeWord(',');
       let object;
@@ -43,11 +44,13 @@ export class ObjectDeclarationParser extends ParserBase {
 
     } while (this.text[this.pos.i] === ',');
     this.expect(':');
-    for (const signal of objects) {
-      const { typeReads, defaultValueReads } = this.getType(signal, false);
-      signal.type = typeReads;
-      signal.defaultValue = defaultValueReads;
-      signal.range.end.i = this.pos.i;
+    if (!file) {
+      for (const signal of objects) {
+        const { typeReads, defaultValueReads } = this.getType(signal, false);
+        signal.type = typeReads;
+        signal.defaultValue = defaultValueReads;
+        signal.range.end.i = this.pos.i;
+      }
     }
     this.advanceSemicolon();
     if (constant) {

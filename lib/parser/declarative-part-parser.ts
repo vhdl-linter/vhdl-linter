@@ -19,7 +19,8 @@ export class DeclarativePartParser extends ParserBase {
       if (nextWord === 'signal'
        || nextWord === 'constant'
        || nextWord === 'shared'
-       || nextWord === 'variable') {
+       || nextWord === 'variable'
+       || nextWord === 'file') {
         const objectDeclarationParser = new ObjectDeclarationParser(this.text, this.pos, this.file, this.parent);
         objectDeclarationParser.parse(nextWord);
       } else if (nextWord === 'attribute') {
@@ -56,8 +57,6 @@ export class DeclarativePartParser extends ParserBase {
         this.parent.subprograms.push(subprogramParser.parse(this.pos.i));
         this.expect(';');
       } else if (nextWord === 'package' || nextWord === 'generic') {
-        this.advanceSemicolon();
-      } else if (nextWord === 'file') {
         this.advanceSemicolon();
       } else if (nextWord === 'disconnect') {
         this.advanceSemicolon();
