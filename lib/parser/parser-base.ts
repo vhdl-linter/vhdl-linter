@@ -386,11 +386,15 @@ export class ParserBase {
       defaultValueReads
     };
   }
-  extractReads(parent: ObjectBase | OAssociation, text: string, i: number, asMappingName: boolean = false): ORead[] {
+  extractReads(parent: ObjectBase | OAssociation, text: string, i: number, asMappingName?: false): ORead[];
+  extractReads(parent: ObjectBase | OAssociation, text: string, i: number, asMappingName: true):  OAssociationFormal[];
+  extractReads(parent: ObjectBase | OAssociation, text: string, i: number, asMappingName: boolean = false): ORead[] | OAssociationFormal[] {
     return tokenizer.tokenize(text, parent.getRoot().libraries).filter(token => token.type === 'VARIABLE' || token.type === 'FUNCTION' || token.type === 'RECORD_ELEMENT' || token.type === 'FUNCTION_RECORD_ELEMENT').map(token => {
       let read;
       if (token.type === 'RECORD_ELEMENT' || token.type === 'FUNCTION_RECORD_ELEMENT') {
-        read = new OElementRead(parent, i + token.offset, i + token.offset + token.value.length, token.value);
+        if (token.value.toLowerCase() !== 'all') {
+          read = new OElementRead(parent, i + token.offset, i + token.offset + token.value.length, token.value);
+        }
       } else {
         if (asMappingName && !(parent instanceof OAssociation)) {
           throw new Error();
@@ -400,7 +404,7 @@ export class ParserBase {
         : new ORead(parent, i + token.offset, i + token.offset + token.value.length, token.value);
       }
       return read;
-    });
+    }).filter(a => a) as any;
   }
   extractReadsOrWrite(parent: ObjectBase, text: string, i: number): [ORead[], OWrite[]] {
     const reads: ORead[] = [];

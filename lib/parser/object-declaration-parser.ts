@@ -10,7 +10,8 @@ export class ObjectDeclarationParser extends ParserBase {
   parse(nextWord: string) {
 
     if (nextWord === 'shared') {
-      nextWord = this.getNextWord();
+      this.getNextWord();
+      nextWord = this.getNextWord({consume: false});
     }
     const objects = [];
     const constant = nextWord === 'constant';

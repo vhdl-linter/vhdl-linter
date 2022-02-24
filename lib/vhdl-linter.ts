@@ -5,7 +5,7 @@ import {
 } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { getDocumentSettings } from './language-server';
-import { IHasDefinitions, IHasInstantiations, implementsIHasInstantiations, implementsIHasSubprograms, implementsIMentionable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, ObjectBase, OCase, OComponent, OConstant, OContext, OEntity, OEnum, OFile, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackages, OGeneric, OGenericAssociationList, OHasSequentialStatements, OIf, OInstantiation, OPackage, OPackageBody, OPort, OPortAssociationList, OProcess, ORead, ORecord, OSignal, OSignalBase, OSubprogram, OType, OUseClause, OWhenClause, OWrite, ParserError } from './parser/objects';
+import { IHasDefinitions, IHasInstantiations, implementsIHasInstantiations, implementsIHasSubprograms, implementsIMentionable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, ObjectBase, OCase, OComponent, OConstant, OContext, OEntity, OEnum, OFile, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackages, OGeneric, OGenericAssociationList, OHasSequentialStatements, OIf, OInstantiation, OPackage, OPackageBody, OPort, OPortAssociationList, OProcess, ORead, ORecord, OSignal, OSignalBase, OSubprogram, OType, OUseClause, OWhenClause, OWrite, ParserError, OToken } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 export enum LinterRules {
@@ -131,6 +131,11 @@ export class VhdlLinter {
     return useClauses;
   }
   async elaborate() {
+    for (const obj of this.file.objectList) {
+      if (obj instanceof OToken) {
+        obj.elaborate();
+      }
+    }
     const packages = this.projectParser.getPackages();
     const standard = packages.find(pkg => pkg.name.text.toLowerCase() === 'standard');
     if (standard) {
@@ -312,6 +317,7 @@ export class VhdlLinter {
       }
     }
   }
+
   async checkLibrary() {
     const settings = await getDocumentSettings(URI.file(this.editorPath).toString());
 
@@ -501,6 +507,39 @@ export class VhdlLinter {
       message: `signal '${read.text}' is read but not declared`
     });
   }
+  private pushAssociationError(read: OAssociationFormal) {
+    const code = this.addCodeActionCallback((textDocumentUri: string) => {
+      const actions = [];
+      for (const pkg of this.packages) {
+        const thing = pkg.constants.find(constant => constant.name.text.toLowerCase() === read.text.toLowerCase()) || pkg.types.find(type => type.name.text.toLowerCase() === read.text.toLowerCase())
+          || pkg.subprograms.find(subprogram => subprogram.name.text.toLowerCase() === read.text.toLowerCase());
+        if (thing) {
+          const file = read.getRoot();
+          const pos = Position.create(0, 0);
+          if (file.useClauses.length > 0) {
+            pos.line = file.useClauses[file.useClauses.length - 1].range.end.line + 1;
+          }
+          actions.push(CodeAction.create(
+            'add use statement for ' + pkg.name,
+            {
+              changes: {
+                [textDocumentUri]: [TextEdit.insert(pos, `use ${pkg.library ? pkg.library : 'work'}.${pkg.name}.all;\n`)]
+              }
+            },
+            CodeActionKind.QuickFix
+          ));
+        }
+      }
+
+      return actions;
+    });
+    this.addMessage({
+      range: read.range,
+      code: code,
+      severity: DiagnosticSeverity.Error,
+      message: `port '${read.text}' does not exist`
+    });
+  }
   checkNotDeclared() {
     for (const obj of this.file.objectList) {
       if (obj instanceof ORead && obj.definitions.length === 0) {
@@ -511,7 +550,7 @@ export class VhdlLinter {
         const instOrPackage =  obj.parent.parent.parent;
         // if instantiations entity/component/subprogram is not found, don't report read errors
         if (instOrPackage instanceof OInstantiation && instOrPackage.definitions.length > 0) {
-          this.pushReadError(obj);
+          this.pushAssociationError(obj);
         }
       }
     }

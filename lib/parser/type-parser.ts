@@ -1,6 +1,6 @@
-import { DeclarativePartParser } from "./declarative-part-parser";
-import { OArchitecture, OEntity, OEnum, OI, OName, OPackage, OPackageBody, OProcess, ORecord, ORecordChild, OEnumLiteral, OSubprogram, OType, ParserError } from "./objects";
-import { ParserBase } from "./parser-base";
+import { DeclarativePartParser } from './declarative-part-parser';
+import { OArchitecture, OEntity, OEnum, OI, OName, OPackage, OPackageBody, OProcess, ORecord, ORecordChild, OEnumLiteral, OSubprogram, OType, ParserError } from './objects';
+import { ParserBase } from './parser-base';
 
 
 export class TypeParser extends ParserBase {
@@ -30,10 +30,10 @@ export class TypeParser extends ParserBase {
         let i = this.pos.i;
         let lastI = i;
         while (this.text[i]) {
-          if (this.text[i] === '"' && this.text[i+1] !== '"') {
+          if (this.text[i] === '"' && this.text[i + 1] !== '"') {
             quotes = !quotes;
           }
-          if (!quotes && this.text[i] === "'") {
+          if (!quotes && this.text[i] === '\'') {
             i += 2;
           }
           if (!quotes && this.text[i] === ',') {
@@ -41,7 +41,7 @@ export class TypeParser extends ParserBase {
             lastI = i + 1;
           }
           if (!quotes && this.text[i] === ')') {
-            enumItems.push({text: this.text.substring(lastI, i).trim(), start: lastI, end: i +-1});
+            enumItems.push({text: this.text.substring(lastI, i).trim(), start: lastI, end: i + -1});
             this.pos.i = i + 1;
             break;
           }

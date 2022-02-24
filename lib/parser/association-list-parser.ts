@@ -1,6 +1,5 @@
-import { TextEdit } from 'vscode-languageserver';
-import { OI, OInstantiation, OAssociation, OAssociationFormal, OGenericAssociationList as OGenericAssociationList, OIRange, OPortAssociationList as OPortAssotiationList, ParserError, OPackage } from "./objects";
-import { ParserBase } from "./parser-base";
+import { OI, OInstantiation, OAssociation, OAssociationFormal, OGenericAssociationList as OGenericAssociationList, OIRange, OPortAssociationList as OPortAssotiationList, ParserError, OPackage } from './objects';
+import { ParserBase } from './parser-base';
 
 
 export class AssociationListParser extends ParserBase {
@@ -23,10 +22,7 @@ export class AssociationListParser extends ParserBase {
         const association = new OAssociation(list, savedI, savedI + associationString.length);
         if (associationString.includes('=>')) {
           const [formalString, actualString] = associationString.split('=>');
-          association.formalPart = this.extractReads(association, formalString, savedI, true) as OAssociationFormal[];
-          for (const namePart of association.formalPart) {
-            Object.setPrototypeOf(namePart, OAssociationFormal.prototype);
-          }
+          association.formalPart = this.extractReads(association, formalString, savedI, true);
           associationString = actualString;
           actualStart += formalString.length + 2;
         }

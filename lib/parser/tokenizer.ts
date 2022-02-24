@@ -11,7 +11,7 @@ class Tokenizer {
     ['sll', 'srl', 'sla', 'sra', 'rol', 'ror'],
     ['and', 'or', 'nand', 'nor', 'xor', 'xnor'],
     ['downto', 'to', 'others', 'when', 'else', 'range', 'elsif', 'after', 'transport', 'reject', 'inertial', 'all'],
-    ['of']
+    ['of', 'new', 'lf']
   ];
   tokenTypes = [
     { regex: /^(["])(([^"\\\n]|\\.|\\\n)*)["]/i, tokenType: 'STRING_LITERAL' },
@@ -21,6 +21,7 @@ class Tokenizer {
     { regex: /^,/i, tokenType: 'COMMA' },
     { regex: /^[0-9_]+(?:\.[0-9_]+)?(?:e[+-]?[0-9_]+)?/i, tokenType: 'DECIMAL_LITERAL' },
     { regex: /^true|false/i, tokenType: 'BOOLEAN_LITERAL' },
+    { regex: /^null/i, tokenType: 'NULL_LITERAL' },
     { regex: /^"[0-9ZWLH-UX]+"/i, tokenType: 'LOGIC_LITERAL' },
     { regex: /^\d*[su]?[box]"[0-9A-F_ZWLH-UX]+"/i, tokenType: 'LOGIC_LITERAL' },
     { regex: /^'[0-9ZWLH-UX]+'/i, tokenType: 'LOGIC_LITERAL' },

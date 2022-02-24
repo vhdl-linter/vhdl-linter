@@ -153,6 +153,12 @@ export interface IHasSubprograms {
 export function implementsIHasSubprograms(obj: unknown): obj is IHasSubprograms {
   return (obj as IHasSubprograms).subprograms !== undefined;
 }
+export interface IHasTypes {
+  types: OType[];
+}
+export function implementsIHasTypes(obj: unknown): obj is IHasTypes {
+  return (obj as IHasTypes).types !== undefined;
+}
 export interface IHasComponents {
   components: OComponent[];
 }
@@ -223,7 +229,7 @@ export class OFileWithEntityAndArchitecture extends OFileWithEntity {
 export class OFileWithPackages extends OFile {
   packages: (OPackage | OPackageBody)[] = [];
 }
-export class OPackage extends ObjectBase implements IHasSubprograms, IHasComponents, IHasSignals, IHasConstants, IHasVariables {
+export class OPackage extends ObjectBase implements IHasSubprograms, IHasComponents, IHasSignals, IHasConstants, IHasVariables, IHasTypes {
   parent: OFile;
   uninstantiatedPackageName?: OName;
   subprograms: OSubprogram[] = [];
@@ -238,7 +244,7 @@ export class OPackage extends ObjectBase implements IHasSubprograms, IHasCompone
   library?: string;
 }
 
-export class OPackageBody extends ObjectBase implements IHasSubprograms, IHasConstants, IHasVariables {
+export class OPackageBody extends ObjectBase implements IHasSubprograms, IHasConstants, IHasVariables, IHasTypes {
   parent: OFile;
   subprograms: OSubprogram[] = [];
   constants: OConstant[] = [];
@@ -268,7 +274,7 @@ export type OConcurrentStatements = OProcess | OInstantiation | OIfGenerate | OF
 export class OHasConcurrentStatements extends ObjectBase {
 }
 
-export class OArchitecture extends ObjectBase implements IHasSubprograms, IHasComponents, IHasInstantiations, IHasSignals, IHasConstants, IHasVariables {
+export class OArchitecture extends ObjectBase implements IHasSubprograms, IHasComponents, IHasInstantiations, IHasSignals, IHasConstants, IHasVariables, IHasTypes {
   signals: OSignal[] = [];
   constants: OConstant[] = [];
   variables: OVariable[] = [];
@@ -311,7 +317,7 @@ export class OBlock extends OArchitecture {
   label: string;
 
 }
-export class OType extends ObjectBase implements IMentionable, IHasSubprograms, IHasSignals, IHasConstants, IHasVariables {
+export class OType extends ObjectBase implements IMentionable, IHasSubprograms, IHasSignals, IHasConstants, IHasVariables, IHasTypes {
   types: OType[] = [];
   subprograms: OSubprogram[] = [];
   variables: OVariable[] = [];
@@ -321,6 +327,7 @@ export class OType extends ObjectBase implements IMentionable, IHasSubprograms, 
   units?: string[] = [];
   reads: ORead[] = [];
   findRead(read: ORead) {
+
     if (this.name.text.toLowerCase() === read.text.toLowerCase()) {
       return this;
     }
@@ -542,7 +549,7 @@ export class OAssociation extends ObjectBase implements IHasDefinitions {
   actualIfInput: ORead[] = [];
   actualIfOutput: [ORead[], OWrite[]] = [[], []];
 }
-export class OEntity extends ObjectBase implements IHasDefinitions, IHasSubprograms, IHasSignals, IHasConstants, IHasVariables {
+export class OEntity extends ObjectBase implements IHasDefinitions, IHasSubprograms, IHasSignals, IHasConstants, IHasVariables, IHasTypes {
   constructor(public parent: OFileWithEntity, startI: number, endI: number, public library?: string) {
     super(parent, startI, endI);
   }
@@ -615,7 +622,7 @@ export class OCase extends ObjectBase {
 export class OWhenClause extends OHasSequentialStatements implements IHasInstantiations {
   condition: ORead[] = [];
 }
-export class OProcess extends OHasSequentialStatements implements IHasSubprograms, IHasInstantiations, IHasConstants, IHasVariables {
+export class OProcess extends OHasSequentialStatements implements IHasSubprograms, IHasInstantiations, IHasConstants, IHasVariables, IHasTypes {
   sensitivityList: ORead[] = [];
   label?: string;
   types: OType[] = [];
@@ -660,10 +667,13 @@ export class OToken extends ObjectBase implements IHasDefinitions {
   public scope?: ObjectBase;
   constructor(public parent: ObjectBase, startI: number, endI: number, public text: string) {
     super(parent, startI, endI);
+
+  }
+  elaborate() {
     let object: (OFile | ObjectBase) = this;
     let lastIteration = false;
     let stop = false;
-
+    const text = this.text;
     do {
       stop = lastIteration;
       if (!lastIteration) {
@@ -696,13 +706,7 @@ export class OToken extends ObjectBase implements IHasDefinitions {
           }
         }
       }
-      if (object instanceof OPackage
-        || object instanceof OPackageBody
-        || object instanceof OSubprogram
-        || object instanceof OArchitecture
-        || object instanceof OEntity
-        || object instanceof OProcess
-      ) {
+      if (object instanceof ObjectBase && implementsIHasTypes(object)) {
         for (const type of object.types) {
           if (type.name.text.toLowerCase() === text.toLowerCase()) {
             this.definitions.push(type);
@@ -763,7 +767,6 @@ export class OToken extends ObjectBase implements IHasDefinitions {
         lastIteration = true;
       }
     } while (!(object instanceof OFile || stop));
-
   }
 }
 export class OWrite extends OToken {
@@ -815,7 +818,7 @@ export class OMagicCommentParameter extends OMagicComment {
     super(parent, commentType, range);
   }
 }
-export class OSubprogram extends OHasSequentialStatements implements IMentionable, IHasSubprograms, IHasInstantiations, IHasConstants, IHasVariables {
+export class OSubprogram extends OHasSequentialStatements implements IMentionable, IHasSubprograms, IHasInstantiations, IHasConstants, IHasVariables, IHasTypes {
   parent: OPackage;
   mentions: OToken[] = [];
   variables: OVariable[] = [];

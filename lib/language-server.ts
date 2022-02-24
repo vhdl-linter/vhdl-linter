@@ -189,6 +189,7 @@ export const linters = new Map<string, VhdlLinter>();
 export const lintersValid = new Map<string, boolean>();
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   console.log(textDocument.uri);
+  console.profile('a');
   const vhdlLinter = new VhdlLinter(URI.parse(textDocument.uri).fsPath, textDocument.getText(), projectParser);
   if (typeof vhdlLinter.file !== 'undefined' || typeof linters.get(textDocument.uri) === 'undefined') {
     linters.set(textDocument.uri, vhdlLinter);
@@ -198,6 +199,8 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   }
   const diagnostics = await vhdlLinter.checkAll();
   const test = JSON.stringify(diagnostics);
+  console.profileEnd('a');
+
   connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
 }
 
