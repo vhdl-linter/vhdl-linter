@@ -273,7 +273,7 @@ const findBestDefinition = async (params: IFindDefinitionParams) => {
     return null;
   }
   return definitions[0];
-}
+};
 
 connection.onHover(async (params, token): Promise<Hover | null> => {
   await initialization;

@@ -7,7 +7,7 @@ import { ParserBase } from './parser-base';
 export class PackageParser extends ParserBase {
   parse(parent: OFile): OPackage|OPackageBody {
     let nextWord = this.getNextWord();
-    if (nextWord.toLowerCase() == 'body') {
+    if (nextWord.toLowerCase() === 'body') {
       const pkg = new OPackageBody(parent, this.pos.i, this.getEndOfLineI());
       const match = parent.originalText.match(/!\s*@library\s+(\S+)/i);
       pkg.library = match ? match[1] : undefined;

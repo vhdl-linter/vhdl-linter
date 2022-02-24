@@ -185,13 +185,28 @@ export class ParserBase {
     }
     throw new ParserError(`could not find closing brace`, savedI.getRangeToEndLine());
   }
-  advanceBraceAware(searchStrings: string[], consume = true) {
+  advanceBraceAware(searchStrings: (string|RegExp)[], consume = true) {
     const savedI = this.pos;
     let braceLevel = 0;
     let result = '';
     while (this.text[this.pos.i]) {
       if (braceLevel === 0) {
-        const found = searchStrings.find(s => s.toLowerCase() === this.text.substring(this.pos.i, this.pos.i + s.length).toLowerCase());
+        let found;
+        for (const searchString of searchStrings) {
+          if (typeof searchString === 'string') {
+            if (searchString.toLowerCase() === this.text.substring(this.pos.i, this.pos.i + searchString.length).toLowerCase()) {
+              found = searchString;
+              break;
+            }
+          } else {
+            const match = this.text.substr(this.pos.i).match(searchString);
+            if (match) {
+              found = match[0];
+              break;
+
+            }
+          }
+        }
         if (typeof found !== 'undefined') {
           const lastString = found;
           if (consume) {
@@ -354,7 +369,7 @@ export class ParserBase {
     let type = '';
     const startI = this.pos.i;
     if (endWithBrace) {
-      [type] = this.advanceBraceAware([';', ' is', ')'], false);
+      [type] = this.advanceBraceAware([';', /^\bis\b/, ')'], false);
     } else {
       const match = /;|\bis\b/.exec(this.text.substr(this.pos.i));
       if (!match) {

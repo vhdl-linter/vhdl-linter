@@ -15,7 +15,7 @@ export class SubprogramParser extends ParserBase {
     if (nextWord === 'impure' || nextWord === 'pure') {
       nextWord = this.getNextWord();
     }
-    const isFunction = nextWord == 'function';
+    const isFunction = nextWord === 'function';
     const beforeNameI = this.pos.i;
     const name = this.getNextWord({re: /\w+|"[^"]+"/});
     const subprogram = new OSubprogram(this.parent, startI, this.getEndOfLineI());
@@ -28,7 +28,10 @@ export class SubprogramParser extends ParserBase {
     }
     if (isFunction) {
       this.expect('return');
-      subprogram.return = this.getType(subprogram, false).typeReads;
+      if (this.text.substr(this.pos.i, 30).match(/is/)) {
+        console.log('a');
+      }
+      subprogram.return = this.getType(subprogram, false, true).typeReads;
     }
     nextWord = this.getNextWord({ consume: false });
     if (nextWord === 'is') {
