@@ -135,11 +135,11 @@ export class ObjectBase {
     return parent;
   }
 }
-export interface IMentionable {
-  mentions: OToken[];
+export interface IReferenceable {
+  references: OToken[];
 }
-export function implementsIMentionable(obj: unknown): obj is IMentionable {
-  return (obj as IMentionable).mentions !== undefined;
+export function implementsIMentionable(obj: unknown): obj is IReferenceable {
+  return (obj as IReferenceable).references !== undefined;
 }
 export interface IHasDefinitions {
   definitions: ObjectBase[];
@@ -317,13 +317,13 @@ export class OBlock extends OArchitecture {
   label: string;
 
 }
-export class OType extends ObjectBase implements IMentionable, IHasSubprograms, IHasSignals, IHasConstants, IHasVariables, IHasTypes {
+export class OType extends ObjectBase implements IReferenceable, IHasSubprograms, IHasSignals, IHasConstants, IHasVariables, IHasTypes {
   types: OType[] = [];
   subprograms: OSubprogram[] = [];
   variables: OVariable[] = [];
   constants: OConstant[] = [];
   signals: OSignal[] = [];
-  mentions: OToken[] = [];
+  references: OToken[] = [];
   units?: string[] = [];
   reads: ORead[] = [];
   findRead(read: ORead) {
@@ -368,8 +368,8 @@ export class ORecord extends OType {
 export class ORecordChild extends OType {
   public parent: ORecord;
 }
-export class OEnumLiteral extends ObjectBase implements IMentionable {
-  mentions: OToken[] = [];
+export class OEnumLiteral extends ObjectBase implements IReferenceable {
+  references: OToken[] = [];
   public parent: OEnum;
 }
 export class OForGenerate extends OArchitecture {
@@ -403,8 +403,8 @@ export class OName extends ObjectBase {
     return this.text;
   }
 }
-export abstract class OVariableBase extends ObjectBase implements IMentionable {
-  mentions: OToken[] = [];
+export abstract class OVariableBase extends ObjectBase implements IReferenceable {
+  references: OToken[] = [];
   type: ORead[] = [];
   defaultValue?: ORead[] = [];
 }
@@ -574,7 +574,7 @@ export class OComponent extends ObjectBase implements IHasDefinitions, IHasSubpr
   genericRange?: OIRange;
   ports: OPort[] = [];
   generics: OGeneric[] = [];
-  mentions: OInstantiation[] = [];
+  references: OInstantiation[] = [];
   definitions: OEntity[] = [];
 }
 export class OPort extends OSignalBase {
@@ -684,7 +684,7 @@ export class OToken extends ObjectBase implements IHasDefinitions {
           if (signal.name.text.toLowerCase() === text.toLowerCase()) {
             this.definitions.push(signal);
             this.scope = object as ObjectBase;
-            signal.mentions.push(this);
+            signal.references.push(this);
           }
         }
       }
@@ -693,7 +693,7 @@ export class OToken extends ObjectBase implements IHasDefinitions {
           if (constant.name.text.toLowerCase() === text.toLowerCase()) {
             this.definitions.push(constant);
             this.scope = object as ObjectBase;
-            constant.mentions.push(this);
+            constant.references.push(this);
           }
         }
       }
@@ -702,7 +702,7 @@ export class OToken extends ObjectBase implements IHasDefinitions {
           if (subprogram.name.text.toLowerCase() === text.toLowerCase()) {
             this.definitions.push(subprogram);
             this.scope = object as ObjectBase;
-            subprogram.mentions.push(this);
+            subprogram.references.push(this);
           }
         }
       }
@@ -711,14 +711,14 @@ export class OToken extends ObjectBase implements IHasDefinitions {
           if (type.name.text.toLowerCase() === text.toLowerCase()) {
             this.definitions.push(type);
             this.scope = object;
-            type.mentions.push(this);
+            type.references.push(this);
           }
           if (type instanceof OEnum) {
             for (const state of type.literals) {
               if (state.name.text.toLowerCase() === text.toLowerCase()) {
                 this.definitions.push(state);
                 this.scope = object;
-                state.mentions.push(this);
+                state.references.push(this);
               }
             }
           }
@@ -727,7 +727,7 @@ export class OToken extends ObjectBase implements IHasDefinitions {
               if (child.name.text.toLowerCase() === text.toLowerCase()) {
                 this.definitions.push(child);
                 this.scope = object;
-                child.mentions.push(this);
+                child.references.push(this);
               }
             }
           }
@@ -738,7 +738,7 @@ export class OToken extends ObjectBase implements IHasDefinitions {
           if (variable.name.text.toLowerCase() === text.toLowerCase()) {
             this.definitions.push(variable);
             this.scope = object as ObjectBase;
-            variable.mentions.push(this);
+            variable.references.push(this);
           }
         }
       }
@@ -749,7 +749,7 @@ export class OToken extends ObjectBase implements IHasDefinitions {
           if (port.name.text.toLowerCase() === text.toLowerCase()) {
             this.definitions.push(port);
             this.scope = object;
-            port.mentions.push(this);
+            port.references.push(this);
           }
         }
       }
@@ -758,7 +758,7 @@ export class OToken extends ObjectBase implements IHasDefinitions {
           if (generic.name.text.toLowerCase() === text.toLowerCase()) {
             this.definitions.push(generic);
             this.scope = object;
-            generic.mentions.push(this);
+            generic.references.push(this);
           }
         }
       }
@@ -818,9 +818,9 @@ export class OMagicCommentParameter extends OMagicComment {
     super(parent, commentType, range);
   }
 }
-export class OSubprogram extends OHasSequentialStatements implements IMentionable, IHasSubprograms, IHasInstantiations, IHasConstants, IHasVariables, IHasTypes {
+export class OSubprogram extends OHasSequentialStatements implements IReferenceable, IHasSubprograms, IHasInstantiations, IHasConstants, IHasVariables, IHasTypes {
   parent: OPackage;
-  mentions: OToken[] = [];
+  references: OToken[] = [];
   variables: OVariable[] = [];
   constants: OConstant[] = [];
   ports: OPort[] = [];

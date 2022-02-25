@@ -28,9 +28,6 @@ export class SubprogramParser extends ParserBase {
     }
     if (isFunction) {
       this.expect('return');
-      if (this.text.substr(this.pos.i, 30).match(/is/)) {
-        console.log('a');
-      }
       subprogram.return = this.getType(subprogram, false, true).typeReads;
     }
     nextWord = this.getNextWord({ consume: false });

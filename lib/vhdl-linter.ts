@@ -214,7 +214,7 @@ export class VhdlLinter {
           const components = this.getComponents(instantiation);
           instantiation.definitions.push(...components);
           for (const component of components) {
-            component.mentions.push(instantiation);
+            component.references.push(instantiation);
           }
           break;
         case 'entity':
@@ -261,7 +261,7 @@ export class VhdlLinter {
               if (formalMatch) {
                 return true;
               }
-              return portNumber === obj.parent.children.findIndex(o => o === obj);
+              return obj.formalPart.length === 0 && portNumber === obj.parent.children.findIndex(o => o === obj);
             })));
           } else {
             for (const ep of definitions) {
@@ -275,8 +275,8 @@ export class VhdlLinter {
             continue;
           }
           obj.definitions.push(...ports);
-          for (const namePart of obj.formalPart) {
-            namePart.definitions.push(...ports);
+          for (const formalPart of obj.formalPart) {
+            formalPart.definitions.push(...ports);
           }
           for (const portOrGeneric of ports) {
             if (portOrGeneric instanceof OPort) {
@@ -286,9 +286,9 @@ export class VhdlLinter {
                   this.file.objectList.splice(index, 1);
                   for (const mentionable of this.file.objectList) {
                     if (implementsIMentionable(mentionable)) {
-                      for (const [index, mention] of mentionable.mentions.entries()) {
+                      for (const [index, mention] of mentionable.references.entries()) {
                         if (mention === mapping) {
-                          mentionable.mentions.splice(index, 1);
+                          mentionable.references.splice(index, 1);
                         }
                       }
                     }
@@ -301,9 +301,9 @@ export class VhdlLinter {
                   this.file.objectList.splice(index, 1);
                   for (const mentionable of this.file.objectList) {
                     if (implementsIMentionable(mentionable)) {
-                      for (const [index, mention] of mentionable.mentions.entries()) {
+                      for (const [index, mention] of mentionable.references.entries()) {
                         if (mention === mapping) {
-                          mentionable.mentions.splice(index, 1);
+                          mentionable.references.splice(index, 1);
                         }
                       }
                     }
@@ -691,14 +691,14 @@ export class VhdlLinter {
 
     if (entity) {
       for (const port of entity.ports) {
-        if (port.direction === 'in' && port.mentions.filter(token => token instanceof ORead).length === 0) {
+        if (port.direction === 'in' && port.references.filter(token => token instanceof ORead).length === 0) {
           this.addMessage({
             range: port.range,
             severity: DiagnosticSeverity.Warning,
             message: `Not reading input port '${port.name}'`
           });
         }
-        const writes = port.mentions.filter(token => token instanceof OWrite);
+        const writes = port.references.filter(token => token instanceof OWrite);
         if (port.direction === 'out' && writes.length === 0) {
           this.addMessage({
             range: port.range,
@@ -709,7 +709,7 @@ export class VhdlLinter {
       }
     }
     for (const type of architecture.types) {
-      if (type.mentions.length === 0) {
+      if (type.references.length === 0) {
         this.addMessage({
           range: type.name.range,
           severity: DiagnosticSeverity.Warning,
@@ -718,7 +718,7 @@ export class VhdlLinter {
       }
     }
     for (const component of architecture.components) {
-      if (component.mentions.length === 0) {
+      if (component.references.length === 0) {
         this.addMessage({
           range: component.name.range,
           severity: DiagnosticSeverity.Warning,
@@ -727,14 +727,14 @@ export class VhdlLinter {
       }
     }
     for (const signal of architecture.getRoot().objectList .filter(object => object instanceof OSignal) as OSignal[]) {
-      if (signal.mentions.filter(token => token instanceof ORead).length === 0) {
+      if (signal.references.filter(token => token instanceof ORead).length === 0) {
         this.addMessage({
           range: signal.name.range,
           severity: DiagnosticSeverity.Warning,
           message: `Not reading signal '${signal.name}'`
         });
       }
-      const writes = signal.mentions.filter(token => token instanceof OWrite);
+      const writes = signal.references.filter(token => token instanceof OWrite);
       if (writes.length === 0) {
         this.addMessage({
           range: signal.name.range,
@@ -745,14 +745,14 @@ export class VhdlLinter {
     }
     for (const constant of architecture.getRoot().objectList
     .filter(object => object instanceof OConstant) as OConstant[]) {
-      if (constant.mentions.filter(token => token instanceof ORead).length === 0) {
+      if (constant.references.filter(token => token instanceof ORead).length === 0) {
         this.addMessage({
           range: constant.name.range,
           severity: DiagnosticSeverity.Warning,
           message: `Not reading constant '${constant.name}'`
         });
       }
-      const writes = constant.mentions.filter(token => token instanceof OWrite);
+      const writes = constant.references.filter(token => token instanceof OWrite);
       for (const write of writes) {
         if (write.parent instanceof OAssociation && write.parent.parent instanceof OPortAssociationList) {
           this.addMessage({
