@@ -184,6 +184,7 @@
 	],
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
+		"vscode:postpublish": "git push",
 		"compile": "tsc --project .",
 		"watch": "tsc -w  --project  .",
 		"lint": "tslint --project .",
