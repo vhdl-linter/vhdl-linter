@@ -137,7 +137,7 @@ export class OFileCache {
     // this.digest = await file.getDigest();
     this.path = file;
     const date = Date.now();
-    this.linter = new VhdlLinter(this.path, this.text, this.projectParser, true);
+    this.linter = new VhdlLinter(this.path, this.text, this.projectParser, false);
     this.lintingTime = Date.now() - date;
     this.parsePackages();
     this.parseEntity();
