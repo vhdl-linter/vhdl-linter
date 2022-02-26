@@ -166,12 +166,12 @@ export class ParserBase {
     let braceLevel = 0;
     let quote = false;
     const savedI = this.pos;
-    while (this.text[this.pos.i]) {
-      if (this.text[this.pos.i] === '"' && this.text[this.pos.i - 1] !== '"') {
+    while (this.text.charAt(this.pos.i)) {
+      if (this.text.charAt(this.pos.i) === '"' && this.text.charAt(this.pos.i - 1) !== '"') {
         quote = !quote;
-      } else if (this.text[this.pos.i] === '(' && !quote) {
+      } else if (this.text.charAt(this.pos.i) === '(' && !quote) {
         braceLevel++;
-      } else if (this.text[this.pos.i] === ')' && !quote) {
+      } else if (this.text.charAt(this.pos.i) === ')' && !quote) {
         if (braceLevel > 0) {
           braceLevel--;
         } else {

@@ -105,7 +105,7 @@ export class Parser extends ParserBase {
         entity = entityParser.parse();
 
         if (this.onlyEntity) {
-          return file;
+          break;
         }
         //         // console.log(file, typeof file.entity, 'typeof');
       } else if (nextWord === 'architecture') {
@@ -115,6 +115,9 @@ export class Parser extends ParserBase {
         const architectureParser = new ArchitectureParser(this.text, this.pos, this.file, file);
         architecture = architectureParser.parse();
       } else if (nextWord === 'package') {
+        if (this.onlyEntity && this.getNextWord({consume: false}) === 'body') {
+          // break;
+        }
         const packageParser = new PackageParser(this.text, this.pos, this.file);
         packages.push(packageParser.parse(file));
       } else {
