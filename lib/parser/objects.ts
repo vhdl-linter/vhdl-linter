@@ -134,6 +134,9 @@ export class ObjectBase {
     this.root = parent;
     return parent;
   }
+  nameEquals(other: ObjectBase) {
+    return this.name.text.toLowerCase() === other.name.text.toLowerCase();
+  }
 }
 export interface IReferenceable {
   references: OToken[];

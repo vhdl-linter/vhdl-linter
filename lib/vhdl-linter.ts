@@ -5,7 +5,7 @@ import {
 } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { getDocumentSettings } from './language-server';
-import { IHasDefinitions, IHasInstantiations, implementsIHasInstantiations, implementsIHasSubprograms, implementsIMentionable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, ObjectBase, OCase, OComponent, OConstant, OContext, OEntity, OEnum, OFile, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackages, OGeneric, OGenericAssociationList, OHasSequentialStatements, OIf, OInstantiation, OPackage, OPackageBody, OPort, OPortAssociationList, OProcess, ORead, ORecord, OSignal, OSignalBase, OSubprogram, OType, OUseClause, OWhenClause, OWrite, ParserError, OToken } from './parser/objects';
+import { IHasDefinitions, IHasInstantiations, implementsIHasInstantiations, implementsIHasSubprograms, implementsIMentionable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, ObjectBase, OCase, OComponent, OConstant, OContext, OEntity, OEnum, OFile, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackages, OGeneric, OGenericAssociationList, OHasSequentialStatements, OIf, OInstantiation, OPackage, OPackageBody, OPort, OPortAssociationList, OProcess, ORead, ORecord, OSignal, OSignalBase, OSubprogram, OType, OUseClause, OWhenClause, OWrite, ParserError, OToken, OAssociationList, OIRange } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 export enum LinterRules {
@@ -109,7 +109,7 @@ export class VhdlLinter {
     }
 
   }
-  getUseClauses(parent: OFile|OContext) {
+  getUseClauses(parent: OFile | OContext) {
     const useClauses = parent.useClauses.slice();
     if (parent.contextReferences.length > 0) {
       const contexts = this.projectParser.getContexts();
@@ -237,7 +237,7 @@ export class VhdlLinter {
           if (!(obj.parent.parent instanceof OInstantiation)) {
             continue;
           }
-          let definitions: (OComponent|OEntity|OSubprogram)[];
+          let definitions: (OComponent | OEntity | OSubprogram)[];
           switch (obj.parent.parent.type) {
             case 'component':
               definitions = this.getComponents(obj.parent.parent);
@@ -254,31 +254,31 @@ export class VhdlLinter {
             continue;
           }
 
-          let ports: (OPort | OGeneric)[] = [];
-          if (obj.parent instanceof OPortAssociationList) {
-            ports.push(...definitions.flatMap(ep => ep.ports.filter((port, portNumber) => {
+          let interfaceElements: (OPort | OGeneric)[] = [];
+          interfaceElements.push(...definitions.flatMap(definition => {
+            let elements: (OPort | OGeneric)[] = [];
+            if (obj.parent instanceof OPortAssociationList) {
+              elements = definition.ports;
+            } else if (definition instanceof OComponent || definition instanceof OEntity) {
+              elements = definition.generics;
+            }
+            return elements.filter((port, portNumber) => {
               const formalMatch = obj.formalPart.find(name => name.text.toLowerCase() === port.name.text.toLowerCase());
               if (formalMatch) {
                 return true;
               }
               return obj.formalPart.length === 0 && portNumber === obj.parent.children.findIndex(o => o === obj);
-            })));
-          } else {
-            for (const ep of definitions) {
-              if (ep instanceof OEntity) {
-                ports.push(...ep.generics.filter(port => obj.formalPart.find(name => name.text.toLowerCase() === port.name.text.toLowerCase())));
-              }
-            }
-          }
+            });
+          }));
 
-          if (ports.length === 0) {
+          if (interfaceElements.length === 0) {
             continue;
           }
-          obj.definitions.push(...ports);
+          obj.definitions.push(...interfaceElements);
           for (const formalPart of obj.formalPart) {
-            formalPart.definitions.push(...ports);
+            formalPart.definitions.push(...interfaceElements);
           }
-          for (const portOrGeneric of ports) {
+          for (const portOrGeneric of interfaceElements) {
             if (portOrGeneric instanceof OPort) {
               if (portOrGeneric.direction === 'in') {
                 for (const mapping of obj.actualIfOutput.flat()) {
@@ -367,7 +367,7 @@ export class VhdlLinter {
       const realGenerics = entities.flatMap(e => e.generics);
       // generics not in realEntity
       for (const generic of realGenerics) {
-        if (!realGenerics.find(gen => gen.name.text.toLowerCase() === generic.name.text.toLowerCase())) {
+        if (!realGenerics.find(gen => gen.nameEquals(generic))) {
           this.addMessage({
             range: generic.name.range,
             severity: DiagnosticSeverity.Error,
@@ -377,7 +377,7 @@ export class VhdlLinter {
       }
       // generics not in this component
       for (const generic of realGenerics) {
-        if (!component.generics.find(gen => gen.name.text.toLowerCase() === generic.name.text.toLowerCase())) {
+        if (!component.generics.find(gen => gen.nameEquals(generic))) {
           this.addMessage({
             range: component.genericRange ?? component.range,
             severity: DiagnosticSeverity.Error,
@@ -389,7 +389,7 @@ export class VhdlLinter {
       const realPorts = entities.flatMap(e => e.ports);
       // ports not in realEntity
       for (const port of component.ports) {
-        if (!realPorts.find(p => p.name.text.toLowerCase() === port.name.text.toLowerCase())) {
+        if (!realPorts.find(p => p.nameEquals(port))) {
           this.addMessage({
             range: port.name.range,
             severity: DiagnosticSeverity.Error,
@@ -399,7 +399,7 @@ export class VhdlLinter {
       }
       // generics not in this component
       for (const port of realPorts) {
-        if (!component.ports.find(p => p.name.text.toLowerCase() === port.name.text.toLowerCase())) {
+        if (!component.ports.find(p => p.nameEquals(port))) {
           this.addMessage({
             range: component.portRange ?? component.range,
             severity: DiagnosticSeverity.Error,
@@ -414,7 +414,7 @@ export class VhdlLinter {
       return;
     }
     for (const signal of this.file.architecture.signals) {
-      if (this.file.architecture.signals.find(signalSearch => signal !== signalSearch && signal.name.text.toLowerCase() === signalSearch.name.text.toLowerCase())) {
+      if (this.file.architecture.signals.find(signalSearch => signal !== signalSearch && signal.nameEquals(signalSearch))) {
         this.addMessage({
           range: signal.range,
           severity: DiagnosticSeverity.Error,
@@ -423,7 +423,7 @@ export class VhdlLinter {
       }
     }
     for (const type of this.file.architecture.types) {
-      if (this.file.architecture.types.find(typeSearch => type !== typeSearch && type.name.text.toLowerCase() === typeSearch.name.text.toLowerCase())) {
+      if (this.file.architecture.types.find(typeSearch => type !== typeSearch && type.nameEquals(typeSearch))) {
         this.addMessage({
           range: type.range,
           severity: DiagnosticSeverity.Error,
@@ -432,7 +432,7 @@ export class VhdlLinter {
       }
       if (type instanceof OEnum) {
         for (const state of type.literals) {
-          if (type.literals.find(stateSearch => state !== stateSearch && state.name.text.toLowerCase() === stateSearch.name.text.toLowerCase())) {
+          if (type.literals.find(stateSearch => state !== stateSearch && state.nameEquals(stateSearch))) {
             this.addMessage({
               range: state.range,
               severity: DiagnosticSeverity.Error,
@@ -444,7 +444,7 @@ export class VhdlLinter {
       }
     }
     for (const port of this.file.entity.ports) {
-      if (this.file.entity.ports.find(portSearch => port !== portSearch && port.name.text.toLowerCase() === portSearch.name.text.toLowerCase())) {
+      if (this.file.entity.ports.find(portSearch => port !== portSearch && port.nameEquals(portSearch))) {
         this.addMessage({
           range: port.range,
           severity: DiagnosticSeverity.Error,
@@ -547,7 +547,7 @@ export class VhdlLinter {
       } else if (obj instanceof OWrite && obj.definitions.length === 0) {
         this.pushWriteError(obj);
       } else if (obj instanceof OAssociationFormal && obj.definitions.length === 0) {
-        const instOrPackage =  obj.parent.parent.parent;
+        const instOrPackage = obj.parent.parent.parent;
         // if instantiations entity/component/subprogram is not found, don't report read errors
         if (instOrPackage instanceof OInstantiation && instOrPackage.definitions.length > 0) {
           this.pushAssociationError(obj);
@@ -726,7 +726,7 @@ export class VhdlLinter {
         })
       }
     }
-    for (const signal of architecture.getRoot().objectList .filter(object => object instanceof OSignal) as OSignal[]) {
+    for (const signal of architecture.getRoot().objectList.filter(object => object instanceof OSignal) as OSignal[]) {
       if (signal.references.filter(token => token instanceof ORead).length === 0) {
         this.addMessage({
           range: signal.name.range,
@@ -744,7 +744,7 @@ export class VhdlLinter {
       }
     }
     for (const constant of architecture.getRoot().objectList
-    .filter(object => object instanceof OConstant) as OConstant[]) {
+      .filter(object => object instanceof OConstant) as OConstant[]) {
       if (constant.references.filter(token => token instanceof ORead).length === 0) {
         this.addMessage({
           range: constant.name.range,
@@ -1009,110 +1009,105 @@ export class VhdlLinter {
     return subprograms.filter(e => e.name.text.toLowerCase() === instantiation.componentName.text.toLowerCase());
   }
 
-  checkPortMaps(definitions: (OEntity | OSubprogram | OComponent)[], instantiation: OInstantiation) {
-    if (definitions.length === 0) {
-      let name;
-      switch (instantiation.type) {
-        case 'subprogram-call':
-          name = 'subprogram';
-          break;
-        default:
-          name = instantiation.type;
-      }
-      this.addMessage({
-        range: instantiation.range.start.getRangeToEndLine(),
-        severity: DiagnosticSeverity.Warning,
-        message: `can not find ${name} ${instantiation.componentName}`
-      });
-    } else {
-      const availablePortsDup = definitions.flatMap(e => e.ports);
-      const availablePorts = availablePortsDup.filter((v, i, self) => self.findIndex(o => o.name.text.toLowerCase() === v.name.text.toLowerCase()) === i);
-      const foundPorts: OPort[] = [];
-      let portsWithoutFormal = false;
-      let allPortsWithoutFormal = true;
-      if (instantiation.portAssociationList) {
-        for (const portAssociation of instantiation.portAssociationList.children) {
-          if (portAssociation.formalPart.length === 0) {
-            portsWithoutFormal = true;
-            continue;
-          }
-          allPortsWithoutFormal = false;
-          const entityPort = availablePorts.find(port => {
-            for (const part of portAssociation.formalPart) {
-              if (part.text.toLowerCase() === port.name.text.toLowerCase()) {
-                return true;
-              }
-            }
-            return false;
-          });
-          if (!entityPort) {
-            const bestMatch = findBestMatch(portAssociation.formalPart[0].text, availablePorts.map(port => port.name.text));
-            const code = this.addCodeActionCallback((textDocumentUri: string) => {
-              const actions = [];
-              actions.push(CodeAction.create(
-                `Replace with ${bestMatch.bestMatch.target} (score: ${bestMatch.bestMatch.rating})`,
-                {
-                  changes: {
-                    [textDocumentUri]: [TextEdit.replace(Range.create(portAssociation.formalPart[0].range.start, portAssociation.formalPart[portAssociation.formalPart.length - 1].range.end)
-                      , bestMatch.bestMatch.target)]
-                  }
-                },
-                CodeActionKind.QuickFix));
-              return actions;
-            });
-            this.addMessage({
-              range: portAssociation.range,
-              severity: DiagnosticSeverity.Error,
-              message: `no port ${portAssociation.formalPart.map(name => name.text).join(', ')} on entity/procedure ${definitions[0].name.text}`,
-              code
-            });
-          } else {
-            foundPorts.push(entityPort);
-          }
+  checkAssociations(availableInterfaceElements: (OPort | OGeneric)[][], associationList: OAssociationList | undefined, typeName: string, range: OIRange, kind: 'port' | 'generic') {
+    const availableInterfaceElementsFlat = availableInterfaceElements.flat().filter((v, i, self) => self.findIndex(o => o.nameEquals(v)) === i);
+    const foundElements: (OPort | OGeneric)[] = [];
+    let elementsWithoutFormal = false;
+    let allElementsWithoutFormal = true;
+    if (associationList) {
+      for (const association of associationList.children) {
+        if (association.formalPart.length === 0) {
+          elementsWithoutFormal = true;
+          continue;
         }
-      }
-      if (allPortsWithoutFormal) {
-        const portCounts = [...new Set(definitions.flatMap(e => {
-          const totalLength = e.ports.length;
-          const portsWithDefault = e.ports.filter(p => typeof p.defaultValue === 'undefined').length;
-          const result = [];
-          for (let i = totalLength; i >= totalLength - portsWithDefault; i--) {
-            result.push(i);
+        allElementsWithoutFormal = false;
+        const interfaceElement = availableInterfaceElementsFlat.find(port => {
+          for (const part of association.formalPart) {
+            if (part.text.toLowerCase() === port.name.text.toLowerCase()) {
+              return true;
+            }
           }
-          return result;
-        }))].sort((a, b) => a - b);
-        const actualCount = instantiation.portAssociationList?.children.length ?? 0;
-        if (!portCounts.includes(actualCount)) {
-          let portCountString: string;
-          if (portCounts.length > 1) {
-            const last = portCounts.pop();
-            portCountString = `${portCounts.join(', ')} or ${last}`;
-          } else {
-            portCountString = `${portCounts[0]}`;
-          }
+          return false;
+        });
+        if (!interfaceElement) {
+          const bestMatch = findBestMatch(association.formalPart[0].text, availableInterfaceElementsFlat.map(element => element.name.text));
+          const code = this.addCodeActionCallback((textDocumentUri: string) => {
+            const actions = [];
+            actions.push(CodeAction.create(
+              `Replace with ${bestMatch.bestMatch.target} (score: ${bestMatch.bestMatch.rating})`,
+              {
+                changes: {
+                  [textDocumentUri]: [TextEdit.replace(Range.create(association.formalPart[0].range.start, association.formalPart[association.formalPart.length - 1].range.end)
+                    , bestMatch.bestMatch.target)]
+                }
+              },
+              CodeActionKind.QuickFix));
+            return actions;
+          });
           this.addMessage({
-            range: instantiation.range,
+            range: association.range,
             severity: DiagnosticSeverity.Error,
-            message: `Got ${actualCount} ports but expected ${portCountString} ports.`
+            message: `no ${kind} ${association.formalPart.map(name => name.text).join(', ')} on ${typeName}`,
+            code
           });
+        } else {
+          foundElements.push(interfaceElement);
         }
+      }
+    }
+    if (allElementsWithoutFormal) {
+      const counts = [...new Set(availableInterfaceElements.flatMap(elements => {
+        const totalLength = elements.length;
+        const withDefault = elements.filter(p => typeof p.defaultValue !== 'undefined').length;
+        const result = [];
+        for (let i = totalLength; i >= totalLength - withDefault; i--) {
+          result.push(i);
+        }
+        return result;
+      }))].sort((a, b) => a - b);
+      const actualCount = associationList?.children.length ?? 0;
+      if (!counts.includes(actualCount)) {
+        let portCountString: string;
+        if (counts.length > 1) {
+          const last = counts.pop();
+          portCountString = `${counts.join(', ')} or ${last}`;
+        } else {
+          portCountString = `${counts[0]}`;
+        }
+        this.addMessage({
+          range: range,
+          severity: DiagnosticSeverity.Error,
+          message: `Got ${actualCount} ${kind}s but expected ${portCountString} ${kind}s.`
+        });
+      }
+    } else {
+      if (elementsWithoutFormal) {
+        this.addMessage({
+          range: range,
+          severity: DiagnosticSeverity.Warning,
+          message: `some ${kind}s have no formal part while others have. Associations are not verified inaccurate.`
+        });
       } else {
-        for (const port of availablePorts) {
-          if (port.direction === 'in' && typeof port.defaultValue === 'undefined' && typeof foundPorts.find(portSearch => portSearch === port) === 'undefined') {
-            if (portsWithoutFormal) {
-              this.addMessage({
-                range: instantiation.componentName.range,
-                severity: DiagnosticSeverity.Information,
-                message: `some ports have no formal part and input port ${port.name} cannot be found.`
-              });
-            } else {
-              this.addMessage({
-                range: instantiation.componentName.range,
-                severity: DiagnosticSeverity.Warning,
-                message: `input port ${port.name} might be missing port map and has no default value on entity/portmap ${instantiation.componentName}`
-              });
+        // check which interfaceElements are missing from the different possible interfaces
+        const missingElements: (OPort|OGeneric)[][] = availableInterfaceElements.map(_interface => {
+          const missing: (OPort|OGeneric)[] = [];
+          for (const element of _interface) {
+            if (((element instanceof OPort && element.direction === 'in') || element instanceof OGeneric)
+              && typeof element.defaultValue === 'undefined'
+              && typeof foundElements.find(search => search.nameEquals(element)) === 'undefined') {
+                missing.push(element);
             }
           }
+          return missing;
+        });
+        // if one interface has no missing elements, don't add a message
+        if (!missingElements.find(elements => elements.length === 0)) {
+          const elementString = [...new Set(missingElements.map(elements => elements.map(e => e.name.text).join(', ')))].join(') or (');
+          this.addMessage({
+            range: range,
+            severity: DiagnosticSeverity.Warning,
+            message: `${kind} map is incomplete: ${kind}s (${elementString}) are missing.`
+          });
         }
       }
     }
@@ -1124,7 +1119,7 @@ export class VhdlLinter {
     }
     if (implementsIHasInstantiations(object)) {
       for (const instantiation of object.instantiations) {
-        let definitions: (OComponent|OEntity|OSubprogram)[];
+        let definitions: (OComponent | OEntity | OSubprogram)[];
         switch (instantiation.type) {
           case 'component':
             definitions = this.getComponents(instantiation);
@@ -1137,7 +1132,27 @@ export class VhdlLinter {
             definitions = this.getSubprograms(instantiation);
             break;
         }
-        this.checkPortMaps(definitions, instantiation);
+        let typeName;
+        switch (instantiation.type) {
+          case 'subprogram-call':
+            typeName = 'subprogram';
+            break;
+          default:
+            typeName = instantiation.type;
+        }
+        if (definitions.length === 0) {
+          this.addMessage({
+            range: instantiation.range.start.getRangeToEndLine(),
+            severity: DiagnosticSeverity.Warning,
+            message: `can not find ${typeName} ${instantiation.componentName}`
+          });
+        } else {
+          const range = instantiation.range.start.getRangeToEndLine();
+          const availablePorts = definitions.map(e => e.ports);
+          this.checkAssociations(availablePorts, instantiation.portAssociationList, typeName, range, 'port');
+          const availableGenerics = definitions.map(d => (d instanceof OComponent || d instanceof OEntity) ? d.generics : []);
+          this.checkAssociations(availableGenerics, instantiation.genericAssociationList, typeName, range, 'generic');
+        }
       }
     }
     if (implementsIHasSubprograms(object)) {
