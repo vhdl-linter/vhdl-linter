@@ -10,9 +10,9 @@ export class ParserBase {
 
   }
   debug(_message: string) {
-    let pos = this.getPosition();
     if (config.debug) {
-           console.log(`${this.constructor.name}: ${_message} at ${pos.line}:${pos.col}, (${this.file})`);
+      let pos = this.getPosition();
+      console.log(`${this.constructor.name}: ${_message} at ${pos.line}:${pos.col}, (${this.file})`);
     }
   }
   debugObject(_object: any) {
@@ -185,7 +185,7 @@ export class ParserBase {
     }
     throw new ParserError(`could not find closing brace`, savedI.getRangeToEndLine());
   }
-  advanceBraceAware(searchStrings: (string|RegExp)[], consume = true) {
+  advanceBraceAware(searchStrings: (string | RegExp)[], consume = true) {
     const savedI = this.pos;
     let braceLevel = 0;
     let result = '';
@@ -213,7 +213,7 @@ export class ParserBase {
             this.pos.i += found.length;
             this.advanceWhitespace();
           }
-          return [ result, lastString ];
+          return [result, lastString];
         }
       }
       if (this.text[this.pos.i] === '(') {
@@ -226,7 +226,7 @@ export class ParserBase {
     }
     throw new ParserError(`could not find ${searchStrings}`, savedI.getRangeToEndLine());
   }
-  advanceSemicolon(braceAware: boolean = false, {consume} = {consume: true}) {
+  advanceSemicolon(braceAware: boolean = false, { consume } = { consume: true }) {
     if (braceAware) {
       let offset = 0;
       let text = '';
@@ -354,7 +354,7 @@ export class ParserBase {
       savedI = this.pos.i;
       this.advanceWhitespace();
     } else {
-      throw new ParserError(`expected '${expected.join(', ')}' found '${this.getNextWord({re: /^\S+/})}' line: ${this.getLine()}`, this.pos.getRangeToEndLine());
+      throw new ParserError(`expected '${expected.join(', ')}' found '${this.getNextWord({ re: /^\S+/ })}' line: ${this.getLine()}`, this.pos.getRangeToEndLine());
     }
     return savedI;
   }
@@ -402,7 +402,7 @@ export class ParserBase {
     };
   }
   extractReads(parent: ObjectBase | OAssociation, text: string, i: number, asMappingName?: false): ORead[];
-  extractReads(parent: ObjectBase | OAssociation, text: string, i: number, asMappingName: true):  OAssociationFormal[];
+  extractReads(parent: ObjectBase | OAssociation, text: string, i: number, asMappingName: true): OAssociationFormal[];
   extractReads(parent: ObjectBase | OAssociation, text: string, i: number, asMappingName: boolean = false): ORead[] | OAssociationFormal[] {
     return tokenizer.tokenize(text, parent.getRoot().libraries).filter(token => token.type === 'VARIABLE' || token.type === 'FUNCTION' || token.type === 'RECORD_ELEMENT' || token.type === 'FUNCTION_RECORD_ELEMENT').map(token => {
       let read;
@@ -415,8 +415,8 @@ export class ParserBase {
           throw new Error();
         }
         read = asMappingName
-        ? new OAssociationFormal((parent as OAssociation), i + token.offset, i + token.offset + token.value.length, token.value)
-        : new ORead(parent, i + token.offset, i + token.offset + token.value.length, token.value);
+          ? new OAssociationFormal((parent as OAssociation), i + token.offset, i + token.offset + token.value.length, token.value)
+          : new ORead(parent, i + token.offset, i + token.offset + token.value.length, token.value);
       }
       return read;
     }).filter(a => a) as any;
