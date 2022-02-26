@@ -26,12 +26,15 @@ export class ProjectParser {
     const pkg = __dirname;
     if (pkg) {
       //       console.log(pkg, new Directory(pkg + '/ieee2008'));
-      (await this.parseDirectory(join(pkg, `${sep}..${sep}..${sep}ieee2008`))).forEach(file => files.add(file));;
+      (await this.parseDirectory(join(pkg, `${sep}..${sep}..${sep}ieee2008`))).forEach(file => files.add(file));
     }
+
     for (const file of files) {
       let cachedFile = new OFileCache(file, this);
       this.cachedFiles.push(cachedFile);
     }
+    this.cachedFiles.sort((a, b) => b.lintingTime - a.lintingTime);
+    console.log('Times: \n' + this.cachedFiles.slice(0, 10).map(file => `${file.path}: ${file.lintingTime}ms`).join('\n'));
     this.fetchEntitesAndPackagesAndContexts();
     for (const workspace of this.workspaces) {
       const watcher = watch(workspace.replace(sep, '/') + '/**/*.vhd', { ignoreInitial: true });
@@ -124,6 +127,7 @@ export class OFileCache {
   entity?: OEntity;
   text: string;
   linter: VhdlLinter;
+  lintingTime: number;
   constructor(file: string, public projectParser: ProjectParser) {
     const text = readFileSync(file, { encoding: 'utf8' });
     if (!text) {
@@ -132,7 +136,9 @@ export class OFileCache {
     this.text = text;
     // this.digest = await file.getDigest();
     this.path = file;
-    this.linter = new VhdlLinter(this.path, this.text, this.projectParser);
+    const date = Date.now();
+    this.linter = new VhdlLinter(this.path, this.text, this.projectParser, false);
+    this.lintingTime = Date.now() - date;
     this.parsePackages();
     this.parseEntity();
     this.parseContexts();

@@ -175,7 +175,11 @@ export const initialization = new Promise<void>(resolve => {
 
     documents.onDidChangeContent(change => {
       // console.log('onDidChangeContent', new Date().getTime());
+      const date = Date.now();
       validateTextDocument(change.document);
+      const lintingTime = Date.now() - date;
+      console.log(`${change.document.uri}: ${lintingTime}ms`);
+
     });
     resolve();
   });

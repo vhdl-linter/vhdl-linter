@@ -105,7 +105,7 @@ export class Parser extends ParserBase {
         entity = entityParser.parse();
 
         if (this.onlyEntity) {
-          return file;
+          break;
         }
         //         // console.log(file, typeof file.entity, 'typeof');
       } else if (nextWord === 'architecture') {
@@ -115,6 +115,9 @@ export class Parser extends ParserBase {
         const architectureParser = new ArchitectureParser(this.text, this.pos, this.file, file);
         architecture = architectureParser.parse();
       } else if (nextWord === 'package') {
+        if (this.onlyEntity && this.getNextWord({consume: false}) === 'body') {
+          // break;
+        }
         const packageParser = new PackageParser(this.text, this.pos, this.file);
         packages.push(packageParser.parse(file));
       } else {
@@ -139,19 +142,19 @@ export class Parser extends ParserBase {
       for (let i = 0; i < s.length - 1; i++) {
         // "" is valid string (value '')
         // " asf""das" is valid string (value ' asf"das')
-        if ((!quotes && s[i] === '"') || (s[i] === '"' && s[i+1] !== '"')) {
+        if ((!quotes && s.charAt(i) === '"') || (s.charAt(i) === '"' && s.charAt(i + 1) !== '"')) {
           quotes = !quotes;
         } else if (quotes) {
           result += 's';
           continue;
-        } else if (!quotes && s[i] === '-' && s[i+1] === '-') {
+        } else if (!quotes && s.charAt(i) === '-' && s.charAt(i + 1) === '-') {
           result += ' '.repeat(s.length - i);
           return result;
         }
-        result += s[i];
+        result += s.charAt(i);
       }
       if (s.length > 0) {
-        result += s[s.length - 1];
+        result += s.charAt(s.length - 1);
       }
       return result;
     }).join('\n');
