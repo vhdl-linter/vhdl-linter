@@ -54,13 +54,13 @@ export class ConcurrentStatementParser extends ParserBase {
       this.debug('parse for generate');
 
       const startI = this.pos.i;
-      let variable = this.advancePast(/\bin\b/i);
+      let constantName = this.advancePast(/\bin\b/i);
 
       const rangeI = this.pos.i;
       const rangeText = this.advancePast(/\bgenerate\b/i).trim();
-      const variableRange = this.extractReads(this.parent, rangeText, rangeI);
+      const constantRange = this.extractReads(this.parent, rangeText, rangeI);
       const subarchitecture = new ArchitectureParser(this.text, this.pos, this.file, (this.parent as OArchitecture), label);
-      const generate: OForGenerate = subarchitecture.parse(true, 'generate', { variable, variableRange, startPosI: startI });
+      const generate: OForGenerate = subarchitecture.parse(true, 'generate', { constantName, constantRange, startPosI: startI });
       generate.range.start.i = savedI;
       this.reverseWhitespace();
       generate.range.end.i = this.pos.i;

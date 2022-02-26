@@ -1,6 +1,6 @@
 import { AssignmentParser } from './assignment-parser';
 import { AssociationListParser } from './association-list-parser';
-import { OArchitecture, OAssignment, ObjectBase, OCase, OElseClause, OEntity, OForLoop, OHasSequentialStatements, OI, OIf, OIfClause, OInstantiation, OLoop, OName, OProcess, OSequentialStatement, OVariable, OWhenClause, OWhileLoop } from './objects';
+import { OArchitecture, OAssignment, ObjectBase, OCase, OConstant, OElseClause, OEntity, OForLoop, OHasSequentialStatements, OI, OIf, OIfClause, OInstantiation, OLoop, OName, OProcess, OSequentialStatement, OVariable, OWhenClause, OWhileLoop } from './objects';
 import { ParserBase } from './parser-base';
 
 export class SequentialStatementParser extends ParserBase {
@@ -123,14 +123,14 @@ export class SequentialStatementParser extends ParserBase {
     this.expect('for');
     const startI = this.pos.i;
     const variableName = this.getNextWord();
-    const variable = new OVariable(forLoop, startI, variableName.length + startI)
-    variable.name = new OName(variable, startI, variableName.length + startI);
-    variable.name.text = variableName;
-    forLoop.variables.push(variable);
+    const constant = new OConstant(forLoop, startI, variableName.length + startI)
+    constant.name = new OName(constant, startI, variableName.length + startI);
+    constant.name.text = variableName;
+    forLoop.constants.push(constant);
     this.expect('in');
     const rangeI = this.pos.i;
     const rangeText = this.advancePast(/\bloop\b/i).trim();
-    forLoop.variableRange = this.extractReads(forLoop, rangeText, rangeI);
+    forLoop.constantRange = this.extractReads(forLoop, rangeText, rangeI);
     forLoop.statements = this.parse(forLoop, ['end']);
     this.expect('end');
     this.expect('loop');

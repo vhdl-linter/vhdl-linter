@@ -373,7 +373,6 @@ export class OEnumLiteral extends ObjectBase implements IReferenceable {
   public parent: OEnum;
 }
 export class OForGenerate extends OArchitecture {
-  public variable: OVariable;
   constructor(public parent: OArchitecture,
     startI: number,
     endI: number,
@@ -649,9 +648,9 @@ export class OProcess extends OHasSequentialStatements implements IHasSubprogram
 
 export class OLoop extends OHasSequentialStatements implements IHasInstantiations {
 }
-export class OForLoop extends OLoop implements IHasVariables {
-  variables: OVariable[] = [];
-  variableRange: ORead[] = [];
+export class OForLoop extends OLoop implements IHasConstants {
+  constants: OConstant[] = [];
+  constantRange: ORead[] = [];
 }
 export class OWhileLoop extends OLoop {
   conditionReads: ORead[] = [];
