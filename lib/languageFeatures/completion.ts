@@ -1,6 +1,6 @@
 import { CompletionItem, CompletionItemKind, CompletionParams, InsertTextFormat, Position, Range } from 'vscode-languageserver';
 import { documents, initialization, linters, projectParser } from '../language-server';
-import { OArchitecture, OEnum, OFile, OFileWithEntity, OName } from '../parser/objects';
+import { implementsIHasConstants, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables, ORecord, OEnum, OFile, OFileWithEntity, OName } from '../parser/objects';
 
 export async function handleCompletion(params: CompletionParams): Promise<CompletionItem[]> {
   await initialization;
@@ -15,7 +15,7 @@ export async function handleCompletion(params: CompletionParams): Promise<Comple
       completions.push({
         label: "Block comment",
         commitCharacters: ['-'],
-        insertText: '-'.repeat(80-match[1].length) + '\n-- ' + match[2] + '${1}\n' + '-'.repeat(80-match[1].length),
+        insertText: '-'.repeat(80 - match[1].length) + '\n-- ' + match[2] + '${1}\n' + '-'.repeat(80 - match[1].length),
         insertTextFormat: InsertTextFormat.Snippet,
         preselect: true,
         kind: CompletionItemKind.Snippet
@@ -55,10 +55,27 @@ export async function handleCompletion(params: CompletionParams): Promise<Comple
   let counter = 100;
   while ((parent instanceof OFile) === false) {
     // console.log(parent instanceof OFile, parent);
-    if (parent instanceof OArchitecture) {
+    if (implementsIHasSignals(parent)) {
       for (const signal of parent.signals) {
         completions.push({ label: signal.name.text, kind: CompletionItemKind.Variable });
       }
+    }
+    if (implementsIHasConstants(parent)) {
+      for (const constant of parent.constants) {
+        completions.push({ label: constant.name.text, kind: CompletionItemKind.Variable });
+      }
+    }
+    if (implementsIHasVariables(parent)) {
+      for (const variable of parent.variables) {
+        completions.push({ label: variable.name.text, kind: CompletionItemKind.Variable });
+      }
+    }
+    if (implementsIHasSubprograms(parent)) {
+      for (const subprogram of parent.subprograms) {
+        completions.push({ label: subprogram.name.text, kind: CompletionItemKind.Function });
+      }
+    }
+    if (implementsIHasTypes(parent)) {
       for (const type of parent.types) {
         completions.push({ label: type.name.text, kind: CompletionItemKind.TypeParameter });
         if (type instanceof OEnum) {
@@ -68,6 +85,13 @@ export async function handleCompletion(params: CompletionParams): Promise<Comple
               kind: CompletionItemKind.EnumMember
             };
           }));
+        } else if (type instanceof ORecord) {
+          completions.push(...type.children.map(c => {
+            return {
+              label: c.name.text,
+              kind: CompletionItemKind.EnumMember
+            }
+          }))
         }
       }
     }
@@ -84,6 +108,18 @@ export async function handleCompletion(params: CompletionParams): Promise<Comple
     }
     for (const port of parent.entity.generics) {
       completions.push({ label: port.name.text, kind: CompletionItemKind.Constant });
+    }
+    for (const signal of parent.entity.signals) {
+      completions.push({ label: signal.name.text, kind: CompletionItemKind.Variable });
+    }
+    for (const constant of parent.entity.constants) {
+      completions.push({ label: constant.name.text, kind: CompletionItemKind.Variable });
+    }
+    for (const variable of parent.entity.variables) {
+      completions.push({ label: variable.name.text, kind: CompletionItemKind.Variable });
+    }
+    for (const subprogram of parent.entity.subprograms) {
+      completions.push({ label: subprogram.name.text, kind: CompletionItemKind.Function });
     }
   }
   for (const pkg of linter.packages) {
