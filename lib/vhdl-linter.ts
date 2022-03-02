@@ -5,7 +5,7 @@ import {
 } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { getDocumentSettings } from './language-server';
-import { IHasDefinitions, IHasInstantiations, implementsIHasInstantiations, implementsIHasSubprograms, implementsIMentionable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, ObjectBase, OCase, OComponent, OConstant, OContext, OEntity, OEnum, OFile, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackages, OGeneric, OGenericAssociationList, OHasSequentialStatements, OIf, OInstantiation, OPackage, OPackageBody, OPort, OPortAssociationList, OProcess, ORead, ORecord, OSignal, OSignalBase, OSubprogram, OType, OUseClause, OWhenClause, OWrite, ParserError, OToken, OAssociationList, OIRange } from './parser/objects';
+import { IHasDefinitions, IHasInstantiations, implementsIHasInstantiations, implementsIHasSubprograms, implementsIMentionable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, ObjectBase, OCase, OComponent, OConstant, OContext, OEntity, OEnum, OFile, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackages, OGeneric, OGenericAssociationList, OHasSequentialStatements, OIf, OInstantiation, OPackage, OPackageBody, OPort, OPortAssociationList, OProcess, ORead, ORecord, OSignal, OSignalBase, OSubprogram, OType, OUseClause, OWhenClause, OWrite, ParserError, OToken, OAssociationList, OIRange, OVariable } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 export enum LinterRules {
@@ -295,7 +295,7 @@ export class VhdlLinter {
                   }
                 }
                 obj.actualIfOutput = [[], []];
-              } else {
+              } else if (portOrGeneric.direction === 'out') {
                 for (const mapping of obj.actualIfInput) {
                   const index = this.file.objectList.indexOf(mapping);
                   this.file.objectList.splice(index, 1);
@@ -684,27 +684,47 @@ export class VhdlLinter {
     }
   }
 
+  private checkUnusedPorts(ports: OPort[]) {
+    for (const port of ports) {
+      if ((port.direction === 'in' || port.direction === 'inout') && port.references.filter(token => token instanceof ORead).length === 0) {
+        this.addMessage({
+          range: port.range,
+          severity: DiagnosticSeverity.Warning,
+          message: `Not reading input port '${port.name}'`
+        });
+      }
+      const writes = port.references.filter(token => token instanceof OWrite);
+      if ((port.direction === 'out' || port.direction === 'inout')&& writes.length === 0) {
+        this.addMessage({
+          range: port.range,
+          severity: DiagnosticSeverity.Warning,
+          message: `Not writing output port '${port.name}'`
+        });
+      }
+    }
+  }
+
   private checkUnused(architecture: OArchitecture, entity?: OEntity) {
     if (!architecture) {
       return;
     }
 
     if (entity) {
-      for (const port of entity.ports) {
-        if (port.direction === 'in' && port.references.filter(token => token instanceof ORead).length === 0) {
+      this.checkUnusedPorts(entity.ports);
+      for (const generic of entity.generics) {
+        if (generic.references.filter(token => token instanceof ORead).length === 0) {
           this.addMessage({
-            range: port.range,
+            range: generic.range,
             severity: DiagnosticSeverity.Warning,
-            message: `Not reading input port '${port.name}'`
+            message: `Not reading generic '${generic.name}'`
           });
         }
-        const writes = port.references.filter(token => token instanceof OWrite);
-        if (port.direction === 'out' && writes.length === 0) {
-          this.addMessage({
-            range: port.range,
-            severity: DiagnosticSeverity.Warning,
-            message: `Not writing output port '${port.name}'`
-          });
+        for (const write of generic.references.filter(token => token instanceof OWrite)) {
+            this.addMessage({
+              range: write.range,
+              severity: DiagnosticSeverity.Error,
+              message: `Generic ${generic.name} cannot be written`
+            });
         }
       }
     }
@@ -743,8 +763,24 @@ export class VhdlLinter {
         });
       }
     }
-    for (const constant of architecture.getRoot().objectList
-      .filter(object => object instanceof OConstant) as OConstant[]) {
+    for (const variable of architecture.getRoot().objectList.filter(object => object instanceof OVariable) as OVariable[]) {
+      if (variable.references.filter(token => token instanceof ORead).length === 0) {
+        this.addMessage({
+          range: variable.name.range,
+          severity: DiagnosticSeverity.Warning,
+          message: `Not reading variable '${variable.name}'`
+        });
+      }
+      const writes = variable.references.filter(token => token instanceof OWrite);
+      if (writes.length === 0) {
+        this.addMessage({
+          range: variable.name.range,
+          severity: DiagnosticSeverity.Warning,
+          message: `Not writing variable '${variable.name}'`
+        });
+      }
+    }
+    for (const constant of architecture.getRoot().objectList.filter(object => object instanceof OConstant) as OConstant[]) {
       if (constant.references.filter(token => token instanceof ORead).length === 0) {
         this.addMessage({
           range: constant.name.range,
@@ -752,22 +788,16 @@ export class VhdlLinter {
           message: `Not reading constant '${constant.name}'`
         });
       }
-      const writes = constant.references.filter(token => token instanceof OWrite);
-      for (const write of writes) {
-        if (write.parent instanceof OAssociation && write.parent.parent instanceof OPortAssociationList) {
-          this.addMessage({
-            range: write.range,
-            severity: DiagnosticSeverity.Information,
-            message: `Constant ${constant.name} could be written in the procedure`
-          });
-        } else {
+      for (const write of constant.references.filter(token => token instanceof OWrite)) {
           this.addMessage({
             range: write.range,
             severity: DiagnosticSeverity.Error,
             message: `Constant ${constant.name} cannot be written`
           });
-        }
       }
+    }
+    for (const subprogram of architecture.getRoot().objectList.filter(object => object instanceof OSubprogram) as OSubprogram[]) {
+      this.checkUnusedPorts(subprogram.ports);
     }
   }
   async checkPortDeclaration() {
