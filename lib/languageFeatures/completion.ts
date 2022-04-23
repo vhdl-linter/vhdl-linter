@@ -1,6 +1,6 @@
 import { CompletionItem, CompletionItemKind, CompletionParams, InsertTextFormat, Position, Range } from 'vscode-languageserver';
 import { documents, initialization, linters, projectParser } from '../language-server';
-import { implementsIHasConstants, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables, ORecord, OEnum, OFile, OFileWithEntity, OName } from '../parser/objects';
+import { implementsIHasConstants, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables, ORecord, OEnum, OFile, OName } from '../parser/objects';
 
 export async function handleCompletion(params: CompletionParams): Promise<CompletionItem[]> {
   await initialization;
@@ -10,10 +10,10 @@ export async function handleCompletion(params: CompletionParams): Promise<Comple
   if (document) {
     const range = Range.create(Position.create(params.position.line, 0), Position.create(params.position.line + 1, 0));
     const line = document.getText(range);
-    let match = line.match(/^(\s*)-*\s*(.*)/)
+    let match = line.match(/^(\s*)-*\s*(.*)/);
     if (match) {
       completions.push({
-        label: "Block comment",
+        label: 'Block comment',
         commitCharacters: ['-'],
         insertText: '-'.repeat(80 - match[1].length) + '\n-- ' + match[2] + '${1}\n' + '-'.repeat(80 - match[1].length),
         insertTextFormat: InsertTextFormat.Snippet,
@@ -90,8 +90,8 @@ export async function handleCompletion(params: CompletionParams): Promise<Comple
             return {
               label: c.name.text,
               kind: CompletionItemKind.EnumMember
-            }
-          }))
+            };
+          }));
         }
       }
     }
@@ -102,7 +102,7 @@ export async function handleCompletion(params: CompletionParams): Promise<Comple
       throw new Error('Infinite Loop?');
     }
   }
-  if (parent instanceof OFileWithEntity) {
+  if (parent instanceof OFile && parent.entity !== undefined) {
     for (const port of parent.entity.ports) {
       completions.push({ label: port.name.text, kind: CompletionItemKind.Field });
     }

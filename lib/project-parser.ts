@@ -2,13 +2,13 @@ import { FSWatcher, watch } from 'chokidar';
 import { EventEmitter } from 'events';
 import { promises, readFileSync } from 'fs';
 import { join, sep } from 'path';
-import { OContext, OEntity, OFile, OFileWithEntity, OFileWithPackages, OPackage, OPackageBody, OSubprogram } from './parser/objects';
+import { OContext, OEntity, OFile, OPackage, OPackageBody, OSubprogram } from './parser/objects';
 import { VhdlLinter } from './vhdl-linter';
 
 export class ProjectParser {
 
   public cachedFiles: OFileCache[] = [];
-  private packages: (OPackage|OPackageBody)[];
+  private packages: (OPackage | OPackageBody)[];
   private contexts: OContext[] = [];
   private entities: OEntity[];
   events = new EventEmitter();
@@ -47,8 +47,8 @@ export class ProjectParser {
       watcher.on('change', async (path) => {
         // console.log('change', path);
         const cachedFile = process.platform === 'win32'
-        ? this.cachedFiles.find(cachedFile => cachedFile.path.toLowerCase() === path.toLowerCase())
-        : this.cachedFiles.find(cachedFile => cachedFile.path === path);
+          ? this.cachedFiles.find(cachedFile => cachedFile.path.toLowerCase() === path.toLowerCase())
+          : this.cachedFiles.find(cachedFile => cachedFile.path === path);
         if (cachedFile) {
           cachedFile.reparse();
         } else {
@@ -122,7 +122,7 @@ export class OFileCache {
 
   path: string;
   digest: string;
-  packages?: (OPackage|OPackageBody)[];
+  packages?: (OPackage | OPackageBody)[];
   contexts: OContext[] = [];
   entity?: OEntity;
   text: string;
@@ -151,17 +151,13 @@ export class OFileCache {
     this.parseContexts();
   }
   private parsePackages(): void {
-    if (this.linter.file instanceof OFileWithPackages) {
-      this.packages = this.linter.file.packages;
-    }
+    this.packages = this.linter.file.packages;
   }
   private parseContexts(): void {
-    if (this.linter.file instanceof OFile) {
-      this.contexts = this.linter.file.contexts;
-    }
+    this.contexts = this.linter.file.contexts;
   }
   private parseEntity(): void {
-    if (this.linter.file instanceof OFileWithEntity) {
+    if (this.linter.file.entity !== undefined) {
       this.entity = this.linter.file.entity;
     }
   }

@@ -200,6 +200,10 @@ export class OFile {
   contexts: OContext[] = [];
   contextReferences: OContextReference[] = [];
   magicComments: (OMagicCommentParameter | OMagicCommentDisable | OMagicCommentTodo)[] = [];
+  entity?: OEntity;
+  architecture?: OArchitecture;
+  packages: (OPackage | OPackageBody)[] = [];
+
   getJSON() {
     const obj = {};
     const seen = new WeakSet();
@@ -223,15 +227,7 @@ export class OFile {
     });
   }
 }
-export class OFileWithEntity extends OFile {
-  entity: OEntity;
-}
-export class OFileWithEntityAndArchitecture extends OFileWithEntity {
-  architecture: OArchitecture;
-}
-export class OFileWithPackages extends OFile {
-  packages: (OPackage | OPackageBody)[] = [];
-}
+
 export class OPackage extends ObjectBase implements IHasSubprograms, IHasComponents, IHasSignals, IHasConstants, IHasVariables, IHasTypes {
   parent: OFile;
   uninstantiatedPackageName?: OName;
@@ -285,7 +281,8 @@ export class OArchitecture extends ObjectBase implements IHasSubprograms, IHasCo
   subprograms: OSubprogram[] = [];
   components: OComponent[] = [];
   statements: OConcurrentStatements[] = [];
-
+  identifier?: string;
+  entityName?: string;
   get processes() {
     return this.statements.filter(s => s instanceof OProcess) as OProcess[];
   }
@@ -552,7 +549,7 @@ export class OAssociation extends ObjectBase implements IHasDefinitions {
   actualIfOutput: [ORead[], OWrite[]] = [[], []];
 }
 export class OEntity extends ObjectBase implements IHasDefinitions, IHasSubprograms, IHasSignals, IHasConstants, IHasVariables, IHasTypes {
-  constructor(public parent: OFileWithEntity, startI: number, endI: number, public library?: string) {
+  constructor(public parent: OFile, startI: number, endI: number, public library?: string) {
     super(parent, startI, endI);
   }
   portRange?: OIRange;
@@ -764,7 +761,7 @@ export class OToken extends ObjectBase implements IHasDefinitions {
           }
         }
       }
-      if (object instanceof OFileWithEntity) {
+      if (object instanceof OFile && object.entity) {
         object = object.entity;
         lastIteration = true;
       }

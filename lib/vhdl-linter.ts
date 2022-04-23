@@ -5,7 +5,7 @@ import {
 } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { getDocumentSettings } from './language-server';
-import { IHasDefinitions, IHasInstantiations, implementsIHasInstantiations, implementsIHasSubprograms, implementsIMentionable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, ObjectBase, OCase, OComponent, OConstant, OContext, OEntity, OEnum, OFile, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackages, OGeneric, OGenericAssociationList, OHasSequentialStatements, OIf, OInstantiation, OPackage, OPackageBody, OPort, OPortAssociationList, OProcess, ORead, ORecord, OSignal, OSignalBase, OSubprogram, OType, OUseClause, OWhenClause, OWrite, ParserError, OToken, OAssociationList, OIRange, OVariable } from './parser/objects';
+import { IHasDefinitions, IHasInstantiations, implementsIHasInstantiations, implementsIHasSubprograms, implementsIMentionable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, ObjectBase, OCase, OComponent, OConstant, OContext, OEntity, OEnum, OFile, OGeneric, OGenericAssociationList, OHasSequentialStatements, OIf, OInstantiation, OPackage, OPackageBody, OPort, OPortAssociationList, OProcess, ORead, ORecord, OSignal, OSignalBase, OSubprogram, OType, OUseClause, OWhenClause, OWrite, ParserError, OToken, OAssociationList, OIRange, OVariable } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 export enum LinterRules {
@@ -20,7 +20,7 @@ export type diagnosticCodeActionCallback = (textDocumentUri: string) => CodeActi
 export type commandCallback = (textDocumentUri: string, ...args: any[]) => TextEdit[];
 export class VhdlLinter {
   messages: Diagnostic[] = [];
-  file: OFileWithEntityAndArchitecture | OFileWithEntity | OFileWithPackages | OFile;
+  file: OFile;
   parser: Parser;
   packages: (OPackage | OPackageBody)[] = [];
   constructor(private editorPath: string, public text: string, public projectParser: ProjectParser, public onlyEntity: boolean = false) {
@@ -53,6 +53,7 @@ export class VhdlLinter {
           message: e.message,
           code
         });
+        this.file = new OFile(this.text, this.editorPath, this.text);
       } else {
         throw e;
       }
@@ -111,9 +112,20 @@ export class VhdlLinter {
   }
   getUseClauses(parent: OFile | OContext) {
     const useClauses = parent.useClauses.slice();
-    if (parent.contextReferences.length > 0) {
+    const contextReferences = parent.contextReferences.slice();
+    if (parent instanceof OFile) {
+      if (parent.entity === undefined && parent.architecture !== undefined && parent.architecture.entityName !== undefined) {
+        const architectureName = parent.architecture.entityName.toLowerCase();
+        const entity = this.projectParser.getEntities().find(entity => entity.name.text.toLowerCase() === architectureName);
+        if (entity !== undefined) {
+          useClauses.push(...entity.parent.useClauses);
+          contextReferences.push(...entity.parent.contextReferences);
+        }
+      }
+    }
+    if (contextReferences.length > 0) {
       const contexts = this.projectParser.getContexts();
-      for (const reference of parent.contextReferences) {
+      for (const reference of contextReferences) {
         const context = contexts.find(c => c.name.text.toLowerCase() === reference.contextName.toLowerCase());
         if (!context) {
           if (parent instanceof OFile) {
@@ -156,7 +168,7 @@ export class VhdlLinter {
                 range: useClause.range,
                 severity: DiagnosticSeverity.Warning,
                 message: `could not find instantiated package from package ${useClause.library}.${useClause.packageName}`
-              })
+              });
               break;
             }
           }
@@ -172,6 +184,16 @@ export class VhdlLinter {
             message: `could not find package for ${useClause.library}.${useClause.packageName}`
           });
         }
+      }
+    }
+    let otherFileEntity;
+    if (this.file.entity === undefined && this.file.architecture !== undefined && this.file.architecture.entityName !== undefined) {
+      const architectureName = this.file.architecture.entityName.toLowerCase();
+      otherFileEntity = this.projectParser.getEntities().find(entity => entity.name.text.toLowerCase() === architectureName);
+      if (otherFileEntity !== undefined) {
+        console.log(otherFileEntity);
+      } else {
+        console.log('no found');
       }
     }
     for (const read of this.file.objectList.filter(object => object instanceof ORead) as ORead[]) {
@@ -207,6 +229,15 @@ export class VhdlLinter {
           }
         }
       }
+      if (otherFileEntity !== undefined) {
+        for (const port of otherFileEntity.ports) {
+          if (port.name.text.toLowerCase() === read.text.toLowerCase()) {
+            read.definitions.push(port);
+            read.scope = port;
+            port.references.push(read);
+          }
+        }
+      }
     }
     for (const instantiation of this.file.objectList.filter(object => object instanceof OInstantiation) as OInstantiation[]) {
       switch (instantiation.type) {
@@ -226,7 +257,7 @@ export class VhdlLinter {
           break;
       }
     }
-    if (this.file instanceof OFileWithEntityAndArchitecture) {
+    if (this.file.architecture !== undefined) {
       for (const component of this.file.architecture.components) {
         component.definitions.push(...this.getEntities(component));
       }
@@ -321,7 +352,7 @@ export class VhdlLinter {
   async checkLibrary() {
     const settings = await getDocumentSettings(URI.file(this.editorPath).toString());
 
-    if (settings.rules.warnLibrary && this.file && this.file instanceof OFileWithEntity && typeof this.file.entity.library === 'undefined') {
+    if (settings.rules.warnLibrary && this.file && this.file.entity !== undefined && typeof this.file.entity.library === 'undefined') {
       this.addMessage({
         range: Range.create(Position.create(0, 0), Position.create(1, 0)),
         severity: DiagnosticSeverity.Warning,
@@ -337,7 +368,7 @@ export class VhdlLinter {
       this.checkNotDeclared();
       await this.checkLibrary();
       this.checkTodos();
-      if (this.file instanceof OFileWithEntityAndArchitecture) {
+      if (this.file.architecture !== undefined) {
         this.checkResets();
         this.checkUnused(this.file.architecture, this.file.entity);
         this.checkDoubles();
@@ -350,7 +381,7 @@ export class VhdlLinter {
     return this.messages;
   }
   checkComponents() {
-    if (!(this.file instanceof OFileWithEntityAndArchitecture)) {
+    if (this.file.architecture === undefined) {
       return;
     }
     for (const component of this.file.architecture.components) {
@@ -410,7 +441,7 @@ export class VhdlLinter {
     }
   }
   checkDoubles() {
-    if (!(this.file instanceof OFileWithEntityAndArchitecture)) {
+    if (this.file.architecture === undefined) {
       return;
     }
     for (const signal of this.file.architecture.signals) {
@@ -443,14 +474,16 @@ export class VhdlLinter {
         }
       }
     }
-    for (const port of this.file.entity.ports) {
-      if (this.file.entity.ports.find(portSearch => port !== portSearch && port.nameEquals(portSearch))) {
-        this.addMessage({
-          range: port.range,
-          severity: DiagnosticSeverity.Error,
-          message: `port ${port.name} defined multiple times`
-        });
+    if (this.file.entity !== undefined) {
+      for (const port of this.file.entity.ports) {
+        if (this.file.entity.ports.find(portSearch => port !== portSearch && port.nameEquals(portSearch))) {
+          this.addMessage({
+            range: port.range,
+            severity: DiagnosticSeverity.Error,
+            message: `port ${port.name} defined multiple times`
+          });
 
+        }
       }
     }
   }
@@ -458,7 +491,7 @@ export class VhdlLinter {
   private pushWriteError(write: OWrite) {
     const code = this.addCodeActionCallback((textDocumentUri: string) => {
       const actions = [];
-      if (this.file instanceof OFileWithEntityAndArchitecture) {
+      if (this.file.architecture !== undefined) {
         const args: IAddSignalCommandArguments = { textDocumentUri, signalName: write.text, range: this.file.architecture.range };
         actions.push(CodeAction.create('add signal to architecture', Command.create('add signal to architecture', 'vhdl-linter:add-signal', args)));
       }
@@ -494,7 +527,7 @@ export class VhdlLinter {
           ));
         }
       }
-      if (this.file instanceof OFileWithEntityAndArchitecture) {
+      if (this.file.architecture !== undefined) {
         const args: IAddSignalCommandArguments = { textDocumentUri, signalName: read.text, range: this.file.architecture.range };
         actions.push(CodeAction.create('add signal to architecture', Command.create('add signal to architecture', 'vhdl-linter:add-signal', args)));
       }
@@ -556,11 +589,13 @@ export class VhdlLinter {
     }
   }
   getCodeLens(textDocumentUri: string): CodeLens[] {
-    if (!(this.file instanceof OFileWithEntityAndArchitecture)) {
+    if (this.file.architecture === undefined) {
       return [];
     }
     let signalLike: OSignalBase[] = this.file.architecture.signals;
-    signalLike = signalLike.concat(this.file.entity.ports);
+    if (this.file.entity !== undefined) {
+      signalLike = signalLike.concat(this.file.entity.ports);
+    }
     const processes = this.file.objectList.filter(object => object instanceof OProcess) as OProcess[];
     const signalsMissingReset = signalLike.filter(signal => {
       if (typeof signal.registerProcess === 'undefined') {
@@ -612,11 +647,13 @@ export class VhdlLinter {
 
   }
   checkResets() {
-    if (!(this.file instanceof OFileWithEntityAndArchitecture)) {
+    if (this.file.architecture === undefined) {
       return;
     }
     let signalLike: OSignalBase[] = this.file.architecture.signals;
-    signalLike = signalLike.concat(this.file.entity.ports);
+    if (this.file.entity !== undefined) {
+      signalLike = signalLike.concat(this.file.entity.ports);
+    }
     const processes = this.file.objectList.filter(object => object instanceof OProcess) as OProcess[];
 
     for (const signal of signalLike) {
@@ -694,7 +731,7 @@ export class VhdlLinter {
         });
       }
       const writes = port.references.filter(token => token instanceof OWrite);
-      if ((port.direction === 'out' || port.direction === 'inout')&& writes.length === 0) {
+      if ((port.direction === 'out' || port.direction === 'inout') && writes.length === 0) {
         this.addMessage({
           range: port.range,
           severity: DiagnosticSeverity.Warning,
@@ -720,11 +757,11 @@ export class VhdlLinter {
           });
         }
         for (const write of generic.references.filter(token => token instanceof OWrite)) {
-            this.addMessage({
-              range: write.range,
-              severity: DiagnosticSeverity.Error,
-              message: `Generic ${generic.name} cannot be written`
-            });
+          this.addMessage({
+            range: write.range,
+            severity: DiagnosticSeverity.Error,
+            message: `Generic ${generic.name} cannot be written`
+          });
         }
       }
     }
@@ -734,7 +771,7 @@ export class VhdlLinter {
           range: type.name.range,
           severity: DiagnosticSeverity.Warning,
           message: `Not using type ${type.name.text}`
-        })
+        });
       }
     }
     for (const component of architecture.components) {
@@ -743,7 +780,7 @@ export class VhdlLinter {
           range: component.name.range,
           severity: DiagnosticSeverity.Warning,
           message: `Not using component ${component.name.text}`
-        })
+        });
       }
     }
     for (const signal of architecture.getRoot().objectList.filter(object => object instanceof OSignal) as OSignal[]) {
@@ -789,11 +826,11 @@ export class VhdlLinter {
         });
       }
       for (const write of constant.references.filter(token => token instanceof OWrite)) {
-          this.addMessage({
-            range: write.range,
-            severity: DiagnosticSeverity.Error,
-            message: `Constant ${constant.name} cannot be written`
-          });
+        this.addMessage({
+          range: write.range,
+          severity: DiagnosticSeverity.Error,
+          message: `Constant ${constant.name} cannot be written`
+        });
       }
     }
     for (const subprogram of architecture.getRoot().objectList.filter(object => object instanceof OSubprogram) as OSubprogram[]) {
@@ -801,15 +838,15 @@ export class VhdlLinter {
     }
   }
   async checkPortDeclaration() {
-    if (this.file instanceof OFileWithEntity === false) {
+    if (this.file.entity === undefined) {
       return;
     }
 
-    const tree = this.file as OFileWithEntity;
+    const tree = this.file;
     const portSettings = (await getDocumentSettings(URI.file(this.editorPath).toString())).ports;
     if (portSettings.enablePortStyle) {
 
-      for (const port of tree.entity.ports) {
+      for (const port of tree.entity?.ports ?? []) {
         if (port.direction === 'in') {
           if (port.name.text.match(new RegExp(portSettings.outRegex, 'i'))) {
             const code = this.addCodeActionCallback((textDocumentUri: string) => {
@@ -914,14 +951,14 @@ export class VhdlLinter {
     }
   }
   async checkPortType() {
-    if (this.file instanceof OFileWithEntity === false) {
+    if (this.file.entity === undefined) {
       return;
     }
 
-    const tree = this.file as OFileWithEntity;
+    const tree = this.file;
     const settings = (await getDocumentSettings(URI.file(this.editorPath).toString()));
     if (settings.rules.warnLogicType) {
-      for (const port of tree.entity.ports) {
+      for (const port of tree.entity?.ports ?? []) {
         console.log(port.type);
         let match;
         if ((settings.style.preferedLogicType === 'std_logic' && port.type[0].text.match(/^std_ulogic/i))
@@ -982,7 +1019,7 @@ export class VhdlLinter {
     // find all defined components in current scope
     let parent: ObjectBase | OFile | undefined = instantiation.parent;
     if (!parent) {
-      if (this.file instanceof OFileWithEntityAndArchitecture) {
+      if (this.file.architecture !== undefined) {
         parent = this.file.architecture;
       }
     }
@@ -1004,7 +1041,7 @@ export class VhdlLinter {
     // find all defined subprograms in current scope
     let parent: ObjectBase | OFile | undefined = instantiation.parent;
     if (!parent) {
-      if (this.file instanceof OFileWithEntityAndArchitecture) {
+      if (this.file.architecture !== undefined) {
         parent = this.file.architecture;
       }
     }
@@ -1119,13 +1156,13 @@ export class VhdlLinter {
         });
       } else {
         // check which interfaceElements are missing from the different possible interfaces
-        const missingElements: (OPort|OGeneric)[][] = availableInterfaceElements.map(_interface => {
-          const missing: (OPort|OGeneric)[] = [];
+        const missingElements: (OPort | OGeneric)[][] = availableInterfaceElements.map(_interface => {
+          const missing: (OPort | OGeneric)[] = [];
           for (const element of _interface) {
             if (((element instanceof OPort && element.direction === 'in') || element instanceof OGeneric)
               && typeof element.defaultValue === 'undefined'
               && typeof foundElements.find(search => search.nameEquals(element)) === 'undefined') {
-                missing.push(element);
+              missing.push(element);
             }
           }
           return missing;

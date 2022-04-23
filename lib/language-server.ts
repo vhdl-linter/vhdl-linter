@@ -13,7 +13,7 @@ import { findReferencesHandler, prepareRenameHandler, renameHandler } from './la
 import { foldingHandler } from './languageFeatures/folding';
 import { handleReferences } from './languageFeatures/references';
 import { handleOnWorkspaceSymbol } from './languageFeatures/workspaceSymbols';
-import { implementsIHasDefinitions, OFile, OFileWithEntity, OFileWithEntityAndArchitecture, OInstantiation, OName, OMagicCommentDisable } from './parser/objects';
+import { implementsIHasDefinitions, OFile, OInstantiation, OName, OMagicCommentDisable } from './parser/objects';
 import { ProjectParser } from './project-parser';
 import { VhdlLinter } from './vhdl-linter';
 
@@ -247,12 +247,12 @@ const findDefinitions = async (params: IFindDefinitionParams) => {
 
   let startI = linter.getIFromPosition(params.position);
   let candidates = linter.file?.objectList.filter(object => object.range.start.i <= startI && startI <= object.range.end.i) ?? [];
-  if (linter.file instanceof OFileWithEntityAndArchitecture) {
+  if (linter.file?.architecture !== undefined) {
     candidates.push(...linter.file.architecture.components.filter(object => object.range.start.i <= startI && startI <= object.range.end.i));
   }
   candidates.sort((a, b) => (a.range.end.i - a.range.start.i) - (b.range.end.i - b.range.start.i));
   if (candidates.length === 0) {
-    return []
+    return [];
   }
   const firstRange = candidates[0].range.end.i - candidates[0].range.start.i;
   candidates = candidates.filter(c => (c.range.end.i - c.range.start.i) === firstRange).map(c => c instanceof OName ? c.parent : c);
@@ -333,7 +333,7 @@ connection.onRequest('vhdl-linter/listing', async (params: any, b: any) => {
     }
     for (const object of file?.objectList ?? []) {
       if (object instanceof OInstantiation) {
-        if (object.definitions && object.definitions[0].parent instanceof OFileWithEntity) {
+        if (object.definitions && object.definitions[0].parent instanceof OFile && object.definitions[0].parent.entity !== undefined) {
           const vhdlLinter = new VhdlLinter(object.definitions[0].parent.file, object.definitions[0].parent.originalText, projectParser);
           await vhdlLinter.checkAll();
           await parseTree(vhdlLinter.file);
@@ -347,7 +347,7 @@ connection.onRequest('vhdl-linter/listing', async (params: any, b: any) => {
 
   await parseTree(linter.file);
   return (files.map(file => {
-    if (file instanceof OFileWithEntity) {
+    if (file.entity !== undefined) {
       return [file.file.replace((rootUri ?? '').replace('file://', ''), ''), file.entity.library];
     }
   }).filter(file => file) as [string, string][]).map(a => `${a[0]}\t${a[1]}`).join(`\n`);

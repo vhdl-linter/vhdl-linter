@@ -1,6 +1,6 @@
 import { FoldingRange, FoldingRangeParams } from 'vscode-languageserver';
 import { documents, initialization, linters } from '../language-server';
-import { OAssociationList, OCase, OElseClause, OEntity, OFileWithEntity, OForGenerate, OIfClause, OIfGenerateClause, OInstantiation, OProcess, OSubprogram, OWhenClause } from '../parser/objects';
+import { OAssociationList, OCase, OElseClause, OEntity, OForGenerate, OIfClause, OIfGenerateClause, OInstantiation, OProcess, OSubprogram, OWhenClause } from '../parser/objects';
 export async function foldingHandler (params: FoldingRangeParams): Promise<FoldingRange[]> {
   await initialization;
   const linter = linters.get(params.textDocument.uri);
@@ -15,7 +15,7 @@ export async function foldingHandler (params: FoldingRangeParams): Promise<Foldi
       result.push(FoldingRange.create(obj.range.start.line, obj.range.end.line));
     }
   }
-  if (linter.file instanceof OFileWithEntity) {
+  if (linter.file.entity !== undefined) {
     if (linter.file.entity.portRange) {
       result.push(FoldingRange.create(linter.file.entity.portRange.start.line, linter.file.entity.portRange.end.line));
     }

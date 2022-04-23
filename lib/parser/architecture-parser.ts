@@ -42,8 +42,10 @@ export class ArchitectureParser extends ParserBase {
     }
     if (skipStart !== true) {
       this.type = this.getNextWord();
+      this.architecture.identifier = this.type;
       this.expect('of');
       this.name = this.getNextWord();
+      this.architecture.entityName = this.name;
       this.expect('is');
     }
 

@@ -2,7 +2,7 @@ import { ArchitectureParser } from './architecture-parser';
 import { ContextParser } from './context-parser';
 import { ContextReferenceParser } from './context-reference-parser';
 import { EntityParser } from './entity-parser';
-import { MagicCommentType, OArchitecture, OContextReference, OEntity, OFile, OFileWithEntity, OFileWithEntityAndArchitecture, OFileWithPackages, OI, OIRange, OMagicCommentDisable, OMagicCommentParameter, OMagicCommentTodo, OPackage, OPackageBody, OUseClause, ParserError } from './objects';
+import { MagicCommentType, OArchitecture, OContextReference, OEntity, OFile, OI, OIRange, OMagicCommentDisable, OMagicCommentParameter, OMagicCommentTodo, OPackage, OPackageBody, OUseClause, ParserError } from './objects';
 import { PackageParser } from './package-parser';
 import { ParserBase } from './parser-base';
 import { UseClauseParser } from './use-clause-parser';
@@ -16,10 +16,10 @@ export class Parser extends ParserBase {
     this.originalText = text;
     this.removeCommentsAndStrings();
   }
-  parse(): OFileWithPackages | OFileWithEntity | OFile {
+  parse(): OFile {
     const file = new OFile(this.text, this.file, this.originalText);
     let disabledRangeStart = undefined;
-    let ignoreRegex : RegExp[] = [];
+    let ignoreRegex: RegExp[] = [];
     for (const [lineNumber, line] of this.originalText.split('\n').entries()) {
       let match = /(--\s*vhdl-linter)(.*)/.exec(line); // vhdl-linter-disable-next-line //vhdl-linter-disable-this-line
 
@@ -36,7 +36,7 @@ export class Parser extends ParserBase {
           }
         } else if ((innerMatch = match[2].match('-enable')) !== null) {
           if (disabledRangeStart !== undefined) {
-            let disabledRange =  new OIRange(file, new OI(file, disabledRangeStart, 0), new OI(file, lineNumber, line.length - 1));
+            let disabledRange = new OIRange(file, new OI(file, disabledRangeStart, 0), new OI(file, lineNumber, line.length - 1));
             file.magicComments.push(new OMagicCommentDisable(file, MagicCommentType.Disable, disabledRange));
             disabledRangeStart = undefined;
           }
@@ -61,7 +61,7 @@ export class Parser extends ParserBase {
 
       match = /(--\s*)(.*TODO.*)/.exec(line);
       if (match) {
-        const todoRange = new OIRange(file, new OI(file, lineNumber, line.length-match[2].length), new OI(file, lineNumber, line.length));
+        const todoRange = new OIRange(file, new OI(file, lineNumber, line.length - match[2].length), new OI(file, lineNumber, line.length));
         file.magicComments.push(new OMagicCommentTodo(file, MagicCommentType.Todo, todoRange, match[2].toString()));
       }
 
@@ -70,7 +70,7 @@ export class Parser extends ParserBase {
       const ignores = this.text.match(regex);
       if (ignores === null) continue;
       for (const ignore of ignores) {
-        const replacement = ignore.replace(/\S/g,' ');
+        const replacement = ignore.replace(/\S/g, ' ');
         this.text = this.text.replace(ignore, replacement);
       }
     }
@@ -80,12 +80,12 @@ export class Parser extends ParserBase {
     }
     let entity: OEntity | undefined;
     let architecture: OArchitecture | undefined;
-    const packages: (OPackage|OPackageBody)[] = [];
+    const packages: (OPackage | OPackageBody)[] = [];
     while (this.pos.i < this.text.length) {
       this.advanceWhitespace();
       let nextWord = this.getNextWord().toLowerCase();
       if (nextWord === 'context') {
-        if (this.advanceSemicolon(true, {consume: false}).match(/\bis\b/i)) {
+        if (this.advanceSemicolon(true, { consume: false }).match(/\bis\b/i)) {
           const contextParser = new ContextParser(this.text, this.pos, this.file, file);
           file.contexts.push(contextParser.parse());
         } else {
@@ -99,9 +99,8 @@ export class Parser extends ParserBase {
         const useClauseParser = new UseClauseParser(this.text, this.pos, this.file, file);
         file.useClauses.push(useClauseParser.parse());
       } else if (nextWord === 'entity') {
-        const entityParser = new EntityParser(this.text, this.pos, this.file, file as OFileWithEntity);
-        Object.setPrototypeOf(file, OFileWithEntity.prototype);
-        (file as OFileWithEntity).entity = entityParser.entity;
+        const entityParser = new EntityParser(this.text, this.pos, this.file, file);
+        file.entity = entityParser.entity;
         entity = entityParser.parse();
 
         if (this.onlyEntity) {
@@ -115,7 +114,7 @@ export class Parser extends ParserBase {
         const architectureParser = new ArchitectureParser(this.text, this.pos, this.file, file);
         architecture = architectureParser.parse();
       } else if (nextWord === 'package') {
-        if (this.onlyEntity && this.getNextWord({consume: false}) === 'body') {
+        if (this.onlyEntity && this.getNextWord({ consume: false }) === 'body') {
           // break;
         }
         const packageParser = new PackageParser(this.text, this.pos, this.file);
@@ -124,17 +123,19 @@ export class Parser extends ParserBase {
         this.pos.i++;
       }
     }
-    if (architecture && entity) {
-      Object.setPrototypeOf(file, OFileWithEntityAndArchitecture.prototype);
-      (file as OFileWithEntityAndArchitecture).architecture = architecture;
-      (file as OFileWithEntityAndArchitecture).entity = entity;
-    } else if (packages.length > 0) {
-      Object.setPrototypeOf(file, OFileWithPackages.prototype);
-      (file as OFileWithPackages).packages = packages;
+    if (architecture) {
+      file.architecture = architecture;
+
+    }
+    if (entity) {
+      file.entity = entity;
+    }
+    if (packages.length > 0) {
+      file.packages = packages;
     }
     return file;
   }
-// a
+  // a
   removeCommentsAndStrings() {
     this.text = this.text.split('\n').map(s => {
       let quotes = false;

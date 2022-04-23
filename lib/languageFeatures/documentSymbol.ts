@@ -1,6 +1,6 @@
 import { DocumentSymbol, DocumentSymbolParams, SymbolKind } from 'vscode-languageserver';
 import { initialization, linters } from '../language-server';
-import { OArchitecture, OCase, OFileWithEntityAndArchitecture, OFileWithPackages, OForLoop, OIf, OSequentialStatement } from '../parser/objects';
+import { OArchitecture, OCase, OForLoop, OIf, OSequentialStatement } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
 
 function parseArchitecture(architecture: OArchitecture, linter: VhdlLinter): DocumentSymbol[] {
@@ -91,12 +91,10 @@ export async function handleOnDocumentSymbol(params: DocumentSymbolParams): Prom
   }
   const returnValue: DocumentSymbol[] = [];
 
-  if (linter.file instanceof OFileWithPackages) {
-    returnValue.push(...linter.file.packages.map(pkg => pkg.types).flat().map(type => DocumentSymbol.create(type.name.text, undefined, SymbolKind.Enum, type.range, type.range)));
-    returnValue.push(...linter.file.packages.map(pkg => pkg.subprograms).flat().map(subprogram => DocumentSymbol.create(subprogram.name.text, undefined, SymbolKind.Function, subprogram.range, subprogram.range)));
-    returnValue.push(...linter.file.packages.map(pkg => pkg.constants).flat().map(constants => DocumentSymbol.create(constants.name.text, undefined, SymbolKind.Constant, constants.range, constants.range)));
-  }
-  if (linter.file instanceof OFileWithEntityAndArchitecture) {
+  returnValue.push(...linter.file.packages.map(pkg => pkg.types).flat().map(type => DocumentSymbol.create(type.name.text, undefined, SymbolKind.Enum, type.range, type.range)));
+  returnValue.push(...linter.file.packages.map(pkg => pkg.subprograms).flat().map(subprogram => DocumentSymbol.create(subprogram.name.text, undefined, SymbolKind.Function, subprogram.range, subprogram.range)));
+  returnValue.push(...linter.file.packages.map(pkg => pkg.constants).flat().map(constants => DocumentSymbol.create(constants.name.text, undefined, SymbolKind.Constant, constants.range, constants.range)));
+  if (linter.file.architecture !== undefined) {
     returnValue.push(...parseArchitecture(linter.file.architecture, linter));
   }
   return returnValue;

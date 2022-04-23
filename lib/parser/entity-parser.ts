@@ -1,18 +1,16 @@
 import { ConcurrentStatementParser, ConcurrentStatementTypes } from './concurrent-statement-parser';
 import { DeclarativePartParser } from './declarative-part-parser';
 import { InterfaceListParser } from './interface-list-parser';
-import { OArchitecture, OEntity, OFileWithEntity, OI, OIRange, OName, ParserError } from './objects';
+import { OArchitecture, OEntity, OI, OIRange, OName, ParserError, OFile } from './objects';
 import { ParserBase } from './parser-base';
 
 export class EntityParser extends ParserBase {
   public entity: OEntity;
-  constructor(text: string, pos: OI, file: string, private parent: OFileWithEntity) {
+  constructor(text: string, pos: OI, file: string, private parent: OFile) {
     super(text, pos, file);
     let library: string | undefined = undefined;
-    if (this.parent instanceof OFileWithEntity) {
-      const match = this.parent.originalText.match(/!\s*@library\s+(\S+)/i);
-      library = match ? match[1] : undefined;
-    }
+    const match = this.parent.originalText.match(/!\s*@library\s+(\S+)/i);
+    library = match ? match[1] : undefined;
     this.entity = new OEntity(this.parent, this.pos.i, this.getEndOfLineI(), library);
     this.debug(`start`);
   }
@@ -49,18 +47,14 @@ export class EntityParser extends ParserBase {
         this.expect(';');
       } else if (nextWord === 'end') {
         this.getNextWord();
-        if (this.parent instanceof OFileWithEntity) {
-          this.maybeWord('entity');
-        } else {
-          this.expect('component');
-        }
+        this.maybeWord('entity');
         this.maybeWord(this.entity.name.text);
-        
+
         this.entity.range.end.i = this.expect(';');
         break;
-      } else if (nextWord === 'begin' && this.parent instanceof OFileWithEntity) {
+      } else if (nextWord === 'begin') {
         this.getNextWord();
-        let nextWord = this.getNextWord({consume: false}).toLowerCase();
+        let nextWord = this.getNextWord({ consume: false }).toLowerCase();
         while (nextWord !== 'end') {
           new ConcurrentStatementParser(this.text, this.pos, this.file, this.entity).parse([
             ConcurrentStatementTypes.Assert,
@@ -70,16 +64,12 @@ export class EntityParser extends ParserBase {
           nextWord = this.getNextWord({ consume: false }).toLowerCase();
         }
         this.getNextWord();
-        if (this.parent instanceof OFileWithEntity) {
-          this.maybeWord('entity');
-        } else {
-          this.maybeWord('component');
-        }
+        this.maybeWord('entity');
         this.maybeWord(this.entity.name.text);
         this.entity.range.end.i = this.expect(';');
         break;
 
-      } else if (this.parent instanceof OFileWithEntity) {
+      } else {
         new DeclarativePartParser(this.text, this.pos, this.file, this.entity).parse(true);
       }
       if (lastI === this.pos.i) {
