@@ -1097,20 +1097,24 @@ export class VhdlLinter {
           return false;
         });
         if (!interfaceElement) {
-          const bestMatch = findBestMatch(association.formalPart[0].text, availableInterfaceElementsFlat.map(element => element.name.text));
-          const code = this.addCodeActionCallback((textDocumentUri: string) => {
-            const actions = [];
-            actions.push(CodeAction.create(
-              `Replace with ${bestMatch.bestMatch.target} (score: ${bestMatch.bestMatch.rating})`,
-              {
-                changes: {
-                  [textDocumentUri]: [TextEdit.replace(Range.create(association.formalPart[0].range.start, association.formalPart[association.formalPart.length - 1].range.end)
-                    , bestMatch.bestMatch.target)]
-                }
-              },
-              CodeActionKind.QuickFix));
-            return actions;
-          });
+          let code: number|undefined = undefined;
+          const possibleMatches = availableInterfaceElementsFlat.map(element => element.name.text);
+          if (possibleMatches.length > 0) {
+            const bestMatch = findBestMatch(association.formalPart[0].text, possibleMatches);
+            code = this.addCodeActionCallback((textDocumentUri: string) => {
+              const actions = [];
+              actions.push(CodeAction.create(
+                `Replace with ${bestMatch.bestMatch.target} (score: ${bestMatch.bestMatch.rating})`,
+                {
+                  changes: {
+                    [textDocumentUri]: [TextEdit.replace(Range.create(association.formalPart[0].range.start, association.formalPart[association.formalPart.length - 1].range.end)
+                      , bestMatch.bestMatch.target)]
+                  }
+                },
+                CodeActionKind.QuickFix));
+              return actions;
+            });
+          }
           this.addMessage({
             range: association.range,
             severity: DiagnosticSeverity.Error,
