@@ -37,7 +37,8 @@ export interface ISettings {
     enablePortStyle: boolean;
   };
   paths: {
-    additional: string[]
+    additional: string[];
+    ignoreRegex: string;
   };
   style: {
     preferedLogicType: 'std_logic' | 'std_ulogic';
@@ -54,7 +55,8 @@ const defaultSettings: ISettings = {
     enablePortStyle: true,
   },
   paths: {
-    additional: []
+    additional: [],
+    ignoreRegex: ''
   },
   style: {
     preferedLogicType: 'std_ulogic'
@@ -139,17 +141,17 @@ export const initialization = new Promise<void>(resolve => {
       // Register for all configuration changes.
       connection.client.register(DidChangeConfigurationNotification.type, undefined);
     }
+    const configuration = (await connection.workspace.getConfiguration({
+      section: 'VhdlLinter'
+    })) as ISettings;
 
     if (hasWorkspaceFolderCapability) {
       const parseWorkspaces = async () => {
         const workspaceFolders = await connection.workspace.getWorkspaceFolders();
         const folders = (workspaceFolders ?? []).map(workspaceFolder => URI.parse(workspaceFolder.uri).fsPath);
-        const configuration = (await connection.workspace.getConfiguration({
-          section: 'VhdlLinter'
-        })) as ISettings;
         console.log(configuration, 'configuration');
         folders.push(...configuration.paths.additional);
-        projectParser = new ProjectParser(folders);
+        projectParser = new ProjectParser(folders, configuration.paths.ignoreRegex);
         await projectParser.init();
       };
       await parseWorkspaces();
@@ -163,7 +165,7 @@ export const initialization = new Promise<void>(resolve => {
         folders.push(URI.parse(rootUri).fsPath);
       }
       console.log('folders', folders);
-      projectParser = new ProjectParser(folders);
+      projectParser = new ProjectParser(folders, configuration.paths.ignoreRegex);
       await projectParser.init();
     }
 

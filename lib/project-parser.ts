@@ -12,7 +12,7 @@ export class ProjectParser {
   private contexts: OContext[] = [];
   private entities: OEntity[];
   events = new EventEmitter();
-  constructor(public workspaces: string[]) { }
+  constructor(public workspaces: string[], public fileIgnoreRegex: string) { }
   async init() {
     let files = new Set<string>();
     await Promise.all(this.workspaces.map(async (directory) => {
@@ -69,17 +69,19 @@ export class ProjectParser {
   private async parseDirectory(directory: string): Promise<string[]> {
     const files: string[] = [];
     const entries = await promises.readdir(directory);
+    const ignoreRegex = this.fileIgnoreRegex.trim().length > 0 ? new RegExp(this.fileIgnoreRegex) : null;
 
     // const entries = await promisify(directory.getEntries)()
     await Promise.all(entries.map(async entry => {
       try {
-        const fileStat = await promises.stat(directory + '/' + entry);
+        const filePath = directory + sep + entry;
+        const fileStat = await promises.stat(filePath);
         if (fileStat.isFile()) {
-          if (entry.match(/\.vhdl?$/i)) {
-            files.push(directory + '/' + entry);
+          if (entry.match(/\.vhdl?$/i) && (ignoreRegex === null || !filePath.match(ignoreRegex))) {
+            files.push(filePath);
           }
         } else {
-          files.push(... await this.parseDirectory(directory + '/' + entry));
+          files.push(... await this.parseDirectory(filePath));
         }
       } catch (e) {
         console.log(e);

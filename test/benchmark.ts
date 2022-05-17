@@ -12,7 +12,7 @@ interface BenchmarkFile {
   linter?: VhdlLinter;
 }
 const filesCache: BenchmarkFile[] = [];
-const projectParser = new ProjectParser([]);
+const projectParser = new ProjectParser([], '');
 (async () => {
   const files = await promisify(glob)('test/**/*.vhd');
   console.log(`Found ${files.length} vhdl files.`);
