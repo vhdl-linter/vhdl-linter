@@ -179,7 +179,7 @@
 				"VhdlLinter.paths.ignoreRegex": {
 					"scope": "window",
 					"type": "string",
-					"description": "Regex for files to be ignored"
+					"description": "Regex for files to be ignored by the Project Parser"
 				}
 			}
 		}
