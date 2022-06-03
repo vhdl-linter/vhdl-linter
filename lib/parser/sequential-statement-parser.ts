@@ -1,6 +1,6 @@
 import { AssignmentParser } from './assignment-parser';
 import { AssociationListParser } from './association-list-parser';
-import { OArchitecture, OAssignment, ObjectBase, OCase, OConstant, OElseClause, OEntity, OForLoop, OHasSequentialStatements, OI, OIf, OIfClause, OInstantiation, OLoop, OName, OProcess, OSequentialStatement, OVariable, OWhenClause, OWhileLoop } from './objects';
+import { OArchitecture, OAssertion, OAssignment, ObjectBase, OCase, OConstant, OElseClause, OEntity, OForLoop, OHasSequentialStatements, OI, OIf, OIfClause, OInstantiation, OLoop, OName, OProcess, OReport, OSequentialStatement, OVariable, OWhenClause, OWhileLoop } from './objects';
 import { ParserBase } from './parser-base';
 
 export class SequentialStatementParser extends ParserBase {
@@ -41,9 +41,9 @@ export class SequentialStatementParser extends ParserBase {
         }
         this.expect(';');
       } else if (nextWord.toLowerCase() === 'report') {
-        this.advancePast(';');
+        statements.push(this.parseReport(parent));
       } else if (nextWord.toLowerCase() === 'assert') {
-        this.advancePast(';');
+        statements.push(this.parseAssertion(parent));
       } else if (nextWord.toLowerCase() === 'wait') {
         statements.push(this.parseWait(parent));
       } else if (nextWord.toLowerCase() === 'exit') {
@@ -85,6 +85,38 @@ export class SequentialStatementParser extends ParserBase {
     this.expect(';');
     return subprogramCall;
   }
+
+  parseAssertion(parent: OHasSequentialStatements | OIf): OAssertion {
+    this.expect('assert');
+    const assertion = new OAssertion(parent, this.pos.i, this.getEndOfLineI());
+    assertion.reads = [];
+    let assertionText = this.advanceSemicolon();
+    let startI = assertion.range.start.i;
+    assertion.range.end.i = this.pos.i;
+    const reportMatch = /\breport\b/.exec(assertionText);
+    if (reportMatch) {
+      assertion.reads.push(...this.extractReads(assertion, assertionText.substring(0, reportMatch.index), startI));
+      assertionText = assertionText.substring(reportMatch.index + reportMatch[0].length);
+      startI += reportMatch.index + reportMatch[0].length;
+    }
+    const severityMatch = /\bseverity\b/.exec(assertionText);
+    if (severityMatch) {
+      assertion.reads.push(...this.extractReads(assertion, assertionText.substring(0, severityMatch.index), startI));
+      assertionText = assertionText.substring(severityMatch.index + severityMatch[0].length);
+      startI += severityMatch.index + severityMatch[0].length;
+    }
+    assertion.reads.push(...this.extractReads(assertion, assertionText, startI));
+    return assertion;
+  }
+  parseReport(parent: OHasSequentialStatements | OIf): OReport {
+    this.expect('report');
+    let report = new OReport(parent, this.pos.i, this.getEndOfLineI());
+    const text = this.advanceSemicolon();
+    report.reads= this.extractReads(report, text, report.range.start.i);
+    report.range.end.i = this.pos.i;
+    return report;
+  }
+
   parseWait(parent: OHasSequentialStatements | OIf) {
     this.expect('wait');
     let nextWord = this.getNextWord({ consume: false });

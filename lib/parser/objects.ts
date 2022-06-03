@@ -585,7 +585,7 @@ export class OGeneric extends OVariableBase {
   defaultValue?: ORead[] = [];
   reads: ORead[] = [];
 }
-export type OSequentialStatement = OCase | OAssignment | OIf | OLoop | OInstantiation;
+export type OSequentialStatement = OCase | OAssignment | OIf | OLoop | OInstantiation | OReport | OAssertion;
 export class OIf extends ObjectBase {
   clauses: OIfClause[] = [];
   else?: OElseClause;
@@ -657,6 +657,13 @@ export class OWhileLoop extends OLoop {
 }
 export class OAssignment extends ObjectBase {
   writes: OWrite[] = [];
+  reads: ORead[] = [];
+}
+
+export class OReport extends ObjectBase {
+  reads: ORead[] = [];
+}
+export class OAssertion extends ObjectBase {
   reads: ORead[] = [];
 }
 
