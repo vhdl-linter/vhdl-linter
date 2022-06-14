@@ -378,6 +378,9 @@ export class VhdlLinter {
         this.checkInstantiations(this.file.architecture);
         await this.checkPortType();
       }
+      for (const pkg of this.file.packages) {
+        this.checkInstantiations(pkg);
+      }
       // this.parser.debugObject(this.tree);
     }
     return this.messages;
