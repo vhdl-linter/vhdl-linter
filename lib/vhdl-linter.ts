@@ -1161,7 +1161,7 @@ export class VhdlLinter {
         this.addMessage({
           range: range,
           severity: DiagnosticSeverity.Warning,
-          message: `some ${kind}s have no formal part while others have. Associations are not verified inaccurate.`
+          message: `some ${kind}s have no formal part while others have. Associations are not verified accurately.`
         });
       } else {
         // check which interfaceElements are missing from the different possible interfaces
