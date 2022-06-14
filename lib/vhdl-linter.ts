@@ -22,6 +22,7 @@ export class VhdlLinter {
   messages: Diagnostic[] = [];
   file: OFile;
   parser: Parser;
+  parsedSuccessfully: boolean = false;
   packages: (OPackage | OPackageBody)[] = [];
   constructor(private editorPath: string, public text: string, public projectParser: ProjectParser, public onlyEntity: boolean = false) {
     //     console.log('lint');
@@ -29,6 +30,7 @@ export class VhdlLinter {
     //     console.log(`parsing: ${editorPath}`);
     try {
       this.file = this.parser.parse();
+      this.parsedSuccessfully = true;
     } catch (e) {
       if (e instanceof ParserError) {
         let code;

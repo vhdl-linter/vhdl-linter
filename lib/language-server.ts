@@ -197,7 +197,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   // console.log(textDocument.uri);
   // console.profile('a');
   const vhdlLinter = new VhdlLinter(URI.parse(textDocument.uri).fsPath, textDocument.getText(), projectParser);
-  if (typeof vhdlLinter.file !== 'undefined' || typeof linters.get(textDocument.uri) === 'undefined') {
+  if (vhdlLinter.parsedSuccessfully || typeof linters.get(textDocument.uri) === 'undefined') {
     linters.set(textDocument.uri, vhdlLinter);
     lintersValid.set(textDocument.uri, true);
   } else {
