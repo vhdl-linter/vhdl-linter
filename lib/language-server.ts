@@ -46,6 +46,7 @@ export interface ISettings {
   rules: {
     warnLibrary: boolean;
     warnLogicType: boolean;
+    warnMultipleDriver: boolean;
   };
 }
 const defaultSettings: ISettings = {
@@ -63,7 +64,8 @@ const defaultSettings: ISettings = {
   },
   rules: {
     warnLogicType: true,
-    warnLibrary: true
+    warnLibrary: true,
+    warnMultipleDriver: true
   }
 };
 let globalSettings: ISettings = defaultSettings;

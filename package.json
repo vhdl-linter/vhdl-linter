@@ -140,6 +140,12 @@
 					"default": true,
 					"description": "Enables checking for preferred logic type."
 				},
+				"VhdlLinter.rules.warnMultipleDriver": {
+					"scope": "window",
+					"type": "boolean",
+					"default": true,
+					"description": "Enables checking for multiple drivers."
+				},
 				"VhdlLinter.style.preferedLogicType": {
 					"scope": "window",
 					"type": "string",

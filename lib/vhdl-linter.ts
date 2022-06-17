@@ -372,7 +372,7 @@ export class VhdlLinter {
       this.checkTodos();
       if (this.file.architecture !== undefined) {
         this.checkResets();
-        this.checkUnused(this.file.architecture, this.file.entity);
+        await this.checkUnused(this.file.architecture, this.file.entity);
         this.checkDoubles();
         await this.checkPortDeclaration();
         this.checkInstantiations(this.file.architecture);
@@ -746,7 +746,8 @@ export class VhdlLinter {
     }
   }
 
-  private checkUnused(architecture: OArchitecture, entity?: OEntity) {
+  private async checkUnused(architecture: OArchitecture, entity?: OEntity) {
+    const settings = (await getDocumentSettings(URI.file(this.editorPath).toString()));
     if (!architecture) {
       return;
     }
@@ -803,6 +804,50 @@ export class VhdlLinter {
           severity: DiagnosticSeverity.Warning,
           message: `Not writing signal '${signal.name}'`
         });
+      } else if (settings.rules.warnMultipleDriver && writes.length > 1) {
+        // check for multiple drivers
+        const writeScopes = writes.map(write => {
+          // checked scopes are: OArchitecture, OProcess, OInstatiation (only component and entity)
+          let scope: ObjectBase | OFile = write.parent;
+          while (!(scope instanceof OArchitecture
+            || scope instanceof OFile
+            || scope instanceof OProcess)) {
+            if (scope instanceof OInstantiation && (scope.type === 'component' || scope.type === 'entity')) {
+              break;
+            }
+            scope = scope.parent;
+          }
+          return { scope, write };
+        });
+        const filteredScopes = writeScopes.filter((v, i, a) => a.findIndex(x => x.scope === v.scope) === i)
+        if (filteredScopes.length > 1) {
+          this.addMessage({
+            range: signal.name.range,
+            severity: DiagnosticSeverity.Warning,
+            message: `'${signal.name}' has multiple drivers (e.g. lines ${filteredScopes.map(s => `${s.write.range.start.line}`).join(', ')}).`
+          });
+          for (const write of writeScopes) {
+            this.addMessage({
+              range: write.write.range,
+              severity: DiagnosticSeverity.Warning,
+              message: `Driver of multiple driven signal '${signal.name}'.`
+            });
+          }
+        } else if (filteredScopes.length === 1 && writes.length > 1 && !(filteredScopes[0].scope instanceof OProcess)) {
+          // if multiple writes in the architecture or one instantiation
+          this.addMessage({
+            range: signal.name.range,
+            severity: DiagnosticSeverity.Warning,
+            message: `'${signal.name}' has ${writes.length} drivers (lines ${writeScopes.map(s => `${s.write.range.start.line}`).join(', ')}).`
+          });
+          for (const write of writeScopes) {
+            this.addMessage({
+              range: write.write.range,
+              severity: DiagnosticSeverity.Warning,
+              message: `Driver of multiple driven signal '${signal.name}'.`
+            });
+          }
+        }
       }
     }
     for (const variable of architecture.getRoot().objectList.filter(object => object instanceof OVariable) as OVariable[]) {
@@ -1102,7 +1147,7 @@ export class VhdlLinter {
           return false;
         });
         if (!interfaceElement) {
-          let code: number|undefined = undefined;
+          let code: number | undefined = undefined;
           const possibleMatches = availableInterfaceElementsFlat.map(element => element.name.text);
           if (possibleMatches.length > 0) {
             const bestMatch = findBestMatch(association.formalPart[0].text, possibleMatches);
