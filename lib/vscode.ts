@@ -1,4 +1,4 @@
-import { commands, env, ExtensionContext, Position, window, workspace } from 'vscode';
+import { commands, env, ExtensionContext, Position, ProgressLocation, window, workspace } from 'vscode';
 import {
   LanguageClient,
   LanguageClientOptions,
@@ -94,10 +94,16 @@ export function activate(context: ExtensionContext) {
     if (!editor) {
       return;
     }
-    const result = await client.sendRequest('vhdl-linter/listing', { textDocument: { uri: editor.document.uri.toString() } });
+
+    const result = await window.withProgress({
+      location: ProgressLocation.Notification,
+      title: 'Creating list of used files...'
+    },
+      async () => await client.sendRequest('vhdl-linter/listing', { textDocument: { uri: editor.document.uri.toString() } })
+    );
     console.log('bb', result);
     env.clipboard.writeText(result as string);
-    window.showInformationMessage(`copied`);
+    window.showInformationMessage(`Copied list of files to clipboard.`);
   }));
   context.subscriptions.push(disposable);
 }

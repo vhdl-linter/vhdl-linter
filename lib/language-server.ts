@@ -13,7 +13,7 @@ import { findReferencesHandler, prepareRenameHandler, renameHandler } from './la
 import { foldingHandler } from './languageFeatures/folding';
 import { handleReferences } from './languageFeatures/references';
 import { handleOnWorkspaceSymbol } from './languageFeatures/workspaceSymbols';
-import { implementsIHasDefinitions, OFile, OInstantiation, OName, OMagicCommentDisable } from './parser/objects';
+import { implementsIHasDefinitions, OFile, OInstantiation, OName, OMagicCommentDisable, OComponent, OUseClause } from './parser/objects';
 import { ProjectParser } from './project-parser';
 import { VhdlLinter } from './vhdl-linter';
 
@@ -327,32 +327,65 @@ connection.onRequest('vhdl-linter/listing', async (params: any, b: any) => {
     return;
   }
   const files: OFile[] = [];
+  const unresolved: string[] = [];
+
+  function addUnresolved(name: string) {
+    if (unresolved.findIndex(search => search === name) === -1) {
+      unresolved.push(name);
+    }
+  }
 
   async function parseTree(file: OFile) {
-    if (files.findIndex(fileSearch => fileSearch?.file === file?.file) === -1) {
-      // debugger;
+    const index = files.findIndex(fileSearch => fileSearch?.file === file?.file);
+    if (index === -1) {
       files.push(file);
+    } else {
+      // push the file to the back to have correct compile order
+      files.push(files.splice(index, 1)[0]);
     }
-    for (const object of file?.objectList ?? []) {
-      if (object instanceof OInstantiation) {
-        if (object.definitions && object.definitions[0].parent instanceof OFile && object.definitions[0].parent.entity !== undefined) {
-          const vhdlLinter = new VhdlLinter(object.definitions[0].parent.file, object.definitions[0].parent.originalText, projectParser);
-          await vhdlLinter.checkAll();
-          await parseTree(vhdlLinter.file);
-        } else {
-          // throw new Error(`Can not find ${object.componentName}`);q
+
+    for (const obj of file.objectList) {
+      let found: OFile | undefined = undefined;
+      if (obj instanceof OInstantiation) {
+        if (obj.type === 'entity') {
+          if (obj.definitions?.length > 0 && obj.definitions[0].parent instanceof OFile && obj.definitions[0].parent.entity !== undefined) {
+            found = obj.definitions[0].parent;
+          } else {
+            addUnresolved(`${obj.library}.${obj.componentName.text}`);
+          }
+        } else if (obj.type === 'component') {
+          if (obj.definitions?.length > 0
+            && obj.definitions[0] instanceof OComponent && obj.definitions[0].definitions?.length > 0
+            && obj.definitions[0].definitions[0].parent instanceof OFile) {
+            found = obj.definitions[0].definitions[0].parent;
+          } else {
+            addUnresolved(obj.componentName.text);
+          }
         }
+      } else if (obj instanceof OUseClause) {
+        // do not generate file listings for ieee files
+        if (obj.library.toLowerCase() === 'ieee' || obj.library.toLowerCase() === 'std') {
+          continue;
+        }
+        const matchingPackages = projectParser.getPackages().filter(pkg => pkg.name.text === obj.packageName);
+        if (matchingPackages.length > 0) {
+          found = matchingPackages[0].parent;
+        }
+      }
+
+      if (found) {
+        const vhdlLinter = new VhdlLinter(found.file, found.originalText, projectParser);
+        await vhdlLinter.checkAll();
+        await parseTree(vhdlLinter.file);
       }
     }
 
   }
 
   await parseTree(linter.file);
-  return (files.map(file => {
-    if (file.entity !== undefined) {
-      return [file.file.replace((rootUri ?? '').replace('file://', ''), ''), file.entity.library];
-    }
-  }).filter(file => file) as [string, string][]).map(a => `${a[0]}\t${a[1]}`).join(`\n`);
+  const filesList = files.reverse().map(file => file.file.replace((rootUri ?? '').replace('file://', ''), '')).join(`\n`);
+  const unresolvedList = unresolved.join('\n');
+  return `files:\n${filesList}\n\nUnresolved instantiations:\n${unresolvedList}`;
 });
 documents.listen(connection);
 
