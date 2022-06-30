@@ -152,6 +152,10 @@
 						</dict>
 						<dict>
 							<key>include</key>
+							<string>#case_pattern</string>
+						</dict>
+						<dict>
+							<key>include</key>
 							<string>#entity_instantiation_pattern</string>
 						</dict>
 						<dict>
@@ -275,7 +279,7 @@
 						\b((?i:end))\s*
 
 						# The word case $4 or invalid word $5
-						(\s+(((?i:case))|(.*?)))
+						(\s+(((?i:case|generate))|(.*?)))
 
 						# Optional identifier from before $8 or illegal $9
 						(\s+((\2)|(.*?)))?

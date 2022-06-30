@@ -381,6 +381,14 @@ export class OForGenerate extends OArchitecture {
     super(parent, startI, endI);
   }
 }
+export class OCaseGenerate extends ObjectBase {
+  signal: ORead[] = [];
+  whenGenerates: OWhenGenerateClause[] = [];
+}
+export class OWhenGenerateClause extends OArchitecture {
+  condition: ORead[] = [];
+  public parent: OCaseGenerate;
+}
 export class OIfGenerate extends ObjectBase {
   ifGenerates: OIfGenerateClause[] = [];
   elseGenerate: OElseGenerateClause;

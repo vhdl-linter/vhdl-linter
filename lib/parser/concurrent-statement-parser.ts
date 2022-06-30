@@ -1,7 +1,7 @@
 import { ArchitectureParser } from './architecture-parser';
 import { AssignmentParser } from './assignment-parser';
 import { InstantiationParser } from './instantiation-parser';
-import { OArchitecture, OEntity, OForGenerate, OI, OIfGenerate, OIfGenerateClause, ORead, ParserError } from './objects';
+import { OArchitecture, OCaseGenerate, OEntity, OForGenerate, OI, OIfGenerate, OIfGenerateClause, ORead, ParserError } from './objects';
 import { ParserBase } from './parser-base';
 import { ProcessParser } from './process-parser';
 export enum ConcurrentStatementTypes {
@@ -17,10 +17,10 @@ export class ConcurrentStatementParser extends ParserBase {
     super(text, pos, file);
     this.debug('start');
   }
-  parse(allowedStatements: ConcurrentStatementTypes[], previousArchitecture?: OArchitecture) {
+  parse(allowedStatements: ConcurrentStatementTypes[], previousArchitecture?: OArchitecture, returnOnWhen: boolean = false) {
     let nextWord = this.getNextWord({ consume: false }).toLowerCase();
 
-    let label;
+    let label: string|undefined;
     const savedI = this.pos.i;
     const regex = new RegExp(`^${nextWord}\\s*:`, 'i');
     if (this.text.substr(this.pos.i).match(regex)) {
@@ -67,6 +67,34 @@ export class ConcurrentStatementParser extends ParserBase {
       this.advanceWhitespace();
       //        console.log(generate, generate.constructor.name);
       (this.parent as OArchitecture).statements.push(generate);
+    } else if (nextWord === 'when') {
+      return true;
+    } else if (nextWord === 'case' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {
+      const caseGenerate = new OCaseGenerate(this.parent, this.pos.i, this.pos.i);
+      this.getNextWord();
+      const caseI = this.pos.i;
+      const caseCondition = this.advancePast(/\bgenerate\b/i);
+      caseGenerate.signal.push(...this.extractReads(caseGenerate, caseCondition, caseI));
+      let nextWord = this.getNextWord({consume: false});
+      while (nextWord.toLowerCase() === 'when') {
+        this.expect('when');
+        const whenI = this.pos.i;
+        const whenCondition = this.advancePast(/=>/);
+        const subarchitecture = new ArchitectureParser(this.text, this.pos, this.file, caseGenerate, label);
+        const whenGenerateClause = subarchitecture.parse(true, 'when-generate');
+        whenGenerateClause.condition.push(...this.extractReads(whenGenerateClause, whenCondition, whenI));
+        whenGenerateClause.range.start.i = whenI;
+        nextWord = this.getNextWord({consume: false});
+      }
+      this.expect('end');
+      this.expect('generate');
+      if (label) {
+        this.maybeWord(label);
+      }
+      this.advanceSemicolon();
+      this.reverseWhitespace();
+      caseGenerate.range.end.i = this.pos.i;
+      this.advanceWhitespace();
     } else if (nextWord === 'if' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {
       const ifGenerate = new OIfGenerate(this.parent, this.pos.i, this.pos.i);
       this.getNextWord();

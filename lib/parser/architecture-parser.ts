@@ -1,13 +1,13 @@
 import { ConcurrentStatementParser, ConcurrentStatementTypes } from './concurrent-statement-parser';
 import { DeclarativePartParser } from './declarative-part-parser';
-import { OArchitecture, OBlock, OConstant, OFile, OForGenerate, OI, OIfGenerate, OIfGenerateClause, OName, ORead, OVariable, ParserError } from './objects';
+import { OArchitecture, OBlock, OCaseGenerate, OConstant, OFile, OForGenerate, OI, OIfGenerate, OIfGenerateClause, OName, ORead, OVariable, OWhenGenerateClause, ParserError } from './objects';
 import { ParserBase } from './parser-base';
 
 export class ArchitectureParser extends ParserBase {
   name: string;
   type?: string;
 
-  constructor(text: string, pos: OI, file: string, private parent: OArchitecture | OFile | OIfGenerate, name?: string) {
+  constructor(text: string, pos: OI, file: string, private parent: OArchitecture | OFile | OIfGenerate | OCaseGenerate, name?: string) {
     super(text, pos, file);
     this.debug('start');
     if (name) {
@@ -16,16 +16,18 @@ export class ArchitectureParser extends ParserBase {
   }
   public architecture: OArchitecture;
   parse(): OArchitecture;
-  // parse(skipStart: boolean, structureName: 'generate'): OForGenerate;
+  parse(skipStart: boolean, structureName: 'when-generate'): OWhenGenerateClause;
   parse(skipStart: boolean, structureName: 'generate'): OIfGenerateClause;
   parse(skipStart: boolean, structureName: 'block'): OBlock;
   parse(skipStart: boolean, structureName: 'generate', forConstant?: { constantName: string, constantRange: ORead[], startPosI: number }): OForGenerate;
-  parse(skipStart = false, structureName: 'architecture' | 'generate' | 'block' = 'architecture', forConstant?: { constantName: string, constantRange: ORead[], startPosI: number }): OArchitecture | OForGenerate | OIfGenerateClause {
+  parse(skipStart = false, structureName: 'architecture' | 'generate' | 'block' | 'when-generate' = 'architecture', forConstant?: { constantName: string, constantRange: ORead[], startPosI: number }): OArchitecture | OForGenerate | OIfGenerateClause {
     this.debug(`parse`);
     if (structureName === 'architecture') {
       this.architecture = new OArchitecture(this.parent, this.pos.i, this.getEndOfLineI());
     } else if (structureName === 'block') {
       this.architecture = new OBlock(this.parent, this.pos.i, this.getEndOfLineI());
+    } else if (structureName === 'when-generate') {
+      this.architecture = new OWhenGenerateClause(this.parent, this.pos.i, this.getEndOfLineI());
     } else if (!forConstant) {
       this.architecture = new OIfGenerateClause(this.parent, this.pos.i, this.getEndOfLineI());
     } else {
@@ -56,6 +58,9 @@ export class ArchitectureParser extends ParserBase {
       this.advanceWhitespace();
       let nextWord = this.getNextWord({ consume: false }).toLowerCase();
       if (nextWord === 'end') {
+        if (structureName === 'when-generate') {
+          break;
+        }
         this.getNextWord();
         if (structureName === 'block') {
           this.expect(structureName);
@@ -80,7 +85,7 @@ export class ArchitectureParser extends ParserBase {
         ConcurrentStatementTypes.Block,
         ConcurrentStatementTypes.ProcedureInstantiation,
         ConcurrentStatementTypes.Process
-      ], this.architecture)) {
+      ], this.architecture, structureName === 'when-generate')) {
         break;
       }
     }
