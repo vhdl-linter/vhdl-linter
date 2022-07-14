@@ -233,7 +233,7 @@ export class ParserBase {
       let braceLevel = 0;
       let quote = false;
       const savedI = this.pos;
-      while (this.text[this.pos.i + offset]) {
+      while (this.pos.i + offset < this.text.length && this.text[this.pos.i + offset]) {
         const match = /[\\();]|(?<!")(?:"")*"(?!")/.exec(this.text.substring(this.pos.i + offset));
         if (!match) {
           throw new ParserError(`could not find closing brace`, savedI.getRangeToEndLine());
@@ -298,7 +298,7 @@ export class ParserBase {
     }
     let word = '';
     let j = 0;
-    while (this.text[this.pos.i + j].match(re)) {
+    while (this.pos.i + j < this.text.length && this.text[this.pos.i + j].match(re)) {
       word += this.text[this.pos.i + j];
       j++;
     }
