@@ -1,9 +1,9 @@
-import { IHasConstants, IHasSignals, IHasVariables, implementsIHasConstants, implementsIHasSignals, implementsIHasVariables, OConstant, OI, OName, OSignal, OVariable, ParserError } from "./objects";
+import { IHasConstants, IHasSignals, IHasVariables, implementsIHasConstants, implementsIHasSignals, implementsIHasVariables, OConstant, OI, OName, OSignal, OVariable, ParserError, IHasFileVariables, OFileVariable, implementsIHasFileVariables, ORead } from "./objects";
 import { ParserBase } from "./parser-base";
 
 export class ObjectDeclarationParser extends ParserBase {
 
-  constructor(text: string, pos: OI, file: string, private parent: IHasSignals | IHasConstants | IHasVariables) {
+  constructor(text: string, pos: OI, file: string, private parent: IHasSignals | IHasConstants | IHasVariables | IHasFileVariables) {
     super(text, pos, file);
     this.debug('start');
   }
@@ -11,19 +11,22 @@ export class ObjectDeclarationParser extends ParserBase {
 
     if (nextWord === 'shared') {
       this.getNextWord();
-      nextWord = this.getNextWord({consume: false});
+      nextWord = this.getNextWord({ consume: false });
     }
     const objects = [];
     const constant = nextWord === 'constant';
-    const variable = nextWord === 'variable' || nextWord === 'file';
+    const variable = nextWord === 'variable';
     const file = nextWord === 'file';
-    if ((variable || file) && !implementsIHasVariables(this.parent)) {
+    if ((variable) && !implementsIHasVariables(this.parent)) {
       throw new ParserError(`No variables allowed here.`, this.pos.getRangeToEndLine());
+    }
+    if ((file) && !implementsIHasFileVariables(this.parent)) {
+      throw new ParserError(`No files allowed here.`, this.pos.getRangeToEndLine());
     }
     if (constant && !implementsIHasConstants(this.parent)) {
       throw new ParserError(`No constants allowed here.`, this.pos.getRangeToEndLine());
     }
-    if (!variable  && !constant && !implementsIHasSignals(this.parent)) {
+    if (!variable && !constant && !file && !implementsIHasSignals(this.parent)) {
       throw new ParserError(`No signals allowed here`, this.pos.getRangeToEndLine());
     }
     this.getNextWord();
@@ -34,6 +37,8 @@ export class ObjectDeclarationParser extends ParserBase {
         object = new OVariable(this.parent as IHasVariables, this.pos.i, this.getEndOfLineI())
       } else if (constant) {
         object = new OConstant(this.parent as IHasConstants, this.pos.i, this.getEndOfLineI());
+      } else if (file) {
+        object = new OFileVariable(this.parent as IHasFileVariables, this.pos.i, this.getEndOfLineI());
       } else {
         object = new OSignal(this.parent as IHasSignals, this.pos.i, this.getEndOfLineI());
       }
@@ -44,19 +49,31 @@ export class ObjectDeclarationParser extends ParserBase {
 
     } while (this.text[this.pos.i] === ',');
     this.expect(':');
-    if (!file) {
+    if (file) {
+      let startI = this.pos.i;
+      const typeText = this.getNextWord();
+      for (const file of objects) {
+        const typeRead = new ORead(file, startI, this.pos.i, typeText);
+        file.type = [typeRead];
+        // TODO: Parse optional parts of file definition
+        file.range.end.i = this.pos.i;
+      }
+    } else {
       for (const signal of objects) {
         const { typeReads, defaultValueReads } = this.getType(signal, false);
         signal.type = typeReads;
         signal.defaultValue = defaultValueReads;
         signal.range.end.i = this.pos.i;
       }
+
     }
     this.advanceSemicolon();
     if (constant) {
       (this.parent as IHasConstants).constants.push(...objects as OSignal[]);
     } else if (variable) {
       (this.parent as IHasVariables).variables.push(...objects);
+    } else if (file) {
+      (this.parent as IHasFileVariables).files.push(...objects as OFileVariable[]);
     } else {
       (this.parent as IHasSignals).signals.push(...objects as OSignal[]);
     }
