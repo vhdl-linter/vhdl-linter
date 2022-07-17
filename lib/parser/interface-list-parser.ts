@@ -24,6 +24,7 @@ export class InterfaceListParser extends ParserBase {
       }
       this.parent.ports = ports;
     }
+    let multiInterface = [];
     while (this.pos.i < this.text.length) {
       this.debug('parse i ' + this.pos.i);
 
@@ -70,6 +71,7 @@ export class InterfaceListParser extends ParserBase {
         port.name.range.end.i = port.name.range.start.i + port.name.text.length;
         if (this.text[this.pos.i] === ',') {
           this.expect(',');
+          multiInterface.push(port);
           continue;
         }
         this.expect(':');
@@ -91,6 +93,20 @@ export class InterfaceListParser extends ParserBase {
         port.type = this.extractReads(port, type, iBeforeType);
 
         port.defaultValue = defaultValue;
+        for (const interface_ of multiInterface) {
+          if (interface_ instanceof OPort) {
+            interface_.direction = (port as OPort).direction;
+            interface_.directionRange = (port as OPort).directionRange;
+          }
+          interface_.range.end.i = endI;
+          interface_.type = port.type;
+          interface_.defaultValue = port.defaultValue;
+          if (generics) {
+            ports.push(interface_);
+          } else {
+            ports.push(interface_ as any);
+          }
+        }
         if (generics) {
           ports.push(port);
         } else {
