@@ -152,7 +152,12 @@ export class Parser extends ParserBase {
           result += ' '.repeat(s.length - i);
           return result;
         }
-        result += s.charAt(i);
+        if (s.charAt(i) === '\'' && s.length - 1 >= i + 2 && s.charAt(i + 2) === '\'') {
+          result += '\'s\'';
+          i = i + 2;
+        } else {
+          result += s.charAt(i);
+        }
       }
       if (s.length > 0) {
         result += s.charAt(s.length - 1);
