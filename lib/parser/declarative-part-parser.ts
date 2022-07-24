@@ -6,6 +6,7 @@ import { ParserBase } from './parser-base';
 import { SubprogramParser } from './subprogram-parser';
 import { SubtypeParser } from './subtype-parser';
 import { TypeParser } from './type-parser';
+import { UseClauseParser } from './use-clause-parser';
 
 export class DeclarativePartParser extends ParserBase {
   type: string;
@@ -17,10 +18,10 @@ export class DeclarativePartParser extends ParserBase {
     let nextWord = this.getNextWord({ consume: false }).toLowerCase();
     while (nextWord !== lastWord) {
       if (nextWord === 'signal'
-       || nextWord === 'constant'
-       || nextWord === 'shared'
-       || nextWord === 'variable'
-       || nextWord === 'file') {
+        || nextWord === 'constant'
+        || nextWord === 'shared'
+        || nextWord === 'variable'
+        || nextWord === 'file') {
         const objectDeclarationParser = new ObjectDeclarationParser(this.text, this.pos, this.file, this.parent);
         objectDeclarationParser.parse(nextWord);
       } else if (nextWord === 'attribute') {
@@ -62,7 +63,11 @@ export class DeclarativePartParser extends ParserBase {
         this.advanceSemicolon();
       } else if (optional) {
         return;
-      }  else {
+      } else if (nextWord === 'use') {
+        this.getNextWord();
+        const useClauseParser = new UseClauseParser(this.text, this.pos, this.file, this.parent.getRoot());
+        this.parent.getRoot().useClauses.push(useClauseParser.parse());
+      } else {
         throw new ParserError(`Unknown Ding: '${nextWord}' on line ${this.getLine()}`, this.pos.getRangeToEndLine());
       }
       nextWord = this.getNextWord({ consume: false }).toLowerCase();
