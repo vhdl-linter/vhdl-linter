@@ -362,6 +362,11 @@ export class OType extends ObjectBase implements IReferenceable, IHasSubprograms
         }
       }
     }
+    for (const subprogram of this.subprograms) {
+      if (subprogram.name.text.toLowerCase() === read.text.toLowerCase()) {
+        return subprogram;
+      }
+    }
     return false;
   }
 }
