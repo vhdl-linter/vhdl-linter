@@ -350,7 +350,27 @@ export class VhdlLinter {
       }
     }
   }
-
+  // When the definition of an association can not be found avoid errors because actuals can not be cleanly mapped then
+  async removeBrokenActuals() {
+    for (const association of this.file.objectList.filter(object => object instanceof OAssociation) as OAssociation[]) {
+      if (association.actualIfInput.length > 0 && (association.actualIfOutput[0].length > 0 || association.actualIfOutput[1].length > 0)) {
+        for (const mapping of association.actualIfOutput.flat()) {
+          const index = this.file.objectList.indexOf(mapping);
+          this.file.objectList.splice(index, 1);
+          for (const mentionable of this.file.objectList) {
+            if (implementsIMentionable(mentionable)) {
+              for (const [index, mention] of mentionable.references.entries()) {
+                if (mention === mapping) {
+                  mentionable.references.splice(index, 1);
+                }
+              }
+            }
+          }
+        }
+        association.actualIfOutput = [[], []];
+      }
+    }
+  }
   async checkLibrary() {
     const settings = await getDocumentSettings(URI.file(this.editorPath).toString());
 
@@ -365,11 +385,12 @@ export class VhdlLinter {
   }
   async checkAll() {
     if (this.file) {
-      this.elaborate();
-      this.checkComponents();
-      this.checkNotDeclared();
+      await this.elaborate();
+      await this.removeBrokenActuals();
+      await this.checkComponents();
+      await this.checkNotDeclared();
       await this.checkLibrary();
-      this.checkTodos();
+      await this.checkTodos();
       if (this.file.architecture !== undefined) {
         this.checkResets();
         await this.checkUnused(this.file.architecture, this.file.entity);
