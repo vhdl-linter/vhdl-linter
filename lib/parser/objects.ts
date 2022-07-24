@@ -260,13 +260,13 @@ export class OPackageBody extends ObjectBase implements IHasSubprograms, IHasCon
   library?: string;
 }
 export class OUseClause extends ObjectBase {
-  constructor(public parent: OFile|OContext, startI: number, endI: number, public library: string, public packageName: string, public suffix: string) {
+  constructor(public parent: OFile | OContext, startI: number, endI: number, public library: string, public packageName: string, public suffix: string) {
     super(parent, startI, endI);
   }
 }
 
 export class OContextReference extends ObjectBase {
-  constructor(public parent: OFile|OContext, startI: number, endI: number, public library: string, public contextName: string) {
+  constructor(public parent: OFile | OContext, startI: number, endI: number, public library: string, public contextName: string) {
     super(parent, startI, endI);
   }
 }
@@ -523,8 +523,10 @@ export class OInstantiation extends ObjectBase implements IHasDefinitions {
             }
             return false;
           });
-          if (entityPort && (entityPort.direction === 'in' || entityPort.direction === 'inout')) {
+          if (entityPort && (entityPort.direction === 'in')) {
             this.flatReads.push(...portAssociation.actualIfInput);
+          } else if (entityPort && (entityPort.direction === 'inout')) {
+            this.flatReads.push(...portAssociation.actualIfInoutput[0]);
           } else if (entityPort && entityPort.direction === 'out') {
             this.flatReads.push(...portAssociation.actualIfOutput[0]);
           }
@@ -557,8 +559,10 @@ export class OInstantiation extends ObjectBase implements IHasDefinitions {
             }
             return false;
           });
-          if (entityPort && (entityPort.direction === 'out' || entityPort.direction === 'inout')) {
+          if (entityPort && (entityPort.direction === 'out')) {
             this.flatWrites.push(...association.actualIfOutput[1]);
+          } else if (entityPort && (entityPort.direction === 'inout')) {
+            this.flatWrites.push(...association.actualIfInoutput[1]);
           }
         } else {
           this.flatWrites.push(...association.actualIfInput);
@@ -576,6 +580,7 @@ export class OAssociation extends ObjectBase implements IHasDefinitions {
   formalPart: OAssociationFormal[] = [];
   actualIfInput: ORead[] = [];
   actualIfOutput: [ORead[], OWrite[]] = [[], []];
+  actualIfInoutput: [ORead[], OWrite[]] = [[], []];
 }
 export class OEntity extends ObjectBase implements IHasDefinitions, IHasSubprograms, IHasSignals, IHasConstants, IHasVariables, IHasTypes, IHasFileVariables {
   constructor(public parent: OFile, startI: number, endI: number, public library?: string) {
@@ -651,7 +656,7 @@ export class OCase extends ObjectBase {
 export class OWhenClause extends OHasSequentialStatements implements IHasInstantiations {
   condition: ORead[] = [];
 }
-export class OProcess extends OHasSequentialStatements implements IHasSubprograms, IHasInstantiations, IHasConstants, IHasVariables, IHasTypes, IHasFileVariables{
+export class OProcess extends OHasSequentialStatements implements IHasSubprograms, IHasInstantiations, IHasConstants, IHasVariables, IHasTypes, IHasFileVariables {
   sensitivityList: ORead[] = [];
   label?: string;
   types: OType[] = [];

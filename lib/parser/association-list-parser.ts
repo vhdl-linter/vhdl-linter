@@ -30,10 +30,12 @@ export class AssociationListParser extends ParserBase {
           association.actualIfInput = this.extractReads(association, associationString, actualStart);
           if (type === 'port') {
             association.actualIfOutput = this.extractReadsOrWrite(association, associationString, actualStart);
+            association.actualIfInoutput = this.extractReadsOrWrite(association, associationString, actualStart, true);
           }
         } else {
           association.actualIfInput = [];
           association.actualIfOutput = [[], []];
+          association.actualIfInoutput = [[], []];
         }
         list.children.push(association);
       }

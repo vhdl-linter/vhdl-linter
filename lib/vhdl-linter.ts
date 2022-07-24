@@ -328,6 +328,20 @@ export class VhdlLinter {
                   }
                 }
                 obj.actualIfOutput = [[], []];
+                for (const mapping of obj.actualIfInoutput.flat()) {
+                  const index = this.file.objectList.indexOf(mapping);
+                  this.file.objectList.splice(index, 1);
+                  for (const mentionable of this.file.objectList) {
+                    if (implementsIMentionable(mentionable)) {
+                      for (const [index, mention] of mentionable.references.entries()) {
+                        if (mention === mapping) {
+                          mentionable.references.splice(index, 1);
+                        }
+                      }
+                    }
+                  }
+                }
+                obj.actualIfInoutput = [[], []];
               } else if (portOrGeneric.direction === 'out') {
                 for (const mapping of obj.actualIfInput) {
                   const index = this.file.objectList.indexOf(mapping);
@@ -343,6 +357,49 @@ export class VhdlLinter {
                   }
                 }
                 obj.actualIfInput = [];
+                for (const mapping of obj.actualIfInoutput.flat()) {
+                  const index = this.file.objectList.indexOf(mapping);
+                  this.file.objectList.splice(index, 1);
+                  for (const mentionable of this.file.objectList) {
+                    if (implementsIMentionable(mentionable)) {
+                      for (const [index, mention] of mentionable.references.entries()) {
+                        if (mention === mapping) {
+                          mentionable.references.splice(index, 1);
+                        }
+                      }
+                    }
+                  }
+                }
+                obj.actualIfInoutput = [[], []];
+              } else if (portOrGeneric.direction === 'inout') {
+                for (const mapping of obj.actualIfInput) {
+                  const index = this.file.objectList.indexOf(mapping);
+                  this.file.objectList.splice(index, 1);
+                  for (const mentionable of this.file.objectList) {
+                    if (implementsIMentionable(mentionable)) {
+                      for (const [index, mention] of mentionable.references.entries()) {
+                        if (mention === mapping) {
+                          mentionable.references.splice(index, 1);
+                        }
+                      }
+                    }
+                  }
+                }
+                obj.actualIfInput = [];
+                for (const mapping of obj.actualIfOutput.flat()) {
+                  const index = this.file.objectList.indexOf(mapping);
+                  this.file.objectList.splice(index, 1);
+                  for (const mentionable of this.file.objectList) {
+                    if (implementsIMentionable(mentionable)) {
+                      for (const [index, mention] of mentionable.references.entries()) {
+                        if (mention === mapping) {
+                          mentionable.references.splice(index, 1);
+                        }
+                      }
+                    }
+                  }
+                }
+                obj.actualIfOutput = [[], []];
               }
             }
           }
@@ -353,7 +410,9 @@ export class VhdlLinter {
   // When the definition of an association can not be found avoid errors because actuals can not be cleanly mapped then
   async removeBrokenActuals() {
     for (const association of this.file.objectList.filter(object => object instanceof OAssociation) as OAssociation[]) {
-      if (association.actualIfInput.length > 0 && (association.actualIfOutput[0].length > 0 || association.actualIfOutput[1].length > 0)) {
+      if (association.actualIfInput.length > 0
+        && (association.actualIfOutput[0].length > 0 || association.actualIfOutput[1].length > 0)
+        && (association.actualIfInoutput[0].length > 0 || association.actualIfInoutput[1].length > 0)) {
         for (const mapping of association.actualIfOutput.flat()) {
           const index = this.file.objectList.indexOf(mapping);
           this.file.objectList.splice(index, 1);
@@ -368,6 +427,20 @@ export class VhdlLinter {
           }
         }
         association.actualIfOutput = [[], []];
+        for (const mapping of association.actualIfInoutput.flat()) {
+          const index = this.file.objectList.indexOf(mapping);
+          this.file.objectList.splice(index, 1);
+          for (const mentionable of this.file.objectList) {
+            if (implementsIMentionable(mentionable)) {
+              for (const [index, mention] of mentionable.references.entries()) {
+                if (mention === mapping) {
+                  mentionable.references.splice(index, 1);
+                }
+              }
+            }
+          }
+        }
+        association.actualIfInoutput = [[], []];
       }
     }
   }
@@ -881,11 +954,16 @@ export class VhdlLinter {
       }
       const writes = variable.references.filter(token => token instanceof OWrite);
       if (writes.length === 0) {
-        this.addMessage({
-          range: variable.name.range,
-          severity: DiagnosticSeverity.Warning,
-          message: `Not writing variable '${variable.name}'`
-        });
+        if (variable.type[0]?.definitions?.[0] instanceof OType) {
+          // This is protected type. Assume protected type has side-effect and does not net writting to.
+        } else {
+          this.addMessage({
+            range: variable.name.range,
+            severity: DiagnosticSeverity.Warning,
+            message: `Not writing variable '${variable.name}'`
+          });
+
+        }
       }
     }
     for (const constant of architecture.getRoot().objectList.filter(object => object instanceof OConstant) as OConstant[]) {

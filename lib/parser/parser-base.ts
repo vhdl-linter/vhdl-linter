@@ -421,7 +421,7 @@ export class ParserBase {
       return read;
     }).filter(a => a) as any;
   }
-  extractReadsOrWrite(parent: ObjectBase, text: string, i: number): [ORead[], OWrite[]] {
+  extractReadsOrWrite(parent: ObjectBase, text: string, i: number, readAndWrite = false): [ORead[], OWrite[]] {
     const reads: ORead[] = [];
     const writes: OWrite[] = [];
     let braceLevel = 0;
@@ -435,6 +435,10 @@ export class ParserBase {
         if (braceLevel === 0 && !(token.type === 'RECORD_ELEMENT' || token.type === 'FUNCTION_RECORD_ELEMENT')) {
           const write = new OWrite(parent, i + token.offset, i + token.offset + token.value.length, token.value);
           writes.push(write);
+          if (readAndWrite) {
+            const read = new ORead(parent, i + token.offset, i + token.offset + token.value.length, token.value);
+            reads.push(read);
+          }
         } else {
           let read;
           if (token.type === 'RECORD_ELEMENT' || token.type === 'FUNCTION_RECORD_ELEMENT') {
