@@ -65,7 +65,7 @@ const defaultSettings: ISettings = {
   rules: {
     warnLogicType: true,
     warnLibrary: true,
-    warnMultipleDriver: true
+    warnMultipleDriver: false
   }
 };
 let globalSettings: ISettings = defaultSettings;
