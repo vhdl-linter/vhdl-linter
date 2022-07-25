@@ -7,7 +7,7 @@ import {
 } from 'vscode-languageclient';
 import { ProjectParser } from './project-parser';
 import { copy, CopyTypes } from './vhdl-entity-converter';
-import { IAddSignalCommandArguments, VhdlLinter } from './vhdl-linter';
+import { IAddSignalCommandArguments, IIgnoreLineCommandArguments, VhdlLinter } from './vhdl-linter';
 
 
 let client: LanguageClient;
@@ -73,6 +73,16 @@ export function activate(context: ExtensionContext) {
       editBuilder.insert(new Position(args.range.start.line + 1, 0), `  signal ${args.signalName} : ${type};\n`);
     });
 
+  }));
+  context.subscriptions.push(commands.registerCommand('vhdl-linter:ignore-line', async (args: IIgnoreLineCommandArguments) => {
+    const editor = window.activeTextEditor;
+    if (!editor) {
+      return;
+    }
+    editor.edit(editBuilder => {
+      const lineLength = editor.document.lineAt(args.range.start.line).text.length;
+      editBuilder.insert(new Position(args.range.start.line, lineLength), `  --vhdl-linter-disable-this-line`);
+    });
   }));
   context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-as-instance', () => copy(CopyTypes.Instance)));
   context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-as-sysverilog', () => copy(CopyTypes.Sysverilog)));

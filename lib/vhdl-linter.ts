@@ -16,6 +16,10 @@ export interface IAddSignalCommandArguments {
   signalName: string;
   range: Range;
 }
+export interface IIgnoreLineCommandArguments {
+  textDocumentUri: string;
+  range: Range;
+}
 export type diagnosticCodeActionCallback = (textDocumentUri: string) => CodeAction[];
 export type commandCallback = (textDocumentUri: string, ...args: any[]) => TextEdit[];
 export class VhdlLinter {
@@ -588,12 +592,25 @@ export class VhdlLinter {
   }
 
   private pushWriteError(write: OWrite) {
+    const possibleMatches = this.file.objectList
+    .filter(obj => typeof obj !== 'undefined' && typeof obj.name !== 'undefined')
+    .map(obj => obj.name.text);
+    const bestMatch = findBestMatch(write.text, possibleMatches);
+
     const code = this.addCodeActionCallback((textDocumentUri: string) => {
       const actions = [];
       if (this.file.architecture !== undefined) {
         const args: IAddSignalCommandArguments = { textDocumentUri, signalName: write.text, range: this.file.architecture.range };
         actions.push(CodeAction.create('add signal to architecture', Command.create('add signal to architecture', 'vhdl-linter:add-signal', args)));
       }
+      actions.push(CodeAction.create(
+        `Replace with ${bestMatch.bestMatch.target} (score: ${bestMatch.bestMatch.rating})`,
+        {
+          changes: {
+            [textDocumentUri]: [TextEdit.replace(Range.create(write.range.start, write.range.end) , bestMatch.bestMatch.target)]
+          }
+        },
+        CodeActionKind.QuickFix));
       return actions;
     });
     this.addMessage({
@@ -630,6 +647,18 @@ export class VhdlLinter {
         const args: IAddSignalCommandArguments = { textDocumentUri, signalName: read.text, range: this.file.architecture.range };
         actions.push(CodeAction.create('add signal to architecture', Command.create('add signal to architecture', 'vhdl-linter:add-signal', args)));
       }
+      const possibleMatches = this.file.objectList
+      .filter(obj => typeof obj !== 'undefined' && typeof obj.name !== 'undefined')
+      .map(obj => obj.name.text);
+      const bestMatch = findBestMatch(read.text, possibleMatches);
+      actions.push(CodeAction.create(
+        `Replace with ${bestMatch.bestMatch.target} (score: ${bestMatch.bestMatch.rating})`,
+        {
+          changes: {
+            [textDocumentUri]: [TextEdit.replace(Range.create(read.range.start, read.range.end) , bestMatch.bestMatch.target)]
+          }
+        },
+        CodeActionKind.QuickFix));
       return actions;
     });
     this.addMessage({
@@ -913,29 +942,46 @@ export class VhdlLinter {
           }
           return { scope, write };
         });
-        const filteredScopes = writeScopes.filter((v, i, a) => a.findIndex(x => x.scope === v.scope) === i)
-        if (filteredScopes.length > 1) {
+        const filteredScopes = writeScopes.filter((v, i, a) => a.findIndex(x => x.scope === v.scope) === i);
+        
+        const ignoreAction = this.addCodeActionCallback((textDocumentUri: string) => {
+          return [
+            CodeAction.create(
+              `Ignore multiple drivers of ${signal.name.text}`,
+              Command.create(
+                `Ignore multiple drivers of ${signal.name.text}`,
+                'vhdl-linter:ignore-line',
+                { textDocumentUri, range: signal.name.range }
+              )
+            )
+          ]
+        });
+        if (filteredScopes.length > 1 && this.checkMagicComments(signal.name.range)) {
           this.addMessage({
+            code: ignoreAction,
             range: signal.name.range,
             severity: DiagnosticSeverity.Warning,
             message: `'${signal.name}' has multiple drivers (e.g. lines ${filteredScopes.map(s => `${s.write.range.start.line}`).join(', ')}).`
           });
           for (const write of writeScopes) {
             this.addMessage({
+              code: ignoreAction,
               range: write.write.range,
               severity: DiagnosticSeverity.Warning,
               message: `Driver of multiple driven signal '${signal.name}'.`
             });
           }
-        } else if (filteredScopes.length === 1 && writes.length > 1 && !(filteredScopes[0].scope instanceof OProcess)) {
+        } else if (filteredScopes.length === 1 && writes.length > 1 && !(filteredScopes[0].scope instanceof OProcess) && this.checkMagicComments(signal.name.range)) {
           // if multiple writes in the architecture or one instantiation
           this.addMessage({
+            code: ignoreAction,
             range: signal.name.range,
             severity: DiagnosticSeverity.Warning,
             message: `'${signal.name}' has ${writes.length} drivers (lines ${writeScopes.map(s => `${s.write.range.start.line}`).join(', ')}).`
           });
           for (const write of writeScopes) {
             this.addMessage({
+              code: ignoreAction,
               range: write.write.range,
               severity: DiagnosticSeverity.Warning,
               message: `Driver of multiple driven signal '${signal.name}'.`
