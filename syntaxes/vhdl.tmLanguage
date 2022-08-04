@@ -120,6 +120,10 @@
 					<array>
 						<dict>
 							<key>include</key>
+							<string>#block_pattern</string>
+						</dict>
+						<dict>
+							<key>include</key>
 							<string>#function_definition_pattern</string>
 						</dict>
 						<dict>
@@ -2026,6 +2030,141 @@
 						<dict>
 							<key>include</key>
 							<string>#control_patterns</string>
+						</dict>
+						<dict>
+							<key>include</key>
+							<string>#cleanup</string>
+						</dict>
+					</array>
+				</dict>
+			</array>
+		</dict>
+		<key>block_pattern</key>
+		<dict>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>begin</key>
+					<string>(?x)
+						# From the beginning of the line
+						^\s*
+
+						(
+							# Optional identifier $2
+							([a-zA-Z][a-zA-Z0-9_]*)
+
+							# Colon $3
+							\s*(:)\s*
+						)?
+
+						# The word block #4
+						((?i:block\b))
+					</string>
+					<key>beginCaptures</key>
+					<dict>
+						<key>2</key>
+						<dict>
+							<key>name</key>
+							<string>entity.name.section.block.begin.vhdl</string>
+						</dict>
+						<key>3</key>
+						<dict>
+							<key>name</key>
+							<string>punctuation.vhdl</string>
+						</dict>
+						<key>4</key>
+						<dict>
+							<key>name</key>
+							<string>keyword.language.vhdl</string>
+						</dict>
+					</dict>
+					<key>end</key>
+					<string>(?x)
+						# The word end $1
+						((?i:end))
+
+						# Optional word block $3
+						(\s+((?i:block)))
+
+						# Optional identifier $6 or invalid identifier $7
+						(\s+((\2)|(.+?)))?
+
+						(?=\s*;)
+					</string>
+					<key>endCaptures</key>
+					<dict>
+						<key>1</key>
+						<dict>
+							<key>name</key>
+							<string>keyword.language.vhdl</string>
+						</dict>
+						<key>3</key>
+						<dict>
+							<key>name</key>
+							<string>keyword.language.vhdl</string>
+						</dict>
+						<key>6</key>
+						<dict>
+							<key>name</key>
+							<string>entity.name.section.block.end.vhdl</string>
+						</dict>
+						<key>7</key>
+						<dict>
+							<key>name</key>
+							<string>invalid.illegal.invalid.identifier.vhdl</string>
+						</dict>
+					</dict>
+					<key>name</key>
+					<string>meta.block.block.vhdl</string>
+					<key>patterns</key>
+					<array>
+						<dict>
+							<key>include</key>
+							<string>#block_pattern</string>
+						</dict>
+						<dict>
+							<key>include</key>
+							<string>#function_definition_pattern</string>
+						</dict>
+						<dict>
+							<key>include</key>
+							<string>#procedure_definition_pattern</string>
+						</dict>
+						<dict>
+							<key>include</key>
+							<string>#component_pattern</string>
+						</dict>
+						<dict>
+							<key>include</key>
+							<string>#if_pattern</string>
+						</dict>
+						<dict>
+							<key>include</key>
+							<string>#process_pattern</string>
+						</dict>
+						<dict>
+							<key>include</key>
+							<string>#type_pattern</string>
+						</dict>
+						<dict>
+							<key>include</key>
+							<string>#record_pattern</string>
+						</dict>
+						<dict>
+							<key>include</key>
+							<string>#for_pattern</string>
+						</dict>
+						<dict>
+							<key>include</key>
+							<string>#case_pattern</string>
+						</dict>
+						<dict>
+							<key>include</key>
+							<string>#entity_instantiation_pattern</string>
+						</dict>
+						<dict>
+							<key>include</key>
+							<string>#component_instantiation_pattern</string>
 						</dict>
 						<dict>
 							<key>include</key>
