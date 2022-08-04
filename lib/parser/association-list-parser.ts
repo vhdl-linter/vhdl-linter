@@ -21,7 +21,7 @@ export class AssociationListParser extends ParserBase {
         let actualStart = savedI;
         const association = new OAssociation(list, savedI, savedI + associationString.length);
         if (associationString.includes('=>')) {
-          const [formalString, actualString] = associationString.split('=>');
+          const [formalString, actualString] = associationString.split(/=>(.*)/s); // match also assotiations like "a_i => (others => s_a)" (https://stackoverflow.com/a/4607799)
           association.formalPart = this.extractReads(association, formalString, savedI, true);
           associationString = actualString;
           actualStart += formalString.length + 2;
