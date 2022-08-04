@@ -120,10 +120,6 @@
 					<array>
 						<dict>
 							<key>include</key>
-							<string>#block_pattern</string>
-						</dict>
-						<dict>
-							<key>include</key>
 							<string>#function_definition_pattern</string>
 						</dict>
 						<dict>
@@ -141,6 +137,10 @@
 						<dict>
 							<key>include</key>
 							<string>#process_pattern</string>
+						</dict>
+						<dict>
+							<key>include</key>
+							<string>#block_pattern</string>
 						</dict>
 						<dict>
 							<key>include</key>
@@ -970,11 +970,15 @@
 						</dict>
 						<dict>
 							<key>include</key>
-							<string>#component_instantiation_pattern</string>
+							<string>#process_pattern</string>
 						</dict>
 						<dict>
 							<key>include</key>
-							<string>#process_pattern</string>
+							<string>#block_pattern</string>
+						</dict>
+						<dict>
+							<key>include</key>
+							<string>#component_instantiation_pattern</string>
 						</dict>
 						<dict>
 							<key>include</key>
@@ -1367,6 +1371,10 @@
 						</dict>
 						<dict>
 							<key>include</key>
+							<string>#block_pattern</string>
+						</dict>
+						<dict>
+							<key>include</key>
 							<string>#entity_instantiation_pattern</string>
 						</dict>
 						<dict>
@@ -1397,7 +1405,7 @@
 				</dict>
 				<dict>
 					<key>match</key>
-					<string>\b(?i:abs|access|after|alias|all|and|architecture|array|assert|attribute|begin|block|body|buffer|bus|case|component|configuration|constant|disconnect|downto|else|elsif|end|entity|exit|file|for|function|generate|generic|group|guarded|if|impure|in|inertial|inout|is|label|library|linkage|literal|loop|map|mod|nand|new|next|nor|not|null|of|on|open|or|others|out|package|port|postponed|procedure|process|pure|range|record|register|reject|rem|report|return|rol|ror|select|severity|shared|signal|sla|sll|sra|srl|subtype|then|to|transport|type|unaffected|units|until|use|variable|wait|when|while|with|xnor|xor)\b</string>
+					<string>\b(?i:abs|access|after|alias|all|and|architecture|array|assert|attribute|begin|block|body|buffer|bus|case|component|configuration|constant|disconnect|downto|else|elsif|end|entity|exit|file|for|function|generate|generic|group|guarded|if|impure|in|inertial|inout|is|label|library|linkage|literal|loop|map|mod|nand|new|next|nor|not|null|of|on|open|or|others|out|package|port|postponed|procedure|process|pure|range|record|register|reject|rem|report|return|rol|ror|select|severity|shared|signal|sla|sll|sra|srl|subtype|then|to|transport|type|unaffected|units|until|use|variable|wait|when|while|with|xnor|xor|force|release)\b</string>
 					<key>name</key>
 					<string>keyword.language.vhdl</string>
 				</dict>
@@ -2120,10 +2128,6 @@
 					<array>
 						<dict>
 							<key>include</key>
-							<string>#block_pattern</string>
-						</dict>
-						<dict>
-							<key>include</key>
 							<string>#function_definition_pattern</string>
 						</dict>
 						<dict>
@@ -2141,6 +2145,10 @@
 						<dict>
 							<key>include</key>
 							<string>#process_pattern</string>
+						</dict>
+						<dict>
+							<key>include</key>
+							<string>#block_pattern</string>
 						</dict>
 						<dict>
 							<key>include</key>
@@ -2567,7 +2575,7 @@
 							\s*(:)\s*
 						)?
 
-						# The for keyword $4
+						# The while keyword $4
 						\b((?i:while))\b
 					</string>
 					<key>beginCaptures</key>
