@@ -266,6 +266,14 @@ export class VhdlLinter {
     if (this.file.architecture !== undefined) {
       for (const component of this.file.architecture.components) {
         component.definitions.push(...this.getEntities(component));
+        const entityPorts = component.definitions.flatMap(ent => ent.ports);
+        for (const port of component.ports) {
+          port.definitions.push(...entityPorts.filter(p => p.nameEquals(port)));
+        }
+        const entityGenerics = component.definitions.flatMap(ent => ent.generics);
+        for (const generics of component.generics) {
+          generics.definitions.push(...entityGenerics.filter(g => g.nameEquals(generics)));
+        }
       }
     }
     for (const obj of this.file.objectList) {

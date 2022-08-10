@@ -611,14 +611,16 @@ export class OComponent extends ObjectBase implements IHasDefinitions, IHasSubpr
   references: OInstantiation[] = [];
   definitions: OEntity[] = [];
 }
-export class OPort extends OSignalBase {
+export class OPort extends OSignalBase implements IHasDefinitions {
   direction: 'in' | 'out' | 'inout';
   directionRange: OIRange;
+  definitions: OPort[] = [];
 }
-export class OGeneric extends OVariableBase {
+export class OGeneric extends OVariableBase implements IHasDefinitions {
   type: ORead[] = [];
   defaultValue?: ORead[] = [];
   reads: ORead[] = [];
+  definitions: OGeneric[] = [];
 }
 export type OSequentialStatement = OCase | OAssignment | OIf | OLoop | OInstantiation | OReport | OAssertion;
 export class OIf extends ObjectBase {
