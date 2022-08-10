@@ -151,7 +151,7 @@ export const initialization = new Promise<void>(resolve => {
       const parseWorkspaces = async () => {
         const workspaceFolders = await connection.workspace.getWorkspaceFolders();
         const folders = (workspaceFolders ?? []).map(workspaceFolder => URI.parse(workspaceFolder.uri).fsPath);
-        console.log(configuration, 'configuration');
+        // console.log(configuration, 'configuration');
         folders.push(...configuration.paths.additional);
         projectParser = new ProjectParser(folders, configuration.paths.ignoreRegex);
         await projectParser.init();
@@ -166,7 +166,7 @@ export const initialization = new Promise<void>(resolve => {
       if (rootUri) {
         folders.push(URI.parse(rootUri).fsPath);
       }
-      console.log('folders', folders);
+      // console.log('folders', folders);
       projectParser = new ProjectParser(folders, configuration.paths.ignoreRegex);
       await projectParser.init();
     }
@@ -287,7 +287,7 @@ const findBestDefinition = async (params: IFindDefinitionParams) => {
 connection.onHover(async (params, token): Promise<Hover | null> => {
   await initialization;
   if (token.isCancellationRequested) {
-    console.log('hover canceld');
+    console.log('hover canceled');
     throw ErrorCodes.RequestCancelled;
   }
   const definition = await findBestDefinition(params);

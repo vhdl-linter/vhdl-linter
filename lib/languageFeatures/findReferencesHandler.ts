@@ -64,7 +64,7 @@ export async function renameHandler(params: RenameParams) {
     }
     return reference;
   });
-  console.log(references.map(reference => `${reference.range.start.line} ${reference.range.start.character}`));
+  // console.log(references.map(reference => `${reference.range.start.line} ${reference.range.start.character}`));
   return {
     changes: {
       [params.textDocument.uri]: references.map(reference => TextEdit.replace(reference.range, params.newName))

@@ -111,7 +111,6 @@ export function activate(context: ExtensionContext) {
     },
       async () => await client.sendRequest('vhdl-linter/listing', { textDocument: { uri: editor.document.uri.toString() } })
     );
-    console.log('bb', result);
     env.clipboard.writeText(result as string);
     window.showInformationMessage(`Copied list of files to clipboard.`);
   }));

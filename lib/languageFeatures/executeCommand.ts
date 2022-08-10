@@ -6,7 +6,7 @@ export async function handleExecuteCommand(params: ExecuteCommandParams) {
   if (!params.arguments) {
     return;
   }
-  console.log(params);
+  // console.log(params);
   const textDocumentUri = params.arguments[0];
   const linter = linters.get(textDocumentUri);
   if (typeof linter === 'undefined') {

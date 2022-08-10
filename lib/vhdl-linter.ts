@@ -196,11 +196,6 @@ export class VhdlLinter {
     if (this.file.entity === undefined && this.file.architecture !== undefined && this.file.architecture.entityName !== undefined) {
       const architectureName = this.file.architecture.entityName.toLowerCase();
       otherFileEntity = this.projectParser.getEntities().find(entity => entity.name.text.toLowerCase() === architectureName);
-      if (otherFileEntity !== undefined) {
-        console.log(otherFileEntity);
-      } else {
-        console.log('no found');
-      }
     }
     for (const read of this.file.objectList.filter(object => object instanceof ORead) as ORead[]) {
       for (const pkg of packages) {
@@ -1162,7 +1157,6 @@ export class VhdlLinter {
     const settings = (await getDocumentSettings(URI.file(this.editorPath).toString()));
     if (settings.rules.warnLogicType) {
       for (const port of tree.entity?.ports ?? []) {
-        console.log(port.type);
         let match;
         if ((settings.style.preferedLogicType === 'std_logic' && port.type[0].text.match(/^std_ulogic/i))
           || (settings.style.preferedLogicType === 'std_ulogic' && port.type[0].text.match(/^std_logic/i))) {
