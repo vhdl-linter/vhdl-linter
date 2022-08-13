@@ -257,7 +257,7 @@ export class ParserBase {
           }
           return text.trim();
         }
-        text += this.text.substring(this.pos.i + offset, this.pos.i + offset + match.index + match[0].length - 1);
+        text += this.text.substring(this.pos.i + offset, this.pos.i + offset + match.index + match[0].length);
         offset += match.index + match[0].length;
       }
       throw new ParserError(`could not find closing brace`, savedI.getRangeToEndLine());

@@ -1,6 +1,6 @@
 import { AssignmentParser } from './assignment-parser';
 import { AssociationListParser } from './association-list-parser';
-import { OArchitecture, OAssertion, OAssignment, ObjectBase, OCase, OConstant, OElseClause, OEntity, OForLoop, OHasSequentialStatements, OI, OIf, OIfClause, OInstantiation, OLoop, OName, OProcess, OReport, OSequentialStatement, OVariable, OWhenClause, OWhileLoop } from './objects';
+import { OArchitecture, OAssertion, OAssignment, ObjectBase, OCase, OConstant, OElseClause, OEntity, OForLoop, OHasSequentialStatements, OI, OIf, OIfClause, OInstantiation, OLoop, OName, OProcess, OReport, OSequentialStatement, OVariable, OWhenClause, OWhileLoop, ParserError, OIRange } from './objects';
 import { ParserBase } from './parser-base';
 
 export class SequentialStatementParser extends ParserBase {
@@ -56,7 +56,7 @@ export class SequentialStatementParser extends ParserBase {
         this.advancePast(';');
       } else if (nextWord.toLowerCase() === 'while') {
         statements.push(this.parseWhile(parent, label));
-      } else if (statementText.match(/:=|<=/)) {
+      } else if (this.checkIfIsAssigment(statementText)) {
         const assignmentParser = new AssignmentParser(this.text, this.pos, this.file, parent);
         statements.push(assignmentParser.parse());
       } else {
@@ -66,6 +66,23 @@ export class SequentialStatementParser extends ParserBase {
     }
     return statements;
   }
+  // Assignments are detected by := or <= But as <= is comparison also can be part of e.g. procedure call
+  // Solution: Mask everythin in braces.
+  checkIfIsAssigment(statementText: string) {
+    const regex = /\([^())]+\)/;
+    let match = statementText.match(regex);
+    let repeats = 100;
+    while (match) {
+      statementText = statementText.replace(match[0], ' '.repeat(match[0].length));
+      repeats--;
+      if (repeats === 0) {
+        throw new ParserError('Parser Stuck', this.pos.getRangeToEndLine());
+      }
+      match = statementText.match(regex);
+    }
+    return statementText.match(/:=|<=/);
+  }
+
   parseSubprogramCall(parent: OHasSequentialStatements | OIf) {
     const subprogramCall = new OInstantiation(parent, this.pos.i, this.getEndOfLineI(), 'subprogram-call');
     subprogramCall.componentName = new OName(subprogramCall, this.pos.i, this.pos.i);
@@ -112,27 +129,44 @@ export class SequentialStatementParser extends ParserBase {
     this.expect('report');
     let report = new OReport(parent, this.pos.i, this.getEndOfLineI());
     const text = this.advanceSemicolon();
-    report.reads= this.extractReads(report, text, report.range.start.i);
+    report.reads = this.extractReads(report, text, report.range.start.i);
     report.range.end.i = this.pos.i;
     return report;
   }
 
   parseWait(parent: OHasSequentialStatements | OIf) {
     this.expect('wait');
+    let assignment = new OAssignment(parent, this.pos.i, this.getEndOfLineI());
     let nextWord = this.getNextWord({ consume: false });
-    if (['until', 'on', 'for'].indexOf(nextWord.toLowerCase()) > -1) {
-      this.getNextWord();
-      let assignment = new OAssignment(parent, this.pos.i, this.getEndOfLineI());
+
+    if (nextWord.toLowerCase() === 'on') { // Sensitivity Clause
+      this.expect('on');
       let rightHandSideI = this.pos.i;
-      const rightHandSide = this.advanceSemicolon();
+      const [rightHandSide] = this.advanceBraceAware(['until', 'for', ';'], false);
       assignment.reads.push(...this.extractReads(assignment, rightHandSide, rightHandSideI));
-      assignment.range.end.i = this.pos.i;
-      return assignment;
-    } else {
-      this.expect(';');
-      let assignment = new OAssignment(parent, this.pos.i, this.getEndOfLineI());
-      return assignment;
+      nextWord = this.getNextWord({ consume: false });
     }
+
+    if (nextWord.toLowerCase() === 'until') {
+      this.expect('until');
+      let rightHandSideI = this.pos.i;
+      const [rightHandSide] = this.advanceBraceAware(['for', ';'], false);
+      assignment.reads.push(...this.extractReads(assignment, rightHandSide, rightHandSideI));
+      nextWord = this.getNextWord({ consume: false });
+
+    }
+
+    if (nextWord.toLowerCase() === 'for') {
+      this.expect('for');
+      let rightHandSideI = this.pos.i;
+      const [rightHandSide] = this.advanceBraceAware([';'], false);
+      assignment.reads.push(...this.extractReads(assignment, rightHandSide, rightHandSideI));
+      nextWord = this.getNextWord({ consume: false });
+    }
+
+    assignment.range.end.i = this.pos.i;
+    this.expect(';');
+    return assignment;
   }
   parseWhile(parent: OHasSequentialStatements | OIf, label?: string): OWhileLoop {
     const whileLoop = new OWhileLoop(parent, this.pos.i, this.getEndOfLineI());
