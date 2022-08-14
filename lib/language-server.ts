@@ -179,13 +179,13 @@ export const initialization = new Promise<void>(resolve => {
       // console.log('projectParser.events.change', new Date().getTime(), ... args);
       documents.all().forEach(validateTextDocument);
     });
-    const intervalMap = new Map<string, NodeJS.Timeout>();
+    const timeoutMap = new Map<string, NodeJS.Timeout>();
     documents.onDidChangeContent(change => {
-      const oldTimeout = intervalMap.get(change.document.uri);
+      const oldTimeout = timeoutMap.get(change.document.uri);
       if (oldTimeout !== undefined) {
         clearInterval(oldTimeout);
       }
-      intervalMap.set(change.document.uri, setTimeout(() => {
+      timeoutMap.set(change.document.uri, setTimeout(() => {
         validateTextDocument(change.document);
       }, 200));
       // const lintingTime = Date.now() - date;
