@@ -16,6 +16,7 @@ import { handleOnWorkspaceSymbol } from './languageFeatures/workspaceSymbols';
 import { implementsIHasDefinitions, OFile, OInstantiation, OName, OMagicCommentDisable, OComponent, OUseClause } from './parser/objects';
 import { ProjectParser } from './project-parser';
 import { VhdlLinter } from './vhdl-linter';
+import { window } from 'vscode';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -42,6 +43,7 @@ export interface ISettings {
   };
   style: {
     preferedLogicType: 'std_logic' | 'std_ulogic';
+    unusedSignalRegex: string;
   };
   rules: {
     warnLibrary: boolean;
@@ -60,7 +62,8 @@ const defaultSettings: ISettings = {
     ignoreRegex: ''
   },
   style: {
-    preferedLogicType: 'std_ulogic'
+    preferedLogicType: 'std_ulogic',
+    unusedSignalRegex: '_unused$'
   },
   rules: {
     warnLogicType: true,
@@ -176,11 +179,15 @@ export const initialization = new Promise<void>(resolve => {
       // console.log('projectParser.events.change', new Date().getTime(), ... args);
       documents.all().forEach(validateTextDocument);
     });
-
+    const intervalMap = new Map<string, NodeJS.Timeout>();
     documents.onDidChangeContent(change => {
-      // console.log('onDidChangeContent', new Date().getTime());
-      // const date = Date.now();
-      validateTextDocument(change.document);
+      const oldTimeout = intervalMap.get(change.document.uri);
+      if (oldTimeout !== undefined) {
+        clearInterval(oldTimeout);
+      }
+      intervalMap.set(change.document.uri, setTimeout(() => {
+        validateTextDocument(change.document);
+      }, 200));
       // const lintingTime = Date.now() - date;
       // console.log(`${change.document.uri}: ${lintingTime}ms`);
 
@@ -198,6 +205,7 @@ export const lintersValid = new Map<string, boolean>();
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   // console.log(textDocument.uri);
   // console.profile('a');
+  let start = Date.now();
   const vhdlLinter = new VhdlLinter(URI.parse(textDocument.uri).fsPath, textDocument.getText(), projectParser);
   if (vhdlLinter.parsedSuccessfully || typeof linters.get(textDocument.uri) === 'undefined') {
     linters.set(textDocument.uri, vhdlLinter);
@@ -205,10 +213,12 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   } else {
     lintersValid.set(textDocument.uri, false);
   }
+  console.log(`parsed for: ${Date.now() - start} ms.`);
+  start = Date.now();
   const diagnostics = await vhdlLinter.checkAll();
+  console.log(`checked for: ${Date.now() - start} ms.`);
   const test = JSON.stringify(diagnostics);
   // console.profileEnd('a');
-
   connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
 }
 
@@ -229,6 +239,14 @@ connection.onCodeAction(async (params): Promise<CodeAction[]> => {
       const callback = linter.diagnosticCodeActionRegistry[diagnostic.code];
       if (typeof callback === 'function') {
         actions.push(...callback(params.textDocument.uri));
+      }
+    } else if (typeof diagnostic.code === 'string') {
+      const codes = diagnostic.code.split(';').map(a => parseInt(a));
+      for (const code of codes) {
+        const callback = linter.diagnosticCodeActionRegistry[code];
+        if (typeof callback === 'function') {
+          actions.push(...callback(params.textDocument.uri));
+        }
 
       }
     }

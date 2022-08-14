@@ -156,6 +156,12 @@
 					"default": "std_ulogic",
 					"description": "Enables checking for library magic comment."
 				},
+				"VhdlLinter.style.unusedSignalRegex": {
+					"scope": "window",
+					"type": "string",
+					"default": "_unused$",
+					"description": "Signal names matching this regular expression do not trigger a warning when not write or read to them is found. (Also applies to variables and types)"
+				},
 				"VhdlLinter.ports.enablePortStyle": {
 					"scope": "window",
 					"type": "boolean",

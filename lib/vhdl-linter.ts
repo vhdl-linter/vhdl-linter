@@ -112,6 +112,26 @@ export class VhdlLinter {
   addMessage(diagnostic: Diagnostic, rule?: LinterRules, parameter?: string) {
 
     if (this.checkMagicComments(diagnostic.range, rule, parameter)) {
+      const newCode = this.addCodeActionCallback((textDocumentUri: string) => {
+        const actions = [] as any[];
+        // [textDocumentUri]: [TextEdit.replace(Range.create(write.range.start, write.range.end), bestMatch.bestMatch.target)]
+        actions.push(CodeAction.create(
+          'Ignore messages on this line.',
+          {
+            changes: {
+              [textDocumentUri]: [
+                TextEdit.insert(Position.create(diagnostic.range.end.line, 1000), ' --vhdl-linter-disable-this-line')]
+            }
+          },
+          CodeActionKind.QuickFix));
+        return actions;
+      });
+      const codes = [];
+      codes.push(newCode);
+      if (diagnostic.code) {
+        codes.push(diagnostic.code);
+      }
+      diagnostic.code = codes.join(';');
       this.messages.push(diagnostic);
     }
 
@@ -463,27 +483,84 @@ export class VhdlLinter {
 
     }
   }
-  async checkAll() {
+  async checkAll(profiling = false) {
+    console.profile();
+    let start;
+    let i = 0;
     if (this.file) {
+      start = Date.now();
       await this.elaborate();
+      if (profiling) {
+        console.log(`check ${i++}: ${Date.now() - start}ms`);
+        start = Date.now();
+      }
       await this.removeBrokenActuals();
+      if (profiling) {
+        console.log(`check ${i++}: ${Date.now() - start}ms`);
+        start = Date.now();
+      }
       await this.checkComponents();
+      if (profiling) {
+        console.log(`check ${i++}: ${Date.now() - start}ms`);
+        start = Date.now();
+      }
       await this.checkNotDeclared();
+      if (profiling) {
+        console.log(`check ${i++}: ${Date.now() - start}ms`);
+        start = Date.now();
+      }
       await this.checkLibrary();
+      if (profiling) {
+        console.log(`check ${i++}: ${Date.now() - start}ms`);
+        start = Date.now();
+      }
       await this.checkTodos();
+      if (profiling) {
+        console.log(`check ${i++}: ${Date.now() - start}ms`);
+        start = Date.now();
+      }
       if (this.file.architecture !== undefined) {
         this.checkResets();
+        if (profiling) {
+          console.log(`check ${i++}: ${Date.now() - start}ms`);
+          start = Date.now();
+        }
         await this.checkUnused(this.file.architecture, this.file.entity);
+        if (profiling) {
+          console.log(`check ${i++}: ${Date.now() - start}ms`);
+          start = Date.now();
+        }
         this.checkDoubles();
+        if (profiling) {
+          console.log(`check ${i++}: ${Date.now() - start}ms`);
+          start = Date.now();
+        }
         await this.checkPortDeclaration();
+        if (profiling) {
+          console.log(`check ${i++}: ${Date.now() - start}ms`);
+          start = Date.now();
+        }
         this.checkInstantiations(this.file.architecture);
+        if (profiling) {
+          console.log(`check ${i++}: ${Date.now() - start}ms`);
+          start = Date.now();
+        }
         await this.checkPortType();
+        if (profiling) {
+          console.log(`check ${i++}: ${Date.now() - start}ms`);
+          start = Date.now();
+        }
       }
       for (const pkg of this.file.packages) {
         this.checkInstantiations(pkg);
       }
+      if (profiling) {
+        console.log(`check ${i++}: ${Date.now() - start}ms`);
+        start = Date.now();
+      }
       // this.parser.debugObject(this.tree);
     }
+    console.profileEnd();
     return this.messages;
   }
   checkComponents() {
@@ -596,8 +673,8 @@ export class VhdlLinter {
 
   private pushWriteError(write: OWrite) {
     const possibleMatches = this.file.objectList
-    .filter(obj => typeof obj !== 'undefined' && typeof obj.name !== 'undefined')
-    .map(obj => obj.name.text);
+      .filter(obj => typeof obj !== 'undefined' && typeof obj.name !== 'undefined')
+      .map(obj => obj.name.text);
     const bestMatch = findBestMatch(write.text, possibleMatches);
 
     const code = this.addCodeActionCallback((textDocumentUri: string) => {
@@ -610,7 +687,7 @@ export class VhdlLinter {
         `Replace with ${bestMatch.bestMatch.target} (score: ${bestMatch.bestMatch.rating})`,
         {
           changes: {
-            [textDocumentUri]: [TextEdit.replace(Range.create(write.range.start, write.range.end) , bestMatch.bestMatch.target)]
+            [textDocumentUri]: [TextEdit.replace(Range.create(write.range.start, write.range.end), bestMatch.bestMatch.target)]
           }
         },
         CodeActionKind.QuickFix));
@@ -651,14 +728,14 @@ export class VhdlLinter {
         actions.push(CodeAction.create('add signal to architecture', Command.create('add signal to architecture', 'vhdl-linter:add-signal', args)));
       }
       const possibleMatches = this.file.objectList
-      .filter(obj => typeof obj !== 'undefined' && typeof obj.name !== 'undefined')
-      .map(obj => obj.name.text);
+        .filter(obj => typeof obj !== 'undefined' && typeof obj.name !== 'undefined')
+        .map(obj => obj.name.text);
       const bestMatch = findBestMatch(read.text, possibleMatches);
       actions.push(CodeAction.create(
         `Replace with ${bestMatch.bestMatch.target} (score: ${bestMatch.bestMatch.rating})`,
         {
           changes: {
-            [textDocumentUri]: [TextEdit.replace(Range.create(read.range.start, read.range.end) , bestMatch.bestMatch.target)]
+            [textDocumentUri]: [TextEdit.replace(Range.create(read.range.start, read.range.end), bestMatch.bestMatch.target)]
           }
         },
         CodeActionKind.QuickFix));
@@ -878,10 +955,11 @@ export class VhdlLinter {
       return;
     }
 
+    const unusedSignalRegex = new RegExp(settings.style.unusedSignalRegex);
     if (entity) {
       this.checkUnusedPorts(entity.ports);
       for (const generic of entity.generics) {
-        if (generic.references.filter(token => token instanceof ORead).length === 0) {
+        if (unusedSignalRegex.exec(generic.name.text) === null && generic.references.filter(token => token instanceof ORead).length === 0) {
           this.addMessage({
             range: generic.range,
             severity: DiagnosticSeverity.Warning,
@@ -898,7 +976,7 @@ export class VhdlLinter {
       }
     }
     for (const type of architecture.types) {
-      if (type.references.length === 0) {
+      if (unusedSignalRegex.exec(type.name.text) === null && type.references.length === 0) {
         this.addMessage({
           range: type.name.range,
           severity: DiagnosticSeverity.Warning,
@@ -907,7 +985,7 @@ export class VhdlLinter {
       }
     }
     for (const component of architecture.components) {
-      if (component.references.length === 0) {
+      if (unusedSignalRegex.exec(component.name.text) === null && component.references.length === 0) {
         this.addMessage({
           range: component.name.range,
           severity: DiagnosticSeverity.Warning,
@@ -916,7 +994,7 @@ export class VhdlLinter {
       }
     }
     for (const signal of architecture.getRoot().objectList.filter(object => object instanceof OSignal) as OSignal[]) {
-      if (signal.references.filter(token => token instanceof ORead).length === 0) {
+      if (unusedSignalRegex.exec(signal.name.text) === null && signal.references.filter(token => token instanceof ORead).length === 0) {
         this.addMessage({
           range: signal.name.range,
           severity: DiagnosticSeverity.Warning,
@@ -924,7 +1002,7 @@ export class VhdlLinter {
         });
       }
       const writes = signal.references.filter(token => token instanceof OWrite);
-      if (writes.length === 0) {
+      if (unusedSignalRegex.exec(signal.name.text) === null && writes.length === 0) {
         this.addMessage({
           range: signal.name.range,
           severity: DiagnosticSeverity.Warning,
@@ -946,7 +1024,7 @@ export class VhdlLinter {
           return { scope, write };
         });
         const filteredScopes = writeScopes.filter((v, i, a) => a.findIndex(x => x.scope === v.scope) === i);
-        
+
         const ignoreAction = this.addCodeActionCallback((textDocumentUri: string) => {
           return [
             CodeAction.create(
@@ -957,7 +1035,7 @@ export class VhdlLinter {
                 { textDocumentUri, range: signal.name.range }
               )
             )
-          ]
+          ];
         });
         if (filteredScopes.length > 1 && this.checkMagicComments(signal.name.range)) {
           this.addMessage({
@@ -994,7 +1072,7 @@ export class VhdlLinter {
       }
     }
     for (const variable of architecture.getRoot().objectList.filter(object => object instanceof OVariable) as OVariable[]) {
-      if (variable.references.filter(token => token instanceof ORead).length === 0) {
+      if (unusedSignalRegex.exec(variable.name.text) === null && variable.references.filter(token => token instanceof ORead).length === 0) {
         this.addMessage({
           range: variable.name.range,
           severity: DiagnosticSeverity.Warning,
@@ -1002,7 +1080,7 @@ export class VhdlLinter {
         });
       }
       const writes = variable.references.filter(token => token instanceof OWrite);
-      if (writes.length === 0) {
+      if (unusedSignalRegex.exec(variable.name.text) === null && writes.length === 0) {
         if (variable.type[0]?.definitions?.[0] instanceof OType) {
           // This is protected type. Assume protected type has side-effect and does not net writting to.
         } else {
@@ -1016,7 +1094,7 @@ export class VhdlLinter {
       }
     }
     for (const constant of architecture.getRoot().objectList.filter(object => object instanceof OConstant) as OConstant[]) {
-      if (constant.references.filter(token => token instanceof ORead).length === 0) {
+      if (unusedSignalRegex.exec(constant.name.text) === null && constant.references.filter(token => token instanceof ORead).length === 0) {
         this.addMessage({
           range: constant.name.range,
           severity: DiagnosticSeverity.Warning,
