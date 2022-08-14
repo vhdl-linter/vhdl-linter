@@ -183,7 +183,7 @@ export const initialization = new Promise<void>(resolve => {
     documents.onDidChangeContent(change => {
       const oldTimeout = timeoutMap.get(change.document.uri);
       if (oldTimeout !== undefined) {
-        clearInterval(oldTimeout);
+        clearTimeout(oldTimeout);
       }
       timeoutMap.set(change.document.uri, setTimeout(() => {
         validateTextDocument(change.document);
