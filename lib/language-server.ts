@@ -4,7 +4,6 @@ import {
 } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { handleCodeLens } from './languageFeatures/codeLens';
-import { handleCompletion } from './languageFeatures/completion';
 import { handleDocumentFormatting } from './languageFeatures/documentFormatting';
 import { documentHighlightHandler } from './languageFeatures/documentHightlightHandler';
 import { handleOnDocumentSymbol } from './languageFeatures/documentSymbol';
@@ -17,6 +16,7 @@ import { implementsIHasDefinitions, OFile, OInstantiation, OName, OMagicCommentD
 import { ProjectParser } from './project-parser';
 import { VhdlLinter } from './vhdl-linter';
 import { window } from 'vscode';
+import { attachOnCompletion } from './languageFeatures/completion';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -71,6 +71,14 @@ const defaultSettings: ISettings = {
     warnMultipleDriver: false
   }
 };
+export interface CancelationObject {
+  canceled: boolean;
+}
+export class CancelationError extends Error {
+
+}
+
+
 let globalSettings: ISettings = defaultSettings;
 let hasConfigurationCapability: boolean = false;
 // Cache the settings of all open documents
@@ -87,7 +95,7 @@ connection.onDidChangeConfiguration(change => {
   }
 
   // Revalidate all open text documents
-  documents.all().forEach(validateTextDocument);
+  documents.all().forEach((textDocument) => validateTextDocument(textDocument));
 });
 export function getDocumentSettings(resource: string): Thenable<ISettings> {
   if (!hasConfigurationCapability) {
@@ -173,21 +181,36 @@ export const initialization = new Promise<void>(resolve => {
       projectParser = new ProjectParser(folders, configuration.paths.ignoreRegex);
       await projectParser.init();
     }
-
-    documents.all().forEach(validateTextDocument);
+    for (const textDocument of documents.all()) {
+      await validateTextDocument(textDocument);
+    }
     projectParser.events.on('change', (...args) => {
       // console.log('projectParser.events.change', new Date().getTime(), ... args);
-      documents.all().forEach(validateTextDocument);
+      documents.all().forEach((textDocument) => validateTextDocument(textDocument));
     });
     const timeoutMap = new Map<string, NodeJS.Timeout>();
+    const cancelationMap = new Map<string, CancelationObject>();
     documents.onDidChangeContent(change => {
       const oldTimeout = timeoutMap.get(change.document.uri);
       if (oldTimeout !== undefined) {
         clearTimeout(oldTimeout);
       }
-      timeoutMap.set(change.document.uri, setTimeout(() => {
-        validateTextDocument(change.document);
-      }, 200));
+      function handleChange() {
+        const cancelationObject = cancelationMap.get(change.document.uri);
+        if (cancelationObject) {
+          cancelationObject.canceled = true;
+        }
+        const newCancelationObject = {
+          canceled: false
+        };
+        validateTextDocument(change.document, newCancelationObject);
+        cancelationMap.set(change.document.uri, newCancelationObject);
+      }
+      if (change.document.version === 1) { // Document was initally opened. Dont delay.
+        handleChange();
+      } else {
+        timeoutMap.set(change.document.uri, setTimeout(handleChange, 100));
+      }
       // const lintingTime = Date.now() - date;
       // console.log(`${change.document.uri}: ${lintingTime}ms`);
 
@@ -201,12 +224,13 @@ documents.onDidClose(change => {
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
 export const linters = new Map<string, VhdlLinter>();
+export const lintersPromise = new Map<string, Promise<VhdlLinter>>();
 export const lintersValid = new Map<string, boolean>();
-async function validateTextDocument(textDocument: TextDocument): Promise<void> {
+async function validateTextDocument(textDocument: TextDocument, cancelationObject: CancelationObject = { canceled: false }): Promise<void> {
   // console.log(textDocument.uri);
   // console.profile('a');
   let start = Date.now();
-  const vhdlLinter = new VhdlLinter(URI.parse(textDocument.uri).fsPath, textDocument.getText(), projectParser);
+  const vhdlLinter = new VhdlLinter(URI.parse(textDocument.uri).fsPath, textDocument.getText(), projectParser, false, cancelationObject);
   if (vhdlLinter.parsedSuccessfully || typeof linters.get(textDocument.uri) === 'undefined') {
     linters.set(textDocument.uri, vhdlLinter);
     lintersValid.set(textDocument.uri, true);
@@ -215,11 +239,21 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   }
   console.log(`parsed for: ${Date.now() - start} ms.`);
   start = Date.now();
-  const diagnostics = await vhdlLinter.checkAll();
-  console.log(`checked for: ${Date.now() - start} ms.`);
-  const test = JSON.stringify(diagnostics);
-  // console.profileEnd('a');
-  connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+  try {
+    const diagnostics = await vhdlLinter.checkAll();
+    console.log(`checked for: ${Date.now() - start} ms.`);
+    start = Date.now();
+    const test = JSON.stringify(diagnostics);
+    // console.profileEnd('a');
+    connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+    console.log(`send for: ${Date.now() - start} ms.`);
+
+  } catch (err) {
+    if (!(err instanceof CancelationError)) {
+      throw err;
+    }
+  }
+
 }
 
 connection.onDidChangeWatchedFiles(_change => {
@@ -328,7 +362,7 @@ connection.onHover(async (params, token): Promise<Hover | null> => {
 });
 connection.onDefinition(findDefinitions);
 // This handler provides the initial list of the completion items.
-connection.onCompletion(handleCompletion);
+attachOnCompletion();
 connection.onReferences(handleReferences);
 connection.onPrepareRename(prepareRenameHandler);
 connection.onRenameRequest(renameHandler);

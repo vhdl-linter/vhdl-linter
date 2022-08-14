@@ -6,12 +6,13 @@ import { MagicCommentType, OArchitecture, OContextReference, OEntity, OFile, OI,
 import { PackageParser } from './package-parser';
 import { ParserBase } from './parser-base';
 import { UseClauseParser } from './use-clause-parser';
+import { CancelationObject } from '../language-server';
 
 
 export class Parser extends ParserBase {
   position: OI;
   private originalText: string;
-  constructor(text: string, file: string, public onlyEntity: boolean = false) {
+  constructor(text: string, file: string, public onlyEntity: boolean = false, public cancelationObject: CancelationObject) {
     super(text, {} as OI, file);
     this.originalText = text;
     this.removeCommentsAndStrings();

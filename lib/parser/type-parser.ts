@@ -56,7 +56,6 @@ export class TypeParser extends ParserBase {
           return state;
         });
         type.range.end.i = this.pos.i;
-        this.parent.types.push(type);
         this.advanceWhitespace();
         this.expect(';');
       } else if (this.test(/^[^;]*units/i)) {
@@ -71,7 +70,6 @@ export class TypeParser extends ParserBase {
         this.expect('end');
         this.expect('units');
         type.range.end.i = this.pos.i;
-        this.parent.types.push(type);
         this.expect(';');
       } else {
         const nextWord = this.getNextWord().toLowerCase();
@@ -113,12 +111,10 @@ export class TypeParser extends ParserBase {
           // TODO
         }
         type.range.end.i = this.pos.i;
-        this.parent.types.push(type);
         this.advancePast(';');
       }
     } else {
       type.range.end.i = this.pos.i;
-      this.parent.types.push(type);
       this.advancePast(';');
     }
     return type;

@@ -4,7 +4,7 @@ import {
   Command, Diagnostic, DiagnosticSeverity, Position, Range, TextEdit
 } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
-import { getDocumentSettings } from './language-server';
+import { getDocumentSettings, CancelationObject, CancelationError } from './language-server';
 import { IHasDefinitions, IHasInstantiations, implementsIHasInstantiations, implementsIHasSubprograms, implementsIMentionable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, ObjectBase, OCase, OComponent, OConstant, OContext, OEntity, OEnum, OFile, OGeneric, OGenericAssociationList, OHasSequentialStatements, OIf, OInstantiation, OPackage, OPackageBody, OPort, OPortAssociationList, OProcess, ORead, ORecord, OSignal, OSignalBase, OSubprogram, OType, OUseClause, OWhenClause, OWrite, ParserError, OToken, OAssociationList, OIRange, OVariable } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
@@ -28,9 +28,10 @@ export class VhdlLinter {
   parser: Parser;
   parsedSuccessfully: boolean = false;
   packages: (OPackage | OPackageBody)[] = [];
-  constructor(private editorPath: string, public text: string, public projectParser: ProjectParser, public onlyEntity: boolean = false) {
+  constructor(private editorPath: string, public text: string, public projectParser: ProjectParser,
+    public onlyEntity: boolean = false, public cancelationObject: CancelationObject = { canceled: false }) {
     //     console.log('lint');
-    this.parser = new Parser(this.text, this.editorPath, onlyEntity);
+    this.parser = new Parser(this.text, this.editorPath, onlyEntity, cancelationObject);
     //     console.log(`parsing: ${editorPath}`);
     try {
       this.file = this.parser.parse();
@@ -168,17 +169,27 @@ export class VhdlLinter {
     }
     return useClauses;
   }
+  async handleCanceled() {
+    await new Promise(resolve => setImmediate(resolve));
+    if (this.cancelationObject.canceled) {
+      console.log('canceled');
+      throw new CancelationError();
+    }
+  }
   async elaborate() {
     for (const obj of this.file.objectList) {
       if (obj instanceof OToken) {
         obj.elaborate();
       }
     }
+    await this.handleCanceled();
     const packages = this.projectParser.getPackages();
     const standard = packages.find(pkg => pkg.name.text.toLowerCase() === 'standard');
     if (standard) {
       this.packages.push(standard);
     }
+    await this.handleCanceled();
+
     //     console.log(packages);
     for (const useClause of this.getUseClauses(this.file)) {
       let found = false;
@@ -212,11 +223,15 @@ export class VhdlLinter {
         }
       }
     }
+    await this.handleCanceled();
+
     let otherFileEntity;
     if (this.file.entity === undefined && this.file.architecture !== undefined && this.file.architecture.entityName !== undefined) {
       const architectureName = this.file.architecture.entityName.toLowerCase();
       otherFileEntity = this.projectParser.getEntities().find(entity => entity.name.text.toLowerCase() === architectureName);
     }
+    await this.handleCanceled();
+
     for (const read of this.file.objectList.filter(object => object instanceof ORead) as ORead[]) {
       for (const pkg of packages) {
         for (const constant of pkg.constants) {
@@ -260,6 +275,8 @@ export class VhdlLinter {
         }
       }
     }
+    await this.handleCanceled();
+
     for (const instantiation of this.file.objectList.filter(object => object instanceof OInstantiation) as OInstantiation[]) {
       switch (instantiation.type) {
         case 'component':
@@ -278,6 +295,8 @@ export class VhdlLinter {
           break;
       }
     }
+    await this.handleCanceled();
+
     if (this.file.architecture !== undefined) {
       for (const component of this.file.architecture.components) {
         component.definitions.push(...this.getEntities(component));
@@ -291,6 +310,8 @@ export class VhdlLinter {
         }
       }
     }
+    await this.handleCanceled();
+
     for (const obj of this.file.objectList) {
       if (obj instanceof OAssociation) {
         if (obj.parent instanceof OGenericAssociationList || obj.parent instanceof OPortAssociationList) {
@@ -433,6 +454,8 @@ export class VhdlLinter {
         }
       }
     }
+    await this.handleCanceled();
+
   }
   // When the definition of an association can not be found avoid errors because actuals can not be cleanly mapped then
   async removeBrokenActuals() {
