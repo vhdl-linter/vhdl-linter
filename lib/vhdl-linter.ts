@@ -224,8 +224,8 @@ export class VhdlLinter {
         }
       }
     }
-    console.log(`elab: useClauses for: ${Date.now() - start} ms.`);
-    start = Date.now();
+    // console.log(`elab: useClauses for: ${Date.now() - start} ms.`);
+    // start = Date.now();
     await this.handleCanceled();
 
     let otherFileEntity;
@@ -233,8 +233,8 @@ export class VhdlLinter {
       const architectureName = this.file.architecture.entityName.toLowerCase();
       otherFileEntity = this.projectParser.getEntities().find(entity => entity.name.text.toLowerCase() === architectureName);
     }
-    console.log(`elab: otherFileEntity for: ${Date.now() - start} ms.`);
-    start = Date.now();
+    // console.log(`elab: otherFileEntity for: ${Date.now() - start} ms.`);
+    // start = Date.now();
     await this.handleCanceled();
 
     const readObjectMap = new Map<String, ObjectBase>();
@@ -264,8 +264,8 @@ export class VhdlLinter {
         }
       }
     }
-    console.log(`elab: reads for: ${Date.now() - start} ms.`);
-    start = Date.now();
+    // console.log(`elab: reads for: ${Date.now() - start} ms.`);
+    // start = Date.now();
     await this.handleCanceled();
 
     for (const instantiation of this.file.objectList.filter(object => object instanceof OInstantiation) as OInstantiation[]) {
@@ -286,8 +286,8 @@ export class VhdlLinter {
           break;
       }
     }
-    console.log(`elab: instantiations for: ${Date.now() - start} ms.`);
-    start = Date.now();
+    // console.log(`elab: instantiations for: ${Date.now() - start} ms.`);
+    // start = Date.now();
     await this.handleCanceled();
 
     if (this.file.architecture !== undefined) {
@@ -303,8 +303,8 @@ export class VhdlLinter {
         }
       }
     }
-    console.log(`elab: components for: ${Date.now() - start} ms.`);
-    start = Date.now();
+    // console.log(`elab: components for: ${Date.now() - start} ms.`);
+    // start = Date.now();
     await this.handleCanceled();
 
     for (const association of this.file.objectList.filter(obj => obj instanceof OAssociation) as OAssociation[]) {
@@ -343,8 +343,8 @@ export class VhdlLinter {
           }
         }
     }
-    console.log(`elab: associations for: ${Date.now() - start} ms.`);
-    start = Date.now();
+    // console.log(`elab: associations for: ${Date.now() - start} ms.`);
+    // start = Date.now();
     await this.handleCanceled();
 
   }
