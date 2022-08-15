@@ -229,7 +229,7 @@ export const lintersValid = new Map<string, boolean>();
 async function validateTextDocument(textDocument: TextDocument, cancelationObject: CancelationObject = { canceled: false }): Promise<void> {
   // console.log(textDocument.uri);
   // console.profile('a');
-  let start = Date.now();
+  // let start = Date.now();
   const vhdlLinter = new VhdlLinter(URI.parse(textDocument.uri).fsPath, textDocument.getText(), projectParser, false, cancelationObject);
   if (vhdlLinter.parsedSuccessfully || typeof linters.get(textDocument.uri) === 'undefined') {
     linters.set(textDocument.uri, vhdlLinter);
@@ -237,16 +237,16 @@ async function validateTextDocument(textDocument: TextDocument, cancelationObjec
   } else {
     lintersValid.set(textDocument.uri, false);
   }
-  console.log(`parsed for: ${Date.now() - start} ms.`);
-  start = Date.now();
+  // console.log(`parsed for: ${Date.now() - start} ms.`);
+  // start = Date.now();
   try {
     const diagnostics = await vhdlLinter.checkAll();
-    console.log(`checked for: ${Date.now() - start} ms.`);
-    start = Date.now();
+    // console.log(`checked for: ${Date.now() - start} ms.`);
+    // start = Date.now();
     const test = JSON.stringify(diagnostics);
     // console.profileEnd('a');
     connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
-    console.log(`send for: ${Date.now() - start} ms.`);
+    // console.log(`send for: ${Date.now() - start} ms.`);
 
   } catch (err) {
     if (!(err instanceof CancelationError)) {
