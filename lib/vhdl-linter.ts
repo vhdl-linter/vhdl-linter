@@ -190,6 +190,7 @@ export class VhdlLinter {
     }
     await this.handleCanceled();
 
+    let start = Date.now();
     //     console.log(packages);
     for (const useClause of this.getUseClauses(this.file)) {
       let found = false;
@@ -223,6 +224,8 @@ export class VhdlLinter {
         }
       }
     }
+    console.log(`elab: useClauses for: ${Date.now() - start} ms.`);
+    start = Date.now();
     await this.handleCanceled();
 
     let otherFileEntity;
@@ -230,40 +233,26 @@ export class VhdlLinter {
       const architectureName = this.file.architecture.entityName.toLowerCase();
       otherFileEntity = this.projectParser.getEntities().find(entity => entity.name.text.toLowerCase() === architectureName);
     }
+    console.log(`elab: otherFileEntity for: ${Date.now() - start} ms.`);
+    start = Date.now();
     await this.handleCanceled();
 
+    const readObjectMap = new Map<String, ObjectBase>();
+    for (const pkg of packages) {
+      for (const constant of pkg.constants) {
+        readObjectMap.set(constant.name.text.toLowerCase(), constant);
+      }
+      for (const subprogram of pkg.subprograms) {
+        readObjectMap.set(subprogram.name.text.toLowerCase(), subprogram);
+      }
+      for (const type of pkg.types) {
+        type.addReadsToMap(readObjectMap);
+      }
+    }
     for (const read of this.file.objectList.filter(object => object instanceof ORead) as ORead[]) {
-      for (const pkg of packages) {
-        for (const constant of pkg.constants) {
-          if (constant.name.text.toLowerCase() === read.text.toLowerCase()) {
-            read.definitions.push(constant);
-          }
-        }
-        for (const subprogram of pkg.subprograms) {
-          if (subprogram.name.text.toLowerCase() === read.text.toLowerCase()) {
-            read.definitions.push(subprogram);
-          }
-        }
-        for (const type of pkg.types) {
-          const typeRead = type.findRead(read);
-          if (typeRead !== false) {
-            read.definitions.push(typeRead);
-          }
-          if (type instanceof OEnum) {
-            for (const state of type.literals) {
-              if (state.name.text.toLowerCase() === read.text.toLowerCase()) {
-                read.definitions.push(state);
-
-              }
-            }
-          } else if (type instanceof ORecord) {
-            for (const child of type.children) {
-              if (child.name.text.toLowerCase() === read.text.toLowerCase()) {
-                read.definitions.push(child);
-              }
-            }
-          }
-        }
+      const match = readObjectMap.get(read.text.toLowerCase());
+      if (match) {
+        read.definitions.push(match);
       }
       if (otherFileEntity !== undefined) {
         for (const port of otherFileEntity.ports) {
@@ -275,6 +264,8 @@ export class VhdlLinter {
         }
       }
     }
+    console.log(`elab: reads for: ${Date.now() - start} ms.`);
+    start = Date.now();
     await this.handleCanceled();
 
     for (const instantiation of this.file.objectList.filter(object => object instanceof OInstantiation) as OInstantiation[]) {
@@ -295,6 +286,8 @@ export class VhdlLinter {
           break;
       }
     }
+    console.log(`elab: instantiations for: ${Date.now() - start} ms.`);
+    start = Date.now();
     await this.handleCanceled();
 
     if (this.file.architecture !== undefined) {
@@ -310,153 +303,145 @@ export class VhdlLinter {
         }
       }
     }
+    console.log(`elab: components for: ${Date.now() - start} ms.`);
+    start = Date.now();
     await this.handleCanceled();
 
-    for (const obj of this.file.objectList) {
-      if (obj instanceof OAssociation) {
-        if (obj.parent instanceof OGenericAssociationList || obj.parent instanceof OPortAssociationList) {
-          if (!(obj.parent.parent instanceof OInstantiation)) {
+    for (const association of this.file.objectList.filter(obj => obj instanceof OAssociation) as OAssociation[]) {
+        if (association.parent instanceof OGenericAssociationList || association.parent instanceof OPortAssociationList) {
+          if (!(association.parent.parent instanceof OInstantiation)) {
             continue;
           }
-          let definitions: (OComponent | OEntity | OSubprogram)[];
-          switch (obj.parent.parent.type) {
-            case 'component':
-              definitions = this.getComponents(obj.parent.parent);
-              break;
-            case 'entity':
-              definitions = this.getEntities(obj.parent.parent);
-              break;
-            case 'subprogram':
-            case 'subprogram-call':
-              definitions = this.getSubprograms(obj.parent.parent);
-              break;
-          }
-          if (definitions.length === 0) {
-            continue;
-          }
+          let definitions = association.parent.parent.definitions;
 
-          let interfaceElements: (OPort | OGeneric)[] = [];
-          interfaceElements.push(...definitions.flatMap(definition => {
+          let possibleFormals: (OPort | OGeneric)[] = [];
+          possibleFormals.push(...definitions.flatMap(definition => {
             let elements: (OPort | OGeneric)[] = [];
-            if (obj.parent instanceof OPortAssociationList) {
+            if (association.parent instanceof OPortAssociationList) {
               elements = definition.ports;
             } else if (definition instanceof OComponent || definition instanceof OEntity) {
               elements = definition.generics;
             }
             return elements.filter((port, portNumber) => {
-              const formalMatch = obj.formalPart.find(name => name.text.toLowerCase() === port.name.text.toLowerCase());
+              const formalMatch = association.formalPart.find(name => name.text.toLowerCase() === port.name.text.toLowerCase());
               if (formalMatch) {
                 return true;
               }
-              return obj.formalPart.length === 0 && portNumber === obj.parent.children.findIndex(o => o === obj);
+              return association.formalPart.length === 0 && portNumber === association.parent.children.findIndex(o => o === association);
             });
           }));
 
-          if (interfaceElements.length === 0) {
+          if (possibleFormals.length === 0) {
             continue;
           }
-          obj.definitions.push(...interfaceElements);
-          for (const formalPart of obj.formalPart) {
-            formalPart.definitions.push(...interfaceElements);
+          association.definitions.push(...possibleFormals);
+          for (const formalPart of association.formalPart) {
+            formalPart.definitions.push(...possibleFormals);
           }
-          for (const portOrGeneric of interfaceElements) {
-            if (portOrGeneric instanceof OPort) {
-              if (portOrGeneric.direction === 'in') {
-                for (const mapping of obj.actualIfOutput.flat()) {
-                  const index = this.file.objectList.indexOf(mapping);
-                  this.file.objectList.splice(index, 1);
-                  for (const mentionable of this.file.objectList) {
-                    if (implementsIMentionable(mentionable)) {
-                      for (const [index, mention] of mentionable.references.entries()) {
-                        if (mention === mapping) {
-                          mentionable.references.splice(index, 1);
-                        }
-                      }
-                    }
-                  }
+          for (const possibleFormal of possibleFormals) {
+            this.elaborateAssociationMentionables(possibleFormal, association);
+          }
+        }
+    }
+    console.log(`elab: associations for: ${Date.now() - start} ms.`);
+    start = Date.now();
+    await this.handleCanceled();
+
+  }
+
+  elaborateAssociationMentionables(possibleFormal: OPort|OGeneric, association: OAssociation) {
+    if (possibleFormal instanceof OPort) {
+      if (possibleFormal.direction === 'in') {
+        for (const mapping of association.actualIfOutput.flat()) {
+          const index = this.file.objectList.indexOf(mapping);
+          this.file.objectList.splice(index, 1);
+          for (const mentionable of this.file.objectList) {
+            if (implementsIMentionable(mentionable)) {
+              for (const [index, mention] of mentionable.references.entries()) {
+                if (mention === mapping) {
+                  mentionable.references.splice(index, 1);
                 }
-                obj.actualIfOutput = [[], []];
-                for (const mapping of obj.actualIfInoutput.flat()) {
-                  const index = this.file.objectList.indexOf(mapping);
-                  this.file.objectList.splice(index, 1);
-                  for (const mentionable of this.file.objectList) {
-                    if (implementsIMentionable(mentionable)) {
-                      for (const [index, mention] of mentionable.references.entries()) {
-                        if (mention === mapping) {
-                          mentionable.references.splice(index, 1);
-                        }
-                      }
-                    }
-                  }
-                }
-                obj.actualIfInoutput = [[], []];
-              } else if (portOrGeneric.direction === 'out') {
-                for (const mapping of obj.actualIfInput) {
-                  const index = this.file.objectList.indexOf(mapping);
-                  this.file.objectList.splice(index, 1);
-                  for (const mentionable of this.file.objectList) {
-                    if (implementsIMentionable(mentionable)) {
-                      for (const [index, mention] of mentionable.references.entries()) {
-                        if (mention === mapping) {
-                          mentionable.references.splice(index, 1);
-                        }
-                      }
-                    }
-                  }
-                }
-                obj.actualIfInput = [];
-                for (const mapping of obj.actualIfInoutput.flat()) {
-                  const index = this.file.objectList.indexOf(mapping);
-                  this.file.objectList.splice(index, 1);
-                  for (const mentionable of this.file.objectList) {
-                    if (implementsIMentionable(mentionable)) {
-                      for (const [index, mention] of mentionable.references.entries()) {
-                        if (mention === mapping) {
-                          mentionable.references.splice(index, 1);
-                        }
-                      }
-                    }
-                  }
-                }
-                obj.actualIfInoutput = [[], []];
-              } else if (portOrGeneric.direction === 'inout') {
-                for (const mapping of obj.actualIfInput) {
-                  const index = this.file.objectList.indexOf(mapping);
-                  this.file.objectList.splice(index, 1);
-                  for (const mentionable of this.file.objectList) {
-                    if (implementsIMentionable(mentionable)) {
-                      for (const [index, mention] of mentionable.references.entries()) {
-                        if (mention === mapping) {
-                          mentionable.references.splice(index, 1);
-                        }
-                      }
-                    }
-                  }
-                }
-                obj.actualIfInput = [];
-                for (const mapping of obj.actualIfOutput.flat()) {
-                  const index = this.file.objectList.indexOf(mapping);
-                  this.file.objectList.splice(index, 1);
-                  for (const mentionable of this.file.objectList) {
-                    if (implementsIMentionable(mentionable)) {
-                      for (const [index, mention] of mentionable.references.entries()) {
-                        if (mention === mapping) {
-                          mentionable.references.splice(index, 1);
-                        }
-                      }
-                    }
-                  }
-                }
-                obj.actualIfOutput = [[], []];
               }
             }
           }
         }
+        association.actualIfOutput = [[], []];
+        for (const mapping of association.actualIfInoutput.flat()) {
+          const index = this.file.objectList.indexOf(mapping);
+          this.file.objectList.splice(index, 1);
+          for (const mentionable of this.file.objectList) {
+            if (implementsIMentionable(mentionable)) {
+              for (const [index, mention] of mentionable.references.entries()) {
+                if (mention === mapping) {
+                  mentionable.references.splice(index, 1);
+                }
+              }
+            }
+          }
+        }
+        association.actualIfInoutput = [[], []];
+      } else if (possibleFormal.direction === 'out') {
+        for (const mapping of association.actualIfInput) {
+          const index = this.file.objectList.indexOf(mapping);
+          this.file.objectList.splice(index, 1);
+          for (const mentionable of this.file.objectList) {
+            if (implementsIMentionable(mentionable)) {
+              for (const [index, mention] of mentionable.references.entries()) {
+                if (mention === mapping) {
+                  mentionable.references.splice(index, 1);
+                }
+              }
+            }
+          }
+        }
+        association.actualIfInput = [];
+        for (const mapping of association.actualIfInoutput.flat()) {
+          const index = this.file.objectList.indexOf(mapping);
+          this.file.objectList.splice(index, 1);
+          for (const mentionable of this.file.objectList) {
+            if (implementsIMentionable(mentionable)) {
+              for (const [index, mention] of mentionable.references.entries()) {
+                if (mention === mapping) {
+                  mentionable.references.splice(index, 1);
+                }
+              }
+            }
+          }
+        }
+        association.actualIfInoutput = [[], []];
+      } else if (possibleFormal.direction === 'inout') {
+        for (const mapping of association.actualIfInput) {
+          const index = this.file.objectList.indexOf(mapping);
+          this.file.objectList.splice(index, 1);
+          for (const mentionable of this.file.objectList) {
+            if (implementsIMentionable(mentionable)) {
+              for (const [index, mention] of mentionable.references.entries()) {
+                if (mention === mapping) {
+                  mentionable.references.splice(index, 1);
+                }
+              }
+            }
+          }
+        }
+        association.actualIfInput = [];
+        for (const mapping of association.actualIfOutput.flat()) {
+          const index = this.file.objectList.indexOf(mapping);
+          this.file.objectList.splice(index, 1);
+          for (const mentionable of this.file.objectList) {
+            if (implementsIMentionable(mentionable)) {
+              for (const [index, mention] of mentionable.references.entries()) {
+                if (mention === mapping) {
+                  mentionable.references.splice(index, 1);
+                }
+              }
+            }
+          }
+        }
+        association.actualIfOutput = [[], []];
       }
     }
-    await this.handleCanceled();
-
   }
+
   // When the definition of an association can not be found avoid errors because actuals can not be cleanly mapped then
   async removeBrokenActuals() {
     for (const association of this.file.objectList.filter(object => object instanceof OAssociation) as OAssociation[]) {
