@@ -17,21 +17,22 @@ export class AssociationListParser extends ParserBase {
     while (this.pos.isValid()) {
       const savedI = this.pos.i;
       // let associationString = this.advancePast(/[,)]/, {returnMatch: true});
-      let [associationString, lastChar] = this.advanceBraceAware([',', ')']);
-      if (associationString.length > 0) {
+      let [associationTokens, lastChar] = this.advanceBraceAwareToken([',', ')']);
+      if (associationTokens.length > 0) {
         let actualStart = savedI;
-        const association = new OAssociation(list, savedI, savedI + associationString.length);
-        if (associationString.includes('=>')) {
-          const [formalString, actualString] = associationString.split(/=>(.*)/s); // match also assotiations like "a_i => (others => s_a)" (https://stackoverflow.com/a/4607799)
-          association.formalPart = this.extractReads(association, formalString, savedI, true);
-          associationString = actualString;
-          actualStart += formalString.length + 2;
+        const association = new OAssociation(list, savedI, savedI + associationTokens.length);
+        const index = associationTokens.findIndex(token => token.text === '=>');
+        if (index > -1) {
+          const formalTokens = associationTokens.slice(0, index);
+          const actualTokens = associationTokens.slice(index + 1);
+          association.formalPart = this.extractReads(association, formalTokens, true);
+          associationTokens = actualTokens;
         }
-        if (associationString.trim().toLowerCase() !== 'open') {
-          association.actualIfInput = this.extractReads(association, associationString, actualStart);
+        if (associationTokens[0].getLText() !== 'open') {
+          association.actualIfInput = this.extractReads(association, associationTokens);
           if (type === 'port') {
-            association.actualIfOutput = this.extractReadsOrWrite(association, associationString, actualStart);
-            association.actualIfInoutput = this.extractReadsOrWrite(association, associationString, actualStart, true);
+            association.actualIfOutput = this.extractReadsOrWrite(association, associationTokens);
+            association.actualIfInoutput = this.extractReadsOrWrite(association, associationTokens, true);
           }
         } else {
           association.actualIfInput = [];
@@ -40,14 +41,14 @@ export class AssociationListParser extends ParserBase {
         }
         list.children.push(association);
       }
-      if (lastChar === ',') {
+      if (lastChar.text === ',') {
         if (this.getToken().getLText() === ')') {
           const range = new OIRange(list, this.pos.i, this.pos.i + 1);
           range.start.character = 0;
 
           throw new ParserError(`Unexpected ',' at end of association list`, range);
         }
-      } else if (lastChar === ')') {
+      } else if (lastChar.text === ')') {
         list.range.end.i = this.pos.i;
         break;
       }

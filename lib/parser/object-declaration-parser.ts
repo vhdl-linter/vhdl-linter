@@ -68,7 +68,7 @@ export class ObjectDeclarationParser extends ParserBase {
       }
 
     }
-    this.advanceSemicolon();
+    this.advanceSemicolonToken();
     if (constant) {
       (this.parent as IHasConstants).constants.push(...objects as OSignal[]);
     } else if (variable) {

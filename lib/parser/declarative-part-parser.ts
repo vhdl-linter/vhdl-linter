@@ -27,7 +27,7 @@ export class DeclarativePartParser extends ParserBase {
         objectDeclarationParser.parse(nextWord);
       } else if (nextWord === 'attribute') {
         this.getNextWord();
-        this.advanceSemicolon(true);
+        this.advanceSemicolonToken(true);
       } else if (nextWord === 'type') {
         const typeParser = new TypeParser(this.pos, this.filePath, this.parent);
         this.parent.types.push(typeParser.parse());
@@ -49,7 +49,7 @@ export class DeclarativePartParser extends ParserBase {
         }
         this.expect('is');
         this.parent.types.push(type);
-        this.advanceSemicolon(true);
+        this.advanceSemicolonToken(true);
       } else if (nextWord === 'component' && implementsIHasComponents(this.parent)) {
         this.getNextWord();
         const componentParser = new ComponentParser(this.pos, this.filePath, this.parent);
@@ -59,9 +59,9 @@ export class DeclarativePartParser extends ParserBase {
         this.parent.subprograms.push(subprogramParser.parse(this.pos.i));
         this.expect(';');
       } else if (nextWord === 'package' || nextWord === 'generic') {
-        this.advanceSemicolon();
+        this.advanceSemicolonToken();
       } else if (nextWord === 'disconnect') {
-        this.advanceSemicolon();
+        this.advanceSemicolonToken();
       } else if (optional) {
         return;
       } else if (nextWord === 'use') {

@@ -135,7 +135,7 @@ export class Parser extends ParserBase {
       this.advanceWhitespace();
       let nextWord = this.getNextWord().toLowerCase();
       if (nextWord === 'context') {
-        if (this.advanceSemicolon(true, { consume: false }).match(/\bis\b/i)) {
+        if (this.advanceSemicolonToken(true, { consume: false }).find(token => token.getLText() === 'is')) {
           const contextParser = new ContextParser(this.pos, this.filePath, this.file);
           this.file.contexts.push(contextParser.parse());
         } else {

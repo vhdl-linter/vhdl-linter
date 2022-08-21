@@ -71,10 +71,10 @@ export class TypeParser extends ParserBase {
         this.advancePast('units');
         type.units = [];
         type.units.push(this.getNextWord());
-        this.advanceSemicolon();
+        this.advanceSemicolonToken();
         while (this.getToken().getLText() !== 'end' || this.getToken(1, true).getLText() !== 'units') {
           type.units.push(this.getNextWord());
-          this.advanceSemicolon();
+          this.advanceSemicolonToken();
         }
         this.expect('end');
         this.expect('units');
@@ -92,7 +92,7 @@ export class TypeParser extends ParserBase {
             child.name = new OName(child, position, position + recordWord.length);
             child.name.text = recordWord;
             (type as ORecord).children.push(child);
-            this.advanceSemicolon();
+            this.advanceSemicolonToken();
             child.range.end.i = this.pos.i;
             position = this.pos.i;
             recordWord = this.getNextWord();
@@ -101,8 +101,8 @@ export class TypeParser extends ParserBase {
           this.maybeWord(type.name.text);
         } else if (nextWord === 'array') {
           const startI = this.pos.i;
-          const [text] = this.advanceBraceAware([';'], true, false);
-          type.reads.push(...this.extractReads(type, text, startI));
+          const [token] = this.advanceBraceAwareToken([';'], true, false);
+          type.reads.push(...this.extractReads(type, token));
         } else if (nextWord === 'protected') {
           this.maybeWord('body');
           new DeclarativePartParser(this.pos, this.filePath, type).parse(false, 'end');

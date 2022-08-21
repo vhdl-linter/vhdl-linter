@@ -25,6 +25,7 @@ export class InstantiationParser extends ParserBase {
         const libraryToken = this.consumeToken();
         this.expect('.');
         instantiation.library = libraryToken.text;
+        nextWord = this.getNextWord()
       } else if (nextWord === 'component') {
         nextWord = this.getNextWord().toLowerCase();
       }

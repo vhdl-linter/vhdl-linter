@@ -22,7 +22,7 @@ export class SubtypeParser extends ParserBase {
     const startISuperType = this.pos.i;
     const superType = this.getNextWord();
     const startIReads = this.pos.i;
-    this.advanceSemicolon(true);
+    this.advanceSemicolonToken(true);
     // const reads = this.extractReads(this.subtype, this.advanceSemicolon(true), startIReads);
     this.subtype.superType = new ORead(this.subtype, startISuperType, startISuperType + superType.length, superType);
     return this.subtype;

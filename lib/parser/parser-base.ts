@@ -43,30 +43,12 @@ export class ParserBase {
   }
   getTypeDefintion(parent: OGeneric | OPort) {
     this.debug('getTypeDefintion');
-    let type = '';
-    let braceLevel = 0;
-    while (this.getToken().getLText().match(/[^);:]/) || braceLevel > 0) {
-      if (this.getToken().text === '(') {
-        braceLevel++;
-      } else if (this.getToken().text === ')') {
-        braceLevel--;
-      }
-      type += this.consumeToken(false);
-
-    }
-    let defaultValue = '';
+    let [type, last] = this.advanceBraceAwareToken([')', ';', ':='], true, false);
     const startI = this.pos.i + 2;
-    if (this.getToken().text === ':') {
+    let defaultValue: OLexerToken[] = [];
+    if (last.getLText() === ':=') {
       this.consumeToken();
-      while (this.getToken().getLText().match(/[^);]/) || braceLevel > 0) {
-
-        if (this.getToken().text === '(') {
-          braceLevel++;
-        } else if (this.getToken().text === ')') {
-          braceLevel--;
-        }
-        defaultValue += this.consumeToken(false);
-      }
+      [defaultValue] = this.advanceBraceAwareToken([')', ';'], true, false);
     }
     this.reverseWhitespace();
     const endI = this.pos.i;
@@ -83,17 +65,16 @@ export class ParserBase {
         });
       }
     }
-    defaultValue = defaultValue.trim();
-    if (defaultValue === '') {
+    if (defaultValue.length > 0) {
       return {
-        type: type.trim(),
+        type: type,
         endI
       };
 
     }
     return {
-      type: type.trim(),
-      defaultValue: this.extractReads(parent, defaultValue, startI),
+      type: type,
+      defaultValue: this.extractReads(parent, defaultValue),
       endI
     };
   }
@@ -111,14 +92,31 @@ export class ParserBase {
     }
     if (offsetIgnoresWhitespaces) {
       let offsetCorrected = 0;
-      for (let i = 0; i < offset; i++) {
-        offsetCorrected += 1;
-        while (this.pos.lexerTokens[this.pos.num + offsetCorrected].isWhitespace()) {
+      if (offset > 0) {
+        for (let i = 0; i < offset; i++) {
           offsetCorrected += 1;
+          while (this.pos.lexerTokens[this.pos.num + offsetCorrected].isWhitespace()) {
+            offsetCorrected += 1;
+          }
         }
+      } else if (offset < 0) {
+        for (let i = 0; i > offset; i--) {
+          offsetCorrected -= 1;
+          while (this.pos.lexerTokens[this.pos.num + offsetCorrected].isWhitespace()) {
+            offsetCorrected -= 1;
+          }
+        }
+      } else if (offset === 0) {
+        return this.pos.lexerTokens[this.pos.num];
+      }
+      if (this.pos.num + offsetCorrected < 0 || this.pos.num + offsetCorrected >= this.pos.lexerTokens.length) {
+        throw new ParserError(`Out of bound`, this.getToken(0).range);
       }
       return this.pos.lexerTokens[this.pos.num + offsetCorrected];
     } else {
+      if (this.pos.num + offset < 0 || this.pos.num + offset >= this.pos.lexerTokens.length) {
+        throw new ParserError(`Out of bound`, this.getToken(0).range);
+      }
       return this.pos.lexerTokens[this.pos.num + offset];
 
     }
@@ -283,13 +281,16 @@ export class ParserBase {
     ];
   }
   advanceSemicolon(braceAware: boolean = false, { consume } = { consume: true }) {
+    return this.advanceSemicolonToken(braceAware, { consume }).map(token => token.text).join('');
+  }
+  advanceSemicolonToken(braceAware: boolean = false, { consume } = { consume: true }) {
     if (consume !== false) {
       consume = true;
     }
     if (braceAware) {
-      return this.advanceBraceAware([';'], consume)[0];
+      return this.advanceBraceAwareToken([';'], consume)[0];
     }
-    return this.advancePast(';', { consume });
+    return this.advancePastToken(';', { consume });
   }
   getNextWord(options: { consume?: boolean } = {}) {
     const token = this.getToken();
@@ -341,10 +342,9 @@ export class ParserBase {
       expected = [expected];
     }
     if (expected.find(exp => exp.toLowerCase() === this.getToken().getLText())) {
-      this.consumeToken(false);
-      const savedI = this.pos.i;
+      let token = this.consumeToken(false);
       this.advanceWhitespace();
-      return savedI;
+      return token.range.end.i;
     } else {
       throw new ParserError(`expected '${expected.join(', ')}' found '${this.getToken().text}' line: ${this.getLine()}`, this.pos.getRangeToEndLine());
     }
@@ -355,12 +355,12 @@ export class ParserBase {
     }
   }
   getType(parent: ObjectBase, advanceSemicolon = true, endWithBrace = false) {
-    let type = '';
+    let type;
     const startI = this.pos.i;
     if (endWithBrace) {
-      [type] = this.advanceBraceAware([';', 'is', ')'], true, false);
+      [type] = this.advanceBraceAwareToken([';', 'is', ')'], true, false);
     } else {
-      [type] = this.advanceBraceAware([';', 'is'], true, false);
+      [type] = this.advanceBraceAwareToken([';', 'is'], true, false);
     }
     // while (this.text[this.pos.i].match(/[^;]/)) {
     //   type += this.text[this.pos.i];
@@ -368,12 +368,14 @@ export class ParserBase {
     // }
     let defaultValueReads;
     let typeReads;
-    if (type.indexOf(':=') > -1) {
-      const split = type.split(':=');
-      defaultValueReads = this.extractReads(parent, split[1].trim(), startI + type.indexOf(':=') + 2);
-      typeReads = this.extractReads(parent, split[0].trim(), startI);
+    const index = type.findIndex(token => token.getLText() === ':=');
+    if (index > -1) {
+      const tokensDefaultValue = type.slice(index + 1);
+      const typeTokens = type.slice(0, index);
+      defaultValueReads = this.extractReads(parent, tokensDefaultValue);
+      typeReads = this.extractReads(parent, typeTokens);
     } else {
-      typeReads = this.extractReads(parent, type, startI);
+      typeReads = this.extractReads(parent, type);
 
     }
     if (advanceSemicolon) {
@@ -385,56 +387,62 @@ export class ParserBase {
       defaultValueReads
     };
   }
-  extractReads(parent: ObjectBase | OAssociation, text: string, i: number, asMappingName?: false): ORead[];
-  extractReads(parent: ObjectBase | OAssociation, text: string, i: number, asMappingName: true): OAssociationFormal[];
-  extractReads(parent: ObjectBase | OAssociation, text: string, i: number, asMappingName: boolean = false): ORead[] | OAssociationFormal[] {
-    return tokenizer.tokenize(text, parent.getRoot().libraries).filter(token => token.type === 'VARIABLE' || token.type === 'FUNCTION' || token.type === 'RECORD_ELEMENT' || token.type === 'FUNCTION_RECORD_ELEMENT').map(token => {
-      let read;
-      if (token.type === 'RECORD_ELEMENT' || token.type === 'FUNCTION_RECORD_ELEMENT') {
-        if (token.value.toLowerCase() !== 'all') {
-          read = new OElementRead(parent, i + token.offset, i + token.offset + token.value.length, token.value);
+  extractReads(parent: ObjectBase | OAssociation, tokens: OLexerToken[], asMappingName?: false): ORead[];
+  extractReads(parent: ObjectBase | OAssociation, tokens: OLexerToken[], asMappingName: true): OAssociationFormal[];
+  extractReads(parent: ObjectBase | OAssociation, tokens: OLexerToken[], asMappingName: boolean = false): (ORead | OAssociationFormal)[] {
+    tokens = tokens.filter(token => token.isWhitespace() === false && token.type !== 'keyword');
+    const reads = [];
+    for (let i = 0; i < tokens.length; i++) {
+      let token = tokens[i];
+      if (token.type === 'BASIC_IDENTIFIER' || token.type === 'EXTENDED_IDENTIFIER') {
+        if (tokens[i - 1]?.text === '\'') { // Attribute skipped for now
+          continue;
+        } else if (tokens[i - 1]?.text === '.') {
+          if (token.text.toLowerCase() !== 'all') {
+            reads.push(new OElementRead(parent, token.range.start.i, token.range.end.i, token.text));
+          }
+        } else {
+          if (asMappingName && !(parent instanceof OAssociation)) {
+            throw new Error();
+          }
+          reads.push(asMappingName
+            ? new OAssociationFormal((parent as OAssociation), token.range.start.i, token.range.end.i, token.text)
+            : new ORead(parent, token.range.start.i, token.range.end.i, token.text));
         }
-      } else {
-        if (asMappingName && !(parent instanceof OAssociation)) {
-          throw new Error();
-        }
-        read = asMappingName
-          ? new OAssociationFormal((parent as OAssociation), i + token.offset, i + token.offset + token.value.length, token.value)
-          : new ORead(parent, i + token.offset, i + token.offset + token.value.length, token.value);
       }
-      return read;
-    }).filter(a => a) as any;
+    }
+    return reads;
   }
-  extractReadsOrWrite(parent: ObjectBase, text: string, i: number, readAndWrite = false): [ORead[], OWrite[]] {
+  extractReadsOrWrite(parent: ObjectBase, tokens: OLexerToken[], readAndWrite = false): [ORead[], OWrite[]] {
     const reads: ORead[] = [];
     const writes: OWrite[] = [];
     let braceLevel = 0;
-    const tokens = tokenizer.tokenize(text, parent.getRoot().libraries);
-    let index = 0;
-    for (const token of tokens) {
+    tokens = tokens.filter(token => token.isWhitespace() === false && token.type !== 'keyword');
+
+    for (let i = 0; i < tokens.length; i++) {
+      const token = tokens[i];
       // console.log(index, token);
-      if (token.type === 'BRACE' && index > 0) {
-        token.value === '(' ? braceLevel++ : braceLevel--;
-      } else if (token.type === 'VARIABLE' || token.type === 'FUNCTION' || token.type === 'RECORD_ELEMENT' || token.type === 'FUNCTION_RECORD_ELEMENT') {
-        if (braceLevel === 0 && !(token.type === 'RECORD_ELEMENT' || token.type === 'FUNCTION_RECORD_ELEMENT')) {
-          const write = new OWrite(parent, i + token.offset, i + token.offset + token.value.length, token.value);
+      const recordToken = tokens[i - 1]?.text === '.';
+      if ((token.text === '(' || token.text === ')')) {
+        token.text === '(' ? braceLevel++ : braceLevel--;
+      } else if (token.type === 'BASIC_IDENTIFIER' || token.type === 'EXTENDED_IDENTIFIER') {
+
+        if (braceLevel === 0 && recordToken === false) {
+          const write = new OWrite(parent, token.range.start.i, token.range.end.i, token.text);
           writes.push(write);
           if (readAndWrite) {
-            const read = new ORead(parent, i + token.offset, i + token.offset + token.value.length, token.value);
+            const read = new ORead(parent, token.range.start.i, token.range.end.i, token.text);
             reads.push(read);
           }
         } else {
           let read;
-          if (token.type === 'RECORD_ELEMENT' || token.type === 'FUNCTION_RECORD_ELEMENT') {
-            read = new OElementRead(parent, i + token.offset, i + token.offset + token.value.length, token.value);
+          if (recordToken) {
+            read = new OElementRead(parent, token.range.start.i, token.range.end.i, token.text);
           } else {
-            read = new ORead(parent, i + token.offset, i + token.offset + token.value.length, token.value);
+            read = new ORead(parent, token.range.start.i, token.range.end.i, token.text);
           }
           reads.push(read);
         }
-      }
-      if (token.type !== 'WHITESPACE') {
-        index++;
       }
     }
     return [reads, writes];

@@ -84,7 +84,7 @@ export class InterfaceListParser extends ParserBase {
         const iBeforeType = this.pos.i;
         const { type, defaultValue, endI } = this.getTypeDefintion(port);
         port.range.end.i = endI;
-        port.type = this.extractReads(port, type, iBeforeType);
+        port.type = this.extractReads(port, type);
 
         port.defaultValue = defaultValue;
         for (const interface_ of multiInterface) {

@@ -21,7 +21,7 @@ export class OLexerToken {
 }
 export const GRAPHIC_CHARACTER = String.raw`[a-z0-9 "#&'()*+,-./:;<£¤¥¦§ ̈©ª«¬- ® ̄°±=>_|!$%?@\[\\\]\^\`{}~¡¢²³ ́μ¶· ̧¹º»¼½¾¿×÷]`;
 export class Lexer {
-  readonly operators = [
+  readonly keywords = [
     ['abs', 'not'],
     ['mod'],
     ['sll', 'srl', 'sla', 'sra', 'rol', 'ror'],
@@ -29,17 +29,18 @@ export class Lexer {
     ['downto', 'to', 'others', 'when', 'else', 'range', 'elsif', 'after', 'transport', 'reject', 'inertial', 'all'],
     ['of', 'new', 'force', 'release'],
     ['severity']
-  ];
+  ].flat().map(keyword => new RegExp('^' + keyword + '\\b', 'i'));
   tokenTypes = [
     { regex: /^--.*/, tokenType: 'COMMENT' },
+    { regex: /^\s+/i, tokenType: 'WHITESPACE' },
+    { regex: /^[0-9]+#[0-9a-z][0-9_a-z]*(?:\.[0-9a-z][0-9_a-z]+)?#(?:e[+-]?[0-9_]+)?/i, tokenType: 'DECIMAL_LITERAL' },
+    { regex: /^[0-9_]+(?:\.[0-9_]+)?(?:e[+-]?[0-9_]+)?/i, tokenType: 'DECIMAL_LITERAL' },
     { regex: /^[a-z][a-z0-9_]*/i, tokenType: 'BASIC_IDENTIFIER' },
     { regex: /^\\.*?[^\\]\\(?!\\)/i, tokenType: 'EXTENDED_IDENTIFIER' },
-    { regex: /^[0-9_]+(?:\.[0-9_]+)?(?:e[+-]?[0-9_]+)?/i, tokenType: 'DECIMAL_LITERAL' },
     // BASED LITERAL
     { regex: /^'.'/, tokenType: 'CHARACTER_LITERAL' },
     { regex: /^".*?[^"]"(?!")/i, tokenType: 'STRING_LITERAL' },
     { regex: /^[0-9]*(?:B|O|X|UB|UO|UX|SB|SO|SX|D)"[^"]+"/i, tokenType: 'BIT_STRING_LITERAL' },
-    { regex: /^\s+/i, tokenType: 'WHITESPACE' },
     {
       regex: /^=>|\*\*|:=|\/=>=|<=|<>|\?\?|\?=|\?\/=|\?<|\?<=|\?>|\?>=|<<|>>|&|'|\(|\)|\*|\+|,|-|.|\/|:|;|<|=|>|`|\||\[|\]|\?|@/,
       tokenType: 'DELIMITER'
@@ -70,9 +71,9 @@ export class Lexer {
     let foundToken;
     let offset = 0;
     let lastOffset = -1;
-    let text = this.text;
+    let text = this.text.toLowerCase();
     let iterationCount = 0;
-    do {
+    loop: do {
       // if (iterationCount++ > 10000) {
       //   throw new ParserError('Lexer infinite loop2!', new OIRange(this.file, offset, offset));
       // }
@@ -81,6 +82,20 @@ export class Lexer {
       }
       lastOffset = offset;
       foundToken = false;
+      for (const operator of this.keywords) {
+        const match = text.match(operator);
+        if (match) {
+          const token = new OLexerToken(match[0],
+            new OIRange(this.file, offset, offset + match[0].length), 'KEYWORD');
+
+          tokens.push(token);
+          text = text.substring(match[0].length);
+          offset += match[0].length;
+          foundToken = true;
+
+          continue loop;
+        }
+      }
       for (const tokenType of this.tokenTypes) {
         let match = text.match(tokenType.regex);
         if (match) {
@@ -91,7 +106,7 @@ export class Lexer {
           text = text.substring(match[0].length);
           offset += match[0].length;
           foundToken = true;
-          break;
+          continue loop;
         }
       }
       if (!foundToken) {

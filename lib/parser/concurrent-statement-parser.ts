@@ -57,9 +57,8 @@ export class ConcurrentStatementParser extends ParserBase {
       const startI = this.pos.i;
       let constantName = this.advancePast('in');
 
-      const rangeI = this.pos.i;
-      const rangeText = this.advancePast('generate').trim();
-      const constantRange = this.extractReads(this.parent, rangeText, rangeI);
+      const rangeToken = this.advancePastToken('generate');
+      const constantRange = this.extractReads(this.parent, rangeToken);
       const subarchitecture = new ArchitectureParser(this.pos, this.filePath, (this.parent as OArchitecture), label);
       const generate: OForGenerate = subarchitecture.parse(true, 'generate', { constantName, constantRange, startPosI: startI });
       generate.range.start.i = savedI;
@@ -74,16 +73,16 @@ export class ConcurrentStatementParser extends ParserBase {
       const caseGenerate = new OCaseGenerate(this.parent, this.pos.i, this.pos.i);
       this.getNextWord();
       const caseI = this.pos.i;
-      const caseCondition = this.advancePast('generate');
-      caseGenerate.signal.push(...this.extractReads(caseGenerate, caseCondition, caseI));
+      const caseConditionToken = this.advancePastToken('generate');
+      caseGenerate.signal.push(...this.extractReads(caseGenerate, caseConditionToken));
       let nextWord = this.getNextWord({ consume: false });
       while (nextWord.toLowerCase() === 'when') {
         this.expect('when');
         const whenI = this.pos.i;
-        const whenCondition = this.advancePast('=>');
+        const whenConditionToken = this.advancePastToken('=>');
         const subarchitecture = new ArchitectureParser(this.pos, this.filePath, caseGenerate, label);
         const whenGenerateClause = subarchitecture.parse(true, 'when-generate');
-        whenGenerateClause.condition.push(...this.extractReads(whenGenerateClause, whenCondition, whenI));
+        whenGenerateClause.condition.push(...this.extractReads(whenGenerateClause, whenConditionToken));
         whenGenerateClause.range.start.i = whenI;
         nextWord = this.getNextWord({ consume: false });
       }
@@ -92,7 +91,7 @@ export class ConcurrentStatementParser extends ParserBase {
       if (label) {
         this.maybeWord(label);
       }
-      this.advanceSemicolon();
+      this.advanceSemicolonToken();
       this.reverseWhitespace();
       caseGenerate.range.end.i = this.pos.i;
       this.advanceWhitespace();
@@ -100,17 +99,17 @@ export class ConcurrentStatementParser extends ParserBase {
       const ifGenerate = new OIfGenerate(this.parent, this.pos.i, this.pos.i);
       this.getNextWord();
       let conditionI = this.pos.i;
-      let condition = this.advancePast('generate');
+      let conditionTokens = this.advancePastToken('generate');
       this.debug('parse if generate ' + label);
       const subarchitecture = new ArchitectureParser(this.pos, this.filePath, ifGenerate, label);
       const ifGenerateClause = subarchitecture.parse(true, 'generate');
       ifGenerateClause.range.start.i = savedI;
       if (ifGenerateClause.conditions) {
-        ifGenerateClause.conditions = [condition].concat(ifGenerateClause.conditions);
-        ifGenerateClause.conditionReads = this.extractReads(ifGenerateClause, condition, conditionI).concat(ifGenerateClause.conditionReads);
+        ifGenerateClause.conditions = conditionTokens.concat(ifGenerateClause.conditions);
+        ifGenerateClause.conditionReads = this.extractReads(ifGenerateClause, conditionTokens).concat(ifGenerateClause.conditionReads);
       } else {
-        ifGenerateClause.conditions = [condition];
-        ifGenerateClause.conditionReads = this.extractReads(ifGenerateClause, condition, conditionI);
+        ifGenerateClause.conditions = conditionTokens;
+        ifGenerateClause.conditionReads = this.extractReads(ifGenerateClause, conditionTokens);
       }
       ifGenerate.ifGenerates.push(ifGenerateClause);
       (this.parent as OArchitecture).statements.push(ifGenerate);
@@ -129,17 +128,17 @@ export class ConcurrentStatementParser extends ParserBase {
       previousArchitecture.range.end.character = 999;
 
       let conditionI = this.pos.i;
-      let condition = this.advancePast('generate');
+      let condition = this.advancePastToken('generate');
       this.debug('parse elsif generate ' + label);
       const subarchitecture = new ArchitectureParser(this.pos, this.filePath, this.parent.parent, label);
       const ifGenerateObject = subarchitecture.parse(true, 'generate');
       ifGenerateObject.range.start.i = savedI;
       if (ifGenerateObject.conditions) {
-        ifGenerateObject.conditions = [condition].concat(ifGenerateObject.conditions);
-        ifGenerateObject.conditionReads = this.extractReads(ifGenerateObject, condition, conditionI).concat(ifGenerateObject.conditionReads);
+        ifGenerateObject.conditions = condition.concat(ifGenerateObject.conditions);
+        ifGenerateObject.conditionReads = this.extractReads(ifGenerateObject, condition).concat(ifGenerateObject.conditionReads);
       } else {
-        ifGenerateObject.conditions = [condition];
-        ifGenerateObject.conditionReads = this.extractReads(ifGenerateObject, condition, conditionI);
+        ifGenerateObject.conditions = condition;
+        ifGenerateObject.conditionReads = this.extractReads(ifGenerateObject, condition);
       }
       this.parent.parent.ifGenerates.push(ifGenerateObject);
       return true;

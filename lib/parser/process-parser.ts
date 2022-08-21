@@ -15,9 +15,8 @@ export class ProcessParser extends ParserBase {
     process.label = label;
     if (this.getToken().getLText() === '(') {
       this.expect('(');
-      const sensitivityListI = this.pos.i;
-      const sensitivityListText = this.advanceBrace();
-      process.sensitivityList.push(...this.extractReads(process, sensitivityListText, sensitivityListI));
+      const sensitivityListTokens = this.advanceBraceToken();
+      process.sensitivityList.push(...this.extractReads(process, sensitivityListTokens));
     }
     this.maybeWord('is');
     new DeclarativePartParser(this.pos, this.filePath, process).parse();
@@ -35,19 +34,19 @@ export class ProcessParser extends ParserBase {
     const resetRegex = /^(?![\s\S]*and|or)[\s\S]*(?:res|rst)[\s\S]*$/i;
     for (const statement of process.statements.filter(s => s instanceof OIf) as OIf[]) {
       for (const clause of statement.clauses) {
-        if (clause.condition.match(/rising_edge|falling_edge/i)) {
+        if (clause.condition.find(token => token.getLText() === 'rising_edge' || token.getLText() === 'falling_edge')) {
           process.registerProcess = true;
           // find synchronous resets
           for (const subStatement of clause.statements.filter(s => s instanceof OIf) as OIf[]) {
             for (const subClause of subStatement.clauses) {
-              if (subClause.condition.match(resetRegex)) {
+              if (subClause.condition.map(a => a.text).join('').match(resetRegex)) { // TODO: Fix
                 process.resetClause = subClause;
               }
             }
           }
         }
         // find asynchronous resets
-        if (clause.condition.match(resetRegex)) {
+        if (clause.condition.map(a => a.text).join('').match(resetRegex)) {
           process.resetClause = clause;
         }
       }

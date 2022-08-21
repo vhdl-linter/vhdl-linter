@@ -1,5 +1,6 @@
 import { Position, Range, TextEdit } from 'vscode-languageserver';
 import { config } from './config';
+import { OLexerToken } from '../lexer';
 
 export class OI implements Position {
   private i_: number;
@@ -399,7 +400,7 @@ export class OIfGenerate extends ObjectBase {
   elseGenerate: OElseGenerateClause;
 }
 export class OIfGenerateClause extends OArchitecture {
-  conditions: string[] = [];
+  conditions: OLexerToken[] = [];
   conditionReads: ORead[] = [];
   public parent: OIfGenerate;
 }
@@ -638,7 +639,7 @@ export class OHasSequentialStatements extends ObjectBase implements IHasInstanti
 export class OElseClause extends OHasSequentialStatements {
 }
 export class OIfClause extends OHasSequentialStatements implements IHasInstantiations {
-  condition: string;
+  condition: OLexerToken[];
   conditionReads: ORead[] = [];
 }
 export class OCase extends ObjectBase {

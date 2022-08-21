@@ -14,16 +14,17 @@ export class AssignmentParser extends ParserBase {
     const leftHandSideI = this.pos.i;
     let leftHandSide = '';
     this.findToken(['<=', ':=']);
+    const leftHandSideTokens = [];
     while (leftHandSideNum < this.pos.num) {
-      leftHandSide += this.pos.lexerTokens[leftHandSideNum].text;
+      leftHandSideTokens.push(this.pos.lexerTokens[leftHandSideNum]);
       leftHandSideNum++;
     }
-    [assignment.reads, assignment.writes] = this.extractReadsOrWrite(assignment, leftHandSide, leftHandSideI);
+    [assignment.reads, assignment.writes] = this.extractReadsOrWrite(assignment, leftHandSideTokens);
     this.consumeToken();
     let rightHandSideNum = this.pos.num;
     let rightHandSideI = this.pos.i;
-    const rightHandSide = this.advanceSemicolon();
-    assignment.reads.push(...this.extractReads(assignment, rightHandSide, rightHandSideI));
+    const rightHandSide = this.advanceSemicolonToken();
+    assignment.reads.push(...this.extractReads(assignment, rightHandSide));
     assignment.range.end.i = this.pos.i;
     this.debug('parse end');
     return assignment;

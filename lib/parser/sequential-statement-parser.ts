@@ -3,6 +3,7 @@ import { AssociationListParser } from './association-list-parser';
 import { OArchitecture, OAssertion, OAssignment, ObjectBase, OCase, OConstant, OElseClause, OEntity, OForLoop, OHasSequentialStatements, OI, OIf, OIfClause, OInstantiation, OLoop, OName, OProcess, OReport, OSequentialStatement, OVariable, OWhenClause, OWhileLoop, ParserError, OIRange } from './objects';
 import { ParserBase } from './parser-base';
 import { ParserPosition } from './parser';
+import { OLexerToken } from '../lexer';
 
 export class SequentialStatementParser extends ParserBase {
   constructor(pos: ParserPosition, file: string) {
@@ -27,7 +28,7 @@ export class SequentialStatementParser extends ParserBase {
         this.expect(':');
         nextWord = this.getNextWord({ consume: false });
       }
-      const statementText = this.advanceSemicolon(true, { consume: false });
+      const statementText = this.advanceSemicolonToken(true, { consume: false });
       if (nextWord.toLowerCase() === 'if') {
         statements.push(this.parseIf(parent, label));
       } else if (exitConditions.indexOf(nextWord.toLowerCase()) > -1) {
@@ -75,20 +76,22 @@ export class SequentialStatementParser extends ParserBase {
     return statements;
   }
   // Assignments are detected by := or <= But as <= is comparison also can be part of e.g. procedure call
-  // Solution: Mask everythin in braces. TODO: Port to tokens
-  checkIfIsAssigment(statementText: string) {
-    const regex = /\([^())]+\)/;
-    let match = statementText.match(regex);
-    let repeats = 100;
-    while (match) {
-      statementText = statementText.replace(match[0], ' '.repeat(match[0].length));
-      repeats--;
-      if (repeats === 0) {
-        throw new ParserError('Parser Stuck', this.pos.getRangeToEndLine());
+  checkIfIsAssigment(statementTokens: OLexerToken[]) {
+    let braceLevel = 0;
+    for (const token of statementTokens) {
+      if (token.getLText() === '(') {
+        braceLevel++;
+      } else if (token.getLText() === ')') {
+        if (braceLevel > 0) {
+          braceLevel--;
+        } else {
+          throw new ParserError(`unexpected )`, token.range);
+        }
+      } else if (braceLevel === 0 && (token.getLText() === ':=' || token.getLText() === '<=')) {
+        return true;
       }
-      match = statementText.match(regex);
     }
-    return statementText.match(/:=|<=/);
+    return false;
   }
 
   parseSubprogramCall(parent: OHasSequentialStatements | OIf) {
@@ -115,29 +118,27 @@ export class SequentialStatementParser extends ParserBase {
     this.expect('assert');
     const assertion = new OAssertion(parent, this.pos.i, this.getEndOfLineI());
     assertion.reads = [];
-    let assertionText = this.advanceSemicolon();
+    let assertionTokens = this.advanceSemicolonToken();
     let startI = assertion.range.start.i;
     assertion.range.end.i = this.pos.i;
-    const reportMatch = /\breport\b/.exec(assertionText);
-    if (reportMatch) {
-      assertion.reads.push(...this.extractReads(assertion, assertionText.substring(0, reportMatch.index), startI));
-      assertionText = assertionText.substring(reportMatch.index + reportMatch[0].length);
-      startI += reportMatch.index + reportMatch[0].length;
+    const reportIndex = assertionTokens.findIndex(token => token.getLText() === 'report');
+    if (reportIndex > -1) {
+      assertion.reads.push(...this.extractReads(assertion, assertionTokens.slice(0, reportIndex)));
+      assertionTokens = assertionTokens.slice(reportIndex + 1);
     }
-    const severityMatch = /\bseverity\b/.exec(assertionText);
-    if (severityMatch) {
-      assertion.reads.push(...this.extractReads(assertion, assertionText.substring(0, severityMatch.index), startI));
-      assertionText = assertionText.substring(severityMatch.index + severityMatch[0].length);
-      startI += severityMatch.index + severityMatch[0].length;
+    const severityIndex = assertionTokens.findIndex(token => token.getLText() === 'severity');
+    if (severityIndex) {
+      assertion.reads.push(...this.extractReads(assertion, assertionTokens.slice(0, severityIndex)));
+      assertionTokens = assertionTokens.slice(severityIndex + 1);
     }
-    assertion.reads.push(...this.extractReads(assertion, assertionText, startI));
+    assertion.reads.push(...this.extractReads(assertion, assertionTokens));
     return assertion;
   }
   parseReport(parent: OHasSequentialStatements | OIf): OReport {
     this.expect('report');
     let report = new OReport(parent, this.pos.i, this.getEndOfLineI());
-    const text = this.advanceSemicolon();
-    report.reads = this.extractReads(report, text, report.range.start.i);
+    const text = this.advanceSemicolonToken();
+    report.reads = this.extractReads(report, text);
     report.range.end.i = this.pos.i;
     return report;
   }
@@ -150,16 +151,16 @@ export class SequentialStatementParser extends ParserBase {
     if (nextWord.toLowerCase() === 'on') { // Sensitivity Clause
       this.expect('on');
       let rightHandSideI = this.pos.i;
-      const [rightHandSide] = this.advanceBraceAware(['until', 'for', ';'], true, false);
-      assignment.reads.push(...this.extractReads(assignment, rightHandSide, rightHandSideI));
+      const [rightHandSide] = this.advanceBraceAwareToken(['until', 'for', ';'], true, false);
+      assignment.reads.push(...this.extractReads(assignment, rightHandSide));
       nextWord = this.getNextWord({ consume: false });
     }
 
     if (nextWord.toLowerCase() === 'until') {
       this.expect('until');
       let rightHandSideI = this.pos.i;
-      const [rightHandSide] = this.advanceBraceAware(['for', ';'], true, false);
-      assignment.reads.push(...this.extractReads(assignment, rightHandSide, rightHandSideI));
+      const [rightHandSide] = this.advanceBraceAwareToken(['for', ';'], true, false);
+      assignment.reads.push(...this.extractReads(assignment, rightHandSide));
       nextWord = this.getNextWord({ consume: false });
 
     }
@@ -167,8 +168,8 @@ export class SequentialStatementParser extends ParserBase {
     if (nextWord.toLowerCase() === 'for') {
       this.expect('for');
       let rightHandSideI = this.pos.i;
-      const [rightHandSide] = this.advanceBraceAware([';'], true, false);
-      assignment.reads.push(...this.extractReads(assignment, rightHandSide, rightHandSideI));
+      const [rightHandSide] = this.advanceBraceAwareToken([';'], true, false);
+      assignment.reads.push(...this.extractReads(assignment, rightHandSide));
       nextWord = this.getNextWord({ consume: false });
     }
 
@@ -181,8 +182,8 @@ export class SequentialStatementParser extends ParserBase {
     this.expect('while');
     const startI = this.pos.i;
     const position = this.pos.i;
-    const condition = this.advancePast('loop');
-    whileLoop.conditionReads = this.extractReads(whileLoop, condition, position);
+    const condition = this.advancePastToken('loop');
+    whileLoop.conditionReads = this.extractReads(whileLoop, condition);
     whileLoop.statements = this.parse(whileLoop, ['end']);
     this.expect('end');
     this.expect('loop');
@@ -202,9 +203,8 @@ export class SequentialStatementParser extends ParserBase {
     constant.name.text = variableName;
     forLoop.constants.push(constant);
     this.expect('in');
-    const rangeI = this.pos.i;
-    const rangeText = this.advancePast('loop').trim();
-    forLoop.constantRange = this.extractReads(forLoop, rangeText, rangeI);
+    const rangeToken = this.advancePastToken('loop');
+    forLoop.constantRange = this.extractReads(forLoop, rangeToken);
     forLoop.statements = this.parse(forLoop, ['end']);
     this.expect('end');
     this.expect('loop');
@@ -221,8 +221,8 @@ export class SequentialStatementParser extends ParserBase {
     const clause = new OIfClause(if_, this.pos.i, this.getEndOfLineI());
     this.expect('if');
     const position = this.pos.i;
-    clause.condition = this.advancePast('then');
-    clause.conditionReads = this.extractReads(clause, clause.condition, position);
+    clause.condition = this.advancePastToken('then');
+    clause.conditionReads = this.extractReads(clause, clause.condition);
     clause.statements = this.parse(clause, ['else', 'elsif', 'end']);
     clause.range.setEndBacktraceWhitespace(this.pos.i);
     if_.clauses.push(clause);
@@ -232,8 +232,8 @@ export class SequentialStatementParser extends ParserBase {
 
       this.expect('elsif');
       const position = this.pos.i;
-      clause.condition = this.advancePast('then');
-      clause.conditionReads = this.extractReads(clause, clause.condition, position);
+      clause.condition = this.advancePastToken('then');
+      clause.conditionReads = this.extractReads(clause, clause.condition);
       clause.statements = this.parse(clause, ['else', 'elsif', 'end']);
       clause.range.setEndBacktraceWhitespace(this.pos.i);
       if_.clauses.push(clause);
@@ -259,7 +259,7 @@ export class SequentialStatementParser extends ParserBase {
     this.debug(`parseCase ${label}`);
     const case_ = new OCase(parent, this.pos.i, this.getEndOfLineI());
     const posI = this.pos.i;
-    case_.variable = this.extractReads(case_, this.advancePast('is'), posI);
+    case_.variable = this.extractReads(case_, this.advancePastToken('is'));
     // this.debug(`Apfel`);
 
     let nextWord = this.getNextWord().toLowerCase();
@@ -267,7 +267,7 @@ export class SequentialStatementParser extends ParserBase {
       this.debug(`parseWhen`);
       const whenClause = new OWhenClause(case_, this.pos.i, this.getEndOfLineI());
       const pos = this.pos.i;
-      whenClause.condition = this.extractReads(whenClause, this.advancePast('=>'), pos);
+      whenClause.condition = this.extractReads(whenClause, this.advancePastToken('=>'));
       whenClause.statements = this.parse(whenClause, ['when', 'end']);
       whenClause.range.setEndBacktraceWhitespace(this.pos.i);
       case_.whenClauses.push(whenClause);

@@ -63,7 +63,7 @@ export class VhdlLinter {
         this.messages.push({
           range: Range.create(Position.create(0, 0), Position.create(10, 10)),
           message: `Javascript error while parsing '${e.message}'`
-        })
+        });
         console.error(e);
       }
     }
