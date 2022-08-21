@@ -3,16 +3,18 @@ import { TextEdit } from 'vscode-languageserver';
 import { config } from './config';
 import { OAssociation, OAssociationFormal, ObjectBase, OElementRead, OGeneric, OI, OIRange, OPort, ORead, OWrite, ParserError } from './objects';
 import { tokenizer } from './tokenizer';
+import { ParserPosition } from './parser';
+import { OLexerToken } from '../lexer';
 
 
 export class ParserBase {
-  constructor(protected text: string, protected pos: OI, protected file: string) {
+  constructor(protected pos: ParserPosition, protected filePath: string) {
 
   }
   debug(_message: string) {
     if (config.debug) {
       let pos = this.getPosition();
-      console.log(`${this.constructor.name}: ${_message} at ${pos.line}:${pos.col}, (${this.file})`);
+      console.log(`${this.constructor.name}: ${_message} at ${pos.line}:${pos.col}, (${this.filePath})`);
     }
   }
   debugObject(_object: any) {
@@ -43,38 +45,36 @@ export class ParserBase {
     this.debug('getTypeDefintion');
     let type = '';
     let braceLevel = 0;
-    while (this.text[this.pos.i].match(/[^);:]/) || braceLevel > 0) {
-      type += this.text[this.pos.i];
-      if (this.text[this.pos.i] === '(') {
+    while (this.getToken().getLText().match(/[^);:]/) || braceLevel > 0) {
+      if (this.getToken().text === '(') {
         braceLevel++;
-      } else if (this.text[this.pos.i] === ')') {
+      } else if (this.getToken().text === ')') {
         braceLevel--;
       }
-      this.pos.i++;
+      type += this.consumeToken(false);
+
     }
     let defaultValue = '';
     const startI = this.pos.i + 2;
-    if (this.text[this.pos.i] === ':') {
-      this.pos.i += 2;
-      while (this.text[this.pos.i].match(/[^);]/) || braceLevel > 0) {
+    if (this.getToken().text === ':') {
+      this.consumeToken();
+      while (this.getToken().getLText().match(/[^);]/) || braceLevel > 0) {
 
-        defaultValue += this.text[this.pos.i];
-        if (this.text[this.pos.i] === '(') {
+        if (this.getToken().text === '(') {
           braceLevel++;
-        } else if (this.text[this.pos.i] === ')') {
+        } else if (this.getToken().text === ')') {
           braceLevel--;
         }
-        this.pos.i++;
+        defaultValue += this.consumeToken(false);
       }
     }
     this.reverseWhitespace();
     const endI = this.pos.i;
     this.advanceWhitespace();
-    if (this.text[this.pos.i] === ';') {
+    if (this.getToken().text === ';') {
       const startI = this.pos.i;
-      this.pos.i++;
-      this.advanceWhitespace();
-      if (this.text[this.pos.i] === ')') {
+      this.consumeToken();
+      if (this.getToken().text === ')') {
         const range = new OIRange(parent, startI, startI + 1);
         range.start.character = 0;
         throw new ParserError(`Unexpected ';' at end of port list`, range, {
@@ -103,280 +103,264 @@ export class ParserBase {
     } else {
     }
   }
-  advanceWhitespace() {
-    const match = this.text.substring(this.pos.i).match(/^\s+/);
-    if (match) {
-      this.pos.i += match[0].length;
+  // Offset gives an offset to the current parser position. If offsetIgnoresWhitespaces is set whitespace (and comment) is not counted.
+  // Meaning offset = 2 counts only the next two non-whitespaces tokens
+  getToken(offset: number = 0, offsetIgnoresWhitespaces = false) {
+    if (!this.pos.isValid()) {
+      throw new ParserError(`EOF reached`, this.pos.lexerTokens[this.pos.lexerTokens.length - 1].range);
     }
+    if (offsetIgnoresWhitespaces) {
+      let offsetCorrected = 0;
+      for (let i = 0; i < offset; i++) {
+        offsetCorrected += 1;
+        while (this.pos.lexerTokens[this.pos.num + offsetCorrected].isWhitespace()) {
+          offsetCorrected += 1;
+        }
+      }
+      return this.pos.lexerTokens[this.pos.num + offsetCorrected];
+    } else {
+      return this.pos.lexerTokens[this.pos.num + offset];
+
+    }
+  }
+  consumeToken(advanceWhitespace = true) {
+    const token = this.pos.lexerTokens[this.pos.num];
+    this.pos.num++;
+    if (advanceWhitespace) { // This should not be neccesary anymore, if everything is correctly using tokens
+      this.advanceWhitespace();
+    }
+    return token;
+  }
+  findToken(options: string | string[]) {
+    let start = this.pos.num;
+    if (!Array.isArray(options)) {
+      options = [options];
+    }
+    options = options.map(a => a.toLowerCase());
+    function checkToken(token: OLexerToken) {
+      for (const option of options) {
+        if (token.text.toLowerCase() === option) {
+          return true;
+        }
+      }
+      return false;
+    }
+    while (checkToken(this.pos.lexerTokens[this.pos.num]) === false) {
+      this.pos.num++;
+      if (this.pos.num === this.pos.lexerTokens.length) {
+        throw new ParserError(`stuck searching for ${options.join(', ')}`, this.pos.lexerTokens[start].range);
+      }
+    }
+  }
+  advanceWhitespace() {
+    while (this.pos.isValid() && this.getToken().isWhitespace()) {
+      this.pos.num++;
+    }
+    // const match = this.text.substring(this.pos.i).match(/^\s+/);
+    // if (match) {
+    //   this.pos.i += match[0].length;
+    // }
     // while (this.text[this.pos.i] && this.text[this.pos.i].match(/\s/)) {
     //   this.pos.i++;
     // }
   }
   reverseWhitespace() {
-    while (this.text[this.pos.i - 1] && this.text[this.pos.i - 1].match(/\s/)) {
-      this.pos.i--;
+    while (this.getToken().isWhitespace()) {
+      this.pos.num--;
     }
   }
-  advancePast(search: string | RegExp, options: { allowSemicolon?: boolean, returnMatch?: boolean } = {}) {
+  advancePastToken(search: string, options: { allowSemicolon?: boolean, returnMatch?: boolean, consume?: boolean } = {}) {
     if (typeof options.allowSemicolon === 'undefined') {
       options.allowSemicolon = false;
     }
     if (typeof options.returnMatch === 'undefined') {
       options.returnMatch = false;
     }
-    let text = '';
+    if (typeof options.consume === 'undefined') {
+      options.consume = true;
+    }
+    let tokens = [];
+    search = search.toLowerCase();
     let searchStart = this.pos;
-    if (typeof search === 'string') {
-      while (this.text.substr(this.pos.i, search.length).toLowerCase() !== search.toLowerCase()) {
-        if (!options.allowSemicolon && this.text[this.pos.i] === ';') {
-          throw new ParserError(`could not find ${search} DEBUG-SEMICOLON`, this.pos.getRangeToEndLine());
-        }
-        text += this.text[this.pos.i];
-        this.pos.i++;
-        if (this.pos.i > this.text.length) {
-          throw new ParserError(`could not find ${search}`, searchStart.getRangeToEndLine());
-        }
+
+    while (this.getToken().getLText() !== search) {
+      if (!options.allowSemicolon && this.getToken().getLText() === ';') {
+        throw new ParserError(`could not find ${search} DEBUG-SEMICOLON`, this.pos.getRangeToEndLine());
       }
-      if (options.returnMatch) {
-        text += search;
-      }
-      this.pos.i += search.length;
-    } else {
-      let match = this.text.substr(this.pos.i).match(search);
-      if (match !== null && typeof match.index !== 'undefined') {
-        if (!options.allowSemicolon && this.text.substr(this.pos.i, match.index).indexOf(';') > -1) {
-          throw new ParserError(`could not find ${search} DEBUG-SEMICOLON`, searchStart.getRangeToEndLine());
-        }
-        // text = match[0];
-        if (options.returnMatch) {
-          text = this.text.substr(this.pos.i, match.index + match[0].length);
-        } else {
-          text = this.text.substr(this.pos.i, match.index);
-        }
-        this.pos.i += match.index + match[0].length;
-      } else {
+      tokens.push(this.consumeToken(false));
+      if (this.pos.num >= this.pos.lexerTokens.length) {
         throw new ParserError(`could not find ${search}`, searchStart.getRangeToEndLine());
       }
     }
-    this.advanceWhitespace();
+    if (options.consume) {
+      if (options.returnMatch) {
+        tokens.push(this.consumeToken());
+      } else {
+        this.consumeToken();
+      }
+      this.advanceWhitespace();
+    } else {
+      if (options.returnMatch) {
+        tokens.push(this.getToken());
+      }
+    }
+    return tokens;
+  }
+  advancePast(search: string, options: { allowSemicolon?: boolean, returnMatch?: boolean, consume?: boolean } = {}) {
+    if (typeof options.allowSemicolon === 'undefined') {
+      options.allowSemicolon = false;
+    }
+    if (typeof options.returnMatch === 'undefined') {
+      options.returnMatch = false;
+    }
+    let text = this.advancePastToken(search, options).map(token => token.text).join(' ');
     return text.trim();
   }
-  advanceBrace() {
-    let text = '';
+  advanceBraceToken() {
+    const tokens = [];
     let braceLevel = 0;
     let quote = false;
     const savedI = this.pos;
-    while (this.text.charAt(this.pos.i)) {
-      if (this.text.charAt(this.pos.i) === '"' && this.text.charAt(this.pos.i - 1) !== '"') {
-        quote = !quote;
-      } else if (this.text.charAt(this.pos.i) === '(' && !quote) {
+    while (this.pos.num < this.pos.lexerTokens.length) {
+      if (this.getToken().getLText() === '(' && !quote) {
         braceLevel++;
-      } else if (this.text.charAt(this.pos.i) === ')' && !quote) {
+      } else if (this.getToken().getLText() === ')' && !quote) {
         if (braceLevel > 0) {
           braceLevel--;
         } else {
-          this.pos.i++;
-          this.advanceWhitespace();
-          return text.trim();
+          this.consumeToken();
+          return tokens;
         }
       }
-      text += this.text[this.pos.i];
-      this.pos.i++;
+      tokens.push(this.consumeToken(false));
     }
     throw new ParserError(`could not find closing brace`, savedI.getRangeToEndLine());
   }
-  advanceBraceAware(searchStrings: (string | RegExp)[], consume = true) {
+  advanceBrace() {
+    return this.advanceBraceToken().map(token => token.text).join('');
+  }
+  advanceBraceAwareToken(searchStrings: (string)[], consume = true, consumeLastToken = true): [OLexerToken[], OLexerToken] {
+    searchStrings = searchStrings.map(str => str.toLowerCase());
     const savedI = this.pos;
     let braceLevel = 0;
-    let result = '';
-    while (this.text[this.pos.i]) {
+    const tokens = [];
+    let offset = 0;
+    while (this.pos.isValid()) {
       if (braceLevel === 0) {
         let found;
         for (const searchString of searchStrings) {
-          if (typeof searchString === 'string') {
-            if (searchString.toLowerCase() === this.text.substring(this.pos.i, this.pos.i + searchString.length).toLowerCase()) {
-              found = searchString;
-              break;
-            }
-          } else {
-            const match = this.text.substr(this.pos.i).match(searchString);
-            if (match) {
-              found = match[0];
-              break;
-
-            }
+          if (searchString.toLowerCase() === this.getToken(offset).getLText()) {
+            found = searchString;
+            break;
           }
         }
         if (typeof found !== 'undefined') {
-          const lastString = found;
+          const lastToken = this.getToken(offset);
           if (consume) {
-            this.pos.i += found.length;
-            this.advanceWhitespace();
+            this.pos.num += offset;
+            if (consumeLastToken) {
+              this.consumeToken();
+            }
           }
-          return [result, lastString];
+          return [tokens, lastToken];
         }
       }
-      if (this.text[this.pos.i] === '(') {
+      if (this.getToken(offset).getLText() === '(') {
         braceLevel++;
-      } else if (this.text[this.pos.i] === ')') {
+      } else if (this.getToken(offset).getLText() === ')') {
         braceLevel--;
       }
-      result += this.text[this.pos.i];
-      this.pos.i++;
+      tokens.push(this.getToken(offset));
+      offset++;
     }
     throw new ParserError(`could not find ${searchStrings}`, savedI.getRangeToEndLine());
   }
+  advanceBraceAware(searchStrings: (string)[], consume = true, consumeSearchString = true) {
+    const [tokens, lastToken] = this.advanceBraceAwareToken(searchStrings, consume, consumeSearchString);
+    return [
+      tokens.map(token => token.text).join(''),
+      lastToken.text
+    ];
+  }
   advanceSemicolon(braceAware: boolean = false, { consume } = { consume: true }) {
-    if (braceAware) {
-      let offset = 0;
-      let text = '';
-      let braceLevel = 0;
-      let quote = false;
-      const savedI = this.pos;
-      while (this.pos.i + offset < this.text.length && this.text[this.pos.i + offset]) {
-        const match = /[\\();]|(?<!")(?:"")*"(?!")/.exec(this.text.substring(this.pos.i + offset));
-        if (!match) {
-          throw new ParserError(`could not find closing brace`, savedI.getRangeToEndLine());
-        }
-        if (match[0][0] === '"' && this.text[this.pos.i + offset + match.index - 1] !== '\\') {
-          quote = !quote;
-        } else if (match[0] === '(' && !quote) {
-          braceLevel++;
-        } else if (match[0] === ')' && !quote) {
-          if (braceLevel > 0) {
-            braceLevel--;
-          } else {
-            throw new ParserError(`unexpected ')'`, new OI(this.pos.parent, this.pos.i - text.length).getRangeToEndLine());
-          }
-        } else if (match[0] === ';' && !quote && braceLevel === 0) {
-          text += this.text.substring(this.pos.i + offset, this.pos.i + offset + match.index);
-          offset += match.index + 1;
-          if (consume) {
-            this.pos.i += offset;
-            this.advanceWhitespace();
-          }
-          return text.trim();
-        }
-        text += this.text.substring(this.pos.i + offset, this.pos.i + offset + match.index + match[0].length);
-        offset += match.index + match[0].length;
-      }
-      throw new ParserError(`could not find closing brace`, savedI.getRangeToEndLine());
-    }
-    const match = /;/.exec(this.text.substring(this.pos.i));
-    if (!match) {
-      throw new ParserError(`could not find semicolon`, this.pos.getRangeToEndLine());
-    }
-    const text = this.text.substring(this.pos.i, this.pos.i + match.index);
-    if (consume) {
-      this.pos.i += match.index + 1;
-      this.advanceWhitespace();
-    }
-    return text;
-  }
-  test(re: RegExp) {
-    return re.test(this.text.substring(this.pos.i));
-  }
-  getNextWord(options: { re?: RegExp, consume?: boolean } = {}) {
-    let { re, consume } = options;
-    if (!re) {
-      re = /^\w+/;
-    }
-    if (typeof consume === 'undefined') {
+    if (consume !== false) {
       consume = true;
     }
+    if (braceAware) {
+      return this.advanceBraceAware([';'], consume)[0];
+    }
+    return this.advancePast(';', { consume });
+  }
+  getNextWord(options: { consume?: boolean } = {}) {
+    const token = this.getToken();
+    if (options.consume !== false) {
+      this.pos.num++;
+      this.advanceWhitespace();
+    }
+    return token.text;
+    // let { re, consume } = options;
+    // if (!re) {
+    //   re = /^\w+/;
+    // }
+    // if (typeof consume === 'undefined') {
+    //   consume = true;
+    // }
 
-    if (consume) {
-      let word = '';
-      const match = this.text.substring(this.pos.i).match(re);
-      if (match) {
-        word = match[0];
-        this.pos.i += word.length;
-        this.advanceWhitespace();
-        return word;
-      }
-      throw new ParserError(`did not find ${re}. EOF line: ${this.getLine()}`, this.pos.getRangeToEndLine());
-    }
-    let word = '';
-    let j = 0;
-    while (this.pos.i + j < this.text.length && this.text[this.pos.i + j].match(re)) {
-      word += this.text[this.pos.i + j];
-      j++;
-    }
-    return word;
+    // if (consume) {
+    //   let word = '';
+    //   const match = this.text.substring(this.pos.i).match(re);
+    //   if (match) {
+    //     word = match[0];
+    //     this.pos.i += word.length;
+    //     this.advanceWhitespace();
+    //     return word;
+    //   }
+    //   throw new ParserError(`did not find ${re}. EOF line: ${this.getLine()}`, this.pos.getRangeToEndLine());
+    // }
+    // let word = '';
+    // let j = 0;
+    // while (this.pos.i + j < this.text.length && this.text[this.pos.i + j].match(re)) {
+    //   word += this.text[this.pos.i + j];
+    //   j++;
+    // }
+    // return word;
   }
 
-  getLine(position?: number) {
-    if (!position) {
-      position = this.pos.i;
-    }
-    let line = 1;
-    for (let counter = 0; counter < position; counter++) {
-      if (this.text[counter] === '\n') {
-        line++;
-      }
-    }
-    return line;
+  getLine() {
+    return this.getToken().range.start.line;
   }
-  getEndOfLineI(position?: number) {
-    if (!position) {
-      position = this.pos.i;
-    }
-    while (this.text[position] !== '\n') {
-      position++;
-    }
-    return position - 1;
+  getEndOfLineI() {
+    return this.pos.getRangeToEndLine().end.i;
   }
-  getPosition(position?: number) {
-    if (!position) {
-      position = this.pos.i;
-    }
-    let line = 1;
-    let col = 1;
-    for (let counter = 0; counter < position; counter++) {
-      col++;
-      if (this.text[counter] === '\n') {
-        line++;
-        col = 1;
-      }
-    }
-    return { line, col };
+  getPosition() {
+    const pos = this.getToken().range.start;
+    return { line: pos.line, col: pos.character };
   }
   expect(expected: string | string[]) {
     if (!Array.isArray(expected)) {
       expected = [expected];
     }
-    let savedI: number;
-    const re = new RegExp('^' + expected.map(e => escapeStringRegexp(e)).join('|'), 'i');
-    // console.log(re);
-    const match = re.exec(this.text.substr(this.pos.i));
-    if (match !== null) {
-      this.pos.i += match[0].length;
-      savedI = this.pos.i;
+    if (expected.find(exp => exp.toLowerCase() === this.getToken().getLText())) {
+      this.consumeToken(false);
+      const savedI = this.pos.i;
       this.advanceWhitespace();
+      return savedI;
     } else {
-      throw new ParserError(`expected '${expected.join(', ')}' found '${this.getNextWord({ re: /^\S+/ })}' line: ${this.getLine()}`, this.pos.getRangeToEndLine());
+      throw new ParserError(`expected '${expected.join(', ')}' found '${this.getToken().text}' line: ${this.getLine()}`, this.pos.getRangeToEndLine());
     }
-    return savedI;
   }
   maybeWord(expected: string) {
-    const word = this.text.substr(this.pos.i, expected.length);
-    if (word.toLowerCase() === expected.toLowerCase()) {
-      this.pos.i += word.length;
-      this.advanceWhitespace();
+    if (this.getToken().getLText() === expected.toLowerCase()) {
+      this.consumeToken();
     }
   }
   getType(parent: ObjectBase, advanceSemicolon = true, endWithBrace = false) {
     let type = '';
     const startI = this.pos.i;
     if (endWithBrace) {
-      [type] = this.advanceBraceAware([';', /^\bis\b/, ')'], false);
+      [type] = this.advanceBraceAware([';', 'is', ')'], true, false);
     } else {
-      const match = /;|\bis\b/.exec(this.text.substr(this.pos.i));
-      if (!match) {
-        throw new ParserError(`could not find semicolon`, this.pos.getRangeToEndLine());
-      }
-      type = this.text.substr(this.pos.i, match.index);
-      this.pos.i += match.index;
+      [type] = this.advanceBraceAware([';', 'is'], true, false);
     }
     // while (this.text[this.pos.i].match(/[^;]/)) {
     //   type += this.text[this.pos.i];

@@ -2,18 +2,26 @@ import { AssignmentParser } from './assignment-parser';
 import { AssociationListParser } from './association-list-parser';
 import { OArchitecture, OAssertion, OAssignment, ObjectBase, OCase, OConstant, OElseClause, OEntity, OForLoop, OHasSequentialStatements, OI, OIf, OIfClause, OInstantiation, OLoop, OName, OProcess, OReport, OSequentialStatement, OVariable, OWhenClause, OWhileLoop, ParserError, OIRange } from './objects';
 import { ParserBase } from './parser-base';
+import { ParserPosition } from './parser';
 
 export class SequentialStatementParser extends ParserBase {
-  constructor(text: string, pos: OI, file: string) {
-    super(text, pos, file);
+  constructor(pos: ParserPosition, file: string) {
+    super(pos, file);
     this.debug('start');
+  }
+  isLabel() {
+    let i = 1;
+    while (this.getToken(i).isWhitespace()) {
+      i++;
+    }
+    return this.getToken(i).text === ':';
   }
   parse(parent: OHasSequentialStatements | OIf, exitConditions: string[]): OSequentialStatement[] {
     const statements: OSequentialStatement[] = [];
-    while (this.pos.i < this.text.length) {
+    while (this.pos.isValid()) {
       let nextWord = this.getNextWord({ consume: false });
       let label;
-      if (this.text.substr(this.pos.i + nextWord.length).match(/^\s*:(?!=)/)) {
+      if (this.isLabel()) {
         label = nextWord;
         this.getNextWord(); // consume label
         this.expect(':');
@@ -57,7 +65,7 @@ export class SequentialStatementParser extends ParserBase {
       } else if (nextWord.toLowerCase() === 'while') {
         statements.push(this.parseWhile(parent, label));
       } else if (this.checkIfIsAssigment(statementText)) {
-        const assignmentParser = new AssignmentParser(this.text, this.pos, this.file, parent);
+        const assignmentParser = new AssignmentParser(this.pos, this.filePath, parent);
         statements.push(assignmentParser.parse());
       } else {
         statements.push(this.parseSubprogramCall(parent));
@@ -67,7 +75,7 @@ export class SequentialStatementParser extends ParserBase {
     return statements;
   }
   // Assignments are detected by := or <= But as <= is comparison also can be part of e.g. procedure call
-  // Solution: Mask everythin in braces.
+  // Solution: Mask everythin in braces. TODO: Port to tokens
   checkIfIsAssigment(statementText: string) {
     const regex = /\([^())]+\)/;
     let match = statementText.match(regex);
@@ -88,15 +96,15 @@ export class SequentialStatementParser extends ParserBase {
     subprogramCall.componentName = new OName(subprogramCall, this.pos.i, this.pos.i);
     subprogramCall.componentName.text = this.getNextWord();
     subprogramCall.componentName.range.end.i = subprogramCall.componentName.range.start.i + subprogramCall.componentName.text.length;
-    while (this.text[this.pos.i] === '.') {
+    while (this.getToken().getLText() === '.') {
       this.expect('.');
       subprogramCall.componentName.range.start.i = this.pos.i;
       subprogramCall.componentName.text = this.getNextWord();
       subprogramCall.componentName.range.end.i = subprogramCall.componentName.range.start.i + subprogramCall.componentName.text.length;
 
     }
-    if (this.text[this.pos.i] === '(') {
-      subprogramCall.portAssociationList = new AssociationListParser(this.text, this.pos, this.file, subprogramCall).parse();
+    if (this.getToken().getLText() === '(') {
+      subprogramCall.portAssociationList = new AssociationListParser(this.pos, this.filePath, subprogramCall).parse();
     }
     subprogramCall.range.end.i = this.pos.i;
     this.expect(';');
@@ -142,7 +150,7 @@ export class SequentialStatementParser extends ParserBase {
     if (nextWord.toLowerCase() === 'on') { // Sensitivity Clause
       this.expect('on');
       let rightHandSideI = this.pos.i;
-      const [rightHandSide] = this.advanceBraceAware(['until', 'for', ';'], false);
+      const [rightHandSide] = this.advanceBraceAware(['until', 'for', ';'], true, false);
       assignment.reads.push(...this.extractReads(assignment, rightHandSide, rightHandSideI));
       nextWord = this.getNextWord({ consume: false });
     }
@@ -150,7 +158,7 @@ export class SequentialStatementParser extends ParserBase {
     if (nextWord.toLowerCase() === 'until') {
       this.expect('until');
       let rightHandSideI = this.pos.i;
-      const [rightHandSide] = this.advanceBraceAware(['for', ';'], false);
+      const [rightHandSide] = this.advanceBraceAware(['for', ';'], true, false);
       assignment.reads.push(...this.extractReads(assignment, rightHandSide, rightHandSideI));
       nextWord = this.getNextWord({ consume: false });
 
@@ -159,7 +167,7 @@ export class SequentialStatementParser extends ParserBase {
     if (nextWord.toLowerCase() === 'for') {
       this.expect('for');
       let rightHandSideI = this.pos.i;
-      const [rightHandSide] = this.advanceBraceAware([';'], false);
+      const [rightHandSide] = this.advanceBraceAware([';'], true, false);
       assignment.reads.push(...this.extractReads(assignment, rightHandSide, rightHandSideI));
       nextWord = this.getNextWord({ consume: false });
     }
@@ -189,13 +197,13 @@ export class SequentialStatementParser extends ParserBase {
     this.expect('for');
     const startI = this.pos.i;
     const variableName = this.getNextWord();
-    const constant = new OConstant(forLoop, startI, variableName.length + startI)
+    const constant = new OConstant(forLoop, startI, variableName.length + startI);
     constant.name = new OName(constant, startI, variableName.length + startI);
     constant.name.text = variableName;
     forLoop.constants.push(constant);
     this.expect('in');
     const rangeI = this.pos.i;
-    const rangeText = this.advancePast(/\bloop\b/i).trim();
+    const rangeText = this.advancePast('loop').trim();
     forLoop.constantRange = this.extractReads(forLoop, rangeText, rangeI);
     forLoop.statements = this.parse(forLoop, ['end']);
     this.expect('end');
@@ -251,7 +259,7 @@ export class SequentialStatementParser extends ParserBase {
     this.debug(`parseCase ${label}`);
     const case_ = new OCase(parent, this.pos.i, this.getEndOfLineI());
     const posI = this.pos.i;
-    case_.variable = this.extractReads(case_, this.advancePast(/\bis\b/i), posI);
+    case_.variable = this.extractReads(case_, this.advancePast('is'), posI);
     // this.debug(`Apfel`);
 
     let nextWord = this.getNextWord().toLowerCase();

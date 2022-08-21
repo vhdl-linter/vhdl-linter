@@ -30,10 +30,8 @@ export class VhdlLinter {
   packages: (OPackage | OPackageBody)[] = [];
   constructor(private editorPath: string, public text: string, public projectParser: ProjectParser,
     public onlyEntity: boolean = false, public cancelationObject: CancelationObject = { canceled: false }) {
-    //     console.log('lint');
-    this.parser = new Parser(this.text, this.editorPath, onlyEntity, cancelationObject);
-    //     console.log(`parsing: ${editorPath}`);
     try {
+      this.parser = new Parser(text, this.editorPath, onlyEntity, cancelationObject);
       this.file = this.parser.parse();
       this.parsedSuccessfully = true;
     } catch (e) {
@@ -62,7 +60,11 @@ export class VhdlLinter {
         });
         this.file = new OFile(this.text, this.editorPath, this.text);
       } else {
-        throw e;
+        this.messages.push({
+          range: Range.create(Position.create(0, 0), Position.create(10, 10)),
+          message: `Javascript error while parsing '${e.message}'`
+        })
+        console.error(e);
       }
     }
     //     console.log(`done parsing: ${editorPath}`);

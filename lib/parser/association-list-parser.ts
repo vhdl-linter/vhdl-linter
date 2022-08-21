@@ -1,10 +1,11 @@
 import { OI, OInstantiation, OAssociation, OAssociationFormal, OGenericAssociationList as OGenericAssociationList, OIRange, OPortAssociationList as OPortAssotiationList, ParserError, OPackage } from './objects';
 import { ParserBase } from './parser-base';
+import { ParserPosition } from './parser';
 
 
 export class AssociationListParser extends ParserBase {
-  constructor(text: string, pos: OI, file: string, private parent: OInstantiation|OPackage) {
-    super(text, pos, file);
+  constructor(pos: ParserPosition, file: string, private parent: OInstantiation|OPackage) {
+    super(pos, file);
     this.debug(`start`);
   }
   parse(type: 'port' | 'generic' = 'port') {
@@ -13,7 +14,7 @@ export class AssociationListParser extends ParserBase {
 
     const list = type === 'generic' ? new OGenericAssociationList(this.parent, savedI, this.pos.i) : new OPortAssotiationList(this.parent, savedI, this.pos.i);
 
-    while (this.pos.i < this.text.length) {
+    while (this.pos.isValid()) {
       const savedI = this.pos.i;
       // let associationString = this.advancePast(/[,)]/, {returnMatch: true});
       let [associationString, lastChar] = this.advanceBraceAware([',', ')']);
@@ -40,7 +41,7 @@ export class AssociationListParser extends ParserBase {
         list.children.push(association);
       }
       if (lastChar === ',') {
-        if (this.text[this.pos.i] === ')') {
+        if (this.getToken().getLText() === ')') {
           const range = new OIRange(list, this.pos.i, this.pos.i + 1);
           range.start.character = 0;
 

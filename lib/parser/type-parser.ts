@@ -1,15 +1,28 @@
 import { DeclarativePartParser } from './declarative-part-parser';
 import { OArchitecture, OEntity, OEnum, OI, OName, OPackage, OPackageBody, OProcess, ORecord, ORecordChild, OEnumLiteral, OSubprogram, OType, ParserError } from './objects';
 import { ParserBase } from './parser-base';
+import { ParserPosition } from './parser';
 
 
 export class TypeParser extends ParserBase {
 
-  constructor(text: string, pos: OI, file: string, private parent: OArchitecture | OEntity | OPackage | OPackageBody | OProcess | OSubprogram | OType) {
-    super(text, pos, file);
+  constructor(pos: ParserPosition, file: string, private parent: OArchitecture | OEntity | OPackage | OPackageBody | OProcess | OSubprogram | OType) {
+    super(pos, file);
     this.debug('start');
   }
-
+  // Can this be generalizes somehow?
+  isUnits(): boolean {
+    let i = 0;
+    while (this.pos.num + i < this.pos.lexerTokens.length) {
+      if (this.getToken(i).getLText() === ';') {
+        return false;
+      } else if (this.getToken(i).getLText() === 'units') {
+        return true;
+      }
+      i++;
+    }
+    throw new ParserError(`is Units failes in `, this.getToken(0).range);
+  }
   parse(): OType {
     const type = new OType(this.parent, this.pos.i, this.getEndOfLineI());
     this.getNextWord();
@@ -17,35 +30,31 @@ export class TypeParser extends ParserBase {
     const typeName = this.getNextWord();
     type.name = new OName(type, startTypeName, startTypeName + typeName.length);
     type.name.text = typeName;
-    if (this.text[this.pos.i] === ';') {
+    if (this.getToken().getLText() === ';') {
       this.advancePast(';');
       return type;
     }
     if (this.getNextWord().toLowerCase() === 'is') {
-      if (this.text[this.pos.i] === '(') {
+      if (this.getToken().text === '(') {
         this.expect('(');
         Object.setPrototypeOf(type, OEnum.prototype);
         const enumItems: {text: string, start: number, end: number}[] = [];
-        let quotes = false;
         let i = this.pos.i;
         let lastI = i;
-        while (this.text[i]) {
-          if (this.text[i] === '"' && this.text[i + 1] !== '"') {
-            quotes = !quotes;
+        while (this.pos.isValid()) {
+          if (this.getToken().getLText() === '\'') {
+            this.consumeToken();
           }
-          if (!quotes && this.text[i] === '\'') {
-            i += 2;
-          }
-          if (!quotes && this.text[i] === ',') {
-            enumItems.push({text: this.text.substring(lastI, i).trim(), start: lastI, end: i - 1});
+          if (this.getToken().getLText() === ',') {
+            enumItems.push({text: this.getToken(-1).text, start: lastI, end: i - 1});
             lastI = i + 1;
           }
-          if (!quotes && this.text[i] === ')') {
-            enumItems.push({text: this.text.substring(lastI, i).trim(), start: lastI, end: i + -1});
-            this.pos.i = i + 1;
+          if (this.getToken().getLText() === ')') {
+            enumItems.push({ text: this.getToken(-1).text, start: lastI, end: i + -1});
+            this.consumeToken();
             break;
           }
-          i++;
+          this.consumeToken();
         }
 
         (type as OEnum).literals = enumItems.map(item => {
@@ -58,12 +67,12 @@ export class TypeParser extends ParserBase {
         type.range.end.i = this.pos.i;
         this.advanceWhitespace();
         this.expect(';');
-      } else if (this.test(/^[^;]*units/i)) {
+      } else if (this.isUnits()) {
         this.advancePast('units');
         type.units = [];
         type.units.push(this.getNextWord());
         this.advanceSemicolon();
-        while (!this.test(/^end\s+units/i)) {
+        while (this.getToken().getLText() !== 'end' || this.getToken(1, true).getLText() !== 'units') {
           type.units.push(this.getNextWord());
           this.advanceSemicolon();
         }
@@ -92,16 +101,11 @@ export class TypeParser extends ParserBase {
           this.maybeWord(type.name.text);
         } else if (nextWord === 'array') {
           const startI = this.pos.i;
-          const match = /;/.exec(this.text.substr(this.pos.i));
-          if (!match) {
-            throw new ParserError(`could not find semicolon`, this.pos.getRangeToEndLine());
-          }
-          const text = this.text.substr(this.pos.i, match.index);
-          this.pos.i += match.index;
+          const [text] = this.advanceBraceAware([';'], true, false);
           type.reads.push(...this.extractReads(type, text, startI));
         } else if (nextWord === 'protected') {
           this.maybeWord('body');
-          new DeclarativePartParser(this.text, this.pos, this.file, type).parse(false, 'end');
+          new DeclarativePartParser(this.pos, this.filePath, type).parse(false, 'end');
           this.expect('end');
           this.expect('protected');
           this.maybeWord(type.name.text);
