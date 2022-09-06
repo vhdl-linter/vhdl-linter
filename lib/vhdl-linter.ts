@@ -1280,7 +1280,7 @@ export class VhdlLinter {
     }
     // find project entities
     const projectEntities = this.projectParser.getEntities();
-    if (instantiation instanceof OInstantiation && typeof instantiation.library !== 'undefined') {
+    if (instantiation instanceof OInstantiation && typeof instantiation.library !== 'undefined' && instantiation.library !== 'work') {
       entities.push(...projectEntities.filter(entity => {
         if (entity.library !== undefined) {
           return entity.library.toLowerCase() === instantiation.library?.toLowerCase() ?? '';
