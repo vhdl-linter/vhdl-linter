@@ -70,7 +70,7 @@ export function activate(context: ExtensionContext) {
     editor.edit(editBuilder => {
       const { preferedLogicType } = workspace.getConfiguration('VhdlLinter.style');
       const type = parseInt(length, 10) === 1 ? preferedLogicType : `${preferedLogicType}_vector(${length} - 1 downto 0)`;
-      editBuilder.insert(new Position(args.range.start.line + 1, 0), `  signal ${args.signalName} : ${type};\n`);
+      editBuilder.insert(new Position(args.position.line, 0), `  signal ${args.signalName} : ${type};\n`);
     });
 
   }));

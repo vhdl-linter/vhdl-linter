@@ -5,7 +5,7 @@ import {
 } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { getDocumentSettings, CancelationObject, CancelationError } from './language-server';
-import { IHasDefinitions, IHasInstantiations, implementsIHasInstantiations, implementsIHasSubprograms, implementsIMentionable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, ObjectBase, OCase, OComponent, OConstant, OContext, OEntity, OEnum, OFile, OGeneric, OGenericAssociationList, OHasSequentialStatements, OIf, OInstantiation, OPackage, OPackageBody, OPort, OPortAssociationList, OProcess, ORead, ORecord, OSignal, OSignalBase, OSubprogram, OType, OUseClause, OWhenClause, OWrite, ParserError, OToken, OAssociationList, OIRange, OVariable } from './parser/objects';
+import { IHasDefinitions, IHasInstantiations, implementsIHasInstantiations, implementsIHasSubprograms, implementsIMentionable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, ObjectBase, OCase, OComponent, OConstant, OContext, OEntity, OEnum, OFile, OGeneric, OGenericAssociationList, OHasSequentialStatements, OIf, OInstantiation, OPackage, OPackageBody, OPort, OPortAssociationList, OProcess, ORead, ORecord, OSignal, OSignalBase, OSubprogram, OType, OUseClause, OWhenClause, OWrite, ParserError, OToken, OAssociationList, OIRange, OVariable, OI } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 export enum LinterRules {
@@ -14,7 +14,7 @@ export enum LinterRules {
 export interface IAddSignalCommandArguments {
   textDocumentUri: string;
   signalName: string;
-  range: Range;
+  position: OI;
 }
 export interface IIgnoreLineCommandArguments {
   textDocumentUri: string;
@@ -688,7 +688,7 @@ export class VhdlLinter {
     const code = this.addCodeActionCallback((textDocumentUri: string) => {
       const actions = [];
       if (this.file.architecture !== undefined) {
-        const args: IAddSignalCommandArguments = { textDocumentUri, signalName: write.text, range: this.file.architecture.range };
+        const args: IAddSignalCommandArguments = { textDocumentUri, signalName: write.text, position: this.file.architecture.endOfDeclarativePart ?? this.file.architecture.range.start };
         actions.push(CodeAction.create('add signal to architecture', Command.create('add signal to architecture', 'vhdl-linter:add-signal', args)));
       }
       actions.push(CodeAction.create(
@@ -732,7 +732,7 @@ export class VhdlLinter {
         }
       }
       if (this.file.architecture !== undefined) {
-        const args: IAddSignalCommandArguments = { textDocumentUri, signalName: read.text, range: this.file.architecture.range };
+        const args: IAddSignalCommandArguments = { textDocumentUri, signalName: read.text, position: this.file.architecture.endOfDeclarativePart ?? this.file.architecture.range.start };
         actions.push(CodeAction.create('add signal to architecture', Command.create('add signal to architecture', 'vhdl-linter:add-signal', args)));
       }
       const possibleMatches = this.file.objectList

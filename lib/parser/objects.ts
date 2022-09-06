@@ -292,6 +292,7 @@ export class OArchitecture extends ObjectBase implements IHasSubprograms, IHasCo
   statements: OConcurrentStatements[] = [];
   identifier?: string;
   entityName?: string;
+  endOfDeclarativePart?: OI;
   get processes() {
     return this.statements.filter(s => s instanceof OProcess) as OProcess[];
   }
