@@ -1244,8 +1244,8 @@ export class VhdlLinter {
     if (settings.rules.warnLogicType) {
       for (const port of tree.entity?.ports ?? []) {
         let match;
-        if ((settings.style.preferedLogicType === 'std_logic' && port.type[0].text.match(/^std_ulogic/i))
-          || (settings.style.preferedLogicType === 'std_ulogic' && port.type[0].text.match(/^std_logic/i))) {
+        if ((settings.style.preferedLogicType === 'std_logic' && port.type[0]?.text?.match(/^std_ulogic/i))
+          || (settings.style.preferedLogicType === 'std_ulogic' && port.type[0]?.text?.match(/^std_logic/i))) {
           const code = this.addCodeActionCallback((textDocumentUri: string) => {
             const actions = [];
             const match = port.type[0].text.match(/^std_u?logic/i);
