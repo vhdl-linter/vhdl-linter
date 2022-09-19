@@ -5,7 +5,7 @@ import {
 } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { getDocumentSettings, CancelationObject, CancelationError } from './language-server';
-import { IHasDefinitions, IHasInstantiations, implementsIHasInstantiations, implementsIHasSubprograms, implementsIMentionable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, ObjectBase, OCase, OComponent, OConstant, OContext, OEntity, OEnum, OFile, OGeneric, OGenericAssociationList, OHasSequentialStatements, OIf, OInstantiation, OPackage, OPackageBody, OPort, OPortAssociationList, OProcess, ORead, ORecord, OSignal, OSignalBase, OSubprogram, OType, OUseClause, OWhenClause, OWrite, ParserError, OToken, OAssociationList, OIRange, OVariable, OI } from './parser/objects';
+import { implementsIHasInstantiations, implementsIHasSubprograms, implementsIMentionable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, ObjectBase, OCase, OComponent, OConstant, OContext, OEntity, OEnum, OFile, OGeneric, OGenericAssociationList, OHasSequentialStatements, OIf, OInstantiation, OPackage, OPackageBody, OPort, OPortAssociationList, OProcess, ORead, ORecord, OSignal, OSignalBase, OSubprogram, OType, OUseClause, OWhenClause, OWrite, ParserError, OToken, OAssociationList, OIRange, OVariable, OI, implementsIHasSignals, implementsIHasVariables, implementsIHasConstants, implementsIHasTypes } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 export enum LinterRules {
@@ -308,40 +308,40 @@ export class VhdlLinter {
     await this.handleCanceled();
 
     for (const association of this.file.objectList.filter(obj => obj instanceof OAssociation) as OAssociation[]) {
-        if (association.parent instanceof OGenericAssociationList || association.parent instanceof OPortAssociationList) {
-          if (!(association.parent.parent instanceof OInstantiation)) {
-            continue;
-          }
-          let definitions = association.parent.parent.definitions;
-
-          let possibleFormals: (OPort | OGeneric)[] = [];
-          possibleFormals.push(...definitions.flatMap(definition => {
-            let elements: (OPort | OGeneric)[] = [];
-            if (association.parent instanceof OPortAssociationList) {
-              elements = definition.ports;
-            } else if (definition instanceof OComponent || definition instanceof OEntity) {
-              elements = definition.generics;
-            }
-            return elements.filter((port, portNumber) => {
-              const formalMatch = association.formalPart.find(name => name.text.toLowerCase() === port.name.text.toLowerCase());
-              if (formalMatch) {
-                return true;
-              }
-              return association.formalPart.length === 0 && portNumber === association.parent.children.findIndex(o => o === association);
-            });
-          }));
-
-          if (possibleFormals.length === 0) {
-            continue;
-          }
-          association.definitions.push(...possibleFormals);
-          for (const formalPart of association.formalPart) {
-            formalPart.definitions.push(...possibleFormals);
-          }
-          for (const possibleFormal of possibleFormals) {
-            this.elaborateAssociationMentionables(possibleFormal, association);
-          }
+      if (association.parent instanceof OGenericAssociationList || association.parent instanceof OPortAssociationList) {
+        if (!(association.parent.parent instanceof OInstantiation)) {
+          continue;
         }
+        let definitions = association.parent.parent.definitions;
+
+        let possibleFormals: (OPort | OGeneric)[] = [];
+        possibleFormals.push(...definitions.flatMap(definition => {
+          let elements: (OPort | OGeneric)[] = [];
+          if (association.parent instanceof OPortAssociationList) {
+            elements = definition.ports;
+          } else if (definition instanceof OComponent || definition instanceof OEntity) {
+            elements = definition.generics;
+          }
+          return elements.filter((port, portNumber) => {
+            const formalMatch = association.formalPart.find(name => name.text.toLowerCase() === port.name.text.toLowerCase());
+            if (formalMatch) {
+              return true;
+            }
+            return association.formalPart.length === 0 && portNumber === association.parent.children.findIndex(o => o === association);
+          });
+        }));
+
+        if (possibleFormals.length === 0) {
+          continue;
+        }
+        association.definitions.push(...possibleFormals);
+        for (const formalPart of association.formalPart) {
+          formalPart.definitions.push(...possibleFormals);
+        }
+        for (const possibleFormal of possibleFormals) {
+          this.elaborateAssociationMentionables(possibleFormal, association);
+        }
+      }
     }
     // console.log(`elab: associations for: ${Date.now() - start} ms.`);
     // start = Date.now();
@@ -349,7 +349,7 @@ export class VhdlLinter {
 
   }
 
-  elaborateAssociationMentionables(possibleFormal: OPort|OGeneric, association: OAssociation) {
+  elaborateAssociationMentionables(possibleFormal: OPort | OGeneric, association: OAssociation) {
     if (possibleFormal instanceof OPort) {
       if (possibleFormal.direction === 'in') {
         for (const mapping of association.actualIfOutput.flat()) {
@@ -527,6 +527,11 @@ export class VhdlLinter {
         console.log(`check ${i++}: ${Date.now() - start}ms`);
         start = Date.now();
       }
+      this.checkAllMultipleDefinitions();
+      if (profiling) {
+        console.log(`check ${i++}: ${Date.now() - start}ms`);
+        start = Date.now();
+      }
       if (this.file.architecture !== undefined) {
         this.checkResets();
         if (profiling) {
@@ -534,11 +539,6 @@ export class VhdlLinter {
           start = Date.now();
         }
         await this.checkUnused(this.file.architecture, this.file.entity);
-        if (profiling) {
-          console.log(`check ${i++}: ${Date.now() - start}ms`);
-          start = Date.now();
-        }
-        this.checkDoubles();
         if (profiling) {
           console.log(`check ${i++}: ${Date.now() - start}ms`);
           start = Date.now();
@@ -631,51 +631,72 @@ export class VhdlLinter {
       }
     }
   }
-  checkDoubles() {
-    if (this.file.architecture === undefined) {
-      return;
-    }
-    for (const signal of this.file.architecture.signals) {
-      if (this.file.architecture.signals.find(signalSearch => signal !== signalSearch && signal.nameEquals(signalSearch))) {
-        this.addMessage({
-          range: signal.range,
-          severity: DiagnosticSeverity.Error,
-          message: `signal ${signal.name} defined multiple times`
-        });
-      }
-    }
-    for (const type of this.file.architecture.types) {
-      if (this.file.architecture.types.find(typeSearch => type !== typeSearch && type.nameEquals(typeSearch))) {
-        this.addMessage({
-          range: type.range,
-          severity: DiagnosticSeverity.Error,
-          message: `type ${type.name} defined multiple times`
-        });
-      }
-      if (type instanceof OEnum) {
-        for (const state of type.literals) {
-          if (type.literals.find(stateSearch => state !== stateSearch && state.nameEquals(stateSearch))) {
-            this.addMessage({
-              range: state.range,
-              severity: DiagnosticSeverity.Error,
-              message: `state ${state.name} defined multiple times`
-            });
 
+
+  checkAllMultipleDefinitions() {
+    const check = (objList: ObjectBase[]) => {
+      for (const obj of objList.filter(o => o && o.name && o.name.text)) {
+        if (objList.find(o => obj !== o && obj.nameEquals(o))) {
+          this.addMessage({
+            range: obj.range,
+            severity: DiagnosticSeverity.Error,
+            message: `${obj.name} defined multiple times`
+          });
+        }
+      }
+    }
+    for (const obj of this.file.objectList) {
+      const objList: ObjectBase[] = [];
+      if (implementsIHasSignals(obj)) {
+        objList.push(...obj.signals);
+      }
+      if (implementsIHasVariables(obj)) {
+        objList.push(...obj.variables);
+      }
+      if (implementsIHasConstants(obj)) {
+        objList.push(...obj.constants);
+      }
+      if (implementsIHasTypes(obj)) {
+        for (const type of obj.types) {
+          objList.push(type);
+          if (type instanceof OEnum) {
+            objList.push(...type.literals);
           }
         }
       }
+      if (implementsIHasInstantiations(obj)) {
+        objList.push(...obj.instantiations);
+      }
+      if (implementsIHasSubprograms(obj)) {
+        objList.push(...obj.subprograms);
+      }
+      if (obj instanceof OArchitecture) {
+        objList.push(...obj.blocks);
+        objList.push(...obj.generates);
+        objList.push(...obj.processes);
+      }
+      check(objList);
     }
     if (this.file.entity !== undefined) {
-      for (const port of this.file.entity.ports) {
-        if (this.file.entity.ports.find(portSearch => port !== portSearch && port.nameEquals(portSearch))) {
-          this.addMessage({
-            range: port.range,
-            severity: DiagnosticSeverity.Error,
-            message: `port ${port.name} defined multiple times`
-          });
-
+      const objList: ObjectBase[] = this.file.entity.ports;
+      objList.push(...this.file.entity.generics);
+      objList.push(...this.file.entity.constants);
+      objList.push(...this.file.entity.variables);
+      objList.push(...this.file.entity.subprograms);
+      for (const type of this.file.entity.types) {
+        objList.push(type);
+        if (type instanceof OEnum) {
+          objList.push(...type.literals);
         }
       }
+      check(objList);
+    }
+    for (const pkg of this.file.packages) {
+      const objList: ObjectBase[] = pkg.constants;
+      objList.push(...pkg.subprograms);
+      objList.push(...pkg.types);
+      objList.push(...pkg.variables);
+      check(objList);
     }
   }
 
