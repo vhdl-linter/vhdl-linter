@@ -130,10 +130,10 @@ export class VhdlLinter {
         return actions;
       });
       const codes = [];
-      codes.push(newCode);
       if (typeof diagnostic.code !== 'undefined') {
         codes.push(diagnostic.code);
       }
+      codes.push(newCode);
       diagnostic.code = codes.join(';');
       this.messages.push(diagnostic);
     }
@@ -725,7 +725,10 @@ export class VhdlLinter {
       }
       if (this.file.architecture !== undefined) {
         const args: IAddSignalCommandArguments = { textDocumentUri, signalName: token.text, position: this.file.architecture.endOfDeclarativePart ?? this.file.architecture.range.start };
-        actions.push(CodeAction.create('add signal to architecture', Command.create('add signal to architecture', 'vhdl-linter:add-signal', args)));
+        actions.push(CodeAction.create(
+          'add signal to architecture',
+          Command.create('add signal to architecture', 'vhdl-linter:add-signal', args),
+          CodeActionKind.QuickFix));
       }
       const possibleMatches = this.file.objectList
         .filter(obj => typeof obj !== 'undefined' && typeof obj.name !== 'undefined')
@@ -1033,7 +1036,8 @@ export class VhdlLinter {
                 `Ignore multiple drivers of ${signal.name.text}`,
                 'vhdl-linter:ignore-line',
                 { textDocumentUri, range: signal.name.range }
-              )
+              ),
+              CodeActionKind.QuickFix
             )
           ];
         });
