@@ -47,12 +47,12 @@ export class Lexer {
     { regex: /^\s+/i, tokenType: TokenType.whitespace },
     { regex: /^[0-9]+#[0-9a-z][0-9_a-z]*(?:\.[0-9a-z][0-9_a-z]+)?#(?:e[+-]?[0-9_]+)?/i, tokenType: TokenType.decimalLiteral },
     { regex: /^[0-9_]+(?:\.[0-9_]+)?(?:e[+-]?[0-9_]+)?/i, tokenType: TokenType.decimalLiteral },
+    { regex: /^[0-9]*(?:B|O|X|UB|UO|UX|SB|SO|SX|D)"[^"]+"/i, tokenType: TokenType.bitStringLiteral },
     { regex: /^[a-z][a-z0-9_]*/i, tokenType: TokenType.basicIdentifier },
     { regex: /^\\.*?[^\\]\\(?!\\)/i, tokenType: TokenType.extendedIdentifier },
     // BASED LITERAL
     { regex: /^'.'/, tokenType: TokenType.characterLiteral },
     { regex: /^".*?[^"]"(?!")/i, tokenType: TokenType.stringLiteral },
-    { regex: /^[0-9]*(?:B|O|X|UB|UO|UX|SB|SO|SX|D)"[^"]+"/i, tokenType: TokenType.bitStringLiteral },
     {
       regex: /^=>|\*\*|:=|\/=>=|<=|<>|\?\?|\?=|\?\/=|\?<|\?<=|\?>|\?>=|<<|>>|&|'|\(|\)|\*|\+|,|-|.|\/|:|;|<|=|>|`|\||\[|\]|\?|@/,
       tokenType: TokenType.delimiter
