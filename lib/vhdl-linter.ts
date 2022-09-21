@@ -131,7 +131,7 @@ export class VhdlLinter {
       });
       const codes = [];
       codes.push(newCode);
-      if (diagnostic.code) {
+      if (typeof diagnostic.code !== 'undefined') {
         codes.push(diagnostic.code);
       }
       diagnostic.code = codes.join(';');
@@ -700,44 +700,14 @@ export class VhdlLinter {
       check(objList);
     }
   }
-
-  private pushWriteError(write: OWrite) {
-    const possibleMatches = this.file.objectList
-      .filter(obj => typeof obj !== 'undefined' && typeof obj.name !== 'undefined')
-      .map(obj => obj.name.text);
-    const bestMatch = findBestMatch(write.text, possibleMatches);
-
-    const code = this.addCodeActionCallback((textDocumentUri: string) => {
-      const actions = [];
-      if (this.file.architecture !== undefined) {
-        const args: IAddSignalCommandArguments = { textDocumentUri, signalName: write.text, position: this.file.architecture.endOfDeclarativePart ?? this.file.architecture.range.start };
-        actions.push(CodeAction.create('add signal to architecture', Command.create('add signal to architecture', 'vhdl-linter:add-signal', args)));
-      }
-      actions.push(CodeAction.create(
-        `Replace with ${bestMatch.bestMatch.target} (score: ${bestMatch.bestMatch.rating})`,
-        {
-          changes: {
-            [textDocumentUri]: [TextEdit.replace(Range.create(write.range.start, write.range.end), bestMatch.bestMatch.target)]
-          }
-        },
-        CodeActionKind.QuickFix));
-      return actions;
-    });
-    this.addMessage({
-      code,
-      range: write.range,
-      severity: DiagnosticSeverity.Error,
-      message: `signal '${write.text}' is written but not declared`
-    });
-  }
-  private pushReadError(read: ORead) {
+  private pushNotDeclaredError(token: ORead | OWrite) {
     const code = this.addCodeActionCallback((textDocumentUri: string) => {
       const actions = [];
       for (const pkg of this.packages) {
-        const thing = pkg.constants.find(constant => constant.name.text.toLowerCase() === read.text.toLowerCase()) || pkg.types.find(type => type.name.text.toLowerCase() === read.text.toLowerCase())
-          || pkg.subprograms.find(subprogram => subprogram.name.text.toLowerCase() === read.text.toLowerCase());
+        const thing = pkg.constants.find(constant => constant.name.text.toLowerCase() === token.text.toLowerCase()) || pkg.types.find(type => type.name.text.toLowerCase() === token.text.toLowerCase())
+          || pkg.subprograms.find(subprogram => subprogram.name.text.toLowerCase() === token.text.toLowerCase());
         if (thing) {
-          const file = read.getRoot();
+          const file = token.getRoot();
           const pos = Position.create(0, 0);
           if (file.useClauses.length > 0) {
             pos.line = file.useClauses[file.useClauses.length - 1].range.end.line + 1;
@@ -754,28 +724,30 @@ export class VhdlLinter {
         }
       }
       if (this.file.architecture !== undefined) {
-        const args: IAddSignalCommandArguments = { textDocumentUri, signalName: read.text, position: this.file.architecture.endOfDeclarativePart ?? this.file.architecture.range.start };
+        const args: IAddSignalCommandArguments = { textDocumentUri, signalName: token.text, position: this.file.architecture.endOfDeclarativePart ?? this.file.architecture.range.start };
         actions.push(CodeAction.create('add signal to architecture', Command.create('add signal to architecture', 'vhdl-linter:add-signal', args)));
       }
       const possibleMatches = this.file.objectList
         .filter(obj => typeof obj !== 'undefined' && typeof obj.name !== 'undefined')
         .map(obj => obj.name.text);
-      const bestMatch = findBestMatch(read.text, possibleMatches);
-      actions.push(CodeAction.create(
-        `Replace with ${bestMatch.bestMatch.target} (score: ${bestMatch.bestMatch.rating})`,
-        {
-          changes: {
-            [textDocumentUri]: [TextEdit.replace(Range.create(read.range.start, read.range.end), bestMatch.bestMatch.target)]
-          }
-        },
-        CodeActionKind.QuickFix));
+      const bestMatch = findBestMatch(token.text, possibleMatches);
+      if (bestMatch.bestMatch.rating > 0.5) {
+        actions.push(CodeAction.create(
+          `Replace with ${bestMatch.bestMatch.target} (score: ${bestMatch.bestMatch.rating})`,
+          {
+            changes: {
+              [textDocumentUri]: [TextEdit.replace(Range.create(token.range.start, token.range.end), bestMatch.bestMatch.target)]
+            }
+          },
+          CodeActionKind.QuickFix));
+      }
       return actions;
     });
     this.addMessage({
-      range: read.range,
-      code: code,
+      code,
+      range: token.range,
       severity: DiagnosticSeverity.Error,
-      message: `signal '${read.text}' is read but not declared`
+      message: `signal '${token.text}' is ${token instanceof ORead ? 'read' : 'written'} but not declared`
     });
   }
   private pushAssociationError(read: OAssociationFormal) {
@@ -813,10 +785,8 @@ export class VhdlLinter {
   }
   checkNotDeclared() {
     for (const obj of this.file.objectList) {
-      if (obj instanceof ORead && obj.definitions.length === 0) {
-        this.pushReadError(obj);
-      } else if (obj instanceof OWrite && obj.definitions.length === 0) {
-        this.pushWriteError(obj);
+      if ((obj instanceof ORead || obj instanceof OWrite) && obj.definitions.length === 0) {
+        this.pushNotDeclaredError(obj);
       } else if (obj instanceof OAssociationFormal && obj.definitions.length === 0) {
         const instOrPackage = obj.parent.parent.parent;
         // if instantiations entity/component/subprogram is not found, don't report read errors

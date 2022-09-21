@@ -53,6 +53,7 @@ export class ArchitectureParser extends ParserBase {
     }
 
     new DeclarativePartParser(this.pos, this.filePath, this.architecture).parse(structureName !== 'architecture');
+    this.architecture.endOfDeclarativePart = new OI(this.architecture, this.pos.i);
     this.maybeWord('begin');
 
     while (this.pos.isValid()) {
