@@ -486,7 +486,7 @@ export class OPortAssociationList extends OAssociationList {
   }
 }
 export class OInstantiation extends ObjectBase implements IHasDefinitions {
-  constructor(public parent: OArchitecture | OEntity | OProcess | OLoop | OIf, startI: number, endI: number, public type: 'entity' | 'component' | 'subprogram' | 'subprogram-call') {
+  constructor(public parent: OArchitecture | OEntity | OProcess | OLoop | OIf, startI: number, endI: number, public type: 'entity' | 'component' | 'configuration' | 'subprogram' | 'unknown' = 'unknown') {
     super(parent, startI, endI);
   }
   label?: string;

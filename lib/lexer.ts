@@ -1,16 +1,30 @@
 import { OIRange, OFile, ParserError } from './parser/objects';
 
+export enum TokenType {
+  basicIdentifier,
+  extendedIdentifier,
+  decimalLiteral,
+  characterLiteral,
+  stringLiteral,
+  bitStringLiteral,
+  whitespace,
+  comment,
+  delimiter,
+  keyword,
+};
+
 export class OLexerToken {
   constructor(
     public text: string,
     public range: OIRange,
-    public type: string) {
+    public type: TokenType
+  ) {
   }
   isIdentifier() {
-    return this.type === 'BASIC_IDENTIFIER' || this.type === 'EXTENDEND_IDENTIFIER';
+    return this.type === TokenType.basicIdentifier || this.type === TokenType.extendedIdentifier;
   }
   isWhitespace() {
-    return this.type === 'WHITESPACE' || this.type === 'COMMENT';
+    return this.type === TokenType.whitespace || this.type === TokenType.comment;
   }
   getLText() {
     return this.text.toLowerCase();
@@ -22,28 +36,26 @@ export class OLexerToken {
 export const GRAPHIC_CHARACTER = String.raw`[a-z0-9 "#&'()*+,-./:;<£¤¥¦§ ̈©ª«¬- ® ̄°±=>_|!$%?@\[\\\]\^\`{}~¡¢²³ ́μ¶· ̧¹º»¼½¾¿×÷]`;
 export class Lexer {
   readonly keywords = [
-    ['abs', 'not'],
-    ['mod'],
-    ['sll', 'srl', 'sla', 'sra', 'rol', 'ror'],
-    ['and', 'or', 'nand', 'nor', 'xor', 'xnor'],
-    ['downto', 'to', 'others', 'when', 'else', 'range', 'elsif', 'after', 'transport', 'reject', 'inertial', 'all'],
-    ['of', 'new', 'force', 'release'],
-    ['severity']
-  ].flat().map(keyword => new RegExp('^' + keyword + '\\b', 'i'));
-  tokenTypes = [
-    { regex: /^--.*/, tokenType: 'COMMENT' },
-    { regex: /^\s+/i, tokenType: 'WHITESPACE' },
-    { regex: /^[0-9]+#[0-9a-z][0-9_a-z]*(?:\.[0-9a-z][0-9_a-z]+)?#(?:e[+-]?[0-9_]+)?/i, tokenType: 'DECIMAL_LITERAL' },
-    { regex: /^[0-9_]+(?:\.[0-9_]+)?(?:e[+-]?[0-9_]+)?/i, tokenType: 'DECIMAL_LITERAL' },
-    { regex: /^[a-z][a-z0-9_]*/i, tokenType: 'BASIC_IDENTIFIER' },
-    { regex: /^\\.*?[^\\]\\(?!\\)/i, tokenType: 'EXTENDED_IDENTIFIER' },
+    'abs', 'not', 'mod', 'sll', 'srl', 'sla', 'sra', 'rol', 'ror',
+    'and', 'or', 'nand', 'nor', 'xor', 'xnor', 'downto', 'to', 'others',
+    'when', 'else', 'range', 'elsif', 'after', 'transport', 'reject',
+    'inertial', 'all', 'of', 'new', 'force', 'release', 'severity',
+  ].map(keyword => new RegExp('^' + keyword + '\\b', 'i'));
+
+  tokenTypes: { regex: RegExp, tokenType: TokenType }[] = [
+    { regex: /^--.*/, tokenType: TokenType.comment },
+    { regex: /^\s+/i, tokenType: TokenType.whitespace },
+    { regex: /^[0-9]+#[0-9a-z][0-9_a-z]*(?:\.[0-9a-z][0-9_a-z]+)?#(?:e[+-]?[0-9_]+)?/i, tokenType: TokenType.decimalLiteral },
+    { regex: /^[0-9_]+(?:\.[0-9_]+)?(?:e[+-]?[0-9_]+)?/i, tokenType: TokenType.decimalLiteral },
+    { regex: /^[a-z][a-z0-9_]*/i, tokenType: TokenType.basicIdentifier },
+    { regex: /^\\.*?[^\\]\\(?!\\)/i, tokenType: TokenType.extendedIdentifier },
     // BASED LITERAL
-    { regex: /^'.'/, tokenType: 'CHARACTER_LITERAL' },
-    { regex: /^".*?[^"]"(?!")/i, tokenType: 'STRING_LITERAL' },
-    { regex: /^[0-9]*(?:B|O|X|UB|UO|UX|SB|SO|SX|D)"[^"]+"/i, tokenType: 'BIT_STRING_LITERAL' },
+    { regex: /^'.'/, tokenType: TokenType.characterLiteral },
+    { regex: /^".*?[^"]"(?!")/i, tokenType: TokenType.stringLiteral },
+    { regex: /^[0-9]*(?:B|O|X|UB|UO|UX|SB|SO|SX|D)"[^"]+"/i, tokenType: TokenType.bitStringLiteral },
     {
       regex: /^=>|\*\*|:=|\/=>=|<=|<>|\?\?|\?=|\?\/=|\?<|\?<=|\?>|\?>=|<<|>>|&|'|\(|\)|\*|\+|,|-|.|\/|:|;|<|=|>|`|\||\[|\]|\?|@/,
-      tokenType: 'DELIMITER'
+      tokenType: TokenType.delimiter
     },
     // { regex: /^;/, tokenType: 'SEMICOLON' },
     // { regex: /^(["])(([^"\\\n]|\\.|\\\n)*)["]/i, tokenType: 'STRING_LITERAL' },
@@ -86,7 +98,7 @@ export class Lexer {
         const match = text.match(operator);
         if (match) {
           const token = new OLexerToken(match[0],
-            new OIRange(this.file, offset, offset + match[0].length), 'KEYWORD');
+            new OIRange(this.file, offset, offset + match[0].length), TokenType.keyword);
 
           tokens.push(token);
           text = text.substring(match[0].length);

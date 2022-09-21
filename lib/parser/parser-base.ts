@@ -4,7 +4,7 @@ import { config } from './config';
 import { OAssociation, OAssociationFormal, ObjectBase, OElementRead, OGeneric, OI, OIRange, OPort, ORead, OWrite, ParserError } from './objects';
 import { tokenizer } from './tokenizer';
 import { ParserPosition } from './parser';
-import { OLexerToken } from '../lexer';
+import { OLexerToken, TokenType } from '../lexer';
 
 
 export class ParserBase {
@@ -390,11 +390,11 @@ export class ParserBase {
   extractReads(parent: ObjectBase | OAssociation, tokens: OLexerToken[], asMappingName?: false): ORead[];
   extractReads(parent: ObjectBase | OAssociation, tokens: OLexerToken[], asMappingName: true): OAssociationFormal[];
   extractReads(parent: ObjectBase | OAssociation, tokens: OLexerToken[], asMappingName: boolean = false): (ORead | OAssociationFormal)[] {
-    tokens = tokens.filter(token => token.isWhitespace() === false && token.type !== 'keyword');
+    tokens = tokens.filter(token => token.isWhitespace() === false && token.type !== TokenType.keyword);
     const reads = [];
     for (let i = 0; i < tokens.length; i++) {
       let token = tokens[i];
-      if (token.type === 'BASIC_IDENTIFIER' || token.type === 'EXTENDED_IDENTIFIER') {
+      if (token.isIdentifier()) {
         if (tokens[i - 1]?.text === '\'') { // Attribute skipped for now
           continue;
         } else if (tokens[i - 1]?.text === '.') {
@@ -417,7 +417,7 @@ export class ParserBase {
     const reads: ORead[] = [];
     const writes: OWrite[] = [];
     let braceLevel = 0;
-    tokens = tokens.filter(token => token.isWhitespace() === false && token.type !== 'keyword');
+    tokens = tokens.filter(token => token.isWhitespace() === false && token.type !== TokenType.keyword);
 
     for (let i = 0; i < tokens.length; i++) {
       const token = tokens[i];
@@ -425,8 +425,7 @@ export class ParserBase {
       const recordToken = tokens[i - 1]?.text === '.';
       if ((token.text === '(' || token.text === ')')) {
         token.text === '(' ? braceLevel++ : braceLevel--;
-      } else if (token.type === 'BASIC_IDENTIFIER' || token.type === 'EXTENDED_IDENTIFIER') {
-
+      } else if (token.isIdentifier()) {
         if (braceLevel === 0 && recordToken === false) {
           const write = new OWrite(parent, token.range.start.i, token.range.end.i, token.text);
           writes.push(write);

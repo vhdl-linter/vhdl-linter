@@ -283,7 +283,6 @@ export class VhdlLinter {
           instantiation.definitions.push(...this.getEntities(instantiation));
           break;
         case 'subprogram':
-        case 'subprogram-call':
           instantiation.definitions.push(...this.getSubprograms(instantiation));
           break;
       }
@@ -1496,7 +1495,7 @@ export class VhdlLinter {
     }
     if (implementsIHasInstantiations(object)) {
       for (const instantiation of object.instantiations) {
-        let definitions: (OComponent | OEntity | OSubprogram)[];
+        let definitions: (OComponent | OEntity | OSubprogram)[] = [];
         switch (instantiation.type) {
           case 'component':
             definitions = this.getComponents(instantiation);
@@ -1505,30 +1504,21 @@ export class VhdlLinter {
             definitions = this.getEntities(instantiation);
             break;
           case 'subprogram':
-          case 'subprogram-call':
             definitions = this.getSubprograms(instantiation);
             break;
-        }
-        let typeName;
-        switch (instantiation.type) {
-          case 'subprogram-call':
-            typeName = 'subprogram';
-            break;
-          default:
-            typeName = instantiation.type;
         }
         if (definitions.length === 0) {
           this.addMessage({
             range: instantiation.range.start.getRangeToEndLine(),
             severity: DiagnosticSeverity.Warning,
-            message: `can not find ${typeName} ${instantiation.componentName}`
+            message: `can not find ${instantiation.type} ${instantiation.componentName}`
           });
         } else {
           const range = instantiation.range.start.getRangeToEndLine();
           const availablePorts = definitions.map(e => e.ports);
-          this.checkAssociations(availablePorts, instantiation.portAssociationList, typeName, range, 'port');
+          this.checkAssociations(availablePorts, instantiation.portAssociationList, instantiation.type, range, 'port');
           const availableGenerics = definitions.map(d => (d instanceof OComponent || d instanceof OEntity) ? d.generics : []);
-          this.checkAssociations(availableGenerics, instantiation.genericAssociationList, typeName, range, 'generic');
+          this.checkAssociations(availableGenerics, instantiation.genericAssociationList, instantiation.type, range, 'generic');
         }
       }
     }

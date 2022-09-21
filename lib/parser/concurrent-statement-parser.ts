@@ -23,7 +23,6 @@ export class ConcurrentStatementParser extends ParserBase {
 
     let label: string | undefined;
     const savedI = this.pos.i;
-    const regex = new RegExp(`^${nextWord}\\s*:`, 'i');
     if (this.getToken(1, true).text === ':') {
       label = this.consumeToken().text;
       this.debug('parse label ' + label);
@@ -31,6 +30,9 @@ export class ConcurrentStatementParser extends ParserBase {
       this.advanceWhitespace();
       nextWord = this.getNextWord({ consume: false }).toLowerCase();
     }
+
+    this.maybeWord('postponed');
+    this.maybeWord('guarded');
 
     if (nextWord === 'process' && allowedStatements.includes(ConcurrentStatementTypes.Process)) {
       this.getNextWord();
@@ -40,19 +42,24 @@ export class ConcurrentStatementParser extends ParserBase {
       this.getNextWord();
       this.debug('parse block');
 
-
       const subarchitecture = new ArchitectureParser(this.pos, this.filePath, (this.parent as OArchitecture), label);
       const block = subarchitecture.parse(true, 'block');
-      block.label = label ?? 'no label';
       block.range.start.i = savedI;
       this.reverseWhitespace();
       block.range.end.i = this.pos.i;
+      if (typeof label === 'undefined') {
+        throw new ParserError('A block needs a label.', block.range);
+      }
+      block.label = label;
       this.advanceWhitespace();
       //        console.log(generate, generate.constructor.name);
       (this.parent as OArchitecture).statements.push(block);
     } else if (nextWord === 'for' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {
       this.getNextWord();
       this.debug('parse for generate');
+      if (typeof label === 'undefined') {
+        throw new ParserError('A for generate needs a label.', this.pos.getRangeToEndLine());
+      }
 
       const startI = this.pos.i;
       let constantName = this.advancePast('in');
@@ -67,12 +74,14 @@ export class ConcurrentStatementParser extends ParserBase {
       this.advanceWhitespace();
       //        console.log(generate, generate.constructor.name);
       (this.parent as OArchitecture).statements.push(generate);
-    } else if (nextWord === 'when') {
+    } else if (nextWord === 'when' && returnOnWhen) {
       return true;
     } else if (nextWord === 'case' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {
+      if (typeof label === 'undefined') {
+        throw new ParserError('A case generate needs a label.', this.pos.getRangeToEndLine());
+      }
       const caseGenerate = new OCaseGenerate(this.parent, this.pos.i, this.pos.i);
       this.getNextWord();
-      const caseI = this.pos.i;
       const caseConditionToken = this.advancePastToken('generate');
       caseGenerate.signal.push(...this.extractReads(caseGenerate, caseConditionToken));
       let nextWord = this.getNextWord({ consume: false });
@@ -189,22 +198,22 @@ export class ConcurrentStatementParser extends ParserBase {
       //        console.log('report');
       this.advancePast(';');
     } else {
-      let quoteLevel = 0;
+      let braceLevel = 0;
       let i = 0;
       let assignment = false;
       let foundSemi = false;
       while (this.pos.num + i < this.pos.lexerTokens.length) {
         if (this.getToken(i).getLText() === '(') {
-          quoteLevel++;
+          braceLevel++;
         } else if (this.getToken(i).getLText() === ')') {
-          quoteLevel--;
-          if (quoteLevel < 0) {
-            throw new ParserError(`Unexpected )`, this.getToken(i).range);
+          braceLevel--;
+          if (braceLevel < 0) {
+            throw new ParserError(`Unexpected )!`, this.getToken(i).range);
           }
         } else if (this.getToken(i).getLText() === ';') {
           foundSemi = true;
           break;
-        } else if (this.getToken(i).getLText() === '<=') {
+        } else if (this.getToken(i).getLText() === '<=' && braceLevel === 0) {
           assignment = true;
         }
         i++;
@@ -228,14 +237,8 @@ export class ConcurrentStatementParser extends ParserBase {
         }
 
       } else {
-        if (label) {
-          this.getNextWord();
-          const instantiationParser = new InstantiationParser(this.pos, this.filePath, this.parent);
-          (this.parent as OArchitecture).statements.push(instantiationParser.parse(nextWord, label, savedI, false));
-        } else { // statement;
-          const instantiationParser = new InstantiationParser(this.pos, this.filePath, this.parent);
-          (this.parent as OArchitecture).statements.push(instantiationParser.parse(nextWord, label, savedI, true));
-        }
+        const instantiationParser = new InstantiationParser(this.pos, this.filePath, this.parent);
+        (this.parent as OArchitecture).statements.push(instantiationParser.parse(nextWord, label, savedI));
       }
     }
     return false;

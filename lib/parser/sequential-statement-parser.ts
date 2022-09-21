@@ -69,7 +69,7 @@ export class SequentialStatementParser extends ParserBase {
         const assignmentParser = new AssignmentParser(this.pos, this.filePath, parent);
         statements.push(assignmentParser.parse());
       } else {
-        statements.push(this.parseSubprogramCall(parent));
+        statements.push(this.parseSubprogramCall(parent, label));
 
       }
     }
@@ -94,8 +94,9 @@ export class SequentialStatementParser extends ParserBase {
     return false;
   }
 
-  parseSubprogramCall(parent: OHasSequentialStatements | OIf) {
-    const subprogramCall = new OInstantiation(parent, this.pos.i, this.getEndOfLineI(), 'subprogram-call');
+  parseSubprogramCall(parent: OHasSequentialStatements | OIf, label: string|undefined) {
+    const subprogramCall = new OInstantiation(parent, this.pos.i, this.getEndOfLineI(), 'subprogram');
+    subprogramCall.label = label;
     subprogramCall.componentName = new OName(subprogramCall, this.pos.i, this.pos.i);
     subprogramCall.componentName.text = this.getNextWord();
     subprogramCall.componentName.range.end.i = subprogramCall.componentName.range.start.i + subprogramCall.componentName.text.length;
