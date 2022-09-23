@@ -64,7 +64,7 @@ export class Parser extends ParserBase {
     this.lexerTokens = lexer.lex();
     this.pos.lexerTokens = this.lexerTokens;
     this.pos.file = this.file;
-    this.removeCommentsAndStrings();
+    // this.removeCommentsAndStrings();
   }
   parse(): OFile {
 

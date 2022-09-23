@@ -39,7 +39,7 @@ export class Lexer {
     'abs', 'not', 'mod', 'sll', 'srl', 'sla', 'sra', 'rol', 'ror',
     'and', 'or', 'nand', 'nor', 'xor', 'xnor', 'downto', 'to', 'others',
     'when', 'else', 'range', 'elsif', 'after', 'transport', 'reject',
-    'inertial', 'all', 'of', 'new', 'force', 'release', 'severity',
+    'inertial', 'all', 'of', 'new', 'force', 'release', 'severity', 'open'
   ].map(keyword => new RegExp('^' + keyword + '\\b', 'i'));
 
   tokenTypes: { regex: RegExp, tokenType: TokenType }[] = [
@@ -57,6 +57,8 @@ export class Lexer {
       regex: /^=>|\*\*|:=|\/=>=|<=|<>|\?\?|\?=|\?\/=|\?<|\?<=|\?>|\?>=|<<|>>|&|'|\(|\)|\*|\+|,|-|.|\/|:|;|<|=|>|`|\||\[|\]|\?|@/,
       tokenType: TokenType.delimiter
     },
+    // { regex: /^()([a-z]\w*)\s*(?=\=>)/i, tokenType: 'RECORD_ELEMENT' },
+    // { regex: /^(\.)([a-z]\w*)(?!\s*[(]|\w)/i, tokenType: 'RECORD_ELEMENT' },
     // { regex: /^;/, tokenType: 'SEMICOLON' },
     // { regex: /^(["])(([^"\\\n]|\\.|\\\n)*)["]/i, tokenType: 'STRING_LITERAL' },
     // { regex: /^[*\/&\-?=<>+]+/i, tokenType: 'OPERATION' },
@@ -68,9 +70,7 @@ export class Lexer {
     // { regex: /^\d*[su]?[box]"[0-9A-F_ZWLH-UX]+"/i, tokenType: 'LOGIC_LITERAL' },
     // { regex: /^'[0-9ZWLH-UX]+'/i, tokenType: 'LOGIC_LITERAL' },
     // { regex: /^\w+'\w+(?=\s*\()/i, tokenType: 'ATTRIBUTE_FUNCTION' },
-    // { regex: /^()([a-z]\w*)\s*(?=\=>)/i, tokenType: 'RECORD_ELEMENT' },
     // { regex: /^[a-z]\w*(?!\s*[(]|\w)/i, tokenType: 'VARIABLE' },
-    // { regex: /^(\.)([a-z]\w*)(?!\s*[(]|\w)/i, tokenType: 'RECORD_ELEMENT' },
     // { regex: /^\w+(?=\s*\()/i, tokenType: 'FUNCTION' },
     // { regex: /^(\.)(\w+)(?=\s*\()/i, tokenType: 'FUNCTION_RECORD_ELEMENT' },
   ];

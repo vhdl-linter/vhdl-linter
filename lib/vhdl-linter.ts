@@ -668,9 +668,10 @@ export class VhdlLinter {
       if (implementsIHasInstantiations(obj)) {
         objList.push(...obj.instantiations);
       }
-      if (implementsIHasSubprograms(obj)) {
-        objList.push(...obj.subprograms);
-      }
+      // subprograms can be overloaded...
+      // if (implementsIHasSubprograms(obj)) {
+      //   objList.push(...obj.subprograms);
+      // }
       if (obj instanceof OArchitecture) {
         objList.push(...obj.blocks);
         objList.push(...obj.generates);
@@ -683,7 +684,7 @@ export class VhdlLinter {
       objList.push(...this.file.entity.generics);
       objList.push(...this.file.entity.constants);
       objList.push(...this.file.entity.variables);
-      objList.push(...this.file.entity.subprograms);
+      // objList.push(...this.file.entity.subprograms);
       for (const type of this.file.entity.types) {
         objList.push(type);
         if (type instanceof OEnum) {
@@ -694,7 +695,7 @@ export class VhdlLinter {
     }
     for (const pkg of this.file.packages) {
       const objList: ObjectBase[] = pkg.constants;
-      objList.push(...pkg.subprograms);
+      // objList.push(...pkg.subprograms);
       objList.push(...pkg.types);
       objList.push(...pkg.variables);
       check(objList);
@@ -1239,14 +1240,13 @@ export class VhdlLinter {
     const settings = (await getDocumentSettings(URI.file(this.editorPath).toString()));
     if (settings.rules.warnLogicType) {
       for (const port of tree.entity?.ports ?? []) {
-        let match;
         if ((settings.style.preferedLogicType === 'std_logic' && port.type[0]?.text?.match(/^std_ulogic/i))
           || (settings.style.preferedLogicType === 'std_ulogic' && port.type[0]?.text?.match(/^std_logic/i))) {
-          const code = this.addCodeActionCallback((textDocumentUri: string) => {
-            const actions = [];
-            const match = port.type[0].text.match(/^std_u?logic/i);
-            if (match) {
-              const replacement = port.type[0].text.replace(match[0], settings.style.preferedLogicType);
+          const match = port.type[0].text.match(/^std_u?logic/i);
+          if (match) {
+            const replacement = port.type[0].text.replace(match[0], settings.style.preferedLogicType);
+            const code = this.addCodeActionCallback((textDocumentUri: string) => {
+              const actions = [];
               actions.push(CodeAction.create(
                 `Replace with ${replacement}`,
                 {
@@ -1256,15 +1256,15 @@ export class VhdlLinter {
                   }
                 },
                 CodeActionKind.QuickFix));
-            }
-            return actions;
-          });
-          this.addMessage({
-            range: port.type[0].range,
-            severity: DiagnosticSeverity.Information,
-            message: `Port should be ${settings.style.preferedLogicType} is ${port.type[0].text}`,
-            code
-          });
+              return actions;
+            });
+            this.addMessage({
+              range: port.type[0].range,
+              severity: DiagnosticSeverity.Information,
+              message: `Port should be ${replacement} but is ${port.type[0].text}`,
+              code
+            });
+          }
         }
       }
     }

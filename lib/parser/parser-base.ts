@@ -390,17 +390,23 @@ export class ParserBase {
   extractReads(parent: ObjectBase | OAssociation, tokens: OLexerToken[], asMappingName?: false): ORead[];
   extractReads(parent: ObjectBase | OAssociation, tokens: OLexerToken[], asMappingName: true): OAssociationFormal[];
   extractReads(parent: ObjectBase | OAssociation, tokens: OLexerToken[], asMappingName: boolean = false): (ORead | OAssociationFormal)[] {
-    tokens = tokens.filter(token => token.isWhitespace() === false && token.type !== TokenType.keyword);
+    tokens = tokens.filter(token => !token.isWhitespace() && token.type !== TokenType.keyword);
+    const libraries = parent.getRoot().libraries;
+    libraries.push('work');
     const reads = [];
     for (let i = 0; i < tokens.length; i++) {
       let token = tokens[i];
       if (token.isIdentifier()) {
         if (tokens[i - 1]?.text === '\'') { // Attribute skipped for now
           continue;
-        } else if (tokens[i - 1]?.text === '.') {
-          if (token.text.toLowerCase() !== 'all') {
+        } else if (tokens[i + 1]?.text === '.' && libraries.findIndex(l => l === token.getLText()) !== -1) {
+          // skip library itself
+          continue;
+        } else if (tokens[i - 1]?.text === '.' && libraries.findIndex(l => l === tokens[i - 2]?.getLText()) !== -1) {
+          // skip package -> only read the actual variable
+          continue;
+        } else if (tokens[i - 1]?.text === '.' && token.getLText() !== 'all') {
             reads.push(new OElementRead(parent, token.range.start.i, token.range.end.i, token.text));
-          }
         } else {
           if (asMappingName && !(parent instanceof OAssociation)) {
             throw new Error();
@@ -423,24 +429,23 @@ export class ParserBase {
       const token = tokens[i];
       // console.log(index, token);
       const recordToken = tokens[i - 1]?.text === '.';
-      if ((token.text === '(' || token.text === ')')) {
-        token.text === '(' ? braceLevel++ : braceLevel--;
+      if (token.text === '(') {
+        braceLevel++;
+      } else if (token.text === ')') {
+        braceLevel--;
       } else if (token.isIdentifier()) {
         if (braceLevel === 0 && recordToken === false) {
           const write = new OWrite(parent, token.range.start.i, token.range.end.i, token.text);
           writes.push(write);
           if (readAndWrite) {
-            const read = new ORead(parent, token.range.start.i, token.range.end.i, token.text);
-            reads.push(read);
+            reads.push(new ORead(parent, token.range.start.i, token.range.end.i, token.text));
           }
         } else {
-          let read;
           if (recordToken) {
-            read = new OElementRead(parent, token.range.start.i, token.range.end.i, token.text);
-          } else {
-            read = new ORead(parent, token.range.start.i, token.range.end.i, token.text);
+            reads.push(new OElementRead(parent, token.range.start.i, token.range.end.i, token.text));
+          } else if (tokens[i - 1]?.text !== '\'') { // skip attributes
+            reads.push(new ORead(parent, token.range.start.i, token.range.end.i, token.text));
           }
-          reads.push(read);
         }
       }
     }
