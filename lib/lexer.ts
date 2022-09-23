@@ -52,7 +52,7 @@ export class Lexer {
     { regex: /^\\.*?[^\\]\\(?!\\)/i, tokenType: TokenType.extendedIdentifier },
     // BASED LITERAL
     { regex: /^'.'/, tokenType: TokenType.characterLiteral },
-    { regex: /^".*?[^"]"(?!")/i, tokenType: TokenType.stringLiteral },
+    { regex: /^"(?:[^"]|(?:""))*"(?!")/i, tokenType: TokenType.stringLiteral },
     {
       regex: /^=>|\*\*|:=|\/=>=|<=|<>|\?\?|\?=|\?\/=|\?<|\?<=|\?>|\?>=|<<|>>|&|'|\(|\)|\*|\+|,|-|.|\/|:|;|<|=|>|`|\||\[|\]|\?|@/,
       tokenType: TokenType.delimiter
