@@ -78,8 +78,8 @@ export class InterfaceListParser extends ParserBase {
           } else {
             port.direction = directionString;
             port.directionRange = new OIRange(port, this.pos.i, this.pos.i + directionString.length);
-            this.getNextWord(); // consume direction
           }
+          this.getNextWord(); // consume direction
         }
         const iBeforeType = this.pos.i;
         const { type, defaultValue, endI } = this.getTypeDefintion(port);
