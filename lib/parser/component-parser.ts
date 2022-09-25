@@ -3,10 +3,11 @@ import { DeclarativePartParser } from './declarative-part-parser';
 import { InterfaceListParser } from './interface-list-parser';
 import { IHasComponents, OArchitecture, OComponent, OEntity, OI, OIRange, OName, ParserError } from './objects';
 import { ParserBase } from './parser-base';
+import { ParserPosition } from './parser';
 
 export class ComponentParser extends ParserBase {
-  constructor(text: string, pos: OI, file: string, private parent: IHasComponents) {
-    super(text, pos, file);
+  constructor(pos: ParserPosition, file: string, private parent: IHasComponents) {
+    super(pos, file);
     this.debug(`start`);
   }
   parse() {
@@ -18,22 +19,19 @@ export class ComponentParser extends ParserBase {
     this.maybeWord('is');
 
     let lastI;
-    while (this.pos.i < this.text.length) {
-      if (this.text[this.pos.i].match(/\s/)) {
-        this.pos.i++;
-        continue;
-      }
+    while (this.pos.isValid()) {
+      this.advanceWhitespace();
       let nextWord = this.getNextWord({ consume: false }).toLowerCase();
       const savedI = this.pos.i;
       if (nextWord === 'port') {
         this.getNextWord();
-        const interfaceListParser = new InterfaceListParser(this.text, this.pos, this.file, component);
+        const interfaceListParser = new InterfaceListParser(this.pos, this.filePath, component);
         interfaceListParser.parse(false);
         component.portRange = new OIRange(component, savedI, this.pos.i);
         this.expect(';');
       } else if (nextWord === 'generic') {
         this.getNextWord();
-        const interfaceListParser = new InterfaceListParser(this.text, this.pos, this.file, component);
+        const interfaceListParser = new InterfaceListParser(this.pos, this.filePath, component);
         interfaceListParser.parse(true);
         component.genericRange = new OIRange(component, savedI, this.pos.i);
         this.expect(';');

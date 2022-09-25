@@ -1,10 +1,11 @@
-import { IHasConstants, IHasSignals, IHasVariables, implementsIHasConstants, implementsIHasSignals, implementsIHasVariables, OConstant, OI, OName, OSignal, OVariable, ParserError, IHasFileVariables, OFileVariable, implementsIHasFileVariables, ORead } from "./objects";
-import { ParserBase } from "./parser-base";
+import { IHasConstants, IHasSignals, IHasVariables, implementsIHasConstants, implementsIHasSignals, implementsIHasVariables, OConstant, OI, OName, OSignal, OVariable, ParserError, IHasFileVariables, OFileVariable, implementsIHasFileVariables, ORead } from './objects';
+import { ParserBase } from './parser-base';
+import { ParserPosition } from './parser';
 
 export class ObjectDeclarationParser extends ParserBase {
 
-  constructor(text: string, pos: OI, file: string, private parent: IHasSignals | IHasConstants | IHasVariables | IHasFileVariables) {
-    super(text, pos, file);
+  constructor(pos: ParserPosition, file: string, private parent: IHasSignals | IHasConstants | IHasVariables | IHasFileVariables) {
+    super(pos, file);
     this.debug('start');
   }
   parse(nextWord: string) {
@@ -34,7 +35,7 @@ export class ObjectDeclarationParser extends ParserBase {
       this.maybeWord(',');
       let object;
       if (variable) {
-        object = new OVariable(this.parent as IHasVariables, this.pos.i, this.getEndOfLineI())
+        object = new OVariable(this.parent as IHasVariables, this.pos.i, this.getEndOfLineI());
       } else if (constant) {
         object = new OConstant(this.parent as IHasConstants, this.pos.i, this.getEndOfLineI());
       } else if (file) {
@@ -47,7 +48,7 @@ export class ObjectDeclarationParser extends ParserBase {
       object.name.range.end.i = object.name.range.start.i + object.name.text.length;
       objects.push(object);
 
-    } while (this.text[this.pos.i] === ',');
+    } while (this.getToken().getLText() === ',');
     this.expect(':');
     if (file) {
       let startI = this.pos.i;
@@ -67,7 +68,7 @@ export class ObjectDeclarationParser extends ParserBase {
       }
 
     }
-    this.advanceSemicolon();
+    this.advanceSemicolonToken();
     if (constant) {
       (this.parent as IHasConstants).constants.push(...objects as OSignal[]);
     } else if (variable) {

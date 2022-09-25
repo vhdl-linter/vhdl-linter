@@ -1,5 +1,6 @@
 import { Position, Range, TextEdit } from 'vscode-languageserver';
 import { config } from './config';
+import { OLexerToken } from '../lexer';
 
 export class OI implements Position {
   private i_: number;
@@ -337,6 +338,7 @@ export class OType extends ObjectBase implements IReferenceable, IHasSubprograms
   references: OToken[] = [];
   units?: string[] = [];
   reads: ORead[] = [];
+  alias: boolean = false;
   addReadsToMap(map: Map<String, ObjectBase>) {
     map.set(this.name.text.toLowerCase(), this);
 
@@ -399,7 +401,7 @@ export class OIfGenerate extends ObjectBase {
   elseGenerate: OElseGenerateClause;
 }
 export class OIfGenerateClause extends OArchitecture {
-  conditions: string[] = [];
+  conditions: OLexerToken[] = [];
   conditionReads: ORead[] = [];
   public parent: OIfGenerate;
 }
@@ -485,7 +487,7 @@ export class OPortAssociationList extends OAssociationList {
   }
 }
 export class OInstantiation extends ObjectBase implements IHasDefinitions {
-  constructor(public parent: OArchitecture | OEntity | OProcess | OLoop | OIf, startI: number, endI: number, public type: 'entity' | 'component' | 'subprogram' | 'subprogram-call') {
+  constructor(public parent: OArchitecture | OEntity | OProcess | OLoop | OIf, startI: number, endI: number, public type: 'entity' | 'component' | 'configuration' | 'subprogram' | 'unknown' = 'unknown') {
     super(parent, startI, endI);
   }
   label?: string;
@@ -638,7 +640,7 @@ export class OHasSequentialStatements extends ObjectBase implements IHasInstanti
 export class OElseClause extends OHasSequentialStatements {
 }
 export class OIfClause extends OHasSequentialStatements implements IHasInstantiations {
-  condition: string;
+  condition: OLexerToken[];
   conditionReads: ORead[] = [];
 }
 export class OCase extends ObjectBase {

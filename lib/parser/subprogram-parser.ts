@@ -3,10 +3,11 @@ import { InterfaceListParser } from './interface-list-parser';
 import { ObjectBase, OI, OName, OSubprogram } from './objects';
 import { ParserBase } from './parser-base';
 import { SequentialStatementParser } from './sequential-statement-parser';
+import { ParserPosition } from './parser';
 
 export class SubprogramParser extends ParserBase {
-  constructor(text: string, pos: OI, file: string, private parent: ObjectBase) {
-    super(text, pos, file);
+  constructor(pos: ParserPosition, file: string, private parent: ObjectBase) {
+    super(pos, file);
     this.debug(`start`);
 
   }
@@ -17,13 +18,13 @@ export class SubprogramParser extends ParserBase {
     }
     const isFunction = nextWord === 'function';
     const beforeNameI = this.pos.i;
-    const name = this.getNextWord({re: /\w+|"[^"]+"/});
+    const name = this.getNextWord();
     const subprogram = new OSubprogram(this.parent, startI, this.getEndOfLineI());
     subprogram.name = new OName(subprogram, beforeNameI, beforeNameI + name.length);
     subprogram.name.text = name;
 
-    if (this.text[this.pos.i] === '(') {
-      const interfaceListParser = new InterfaceListParser(this.text, this.pos, this.file, subprogram);
+    if (this.getToken().getLText() === '(') {
+      const interfaceListParser = new InterfaceListParser(this.pos, this.filePath, subprogram);
       interfaceListParser.parse(false);
     }
     if (isFunction) {
@@ -33,9 +34,9 @@ export class SubprogramParser extends ParserBase {
     nextWord = this.getNextWord({ consume: false });
     if (nextWord === 'is') {
       this.expect('is');
-      new DeclarativePartParser(this.text, this.pos, this.file, subprogram).parse();
+      new DeclarativePartParser(this.pos, this.filePath, subprogram).parse();
       this.expect('begin');
-      subprogram.statements = new SequentialStatementParser(this.text, this.pos, this.file).parse(subprogram, ['end']);
+      subprogram.statements = new SequentialStatementParser(this.pos, this.filePath).parse(subprogram, ['end']);
       this.expect('end');
       this.maybeWord(isFunction ? 'function' : 'procedure');
       this.maybeWord(name);

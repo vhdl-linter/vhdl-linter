@@ -17,12 +17,13 @@ export class PackageParser extends ParserBase {
       pkg.name = new OName(pkg, savedI, savedI + name.length);
       pkg.name.text = name;
       this.expect('is');
-      const declarativePartParser = new DeclarativePartParser(this.text, this.pos, this.file, pkg);
+      const declarativePartParser = new DeclarativePartParser(this.pos, this.filePath, pkg);
       declarativePartParser.parse(false, 'end');
+      this.expect('end');
       this.maybeWord('package');
       this.maybeWord('body');
       this.maybeWord(pkg.name.text);
-      this.advanceSemicolon();
+      this.advanceSemicolonToken();
       return pkg;
     } else {
       const pkg = new OPackage(parent, this.pos.i, this.getEndOfLineI());
@@ -38,15 +39,17 @@ export class PackageParser extends ParserBase {
       if (nextWord === 'new') {
         this.getNextWord();
         savedI = this.pos.i;
-        const uninstantiatedPackage = this.getNextWord({re: /[\w.]+/}).split('.');
-        pkg.uninstantiatedPackageName = new OName(pkg, savedI, savedI + uninstantiatedPackage.join('.').length);
-        pkg.uninstantiatedPackageName.text = uninstantiatedPackage[uninstantiatedPackage.length - 1];
+        const uninstantiatedPackageLibrary = this.consumeToken();
+        this.expect('.');
+        const uninstantiatedPackageName = this.consumeToken();
+        pkg.uninstantiatedPackageName = new OName(pkg, savedI, uninstantiatedPackageName.range.end.i);
+        pkg.uninstantiatedPackageName.text = uninstantiatedPackageName.text;
 
         nextWord = this.getNextWord({consume: false}).toLowerCase();
         if (nextWord === 'generic') {
           this.expect('generic');
           this.expect('map');
-          pkg.genericAssociationList = new AssociationListParser(this.text, this.pos, this.file, pkg).parse('generic');
+          pkg.genericAssociationList = new AssociationListParser(this.pos, this.filePath, pkg).parse('generic');
         }
         this.expect(';');
         return pkg;
@@ -54,16 +57,16 @@ export class PackageParser extends ParserBase {
       if (nextWord === 'generic') {
         this.getNextWord();
         const savedI = this.pos.i;
-        const interfaceListParser = new InterfaceListParser(this.text, this.pos, this.file, pkg);
+        const interfaceListParser = new InterfaceListParser(this.pos, this.filePath, pkg);
         interfaceListParser.parse(true);
         pkg.genericRange = new OIRange(pkg, savedI, this.pos.i);
         this.expect(';');
       }
-      const declarativePartParser = new DeclarativePartParser(this.text, this.pos, this.file, pkg);
+      const declarativePartParser = new DeclarativePartParser(this.pos, this.filePath, pkg);
       declarativePartParser.parse(false, 'end');
       this.maybeWord('package');
       this.maybeWord(pkg.name.text);
-      this.advanceSemicolon();
+      this.advanceSemicolonToken();
       return pkg;
     }
   }

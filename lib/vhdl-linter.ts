@@ -30,10 +30,8 @@ export class VhdlLinter {
   packages: (OPackage | OPackageBody)[] = [];
   constructor(private editorPath: string, public text: string, public projectParser: ProjectParser,
     public onlyEntity: boolean = false, public cancelationObject: CancelationObject = { canceled: false }) {
-    //     console.log('lint');
-    this.parser = new Parser(this.text, this.editorPath, onlyEntity, cancelationObject);
-    //     console.log(`parsing: ${editorPath}`);
     try {
+      this.parser = new Parser(text, this.editorPath, onlyEntity, cancelationObject);
       this.file = this.parser.parse();
       this.parsedSuccessfully = true;
     } catch (e) {
@@ -62,7 +60,11 @@ export class VhdlLinter {
         });
         this.file = new OFile(this.text, this.editorPath, this.text);
       } else {
-        throw e;
+        this.messages.push({
+          range: Range.create(Position.create(0, 0), Position.create(10, 10)),
+          message: `Javascript error while parsing '${e.message}'`
+        });
+        console.error(e);
       }
     }
     //     console.log(`done parsing: ${editorPath}`);
@@ -128,10 +130,10 @@ export class VhdlLinter {
         return actions;
       });
       const codes = [];
-      codes.push(newCode);
-      if (diagnostic.code) {
+      if (typeof diagnostic.code !== 'undefined') {
         codes.push(diagnostic.code);
       }
+      codes.push(newCode);
       diagnostic.code = codes.join(';');
       this.messages.push(diagnostic);
     }
@@ -281,7 +283,6 @@ export class VhdlLinter {
           instantiation.definitions.push(...this.getEntities(instantiation));
           break;
         case 'subprogram':
-        case 'subprogram-call':
           instantiation.definitions.push(...this.getSubprograms(instantiation));
           break;
       }
@@ -634,7 +635,7 @@ export class VhdlLinter {
 
 
   checkAllMultipleDefinitions() {
-    const check = (objList: ObjectBase[]) => {
+    function check(objList: ObjectBase[]) {
       for (const obj of objList.filter(o => o && o.name && o.name.text)) {
         if (objList.find(o => obj !== o && obj.nameEquals(o))) {
           this.addMessage({
@@ -658,6 +659,9 @@ export class VhdlLinter {
       }
       if (implementsIHasTypes(obj)) {
         for (const type of obj.types) {
+          if (type.alias) { // Aliases can be overloaded like functions.
+            continue;
+          }
           objList.push(type);
           if (type instanceof OEnum) {
             objList.push(...type.literals);
@@ -667,9 +671,10 @@ export class VhdlLinter {
       if (implementsIHasInstantiations(obj)) {
         objList.push(...obj.instantiations);
       }
-      if (implementsIHasSubprograms(obj)) {
-        objList.push(...obj.subprograms);
-      }
+      // subprograms can be overloaded...
+      // if (implementsIHasSubprograms(obj)) {
+      //   objList.push(...obj.subprograms);
+      // }
       if (obj instanceof OArchitecture) {
         objList.push(...obj.blocks);
         objList.push(...obj.generates);
@@ -682,8 +687,11 @@ export class VhdlLinter {
       objList.push(...this.file.entity.generics);
       objList.push(...this.file.entity.constants);
       objList.push(...this.file.entity.variables);
-      objList.push(...this.file.entity.subprograms);
+      // objList.push(...this.file.entity.subprograms);
       for (const type of this.file.entity.types) {
+        if (type.alias) { // Aliases can be overloaded like functions.
+          continue;
+        }
         objList.push(type);
         if (type instanceof OEnum) {
           objList.push(...type.literals);
@@ -693,50 +701,20 @@ export class VhdlLinter {
     }
     for (const pkg of this.file.packages) {
       const objList: ObjectBase[] = pkg.constants;
-      objList.push(...pkg.subprograms);
-      objList.push(...pkg.types);
+      // objList.push(...pkg.subprograms);
+      objList.push(...pkg.types.filter(type => type.alias === false)); // Aliases can be overloaded like functions.
       objList.push(...pkg.variables);
       check(objList);
     }
   }
-
-  private pushWriteError(write: OWrite) {
-    const possibleMatches = this.file.objectList
-      .filter(obj => typeof obj !== 'undefined' && typeof obj.name !== 'undefined')
-      .map(obj => obj.name.text);
-    const bestMatch = findBestMatch(write.text, possibleMatches);
-
-    const code = this.addCodeActionCallback((textDocumentUri: string) => {
-      const actions = [];
-      if (this.file.architecture !== undefined) {
-        const args: IAddSignalCommandArguments = { textDocumentUri, signalName: write.text, position: this.file.architecture.endOfDeclarativePart ?? this.file.architecture.range.start };
-        actions.push(CodeAction.create('add signal to architecture', Command.create('add signal to architecture', 'vhdl-linter:add-signal', args)));
-      }
-      actions.push(CodeAction.create(
-        `Replace with ${bestMatch.bestMatch.target} (score: ${bestMatch.bestMatch.rating})`,
-        {
-          changes: {
-            [textDocumentUri]: [TextEdit.replace(Range.create(write.range.start, write.range.end), bestMatch.bestMatch.target)]
-          }
-        },
-        CodeActionKind.QuickFix));
-      return actions;
-    });
-    this.addMessage({
-      code,
-      range: write.range,
-      severity: DiagnosticSeverity.Error,
-      message: `signal '${write.text}' is written but not declared`
-    });
-  }
-  private pushReadError(read: ORead) {
+  private pushNotDeclaredError(token: ORead | OWrite) {
     const code = this.addCodeActionCallback((textDocumentUri: string) => {
       const actions = [];
       for (const pkg of this.packages) {
-        const thing = pkg.constants.find(constant => constant.name.text.toLowerCase() === read.text.toLowerCase()) || pkg.types.find(type => type.name.text.toLowerCase() === read.text.toLowerCase())
-          || pkg.subprograms.find(subprogram => subprogram.name.text.toLowerCase() === read.text.toLowerCase());
+        const thing = pkg.constants.find(constant => constant.name.text.toLowerCase() === token.text.toLowerCase()) || pkg.types.find(type => type.name.text.toLowerCase() === token.text.toLowerCase())
+          || pkg.subprograms.find(subprogram => subprogram.name.text.toLowerCase() === token.text.toLowerCase());
         if (thing) {
-          const file = read.getRoot();
+          const file = token.getRoot();
           const pos = Position.create(0, 0);
           if (file.useClauses.length > 0) {
             pos.line = file.useClauses[file.useClauses.length - 1].range.end.line + 1;
@@ -753,28 +731,33 @@ export class VhdlLinter {
         }
       }
       if (this.file.architecture !== undefined) {
-        const args: IAddSignalCommandArguments = { textDocumentUri, signalName: read.text, position: this.file.architecture.endOfDeclarativePart ?? this.file.architecture.range.start };
-        actions.push(CodeAction.create('add signal to architecture', Command.create('add signal to architecture', 'vhdl-linter:add-signal', args)));
+        const args: IAddSignalCommandArguments = { textDocumentUri, signalName: token.text, position: this.file.architecture.endOfDeclarativePart ?? this.file.architecture.range.start };
+        actions.push(CodeAction.create(
+          'add signal to architecture',
+          Command.create('add signal to architecture', 'vhdl-linter:add-signal', args),
+          CodeActionKind.QuickFix));
       }
       const possibleMatches = this.file.objectList
         .filter(obj => typeof obj !== 'undefined' && typeof obj.name !== 'undefined')
         .map(obj => obj.name.text);
-      const bestMatch = findBestMatch(read.text, possibleMatches);
-      actions.push(CodeAction.create(
-        `Replace with ${bestMatch.bestMatch.target} (score: ${bestMatch.bestMatch.rating})`,
-        {
-          changes: {
-            [textDocumentUri]: [TextEdit.replace(Range.create(read.range.start, read.range.end), bestMatch.bestMatch.target)]
-          }
-        },
-        CodeActionKind.QuickFix));
+      const bestMatch = findBestMatch(token.text, possibleMatches);
+      if (bestMatch.bestMatch.rating > 0.5) {
+        actions.push(CodeAction.create(
+          `Replace with ${bestMatch.bestMatch.target} (score: ${bestMatch.bestMatch.rating})`,
+          {
+            changes: {
+              [textDocumentUri]: [TextEdit.replace(Range.create(token.range.start, token.range.end), bestMatch.bestMatch.target)]
+            }
+          },
+          CodeActionKind.QuickFix));
+      }
       return actions;
     });
     this.addMessage({
-      range: read.range,
-      code: code,
+      code,
+      range: token.range,
       severity: DiagnosticSeverity.Error,
-      message: `signal '${read.text}' is read but not declared`
+      message: `signal '${token.text}' is ${token instanceof ORead ? 'read' : 'written'} but not declared`
     });
   }
   private pushAssociationError(read: OAssociationFormal) {
@@ -812,10 +795,8 @@ export class VhdlLinter {
   }
   checkNotDeclared() {
     for (const obj of this.file.objectList) {
-      if (obj instanceof ORead && obj.definitions.length === 0) {
-        this.pushReadError(obj);
-      } else if (obj instanceof OWrite && obj.definitions.length === 0) {
-        this.pushWriteError(obj);
+      if ((obj instanceof ORead || obj instanceof OWrite) && obj.definitions.length === 0) {
+        this.pushNotDeclaredError(obj);
       } else if (obj instanceof OAssociationFormal && obj.definitions.length === 0) {
         const instOrPackage = obj.parent.parent.parent;
         // if instantiations entity/component/subprogram is not found, don't report read errors
@@ -1062,7 +1043,8 @@ export class VhdlLinter {
                 `Ignore multiple drivers of ${signal.name.text}`,
                 'vhdl-linter:ignore-line',
                 { textDocumentUri, range: signal.name.range }
-              )
+              ),
+              CodeActionKind.QuickFix
             )
           ];
         });
@@ -1264,14 +1246,13 @@ export class VhdlLinter {
     const settings = (await getDocumentSettings(URI.file(this.editorPath).toString()));
     if (settings.rules.warnLogicType) {
       for (const port of tree.entity?.ports ?? []) {
-        let match;
         if ((settings.style.preferedLogicType === 'std_logic' && port.type[0]?.text?.match(/^std_ulogic/i))
           || (settings.style.preferedLogicType === 'std_ulogic' && port.type[0]?.text?.match(/^std_logic/i))) {
-          const code = this.addCodeActionCallback((textDocumentUri: string) => {
-            const actions = [];
-            const match = port.type[0].text.match(/^std_u?logic/i);
-            if (match) {
-              const replacement = port.type[0].text.replace(match[0], settings.style.preferedLogicType);
+          const match = port.type[0].text.match(/^std_u?logic/i);
+          if (match) {
+            const replacement = port.type[0].text.replace(match[0], settings.style.preferedLogicType);
+            const code = this.addCodeActionCallback((textDocumentUri: string) => {
+              const actions = [];
               actions.push(CodeAction.create(
                 `Replace with ${replacement}`,
                 {
@@ -1281,15 +1262,15 @@ export class VhdlLinter {
                   }
                 },
                 CodeActionKind.QuickFix));
-            }
-            return actions;
-          });
-          this.addMessage({
-            range: port.type[0].range,
-            severity: DiagnosticSeverity.Information,
-            message: `Port should be ${settings.style.preferedLogicType} is ${port.type[0].text}`,
-            code
-          });
+              return actions;
+            });
+            this.addMessage({
+              range: port.type[0].range,
+              severity: DiagnosticSeverity.Information,
+              message: `Port should be ${replacement} but is ${port.type[0].text}`,
+              code
+            });
+          }
         }
       }
     }
@@ -1494,7 +1475,7 @@ export class VhdlLinter {
     }
     if (implementsIHasInstantiations(object)) {
       for (const instantiation of object.instantiations) {
-        let definitions: (OComponent | OEntity | OSubprogram)[];
+        let definitions: (OComponent | OEntity | OSubprogram)[] = [];
         switch (instantiation.type) {
           case 'component':
             definitions = this.getComponents(instantiation);
@@ -1503,30 +1484,21 @@ export class VhdlLinter {
             definitions = this.getEntities(instantiation);
             break;
           case 'subprogram':
-          case 'subprogram-call':
             definitions = this.getSubprograms(instantiation);
             break;
-        }
-        let typeName;
-        switch (instantiation.type) {
-          case 'subprogram-call':
-            typeName = 'subprogram';
-            break;
-          default:
-            typeName = instantiation.type;
         }
         if (definitions.length === 0) {
           this.addMessage({
             range: instantiation.range.start.getRangeToEndLine(),
             severity: DiagnosticSeverity.Warning,
-            message: `can not find ${typeName} ${instantiation.componentName}`
+            message: `can not find ${instantiation.type} ${instantiation.componentName}`
           });
         } else {
           const range = instantiation.range.start.getRangeToEndLine();
           const availablePorts = definitions.map(e => e.ports);
-          this.checkAssociations(availablePorts, instantiation.portAssociationList, typeName, range, 'port');
+          this.checkAssociations(availablePorts, instantiation.portAssociationList, instantiation.type, range, 'port');
           const availableGenerics = definitions.map(d => (d instanceof OComponent || d instanceof OEntity) ? d.generics : []);
-          this.checkAssociations(availableGenerics, instantiation.genericAssociationList, typeName, range, 'generic');
+          this.checkAssociations(availableGenerics, instantiation.genericAssociationList, instantiation.type, range, 'generic');
         }
       }
     }

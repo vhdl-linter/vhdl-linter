@@ -2,13 +2,14 @@ import { ConcurrentStatementParser, ConcurrentStatementTypes } from './concurren
 import { DeclarativePartParser } from './declarative-part-parser';
 import { OArchitecture, OBlock, OCaseGenerate, OConstant, OFile, OForGenerate, OI, OIfGenerate, OIfGenerateClause, OName, ORead, OVariable, OWhenGenerateClause, ParserError } from './objects';
 import { ParserBase } from './parser-base';
+import { ParserPosition } from './parser';
 
 export class ArchitectureParser extends ParserBase {
   name: string;
   type?: string;
 
-  constructor(text: string, pos: OI, file: string, private parent: OArchitecture | OFile | OIfGenerate | OCaseGenerate, name?: string) {
-    super(text, pos, file);
+  constructor(pos: ParserPosition, file: string, private parent: OArchitecture | OFile | OIfGenerate | OCaseGenerate, name?: string) {
+    super(pos, file);
     this.debug('start');
     if (name) {
       this.name = name;
@@ -51,11 +52,11 @@ export class ArchitectureParser extends ParserBase {
       this.expect('is');
     }
 
-    new DeclarativePartParser(this.text, this.pos, this.file, this.architecture).parse(structureName !== 'architecture');
+    new DeclarativePartParser(this.pos, this.filePath, this.architecture).parse(structureName !== 'architecture');
     this.architecture.endOfDeclarativePart = new OI(this.architecture, this.pos.i);
     this.maybeWord('begin');
 
-    while (this.pos.i < this.text.length) {
+    while (this.pos.isValid()) {
       this.advanceWhitespace();
       let nextWord = this.getNextWord({ consume: false }).toLowerCase();
       if (nextWord === 'end') {
@@ -78,7 +79,7 @@ export class ArchitectureParser extends ParserBase {
         this.expect(';');
         break;
       }
-      const statementParser = new ConcurrentStatementParser(this.text, this.pos, this.file, this.architecture);
+      const statementParser = new ConcurrentStatementParser(this.pos, this.filePath, this.architecture);
       if (statementParser.parse([
         ConcurrentStatementTypes.Assert,
         ConcurrentStatementTypes.Assignment,

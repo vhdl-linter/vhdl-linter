@@ -1,11 +1,12 @@
-import { OComponent, OEntity, OGeneric, OI, OIRange, OName, OPackage, OPort, OSubprogram } from "./objects";
-import { ParserBase } from "./parser-base";
-import { SubprogramParser } from "./subprogram-parser";
+import { OComponent, OEntity, OGeneric, OI, OIRange, OName, OPackage, OPort, OSubprogram } from './objects';
+import { ParserBase } from './parser-base';
+import { SubprogramParser } from './subprogram-parser';
+import { ParserPosition } from './parser';
 
 
 export class InterfaceListParser extends ParserBase {
-  constructor(text: string, pos: OI, file: string, private parent: OEntity | OSubprogram | OPackage | OComponent) {
-    super(text, pos, file);
+  constructor(pos: ParserPosition, file: string, private parent: OEntity | OSubprogram | OPackage | OComponent) {
+    super(pos, file);
     this.debug('start');
   }
 
@@ -25,7 +26,7 @@ export class InterfaceListParser extends ParserBase {
       this.parent.ports = ports;
     }
     let multiInterface = [];
-    while (this.pos.i < this.text.length) {
+    while (this.pos.isValid()) {
       this.debug('parse i ' + this.pos.i);
 
       this.advanceWhitespace();
@@ -34,9 +35,8 @@ export class InterfaceListParser extends ParserBase {
         new OGeneric(this.parent, this.pos.i, this.getEndOfLineI()) :
         new OPort(this.parent, this.pos.i, this.getEndOfLineI());
 
-      if (this.text[this.pos.i] === ')') {
-        this.pos.i++;
-        this.advanceWhitespace();
+      if (this.getToken().text === ')') {
+        this.consumeToken();
         break;
       }
 
@@ -51,17 +51,11 @@ export class InterfaceListParser extends ParserBase {
         } else {
           ports.push(port as any);
         }
-        if (this.text[this.pos.i] === ';') {
-          this.pos.i++;
-          this.advanceWhitespace();
-        }
+        this.maybeWord(';');
       } else if (nextWord === 'procedure' || nextWord === 'impure' || nextWord === 'pure' || nextWord === 'function') {
-        const subprogramParser = new SubprogramParser(this.text, this.pos, this.file, this.parent);
+        const subprogramParser = new SubprogramParser(this.pos, this.filePath, this.parent);
         this.parent.subprograms.push(subprogramParser.parse(this.pos.i));
-        if (this.text[this.pos.i] === ';') {
-          this.pos.i++;
-          this.advanceWhitespace();
-        }
+        this.maybeWord(';');
       } else {
         if (nextWord === 'signal' || nextWord === 'variable' || nextWord === 'constant' || nextWord === 'file') {
           this.getNextWord();
@@ -69,7 +63,7 @@ export class InterfaceListParser extends ParserBase {
         port.name = new OName(port, this.pos.i, this.pos.i);
         port.name.text = this.getNextWord();
         port.name.range.end.i = port.name.range.start.i + port.name.text.length;
-        if (this.text[this.pos.i] === ',') {
+        if (this.getToken().getLText() === ',') {
           this.expect(',');
           multiInterface.push(port);
           continue;
@@ -84,13 +78,13 @@ export class InterfaceListParser extends ParserBase {
           } else {
             port.direction = directionString;
             port.directionRange = new OIRange(port, this.pos.i, this.pos.i + directionString.length);
-            this.getNextWord(); // consume direction
           }
+          this.getNextWord(); // consume direction
         }
         const iBeforeType = this.pos.i;
         const { type, defaultValue, endI } = this.getTypeDefintion(port);
         port.range.end.i = endI;
-        port.type = this.extractReads(port, type, iBeforeType);
+        port.type = this.extractReads(port, type);
 
         port.defaultValue = defaultValue;
         for (const interface_ of multiInterface) {

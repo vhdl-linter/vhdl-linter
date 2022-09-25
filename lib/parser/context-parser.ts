@@ -1,11 +1,12 @@
-import { ContextReferenceParser } from "./context-reference-parser";
-import { OI, ObjectBase, OContext, OName, OFile } from "./objects";
-import { ParserBase } from "./parser-base";
-import { UseClauseParser } from "./use-clause-parser";
+import { ContextReferenceParser } from './context-reference-parser';
+import { OI, ObjectBase, OContext, OName, OFile } from './objects';
+import { ParserBase } from './parser-base';
+import { UseClauseParser } from './use-clause-parser';
+import { ParserPosition } from './parser';
 
 export class ContextParser extends ParserBase {
-  constructor(text: string, pos: OI, file: string, private parent: OFile) {
-    super(text, pos, file);
+  constructor(pos: ParserPosition, file: string, private parent: OFile) {
+    super(pos, file);
     this.debug(`start`);
   }
 
@@ -16,7 +17,7 @@ export class ContextParser extends ParserBase {
     context.name = new OName(context, savedI, savedI + name.length);
     context.name.text = name;
     this.expect('is');
-    while (this.pos.i < this.text.length) {
+    while (this.pos.isValid()) {
       const nextWord = this.getNextWord();
       if (nextWord === 'end') {
         this.maybeWord('context');
@@ -25,13 +26,13 @@ export class ContextParser extends ParserBase {
         this.expect(';');
         break;
       } else if (nextWord === 'context') {
-          const contextReferenceParser = new ContextReferenceParser(this.text, this.pos, this.file, this.parent);
+          const contextReferenceParser = new ContextReferenceParser(this.pos, this.filePath, this.parent);
           context.contextReferences.push(contextReferenceParser.parse());
       } else if (nextWord === 'library') {
         context.libraries.push(this.getNextWord());
         this.expect(';');
       } else if (nextWord === 'use') {
-        const useClauseParser = new UseClauseParser(this.text, this.pos, this.file, this.parent);
+        const useClauseParser = new UseClauseParser(this.pos, this.filePath, this.parent);
         context.useClauses.push(useClauseParser.parse());
       }
     }
