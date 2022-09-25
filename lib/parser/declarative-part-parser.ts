@@ -41,6 +41,7 @@ export class DeclarativePartParser extends ParserBase {
         const typeName = this.getNextWord();
         type.name = new OName(type, startTypeName, startTypeName + typeName.length + 1);
         type.name.text = typeName;
+        type.alias = true;
         if (this.getToken().getLText() === ':') {
           this.consumeToken();
           this.advanceWhitespace();

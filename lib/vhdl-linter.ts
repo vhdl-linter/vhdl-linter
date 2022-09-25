@@ -635,7 +635,7 @@ export class VhdlLinter {
 
 
   checkAllMultipleDefinitions() {
-    const check = (objList: ObjectBase[]) => {
+    function check(objList: ObjectBase[]) {
       for (const obj of objList.filter(o => o && o.name && o.name.text)) {
         if (objList.find(o => obj !== o && obj.nameEquals(o))) {
           this.addMessage({
@@ -659,6 +659,9 @@ export class VhdlLinter {
       }
       if (implementsIHasTypes(obj)) {
         for (const type of obj.types) {
+          if (type.alias) { // Aliases can be overloaded like functions.
+            continue;
+          }
           objList.push(type);
           if (type instanceof OEnum) {
             objList.push(...type.literals);
@@ -686,6 +689,9 @@ export class VhdlLinter {
       objList.push(...this.file.entity.variables);
       // objList.push(...this.file.entity.subprograms);
       for (const type of this.file.entity.types) {
+        if (type.alias) { // Aliases can be overloaded like functions.
+          continue;
+        }
         objList.push(type);
         if (type instanceof OEnum) {
           objList.push(...type.literals);
@@ -696,7 +702,7 @@ export class VhdlLinter {
     for (const pkg of this.file.packages) {
       const objList: ObjectBase[] = pkg.constants;
       // objList.push(...pkg.subprograms);
-      objList.push(...pkg.types);
+      objList.push(...pkg.types.filter(type => type.alias === false)); // Aliases can be overloaded like functions.
       objList.push(...pkg.variables);
       check(objList);
     }

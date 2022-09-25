@@ -338,6 +338,7 @@ export class OType extends ObjectBase implements IReferenceable, IHasSubprograms
   references: OToken[] = [];
   units?: string[] = [];
   reads: ORead[] = [];
+  alias: boolean = false;
   addReadsToMap(map: Map<String, ObjectBase>) {
     map.set(this.name.text.toLowerCase(), this);
 

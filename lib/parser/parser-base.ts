@@ -65,7 +65,7 @@ export class ParserBase {
         });
       }
     }
-    if (defaultValue.length > 0) {
+    if (defaultValue.length === 0) {
       return {
         type: type,
         endI

@@ -46,11 +46,11 @@ export class TypeParser extends ParserBase {
             this.consumeToken();
           }
           if (this.getToken().getLText() === ',') {
-            enumItems.push({text: this.getToken(-1).text, start: lastI, end: i - 1});
+            enumItems.push({text: this.getToken(-1, true).text, start: lastI, end: i - 1});
             lastI = i + 1;
           }
           if (this.getToken().getLText() === ')') {
-            enumItems.push({ text: this.getToken(-1).text, start: lastI, end: i + -1});
+            enumItems.push({ text: this.getToken(-1, true).text, start: lastI, end: i + -1});
             this.consumeToken();
             break;
           }
