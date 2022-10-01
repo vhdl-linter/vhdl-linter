@@ -112,7 +112,14 @@ export class OIRange implements Range {
     return new OIRange(this.parent, this.start, newEnd);
   }
   getStartAtBeginngOfColumn() {
-    const newStart = new OI(this.parent, this.start.line, 0);
+    const lines = (this.parent instanceof OFile ? this.parent : this.parent.getRoot()).text.split('\n');
+    let startCol = 0;
+    const match = lines[this.start.line].match(/\S/);
+    if (match) {
+      startCol = match.index ?? 0;
+    }
+    const newStart = new OI(this.parent, this.start.line, startCol);
+
     return new OIRange(this.parent, newStart, this.end);
 
   }
@@ -294,6 +301,7 @@ export class OHasConcurrentStatements extends ObjectBase {
 }
 
 export class OArchitecture extends ObjectBase implements IHasSubprograms, IHasComponents, IHasInstantiations, IHasSignals, IHasConstants, IHasVariables, IHasTypes, IHasFileVariables {
+  name: OName;
   signals: OSignal[] = [];
   constants: OConstant[] = [];
   variables: OVariable[] = [];
@@ -302,7 +310,6 @@ export class OArchitecture extends ObjectBase implements IHasSubprograms, IHasCo
   subprograms: OSubprogram[] = [];
   components: OComponent[] = [];
   statements: OConcurrentStatements[] = [];
-  identifier?: string;
   entityName?: string;
   endOfDeclarativePart?: OI;
   get processes() {

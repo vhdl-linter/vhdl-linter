@@ -5,14 +5,12 @@ import { ParserBase } from './parser-base';
 import { ParserPosition } from './parser';
 
 export class ArchitectureParser extends ParserBase {
-  name: string;
-  type?: string;
-
+  entityName: string;
   constructor(pos: ParserPosition, file: string, private parent: OArchitecture | OFile | OIfGenerate | OCaseGenerate, name?: string) {
     super(pos, file);
     this.debug('start');
     if (name) {
-      this.name = name;
+      this.entityName = name;
     }
   }
   public architecture: OArchitecture;
@@ -44,11 +42,12 @@ export class ArchitectureParser extends ParserBase {
       this.architecture.constants.push(iterateConstant);
     }
     if (skipStart !== true) {
-      this.type = this.getNextWord();
-      this.architecture.identifier = this.type;
+      const name = this.consumeToken();
+      this.architecture.name = new OName(this.architecture, name.range.start.i, name.range.end.i);
+      this.architecture.name.text = name.text;
       this.expect('of');
-      this.name = this.getNextWord();
-      this.architecture.entityName = this.name;
+      this.entityName = this.getNextWord();
+      this.architecture.entityName = this.entityName;
       this.expect('is');
     }
 
@@ -69,12 +68,12 @@ export class ArchitectureParser extends ParserBase {
         } else {
           this.maybeWord(structureName);
         }
-        if (typeof this.type !== 'undefined') {
-          this.maybeWord(this.type);
+        if (this.architecture.name) {
+          this.maybeWord(this.architecture.name.text);
         }
 
-        if (this.name) {
-          this.maybeWord(this.name);
+        if (this.entityName) {
+          this.maybeWord(this.entityName);
         }
         this.expect(';');
         break;
