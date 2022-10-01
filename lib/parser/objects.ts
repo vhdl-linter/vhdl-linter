@@ -810,7 +810,7 @@ export class OToken extends ObjectBase implements IHasDefinitions {
           }
         }
       }
-      if (object instanceof OEntity || object instanceof OComponent) {
+      if (object instanceof OEntity || object instanceof OComponent || object instanceof OPackage) {
         for (const generic of object.generics) {
           if (generic.name.text.toLowerCase() === text.toLowerCase()) {
             this.definitions.push(generic);
