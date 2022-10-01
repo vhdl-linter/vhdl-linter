@@ -1,4 +1,4 @@
 **/*.ts
-tsconfig.ts
+tsconfig.json
 test
 test_results

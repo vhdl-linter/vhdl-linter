@@ -711,7 +711,8 @@ export class OAssertion extends ObjectBase {
 export class OToken extends ObjectBase implements IHasDefinitions {
   definitions: ObjectBase[] = [];
 
-  public scope?: ObjectBase;
+  public scope?: ObjectBase; // TODO: What is this scope used for?
+
   constructor(public parent: ObjectBase, startI: number, endI: number, public text: string) {
     super(parent, startI, endI);
 
@@ -817,6 +818,54 @@ export class OToken extends ObjectBase implements IHasDefinitions {
             generic.references.push(this);
           }
         }
+      }
+      // Handling for Attributes e.g. 'INSTANCE_name or 'PATH_NAME
+      // TODO: check better if actual Attribute is following
+      // Possible entities (objects where attributes are valid):
+      /*
+        entity ✓
+        architecture ✓
+        configuration
+        procedure✓
+        function✓
+        package ✓
+        type ✓
+        subtype ✓
+        constant ✓
+        signal✓
+        variable✓
+        component✓
+        label
+        literal
+        units
+        group
+        file ✓
+        property
+        sequence
+        */
+      const relevantTypes = [
+        OEntity,
+        OArchitecture,
+        OSubprogram, // Procedure, Function
+        OPackage, OPackageBody,
+        OType,
+        OSubType,
+        OConstant,
+        OSignal, OSignalBase,
+        OVariable,
+        OComponent];
+      for (const relevantType of relevantTypes) {
+        if (object instanceof relevantType) {
+          try {
+            if (object.name.text.toLowerCase() === text.toLowerCase()) {
+              this.definitions.push(object);
+            }
+          } catch (err) {
+            debugger;
+          }
+
+        }
+
       }
       if (object instanceof OFile && object.entity) {
         object = object.entity;

@@ -23,7 +23,8 @@ export class PackageParser extends ParserBase {
       this.maybeWord('package');
       this.maybeWord('body');
       this.maybeWord(pkg.name.text);
-      this.advanceSemicolonToken();
+      pkg.range.end.i = this.pos.i;
+      const tokens = this.advanceSemicolonToken();
       return pkg;
     } else {
       const pkg = new OPackage(parent, this.pos.i, this.getEndOfLineI());
