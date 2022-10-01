@@ -425,16 +425,23 @@ export class ParserBase {
     let braceLevel = 0;
     tokens = tokens.filter(token => token.isWhitespace() === false && token.type !== TokenType.keyword);
 
+    let slice = false;
     for (let i = 0; i < tokens.length; i++) {
       const token = tokens[i];
       // console.log(index, token);
       const recordToken = tokens[i - 1]?.text === '.';
       if (token.text === '(') {
+        if (i > 0) {
+          slice = true;
+        }
         braceLevel++;
       } else if (token.text === ')') {
         braceLevel--;
+        if (braceLevel === 0) {
+          slice = false;
+        }
       } else if (token.isIdentifier()) {
-        if (braceLevel === 0 && recordToken === false) {
+        if (slice === false && recordToken === false) {
           const write = new OWrite(parent, token.range.start.i, token.range.end.i, token.text);
           writes.push(write);
           if (readAndWrite) {
