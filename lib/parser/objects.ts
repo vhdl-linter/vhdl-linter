@@ -77,7 +77,7 @@ export class OI implements Position {
       throw new Error('Something went wrong with OIRange');
     }
     const lines = (this.parent instanceof OFile ? this.parent : this.parent.getRoot()).text.split('\n');
-    this.i_ = lines.slice(0, this.position.line).join('\n').length + 1 + this.position.character;
+    this.i_ = lines.slice(0, this.position.line).join('\n').length + 1 + Math.min(this.position.character, lines[this.position.line].length);
   }
 }
 export class OIRange implements Range {
@@ -104,6 +104,17 @@ export class OIRange implements Range {
   }
   toJSON() {
     return Range.create(this.start, this.end);
+  }
+  getLimitedRange(limit = 5) {
+    const newEnd = this.end.line - this.start.line > limit ?
+      new OI(this.parent, this.start.line + limit, Number.POSITIVE_INFINITY)
+    : this.end;
+    return new OIRange(this.parent, this.start, newEnd);
+  }
+  getStartAtBeginngOfColumn() {
+    const newStart = new OI(this.parent, this.start.line, 0);
+    return new OIRange(this.parent, newStart, this.end);
+
   }
 }
 
