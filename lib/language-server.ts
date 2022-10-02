@@ -303,8 +303,8 @@ const findDefinitions = async (params: IFindDefinitionParams) => {
 
   let startI = linter.getIFromPosition(params.position);
   let candidates = linter.file?.objectList.filter(object => object.range.start.i <= startI && startI <= object.range.end.i) ?? [];
-  if (linter.file?.architecture !== undefined) {
-    candidates.push(...linter.file.architecture.components.filter(object => object.range.start.i <= startI && startI <= object.range.end.i));
+  for (const architecture of linter.file.architectures) {
+    candidates.push(...architecture.components.filter(object => object.range.start.i <= startI && startI <= object.range.end.i));
   }
   candidates.sort((a, b) => (a.range.end.i - a.range.start.i) - (b.range.end.i - b.range.start.i));
   if (candidates.length === 0) {
@@ -402,7 +402,7 @@ connection.onRequest('vhdl-linter/listing', async (params: any, b: any) => {
       let found: OFile | undefined = undefined;
       if (obj instanceof OInstantiation) {
         if (obj.type === 'entity') {
-          if (obj.definitions?.length > 0 && obj.definitions[0].parent instanceof OFile && obj.definitions[0].parent.entity !== undefined) {
+          if (obj.definitions?.length > 0 && obj.definitions[0].parent instanceof OFile && obj.definitions[0].parent.entities[0] !== undefined) { // TODO: Fix me better
             found = obj.definitions[0].parent;
           } else {
             addUnresolved(`${obj.library}.${obj.componentName.text}`);

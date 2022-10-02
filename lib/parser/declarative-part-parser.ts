@@ -68,7 +68,7 @@ export class DeclarativePartParser extends ParserBase {
       } else if (nextWord === 'use') {
         this.getNextWord();
         const useClauseParser = new UseClauseParser(this.pos, this.filePath, this.parent.getRoot());
-        this.parent.getRoot().useClauses.push(useClauseParser.parse());
+        this.parent.useClauses.push(useClauseParser.parse());
       } else {
         throw new ParserError(`Unknown Ding: '${nextWord}' on line ${this.getLine()}`, this.pos.getRangeToEndLine());
       }

@@ -108,7 +108,7 @@ export class OIRange implements Range {
   getLimitedRange(limit = 5) {
     const newEnd = this.end.line - this.start.line > limit ?
       new OI(this.parent, this.start.line + limit, Number.POSITIVE_INFINITY)
-    : this.end;
+      : this.end;
     return new OIRange(this.parent, this.start, newEnd);
   }
   getStartAtBeginngOfColumn() {
@@ -153,9 +153,38 @@ export class ObjectBase {
     this.root = parent;
     return parent;
   }
+  private rootElement?: OArchitecture | OEntity | OPackage | OPackageBody;
+
+  getRootElement(): OArchitecture | OEntity | OPackage | OPackageBody {
+    if (this.rootElement) {
+      return this.rootElement;
+    }
+    let parent: any = this;
+    while (parent instanceof OArchitecture === false
+      && parent instanceof OEntity && parent instanceof OPackage && parent instanceof OPackageBody) {
+      parent = parent.parent;
+      if (parent instanceof OFile) {
+        throw new ParserError('Failed to find root element', this.range);
+      }
+    }
+    this.rootElement = parent;
+    return parent;
+  }
   nameEquals(other: ObjectBase) {
     return this.name?.text?.toLowerCase() === other?.name?.text?.toLowerCase();
   }
+}
+export interface IHasUseClauses {
+  useClauses: OUseClause[];
+}
+export function implementsIHasUseClause(obj: unknown): obj is IHasUseClauses {
+  return (obj as IHasUseClauses).useClauses !== undefined;
+}
+export interface IHasContextReference {
+  contextReferences: OContextReference[];
+}
+export function implementsIHasContextReference(obj: unknown): obj is IHasContextReference {
+  return (obj as IHasContextReference).contextReferences !== undefined;
 }
 export interface IReferenceable {
   references: OToken[];
@@ -220,13 +249,12 @@ export function implementsIHasVariables(obj: unknown): obj is IHasVariables {
 export class OFile {
   constructor(public text: string, public file: string, public originalText: string) { }
   libraries: string[] = [];
-  useClauses: OUseClause[] = [];
+
   objectList: ObjectBase[] = [];
   contexts: OContext[] = [];
-  contextReferences: OContextReference[] = [];
   magicComments: (OMagicCommentParameter | OMagicCommentDisable | OMagicCommentTodo)[] = [];
-  entity?: OEntity;
-  architecture?: OArchitecture;
+  entities: OEntity[] = [];
+  architectures: OArchitecture[] = [];
   packages: (OPackage | OPackageBody)[] = [];
 
   getJSON() {
@@ -253,8 +281,11 @@ export class OFile {
   }
 }
 
-export class OPackage extends ObjectBase implements IHasSubprograms, IHasComponents, IHasSignals, IHasConstants, IHasVariables, IHasTypes, IHasFileVariables {
+export class OPackage extends ObjectBase implements IHasSubprograms, IHasComponents, IHasSignals, IHasConstants,
+  IHasVariables, IHasTypes, IHasFileVariables, IHasUseClauses, IHasContextReference {
   parent: OFile;
+  useClauses: OUseClause[] = [];
+  contextReferences: OContextReference[] = [];
   uninstantiatedPackageName?: OName;
   subprograms: OSubprogram[] = [];
   components: OComponent[] = [];
@@ -269,7 +300,10 @@ export class OPackage extends ObjectBase implements IHasSubprograms, IHasCompone
   library?: string;
 }
 
-export class OPackageBody extends ObjectBase implements IHasSubprograms, IHasConstants, IHasVariables, IHasTypes, IHasFileVariables {
+export class OPackageBody extends ObjectBase implements IHasSubprograms, IHasConstants, IHasVariables, IHasTypes,
+  IHasFileVariables, IHasUseClauses, IHasContextReference {
+  useClauses: OUseClause[] = [];
+  contextReferences: OContextReference[] = [];
   parent: OFile;
   subprograms: OSubprogram[] = [];
   constants: OConstant[] = [];
@@ -289,7 +323,7 @@ export class OContextReference extends ObjectBase {
     super(parent, startI, endI);
   }
 }
-export class OContext extends ObjectBase {
+export class OContext extends ObjectBase implements IHasUseClauses, IHasContextReference {
   parent: OFile;
   name: OName;
   useClauses: OUseClause[] = [];
@@ -300,8 +334,12 @@ export type OConcurrentStatements = OProcess | OInstantiation | OIfGenerate | OF
 export class OHasConcurrentStatements extends ObjectBase {
 }
 
-export class OArchitecture extends ObjectBase implements IHasSubprograms, IHasComponents, IHasInstantiations, IHasSignals, IHasConstants, IHasVariables, IHasTypes, IHasFileVariables {
+export class OArchitecture extends ObjectBase implements IHasSubprograms, IHasComponents, IHasInstantiations,
+  IHasSignals, IHasConstants, IHasVariables, IHasTypes, IHasFileVariables, IHasUseClauses, IHasContextReference {
   name: OName;
+  useClauses: OUseClause[] = [];
+  contextReferences: OContextReference[] = [];
+
   signals: OSignal[] = [];
   constants: OConstant[] = [];
   variables: OVariable[] = [];
@@ -311,6 +349,7 @@ export class OArchitecture extends ObjectBase implements IHasSubprograms, IHasCo
   components: OComponent[] = [];
   statements: OConcurrentStatements[] = [];
   entityName?: string;
+  correspondingEntity?: OEntity;
   endOfDeclarativePart?: OI;
   get processes() {
     return this.statements.filter(s => s instanceof OProcess) as OProcess[];
@@ -346,7 +385,10 @@ export class OBlock extends OArchitecture {
   label: string;
 
 }
-export class OType extends ObjectBase implements IReferenceable, IHasSubprograms, IHasSignals, IHasConstants, IHasVariables, IHasTypes, IHasFileVariables {
+export class OType extends ObjectBase implements IReferenceable, IHasSubprograms, IHasSignals, IHasConstants, IHasVariables,
+  IHasTypes, IHasFileVariables, IHasUseClauses {
+  useClauses: OUseClause[] = [];
+
   types: OType[] = [];
   subprograms: OSubprogram[] = [];
   variables: OVariable[] = [];
@@ -511,6 +553,7 @@ export class OInstantiation extends ObjectBase implements IHasDefinitions {
   label?: string;
   definitions: (OEntity | OSubprogram | OComponent)[] = [];
   componentName: OName;
+  package?: OName;
   portAssociationList?: OPortAssociationList;
   genericAssociationList?: OGenericAssociationList;
   library?: string;
@@ -592,10 +635,13 @@ export class OAssociation extends ObjectBase implements IHasDefinitions {
   actualIfOutput: [ORead[], OWrite[]] = [[], []];
   actualIfInoutput: [ORead[], OWrite[]] = [[], []];
 }
-export class OEntity extends ObjectBase implements IHasDefinitions, IHasSubprograms, IHasSignals, IHasConstants, IHasVariables, IHasTypes, IHasFileVariables {
+export class OEntity extends ObjectBase implements IHasDefinitions, IHasSubprograms, IHasSignals, IHasConstants, IHasVariables,
+  IHasTypes, IHasFileVariables, IHasUseClauses, IHasContextReference {
   constructor(public parent: OFile, startI: number, endI: number, public library?: string) {
     super(parent, startI, endI);
   }
+  useClauses: OUseClause[] = [];
+  contextReferences: OContextReference[] = [];
   portRange?: OIRange;
   genericRange?: OIRange;
   ports: OPort[] = [];
@@ -668,7 +714,9 @@ export class OCase extends ObjectBase {
 export class OWhenClause extends OHasSequentialStatements implements IHasInstantiations {
   condition: ORead[] = [];
 }
-export class OProcess extends OHasSequentialStatements implements IHasSubprograms, IHasInstantiations, IHasConstants, IHasVariables, IHasTypes, IHasFileVariables {
+export class OProcess extends OHasSequentialStatements implements IHasSubprograms, IHasInstantiations, IHasConstants, IHasVariables,
+  IHasTypes, IHasFileVariables, IHasUseClauses {
+  useClauses: OUseClause[] = [];
   sensitivityList: ORead[] = [];
   label?: string;
   types: OType[] = [];
@@ -863,21 +911,20 @@ export class OToken extends ObjectBase implements IHasDefinitions {
         OComponent];
       for (const relevantType of relevantTypes) {
         if (object instanceof relevantType) {
-          try {
-            if (object.name.text.toLowerCase() === text.toLowerCase()) {
-              this.definitions.push(object);
-            }
-          } catch (err) {
-            debugger;
+          if (object.name && object.name.text.toLowerCase() === text.toLowerCase()) {
+            this.definitions.push(object);
           }
-
         }
 
       }
-      if (object instanceof OFile && object.entity) {
-        object = object.entity;
+      if (object instanceof OArchitecture && object.correspondingEntity) {
+        object = object.correspondingEntity;
         lastIteration = true;
       }
+      // if (object instanceof OFile && object.entity) {
+      //   object = object.entity;
+      //   lastIteration = true;
+      // }
     } while (!(object instanceof OFile || stop));
   }
 }
@@ -930,7 +977,9 @@ export class OMagicCommentParameter extends OMagicComment {
     super(parent, commentType, range);
   }
 }
-export class OSubprogram extends OHasSequentialStatements implements IReferenceable, IHasSubprograms, IHasInstantiations, IHasConstants, IHasVariables, IHasTypes, IHasFileVariables {
+export class OSubprogram extends OHasSequentialStatements implements IReferenceable, IHasSubprograms, IHasInstantiations, IHasConstants,
+  IHasVariables, IHasTypes, IHasFileVariables, IHasUseClauses {
+  useClauses: OUseClause[] = [];
   parent: OPackage;
   references: OToken[] = [];
   variables: OVariable[] = [];

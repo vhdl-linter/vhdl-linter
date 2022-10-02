@@ -130,6 +130,9 @@ export class Parser extends ParserBase {
     let entity: OEntity | undefined;
     let architecture: OArchitecture | undefined;
     const packages: (OPackage | OPackageBody)[] = [];
+    let contextReferences = [];
+    let useClauses = [];
+
     while (this.pos.isValid()) {
       this.advanceWhitespace();
       let nextWord = this.getNextWord().toLowerCase();
@@ -139,48 +142,43 @@ export class Parser extends ParserBase {
           this.file.contexts.push(contextParser.parse());
         } else {
           const contextReferenceParser = new ContextReferenceParser(this.pos, this.filePath, this.file);
-          this.file.contextReferences.push(contextReferenceParser.parse());
+          contextReferences.push(contextReferenceParser.parse());
         }
       } else if (nextWord === 'library') {
         this.file.libraries.push(this.getNextWord());
         this.expect(';');
       } else if (nextWord === 'use') {
         const useClauseParser = new UseClauseParser(this.pos, this.filePath, this.file);
-        this.file.useClauses.push(useClauseParser.parse());
+        useClauses.push(useClauseParser.parse());
       } else if (nextWord === 'entity') {
         const entityParser = new EntityParser(this.pos, this.filePath, this.file);
-        this.file.entity = entityParser.entity;
-        entity = entityParser.parse();
-
+        const entity = entityParser.parse();
+        this.file.entities.push(entity);
+        entity.contextReferences = contextReferences;
+        contextReferences = [];
+        entity.useClauses = useClauses;
+        useClauses = [];
         if (this.onlyEntity) {
           break;
         }
         //         // console.log(this.file, typeof this.file.entity, 'typeof');
       } else if (nextWord === 'architecture') {
-        if (architecture) {
-          this.message('Second Architecture not supported');
-        }
         const architectureParser = new ArchitectureParser(this.pos, this.filePath, this.file);
-        architecture = architectureParser.parse();
+        const architecture = architectureParser.parse();
+        this.file.architectures.push(architecture);
+        architecture.contextReferences = contextReferences;
+        contextReferences = [];
+        architecture.useClauses = useClauses;
+        useClauses = [];
       } else if (nextWord === 'package') {
         if (this.onlyEntity && this.getNextWord({ consume: false }) === 'body') {
           // break;
         }
         const packageParser = new PackageParser(this.pos, this.filePath);
-        packages.push(packageParser.parse(this.file));
+        this.file.packages.push(packageParser.parse(this.file));
       } else {
         throw new ParserError(`Unexpected token ${nextWord}`, this.getToken().range);
       }
-    }
-    if (architecture) {
-      this.file.architecture = architecture;
-
-    }
-    if (entity) {
-      this.file.entity = entity;
-    }
-    if (packages.length > 0) {
-      this.file.packages = packages;
     }
     return this.file;
   }

@@ -5,7 +5,7 @@ import {
 } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { getDocumentSettings, CancelationObject, CancelationError } from './language-server';
-import { implementsIHasInstantiations, implementsIHasSubprograms, implementsIMentionable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, ObjectBase, OCase, OComponent, OConstant, OContext, OEntity, OEnum, OFile, OGeneric, OGenericAssociationList, OHasSequentialStatements, OIf, OInstantiation, OPackage, OPackageBody, OPort, OPortAssociationList, OProcess, ORead, ORecord, OSignal, OSignalBase, OSubprogram, OType, OUseClause, OWhenClause, OWrite, ParserError, OToken, OAssociationList, OIRange, OVariable, OI, implementsIHasSignals, implementsIHasVariables, implementsIHasConstants, implementsIHasTypes } from './parser/objects';
+import { implementsIHasInstantiations, implementsIHasSubprograms, implementsIMentionable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, ObjectBase, OCase, OComponent, OConstant, OContext, OEntity, OEnum, OFile, OGeneric, OGenericAssociationList, OHasSequentialStatements, OIf, OInstantiation, OPackage, OPackageBody, OPort, OPortAssociationList, OProcess, ORead, ORecord, OSignal, OSignalBase, OSubprogram, OType, OUseClause, OWhenClause, OWrite, ParserError, OToken, OAssociationList, OIRange, OVariable, OI, implementsIHasSignals, implementsIHasVariables, implementsIHasConstants, implementsIHasTypes, implementsIHasUseClause, IHasUseClauses, IHasContextReference, implementsIHasContextReference } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 export enum LinterRules {
@@ -139,19 +139,19 @@ export class VhdlLinter {
     }
 
   }
-  getUseClauses(parent: OFile | OContext) {
-    const useClauses = parent.useClauses.slice();
-    const contextReferences = parent.contextReferences.slice();
-    if (parent instanceof OFile) {
-      if (parent.entity === undefined && parent.architecture !== undefined && parent.architecture.entityName !== undefined) {
-        const architectureName = parent.architecture.entityName.toLowerCase();
-        const entity = this.projectParser.getEntities().find(entity => entity.name.text.toLowerCase() === architectureName);
-        if (entity !== undefined) {
-          useClauses.push(...entity.parent.useClauses);
-          contextReferences.push(...entity.parent.contextReferences);
-        }
-      }
-    }
+  getUseClauses(parent: IHasUseClauses | IHasContextReference) {
+    const useClauses = implementsIHasUseClause(parent) ? parent.useClauses.slice() : [];
+    const contextReferences = implementsIHasContextReference(parent) ? parent.contextReferences.slice() : [];
+    // if (parent instanceof OFile) {
+    //   if (parent.entity === undefined && parent.architecture !== undefined && parent.architecture.entityName !== undefined) {
+    //     const architectureName = parent.architecture.entityName.toLowerCase();
+    //     const entity = this.projectParser.getEntities().find(entity => entity.name.text.toLowerCase() === architectureName);
+    //     if (entity !== undefined) {
+    //       useClauses.push(...entity.parent.useClauses);
+    //       contextReferences.push(...entity.parent.contextReferences);
+    //     }
+    //   }
+    // }
     if (contextReferences.length > 0) {
       const contexts = this.projectParser.getContexts();
       for (const reference of contextReferences) {
@@ -179,11 +179,7 @@ export class VhdlLinter {
     }
   }
   async elaborate() {
-    for (const obj of this.file.objectList) {
-      if (obj instanceof OToken) {
-        obj.elaborate();
-      }
-    }
+
     await this.handleCanceled();
     const packages = this.projectParser.getPackages();
     const standard = packages.find(pkg => pkg.name.text.toLowerCase() === 'standard');
@@ -193,36 +189,60 @@ export class VhdlLinter {
     await this.handleCanceled();
 
     let start = Date.now();
+    // Map architectures to entity
+    for (const architecture of this.file.architectures) {
+      if (architecture.entityName === undefined) {
+        continue;
+      }
+      // Find entity first in this file
+      let entity = this.file.entities.find(entity => architecture.entityName?.toLowerCase() === architecture.entityName?.toLowerCase());
+      if (!entity) { // Find entity in all files
+        entity = this.projectParser.getEntities().find(entity => entity.name.text.toLowerCase() === architecture.entityName?.toLowerCase());
+      }
+      if (entity) {
+        architecture.correspondingEntity = entity;
+      }
+    }
+    await this.handleCanceled();
+    for (const obj of this.file.objectList) {
+      if (obj instanceof OToken) {
+        obj.elaborate();
+      }
+    }
     //     console.log(packages);
-    for (const useClause of this.getUseClauses(this.file)) {
-      let found = false;
-      for (let foundPkg of packages) {
-        if (foundPkg.name.text.toLowerCase() === useClause.packageName.toLowerCase()) {
-          if (foundPkg instanceof OPackage && typeof foundPkg.uninstantiatedPackageName !== 'undefined') {
-            const uninstantiatedPackage = packages.find(p => p.name.text.toLowerCase() === (foundPkg as OPackage).uninstantiatedPackageName?.text.toLowerCase());
-            if (uninstantiatedPackage) {
-              foundPkg = uninstantiatedPackage;
-            } else {
+    for (const obj of this.file.objectList) {
+      if (implementsIHasUseClause(obj) || implementsIHasContextReference(obj)) {
+        for (const useClause of this.getUseClauses(obj)) {
+          let found = false;
+          for (let foundPkg of packages) {
+            if (foundPkg.name.text.toLowerCase() === useClause.packageName.toLowerCase()) {
+              if (foundPkg instanceof OPackage && typeof foundPkg.uninstantiatedPackageName !== 'undefined') {
+                const uninstantiatedPackage = packages.find(p => p.name.text.toLowerCase() === (foundPkg as OPackage).uninstantiatedPackageName?.text.toLowerCase());
+                if (uninstantiatedPackage) {
+                  foundPkg = uninstantiatedPackage;
+                } else {
+                  found = true;
+                  this.addMessage({
+                    range: useClause.range,
+                    severity: DiagnosticSeverity.Warning,
+                    message: `could not find instantiated package from package ${useClause.library}.${useClause.packageName}`
+                  });
+                  break;
+                }
+              }
+              this.packages.push(foundPkg);
               found = true;
+            }
+          }
+          if (!found) {
+            if (useClause.getRoot().file === this.file.file) {
               this.addMessage({
                 range: useClause.range,
                 severity: DiagnosticSeverity.Warning,
-                message: `could not find instantiated package from package ${useClause.library}.${useClause.packageName}`
+                message: `could not find package for ${useClause.library}.${useClause.packageName}`
               });
-              break;
             }
           }
-          this.packages.push(foundPkg);
-          found = true;
-        }
-      }
-      if (!found) {
-        if (useClause.getRoot().file === this.file.file) {
-          this.addMessage({
-            range: useClause.range,
-            severity: DiagnosticSeverity.Warning,
-            message: `could not find package for ${useClause.library}.${useClause.packageName}`
-          });
         }
       }
     }
@@ -230,14 +250,10 @@ export class VhdlLinter {
     // start = Date.now();
     await this.handleCanceled();
 
-    let otherFileEntity;
-    if (this.file.entity === undefined && this.file.architecture !== undefined && this.file.architecture.entityName !== undefined) {
-      const architectureName = this.file.architecture.entityName.toLowerCase();
-      otherFileEntity = this.projectParser.getEntities().find(entity => entity.name.text.toLowerCase() === architectureName);
-    }
+
+
     // console.log(`elab: otherFileEntity for: ${Date.now() - start} ms.`);
     // start = Date.now();
-    await this.handleCanceled();
 
     const readObjectMap = new Map<String, ObjectBase>();
     for (const pkg of packages) {
@@ -256,8 +272,17 @@ export class VhdlLinter {
       if (match) {
         read.definitions.push(match);
       }
-      if (otherFileEntity !== undefined) {
-        for (const port of otherFileEntity.ports) {
+      const rootElement = read.getRootElement();
+      if (rootElement instanceof OEntity) {
+        for (const port of rootElement.ports) {
+          if (port.name.text.toLowerCase() === read.text.toLowerCase()) {
+            read.definitions.push(port);
+            read.scope = port;
+            port.references.push(read);
+          }
+        }
+      } else if (rootElement instanceof OArchitecture) {
+        for (const port of rootElement.correspondingEntity?.ports ?? []) {
           if (port.name.text.toLowerCase() === read.text.toLowerCase()) {
             read.definitions.push(port);
             read.scope = port;
@@ -266,6 +291,7 @@ export class VhdlLinter {
         }
       }
     }
+
     // console.log(`elab: reads for: ${Date.now() - start} ms.`);
     // start = Date.now();
     await this.handleCanceled();
@@ -291,8 +317,8 @@ export class VhdlLinter {
     // start = Date.now();
     await this.handleCanceled();
 
-    if (this.file.architecture !== undefined) {
-      for (const component of this.file.architecture.components) {
+    for (const architecture of this.file.architectures) {
+      for (const component of architecture.components) {
         component.definitions.push(...this.getEntities(component));
         const entityPorts = component.definitions.flatMap(ent => ent.ports);
         for (const port of component.ports) {
@@ -482,14 +508,14 @@ export class VhdlLinter {
   }
   async checkLibrary() {
     const settings = await getDocumentSettings(URI.file(this.editorPath).toString());
-
-    if (settings.rules.warnLibrary && this.file && this.file.entity !== undefined && typeof this.file.entity.library === 'undefined') {
-      this.addMessage({
-        range: Range.create(Position.create(0, 0), Position.create(1, 0)),
-        severity: DiagnosticSeverity.Warning,
-        message: `Please define library magic comment \n --!@library libraryName`
-      });
-
+    for (const entity of this.file.entities) {
+      if (settings.rules.warnLibrary && this.file && entity !== undefined && typeof entity.library === 'undefined') {
+        this.addMessage({
+          range: Range.create(Position.create(0, 0), Position.create(1, 0)),
+          severity: DiagnosticSeverity.Warning,
+          message: `Please define library magic comment \n --!@library libraryName`
+        });
+      }
     }
   }
   async checkAll(profiling = false) {
@@ -498,136 +524,147 @@ export class VhdlLinter {
     let i = 0;
     if (this.file) {
       start = Date.now();
-      await this.elaborate();
-      if (profiling) {
-        console.log(`check ${i++}: ${Date.now() - start}ms`);
-        start = Date.now();
-      }
-      await this.removeBrokenActuals();
-      if (profiling) {
-        console.log(`check ${i++}: ${Date.now() - start}ms`);
-        start = Date.now();
-      }
-      await this.checkComponents();
-      if (profiling) {
-        console.log(`check ${i++}: ${Date.now() - start}ms`);
-        start = Date.now();
-      }
-      await this.checkNotDeclared();
-      if (profiling) {
-        console.log(`check ${i++}: ${Date.now() - start}ms`);
-        start = Date.now();
-      }
-      await this.checkLibrary();
-      if (profiling) {
-        console.log(`check ${i++}: ${Date.now() - start}ms`);
-        start = Date.now();
-      }
-      await this.checkTodos();
-      if (profiling) {
-        console.log(`check ${i++}: ${Date.now() - start}ms`);
-        start = Date.now();
-      }
-      this.checkAllMultipleDefinitions();
-      if (profiling) {
-        console.log(`check ${i++}: ${Date.now() - start}ms`);
-        start = Date.now();
-      }
-      if (this.file.architecture !== undefined) {
-        this.checkResets();
+      try {
+        await this.elaborate();
         if (profiling) {
           console.log(`check ${i++}: ${Date.now() - start}ms`);
           start = Date.now();
         }
-        await this.checkUnused(this.file.architecture, this.file.entity);
+        await this.removeBrokenActuals();
         if (profiling) {
           console.log(`check ${i++}: ${Date.now() - start}ms`);
           start = Date.now();
         }
-        await this.checkPortDeclaration();
+        await this.checkComponents();
         if (profiling) {
           console.log(`check ${i++}: ${Date.now() - start}ms`);
           start = Date.now();
         }
-        this.checkInstantiations(this.file.architecture);
+        await this.checkNotDeclared();
         if (profiling) {
           console.log(`check ${i++}: ${Date.now() - start}ms`);
           start = Date.now();
         }
-        await this.checkPortType();
+        await this.checkLibrary();
         if (profiling) {
           console.log(`check ${i++}: ${Date.now() - start}ms`);
           start = Date.now();
+        }
+        await this.checkTodos();
+        if (profiling) {
+          console.log(`check ${i++}: ${Date.now() - start}ms`);
+          start = Date.now();
+        }
+        this.checkAllMultipleDefinitions();
+        if (profiling) {
+          console.log(`check ${i++}: ${Date.now() - start}ms`);
+          start = Date.now();
+        }
+        for (const architecture of this.file.architectures) {
+          this.checkResets();
+          if (profiling) {
+            console.log(`check ${i++}: ${Date.now() - start}ms`);
+            start = Date.now();
+          }
+          await this.checkUnused(architecture, architecture.correspondingEntity);
+          if (profiling) {
+            console.log(`check ${i++}: ${Date.now() - start}ms`);
+            start = Date.now();
+          }
+          await this.checkPortDeclaration();
+          if (profiling) {
+            console.log(`check ${i++}: ${Date.now() - start}ms`);
+            start = Date.now();
+          }
+          this.checkInstantiations(architecture);
+          if (profiling) {
+            console.log(`check ${i++}: ${Date.now() - start}ms`);
+            start = Date.now();
+          }
+          await this.checkPortType();
+          if (profiling) {
+            console.log(`check ${i++}: ${Date.now() - start}ms`);
+            start = Date.now();
+          }
+        }
+        for (const pkg of this.file.packages) {
+          this.checkInstantiations(pkg);
+        }
+        if (profiling) {
+          console.log(`check ${i++}: ${Date.now() - start}ms`);
+          start = Date.now();
+        }
+      } catch (err) {
+        if (err instanceof ParserError) {
+          this.messages.push(Diagnostic.create(err.range, `Error while checking: '${err.message}'`));
+
+        } else {
+          this.messages.push(Diagnostic.create(Range.create(Position.create(0, 0), Position.create(10, 100)), `Error while checking: '${err.message}'`));
+
         }
       }
-      for (const pkg of this.file.packages) {
-        this.checkInstantiations(pkg);
-      }
-      if (profiling) {
-        console.log(`check ${i++}: ${Date.now() - start}ms`);
-        start = Date.now();
-      }
+
       // this.parser.debugObject(this.tree);
     }
     console.profileEnd();
     return this.messages;
   }
   checkComponents() {
-    if (this.file.architecture === undefined) {
-      return;
-    }
-    for (const component of this.file.architecture.components) {
-      const entities = this.getEntities(component);
-      if (entities.length === 0) {
-        this.addMessage({
-          range: component.name.range,
-          severity: DiagnosticSeverity.Warning,
-          message: `Could not find an entity declaration for this component (${component.name})`
-        });
-        continue;
-      }
-      // list of generics (possibly multiple occurences)
-      const realGenerics = entities.flatMap(e => e.generics);
-      // generics not in realEntity
-      for (const generic of realGenerics) {
-        if (!realGenerics.find(gen => gen.nameEquals(generic))) {
+    for (const architecture of this.file.architectures) {
+
+      for (const component of architecture.components) {
+        const entities = this.getEntities(component);
+        if (entities.length === 0) {
           this.addMessage({
-            range: generic.name.range,
-            severity: DiagnosticSeverity.Error,
-            message: `no generic ${generic.name.text} on entity ${component.name}`
+            range: component.name.range,
+            severity: DiagnosticSeverity.Warning,
+            message: `Could not find an entity declaration for this component (${component.name})`
           });
+          continue;
         }
-      }
-      // generics not in this component
-      for (const generic of realGenerics) {
-        if (!component.generics.find(gen => gen.nameEquals(generic))) {
-          this.addMessage({
-            range: component.genericRange ?? component.range,
-            severity: DiagnosticSeverity.Error,
-            message: `generic ${generic.name.text} is missing in this component declaration`
-          });
+        // list of generics (possibly multiple occurences)
+        const realGenerics = entities.flatMap(e => e.generics);
+        // generics not in realEntity
+        for (const generic of realGenerics) {
+          if (!realGenerics.find(gen => gen.nameEquals(generic))) {
+            this.addMessage({
+              range: generic.name.range,
+              severity: DiagnosticSeverity.Error,
+              message: `no generic ${generic.name.text} on entity ${component.name}`
+            });
+          }
         }
-      }
-      // list of ports (possibly multiple occurences)
-      const realPorts = entities.flatMap(e => e.ports);
-      // ports not in realEntity
-      for (const port of component.ports) {
-        if (!realPorts.find(p => p.nameEquals(port))) {
-          this.addMessage({
-            range: port.name.range,
-            severity: DiagnosticSeverity.Error,
-            message: `no port ${port.name.text} on entity ${component.name}`
-          });
+        // generics not in this component
+        for (const generic of realGenerics) {
+          if (!component.generics.find(gen => gen.nameEquals(generic))) {
+            this.addMessage({
+              range: component.genericRange ?? component.range,
+              severity: DiagnosticSeverity.Error,
+              message: `generic ${generic.name.text} is missing in this component declaration`
+            });
+          }
         }
-      }
-      // generics not in this component
-      for (const port of realPorts) {
-        if (!component.ports.find(p => p.nameEquals(port))) {
-          this.addMessage({
-            range: component.portRange ?? component.range,
-            severity: DiagnosticSeverity.Error,
-            message: `port ${port.name.text} is missing in this component declaration`
-          });
+        // list of ports (possibly multiple occurences)
+        const realPorts = entities.flatMap(e => e.ports);
+        // ports not in realEntity
+        for (const port of component.ports) {
+          if (!realPorts.find(p => p.nameEquals(port))) {
+            this.addMessage({
+              range: port.name.range,
+              severity: DiagnosticSeverity.Error,
+              message: `no port ${port.name.text} on entity ${component.name}`
+            });
+          }
+        }
+        // generics not in this component
+        for (const port of realPorts) {
+          if (!component.ports.find(p => p.nameEquals(port))) {
+            this.addMessage({
+              range: component.portRange ?? component.range,
+              severity: DiagnosticSeverity.Error,
+              message: `port ${port.name.text} is missing in this component declaration`
+            });
+          }
         }
       }
     }
@@ -682,13 +719,13 @@ export class VhdlLinter {
       }
       check(objList);
     }
-    if (this.file.entity !== undefined) {
-      const objList: ObjectBase[] = this.file.entity.ports;
-      objList.push(...this.file.entity.generics);
-      objList.push(...this.file.entity.constants);
-      objList.push(...this.file.entity.variables);
-      // objList.push(...this.file.entity.subprograms);
-      for (const type of this.file.entity.types) {
+    for (const entity of this.file.entities) {
+      const objList: ObjectBase[] = entity.ports;
+      objList.push(...entity.generics);
+      objList.push(...entity.constants);
+      objList.push(...entity.variables);
+      // objList.push(...entity.subprograms);
+      for (const type of entity.types) {
         if (type.alias) { // Aliases can be overloaded like functions.
           continue;
         }
@@ -714,10 +751,10 @@ export class VhdlLinter {
         const thing = pkg.constants.find(constant => constant.name.text.toLowerCase() === token.text.toLowerCase()) || pkg.types.find(type => type.name.text.toLowerCase() === token.text.toLowerCase())
           || pkg.subprograms.find(subprogram => subprogram.name.text.toLowerCase() === token.text.toLowerCase());
         if (thing) {
-          const file = token.getRoot();
+          const architecture = token.getRootElement();
           const pos = Position.create(0, 0);
-          if (file.useClauses.length > 0) {
-            pos.line = file.useClauses[file.useClauses.length - 1].range.end.line + 1;
+          if (architecture && architecture.useClauses.length > 0) {
+            pos.line = architecture.useClauses[architecture.useClauses.length - 1].range.end.line + 1;
           }
           actions.push(CodeAction.create(
             'add use statement for ' + pkg.name,
@@ -730,8 +767,8 @@ export class VhdlLinter {
           ));
         }
       }
-      if (this.file.architecture !== undefined) {
-        const args: IAddSignalCommandArguments = { textDocumentUri, signalName: token.text, position: this.file.architecture.endOfDeclarativePart ?? this.file.architecture.range.start };
+      for (const architecture of this.file.architectures) {
+        const args: IAddSignalCommandArguments = { textDocumentUri, signalName: token.text, position: architecture.endOfDeclarativePart ?? architecture.range.start };
         actions.push(CodeAction.create(
           'add signal to architecture',
           Command.create('add signal to architecture', 'vhdl-linter:add-signal', args),
@@ -767,10 +804,10 @@ export class VhdlLinter {
         const thing = pkg.constants.find(constant => constant.name.text.toLowerCase() === read.text.toLowerCase()) || pkg.types.find(type => type.name.text.toLowerCase() === read.text.toLowerCase())
           || pkg.subprograms.find(subprogram => subprogram.name.text.toLowerCase() === read.text.toLowerCase());
         if (thing) {
-          const file = read.getRoot();
+          const architecture = read.getRootElement();
           const pos = Position.create(0, 0);
-          if (file.useClauses.length > 0) {
-            pos.line = file.useClauses[file.useClauses.length - 1].range.end.line + 1;
+          if (architecture && architecture.useClauses.length > 0) {
+            pos.line = architecture.useClauses[architecture.useClauses.length - 1].range.end.line + 1;
           }
           actions.push(CodeAction.create(
             'add use statement for ' + pkg.name,
@@ -807,12 +844,12 @@ export class VhdlLinter {
     }
   }
   getCodeLens(textDocumentUri: string): CodeLens[] {
-    if (this.file.architecture === undefined) {
-      return [];
+    let signalLike: OSignalBase[] = [];
+    for (const architecture of this.file.architectures) {
+      signalLike = signalLike.concat(architecture.signals);
     }
-    let signalLike: OSignalBase[] = this.file.architecture.signals;
-    if (this.file.entity !== undefined) {
-      signalLike = signalLike.concat(this.file.entity.ports);
+    for (const entity of this.file.entities) {
+      signalLike = signalLike.concat(entity.ports);
     }
     const processes = this.file.objectList.filter(object => object instanceof OProcess) as OProcess[];
     const signalsMissingReset = signalLike.filter(signal => {
@@ -865,78 +902,78 @@ export class VhdlLinter {
 
   }
   checkResets() {
-    if (this.file.architecture === undefined) {
-      return;
-    }
-    let signalLike: OSignalBase[] = this.file.architecture.signals;
-    if (this.file.entity !== undefined) {
-      signalLike = signalLike.concat(this.file.entity.ports);
-    }
-    const processes = this.file.objectList.filter(object => object instanceof OProcess) as OProcess[];
-
-    for (const signal of signalLike) {
-      if (typeof signal.registerProcess === 'undefined') {
-        continue;
+    for (const architecture of this.file.architectures) {
+      let signalLike: OSignalBase[] = architecture.signals;
+      if (architecture.correspondingEntity !== undefined) {
+        signalLike = signalLike.concat(architecture.correspondingEntity.ports);
       }
-      const registerProcess = signal.registerProcess;
-      let resetFound = false;
-      for (const reset of registerProcess.getResets()) {
-        if (reset.toLowerCase() === signal.name.text.toLowerCase()) {
-          resetFound = true;
+      const processes = this.file.objectList.filter(object => object instanceof OProcess) as OProcess[];
+
+      for (const signal of signalLike) {
+        if (typeof signal.registerProcess === 'undefined') {
+          continue;
         }
-      }
-      if (!resetFound) {
-        const code = this.addCodeActionCallback((textDocumentUri: string) => {
-          const actions = [];
-
-          const change = this.file.originalText.split('\n')[registerProcess.range.start.line - 1].match(/--\s*vhdl-linter-parameter-next-line/i) === null ?
-            TextEdit.insert(registerProcess.range.start, `--vhdl-linter-parameter-next-line ${signal.name.text}\n` + ' '.repeat(registerProcess.range.start.character)) :
-            TextEdit.insert(Position.create(registerProcess.range.start.line - 1, this.file.originalText.split('\n')[registerProcess.range.start.line - 1].length), ` ${signal.name.text}`);
-          actions.push(CodeAction.create(
-            'Ignore reset for ' + signal.name,
-            {
-              changes: {
-                [textDocumentUri]: [change]
-              }
-            },
-            CodeActionKind.QuickFix
-          ));
-          let resetValue = null;
-          if (signal.type.map(read => read.text).join(' ').match(/^std_u?logic_vector|unsigned|signed/i)) {
-            resetValue = `(others => '0')`;
-          } else if (signal.type.map(read => read.text).join(' ').match(/^std_u?logic/i)) {
-            resetValue = `'0'`;
-          } else if (signal.type.map(read => read.text).join(' ').match(/^integer|natural|positive/i)) {
-            resetValue = `0`;
+        const registerProcess = signal.registerProcess;
+        let resetFound = false;
+        for (const reset of registerProcess.getResets()) {
+          if (reset.toLowerCase() === signal.name.text.toLowerCase()) {
+            resetFound = true;
           }
-          if (resetValue !== null && typeof registerProcess.resetClause !== 'undefined') {
-            let positionStart = Position.create(registerProcess.resetClause.range.start.line, registerProcess.resetClause.range.start.character);
-            positionStart.line++;
-            const indent = positionStart.character + 2;
-            positionStart.character = 0;
+        }
+        if (!resetFound) {
+          const code = this.addCodeActionCallback((textDocumentUri: string) => {
+            const actions = [];
+
+            const change = this.file.originalText.split('\n')[registerProcess.range.start.line - 1].match(/--\s*vhdl-linter-parameter-next-line/i) === null ?
+              TextEdit.insert(registerProcess.range.start, `--vhdl-linter-parameter-next-line ${signal.name.text}\n` + ' '.repeat(registerProcess.range.start.character)) :
+              TextEdit.insert(Position.create(registerProcess.range.start.line - 1, this.file.originalText.split('\n')[registerProcess.range.start.line - 1].length), ` ${signal.name.text}`);
             actions.push(CodeAction.create(
-              'Add reset for ' + signal.name,
+              'Ignore reset for ' + signal.name,
               {
                 changes: {
-                  [textDocumentUri]: [TextEdit.insert(positionStart, ' '.repeat(indent) + `${signal.name} <= ${resetValue};\n`)]
+                  [textDocumentUri]: [change]
                 }
               },
               CodeActionKind.QuickFix
             ));
-          }
-          return actions;
-        });
-        const endCharacter = this.text.split('\n')[registerProcess.range.start.line].length;
-        const range = Range.create(Position.create(registerProcess.range.start.line, 0), Position.create(registerProcess.range.start.line, endCharacter));
-        const message = `Reset '${signal.name}' missing`;
-        this.addMessage({
-          range,
-          code,
-          severity: DiagnosticSeverity.Warning,
-          message
-        }, LinterRules.Reset, signal.name.text);
+            let resetValue = null;
+            if (signal.type.map(read => read.text).join(' ').match(/^std_u?logic_vector|unsigned|signed/i)) {
+              resetValue = `(others => '0')`;
+            } else if (signal.type.map(read => read.text).join(' ').match(/^std_u?logic/i)) {
+              resetValue = `'0'`;
+            } else if (signal.type.map(read => read.text).join(' ').match(/^integer|natural|positive/i)) {
+              resetValue = `0`;
+            }
+            if (resetValue !== null && typeof registerProcess.resetClause !== 'undefined') {
+              let positionStart = Position.create(registerProcess.resetClause.range.start.line, registerProcess.resetClause.range.start.character);
+              positionStart.line++;
+              const indent = positionStart.character + 2;
+              positionStart.character = 0;
+              actions.push(CodeAction.create(
+                'Add reset for ' + signal.name,
+                {
+                  changes: {
+                    [textDocumentUri]: [TextEdit.insert(positionStart, ' '.repeat(indent) + `${signal.name} <= ${resetValue};\n`)]
+                  }
+                },
+                CodeActionKind.QuickFix
+              ));
+            }
+            return actions;
+          });
+          const endCharacter = this.text.split('\n')[registerProcess.range.start.line].length;
+          const range = Range.create(Position.create(registerProcess.range.start.line, 0), Position.create(registerProcess.range.start.line, endCharacter));
+          const message = `Reset '${signal.name}' missing`;
+          this.addMessage({
+            range,
+            code,
+            severity: DiagnosticSeverity.Warning,
+            message
+          }, LinterRules.Reset, signal.name.text);
+        }
       }
     }
+
   }
 
   private checkUnusedPorts(ports: OPort[]) {
@@ -1125,151 +1162,148 @@ export class VhdlLinter {
     }
   }
   async checkPortDeclaration() {
-    if (this.file.entity === undefined) {
-      return;
-    }
+    for (const entity of this.file.entities) {
 
-    const tree = this.file;
-    const portSettings = (await getDocumentSettings(URI.file(this.editorPath).toString())).ports;
-    if (portSettings.enablePortStyle) {
+      const portSettings = (await getDocumentSettings(URI.file(this.editorPath).toString())).ports;
+      if (portSettings.enablePortStyle) {
 
-      for (const port of tree.entity?.ports ?? []) {
-        if (port.direction === 'in') {
-          if (port.name.text.match(new RegExp(portSettings.outRegex, 'i'))) {
-            const code = this.addCodeActionCallback((textDocumentUri: string) => {
-              const actions = [];
-              const newName = port.name.text.replace(new RegExp(portSettings.outRegex, 'i'), 'i_');
-              actions.push(CodeAction.create(
-                `Replace portname with '${newName}`,
-                {
-                  changes: {
-                    [textDocumentUri]: [TextEdit.replace(port.name.range, newName)]
-                  }
-                },
-                CodeActionKind.QuickFix));
-              actions.push(CodeAction.create(
-                `Change port name.`,
-                {
-                  changes: {
-                    [textDocumentUri]: [TextEdit.replace(port.directionRange, 'out')]
-                  }
-                },
-                CodeActionKind.QuickFix));
-              return actions;
-            });
-            this.addMessage({
-              range: port.range,
-              severity: DiagnosticSeverity.Error,
-              message: `input port '${port.name}' matches output regex ${portSettings.outRegex}`,
-              code
-            });
-          } else if (port.name.text.match(new RegExp(portSettings.inRegex, 'i')) === null) {
-            const code = this.addCodeActionCallback((textDocumentUri: string) => {
-              const actions = [];
-              const newName = port.name.text.replace(/^(._|_?)/, 'i_');
-              actions.push(CodeAction.create(
-                `Replace portname with '${newName}`,
-                {
-                  changes: {
-                    [textDocumentUri]: [TextEdit.replace(port.name.range, newName)]
-                  }
-                },
-                CodeActionKind.QuickFix));
-              return actions;
-            });
-            this.addMessage({
-              range: port.range,
-              severity: DiagnosticSeverity.Information,
-              message: `input port '${port.name}' should match input regex ${portSettings.inRegex}`,
-              code
-            });
-          }
-        } else if (port.direction === 'out') {
-          if (port.name.text.match(new RegExp(portSettings.inRegex, 'i'))) {
-            const code = this.addCodeActionCallback((textDocumentUri: string) => {
-              const actions = [];
-              const newName = port.name.text.replace(/^i_/, 'o_');
-              actions.push(CodeAction.create(
-                `Replace portname with '${newName}`,
-                {
-                  changes: {
-                    [textDocumentUri]: [TextEdit.replace(port.name.range, newName)]
-                  }
-                },
-                CodeActionKind.QuickFix));
-              actions.push(CodeAction.create(
-                `Change port name.`,
-                {
-                  changes: {
-                    [textDocumentUri]: [TextEdit.replace(port.directionRange, 'in')]
-                  }
-                },
-                CodeActionKind.QuickFix));
-              return actions;
-            });
-            this.addMessage({
-              range: port.range,
-              severity: DiagnosticSeverity.Error,
-              message: `ouput port '${port.name}' matches input regex ${portSettings.inRegex}`,
-              code
-            });
-          } else if (port.name.text.match(new RegExp(portSettings.outRegex, 'i')) === null) {
-            const code = this.addCodeActionCallback((textDocumentUri: string) => {
-              const actions = [];
-              const newName = port.name.text.replace(/^(._|_?)/, 'o_');
-              actions.push(CodeAction.create(
-                `Replace portname with '${newName}`,
-                {
-                  changes: {
-                    [textDocumentUri]: [TextEdit.replace(port.name.range, newName)]
-                  }
-                },
-                CodeActionKind.QuickFix));
-              return actions;
-            });
-            this.addMessage({
-              range: port.range,
-              severity: DiagnosticSeverity.Information,
-              message: `ouput port '${port.name}' should match output regex ${portSettings.outRegex}`
-            });
+        for (const port of entity.ports ?? []) {
+          if (port.direction === 'in') {
+            if (port.name.text.match(new RegExp(portSettings.outRegex, 'i'))) {
+              const code = this.addCodeActionCallback((textDocumentUri: string) => {
+                const actions = [];
+                const newName = port.name.text.replace(new RegExp(portSettings.outRegex, 'i'), 'i_');
+                actions.push(CodeAction.create(
+                  `Replace portname with '${newName}`,
+                  {
+                    changes: {
+                      [textDocumentUri]: [TextEdit.replace(port.name.range, newName)]
+                    }
+                  },
+                  CodeActionKind.QuickFix));
+                actions.push(CodeAction.create(
+                  `Change port name.`,
+                  {
+                    changes: {
+                      [textDocumentUri]: [TextEdit.replace(port.directionRange, 'out')]
+                    }
+                  },
+                  CodeActionKind.QuickFix));
+                return actions;
+              });
+              this.addMessage({
+                range: port.range,
+                severity: DiagnosticSeverity.Error,
+                message: `input port '${port.name}' matches output regex ${portSettings.outRegex}`,
+                code
+              });
+            } else if (port.name.text.match(new RegExp(portSettings.inRegex, 'i')) === null) {
+              const code = this.addCodeActionCallback((textDocumentUri: string) => {
+                const actions = [];
+                const newName = port.name.text.replace(/^(._|_?)/, 'i_');
+                actions.push(CodeAction.create(
+                  `Replace portname with '${newName}`,
+                  {
+                    changes: {
+                      [textDocumentUri]: [TextEdit.replace(port.name.range, newName)]
+                    }
+                  },
+                  CodeActionKind.QuickFix));
+                return actions;
+              });
+              this.addMessage({
+                range: port.range,
+                severity: DiagnosticSeverity.Information,
+                message: `input port '${port.name}' should match input regex ${portSettings.inRegex}`,
+                code
+              });
+            }
+          } else if (port.direction === 'out') {
+            if (port.name.text.match(new RegExp(portSettings.inRegex, 'i'))) {
+              const code = this.addCodeActionCallback((textDocumentUri: string) => {
+                const actions = [];
+                const newName = port.name.text.replace(/^i_/, 'o_');
+                actions.push(CodeAction.create(
+                  `Replace portname with '${newName}`,
+                  {
+                    changes: {
+                      [textDocumentUri]: [TextEdit.replace(port.name.range, newName)]
+                    }
+                  },
+                  CodeActionKind.QuickFix));
+                actions.push(CodeAction.create(
+                  `Change port name.`,
+                  {
+                    changes: {
+                      [textDocumentUri]: [TextEdit.replace(port.directionRange, 'in')]
+                    }
+                  },
+                  CodeActionKind.QuickFix));
+                return actions;
+              });
+              this.addMessage({
+                range: port.range,
+                severity: DiagnosticSeverity.Error,
+                message: `ouput port '${port.name}' matches input regex ${portSettings.inRegex}`,
+                code
+              });
+            } else if (port.name.text.match(new RegExp(portSettings.outRegex, 'i')) === null) {
+              const code = this.addCodeActionCallback((textDocumentUri: string) => {
+                const actions = [];
+                const newName = port.name.text.replace(/^(._|_?)/, 'o_');
+                actions.push(CodeAction.create(
+                  `Replace portname with '${newName}`,
+                  {
+                    changes: {
+                      [textDocumentUri]: [TextEdit.replace(port.name.range, newName)]
+                    }
+                  },
+                  CodeActionKind.QuickFix));
+                return actions;
+              });
+              this.addMessage({
+                range: port.range,
+                severity: DiagnosticSeverity.Information,
+                message: `ouput port '${port.name}' should match output regex ${portSettings.outRegex}`
+              });
+            }
           }
         }
       }
     }
   }
   async checkPortType() {
-    if (this.file.entity === undefined) {
-      return;
-    }
+    for (const entity of this.file.entities) {
 
-    const tree = this.file;
-    const settings = (await getDocumentSettings(URI.file(this.editorPath).toString()));
-    if (settings.rules.warnLogicType) {
-      for (const port of tree.entity?.ports ?? []) {
-        if ((settings.style.preferedLogicType === 'std_logic' && port.type[0]?.text?.match(/^std_ulogic/i))
-          || (settings.style.preferedLogicType === 'std_ulogic' && port.type[0]?.text?.match(/^std_logic/i))) {
-          const match = port.type[0].text.match(/^std_u?logic/i);
-          if (match) {
-            const replacement = port.type[0].text.replace(match[0], settings.style.preferedLogicType);
-            const code = this.addCodeActionCallback((textDocumentUri: string) => {
-              const actions = [];
-              actions.push(CodeAction.create(
-                `Replace with ${replacement}`,
-                {
-                  changes: {
-                    [textDocumentUri]: [TextEdit.replace(port.type[0].range
-                      , replacement)]
-                  }
-                },
-                CodeActionKind.QuickFix));
-              return actions;
-            });
-            this.addMessage({
-              range: port.type[0].range,
-              severity: DiagnosticSeverity.Information,
-              message: `Port should be ${replacement} but is ${port.type[0].text}`,
-              code
-            });
+      const tree = this.file;
+      const settings = (await getDocumentSettings(URI.file(this.editorPath).toString()));
+      if (settings.rules.warnLogicType) {
+        for (const port of entity.ports ?? []) {
+          if ((settings.style.preferedLogicType === 'std_logic' && port.type[0]?.text?.match(/^std_ulogic/i))
+            || (settings.style.preferedLogicType === 'std_ulogic' && port.type[0]?.text?.match(/^std_logic/i))) {
+            const match = port.type[0].text.match(/^std_u?logic/i);
+            if (match) {
+              const replacement = port.type[0].text.replace(match[0], settings.style.preferedLogicType);
+              const code = this.addCodeActionCallback((textDocumentUri: string) => {
+                const actions = [];
+                actions.push(CodeAction.create(
+                  `Replace with ${replacement}`,
+                  {
+                    changes: {
+                      [textDocumentUri]: [TextEdit.replace(port.type[0].range
+                        , replacement)]
+                    }
+                  },
+                  CodeActionKind.QuickFix));
+                return actions;
+              });
+              this.addMessage({
+                range: port.type[0].range,
+                severity: DiagnosticSeverity.Information,
+                message: `Port should be ${replacement} but is ${port.type[0].text}`,
+                code
+              });
+            }
           }
         }
       }
@@ -1304,9 +1338,7 @@ export class VhdlLinter {
     // find all defined components in current scope
     let parent: ObjectBase | OFile | undefined = instantiation.parent;
     if (!parent) {
-      if (this.file.architecture !== undefined) {
-        parent = this.file.architecture;
-      }
+      throw new Error('Error in getComponents');
     }
     while (parent instanceof ObjectBase) {
       if (parent instanceof OArchitecture) {
@@ -1326,9 +1358,7 @@ export class VhdlLinter {
     // find all defined subprograms in current scope
     let parent: ObjectBase | OFile | undefined = instantiation.parent;
     if (!parent) {
-      if (this.file.architecture !== undefined) {
-        parent = this.file.architecture;
-      }
+      throw new Error('Error in getSubprograms');
     }
     while (parent instanceof ObjectBase) {
       if (implementsIHasSubprograms(parent)) {
@@ -1358,6 +1388,10 @@ export class VhdlLinter {
     }
     // in entities
     subprograms.push(...this.projectParser.getEntities().flatMap(ent => ent.subprograms));
+    if (instantiation.library !== undefined && instantiation.package !== undefined) {
+      subprograms.push(...this.projectParser.getPackages().filter(pkg => pkg.name.text.toLowerCase() === instantiation.package?.text.toLowerCase()).map(pkg => pkg.subprograms).flat());
+
+    }
     return subprograms.filter(e => e.name.text.toLowerCase() === instantiation.componentName.text.toLowerCase());
   }
 

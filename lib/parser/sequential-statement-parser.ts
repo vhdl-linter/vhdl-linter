@@ -102,6 +102,9 @@ export class SequentialStatementParser extends ParserBase {
     subprogramCall.componentName.range.end.i = subprogramCall.componentName.range.start.i + subprogramCall.componentName.text.length;
     while (this.getToken().getLText() === '.') {
       this.expect('.');
+      subprogramCall.library = subprogramCall.package?.text;
+      subprogramCall.package = subprogramCall.componentName;
+      subprogramCall.componentName = new OName(subprogramCall, this.pos.i, this.pos.i);
       subprogramCall.componentName.range.start.i = this.pos.i;
       subprogramCall.componentName.text = this.getNextWord();
       subprogramCall.componentName.range.end.i = subprogramCall.componentName.range.start.i + subprogramCall.componentName.text.length;

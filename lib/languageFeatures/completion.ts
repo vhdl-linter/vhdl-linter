@@ -1,6 +1,6 @@
 import { CompletionItem, CompletionItemKind, CompletionParams, InsertTextFormat, Position, Range, ErrorCodes } from 'vscode-languageserver';
 import { documents, initialization, linters, projectParser, connection } from '../language-server';
-import { implementsIHasConstants, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables, ORecord, OEnum, OFile, OName } from '../parser/objects';
+import { implementsIHasConstants, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables, ORecord, OEnum, OFile, OName, OArchitecture, OEntity } from '../parser/objects';
 
 export function attachOnCompletion() {
   connection.onCompletion(async (params: CompletionParams, token): Promise<CompletionItem[]> => {
@@ -111,23 +111,29 @@ export function attachOnCompletion() {
         throw new Error('Infinite Loop?');
       }
     }
-    if (parent instanceof OFile && parent.entity !== undefined) {
-      for (const port of parent.entity.ports) {
+    let entity: OEntity | undefined;
+    if (parent instanceof OEntity) {
+      entity = parent;
+    } else if (parent instanceof OArchitecture && parent.correspondingEntity) {
+      entity = parent.correspondingEntity;
+    }
+    if (entity) {
+      for (const port of entity.ports) {
         completions.push({ label: port.name.text, kind: CompletionItemKind.Field });
       }
-      for (const port of parent.entity.generics) {
+      for (const port of entity.generics) {
         completions.push({ label: port.name.text, kind: CompletionItemKind.Constant });
       }
-      for (const signal of parent.entity.signals) {
+      for (const signal of entity.signals) {
         completions.push({ label: signal.name.text, kind: CompletionItemKind.Variable });
       }
-      for (const constant of parent.entity.constants) {
+      for (const constant of entity.constants) {
         completions.push({ label: constant.name.text, kind: CompletionItemKind.Variable });
       }
-      for (const variable of parent.entity.variables) {
+      for (const variable of entity.variables) {
         completions.push({ label: variable.name.text, kind: CompletionItemKind.Variable });
       }
-      for (const subprogram of parent.entity.subprograms) {
+      for (const subprogram of entity.subprograms) {
         completions.push({ label: subprogram.name.text, kind: CompletionItemKind.Function });
       }
     }

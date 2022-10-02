@@ -94,8 +94,8 @@ export async function handleOnDocumentSymbol(params: DocumentSymbolParams): Prom
   returnValue.push(...linter.file.packages.map(pkg => pkg.types).flat().map(type => DocumentSymbol.create(type.name.text, undefined, SymbolKind.Enum, type.range, type.range)));
   returnValue.push(...linter.file.packages.map(pkg => pkg.subprograms).flat().map(subprogram => DocumentSymbol.create(subprogram.name.text, undefined, SymbolKind.Function, subprogram.range, subprogram.range)));
   returnValue.push(...linter.file.packages.map(pkg => pkg.constants).flat().map(constants => DocumentSymbol.create(constants.name.text, undefined, SymbolKind.Constant, constants.range, constants.range)));
-  if (linter.file.architecture !== undefined) {
-    returnValue.push(...parseArchitecture(linter.file.architecture, linter));
+  for (const architecture of linter.file.architectures) {
+    returnValue.push(...parseArchitecture(architecture, linter));
   }
   return returnValue;
 }

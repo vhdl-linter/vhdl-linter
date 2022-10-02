@@ -15,9 +15,9 @@ export class ObjectDeclarationParser extends ParserBase {
       nextWord = this.getNextWord({ consume: false });
     }
     const objects = [];
-    const constant = nextWord === 'constant';
-    const variable = nextWord === 'variable';
-    const file = nextWord === 'file';
+    const constant = nextWord.toLowerCase() === 'constant';
+    const variable = nextWord.toLowerCase() === 'variable';
+    const file = nextWord.toLowerCase() === 'file';
     if ((variable) && !implementsIHasVariables(this.parent)) {
       throw new ParserError(`No variables allowed here.`, this.pos.getRangeToEndLine());
     }

@@ -11,7 +11,7 @@ export enum TokenType {
   comment,
   delimiter,
   keyword,
-};
+}
 
 export class OLexerToken {
   constructor(
@@ -83,7 +83,7 @@ export class Lexer {
     let foundToken;
     let offset = 0;
     let lastOffset = -1;
-    let text = this.text.toLowerCase();
+    let text = this.text;
     let iterationCount = 0;
     loop: do {
       // if (iterationCount++ > 10000) {

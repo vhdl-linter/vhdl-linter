@@ -94,9 +94,7 @@ export class ProjectParser {
     this.packages = [];
     this.entities = [];
     for (const cachedFile of this.cachedFiles) {
-      if (cachedFile.entity) {
-        this.entities.push(cachedFile.entity);
-      }
+      this.entities.push(...cachedFile.entities);
       if (cachedFile.packages) {
         this.packages.push(...cachedFile.packages);
       }
@@ -126,7 +124,7 @@ export class OFileCache {
   digest: string;
   packages?: (OPackage | OPackageBody)[];
   contexts: OContext[] = [];
-  entity?: OEntity;
+  entities: OEntity[] = [];
   text: string;
   linter: VhdlLinter;
   lintingTime: number;
@@ -159,8 +157,8 @@ export class OFileCache {
     this.contexts = this.linter.file.contexts;
   }
   private parseEntity(): void {
-    if (this.linter.file.entity !== undefined) {
-      this.entity = this.linter.file.entity;
+    if (this.linter.file.entities.length > 0) {
+      this.entities = this.linter.file.entities;
     }
   }
 }

@@ -15,12 +15,14 @@ export async function foldingHandler (params: FoldingRangeParams): Promise<Foldi
       result.push(FoldingRange.create(obj.range.start.line, obj.range.end.line));
     }
   }
-  if (linter.file.entity !== undefined) {
-    if (linter.file.entity.portRange) {
-      result.push(FoldingRange.create(linter.file.entity.portRange.start.line, linter.file.entity.portRange.end.line));
-    }
-    if (linter.file.entity.genericRange) {
-      result.push(FoldingRange.create(linter.file.entity.genericRange.start.line, linter.file.entity.genericRange.end.line));
+  for (const entity of linter.file.entities) {
+  if (entity !== undefined) {
+      if (entity.portRange) {
+        result.push(FoldingRange.create(entity.portRange.start.line, entity.portRange.end.line));
+      }
+      if (entity.genericRange) {
+        result.push(FoldingRange.create(entity.genericRange.start.line, entity.genericRange.end.line));
+      }
     }
   }
   result.push(...blockFolding(documents.get(params.textDocument.uri)?.getText() ?? ''));
