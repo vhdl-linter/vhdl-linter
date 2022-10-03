@@ -126,7 +126,7 @@ export class OIRange implements Range {
 }
 
 export class ObjectBase {
-  name: OName;
+  name?: OName;
   public range: OIRange;
   constructor(public parent: ObjectBase | OFile, startI: number, endI: number) {
     this.range = new OIRange(this, startI, endI);
@@ -177,8 +177,14 @@ export class ObjectBase {
 export interface IHasUseClauses {
   useClauses: OUseClause[];
 }
+export interface IHasName {
+  name: OName;
+}
 export function implementsIHasUseClause(obj: unknown): obj is IHasUseClauses {
   return (obj as IHasUseClauses).useClauses !== undefined;
+}
+export function implementsIHasName(obj: unknown): obj is IHasName {
+  return (obj as IHasName).name !== undefined;
 }
 export interface IHasContextReference {
   contextReferences: OContextReference[];
@@ -282,8 +288,9 @@ export class OFile {
 }
 
 export class OPackage extends ObjectBase implements IHasSubprograms, IHasComponents, IHasSignals, IHasConstants,
-  IHasVariables, IHasTypes, IHasFileVariables, IHasUseClauses, IHasContextReference {
+  IHasVariables, IHasTypes, IHasFileVariables, IHasUseClauses, IHasContextReference, IHasName {
   parent: OFile;
+  name: OName;
   useClauses: OUseClause[] = [];
   contextReferences: OContextReference[] = [];
   uninstantiatedPackageName?: OName;
@@ -301,7 +308,8 @@ export class OPackage extends ObjectBase implements IHasSubprograms, IHasCompone
 }
 
 export class OPackageBody extends ObjectBase implements IHasSubprograms, IHasConstants, IHasVariables, IHasTypes,
-  IHasFileVariables, IHasUseClauses, IHasContextReference {
+  IHasFileVariables, IHasUseClauses, IHasContextReference, IHasName {
+  name: OName;
   useClauses: OUseClause[] = [];
   contextReferences: OContextReference[] = [];
   parent: OFile;
@@ -386,7 +394,7 @@ export class OBlock extends OArchitecture {
 
 }
 export class OType extends ObjectBase implements IReferenceable, IHasSubprograms, IHasSignals, IHasConstants, IHasVariables,
-  IHasTypes, IHasFileVariables, IHasUseClauses {
+  IHasTypes, IHasFileVariables, IHasUseClauses, IHasName {
   useClauses: OUseClause[] = [];
 
   types: OType[] = [];
@@ -399,6 +407,7 @@ export class OType extends ObjectBase implements IReferenceable, IHasSubprograms
   units?: string[] = [];
   reads: ORead[] = [];
   alias: boolean = false;
+  name: OName;
   addReadsToMap(map: Map<String, ObjectBase>) {
     map.set(this.name.text.toLowerCase(), this);
 
@@ -435,9 +444,11 @@ export class ORecord extends OType {
 export class ORecordChild extends OType {
   public parent: ORecord;
 }
-export class OEnumLiteral extends ObjectBase implements IReferenceable {
+export class OEnumLiteral extends ObjectBase implements IReferenceable, IHasName {
   references: OToken[] = [];
   public parent: OEnum;
+  public name: OName;
+
 }
 export class OForGenerate extends OArchitecture {
   constructor(public parent: OArchitecture,
@@ -477,10 +488,12 @@ export class OName extends ObjectBase {
     return this.text;
   }
 }
-export abstract class OVariableBase extends ObjectBase implements IReferenceable {
+export abstract class OVariableBase extends ObjectBase implements IReferenceable, IHasName {
   references: OToken[] = [];
   type: ORead[] = [];
   defaultValue?: ORead[] = [];
+  name: OName;
+
 }
 export abstract class OSignalBase extends OVariableBase {
   registerProcess?: OProcess;
@@ -636,10 +649,11 @@ export class OAssociation extends ObjectBase implements IHasDefinitions {
   actualIfInoutput: [ORead[], OWrite[]] = [[], []];
 }
 export class OEntity extends ObjectBase implements IHasDefinitions, IHasSubprograms, IHasSignals, IHasConstants, IHasVariables,
-  IHasTypes, IHasFileVariables, IHasUseClauses, IHasContextReference {
+  IHasTypes, IHasFileVariables, IHasUseClauses, IHasContextReference, IHasName {
   constructor(public parent: OFile, startI: number, endI: number, public library?: string) {
     super(parent, startI, endI);
   }
+  name: OName;
   useClauses: OUseClause[] = [];
   contextReferences: OContextReference[] = [];
   portRange?: OIRange;
@@ -655,10 +669,11 @@ export class OEntity extends ObjectBase implements IHasDefinitions, IHasSubprogr
   definitions: OEntity[] = [];
   files: OFileVariable[] = [];
 }
-export class OComponent extends ObjectBase implements IHasDefinitions, IHasSubprograms {
+export class OComponent extends ObjectBase implements IHasDefinitions, IHasSubprograms, IHasName {
   constructor(parent: IHasComponents, startI: number, endI: number) {
     super((parent as unknown) as ObjectBase, startI, endI);
   }
+  name: OName;
   subprograms: OSubprogram[] = [];
   portRange?: OIRange;
   genericRange?: OIRange;
@@ -667,10 +682,11 @@ export class OComponent extends ObjectBase implements IHasDefinitions, IHasSubpr
   references: OInstantiation[] = [];
   definitions: OEntity[] = [];
 }
-export class OPort extends OSignalBase implements IHasDefinitions {
+export class OPort extends OSignalBase implements IHasDefinitions, IHasName {
   direction: 'in' | 'out' | 'inout';
   directionRange: OIRange;
   definitions: OPort[] = [];
+  name: OName;
 }
 export class OGeneric extends OVariableBase implements IHasDefinitions {
   type: ORead[] = [];
@@ -978,7 +994,7 @@ export class OMagicCommentParameter extends OMagicComment {
   }
 }
 export class OSubprogram extends OHasSequentialStatements implements IReferenceable, IHasSubprograms, IHasInstantiations, IHasConstants,
-  IHasVariables, IHasTypes, IHasFileVariables, IHasUseClauses {
+  IHasVariables, IHasTypes, IHasFileVariables, IHasUseClauses, IHasName {
   useClauses: OUseClause[] = [];
   parent: OPackage;
   references: OToken[] = [];
@@ -989,6 +1005,7 @@ export class OSubprogram extends OHasSequentialStatements implements IReferencea
   types: OType[] = [];
   subprograms: OSubprogram[] = [];
   return: ORead[] = [];
+  name: OName;
 }
 export class OConfiguration extends ObjectBase {
   identifier: OLexerToken;

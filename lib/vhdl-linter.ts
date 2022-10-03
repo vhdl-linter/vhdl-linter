@@ -5,7 +5,7 @@ import {
 } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { getDocumentSettings, CancelationObject, CancelationError } from './language-server';
-import { implementsIHasInstantiations, implementsIHasSubprograms, implementsIMentionable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, ObjectBase, OCase, OComponent, OConstant, OContext, OEntity, OEnum, OFile, OGeneric, OGenericAssociationList, OHasSequentialStatements, OIf, OInstantiation, OPackage, OPackageBody, OPort, OPortAssociationList, OProcess, ORead, ORecord, OSignal, OSignalBase, OSubprogram, OType, OUseClause, OWhenClause, OWrite, ParserError, OToken, OAssociationList, OIRange, OVariable, OI, implementsIHasSignals, implementsIHasVariables, implementsIHasConstants, implementsIHasTypes, implementsIHasUseClause, IHasUseClauses, IHasContextReference, implementsIHasContextReference } from './parser/objects';
+import { implementsIHasInstantiations, implementsIHasSubprograms, implementsIMentionable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, ObjectBase, OCase, OComponent, OConstant, OContext, OEntity, OEnum, OFile, OGeneric, OGenericAssociationList, OHasSequentialStatements, OIf, OInstantiation, OPackage, OPackageBody, OPort, OPortAssociationList, OProcess, ORead, ORecord, OSignal, OSignalBase, OSubprogram, OType, OUseClause, OWhenClause, OWrite, ParserError, OToken, OAssociationList, OIRange, OVariable, OI, implementsIHasSignals, implementsIHasVariables, implementsIHasConstants, implementsIHasTypes, implementsIHasUseClause, IHasUseClauses, IHasContextReference, implementsIHasContextReference, implementsIHasName, IHasName } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 export enum LinterRules {
@@ -777,8 +777,8 @@ export class VhdlLinter {
           CodeActionKind.QuickFix));
       }
       const possibleMatches = this.file.objectList
-        .filter(obj => typeof obj !== 'undefined' && typeof obj.name !== 'undefined')
-        .map(obj => obj.name.text);
+        .filter(obj => typeof obj !== 'undefined' && implementsIHasName(obj))
+        .map(obj => (obj as IHasName).name.text);
       const bestMatch = findBestMatch(token.text, possibleMatches);
       if (bestMatch.bestMatch.rating > 0.5) {
         actions.push(CodeAction.create(
