@@ -94,17 +94,21 @@ export class ParserBase {
       let offsetCorrected = 0;
       if (offset > 0) {
         for (let i = 0; i < offset; i++) {
-          offsetCorrected += 1;
-          while (this.pos.lexerTokens[this.pos.num + offsetCorrected].isWhitespace()) {
+          do  {
             offsetCorrected += 1;
-          }
+            if (this.pos.lexerTokens[this.pos.num + offsetCorrected] === undefined) {
+              throw new ParserError(`Out of bound while doing getToken(${offset}, ${offsetIgnoresWhitespaces})`, this.getToken(0).range);
+            }
+          } while ((this.pos.lexerTokens[this.pos.num + offsetCorrected].isWhitespace()));
         }
       } else if (offset < 0) {
         for (let i = 0; i > offset; i--) {
-          offsetCorrected -= 1;
-          while (this.pos.lexerTokens[this.pos.num + offsetCorrected].isWhitespace()) {
+          do  {
             offsetCorrected -= 1;
-          }
+            if (this.pos.lexerTokens[this.pos.num + offsetCorrected] === undefined) {
+              throw new ParserError(`Out of bound while doing getToken(${offset}, ${offsetIgnoresWhitespaces})`, this.getToken(0).range);
+            }
+          } while ((this.pos.lexerTokens[this.pos.num + offsetCorrected].isWhitespace()));
         }
       } else if (offset === 0) {
         return this.pos.lexerTokens[this.pos.num];
@@ -406,7 +410,7 @@ export class ParserBase {
           // skip package -> only read the actual variable
           continue;
         } else if (tokens[i - 1]?.text === '.' && token.getLText() !== 'all') {
-            reads.push(new OElementRead(parent, token.range.start.i, token.range.end.i, token.text));
+          reads.push(new OElementRead(parent, token.range.start.i, token.range.end.i, token.text));
         } else {
           if (asMappingName && !(parent instanceof OAssociation)) {
             throw new Error();

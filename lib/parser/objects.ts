@@ -256,7 +256,7 @@ export class OFile {
   entities: OEntity[] = [];
   architectures: OArchitecture[] = [];
   packages: (OPackage | OPackageBody)[] = [];
-
+  configurations: OConfiguration[] = [];
   getJSON() {
     const obj = {};
     const seen = new WeakSet();
@@ -989,4 +989,8 @@ export class OSubprogram extends OHasSequentialStatements implements IReferencea
   types: OType[] = [];
   subprograms: OSubprogram[] = [];
   return: ORead[] = [];
+}
+export class OConfiguration extends ObjectBase {
+  identifier: OLexerToken;
+  entityName: OLexerToken;
 }

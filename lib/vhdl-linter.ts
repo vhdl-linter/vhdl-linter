@@ -65,6 +65,8 @@ export class VhdlLinter {
           message: `Javascript error while parsing '${e.message}'`
         });
         console.error(e);
+        this.file = new OFile(this.text, this.editorPath, this.text);
+
       }
     }
     //     console.log(`done parsing: ${editorPath}`);

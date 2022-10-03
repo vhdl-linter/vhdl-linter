@@ -1,7 +1,7 @@
 import { ComponentParser } from './component-parser';
 import { EntityParser } from './entity-parser';
 import { ObjectDeclarationParser } from './object-declaration-parser';
-import { implementsIHasComponents, implementsIHasSubprograms, OArchitecture, OEntity, OI, OName, OPackage, OPackageBody, OProcess, OSignal, OSubprogram, OType, OVariable, ParserError } from './objects';
+import { implementsIHasComponents, implementsIHasSubprograms, OArchitecture, OEntity, OI, OName, OPackage, OPackageBody, OProcess, OSignal, OSubprogram, OType, OVariable, ParserError, OConfiguration } from './objects';
 import { ParserBase } from './parser-base';
 import { SubprogramParser } from './subprogram-parser';
 import { SubtypeParser } from './subtype-parser';
@@ -11,7 +11,7 @@ import { ParserPosition } from './parser';
 
 export class DeclarativePartParser extends ParserBase {
   type: string;
-  constructor(pos: ParserPosition, file: string, private parent: OArchitecture | OEntity | OPackage | OPackageBody | OProcess | OSubprogram | OType) {
+  constructor(pos: ParserPosition, file: string, private parent: OArchitecture | OEntity | OPackage | OPackageBody | OProcess | OSubprogram | OType ) {
     super(pos, file);
     this.debug('start');
   }

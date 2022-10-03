@@ -2,7 +2,7 @@ import { ArchitectureParser } from './architecture-parser';
 import { ContextParser } from './context-parser';
 import { ContextReferenceParser } from './context-reference-parser';
 import { EntityParser } from './entity-parser';
-import { MagicCommentType, OArchitecture, OContextReference, OEntity, OFile, OI, OIRange, OMagicCommentDisable, OMagicCommentParameter, OMagicCommentTodo, OPackage, OPackageBody, OUseClause, ParserError } from './objects';
+import { MagicCommentType, OArchitecture, OContextReference, OEntity, OFile, OI, OIRange, OMagicCommentDisable, OMagicCommentParameter, OMagicCommentTodo, OPackage, OPackageBody, OUseClause, ParserError, OConfiguration } from './objects';
 import { PackageParser } from './package-parser';
 import { ParserBase } from './parser-base';
 import { UseClauseParser } from './use-clause-parser';
@@ -176,6 +176,24 @@ export class Parser extends ParserBase {
         }
         const packageParser = new PackageParser(this.pos, this.filePath);
         this.file.packages.push(packageParser.parse(this.file));
+      } else if (nextWord === 'configuration') {
+        const configuration = new OConfiguration(this.file, this.pos.i, this.getEndOfLineI());
+        configuration.identifier = this.consumeToken();
+        this.expect('of');
+        configuration.entityName = this.consumeToken();
+        while (
+          ((this.getToken(0).getLText() === 'end' && this.getToken(1, true).getLText() === ';')
+            || (this.getToken(0).getLText() === 'end' && this.getToken(1, true).getLText() === 'configuration'
+              && this.getToken(2, true).getLText() === ';')
+            || (this.getToken(0).getLText() === 'end' && this.getToken(1, true).getLText() === 'configuration'
+              && this.getToken(2, true).getLText() === configuration.identifier.getLText() && this.getToken(3, true).getLText() === ';')
+            || (this.getToken(0).getLText() === 'end'
+              && this.getToken(1, true).getLText() === configuration.identifier.getLText() && this.getToken(2, true).getLText() === ';'))
+          === false) {
+          this.consumeToken(true);
+        }
+        this.file.configurations.push(configuration);
+        this.advanceSemicolon();
       } else {
         throw new ParserError(`Unexpected token ${nextWord}`, this.getToken().range);
       }
