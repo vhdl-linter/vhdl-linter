@@ -154,7 +154,7 @@
 						"std_ulogic"
 					],
 					"default": "std_ulogic",
-					"description": "Enables checking for library magic comment."
+					"description": "Preferred logic type (resolved/unresolved) to check for."
 				},
 				"VhdlLinter.style.unusedSignalRegex": {
 					"scope": "window",
