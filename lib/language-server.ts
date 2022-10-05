@@ -241,10 +241,9 @@ async function validateTextDocument(textDocument: TextDocument, cancelationObjec
   // start = Date.now();
   try {
     const diagnostics = await vhdlLinter.checkAll();
-    diagnostics.forEach((diag, _) => diag.source = "vhdl-linter");
+    diagnostics.forEach((diag) => diag.source = 'vhdl-linter');
     // console.log(`checked for: ${Date.now() - start} ms.`);
     // start = Date.now();
-    const test = JSON.stringify(diagnostics);
     // console.profileEnd('a');
     connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
     // console.log(`send for: ${Date.now() - start} ms.`);
