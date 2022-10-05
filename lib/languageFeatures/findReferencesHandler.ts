@@ -1,6 +1,6 @@
 import { ErrorCodes, Location, Position, ReferenceParams, RenameParams, ResponseError, TextDocumentIdentifier, TextDocumentPositionParams, TextEdit } from 'vscode-languageserver';
 import { initialization, linters, lintersValid } from '../language-server';
-import { implementsIMentionable, ObjectBase, OName, OToken } from '../parser/objects';
+import { implementsIMentionable, ObjectBase, OName, OToken, implementsIHasName } from '../parser/objects';
 
 export async function findReferences(params: { textDocument: TextDocumentIdentifier, position: Position }) {
   await initialization;
@@ -59,7 +59,7 @@ export async function prepareRenameHandler(params: TextDocumentPositionParams) {
 }
 export async function renameHandler(params: RenameParams) {
   const references = (await findReferences(params)).map(reference => {
-    if (implementsIMentionable(reference)) {
+    if (implementsIMentionable(reference) && implementsIHasName(reference)) {
       return reference.name;
     }
     return reference;
