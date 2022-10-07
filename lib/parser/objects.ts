@@ -775,6 +775,9 @@ export class OAssignment extends ObjectBase {
 export class OReport extends ObjectBase {
   reads: ORead[] = [];
 }
+export class OReturn extends ObjectBase {
+  reads: ORead[] = [];
+}
 export class OAssertion extends ObjectBase {
   reads: ORead[] = [];
 }

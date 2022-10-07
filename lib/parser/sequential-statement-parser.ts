@@ -1,6 +1,6 @@
 import { AssignmentParser } from './assignment-parser';
 import { AssociationListParser } from './association-list-parser';
-import { OArchitecture, OAssertion, OAssignment, ObjectBase, OCase, OConstant, OElseClause, OEntity, OForLoop, OHasSequentialStatements, OI, OIf, OIfClause, OInstantiation, OLoop, OName, OProcess, OReport, OSequentialStatement, OVariable, OWhenClause, OWhileLoop, ParserError, OIRange } from './objects';
+import { OArchitecture, OAssertion, OAssignment, ObjectBase, OCase, OConstant, OElseClause, OEntity, OForLoop, OHasSequentialStatements, OI, OIf, OIfClause, OInstantiation, OLoop, OName, OProcess, OReport, OSequentialStatement, OVariable, OWhenClause, OWhileLoop, ParserError, OIRange, OReturn } from './objects';
 import { ParserBase } from './parser-base';
 import { ParserPosition } from './parser';
 import { OLexerToken } from '../lexer';
@@ -58,7 +58,7 @@ export class SequentialStatementParser extends ParserBase {
       } else if (nextWord.toLowerCase() === 'exit') {
         this.advancePast(';');
       } else if (nextWord.toLowerCase() === 'return') {
-        this.advancePast(';');
+        statements.push(this.parseReturn(parent));
       } else if (nextWord.toLowerCase() === 'null') {
         this.advancePast(';');
       } else if (nextWord.toLowerCase() === 'next') {
@@ -138,6 +138,7 @@ export class SequentialStatementParser extends ParserBase {
     assertion.reads.push(...this.extractReads(assertion, assertionTokens));
     return assertion;
   }
+
   parseReport(parent: OHasSequentialStatements | OIf): OReport {
     this.expect('report');
     let report = new OReport(parent, this.pos.i, this.getEndOfLineI());
@@ -145,6 +146,15 @@ export class SequentialStatementParser extends ParserBase {
     report.reads = this.extractReads(report, text);
     report.range.end.i = this.pos.i;
     return report;
+  }
+
+  parseReturn(parent: OHasSequentialStatements | OIf): OReport {
+    this.expect('return');
+    let _return = new OReturn(parent, this.pos.i, this.getEndOfLineI());
+    const text = this.advanceSemicolonToken();
+    _return.reads = this.extractReads(_return, text);
+    _return.range.end.i = this.pos.i;
+    return _return;
   }
 
   parseWait(parent: OHasSequentialStatements | OIf) {
