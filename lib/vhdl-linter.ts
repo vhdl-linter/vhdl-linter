@@ -673,18 +673,18 @@ export class VhdlLinter {
   }
 
 
-  checkAllMultipleDefinitions() {
-    function check(objList: ObjectBase[]) {
-      for (const obj of objList.filter(o => o && o.name && o.name.text)) {
-        if (objList.find(o => obj !== o && obj.nameEquals(o))) {
-          this.addMessage({
-            range: obj.range,
-            severity: DiagnosticSeverity.Error,
-            message: `${obj.name} defined multiple times`
-          });
-        }
+  checkMultipleDefinitions(objList: ObjectBase[]) {
+    for (const obj of objList.filter(o => o && o.name && o.name.text)) {
+      if (objList.find(o => obj !== o && obj.nameEquals(o))) {
+        this.addMessage({
+          range: obj.range,
+          severity: DiagnosticSeverity.Error,
+          message: `${obj.name} defined multiple times`
+        });
       }
     }
+  }
+  checkAllMultipleDefinitions() {
     for (const obj of this.file.objectList) {
       const objList: ObjectBase[] = [];
       if (implementsIHasSignals(obj)) {
@@ -719,7 +719,7 @@ export class VhdlLinter {
         objList.push(...obj.generates);
         objList.push(...obj.processes);
       }
-      check(objList);
+      this.checkMultipleDefinitions(objList);
     }
     for (const entity of this.file.entities) {
       const objList: ObjectBase[] = entity.ports;
@@ -736,14 +736,14 @@ export class VhdlLinter {
           objList.push(...type.literals);
         }
       }
-      check(objList);
+      this.checkMultipleDefinitions(objList);
     }
     for (const pkg of this.file.packages) {
       const objList: ObjectBase[] = pkg.constants;
       // objList.push(...pkg.subprograms);
       objList.push(...pkg.types.filter(type => type.alias === false)); // Aliases can be overloaded like functions.
       objList.push(...pkg.variables);
-      check(objList);
+      this.checkMultipleDefinitions(objList);
     }
   }
   private pushNotDeclaredError(token: ORead | OWrite) {
