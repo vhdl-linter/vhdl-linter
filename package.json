@@ -131,7 +131,7 @@
 				"VhdlLinter.rules.warnLibrary": {
 					"scope": "window",
 					"type": "boolean",
-					"default": true,
+					"default": false,
 					"description": "Enables checking for library magic comment."
 				},
 				"VhdlLinter.rules.warnLogicType": {
@@ -143,7 +143,7 @@
 				"VhdlLinter.rules.warnMultipleDriver": {
 					"scope": "window",
 					"type": "boolean",
-					"default": true,
+					"default": false,
 					"description": "Enables checking for multiple drivers."
 				},
 				"VhdlLinter.style.preferedLogicType": {

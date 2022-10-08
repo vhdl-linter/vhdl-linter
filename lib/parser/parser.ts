@@ -79,11 +79,11 @@ export class Parser extends ParserBase {
           this.file.magicComments.push(new OMagicCommentDisable(this.file, MagicCommentType.Disable, new OIRange(this.file, new OI(this.file, lineNumber, 0), new OI(this.file, lineNumber, line.length - 1))));
         } else if ((innerMatch = match[2].match('-disable-next-line')) !== null) {// TODO: next nonempty line
           this.file.magicComments.push(new OMagicCommentDisable(this.file, MagicCommentType.Disable, nextLineRange));
-        } else if ((innerMatch = match[2].match('-disable')) !== null) {
+        } else if ((innerMatch = match[2].match('-disable-region')) !== null) {
           if (disabledRangeStart === undefined) {
             disabledRangeStart = lineNumber;
           }
-        } else if ((innerMatch = match[2].match('-enable')) !== null) {
+        } else if ((innerMatch = match[2].match('-enable-region')) !== null) {
           if (disabledRangeStart !== undefined) {
             let disabledRange = new OIRange(this.file, new OI(this.file, disabledRangeStart, 0), new OI(this.file, lineNumber, line.length - 1));
             this.file.magicComments.push(new OMagicCommentDisable(this.file, MagicCommentType.Disable, disabledRange));

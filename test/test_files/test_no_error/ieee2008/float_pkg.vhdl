@@ -1,11 +1,11 @@
 -- --------------------------------------------------------------------
 --
--- Copyright ï¿½ 2008 by IEEE. All rights reserved.
+-- Copyright © 2008 by IEEE. All rights reserved.
 --
 -- This source file is an essential part of IEEE Std 1076-2008,
 -- IEEE Standard VHDL Language Reference Manual. This source file may not be
--- copied, sold, or included with software that is sold without written
--- permission from the IEEE Standards Department. This source file may be
+-- copied, sold, or included with software that is sold without written 
+-- permission from the IEEE Standards Department. This source file may be 
 -- copied for individual use between licensed users. This source file is
 -- provided on an AS IS basis. The IEEE disclaims ANY WARRANTY EXPRESS OR
 -- IMPLIED INCLUDING ANY WARRANTY OF MERCHANTABILITY AND FITNESS FOR USE
@@ -13,14 +13,14 @@
 -- and hold IEEE harmless from any damages or liability arising out of the
 -- use thereof.
 --
---   Title     :  Fixed-point package (Instantiated package declaration)
+--   Title     :  Floating-point package (Instantiated package declaration)
 --             :
 --   Library   :  This package shall be compiled into a library
 --             :  symbolically named IEEE.
 --             :
 --   Developers:  Accellera VHDL-TC and IEEE P1076 Working Group
 --             :
---   Purpose   :  This packages defines basic binary fixed point
+--   Purpose   :  This packages defines basic binary floating point
 --             :  arithmetic functions
 --             :
 --   Note      :  This package may be modified to include additional data
@@ -37,14 +37,16 @@
 -- $Date: 2008-04-10 17:16:09 +0930 (Thu, 10 Apr 2008) $
 -- --------------------------------------------------------------------
 
+library ieee;
 
-
-library IEEE;
-
-package fixed_pkg is new IEEE.fixed_generic_pkg
+package float_pkg is new IEEE.float_generic_pkg
   generic map (
-    fixed_round_style    => IEEE.fixed_float_types.fixed_round,
-    fixed_overflow_style => IEEE.fixed_float_types.fixed_saturate,
-    fixed_guard_bits     => 3,
-    no_warning           => false
+    float_exponent_width => 8,    -- float32'high
+    float_fraction_width => 23,   -- -float32'low
+    float_round_style    => IEEE.fixed_float_types.round_nearest,  -- round nearest algorithm
+    float_denormalize    => true,  -- Use IEEE extended floating
+    float_check_error    => true,  -- Turn on NAN and overflow processing
+    float_guard_bits     => 3,     -- number of guard bits
+    no_warning           => false, -- show warnings
+    fixed_pkg            => IEEE.fixed_pkg
     );

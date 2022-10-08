@@ -67,7 +67,7 @@ const defaultSettings: ISettings = {
   },
   rules: {
     warnLogicType: true,
-    warnLibrary: true,
+    warnLibrary: false,
     warnMultipleDriver: false
   }
 };

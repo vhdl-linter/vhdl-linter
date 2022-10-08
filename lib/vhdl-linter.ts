@@ -1270,7 +1270,7 @@ export class VhdlLinter {
                 return actions;
               });
               this.addMessage({
-                range: port.range,
+                range: port.name.range,
                 severity: DiagnosticSeverity.Information,
                 message: `ouput port '${port.name}' should match output regex ${portSettings.outRegex}`
               });
