@@ -13,7 +13,7 @@ import { ProjectParser } from '../lib/project-parser';
   for (const file of files) {
     const text = readFileSync(file, { encoding: 'utf8' });
     const vhdlLinter = new VhdlLinter(file, text, projectParser);
-    // await vhdlLinter.checkAll();
+    await vhdlLinter.checkAll();
     if (vhdlLinter.messages.length > 0) {
       messages.push({
         file: file,

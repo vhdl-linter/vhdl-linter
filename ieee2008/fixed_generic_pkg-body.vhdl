@@ -1,11 +1,11 @@
 -- --------------------------------------------------------------------
 --
--- Copyright © 2008 by IEEE. All rights reserved.
+-- Copyright ï¿½ 2008 by IEEE. All rights reserved.
 --
 -- This source file is an essential part of IEEE Std 1076-2008,
 -- IEEE Standard VHDL Language Reference Manual. This source file may not be
--- copied, sold, or included with software that is sold without written 
--- permission from the IEEE Standards Department. This source file may be 
+-- copied, sold, or included with software that is sold without written
+-- permission from the IEEE Standards Department. This source file may be
 -- copied for individual use between licensed users. This source file is
 -- provided on an AS IS basis. The IEEE disclaims ANY WARRANTY EXPRESS OR
 -- IMPLIED INCLUDING ANY WARRANTY OF MERCHANTABILITY AND FITNESS FOR USE
@@ -36,6 +36,11 @@
 -- $Revision: 1220 $
 -- $Date: 2008-04-10 17:16:09 +0930 (Thu, 10 Apr 2008) $
 -- --------------------------------------------------------------------
+
+-- Vhdl-linter checking still has problems with this file. Disable all linting messages for now.
+-- Parser error will still apply
+-- vhdl-linter-disable
+
 
 library IEEE;
 use IEEE.MATH_REAL.all;
@@ -450,7 +455,7 @@ package body fixed_generic_pkg is
   end function "+";
 
   function "+" (
-    l, r : UNRESOLVED_sfixed)    -- sfixed(a downto b) + sfixed(c downto d) = 
+    l, r : UNRESOLVED_sfixed)    -- sfixed(a downto b) + sfixed(c downto d) =
     return UNRESOLVED_sfixed     -- sfixed(max(a,c)+1 downto min(b,d))
   is
     constant left_index       : INTEGER := maximum(l'high, r'high)+1;
@@ -499,7 +504,7 @@ package body fixed_generic_pkg is
   end function "-";
 
   function "-" (
-    l, r : UNRESOLVED_sfixed)    -- sfixed(a downto b) - sfixed(c downto d) = 
+    l, r : UNRESOLVED_sfixed)    -- sfixed(a downto b) - sfixed(c downto d) =
     return UNRESOLVED_sfixed     -- sfixed(max(a,c)+1 downto min(b,d))
   is
     constant left_index       : INTEGER := maximum(l'high, r'high)+1;
@@ -543,7 +548,7 @@ package body fixed_generic_pkg is
   end function "*";
 
   function "*" (
-    l, r : UNRESOLVED_sfixed)    -- sfixed(a downto b) * sfixed(c downto d) = 
+    l, r : UNRESOLVED_sfixed)    -- sfixed(a downto b) * sfixed(c downto d) =
     return UNRESOLVED_sfixed     -- sfixed(a+c+1 downto b+d)
   is
     variable lslv       : UNRESOLVED_SIGNED (l'length-1 downto 0);
@@ -564,14 +569,14 @@ package body fixed_generic_pkg is
   end function "*";
 
   function "/" (
-    l, r : UNRESOLVED_ufixed)    -- ufixed(a downto b) / ufixed(c downto d) = 
+    l, r : UNRESOLVED_ufixed)    -- ufixed(a downto b) / ufixed(c downto d) =
     return UNRESOLVED_ufixed is         --  ufixed(a-d downto b-c-1)
   begin
     return divide (l, r);
   end function "/";
 
   function "/" (
-    l, r : UNRESOLVED_sfixed)    -- sfixed(a downto b) / sfixed(c downto d) = 
+    l, r : UNRESOLVED_sfixed)    -- sfixed(a downto b) / sfixed(c downto d) =
     return UNRESOLVED_sfixed is         -- sfixed(a-d+1 downto b-c)
   begin
     return divide (l, r);
@@ -627,7 +632,7 @@ package body fixed_generic_pkg is
     constant guard_bits  : NATURAL                := fixed_guard_bits)
     return UNRESOLVED_sfixed
   is
-    variable result     : UNRESOLVED_sfixed (l'high - mine(r'low, r'low) + 1 downto 
+    variable result     : UNRESOLVED_sfixed (l'high - mine(r'low, r'low) + 1 downto
                                              mine (l'low, l'low) - r'high);
     variable dresult    : UNRESOLVED_sfixed (result'high downto result'low-guard_bits);
     variable lresize    : UNRESOLVED_sfixed (l'high+1 downto l'high+1 -dresult'length+1);
@@ -2794,7 +2799,7 @@ package body fixed_generic_pkg is
       when others   => return left_index;  -- For abs and default
     end case;
   end function ufixed_high;
-  
+
   function ufixed_low (left_index, right_index   : INTEGER;
                        operation                 : CHARACTER := 'X';
                        left_index2, right_index2 : INTEGER   := 0)
@@ -2810,7 +2815,7 @@ package body fixed_generic_pkg is
       when others   => return right_index;  -- for abs and default
     end case;
   end function ufixed_low;
-  
+
   function sfixed_high (left_index, right_index   : INTEGER;
                         operation                 : CHARACTER := 'X';
                         left_index2, right_index2 : INTEGER   := 0)
@@ -2848,7 +2853,7 @@ package body fixed_generic_pkg is
   -- Same as above, but using the "size_res" input only for their ranges:
   -- signal uf1multuf2 : ufixed (ufixed_high (uf1, '*', uf2) downto
   --                             ufixed_low (uf1, '*', uf2));
-  -- uf1multuf2 <= uf1 * uf2;  
+  -- uf1multuf2 <= uf1 * uf2;
   function ufixed_high (size_res  : UNRESOLVED_ufixed;
                         operation : CHARACTER := 'X';
                         size_res2 : UNRESOLVED_ufixed)
@@ -3102,7 +3107,7 @@ package body fixed_generic_pkg is
                       round_style    => round_style,
                       overflow_style => overflow_style);
   end function to_signed;
-  
+
   function to_real (
     arg : UNRESOLVED_ufixed)            -- ufixed point input
     return REAL
@@ -3268,7 +3273,7 @@ package body fixed_generic_pkg is
     argslv := to_sulv(arg);
     return Is_X (argslv);
   end function Is_X;
-  
+
   function Is_X (
     arg : UNRESOLVED_sfixed)
     return BOOLEAN
@@ -3320,7 +3325,7 @@ package body fixed_generic_pkg is
   begin
     return to_sfixed (To_UX01(to_sulv(arg)), arg'high, arg'low);
   end function To_UX01;
-  
+
   function resize (
     arg                     : UNRESOLVED_ufixed;            -- input
     constant left_index     : INTEGER;  -- integer portion
@@ -3636,7 +3641,7 @@ package body fixed_generic_pkg is
       return result;
     end if;
   end function to_ufixed;
-  
+
   function to_sfixed (
     arg                     : UNRESOLVED_SIGNED;  -- signed
     size_res                : UNRESOLVED_sfixed;  -- for size only
@@ -4527,7 +4532,7 @@ package body fixed_generic_pkg is
   begin
     return (to_ufixed (l, r'high, r'low) ?< r);
   end function "?<";
-  
+
   function maximum (
     l : REAL;
     r : UNRESOLVED_ufixed)              -- fixed point input
@@ -5413,7 +5418,7 @@ package body fixed_generic_pkg is
           slv (i downto i-2) := nybble;
           i := i - 3;
           lastu := false;
-        end if;     
+        end if;
         if i > 0 then
           read (L, c, xgood);
         end if;
@@ -5664,7 +5669,7 @@ package body fixed_generic_pkg is
     variable lastu  : BOOLEAN := false;       -- last character was an "_"
     variable founddot : BOOLEAN := false;  -- found a dot.
   begin
-    Skip_whitespace (L);   
+    Skip_whitespace (L);
     if slv'length > 0 then
       i := slv'high;
       read (l, c, xgood);
@@ -5708,7 +5713,7 @@ package body fixed_generic_pkg is
           slv (i downto i-3) := nybble;
           i := i - 4;
           lastu := false;
-        end if;     
+        end if;
         if i > 0 then
           read (L, c, xgood);
         end if;
@@ -6141,7 +6146,7 @@ package body fixed_generic_pkg is
       & "from_hstring: Bad string "& hstring severity error;
     return result;
   end function from_hstring;
-  
+
   function from_string (
     bstring              : STRING;      -- binary string
     constant left_index  : INTEGER;

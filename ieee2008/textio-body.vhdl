@@ -15,6 +15,12 @@
 --  along with GCC; see the file COPYING3.  If not see
 --  <http://www.gnu.org/licenses/>.
 
+
+-- Vhdl-linter checking still has problems with this file. Disable all linting messages for now.
+-- Parser error will still apply
+-- vhdl-linter-disable
+
+
 package body textio is
   --  attribute foreign : string;                                  --V87
 
@@ -122,7 +128,7 @@ package body textio is
     write (output, (1 => LF));
   end Tee;
 --END-V08
-  
+
   procedure write
     (l: inout line; value: in string;
     justified: in side := right; field: in width := 0)

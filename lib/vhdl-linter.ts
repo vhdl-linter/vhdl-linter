@@ -16,6 +16,9 @@ export interface IAddSignalCommandArguments {
   signalName: string;
   position: OI;
 }
+export interface OIDiagnostic extends Diagnostic {
+  range: OIRange;
+}
 export interface IIgnoreLineCommandArguments {
   textDocumentUri: string;
   range: Range;
@@ -86,10 +89,16 @@ export class VhdlLinter {
       arguments: [textDocumentUri, counter]
     };
   }
-  checkMagicComments(range: Range, rule?: LinterRules, parameter?: string) {
-    const matchingMagiComments = this.file.magicComments.filter(magicComment => (magicComment.range.start.character <= range.start.character && magicComment.range.start.line <= range.start.line &&
-      magicComment.range.end.character >= range.start.character && magicComment.range.end.line >= range.start.line) || (magicComment.range.start.character <= range.end.character && magicComment.range.start.line <= range.end.line &&
-        magicComment.range.end.character >= range.end.character && magicComment.range.end.line >= range.end.line)).filter(magicComment => {
+  checkMagicComments(range: OIRange, rule?: LinterRules, parameter?: string) {
+    const matchingMagiComments = this.file.magicComments.filter(magicComment => {
+      if (range.start.i < magicComment.range.start.i) {
+        return false;
+      }
+      if (range.end.i > magicComment.range.end.i) {
+        return false;
+      }
+      return true;
+    }).filter(magicComment => {
           if (magicComment.commentType === MagicCommentType.Disable) {
             return true;
           }
@@ -112,9 +121,9 @@ export class VhdlLinter {
     });
   }
 
-  addMessage(diagnostic: Diagnostic, rule: LinterRules, parameter: string): void;
-  addMessage(diagnostic: Diagnostic): void;
-  addMessage(diagnostic: Diagnostic, rule?: LinterRules, parameter?: string) {
+  addMessage(diagnostic: OIDiagnostic, rule: LinterRules, parameter: string): void;
+  addMessage(diagnostic: OIDiagnostic): void;
+  addMessage(diagnostic: OIDiagnostic, rule?: LinterRules, parameter?: string) {
 
     if (this.checkMagicComments(diagnostic.range, rule, parameter)) {
       const newCode = this.addCodeActionCallback((textDocumentUri: string) => {
@@ -513,7 +522,7 @@ export class VhdlLinter {
     for (const entity of this.file.entities) {
       if (settings.rules.warnLibrary && this.file && entity !== undefined && typeof entity.library === 'undefined') {
         this.addMessage({
-          range: Range.create(Position.create(0, 0), Position.create(1, 0)),
+          range: new OIRange(this.file, new OI(this.file, 0, 0), new OI(this.file, 1, 0)),
           severity: DiagnosticSeverity.Warning,
           message: `Please define library magic comment \n --!@library libraryName`
         });
@@ -961,7 +970,7 @@ export class VhdlLinter {
             return actions;
           });
           const endCharacter = this.text.split('\n')[registerProcess.range.start.line].length;
-          const range = Range.create(Position.create(registerProcess.range.start.line, 0), Position.create(registerProcess.range.start.line, endCharacter));
+          const range = registerProcess.range.getLimitedRange(1);
           const message = `Reset '${signal.name}' missing`;
           this.addMessage({
             range,

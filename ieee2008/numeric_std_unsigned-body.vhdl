@@ -1,11 +1,11 @@
 -- --------------------------------------------------------------------
 --
--- Copyright © 2008 by IEEE. All rights reserved.
+-- Copyright ï¿½ 2008 by IEEE. All rights reserved.
 --
 -- This source file is an essential part of IEEE Std 1076-2008,
 -- IEEE Standard VHDL Language Reference Manual. This source file may not be
--- copied, sold, or included with software that is sold without written 
--- permission from the IEEE Standards Department. This source file may be 
+-- copied, sold, or included with software that is sold without written
+-- permission from the IEEE Standards Department. This source file may be
 -- copied for individual use between licensed users. This source file is
 -- provided on an AS IS basis. The IEEE disclaims ANY WARRANTY EXPRESS OR
 -- IMPLIED INCLUDING ANY WARRANTY OF MERCHANTABILITY AND FITNESS FOR USE
@@ -46,6 +46,12 @@
 -- $Revision: 1220 $
 -- $Date: 2008-04-10 17:16:09 +0930 (Thu, 10 Apr 2008) $
 -- --------------------------------------------------------------------
+
+
+-- Vhdl-linter checking still has problems with this file. Disable all linting messages for now.
+-- Parser error will still apply
+-- vhdl-linter-disable
+
 
 library ieee;
 use ieee.numeric_std.all;
