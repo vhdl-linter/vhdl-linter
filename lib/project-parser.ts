@@ -34,7 +34,7 @@ export class ProjectParser {
       this.cachedFiles.push(cachedFile);
     }
     this.cachedFiles.sort((a, b) => b.lintingTime - a.lintingTime);
-    console.log('Times: \n' + this.cachedFiles.slice(0, 10).map(file => `${file.path}: ${file.lintingTime}ms`).join('\n'));
+    // console.log('Times: \n' + this.cachedFiles.slice(0, 10).map(file => `${file.path}: ${file.lintingTime}ms`).join('\n'));
     this.fetchEntitesAndPackagesAndContexts();
     for (const workspace of this.workspaces) {
       const watcher = watch(workspace.replace(sep, '/') + '/**/*.vhd', { ignoreInitial: true });
