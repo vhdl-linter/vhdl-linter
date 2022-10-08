@@ -32,6 +32,7 @@ jobs:
         run: |
           git log $(git describe --tags --abbrev=0)..HEAD --oneline &> ${{ github.workspace }}-CHANGELOG.txt
           cat ${{ github.workspace }}-CHANGELOG.txt
+
       - name: Setup Git
         run: |
           git config --global user.name "vhdl-linter-bot"
