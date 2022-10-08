@@ -598,10 +598,10 @@ export class VhdlLinter {
         }
       } catch (err) {
         if (err instanceof ParserError) {
-          this.messages.push(Diagnostic.create(err.range, `Error while checking: '${err.message}'`));
+          this.messages.push(Diagnostic.create(err.range, `Error while parsing: '${err.message}'`));
 
         } else {
-          this.messages.push(Diagnostic.create(Range.create(Position.create(0, 0), Position.create(10, 100)), `Error while checking: '${err.message}'`));
+          this.messages.push(Diagnostic.create(Range.create(Position.create(0, 0), Position.create(10, 100)), `Error while checking: '${err.message}'\n${err.stack}`));
 
         }
       }

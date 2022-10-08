@@ -8,11 +8,12 @@ import { ProjectParser } from '../lib/project-parser';
 
   const files = readdirSync(join(cwd(), 'ieee2008')).filter(file => file.match(/\.vhdl?$/i)).map(file => join(cwd(), 'ieee2008', file));
   const messages = [];
+  const projectParser = new ProjectParser([join(cwd(), 'ieee2008')], '');
+  await projectParser.init();
   for (const file of files) {
-    const text = readFileSync(file, {encoding: 'utf8'});
-    const projectParser = new ProjectParser([join(cwd(), 'ieee2008')], '');
-    const vhdlLinter = new VhdlLinter(file, text,  projectParser);
-    await vhdlLinter.checkAll();
+    const text = readFileSync(file, { encoding: 'utf8' });
+    const vhdlLinter = new VhdlLinter(file, text, projectParser);
+    // await vhdlLinter.checkAll();
     if (vhdlLinter.messages.length > 0) {
       messages.push({
         file: file,
