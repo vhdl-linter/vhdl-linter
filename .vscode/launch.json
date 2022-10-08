@@ -2,6 +2,7 @@
 {
 	"version": "0.2.0",
 	"configurations": [
+
 		{
 			"type": "extensionHost",
 			"request": "launch",
@@ -21,6 +22,14 @@
 			"port": 6011,
 			"restart": true,
 			"outFiles": ["${workspaceRoot}/dist/lib/**/*.js"]
+		},
+		{
+			"name": "Run test",
+			"type": "node",
+			"request": "launch",
+			"cwd": "${workspaceFolder}",
+			"runtimeExecutable": "npm",
+			"runtimeArgs": ["run", "test"]
 		}
 
 	],

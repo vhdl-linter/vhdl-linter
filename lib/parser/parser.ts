@@ -107,7 +107,11 @@ export class Parser extends ParserBase {
           ignoreRegex.push(RegExp(innerMatch[1], innerMatch[2]));
         }
       }
-
+      if (disabledRangeStart !== undefined) {
+        let disabledRange = new OIRange(this.file, new OI(this.file, disabledRangeStart, 0), new OI(this.file, this.originalText.length - 1));
+        this.file.magicComments.push(new OMagicCommentDisable(this.file, MagicCommentType.Disable, disabledRange));
+        disabledRangeStart = undefined;
+      }
       match = /(--\s*)(.*TODO.*)/.exec(line);
       if (match) {
         const todoRange = new OIRange(this.file, new OI(this.file, lineNumber, line.length - match[2].length), new OI(this.file, lineNumber, line.length));

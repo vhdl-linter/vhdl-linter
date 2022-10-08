@@ -1,11 +1,11 @@
 -- --------------------------------------------------------------------
 --
--- Copyright © 2008 by IEEE. All rights reserved.
+-- Copyright ï¿½ 2008 by IEEE. All rights reserved.
 --
 -- This source file is an essential part of IEEE Std 1076-2008,
 -- IEEE Standard VHDL Language Reference Manual. This source file may not be
--- copied, sold, or included with software that is sold without written 
--- permission from the IEEE Standards Department. This source file may be 
+-- copied, sold, or included with software that is sold without written
+-- permission from the IEEE Standards Department. This source file may be
 -- copied for individual use between licensed users. This source file is
 -- provided on an AS IS basis. The IEEE disclaims ANY WARRANTY EXPRESS OR
 -- IMPLIED INCLUDING ANY WARRANTY OF MERCHANTABILITY AND FITNESS FOR USE
@@ -36,6 +36,11 @@
 -- $Revision: 1220 $
 -- $Date: 2008-04-10 17:16:09 +0930 (Thu, 10 Apr 2008) $
 -- --------------------------------------------------------------------
+
+-- Vhdl-linter checking still has problems with this file. Disable all linting messages for now.
+-- Parser error will still apply
+-- vhdl-linter-disable
+
 
 use STD.TEXTIO.all;
 library IEEE;
@@ -805,7 +810,7 @@ package float_generic_pkg is
   -- Returns y * 2**n for integral values of N without computing 2**n
   function Scalb (
     y                    : UNRESOLVED_float;  -- floating point input
-    N                    : INTEGER;     -- exponent to add    
+    N                    : INTEGER;     -- exponent to add
     constant round_style : round_type := float_round_style;  -- rounding option
     constant check_error : BOOLEAN    := float_check_error;  -- check for errors
     constant denormalize : BOOLEAN    := float_denormalize)  -- Use IEEE extended FP
@@ -814,7 +819,7 @@ package float_generic_pkg is
   -- Returns y * 2**n for integral values of N without computing 2**n
   function Scalb (
     y                    : UNRESOLVED_float;  -- floating point input
-    N                    : UNRESOLVED_SIGNED;      -- exponent to add    
+    N                    : UNRESOLVED_SIGNED;      -- exponent to add
     constant round_style : round_type := float_round_style;  -- rounding option
     constant check_error : BOOLEAN    := float_check_error;  -- check for errors
     constant denormalize : BOOLEAN    := float_denormalize)  -- Use IEEE extended FP
@@ -973,7 +978,7 @@ package float_generic_pkg is
 
   function from_string (
     bstring  : STRING;                  -- binary string
-    size_res : UNRESOLVED_float)        -- used for sizing only 
+    size_res : UNRESOLVED_float)        -- used for sizing only
     return UNRESOLVED_float;
   alias from_bstring is from_string [STRING, UNRESOLVED_float
                                      return UNRESOLVED_float];
@@ -982,14 +987,14 @@ package float_generic_pkg is
 
   function from_ostring (
     ostring  : STRING;                  -- Octal string
-    size_res : UNRESOLVED_float)        -- used for sizing only 
+    size_res : UNRESOLVED_float)        -- used for sizing only
     return UNRESOLVED_float;
   alias from_octal_string is from_ostring [STRING, UNRESOLVED_float
                                            return UNRESOLVED_float];
 
   function from_hstring (
     hstring  : STRING;                  -- hex string
-    size_res : UNRESOLVED_float)        -- used for sizing only 
+    size_res : UNRESOLVED_float)        -- used for sizing only
     return UNRESOLVED_float;
   alias from_hex_string is from_hstring [STRING, UNRESOLVED_float
                                          return UNRESOLVED_float];

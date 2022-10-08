@@ -207,11 +207,6 @@
 		"lint": "tslint --project .",
 		"test": "node dist/test/test.js"
 	},
-	"husky": {
-		"hooks": {
-			"post-merge": "npm ci && npm run compile && echo '#####################\nRestart Atom\n#####################'"
-		}
-	},
 	"dependencies": {
 		"chokidar": "^3.2.2",
 		"escape-string-regexp": "^2.0.0",
@@ -236,7 +231,6 @@
 		"@types/string-similarity": "^3.0.0",
 		"@types/vscode": "^1.39.0",
 		"blessed": "^0.1.81",
-		"husky": "^1.1.2",
 		"json-diff": "^0.5.4",
 		"prettyjson": "^1.2.1",
 		"tslint": "^5.20.1",

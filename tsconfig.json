@@ -7,9 +7,9 @@
         "sourceMap": true,
         "inlineSourceMap": false,
         "alwaysStrict": true,
-        "outDir": "./dist/lib",
+        "outDir": "./dist",
         "jsx": "react",
         "lib": ["ES2020"]
     },
-    "include": ["lib/**/*"]
+    "include": ["lib/**/*", "test/**/*"]
 }

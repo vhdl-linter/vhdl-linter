@@ -1,11 +1,11 @@
 -- --------------------------------------------------------------------
 --
--- Copyright © 2008 by IEEE. All rights reserved.
+-- Copyright ï¿½ 2008 by IEEE. All rights reserved.
 --
 -- This source file is an essential part of IEEE Std 1076-2008,
 -- IEEE Standard VHDL Language Reference Manual. This source file may not be
--- copied, sold, or included with software that is sold without written 
--- permission from the IEEE Standards Department. This source file may be 
+-- copied, sold, or included with software that is sold without written
+-- permission from the IEEE Standards Department. This source file may be
 -- copied for individual use between licensed users. This source file is
 -- provided on an AS IS basis. The IEEE disclaims ANY WARRANTY EXPRESS OR
 -- IMPLIED INCLUDING ANY WARRANTY OF MERCHANTABILITY AND FITNESS FOR USE
@@ -50,6 +50,12 @@
 -- $Revision: 1220 $
 -- $Date: 2008-04-10 17:16:09 +0930 (Thu, 10 Apr 2008) $
 -- --------------------------------------------------------------------
+
+
+-- Vhdl-linter checking still has problems with this file. Disable all linting messages for now.
+-- Parser error will still apply
+-- vhdl-linter-disable
+
 
 package body NUMERIC_BIT is
 
@@ -2447,61 +2453,61 @@ package body NUMERIC_BIT is
     return RESULT;
   end function "xnor";
 
-  -- Id: L.15 
+  -- Id: L.15
   function "and" (L : BIT; R : UNSIGNED) return UNSIGNED is
   begin
     return UNSIGNED (L and BIT_VECTOR(R));
   end function "and";
 
-  -- Id: L.16 
+  -- Id: L.16
   function "and" (L : UNSIGNED; R : BIT) return UNSIGNED is
   begin
     return UNSIGNED (BIT_VECTOR(L) and R);
   end function "and";
 
-  -- Id: L.17 
+  -- Id: L.17
   function "or" (L : BIT; R : UNSIGNED) return UNSIGNED is
   begin
     return UNSIGNED (L or BIT_VECTOR(R));
   end function "or";
 
-  -- Id: L.18 
+  -- Id: L.18
   function "or" (L : UNSIGNED; R : BIT) return UNSIGNED is
   begin
     return UNSIGNED (BIT_VECTOR(L) or R);
   end function "or";
 
-  -- Id: L.19 
+  -- Id: L.19
   function "nand" (L : BIT; R : UNSIGNED) return UNSIGNED is
   begin
     return UNSIGNED (L nand BIT_VECTOR(R));
   end function "nand";
 
-  -- Id: L.20 
+  -- Id: L.20
   function "nand" (L : UNSIGNED; R : BIT) return UNSIGNED is
   begin
     return UNSIGNED (BIT_VECTOR(L) nand R);
   end function "nand";
 
-  -- Id: L.21 
+  -- Id: L.21
   function "nor" (L : BIT; R : UNSIGNED) return UNSIGNED is
   begin
     return UNSIGNED (L nor BIT_VECTOR(R));
   end function "nor";
 
-  -- Id: L.22 
+  -- Id: L.22
   function "nor" (L : UNSIGNED; R : BIT) return UNSIGNED is
   begin
     return UNSIGNED (BIT_VECTOR(L) nor R);
   end function "nor";
 
-  -- Id: L.23 
+  -- Id: L.23
   function "xor" (L : BIT; R : UNSIGNED) return UNSIGNED is
   begin
     return UNSIGNED (L xor BIT_VECTOR(R));
   end function "xor";
 
-  -- Id: L.24 
+  -- Id: L.24
   function "xor" (L : UNSIGNED; R : BIT) return UNSIGNED is
   begin
     return UNSIGNED (BIT_VECTOR(L) xor R);
@@ -2511,7 +2517,7 @@ package body NUMERIC_BIT is
   -- Note: Function L.25 is not compatible with IEEE Std 1076-1987. Comment
   -- out the function (declaration and body) for IEEE Std 1076-1987 compatibility.
   ------------------------------------------------------------------------------
-  -- Id: L.25 
+  -- Id: L.25
   function "xnor" (L : BIT; R : UNSIGNED) return UNSIGNED is
   begin
     return UNSIGNED (L xnor BIT_VECTOR(R));
@@ -2521,67 +2527,67 @@ package body NUMERIC_BIT is
   -- Note: Function L.26 is not compatible with IEEE Std 1076-1987. Comment
   -- out the function (declaration and body) for IEEE Std 1076-1987 compatibility.
   ------------------------------------------------------------------------------
-  -- Id: L.26 
+  -- Id: L.26
   function "xnor" (L : UNSIGNED; R : BIT) return UNSIGNED is
   begin
     return UNSIGNED (BIT_VECTOR(L) xnor R);
   end function "xnor";
 
-  -- Id: L.27 
+  -- Id: L.27
   function "and" (L : BIT; R : SIGNED) return SIGNED is
   begin
     return SIGNED (L and BIT_VECTOR(R));
   end function "and";
 
-  -- Id: L.28 
+  -- Id: L.28
   function "and" (L : SIGNED; R : BIT) return SIGNED is
   begin
     return SIGNED (BIT_VECTOR(L) and R);
   end function "and";
 
-  -- Id: L.29 
+  -- Id: L.29
   function "or" (L : BIT; R : SIGNED) return SIGNED is
   begin
     return SIGNED (L or BIT_VECTOR(R));
   end function "or";
 
-  -- Id: L.30 
+  -- Id: L.30
   function "or" (L : SIGNED; R : BIT) return SIGNED is
   begin
     return SIGNED (BIT_VECTOR(L) or R);
   end function "or";
 
-  -- Id: L.31 
+  -- Id: L.31
   function "nand" (L : BIT; R : SIGNED) return SIGNED is
   begin
     return SIGNED (L nand BIT_VECTOR(R));
   end function "nand";
 
-  -- Id: L.32 
+  -- Id: L.32
   function "nand" (L : SIGNED; R : BIT) return SIGNED is
   begin
     return SIGNED (BIT_VECTOR(L) nand R);
   end function "nand";
 
-  -- Id: L.33 
+  -- Id: L.33
   function "nor" (L : BIT; R : SIGNED) return SIGNED is
   begin
     return SIGNED (L nor BIT_VECTOR(R));
   end function "nor";
 
-  -- Id: L.34 
+  -- Id: L.34
   function "nor" (L : SIGNED; R : BIT) return SIGNED is
   begin
     return SIGNED (BIT_VECTOR(L) nor R);
   end function "nor";
 
-  -- Id: L.35 
+  -- Id: L.35
   function "xor" (L : BIT; R : SIGNED) return SIGNED is
   begin
     return SIGNED (L xor BIT_VECTOR(R));
   end function "xor";
 
-  -- Id: L.36 
+  -- Id: L.36
   function "xor" (L : SIGNED; R : BIT) return SIGNED is
   begin
     return SIGNED (BIT_VECTOR(L) xor R);
@@ -2591,7 +2597,7 @@ package body NUMERIC_BIT is
   -- Note: Function L.37 is not compatible with IEEE Std 1076-1987. Comment
   -- out the function (declaration and body) for IEEE Std 1076-1987 compatibility.
   ------------------------------------------------------------------------------
-  -- Id: L.37 
+  -- Id: L.37
   function "xnor" (L : BIT; R : SIGNED) return SIGNED is
   begin
     return SIGNED (L xnor BIT_VECTOR(R));
@@ -2601,7 +2607,7 @@ package body NUMERIC_BIT is
   -- Note: Function L.38 is not compatible with IEEE Std 1076-1987. Comment
   -- out the function (declaration and body) for IEEE Std 1076-1987 compatibility.
   ------------------------------------------------------------------------------
-  -- Id: L.38 
+  -- Id: L.38
   function "xnor" (L : SIGNED; R : BIT) return SIGNED is
   begin
     return SIGNED (BIT_VECTOR(L) xnor R);
