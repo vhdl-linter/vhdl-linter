@@ -702,9 +702,6 @@ export class VhdlLinter {
             continue;
           }
           objList.push(type);
-          if (type instanceof OEnum) {
-            objList.push(...type.literals);
-          }
         }
       }
       if (implementsIHasInstantiations(obj)) {

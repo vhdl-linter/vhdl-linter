@@ -2,6 +2,7 @@ import { DeclarativePartParser } from './declarative-part-parser';
 import { OArchitecture, OEntity, OEnum, OI, OName, OPackage, OPackageBody, OProcess, ORecord, ORecordChild, OEnumLiteral, OSubprogram, OType, ParserError } from './objects';
 import { ParserBase } from './parser-base';
 import { ParserPosition } from './parser';
+import { OLexerToken } from '../lexer';
 
 
 export class TypeParser extends ParserBase {
@@ -38,7 +39,7 @@ export class TypeParser extends ParserBase {
       if (this.getToken().text === '(') {
         this.expect('(');
         Object.setPrototypeOf(type, OEnum.prototype);
-        const enumItems: {text: string, start: number, end: number}[] = [];
+        const enumItems: OLexerToken[] = [];
         let i = this.pos.i;
         let lastI = i;
         while (this.pos.isValid()) {
@@ -46,11 +47,11 @@ export class TypeParser extends ParserBase {
             this.consumeToken();
           }
           if (this.getToken().getLText() === ',') {
-            enumItems.push({text: this.getToken(-1, true).text, start: lastI, end: i - 1});
+            enumItems.push(this.getToken(-1, true));
             lastI = i + 1;
           }
           if (this.getToken().getLText() === ')') {
-            enumItems.push({ text: this.getToken(-1, true).text, start: lastI, end: i + -1});
+            enumItems.push(this.getToken(-1, true));
             this.consumeToken();
             break;
           }
@@ -58,10 +59,9 @@ export class TypeParser extends ParserBase {
         }
 
         (type as OEnum).literals = enumItems.map(item => {
-          const state = new OEnumLiteral(type, item.start, item.end);
-          state.name = new OName(state, item.start, item.start + item.text.length);
+          const state = new OEnumLiteral(type, item.range.start.i, item.range.end.i);
+          state.name = new OName(state, item.range.start.i, item.range.end.i);
           state.name.text = item.text;
-          state.range.end.i = state.range.start.i + state.name.text.length;
           return state;
         });
         type.range.end.i = this.pos.i;
