@@ -31,8 +31,7 @@ export class SubprogramParser extends ParserBase {
       this.expect('return');
       subprogram.return = this.getType(subprogram, false, true).typeReads;
     }
-    nextWord = this.getNextWord({ consume: false });
-    if (nextWord === 'is') {
+    if (this.getToken().getLText() === 'is') {
       this.expect('is');
       new DeclarativePartParser(this.pos, this.filePath, subprogram).parse();
       this.expect('begin');
