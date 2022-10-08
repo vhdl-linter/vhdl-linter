@@ -1,11 +1,11 @@
 -- --------------------------------------------------------------------
 --
--- Copyright © 2008 by IEEE. All rights reserved.
+-- Copyright ï¿½ 2008 by IEEE. All rights reserved.
 --
 -- This source file is an essential part of IEEE Std 1076-2008,
 -- IEEE Standard VHDL Language Reference Manual. This source file may not be
--- copied, sold, or included with software that is sold without written 
--- permission from the IEEE Standards Department. This source file may be 
+-- copied, sold, or included with software that is sold without written
+-- permission from the IEEE Standards Department. This source file may be
 -- copied for individual use between licensed users. This source file is
 -- provided on an AS IS basis. The IEEE disclaims ANY WARRANTY EXPRESS OR
 -- IMPLIED INCLUDING ANY WARRANTY OF MERCHANTABILITY AND FITNESS FOR USE
@@ -36,6 +36,10 @@
 -- $Revision: 1220 $
 -- $Date: 2008-04-10 17:16:09 +0930 (Thu, 10 Apr 2008) $
 -- --------------------------------------------------------------------
+
+-- Vhdl-linter checking still has problems with this file. Disable all linting messages for now.
+-- Parser error will still apply
+-- vhdl-linter-disable
 
 package body float_generic_pkg is
 
@@ -645,7 +649,7 @@ package body float_generic_pkg is
       fract       => fract,
       expon       => expon);
   end procedure break_number;
-  
+
   procedure break_number (
     arg         : in  UNRESOLVED_float;
     denormalize : in  BOOLEAN := float_denormalize;
@@ -677,7 +681,7 @@ package body float_generic_pkg is
   begin
     if (arg'length > 0) then
       result            := to_01 (arg, 'X');
-      result (arg'high) := '0';         -- set the sign bit to positive     
+      result (arg'high) := '0';         -- set the sign bit to positive
       return result;
     else
       return NAFP;
@@ -1723,7 +1727,7 @@ package body float_generic_pkg is
                          round_style => round_style,
                          guard       => guard,
                          check_error => false,
-                         denormalize => denormalize);        
+                         denormalize => denormalize);
       end if;
     end if;
     return fpresult;
@@ -4568,7 +4572,7 @@ package body float_generic_pkg is
   -- Returns y * 2**n for integral values of N without computing 2**n
   function Scalb (
     y                    : UNRESOLVED_float;      -- floating point input
-    N                    : INTEGER;     -- exponent to add    
+    N                    : INTEGER;     -- exponent to add
     constant round_style : round_type := float_round_style;  -- rounding option
     constant check_error : BOOLEAN    := float_check_error;  -- check for errors
     constant denormalize : BOOLEAN    := float_denormalize)  -- Use IEEE extended FP
@@ -4618,7 +4622,7 @@ package body float_generic_pkg is
   -- Returns y * 2**n for integral values of N without computing 2**n
   function Scalb (
     y                    : UNRESOLVED_float;   -- floating point input
-    N                    : UNRESOLVED_SIGNED;  -- exponent to add    
+    N                    : UNRESOLVED_SIGNED;  -- exponent to add
     constant round_style : round_type := float_round_style;  -- rounding option
     constant check_error : BOOLEAN    := float_check_error;  -- check for errors
     constant denormalize : BOOLEAN    := float_denormalize)  -- Use IEEE extended FP
@@ -5683,7 +5687,7 @@ package body float_generic_pkg is
 
   function from_string (
     bstring  : STRING;                  -- binary string
-    size_res : UNRESOLVED_float)        -- used for sizing only 
+    size_res : UNRESOLVED_float)        -- used for sizing only
     return UNRESOLVED_float is
   begin
     return from_string (bstring        => bstring,
@@ -5693,7 +5697,7 @@ package body float_generic_pkg is
 
   function from_ostring (
     ostring  : STRING;                  -- Octal string
-    size_res : UNRESOLVED_float)        -- used for sizing only 
+    size_res : UNRESOLVED_float)        -- used for sizing only
     return UNRESOLVED_float is
   begin
     return from_ostring (ostring        => ostring,
@@ -5703,7 +5707,7 @@ package body float_generic_pkg is
 
   function from_hstring (
     hstring  : STRING;                  -- hex string
-    size_res : UNRESOLVED_float)        -- used for sizing only 
+    size_res : UNRESOLVED_float)        -- used for sizing only
     return UNRESOLVED_float is
   begin
     return from_hstring (hstring        => hstring,
