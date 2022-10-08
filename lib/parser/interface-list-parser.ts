@@ -56,6 +56,9 @@ export class InterfaceListParser extends ParserBase {
         const subprogramParser = new SubprogramParser(this.pos, this.filePath, this.parent);
         this.parent.subprograms.push(subprogramParser.parse(this.pos.i));
         this.maybeWord(';');
+      } else if (nextWord === 'package') { // TODO: Handle correctly
+        this.advanceBraceAwareToken([';', ')'], true, false);
+        this.maybeWord(';');
       } else {
         if (nextWord === 'signal' || nextWord === 'variable' || nextWord === 'constant' || nextWord === 'file') {
           this.getNextWord();
