@@ -214,6 +214,20 @@ export class VhdlLinter {
         architecture.correspondingEntity = entity;
       }
     }
+    // Map package body to package
+    for (const pkg of this.file.packages) {
+      if (pkg instanceof OPackageBody) {
+
+        // Find entity first in this file
+        let pkgHeader: OPackage | undefined = this.file.packages.find(pkgHeader => pkgHeader instanceof OPackage && pkgHeader.name.text.toLowerCase() === pkg.name.text.toLowerCase()) as OPackage | undefined;
+        if (!pkgHeader) { // Find entity in all files
+          pkgHeader = this.projectParser.getPackages().find(pkgHeader => pkgHeader instanceof OPackage && pkgHeader.name.text.toLowerCase() === pkg.name.text.toLowerCase()) as OPackage|undefined;
+        }
+        if (pkgHeader) {
+          pkg.correspondingPackage = pkgHeader;
+        }
+      }
+    }
     await this.handleCanceled();
     for (const obj of this.file.objectList) {
       if (obj instanceof OToken) {
@@ -1371,6 +1385,9 @@ export class VhdlLinter {
     while (parent instanceof ObjectBase) {
       if (implementsIHasSubprograms(parent)) {
         subprograms.push(...parent.subprograms);
+      }
+      if (parent instanceof OPackageBody && parent.correspondingPackage) {
+        subprograms.push(...parent.correspondingPackage.subprograms);
       }
       parent = parent.parent;
     }

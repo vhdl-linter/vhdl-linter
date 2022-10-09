@@ -319,6 +319,7 @@ export class OPackageBody extends ObjectBase implements IHasSubprograms, IHasCon
   types: OType[] = [];
   files: OFileVariable[] = [];
   library?: string;
+  correspondingPackage?: OPackage;
 }
 export class OUseClause extends ObjectBase {
   constructor(public parent: OFile | OContext, startI: number, endI: number, public library: string, public packageName: string, public suffix: string) {
@@ -938,6 +939,10 @@ export class OToken extends ObjectBase implements IHasDefinitions {
       }
       if (object instanceof OArchitecture && object.correspondingEntity) {
         object = object.correspondingEntity;
+        lastIteration = true;
+      }
+      if (object instanceof OPackageBody && object.correspondingPackage) {
+        object = object.correspondingPackage;
         lastIteration = true;
       }
       // if (object instanceof OFile && object.entity) {
