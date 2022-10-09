@@ -25,7 +25,7 @@ export class TypeParser extends ParserBase {
     throw new ParserError(`is Units failes in `, this.getToken(0).range);
   }
   parse(): OType {
-    const type = new OType(this.parent, this.getToken().range.extendEndOfLine());
+    const type = new OType(this.parent, this.getToken().range.copyExtendEndOfLine());
     this.getNextWord();
     const startTypeName = this.pos.i;
     const typeName = this.consumeToken();

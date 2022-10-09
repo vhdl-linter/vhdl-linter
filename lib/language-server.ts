@@ -317,7 +317,7 @@ const findDefinitions = async (params: IFindDefinitionParams) => {
       return candidate.definitions.map(definition => {
         return {
           // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
-          range: definition.range.getStartAtBeginngOfColumn().getLimitedRange(10),
+          range: definition.range.copyExtendBeginngOfLine().getLimitedRange(10),
           text: definition.getRoot().originalText,
           // targetSelectionRange:  Range.create(Position.create(0, 0), Position.create(0, 0)),
           uri: URI.file(definition.getRoot().file).toString()

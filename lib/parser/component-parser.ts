@@ -11,7 +11,7 @@ export class ComponentParser extends ParserBase {
     this.debug(`start`);
   }
   parse() {
-    const component = new OComponent(this.parent, this.getToken().range.extendEndOfLine());
+    const component = new OComponent(this.parent, this.getToken().range.copyExtendEndOfLine());
     const nameText = this.consumeToken();
     component.name = new OName(component, nameText.range);
     component.name.text = nameText.text;

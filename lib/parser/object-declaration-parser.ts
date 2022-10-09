@@ -35,13 +35,13 @@ export class ObjectDeclarationParser extends ParserBase {
       this.maybeWord(',');
       let object;
       if (variable) {
-        object = new OVariable(this.parent as IHasVariables, this.getToken().range.extendEndOfLine());
+        object = new OVariable(this.parent as IHasVariables, this.getToken().range.copyExtendEndOfLine());
       } else if (constant) {
-        object = new OConstant(this.parent as IHasConstants, this.getToken().range.extendEndOfLine());
+        object = new OConstant(this.parent as IHasConstants, this.getToken().range.copyExtendEndOfLine());
       } else if (file) {
-        object = new OFileVariable(this.parent as IHasFileVariables, this.getToken().range.extendEndOfLine());
+        object = new OFileVariable(this.parent as IHasFileVariables, this.getToken().range.copyExtendEndOfLine());
       } else {
-        object = new OSignal(this.parent as IHasSignals, this.getToken().range.extendEndOfLine());
+        object = new OSignal(this.parent as IHasSignals, this.getToken().range.copyExtendEndOfLine());
       }
       const name = this.consumeToken();
       object.name = new OName(object, name.range);

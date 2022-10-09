@@ -23,19 +23,19 @@ export class ArchitectureParser extends ParserBase {
   parse(skipStart = false, structureName: 'architecture' | 'generate' | 'block' | 'when-generate' = 'architecture', forConstant?: { constantName: OLexerToken, constantRange: ORead[], startPosI: number }): OArchitecture | OForGenerate | OIfGenerateClause {
     this.debug(`parse`);
     if (structureName === 'architecture') {
-      this.architecture = new OArchitecture(this.parent, this.getToken().range.extendEndOfLine());
+      this.architecture = new OArchitecture(this.parent, this.getToken().range.copyExtendEndOfLine());
     } else if (structureName === 'block') {
-      this.architecture = new OBlock(this.parent, this.getToken().range.extendEndOfLine());
+      this.architecture = new OBlock(this.parent, this.getToken().range.copyExtendEndOfLine());
     } else if (structureName === 'when-generate') {
-      this.architecture = new OWhenGenerateClause(this.parent, this.getToken().range.extendEndOfLine());
+      this.architecture = new OWhenGenerateClause(this.parent, this.getToken().range.copyExtendEndOfLine());
     } else if (!forConstant) {
-      this.architecture = new OIfGenerateClause(this.parent, this.getToken().range.extendEndOfLine());
+      this.architecture = new OIfGenerateClause(this.parent, this.getToken().range.copyExtendEndOfLine());
     } else {
       if (this.parent instanceof OFile) {
         throw new ParserError(`For Generate can not be top level architecture!`, this.pos.getRangeToEndLine());
       }
       const { constantName, constantRange, startPosI } = forConstant;
-      this.architecture = new OForGenerate(this.parent as OArchitecture, this.getToken().range.extendEndOfLine(), constantRange);
+      this.architecture = new OForGenerate(this.parent as OArchitecture, this.getToken().range.copyExtendEndOfLine(), constantRange);
       const iterateConstant = new OConstant(this.architecture, constantName.range);
       iterateConstant.type = [];
       iterateConstant.name = new OName(iterateConstant, constantName.range);

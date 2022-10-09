@@ -28,23 +28,12 @@ export class ParserPosition {
   public isValid() {
     return this.num >= 0 && this.num < this.lexerTokens.length;
   }
-  // public set i(newI: number) {
-  //   while (this.num < this.lexerTokens.length) {
-  //     if (this.lexerTokens[this.num].range.start.i === newI) {
-  //       return;
-  //     } else if (this.lexerTokens[this.num].range.start.i < newI) {
-  //       this.num++;
-  //     } else {
-  //       debugger;
-  //       return;
-  //     }
-  //   }
-  // }
+
   public get line() {
     return 0;
   }
   public getRangeToEndLine() {
-    return new OIRange(this.file, this.lexerTokens[this.num].range.start, this.lexerTokens[this.num].range.start);
+    return this.lexerTokens[this.num].range.copyExtendEndOfLine();
   }
 
 }
@@ -181,7 +170,7 @@ export class Parser extends ParserBase {
         const packageParser = new PackageParser(this.pos, this.filePath);
         this.file.packages.push(packageParser.parse(this.file));
       } else if (nextWord === 'configuration') {
-        const configuration = new OConfiguration(this.file, this.getToken().range.extendEndOfLine());
+        const configuration = new OConfiguration(this.file, this.getToken().range.copyExtendEndOfLine());
         configuration.identifier = this.consumeToken();
         this.expect('of');
         configuration.entityName = this.consumeToken();

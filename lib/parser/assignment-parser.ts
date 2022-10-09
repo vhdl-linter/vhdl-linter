@@ -9,7 +9,7 @@ export class AssignmentParser extends ParserBase {
   }
   parse(): OAssignment {
     this.debug('parse');
-    let assignment = new OAssignment(this.parent, this.getToken().range.extendEndOfLine());
+    let assignment = new OAssignment(this.parent, this.getToken().range.copyExtendEndOfLine());
     let leftHandSideNum = this.pos.num;
     this.findToken(['<=', ':=']);
     const leftHandSideTokens = [];

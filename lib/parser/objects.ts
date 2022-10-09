@@ -113,7 +113,7 @@ export class OIRange implements Range {
       : this.end;
     return new OIRange(this.parent, this.start, newEnd);
   }
-  getStartAtBeginngOfColumn() {
+  copyExtendBeginngOfLine() {
     const lines = (this.parent instanceof OFile ? this.parent : this.parent.getRoot()).text.split('\n');
     let startCol = 0;
     const match = lines[this.start.line].match(/\S/);
@@ -125,7 +125,7 @@ export class OIRange implements Range {
     return new OIRange(this.parent, newStart, this.end);
 
   }
-  extendEndOfLine(): OIRange {
+  copyExtendEndOfLine(): OIRange {
     const text = this.parent instanceof OFile ? this.parent.text : this.parent.getRoot().text;
     const lines = text.split('\n');
     const line = lines[this.end.line];

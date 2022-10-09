@@ -19,7 +19,7 @@ export class SubprogramParser extends ParserBase {
     const isFunction = nextWord.getLText() === 'function';
     const beforeNameI = this.pos.i;
     const name = this.consumeToken();
-    const subprogram = new OSubprogram(this.parent, nextWord.range.extendEndOfLine());
+    const subprogram = new OSubprogram(this.parent, nextWord.range.copyExtendEndOfLine());
     subprogram.name = new OName(subprogram, name.range);
     subprogram.name.text = name.text;
 

@@ -32,8 +32,8 @@ export class InterfaceListParser extends ParserBase {
       this.advanceWhitespace();
 
       let port = generics ?
-        new OGeneric(this.parent, this.getToken().range.extendEndOfLine()) :
-        new OPort(this.parent, this.getToken().range.extendEndOfLine());
+        new OGeneric(this.parent, this.getToken().range.copyExtendEndOfLine()) :
+        new OPort(this.parent, this.getToken().range.copyExtendEndOfLine());
 
       if (this.getToken().text === ')') {
         this.consumeToken();

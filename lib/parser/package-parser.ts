@@ -8,7 +8,7 @@ export class PackageParser extends ParserBase {
   parse(parent: OFile): OPackage|OPackageBody {
     let nextWord = this.consumeToken();
     if (nextWord.getLText() === 'body') {
-      const pkg = new OPackageBody(parent, this.getToken().range.extendEndOfLine());
+      const pkg = new OPackageBody(parent, this.getToken().range.copyExtendEndOfLine());
       const match = parent.originalText.match(/!\s*@library\s+(\S+)/i);
       pkg.library = match ? match[1] : undefined;
 
@@ -27,7 +27,7 @@ export class PackageParser extends ParserBase {
       const tokens = this.advanceSemicolonToken();
       return pkg;
     } else {
-      const pkg = new OPackage(parent, this.getToken().range.extendEndOfLine());
+      const pkg = new OPackage(parent, this.getToken().range.copyExtendEndOfLine());
       const match = parent.originalText.match(/!\s*@library\s+(\S+)/i);
       pkg.library = match ? match[1] : undefined;
 
