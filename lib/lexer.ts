@@ -37,9 +37,10 @@ export const GRAPHIC_CHARACTER = String.raw`[a-z0-9 "#&'()*+,-./:;<£¤¥¦§ ̈
 export class Lexer {
   readonly keywords = [
     'abs', 'not', 'mod', 'sll', 'srl', 'sla', 'sra', 'rol', 'ror',
-    'and', 'or', 'nand', 'nor', 'xor', 'xnor', 'downto', 'to', 'others',
+    'and', 'or', 'nand', 'nor', 'xor', 'xnor', 'downto', 'to', 'others', 'rem',
     'when', 'else', 'range', 'elsif', 'after', 'transport', 'reject',
-    'inertial', 'all', 'of', 'new', 'force', 'release', 'severity', 'open'
+    'inertial', 'all', 'of', 'new', 'force', 'release', 'severity', 'open',
+    'null'
   ].map(keyword => new RegExp('^' + keyword + '\\b', 'i'));
 
   tokenTypes: { regex: RegExp, tokenType: TokenType }[] = [

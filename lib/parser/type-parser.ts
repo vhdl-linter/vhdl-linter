@@ -1,5 +1,5 @@
 import { DeclarativePartParser } from './declarative-part-parser';
-import { OArchitecture, OEntity, OEnum, OI, OName, OPackage, OPackageBody, OProcess, ORecord, ORecordChild, OEnumLiteral, OSubprogram, OType, ParserError } from './objects';
+import { OArchitecture, OEntity, OEnum, OI, OName, OPackage, OPackageBody, OProcess, ORecord, ORecordChild, OEnumLiteral, OSubprogram, OType, ParserError, OPort } from './objects';
 import { ParserBase } from './parser-base';
 import { ParserPosition } from './parser';
 import { OLexerToken } from '../lexer';
@@ -112,7 +112,15 @@ export class TypeParser extends ParserBase {
         } else if (nextWord === 'range') {
           // TODO
         } else if (nextWord === 'access') {
-          // TODO
+          // Is this a hack, or is it just fantasy/vhdl
+          const [typeTokens] = this.advanceBraceAwareToken([';'], true, false);
+          const deallocateProcedure = new OSubprogram(this.parent, typeTokens[0].range.start.i, typeTokens[typeTokens.length - 1].range.end.i);
+          deallocateProcedure.name = new OName(deallocateProcedure, type.name.range.start.i, type.name.range.end.i);
+          deallocateProcedure.name.text = 'deallocate';
+          this.parent.subprograms.push(deallocateProcedure);
+          const port = new OPort(deallocateProcedure, type.name.range.start.i, type.name.range.end.i);
+          port.direction = 'inout';
+          deallocateProcedure.ports = [port];
         }
         type.range.end.i = this.pos.i;
         this.advancePast(';');
