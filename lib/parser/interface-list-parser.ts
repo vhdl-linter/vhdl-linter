@@ -32,8 +32,8 @@ export class InterfaceListParser extends ParserBase {
       this.advanceWhitespace();
 
       let port = generics ?
-        new OGeneric(this.parent, this.pos.i, this.getEndOfLineI()) :
-        new OPort(this.parent, this.pos.i, this.getEndOfLineI());
+        new OGeneric(this.parent, this.getToken().range.extendEndOfLine()) :
+        new OPort(this.parent, this.getToken().range.extendEndOfLine());
 
       if (this.getToken().text === ')') {
         this.consumeToken();
@@ -43,9 +43,9 @@ export class InterfaceListParser extends ParserBase {
       const nextWord = this.getNextWord({ consume: false }).toLowerCase();
       if (nextWord === 'type') {
         this.getNextWord();
-        port.name = new OName(port, this.pos.i, this.pos.i);
-        port.name.text = this.getNextWord();
-        port.name.range.end.i = port.name.range.start.i + port.name.text.length;
+        const name = this.consumeToken();
+        port.name = new OName(port, name.range);
+        port.name.text = name.text;
         if (generics) {
           ports.push(port);
         } else {
@@ -63,9 +63,9 @@ export class InterfaceListParser extends ParserBase {
         if (nextWord === 'signal' || nextWord === 'variable' || nextWord === 'constant' || nextWord === 'file') {
           this.getNextWord();
         }
-        port.name = new OName(port, this.pos.i, this.pos.i);
-        port.name.text = this.getNextWord();
-        port.name.range.end.i = port.name.range.start.i + port.name.text.length;
+        const name = this.consumeToken();
+        port.name = new OName(port, name.range);
+        port.name.text = name.text;
         if (this.getToken().getLText() === ',') {
           this.expect(',');
           multiInterface.push(port);

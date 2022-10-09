@@ -1,5 +1,5 @@
 import { ContextReferenceParser } from './context-reference-parser';
-import { OI, ObjectBase, OContext, OName, OFile } from './objects';
+import { OI, ObjectBase, OContext, OName, OFile, OIRange } from './objects';
 import { ParserBase } from './parser-base';
 import { UseClauseParser } from './use-clause-parser';
 import { ParserPosition } from './parser';
@@ -11,17 +11,17 @@ export class ContextParser extends ParserBase {
   }
 
   parse() {
-    const context = new OContext(this.parent, this.pos.i, this.pos.i);
+    const context = new OContext(this.parent, new OIRange(this.parent, this.pos.i, this.pos.i));
     const savedI = this.pos.i;
-    const name = this.getNextWord();
-    context.name = new OName(context, savedI, savedI + name.length);
-    context.name.text = name;
+    const name = this.consumeToken();
+    context.name = new OName(context, name.range);
+    context.name.text = name.text;
     this.expect('is');
     while (this.pos.isValid()) {
       const nextWord = this.getNextWord();
       if (nextWord === 'end') {
         this.maybeWord('context');
-        this.maybeWord(name);
+        this.maybeWord(name.text);
         context.range.end.i = this.pos.i;
         this.expect(';');
         break;

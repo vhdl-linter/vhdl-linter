@@ -353,6 +353,18 @@ export class ParserBase {
       throw new ParserError(`expected '${expected.join(', ')}' found '${this.getToken().text}' line: ${this.getLine()}`, this.pos.getRangeToEndLine());
     }
   }
+  expectToken(expected: string | string[]) {
+    if (!Array.isArray(expected)) {
+      expected = [expected];
+    }
+    if (expected.find(exp => exp.toLowerCase() === this.getToken().getLText())) {
+      let token = this.consumeToken(false);
+      this.advanceWhitespace();
+      return token;
+    } else {
+      throw new ParserError(`expected '${expected.join(', ')}' found '${this.getToken().text}' line: ${this.getLine()}`, this.pos.getRangeToEndLine());
+    }
+  }
   maybeWord(expected: string) {
     if (this.getToken().getLText() === expected.toLowerCase()) {
       this.consumeToken();
@@ -437,14 +449,14 @@ export class ParserBase {
           continue;
         }
         if (tokens[i - 1]?.text === '.' && token.getLText() !== 'all') {
-          reads.push(new OElementRead(parent, token.range.start.i, token.range.end.i, token.text));
+          reads.push(new OElementRead(parent, token.range, token.text));
         } else {
           if (asMappingName && !(parent instanceof OAssociation)) {
             throw new Error();
           }
           reads.push(asMappingName
-            ? new OAssociationFormal((parent as OAssociation), token.range.start.i, token.range.end.i, token.text)
-            : new ORead(parent, token.range.start.i, token.range.end.i, token.text));
+            ? new OAssociationFormal((parent as OAssociation), token.range, token.text)
+            : new ORead(parent, token.range, token.text));
         }
       }
     }
@@ -473,16 +485,16 @@ export class ParserBase {
         }
       } else if (token.isIdentifier()) {
         if (slice === false && recordToken === false) {
-          const write = new OWrite(parent, token.range.start.i, token.range.end.i, token.text);
+          const write = new OWrite(parent, token.range, token.text);
           writes.push(write);
           if (readAndWrite) {
-            reads.push(new ORead(parent, token.range.start.i, token.range.end.i, token.text));
+            reads.push(new ORead(parent, token.range, token.text));
           }
         } else {
           if (recordToken) {
-            reads.push(new OElementRead(parent, token.range.start.i, token.range.end.i, token.text));
+            reads.push(new OElementRead(parent, token.range, token.text));
           } else if (tokens[i - 1]?.text !== '\'') { // skip attributes
-            reads.push(new ORead(parent, token.range.start.i, token.range.end.i, token.text));
+            reads.push(new ORead(parent, token.range, token.text));
           }
         }
       }

@@ -1,6 +1,7 @@
 import { Position, Range, TextEdit } from 'vscode-languageserver';
 import { config } from './config';
 import { OLexerToken } from '../lexer';
+import { line } from 'blessed';
 
 export class OI implements Position {
   private i_: number;
@@ -81,6 +82,7 @@ export class OI implements Position {
   }
 }
 export class OIRange implements Range {
+
   public start: OI;
   public end: OI;
   constructor(public parent: ObjectBase | OFile, start: number | OI, end: number | OI) {
@@ -123,20 +125,24 @@ export class OIRange implements Range {
     return new OIRange(this.parent, newStart, this.end);
 
   }
+  extendEndOfLine(): OIRange {
+    const text = this.parent instanceof OFile ? this.parent.text : this.parent.getRoot().text;
+    const lines = text.split('\n');
+    const line = lines[this.end.line];
+    return new OIRange(this.parent, this.start, new OI(this.parent, this.end.line, line.length));
+  }
 }
 
 export class ObjectBase {
   name?: OName;
-  public range: OIRange;
-  constructor(public parent: ObjectBase | OFile, startI: number, endI: number) {
-    this.range = new OIRange(this, startI, endI);
+  constructor(public parent: ObjectBase | OFile, public range: OIRange) {
     let maximumIterationCounter = 5000;
     let p = parent;
     while (!(p instanceof OFile)) {
       p = p.parent;
       maximumIterationCounter--;
       if (maximumIterationCounter === 0) {
-        throw new ParserError('Maximum Iteraction Counter overrung', new OIRange(parent, startI, endI));
+        throw new ParserError('Maximum Iteraction Counter overrung', range);
       }
     }
     p.objectList.push(this);
@@ -322,14 +328,14 @@ export class OPackageBody extends ObjectBase implements IHasSubprograms, IHasCon
   correspondingPackage?: OPackage;
 }
 export class OUseClause extends ObjectBase {
-  constructor(public parent: OFile | OContext, startI: number, endI: number, public library: string, public packageName: string, public suffix: string) {
-    super(parent, startI, endI);
+  constructor(public parent: OFile | OContext, range: OIRange, public library: string, public packageName: string, public suffix: string) {
+    super(parent, range);
   }
 }
 
 export class OContextReference extends ObjectBase {
-  constructor(public parent: OFile | OContext, startI: number, endI: number, public library: string, public contextName: string) {
-    super(parent, startI, endI);
+  constructor(public parent: OFile | OContext, range: OIRange, public library: string, public contextName: string) {
+    super(parent, range);
   }
 }
 export class OContext extends ObjectBase implements IHasUseClauses, IHasContextReference {
@@ -453,11 +459,10 @@ export class OEnumLiteral extends ObjectBase implements IReferenceable, IHasName
 }
 export class OForGenerate extends OArchitecture {
   constructor(public parent: OArchitecture,
-    startI: number,
-    endI: number,
+    range: OIRange,
     public variableRange: ORead[],
   ) {
-    super(parent, startI, endI);
+    super(parent, range);
   }
 }
 export class OCaseGenerate extends ObjectBase {
@@ -498,11 +503,10 @@ export abstract class OVariableBase extends ObjectBase implements IReferenceable
 }
 export abstract class OSignalBase extends OVariableBase {
   registerProcess?: OProcess;
-  constructor(public parent: ObjectBase, startI: number, endI: number) {
-    super(parent, startI, endI);
-    let pos = new OIRange(parent, startI, endI);
+  constructor(public parent: ObjectBase, range: OIRange) {
+    super(parent, range);
     if (config.debug) {
-      console.log(`${this.constructor.name}:   at ${pos.start.line}:${pos.start.character})`);
+      console.log(`${this.constructor.name}:   at ${range.start.line}:${range.start.character})`);
     }
 
     let maximumIterationCounter = 5000;
@@ -515,54 +519,54 @@ export abstract class OSignalBase extends OVariableBase {
       p = p.parent;
       maximumIterationCounter--;
       if (maximumIterationCounter === 0) {
-        throw new ParserError('Maximum Iteraction Counter overrung', new OIRange(parent, startI, endI));
+        throw new ParserError('Maximum Iteraction Counter overrung', range);
 
       }
     }
   }
 }
 export class OFileVariable extends OVariableBase {
-  constructor(parent: IHasFileVariables, startI: number, endI: number) {
-    super((parent as unknown) as ObjectBase, startI, endI);
+  constructor(parent: IHasFileVariables, range: OIRange) {
+    super((parent as unknown) as ObjectBase, range);
   }
   type: ORead[] = [];
 }
 export class OVariable extends OVariableBase {
-  constructor(parent: IHasVariables, startI: number, endI: number) {
-    super((parent as unknown) as ObjectBase, startI, endI);
+  constructor(parent: IHasVariables, range: OIRange) {
+    super((parent as unknown) as ObjectBase, range);
   }
   type: ORead[] = [];
 }
 export class OSignal extends OSignalBase {
-  constructor(parent: IHasSignals, startI: number, endI: number) {
-    super((parent as unknown) as ObjectBase, startI, endI);
+  constructor(parent: IHasSignals, range: OIRange) {
+    super((parent as unknown) as ObjectBase, range);
   }
 }
 export class OConstant extends OSignalBase {
-  constructor(parent: IHasConstants, startI: number, endI: number) {
-    super((parent as unknown) as ObjectBase, startI, endI);
+  constructor(parent: IHasConstants, range: OIRange) {
+    super((parent as unknown) as ObjectBase, range);
   }
 }
 export class OAssociationList extends ObjectBase {
-  constructor(public parent: OInstantiation | OPackage, startI: number, endI: number) {
-    super(parent, startI, endI);
+  constructor(public parent: OInstantiation | OPackage, range: OIRange) {
+    super(parent, range);
   }
   public children: OAssociation[] = [];
 
 }
 export class OGenericAssociationList extends OAssociationList {
-  constructor(public parent: OInstantiation | OPackage, startI: number, endI: number) {
-    super(parent, startI, endI);
+  constructor(public parent: OInstantiation | OPackage, range: OIRange) {
+    super(parent, range);
   }
 }
 export class OPortAssociationList extends OAssociationList {
-  constructor(public parent: OInstantiation | OPackage, startI: number, endI: number) {
-    super(parent, startI, endI);
+  constructor(public parent: OInstantiation | OPackage, range: OIRange) {
+    super(parent, range);
   }
 }
 export class OInstantiation extends ObjectBase implements IHasDefinitions {
-  constructor(public parent: OArchitecture | OEntity | OProcess | OLoop | OIf, startI: number, endI: number, public type: 'entity' | 'component' | 'configuration' | 'subprogram' | 'unknown' = 'unknown') {
-    super(parent, startI, endI);
+  constructor(public parent: OArchitecture | OEntity | OProcess | OLoop | OIf, range: OIRange, public type: 'entity' | 'component' | 'configuration' | 'subprogram' | 'unknown' = 'unknown') {
+    super(parent, range);
   }
   label?: string;
   definitions: (OEntity | OSubprogram | OComponent)[] = [];
@@ -640,8 +644,8 @@ export class OInstantiation extends ObjectBase implements IHasDefinitions {
   }
 }
 export class OAssociation extends ObjectBase implements IHasDefinitions {
-  constructor(public parent: OAssociationList, startI: number, endI: number) {
-    super(parent, startI, endI);
+  constructor(public parent: OAssociationList, range: OIRange) {
+    super(parent, range);
   }
   definitions: (OPort | OGeneric)[] = [];
   formalPart: OAssociationFormal[] = [];
@@ -651,8 +655,8 @@ export class OAssociation extends ObjectBase implements IHasDefinitions {
 }
 export class OEntity extends ObjectBase implements IHasDefinitions, IHasSubprograms, IHasSignals, IHasConstants, IHasVariables,
   IHasTypes, IHasFileVariables, IHasUseClauses, IHasContextReference, IHasName {
-  constructor(public parent: OFile, startI: number, endI: number, public library?: string) {
-    super(parent, startI, endI);
+  constructor(public parent: OFile, range: OIRange, public library?: string) {
+    super(parent, range);
   }
   name: OName;
   useClauses: OUseClause[] = [];
@@ -671,8 +675,8 @@ export class OEntity extends ObjectBase implements IHasDefinitions, IHasSubprogr
   files: OFileVariable[] = [];
 }
 export class OComponent extends ObjectBase implements IHasDefinitions, IHasSubprograms, IHasName {
-  constructor(parent: IHasComponents, startI: number, endI: number) {
-    super((parent as unknown) as ObjectBase, startI, endI);
+  constructor(parent: IHasComponents, range: OIRange) {
+    super((parent as unknown) as ObjectBase, range);
   }
   name: OName;
   subprograms: OSubprogram[] = [];
@@ -788,8 +792,8 @@ export class OToken extends ObjectBase implements IHasDefinitions {
 
   public scope?: ObjectBase; // TODO: What is this scope used for?
 
-  constructor(public parent: ObjectBase, startI: number, endI: number, public text: string) {
-    super(parent, startI, endI);
+  constructor(public parent: ObjectBase, range: OIRange, public text: string) {
+    super(parent, range);
 
   }
   elaborate() {
@@ -959,14 +963,14 @@ export class ORead extends OToken {
 }
 // Read of Record element or something
 export class OElementRead extends ORead {
-  constructor(public parent: ObjectBase, startI: number, endI: number, public text: string) {
-    super(parent, startI, endI, text);
+  constructor(public parent: ObjectBase, range: OIRange, public text: string) {
+    super(parent, range, text);
   }
 }
 export class OAssociationFormal extends ObjectBase implements IHasDefinitions {
   definitions: (OPort | OGeneric)[] = [];
-  constructor(public parent: OAssociation, startI: number, endI: number, public text: string) {
-    super(parent, startI, endI);
+  constructor(public parent: OAssociation, range: OIRange, public text: string) {
+    super(parent, range);
   }
 }
 export class ParserError extends Error {
@@ -981,7 +985,7 @@ export enum MagicCommentType {
 }
 export class OMagicComment extends ObjectBase {
   constructor(public parent: OFile, public commentType: MagicCommentType, range: OIRange) {
-    super(parent, range.start.i, range.end.i);
+    super(parent, range);
   }
 }
 export class OMagicCommentDisable extends OMagicComment {

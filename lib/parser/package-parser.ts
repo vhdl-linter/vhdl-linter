@@ -6,16 +6,16 @@ import { ParserBase } from './parser-base';
 
 export class PackageParser extends ParserBase {
   parse(parent: OFile): OPackage|OPackageBody {
-    let nextWord = this.getNextWord();
-    if (nextWord.toLowerCase() === 'body') {
-      const pkg = new OPackageBody(parent, this.pos.i, this.getEndOfLineI());
+    let nextWord = this.consumeToken();
+    if (nextWord.getLText() === 'body') {
+      const pkg = new OPackageBody(parent, this.getToken().range.extendEndOfLine());
       const match = parent.originalText.match(/!\s*@library\s+(\S+)/i);
       pkg.library = match ? match[1] : undefined;
 
       const savedI = this.pos.i;
-      const name = this.getNextWord();
-      pkg.name = new OName(pkg, savedI, savedI + name.length);
-      pkg.name.text = name;
+      const name = this.consumeToken();
+      pkg.name = new OName(pkg, name.range);
+      pkg.name.text = name.text;
       this.expect('is');
       const declarativePartParser = new DeclarativePartParser(this.pos, this.filePath, pkg);
       declarativePartParser.parse(false, 'end');
@@ -27,27 +27,26 @@ export class PackageParser extends ParserBase {
       const tokens = this.advanceSemicolonToken();
       return pkg;
     } else {
-      const pkg = new OPackage(parent, this.pos.i, this.getEndOfLineI());
+      const pkg = new OPackage(parent, this.getToken().range.extendEndOfLine());
       const match = parent.originalText.match(/!\s*@library\s+(\S+)/i);
       pkg.library = match ? match[1] : undefined;
 
       let savedI = this.pos.i;
-      const name = nextWord;
-      pkg.name = new OName(pkg, savedI, savedI + name.length);
-      pkg.name.text = name;
+      pkg.name = new OName(pkg, nextWord.range);
+      pkg.name.text = nextWord.text;
       this.expect('is');
-      nextWord = this.getNextWord({consume: false}).toLowerCase();
-      if (nextWord === 'new') {
+      nextWord = this.getToken();
+      if (nextWord.getLText() === 'new') {
         this.getNextWord();
         savedI = this.pos.i;
         const uninstantiatedPackageLibrary = this.consumeToken();
         this.expect('.');
         const uninstantiatedPackageName = this.consumeToken();
-        pkg.uninstantiatedPackageName = new OName(pkg, savedI, uninstantiatedPackageName.range.end.i);
+        pkg.uninstantiatedPackageName = new OName(pkg, uninstantiatedPackageName.range);
         pkg.uninstantiatedPackageName.text = uninstantiatedPackageName.text;
 
-        nextWord = this.getNextWord({consume: false}).toLowerCase();
-        if (nextWord === 'generic') {
+        nextWord = this.getToken();
+        if (nextWord.getLText() === 'generic') {
           this.expect('generic');
           this.expect('map');
           pkg.genericAssociationList = new AssociationListParser(this.pos, this.filePath, pkg).parse('generic');
@@ -55,7 +54,7 @@ export class PackageParser extends ParserBase {
         this.expect(';');
         return pkg;
       }
-      if (nextWord === 'generic') {
+      if (nextWord.getLText() === 'generic') {
         this.getNextWord();
         const savedI = this.pos.i;
         const interfaceListParser = new InterfaceListParser(this.pos, this.filePath, pkg);

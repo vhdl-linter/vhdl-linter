@@ -12,14 +12,13 @@ export class EntityParser extends ParserBase {
     let library: string | undefined = undefined;
     const match = this.parent.originalText.match(/!\s*@library\s+(\S+)/i);
     library = match ? match[1] : undefined;
-    this.entity = new OEntity(this.parent, this.pos.i, this.getEndOfLineI(), library);
+    this.entity = new OEntity(this.parent, this.getToken().range.extendEndOfLine(), library);
     this.debug(`start`);
   }
   parse(): OEntity {
-    const preNameI = this.pos.i;
-    const nameText = this.getNextWord();
-    this.entity.name = new OName(this.entity, preNameI, preNameI + nameText.length);
-    this.entity.name.text = nameText;
+    const nameText = this.consumeToken();
+    this.entity.name = new OName(this.entity, nameText.range);
+    this.entity.name.text = nameText.text;
     if (this.parent instanceof OArchitecture) {
       this.maybeWord('is');
     } else {

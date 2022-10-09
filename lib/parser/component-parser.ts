@@ -11,11 +11,10 @@ export class ComponentParser extends ParserBase {
     this.debug(`start`);
   }
   parse() {
-    const component = new OComponent(this.parent, this.pos.i, this.getEndOfLineI());
-    const preNameI = this.pos.i;
-    const nameText = this.getNextWord();
-    component.name = new OName(component, preNameI, preNameI + nameText.length);
-    component.name.text = nameText;
+    const component = new OComponent(this.parent, this.getToken().range.extendEndOfLine());
+    const nameText = this.consumeToken();
+    component.name = new OName(component, nameText.range);
+    component.name.text = nameText.text;
     this.maybeWord('is');
 
     let lastI;

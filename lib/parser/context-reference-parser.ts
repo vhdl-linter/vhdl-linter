@@ -16,6 +16,6 @@ export class ContextReferenceParser extends ParserBase {
     const suffix = this.consumeToken();
     this.expect(';');
     const endI = startI + text.length;
-    return new OContextReference(this.parent, prefix.range.start.i, suffix.range.end.i, prefix.text, suffix.text);
+    return new OContextReference(this.parent, prefix.range, prefix.text, suffix.text);
   }
 }

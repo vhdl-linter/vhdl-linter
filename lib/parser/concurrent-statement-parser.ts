@@ -1,7 +1,7 @@
 import { ArchitectureParser } from './architecture-parser';
 import { AssignmentParser } from './assignment-parser';
 import { InstantiationParser } from './instantiation-parser';
-import { OArchitecture, OCaseGenerate, OEntity, OForGenerate, OI, OIfGenerate, OIfGenerateClause, ORead, ParserError } from './objects';
+import { OArchitecture, OCaseGenerate, OEntity, OForGenerate, OI, OIfGenerate, OIfGenerateClause, ORead, ParserError, OIRange } from './objects';
 import { ParserBase } from './parser-base';
 import { ProcessParser } from './process-parser';
 import { ParserPosition } from './parser';
@@ -62,7 +62,7 @@ export class ConcurrentStatementParser extends ParserBase {
       }
 
       const startI = this.pos.i;
-      let constantName = this.advancePast('in');
+      let [constantName] = this.advancePastToken('in');
 
       const rangeToken = this.advancePastToken('generate');
       const constantRange = this.extractReads(this.parent, rangeToken);
@@ -80,7 +80,7 @@ export class ConcurrentStatementParser extends ParserBase {
       if (typeof label === 'undefined') {
         throw new ParserError('A case generate needs a label.', this.pos.getRangeToEndLine());
       }
-      const caseGenerate = new OCaseGenerate(this.parent, this.pos.i, this.pos.i);
+      const caseGenerate = new OCaseGenerate(this.parent, new OIRange(this.parent, this.pos.i, this.pos.i));
       this.getNextWord();
       const caseConditionToken = this.advancePastToken('generate');
       caseGenerate.signal.push(...this.extractReads(caseGenerate, caseConditionToken));
@@ -105,7 +105,7 @@ export class ConcurrentStatementParser extends ParserBase {
       caseGenerate.range.end.i = this.pos.i;
       this.advanceWhitespace();
     } else if (nextWord === 'if' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {
-      const ifGenerate = new OIfGenerate(this.parent, this.pos.i, this.pos.i);
+      const ifGenerate = new OIfGenerate(this.parent, new OIRange(this.parent, this.pos.i, this.pos.i));
       this.getNextWord();
       let conditionI = this.pos.i;
       let conditionTokens = this.advancePastToken('generate');
@@ -190,7 +190,7 @@ export class ConcurrentStatementParser extends ParserBase {
       this.getNextWord();
       const assignmentParser = new AssignmentParser(this.pos, this.filePath, this.parent);
       const assignment = assignmentParser.parse();
-      const read = new ORead(assignment, beforeI, afterI, readText);
+      const read = new ORead(assignment, new OIRange(assignment, beforeI, afterI), readText);
       assignment.reads.push(read);
       this.parent.statements.push(assignment);
     } else if (nextWord === 'assert' && allowedStatements.includes(ConcurrentStatementTypes.Assert)) {

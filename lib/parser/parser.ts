@@ -181,7 +181,7 @@ export class Parser extends ParserBase {
         const packageParser = new PackageParser(this.pos, this.filePath);
         this.file.packages.push(packageParser.parse(this.file));
       } else if (nextWord === 'configuration') {
-        const configuration = new OConfiguration(this.file, this.pos.i, this.getEndOfLineI());
+        const configuration = new OConfiguration(this.file, this.getToken().range.extendEndOfLine());
         configuration.identifier = this.consumeToken();
         this.expect('of');
         configuration.entityName = this.consumeToken();

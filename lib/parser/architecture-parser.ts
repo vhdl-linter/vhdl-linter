@@ -3,6 +3,7 @@ import { DeclarativePartParser } from './declarative-part-parser';
 import { OArchitecture, OBlock, OCaseGenerate, OConstant, OFile, OForGenerate, OI, OIfGenerate, OIfGenerateClause, OName, ORead, OVariable, OWhenGenerateClause, ParserError } from './objects';
 import { ParserBase } from './parser-base';
 import { ParserPosition } from './parser';
+import { OLexerToken } from '../lexer';
 
 export class ArchitectureParser extends ParserBase {
   entityName: string;
@@ -18,32 +19,32 @@ export class ArchitectureParser extends ParserBase {
   parse(skipStart: boolean, structureName: 'when-generate'): OWhenGenerateClause;
   parse(skipStart: boolean, structureName: 'generate'): OIfGenerateClause;
   parse(skipStart: boolean, structureName: 'block'): OBlock;
-  parse(skipStart: boolean, structureName: 'generate', forConstant?: { constantName: string, constantRange: ORead[], startPosI: number }): OForGenerate;
-  parse(skipStart = false, structureName: 'architecture' | 'generate' | 'block' | 'when-generate' = 'architecture', forConstant?: { constantName: string, constantRange: ORead[], startPosI: number }): OArchitecture | OForGenerate | OIfGenerateClause {
+  parse(skipStart: boolean, structureName: 'generate', forConstant?: { constantName: OLexerToken, constantRange: ORead[], startPosI: number }): OForGenerate;
+  parse(skipStart = false, structureName: 'architecture' | 'generate' | 'block' | 'when-generate' = 'architecture', forConstant?: { constantName: OLexerToken, constantRange: ORead[], startPosI: number }): OArchitecture | OForGenerate | OIfGenerateClause {
     this.debug(`parse`);
     if (structureName === 'architecture') {
-      this.architecture = new OArchitecture(this.parent, this.pos.i, this.getEndOfLineI());
+      this.architecture = new OArchitecture(this.parent, this.getToken().range.extendEndOfLine());
     } else if (structureName === 'block') {
-      this.architecture = new OBlock(this.parent, this.pos.i, this.getEndOfLineI());
+      this.architecture = new OBlock(this.parent, this.getToken().range.extendEndOfLine());
     } else if (structureName === 'when-generate') {
-      this.architecture = new OWhenGenerateClause(this.parent, this.pos.i, this.getEndOfLineI());
+      this.architecture = new OWhenGenerateClause(this.parent, this.getToken().range.extendEndOfLine());
     } else if (!forConstant) {
-      this.architecture = new OIfGenerateClause(this.parent, this.pos.i, this.getEndOfLineI());
+      this.architecture = new OIfGenerateClause(this.parent, this.getToken().range.extendEndOfLine());
     } else {
       if (this.parent instanceof OFile) {
         throw new ParserError(`For Generate can not be top level architecture!`, this.pos.getRangeToEndLine());
       }
       const { constantName, constantRange, startPosI } = forConstant;
-      this.architecture = new OForGenerate(this.parent as OArchitecture, this.pos.i, this.getEndOfLineI(), constantRange);
-      const iterateConstant = new OConstant(this.architecture, startPosI, startPosI + constantName.length);
+      this.architecture = new OForGenerate(this.parent as OArchitecture, this.getToken().range.extendEndOfLine(), constantRange);
+      const iterateConstant = new OConstant(this.architecture, constantName.range);
       iterateConstant.type = [];
-      iterateConstant.name = new OName(iterateConstant, startPosI, startPosI + constantName.length);
-      iterateConstant.name.text = constantName;
+      iterateConstant.name = new OName(iterateConstant, constantName.range);
+      iterateConstant.name.text = constantName.text;
       this.architecture.constants.push(iterateConstant);
     }
     if (skipStart !== true) {
       const name = this.consumeToken();
-      this.architecture.name = new OName(this.architecture, name.range.start.i, name.range.end.i);
+      this.architecture.name = new OName(this.architecture, name.range);
       this.architecture.name.text = name.text;
       this.expect('of');
       this.entityName = this.getNextWord();

@@ -9,10 +9,9 @@ export class AssociationListParser extends ParserBase {
     this.debug(`start`);
   }
   parse(type: 'port' | 'generic' = 'port') {
-    const savedI = this.pos.i;
-    this.expect('(');
+    const braceToken = this.expectToken('(');
 
-    const list = type === 'generic' ? new OGenericAssociationList(this.parent, savedI, this.pos.i) : new OPortAssotiationList(this.parent, savedI, this.pos.i);
+    const list = type === 'generic' ? new OGenericAssociationList(this.parent, braceToken.range) : new OPortAssotiationList(this.parent, braceToken.range);
 
     while (this.pos.isValid()) {
       const savedI = this.pos.i;
@@ -20,7 +19,7 @@ export class AssociationListParser extends ParserBase {
       let [associationTokens, lastChar] = this.advanceBraceAwareToken([',', ')']);
       if (associationTokens.length > 0) {
         let actualStart = savedI;
-        const association = new OAssociation(list, savedI, savedI + associationTokens.length);
+        const association = new OAssociation(list, new OIRange(list, savedI, associationTokens[0]?.range?.end?.i ?? savedI));
         const index = associationTokens.findIndex(token => token.text === '=>');
         if (index > -1) {
           const formalTokens = associationTokens.slice(0, index);

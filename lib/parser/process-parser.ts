@@ -1,5 +1,5 @@
 import { DeclarativePartParser } from './declarative-part-parser';
-import { ObjectBase, OI, OIf, OProcess } from './objects';
+import { ObjectBase, OI, OIf, OProcess, OIRange } from './objects';
 import { ParserBase } from './parser-base';
 import { SequentialStatementParser } from './sequential-statement-parser';
 import { ParserPosition } from './parser';
@@ -11,7 +11,7 @@ export class ProcessParser extends ParserBase {
 
   }
   parse(startI: number, label?: string): OProcess {
-    const process = new OProcess(this.parent, startI, this.getEndOfLineI());
+    const process = new OProcess(this.parent, new OIRange(this.parent, startI, this.getEndOfLineI()));
     process.label = label;
     if (this.getToken().getLText() === '(') {
       this.expect('(');
