@@ -398,18 +398,45 @@ export class ParserBase {
     const libraries = parent.getRoot().libraries;
     libraries.push('work');
     const reads = [];
+    let functionOrArraySlice = false;
+    let braceLevel = 0;
     for (let i = 0; i < tokens.length; i++) {
       let token = tokens[i];
+      if (tokens[i].text === '(') {
+        if (functionOrArraySlice) {
+          braceLevel++;
+        } else if (tokens[i - 1]?.isIdentifier()) {
+          functionOrArraySlice = true;
+          braceLevel++;
+        }
+      }
+      if (tokens[i].text === ')') {
+        if (braceLevel > 1) {
+          braceLevel--;
+        } else {
+          functionOrArraySlice = false;
+          braceLevel = 0;
+        }
+      }
       if (token.isIdentifier()) {
         if (tokens[i - 1]?.text === '\'') { // Attribute skipped for now
           continue;
-        } else if (tokens[i + 1]?.text === '.' && libraries.findIndex(l => l === token.getLText()) !== -1) {
+        }
+        if (tokens[i + 1]?.text === '.' && libraries.findIndex(l => l === token.getLText()) !== -1) {
           // skip library itself
           continue;
-        } else if (tokens[i - 1]?.text === '.' && libraries.findIndex(l => l === tokens[i - 2]?.getLText()) !== -1) {
+        }
+        if (tokens[i - 1]?.text === '.' && libraries.findIndex(l => l === tokens[i - 2]?.getLText()) !== -1) {
           // skip package -> only read the actual variable
           continue;
-        } else if (tokens[i - 1]?.text === '.' && token.getLText() !== 'all') {
+        }
+        // Detection if in possible function
+
+        // If in possible function check if possible named function call, then ignore.
+        if (functionOrArraySlice && tokens[i].isIdentifier && tokens[i + 1]?.text === '=>') {
+          continue;
+        }
+        if (tokens[i - 1]?.text === '.' && token.getLText() !== 'all') {
           reads.push(new OElementRead(parent, token.range.start.i, token.range.end.i, token.text));
         } else {
           if (asMappingName && !(parent instanceof OAssociation)) {
