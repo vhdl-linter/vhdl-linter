@@ -1,7 +1,7 @@
 import { ArchitectureParser } from './architecture-parser';
 import { AssignmentParser } from './assignment-parser';
 import { InstantiationParser } from './instantiation-parser';
-import { OArchitecture, OCaseGenerate, OEntity, OForGenerate, OI, OIfGenerate, OIfGenerateClause, ORead, ParserError } from './objects';
+import { OArchitecture, OCaseGenerate, OEntity, OForGenerate, OI, OIfGenerate, OIfGenerateClause, ORead, ParserError, OIRange } from './objects';
 import { ParserBase } from './parser-base';
 import { ProcessParser } from './process-parser';
 import { ParserPosition } from './parser';
@@ -44,9 +44,9 @@ export class ConcurrentStatementParser extends ParserBase {
 
       const subarchitecture = new ArchitectureParser(this.pos, this.filePath, (this.parent as OArchitecture), label);
       const block = subarchitecture.parse(true, 'block');
-      block.range.start.i = savedI;
+      block.range = block.range.copyWithNewStart(savedI);
       this.reverseWhitespace();
-      block.range.end.i = this.pos.i;
+      block.range = block.range.copyWithNewEnd(this.pos.i);
       if (typeof label === 'undefined') {
         throw new ParserError('A block needs a label.', block.range);
       }
@@ -62,15 +62,16 @@ export class ConcurrentStatementParser extends ParserBase {
       }
 
       const startI = this.pos.i;
-      let constantName = this.advancePast('in');
+      let [constantName] = this.advancePastToken('in');
 
       const rangeToken = this.advancePastToken('generate');
       const constantRange = this.extractReads(this.parent, rangeToken);
       const subarchitecture = new ArchitectureParser(this.pos, this.filePath, (this.parent as OArchitecture), label);
       const generate: OForGenerate = subarchitecture.parse(true, 'generate', { constantName, constantRange, startPosI: startI });
-      generate.range.start.i = savedI;
+      generate.range = generate.range.copyWithNewStart(savedI);
+
       this.reverseWhitespace();
-      generate.range.end.i = this.pos.i;
+      generate.range = generate.range.copyWithNewEnd(this.pos.i);
       this.advanceWhitespace();
       //        console.log(generate, generate.constructor.name);
       (this.parent as OArchitecture).statements.push(generate);
@@ -80,7 +81,7 @@ export class ConcurrentStatementParser extends ParserBase {
       if (typeof label === 'undefined') {
         throw new ParserError('A case generate needs a label.', this.pos.getRangeToEndLine());
       }
-      const caseGenerate = new OCaseGenerate(this.parent, this.pos.i, this.pos.i);
+      const caseGenerate = new OCaseGenerate(this.parent, new OIRange(this.parent, this.pos.i, this.pos.i));
       this.getNextWord();
       const caseConditionToken = this.advancePastToken('generate');
       caseGenerate.signal.push(...this.extractReads(caseGenerate, caseConditionToken));
@@ -92,7 +93,7 @@ export class ConcurrentStatementParser extends ParserBase {
         const subarchitecture = new ArchitectureParser(this.pos, this.filePath, caseGenerate, label);
         const whenGenerateClause = subarchitecture.parse(true, 'when-generate');
         whenGenerateClause.condition.push(...this.extractReads(whenGenerateClause, whenConditionToken));
-        whenGenerateClause.range.start.i = whenI;
+        whenGenerateClause.range = whenGenerateClause.range.copyWithNewStart(whenI);
         nextWord = this.getNextWord({ consume: false });
       }
       this.expect('end');
@@ -102,17 +103,18 @@ export class ConcurrentStatementParser extends ParserBase {
       }
       this.advanceSemicolonToken();
       this.reverseWhitespace();
-      caseGenerate.range.end.i = this.pos.i;
+      caseGenerate.range = caseGenerate.range.copyWithNewEnd(this.pos.i);
       this.advanceWhitespace();
     } else if (nextWord === 'if' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {
-      const ifGenerate = new OIfGenerate(this.parent, this.pos.i, this.pos.i);
+      const ifGenerate = new OIfGenerate(this.parent, new OIRange(this.parent, this.pos.i, this.pos.i));
       this.getNextWord();
       let conditionI = this.pos.i;
       let conditionTokens = this.advancePastToken('generate');
       this.debug('parse if generate ' + label);
       const subarchitecture = new ArchitectureParser(this.pos, this.filePath, ifGenerate, label);
       const ifGenerateClause = subarchitecture.parse(true, 'generate');
-      ifGenerateClause.range.start.i = savedI;
+      ifGenerateClause.range = ifGenerateClause.range.copyWithNewStart(savedI);
+
       if (ifGenerateClause.conditions) {
         ifGenerateClause.conditions = conditionTokens.concat(ifGenerateClause.conditions);
         ifGenerateClause.conditionReads = this.extractReads(ifGenerateClause, conditionTokens).concat(ifGenerateClause.conditionReads);
@@ -123,8 +125,8 @@ export class ConcurrentStatementParser extends ParserBase {
       ifGenerate.ifGenerates.push(ifGenerateClause);
       (this.parent as OArchitecture).statements.push(ifGenerate);
       this.reverseWhitespace();
-      ifGenerate.range.end.i = this.pos.i;
-      ifGenerateClause.range.end.i = this.pos.i;
+      ifGenerate.range = ifGenerate.range.copyWithNewEnd(this.pos.i);
+      ifGenerateClause.range = ifGenerateClause.range.copyWithNewEnd(this.pos.i);
       this.advanceWhitespace();
     } else if (nextWord === 'elsif' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {
       if (!(this.parent instanceof OIfGenerateClause)) {
@@ -133,15 +135,15 @@ export class ConcurrentStatementParser extends ParserBase {
       if (!previousArchitecture) {
         throw new ParserError('WTF', this.pos.getRangeToEndLine());
       }
-      previousArchitecture.range.end.line = this.pos.line - 1;
-      previousArchitecture.range.end.character = 999;
+      previousArchitecture.range = previousArchitecture.range.copyWithNewEnd(this.getToken(-1, true).range.end);
 
       let conditionI = this.pos.i;
       let condition = this.advancePastToken('generate');
       this.debug('parse elsif generate ' + label);
       const subarchitecture = new ArchitectureParser(this.pos, this.filePath, this.parent.parent, label);
       const ifGenerateObject = subarchitecture.parse(true, 'generate');
-      ifGenerateObject.range.start.i = savedI;
+      ifGenerateObject.range = ifGenerateObject.range.copyWithNewStart(savedI);
+
       if (ifGenerateObject.conditions) {
         ifGenerateObject.conditions = condition.concat(ifGenerateObject.conditions);
         ifGenerateObject.conditionReads = this.extractReads(ifGenerateObject, condition).concat(ifGenerateObject.conditionReads);
@@ -158,16 +160,15 @@ export class ConcurrentStatementParser extends ParserBase {
       if (!previousArchitecture) {
         throw new ParserError('WTF', this.pos.getRangeToEndLine());
       }
-      previousArchitecture.range.end.line = this.pos.line - 1;
-      previousArchitecture.range.end.character = 999;
+      previousArchitecture.range = previousArchitecture.range.copyWithNewEnd(this.getToken(-1, true).range.copyExtendEndOfLine().end);
       this.advancePast('generate');
       this.debug('parse else generate ' + label);
       const subarchitecture = new ArchitectureParser(this.pos, this.filePath, this.parent.parent, label);
 
       const ifGenerateObject = subarchitecture.parse(true, 'generate');
-      ifGenerateObject.range.start.i = savedI;
+      ifGenerateObject.range = ifGenerateObject.range.copyWithNewStart(savedI);
       this.reverseWhitespace();
-      ifGenerateObject.range.end.i = this.pos.i;
+      ifGenerateObject.range = ifGenerateObject.range.copyWithNewEnd(this.pos.i);
       this.advanceWhitespace();
       this.parent.parent.elseGenerate = ifGenerateObject;
       return true;
@@ -190,7 +191,7 @@ export class ConcurrentStatementParser extends ParserBase {
       this.getNextWord();
       const assignmentParser = new AssignmentParser(this.pos, this.filePath, this.parent);
       const assignment = assignmentParser.parse();
-      const read = new ORead(assignment, beforeI, afterI, readText);
+      const read = new ORead(assignment, new OIRange(assignment, beforeI, afterI), readText);
       assignment.reads.push(read);
       this.parent.statements.push(assignment);
     } else if (nextWord === 'assert' && allowedStatements.includes(ConcurrentStatementTypes.Assert)) {

@@ -32,8 +32,8 @@ export class InterfaceListParser extends ParserBase {
       this.advanceWhitespace();
 
       let port = generics ?
-        new OGeneric(this.parent, this.pos.i, this.getEndOfLineI()) :
-        new OPort(this.parent, this.pos.i, this.getEndOfLineI());
+        new OGeneric(this.parent, this.getToken().range.copyExtendEndOfLine()) :
+        new OPort(this.parent, this.getToken().range.copyExtendEndOfLine());
 
       if (this.getToken().text === ')') {
         this.consumeToken();
@@ -43,9 +43,9 @@ export class InterfaceListParser extends ParserBase {
       const nextWord = this.getNextWord({ consume: false }).toLowerCase();
       if (nextWord === 'type') {
         this.getNextWord();
-        port.name = new OName(port, this.pos.i, this.pos.i);
-        port.name.text = this.getNextWord();
-        port.name.range.end.i = port.name.range.start.i + port.name.text.length;
+        const name = this.consumeToken();
+        port.name = new OName(port, name.range);
+        port.name.text = name.text;
         if (generics) {
           ports.push(port);
         } else {
@@ -63,9 +63,9 @@ export class InterfaceListParser extends ParserBase {
         if (nextWord === 'signal' || nextWord === 'variable' || nextWord === 'constant' || nextWord === 'file') {
           this.getNextWord();
         }
-        port.name = new OName(port, this.pos.i, this.pos.i);
-        port.name.text = this.getNextWord();
-        port.name.range.end.i = port.name.range.start.i + port.name.text.length;
+        const name = this.consumeToken();
+        port.name = new OName(port, name.range);
+        port.name.text = name.text;
         if (this.getToken().getLText() === ',') {
           this.expect(',');
           multiInterface.push(port);
@@ -85,8 +85,9 @@ export class InterfaceListParser extends ParserBase {
           this.getNextWord(); // consume direction
         }
         const iBeforeType = this.pos.i;
-        const { type, defaultValue, endI } = this.getTypeDefintion(port);
-        port.range.end.i = endI;
+        const { type, defaultValue } = this.getTypeDefintion(port);
+        const end = defaultValue?.[defaultValue?.length - 1]?.range.end ?? type[type.length - 1]?.range?.end ?? port.range.end;
+        port.range = port.range.copyWithNewEnd(end);
         port.type = this.extractReads(port, type);
 
         port.defaultValue = defaultValue;
@@ -95,7 +96,7 @@ export class InterfaceListParser extends ParserBase {
             interface_.direction = (port as OPort).direction;
             interface_.directionRange = (port as OPort).directionRange;
           }
-          interface_.range.end.i = endI;
+          interface_.range = interface_.range.copyWithNewEnd(end);
           interface_.type = port.type;
           interface_.defaultValue = port.defaultValue;
           if (generics) {

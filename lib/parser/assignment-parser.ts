@@ -9,7 +9,7 @@ export class AssignmentParser extends ParserBase {
   }
   parse(): OAssignment {
     this.debug('parse');
-    let assignment = new OAssignment(this.parent, this.pos.i, this.getEndOfLineI());
+    let assignment = new OAssignment(this.parent, this.getToken().range.copyExtendEndOfLine());
     let leftHandSideNum = this.pos.num;
     this.findToken(['<=', ':=']);
     const leftHandSideTokens = [];
@@ -21,7 +21,7 @@ export class AssignmentParser extends ParserBase {
     this.consumeToken();
     const rightHandSide = this.advanceSemicolonToken();
     assignment.reads.push(...this.extractReads(assignment, rightHandSide));
-    assignment.range.end.i = this.pos.i;
+    assignment.range = assignment.range.copyWithNewEnd(this.pos.i)
     this.debug('parse end');
     return assignment;
   }

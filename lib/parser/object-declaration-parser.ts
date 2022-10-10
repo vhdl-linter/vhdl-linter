@@ -35,38 +35,42 @@ export class ObjectDeclarationParser extends ParserBase {
       this.maybeWord(',');
       let object;
       if (variable) {
-        object = new OVariable(this.parent as IHasVariables, this.pos.i, this.getEndOfLineI());
+        object = new OVariable(this.parent as IHasVariables, this.getToken().range);
       } else if (constant) {
-        object = new OConstant(this.parent as IHasConstants, this.pos.i, this.getEndOfLineI());
+        object = new OConstant(this.parent as IHasConstants, this.getToken().range);
       } else if (file) {
-        object = new OFileVariable(this.parent as IHasFileVariables, this.pos.i, this.getEndOfLineI());
+        object = new OFileVariable(this.parent as IHasFileVariables, this.getToken().range);
       } else {
-        object = new OSignal(this.parent as IHasSignals, this.pos.i, this.getEndOfLineI());
+        object = new OSignal(this.parent as IHasSignals, this.getToken().range);
       }
-      object.name = new OName(object, this.pos.i, this.pos.i);
-      object.name.text = this.getNextWord();
-      object.name.range.end.i = object.name.range.start.i + object.name.text.length;
+      const name = this.consumeToken();
+      object.name = new OName(object, name.range);
+      object.name.text = name.text;
+
       objects.push(object);
 
     } while (this.getToken().getLText() === ',');
     this.expect(':');
     if (file) {
       let startI = this.pos.i;
-      const typeText = this.getNextWord();
+      const typeText = this.consumeToken();
       for (const file of objects) {
-        const typeRead = new ORead(file, startI, this.pos.i, typeText);
+        const typeRead = new ORead(file, typeText.range, typeText.text);
         file.type = [typeRead];
         // TODO: Parse optional parts of file definition
-        file.range.end.i = this.pos.i;
+        file.range = file.range.copyWithNewEnd(this.pos.i);
       }
     } else {
       for (const signal of objects) {
         const { typeReads, defaultValueReads } = this.getType(signal, false);
         signal.type = typeReads;
         signal.defaultValue = defaultValueReads;
-        signal.range.end.i = this.pos.i;
+        signal.range = signal.range.copyWithNewEnd(this.pos.i);
       }
 
+    }
+    for (const object of objects) {
+      object.range.copyWithNewEnd(this.getToken().range.end);
     }
     this.advanceSemicolonToken();
     if (constant) {

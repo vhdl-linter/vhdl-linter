@@ -57,8 +57,7 @@ export class ParserBase {
       const startI = this.pos.i;
       this.consumeToken();
       if (this.getToken().text === ')') {
-        const range = new OIRange(parent, startI, startI + 1);
-        range.start.character = 0;
+        const range = new OIRange(parent, startI, startI + 1).copyExtendBeginningOfLine();
         throw new ParserError(`Unexpected ';' at end of port list`, range, {
           message: `Remove ';'`,
           edits: [TextEdit.del(new OIRange(parent, startI, startI + 1))]
@@ -68,14 +67,13 @@ export class ParserBase {
     if (defaultValue.length === 0) {
       return {
         type: type,
-        endI
+
       };
 
     }
     return {
       type: type,
       defaultValue: this.extractReads(parent, defaultValue),
-      endI
     };
   }
   message(message: string, severity = 'error') {
@@ -264,7 +262,7 @@ export class ParserBase {
               this.consumeToken();
             }
           }
-          return [tokens, lastToken];
+          return [tokens.filter(token => token.isWhitespace() === false), lastToken];
         }
       }
       if (this.getToken(offset).getLText() === '(') {
@@ -353,6 +351,18 @@ export class ParserBase {
       throw new ParserError(`expected '${expected.join(', ')}' found '${this.getToken().text}' line: ${this.getLine()}`, this.pos.getRangeToEndLine());
     }
   }
+  expectToken(expected: string | string[]) {
+    if (!Array.isArray(expected)) {
+      expected = [expected];
+    }
+    if (expected.find(exp => exp.toLowerCase() === this.getToken().getLText())) {
+      let token = this.consumeToken(false);
+      this.advanceWhitespace();
+      return token;
+    } else {
+      throw new ParserError(`expected '${expected.join(', ')}' found '${this.getToken().text}' line: ${this.getLine()}`, this.pos.getRangeToEndLine());
+    }
+  }
   maybeWord(expected: string) {
     if (this.getToken().getLText() === expected.toLowerCase()) {
       this.consumeToken();
@@ -437,14 +447,14 @@ export class ParserBase {
           continue;
         }
         if (tokens[i - 1]?.text === '.' && token.getLText() !== 'all') {
-          reads.push(new OElementRead(parent, token.range.start.i, token.range.end.i, token.text));
+          reads.push(new OElementRead(parent, token.range, token.text));
         } else {
           if (asMappingName && !(parent instanceof OAssociation)) {
             throw new Error();
           }
           reads.push(asMappingName
-            ? new OAssociationFormal((parent as OAssociation), token.range.start.i, token.range.end.i, token.text)
-            : new ORead(parent, token.range.start.i, token.range.end.i, token.text));
+            ? new OAssociationFormal((parent as OAssociation), token.range, token.text)
+            : new ORead(parent, token.range, token.text));
         }
       }
     }
@@ -473,16 +483,16 @@ export class ParserBase {
         }
       } else if (token.isIdentifier()) {
         if (slice === false && recordToken === false) {
-          const write = new OWrite(parent, token.range.start.i, token.range.end.i, token.text);
+          const write = new OWrite(parent, token.range, token.text);
           writes.push(write);
           if (readAndWrite) {
-            reads.push(new ORead(parent, token.range.start.i, token.range.end.i, token.text));
+            reads.push(new ORead(parent, token.range, token.text));
           }
         } else {
           if (recordToken) {
-            reads.push(new OElementRead(parent, token.range.start.i, token.range.end.i, token.text));
+            reads.push(new OElementRead(parent, token.range, token.text));
           } else if (tokens[i - 1]?.text !== '\'') { // skip attributes
-            reads.push(new ORead(parent, token.range.start.i, token.range.end.i, token.text));
+            reads.push(new ORead(parent, token.range, token.text));
           }
         }
       }

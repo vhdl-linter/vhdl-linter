@@ -10,7 +10,7 @@ export class InstantiationParser extends ParserBase {
 
   }
   parse(nextWord: string, label: string | undefined, startI: number): OInstantiation {
-    const instantiation = new OInstantiation(this.parent, startI, this.getEndOfLineI());
+    const instantiation = new OInstantiation(this.parent, new OIRange(this.parent, startI, this.getEndOfLineI()));
     instantiation.label = label;
     const savedI = this.pos.i;
     if (nextWord === 'entity') {
@@ -30,7 +30,7 @@ export class InstantiationParser extends ParserBase {
       nextWord = this.getNextWord().toLowerCase();
     }
     const name = nextWord.replace(/^.*\./, '');
-    instantiation.componentName = new OName(instantiation, savedI, savedI + nextWord.length);
+    instantiation.componentName = new OName(instantiation, new OIRange(this.parent, savedI, savedI + nextWord.length));
     instantiation.componentName.text = name;
     let hasPortMap = false;
     let hasGenericMap = false;
@@ -42,7 +42,7 @@ export class InstantiationParser extends ParserBase {
           instantiation.type = 'component';
         }
         hasPortMap = true;
-        this,this.getNextWord();
+        this.getNextWord();
         this.expect('map');
         instantiation.portAssociationList = new AssociationListParser(this.pos, this.filePath, instantiation).parse();
 
@@ -51,7 +51,7 @@ export class InstantiationParser extends ParserBase {
           instantiation.type = 'component';
         }
         hasGenericMap = true;
-        this,this.getNextWord();
+        this.getNextWord();
         this.expect('map');
         instantiation.genericAssociationList = new AssociationListParser(this.pos, this.filePath, instantiation).parse('generic');
       } else if (nextWord === '(' && !hasGenericMap && !hasPortMap) { // is subprogram call
@@ -63,7 +63,8 @@ export class InstantiationParser extends ParserBase {
       }
       lastI = this.pos.i;
     }
-    instantiation.range.end.i = this.expect(';');
+    instantiation.range = instantiation.range.copyWithNewEnd(this.getToken(-1, true).range.end);
+    this.expect(';');
     return instantiation;
   }
 }

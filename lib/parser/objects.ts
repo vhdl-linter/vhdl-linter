@@ -1,26 +1,33 @@
 import { Position, Range, TextEdit } from 'vscode-languageserver';
 import { config } from './config';
 import { OLexerToken } from '../lexer';
-
+let counter = 0;
 export class OI implements Position {
-  private i_: number;
-  constructor(public parent: ObjectBase | OFile, i: number, j?: number) {
-    if (typeof j === 'undefined') {
+  protected i_?: number;
+  constructor(parent: ObjectBase | OFile, i: number)
+  constructor(parent: ObjectBase | OFile, line: number, character: number)
+  constructor(parent: ObjectBase | OFile, line: number, character: number, i: number)
+  constructor(public parent: ObjectBase | OFile, i: number, j?: number, k?: number) {
+    if (k !== undefined && j !== undefined) {
+      this.i_ = k;
+      this.position = {
+        line: i,
+        character: j
+      };
+    } else if (typeof j === 'undefined') {
       this.i_ = i;
     } else {
       this.position = {
         line: i,
         character: j,
       };
-      this.calcI();
     }
   }
-  set i(i: number) {
-    this.position = undefined;
-    this.i_ = i;
-  }
   get i() {
-    return this.i_;
+    if (this.i_ === undefined) {
+      this.calcI();
+    }
+    return this.i_ as number;
   }
   private position?: Position;
   get line() {
@@ -28,13 +35,6 @@ export class OI implements Position {
       this.position = this.calcPosition();
     }
     return this.position.line;
-  }
-  set line(line: number) {
-    if (!this.position) {
-      this.position = this.calcPosition();
-    }
-    this.position.line = line;
-    this.calcI();
   }
   toJSON() {
     if (!this.position) {
@@ -48,16 +48,10 @@ export class OI implements Position {
     }
     return this.position.character;
   }
-  set character(character: number) {
-    if (!this.position) {
-      this.position = this.calcPosition();
-    }
-    this.position.character = character;
-    this.calcI();
-  }
+
   getRangeToEndLine(): OIRange {
     const start = this.i;
-    const text = this.parent instanceof OFile ? this.parent.text : this.parent.getRoot().text;
+    const text = this.parent.getRoot().text;
     let end = text.length;
     const match = /\n/.exec(text.substr(start));
     if (match) {
@@ -76,13 +70,15 @@ export class OI implements Position {
     if (typeof this.position === 'undefined') {
       throw new Error('Something went wrong with OIRange');
     }
-    const lines = (this.parent instanceof OFile ? this.parent : this.parent.getRoot()).text.split('\n');
+    const lines = (this.parent instanceof OFile ? this.parent : this.parent.getRoot()).lines;
     this.i_ = lines.slice(0, this.position.line).join('\n').length + 1 + Math.min(this.position.character, lines[this.position.line].length);
   }
 }
+
 export class OIRange implements Range {
-  public start: OI;
-  public end: OI;
+
+  public readonly start: OI;
+  public readonly end: OI;
   constructor(public parent: ObjectBase | OFile, start: number | OI, end: number | OI) {
     if (start instanceof OI) {
       this.start = start;
@@ -95,13 +91,13 @@ export class OIRange implements Range {
       this.end = new OI(parent, end);
     }
   }
-  setEndBacktraceWhitespace(i: number) {
-    this.end.i = i - 1;
-    const text = this.parent instanceof OFile ? this.parent.text : this.parent.getRoot().text;
-    while (text[this.end.i].match(/\s/)) {
-      this.end.i--;
-    }
+  copyWithNewEnd(newEnd: OI | number) {
+    return new OIRange(this.parent, this.start, newEnd);
   }
+  copyWithNewStart(newStart: OI | number) {
+    return new OIRange(this.parent, newStart, this.end);
+  }
+
   toJSON() {
     return Range.create(this.start, this.end);
   }
@@ -111,8 +107,8 @@ export class OIRange implements Range {
       : this.end;
     return new OIRange(this.parent, this.start, newEnd);
   }
-  getStartAtBeginngOfColumn() {
-    const lines = (this.parent instanceof OFile ? this.parent : this.parent.getRoot()).text.split('\n');
+  copyExtendBeginningOfLine() {
+    const lines = (this.parent instanceof OFile ? this.parent : this.parent.getRoot()).lines;
     let startCol = 0;
     const match = lines[this.start.line].match(/\S/);
     if (match) {
@@ -123,20 +119,29 @@ export class OIRange implements Range {
     return new OIRange(this.parent, newStart, this.end);
 
   }
+  copyExtendEndOfLine(): OIRange {
+    const text = this.parent.getRoot().text;
+    const match = /\n/.exec(text.substr(this.start.i));
+    let end = text.length;
+    if (match) {
+      end = this.start.i + match.index;
+    }
+    return new OIRange(this.parent, this.start.i, end);
+  }
 }
+
+
 
 export class ObjectBase {
   name?: OName;
-  public range: OIRange;
-  constructor(public parent: ObjectBase | OFile, startI: number, endI: number) {
-    this.range = new OIRange(this, startI, endI);
+  constructor(public parent: ObjectBase | OFile, public range: OIRange) {
     let maximumIterationCounter = 5000;
     let p = parent;
     while (!(p instanceof OFile)) {
       p = p.parent;
       maximumIterationCounter--;
       if (maximumIterationCounter === 0) {
-        throw new ParserError('Maximum Iteraction Counter overrung', new OIRange(parent, startI, endI));
+        throw new ParserError('Maximum Iteraction Counter overrung', range);
       }
     }
     p.objectList.push(this);
@@ -253,7 +258,10 @@ export function implementsIHasVariables(obj: unknown): obj is IHasVariables {
   return (obj as IHasVariables).variables !== undefined;
 }
 export class OFile {
-  constructor(public text: string, public file: string, public originalText: string) { }
+  public lines: string[];
+  constructor(public text: string, public file: string, public originalText: string) {
+    this.lines = originalText.split('\n');
+  }
   libraries: string[] = [];
 
   objectList: ObjectBase[] = [];
@@ -263,6 +271,9 @@ export class OFile {
   architectures: OArchitecture[] = [];
   packages: (OPackage | OPackageBody)[] = [];
   configurations: OConfiguration[] = [];
+  getRoot() { // Provided as a convience to equalize to ObjectBase
+    return this;
+  }
   getJSON() {
     const obj = {};
     const seen = new WeakSet();
@@ -322,14 +333,14 @@ export class OPackageBody extends ObjectBase implements IHasSubprograms, IHasCon
   correspondingPackage?: OPackage;
 }
 export class OUseClause extends ObjectBase {
-  constructor(public parent: OFile | OContext, startI: number, endI: number, public library: string, public packageName: string, public suffix: string) {
-    super(parent, startI, endI);
+  constructor(public parent: OFile | OContext, range: OIRange, public library: string, public packageName: string, public suffix: string) {
+    super(parent, range);
   }
 }
 
 export class OContextReference extends ObjectBase {
-  constructor(public parent: OFile | OContext, startI: number, endI: number, public library: string, public contextName: string) {
-    super(parent, startI, endI);
+  constructor(public parent: OFile | OContext, range: OIRange, public library: string, public contextName: string) {
+    super(parent, range);
   }
 }
 export class OContext extends ObjectBase implements IHasUseClauses, IHasContextReference {
@@ -453,11 +464,10 @@ export class OEnumLiteral extends ObjectBase implements IReferenceable, IHasName
 }
 export class OForGenerate extends OArchitecture {
   constructor(public parent: OArchitecture,
-    startI: number,
-    endI: number,
+    range: OIRange,
     public variableRange: ORead[],
   ) {
-    super(parent, startI, endI);
+    super(parent, range);
   }
 }
 export class OCaseGenerate extends ObjectBase {
@@ -483,6 +493,13 @@ export class OElseGenerateClause extends OArchitecture {
 }
 
 export class OName extends ObjectBase {
+  constructor(parent: ObjectBase, range: OIRange | OLexerToken) {
+    super(parent, range instanceof OIRange ? range : range.range);
+    if (range instanceof OLexerToken) {
+      this.text = range.text;
+    }
+
+  }
   text: string;
   public parent: ObjectBase;
   toString() {
@@ -498,11 +515,10 @@ export abstract class OVariableBase extends ObjectBase implements IReferenceable
 }
 export abstract class OSignalBase extends OVariableBase {
   registerProcess?: OProcess;
-  constructor(public parent: ObjectBase, startI: number, endI: number) {
-    super(parent, startI, endI);
-    let pos = new OIRange(parent, startI, endI);
+  constructor(public parent: ObjectBase, range: OIRange) {
+    super(parent, range);
     if (config.debug) {
-      console.log(`${this.constructor.name}:   at ${pos.start.line}:${pos.start.character})`);
+      console.log(`${this.constructor.name}:   at ${range.start.line}:${range.start.character})`);
     }
 
     let maximumIterationCounter = 5000;
@@ -515,54 +531,54 @@ export abstract class OSignalBase extends OVariableBase {
       p = p.parent;
       maximumIterationCounter--;
       if (maximumIterationCounter === 0) {
-        throw new ParserError('Maximum Iteraction Counter overrung', new OIRange(parent, startI, endI));
+        throw new ParserError('Maximum Iteraction Counter overrung', range);
 
       }
     }
   }
 }
 export class OFileVariable extends OVariableBase {
-  constructor(parent: IHasFileVariables, startI: number, endI: number) {
-    super((parent as unknown) as ObjectBase, startI, endI);
+  constructor(parent: IHasFileVariables, range: OIRange) {
+    super((parent as unknown) as ObjectBase, range);
   }
   type: ORead[] = [];
 }
 export class OVariable extends OVariableBase {
-  constructor(parent: IHasVariables, startI: number, endI: number) {
-    super((parent as unknown) as ObjectBase, startI, endI);
+  constructor(parent: IHasVariables, range: OIRange) {
+    super((parent as unknown) as ObjectBase, range);
   }
   type: ORead[] = [];
 }
 export class OSignal extends OSignalBase {
-  constructor(parent: IHasSignals, startI: number, endI: number) {
-    super((parent as unknown) as ObjectBase, startI, endI);
+  constructor(parent: IHasSignals, range: OIRange) {
+    super((parent as unknown) as ObjectBase, range);
   }
 }
 export class OConstant extends OSignalBase {
-  constructor(parent: IHasConstants, startI: number, endI: number) {
-    super((parent as unknown) as ObjectBase, startI, endI);
+  constructor(parent: IHasConstants, range: OIRange) {
+    super((parent as unknown) as ObjectBase, range);
   }
 }
 export class OAssociationList extends ObjectBase {
-  constructor(public parent: OInstantiation | OPackage, startI: number, endI: number) {
-    super(parent, startI, endI);
+  constructor(public parent: OInstantiation | OPackage, range: OIRange) {
+    super(parent, range);
   }
   public children: OAssociation[] = [];
 
 }
 export class OGenericAssociationList extends OAssociationList {
-  constructor(public parent: OInstantiation | OPackage, startI: number, endI: number) {
-    super(parent, startI, endI);
+  constructor(public parent: OInstantiation | OPackage, range: OIRange) {
+    super(parent, range);
   }
 }
 export class OPortAssociationList extends OAssociationList {
-  constructor(public parent: OInstantiation | OPackage, startI: number, endI: number) {
-    super(parent, startI, endI);
+  constructor(public parent: OInstantiation | OPackage, range: OIRange) {
+    super(parent, range);
   }
 }
 export class OInstantiation extends ObjectBase implements IHasDefinitions {
-  constructor(public parent: OArchitecture | OEntity | OProcess | OLoop | OIf, startI: number, endI: number, public type: 'entity' | 'component' | 'configuration' | 'subprogram' | 'unknown' = 'unknown') {
-    super(parent, startI, endI);
+  constructor(public parent: OArchitecture | OEntity | OProcess | OLoop | OIf, range: OIRange, public type: 'entity' | 'component' | 'configuration' | 'subprogram' | 'unknown' = 'unknown') {
+    super(parent, range);
   }
   label?: string;
   definitions: (OEntity | OSubprogram | OComponent)[] = [];
@@ -640,8 +656,8 @@ export class OInstantiation extends ObjectBase implements IHasDefinitions {
   }
 }
 export class OAssociation extends ObjectBase implements IHasDefinitions {
-  constructor(public parent: OAssociationList, startI: number, endI: number) {
-    super(parent, startI, endI);
+  constructor(public parent: OAssociationList, range: OIRange) {
+    super(parent, range);
   }
   definitions: (OPort | OGeneric)[] = [];
   formalPart: OAssociationFormal[] = [];
@@ -651,8 +667,8 @@ export class OAssociation extends ObjectBase implements IHasDefinitions {
 }
 export class OEntity extends ObjectBase implements IHasDefinitions, IHasSubprograms, IHasSignals, IHasConstants, IHasVariables,
   IHasTypes, IHasFileVariables, IHasUseClauses, IHasContextReference, IHasName {
-  constructor(public parent: OFile, startI: number, endI: number, public library?: string) {
-    super(parent, startI, endI);
+  constructor(public parent: OFile, range: OIRange, public library?: string) {
+    super(parent, range);
   }
   name: OName;
   useClauses: OUseClause[] = [];
@@ -671,8 +687,8 @@ export class OEntity extends ObjectBase implements IHasDefinitions, IHasSubprogr
   files: OFileVariable[] = [];
 }
 export class OComponent extends ObjectBase implements IHasDefinitions, IHasSubprograms, IHasName {
-  constructor(parent: IHasComponents, startI: number, endI: number) {
-    super((parent as unknown) as ObjectBase, startI, endI);
+  constructor(parent: IHasComponents, range: OIRange) {
+    super((parent as unknown) as ObjectBase, range);
   }
   name: OName;
   subprograms: OSubprogram[] = [];
@@ -788,8 +804,8 @@ export class OToken extends ObjectBase implements IHasDefinitions {
 
   public scope?: ObjectBase; // TODO: What is this scope used for?
 
-  constructor(public parent: ObjectBase, startI: number, endI: number, public text: string) {
-    super(parent, startI, endI);
+  constructor(public parent: ObjectBase, range: OIRange, public text: string) {
+    super(parent, range);
 
   }
   elaborate() {
@@ -959,14 +975,14 @@ export class ORead extends OToken {
 }
 // Read of Record element or something
 export class OElementRead extends ORead {
-  constructor(public parent: ObjectBase, startI: number, endI: number, public text: string) {
-    super(parent, startI, endI, text);
+  constructor(public parent: ObjectBase, range: OIRange, public text: string) {
+    super(parent, range, text);
   }
 }
 export class OAssociationFormal extends ObjectBase implements IHasDefinitions {
   definitions: (OPort | OGeneric)[] = [];
-  constructor(public parent: OAssociation, startI: number, endI: number, public text: string) {
-    super(parent, startI, endI);
+  constructor(public parent: OAssociation, range: OIRange, public text: string) {
+    super(parent, range);
   }
 }
 export class ParserError extends Error {
@@ -981,7 +997,7 @@ export enum MagicCommentType {
 }
 export class OMagicComment extends ObjectBase {
   constructor(public parent: OFile, public commentType: MagicCommentType, range: OIRange) {
-    super(parent, range.start.i, range.end.i);
+    super(parent, range);
   }
 }
 export class OMagicCommentDisable extends OMagicComment {

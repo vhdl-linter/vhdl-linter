@@ -24,10 +24,10 @@ export class UseClauseParser extends ParserBase {
     if (tokens.length === 3) {
       const [library, packageName, suffix] = tokens;
 
-      return new OUseClause(this.parent, startI, this.pos.i, library.text, packageName.text, suffix.text);
+      return new OUseClause(this.parent, new OIRange(this.parent, startI, this.pos.i), library.text, packageName.text, suffix.text);
     } else {
       const [packageName, suffix] = tokens;
-      return new OUseClause(this.parent, startI, this.pos.i, 'work', packageName.text, suffix.text);
+      return new OUseClause(this.parent, new OIRange(this.parent, startI, this.pos.i), 'work', packageName.text, suffix.text);
 
     }
   }

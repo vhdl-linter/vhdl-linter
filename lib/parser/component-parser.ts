@@ -11,11 +11,10 @@ export class ComponentParser extends ParserBase {
     this.debug(`start`);
   }
   parse() {
-    const component = new OComponent(this.parent, this.pos.i, this.getEndOfLineI());
-    const preNameI = this.pos.i;
-    const nameText = this.getNextWord();
-    component.name = new OName(component, preNameI, preNameI + nameText.length);
-    component.name.text = nameText;
+    const component = new OComponent(this.parent, this.getToken().range.copyExtendEndOfLine());
+    const nameText = this.consumeToken();
+    component.name = new OName(component, nameText.range);
+    component.name.text = nameText.text;
     this.maybeWord('is');
 
     let lastI;
@@ -39,8 +38,7 @@ export class ComponentParser extends ParserBase {
         this.getNextWord();
         this.expect('component');
         this.maybeWord(component.name.text);
-
-        component.range.end.i = this.expect(';');
+        component.range = component.range.copyWithNewEnd(this.getToken(-1, true).range.end);
         break;
       }
       if (lastI === this.pos.i) {

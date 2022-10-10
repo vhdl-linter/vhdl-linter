@@ -35,12 +35,11 @@ export class DeclarativePartParser extends ParserBase {
         const subtypeParser = new SubtypeParser(this.pos, this.filePath, this.parent);
         this.parent.types.push(subtypeParser.parse());
       } else if (nextWord === 'alias') {
-        const type = new OType(this.parent, this.pos.i, this.getEndOfLineI());
+        const type = new OType(this.parent, this.getToken().range.copyExtendEndOfLine());
         this.getNextWord();
-        const startTypeName = this.pos.i;
-        const typeName = this.getNextWord();
-        type.name = new OName(type, startTypeName, startTypeName + typeName.length + 1);
-        type.name.text = typeName;
+        const typeName = this.consumeToken();
+        type.name = new OName(type, typeName.range);
+        type.name.text = typeName.text;
         type.alias = true;
         if (this.getToken().getLText() === ':') {
           this.consumeToken();
