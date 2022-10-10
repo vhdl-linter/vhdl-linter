@@ -50,8 +50,9 @@ async function run_test(path: string, error_expected: boolean) {
   messages.push(... await run_test(join(cwd(), 'test', 'test_files', 'test_no_error'), false));
   const timeTaken = new Date().getTime() - start;
   let timeOutError = 0;
-  if (timeTaken > 10000) {
-    console.error(`Time toke more than 10s (${timeTaken / 1000}s)`);
+  const TIMEOUT_TIME = 15;
+  if (timeTaken > TIMEOUT_TIME * 1000) {
+    console.error(`Time toke more than ${TIMEOUT_TIME}s (${timeTaken / 1000}s)`);
     timeOutError++;
   } else {
     console.log(`Test took ${timeTaken / 1000}s`);
