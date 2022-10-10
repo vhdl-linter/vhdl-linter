@@ -125,10 +125,13 @@ export class OIRange implements Range {
 
   }
   copyExtendEndOfLine(): OIRange {
-    const text = this.parent instanceof OFile ? this.parent.text : this.parent.getRoot().text;
-    const lines = text.split('\n');
-    const line = lines[this.end.line];
-    return new OIRange(this.parent, this.start, new OI(this.parent, this.end.line, line.length));
+    const text = this.parent.getRoot().text;
+    const match = /\n/.exec(text.substr(this.start.i));
+    let end = text.length;
+    if (match) {
+      end = this.start.i + match.index;
+    }
+    return new OIRange(this.parent, this.start.i, end);
   }
 }
 
@@ -258,7 +261,10 @@ export function implementsIHasVariables(obj: unknown): obj is IHasVariables {
   return (obj as IHasVariables).variables !== undefined;
 }
 export class OFile {
-  constructor(public text: string, public file: string, public originalText: string) { }
+  public lines: string[];
+  constructor(public text: string, public file: string, public originalText: string) {
+    this.lines = originalText.split('\n');
+  }
   libraries: string[] = [];
 
   objectList: ObjectBase[] = [];
@@ -268,6 +274,9 @@ export class OFile {
   architectures: OArchitecture[] = [];
   packages: (OPackage | OPackageBody)[] = [];
   configurations: OConfiguration[] = [];
+  getRoot() { // Provided as a convience to equalize to ObjectBase
+    return this;
+  }
   getJSON() {
     const obj = {};
     const seen = new WeakSet();
