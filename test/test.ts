@@ -44,9 +44,17 @@ async function run_test(path: string, error_expected: boolean) {
   return messages;
 }
 (async () => {
+  const start = new Date().getTime();
   const messages = [];
   messages.push(... await run_test(join(cwd(), 'test', 'test_files', 'test_error_expected'), true));
   messages.push(... await run_test(join(cwd(), 'test', 'test_files', 'test_no_error'), false));
-
-  process.exit(messages.length);
+  const timeTaken = new Date().getTime() - start;
+  let timeOutError = 0;
+  if (timeTaken > 10000) {
+    console.error(`Time toke more than 10s (${timeTaken / 1000}s)`);
+    timeOutError++;
+  } else {
+    console.log(`Test took ${timeTaken / 1000}s`);
+  }
+  process.exit(messages.length + timeOutError);
 })();
