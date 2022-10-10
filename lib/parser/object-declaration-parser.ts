@@ -35,13 +35,13 @@ export class ObjectDeclarationParser extends ParserBase {
       this.maybeWord(',');
       let object;
       if (variable) {
-        object = new OVariable(this.parent as IHasVariables, this.getToken().range.copyExtendEndOfLine());
+        object = new OVariable(this.parent as IHasVariables, this.getToken().range);
       } else if (constant) {
-        object = new OConstant(this.parent as IHasConstants, this.getToken().range.copyExtendEndOfLine());
+        object = new OConstant(this.parent as IHasConstants, this.getToken().range);
       } else if (file) {
-        object = new OFileVariable(this.parent as IHasFileVariables, this.getToken().range.copyExtendEndOfLine());
+        object = new OFileVariable(this.parent as IHasFileVariables, this.getToken().range);
       } else {
-        object = new OSignal(this.parent as IHasSignals, this.getToken().range.copyExtendEndOfLine());
+        object = new OSignal(this.parent as IHasSignals, this.getToken().range);
       }
       const name = this.consumeToken();
       object.name = new OName(object, name.range);
@@ -58,16 +58,19 @@ export class ObjectDeclarationParser extends ParserBase {
         const typeRead = new ORead(file, typeText.range, typeText.text);
         file.type = [typeRead];
         // TODO: Parse optional parts of file definition
-        file.range.end.i = this.pos.i;
+        file.range = file.range.copyWithNewEnd(this.pos.i);
       }
     } else {
       for (const signal of objects) {
         const { typeReads, defaultValueReads } = this.getType(signal, false);
         signal.type = typeReads;
         signal.defaultValue = defaultValueReads;
-        signal.range.end.i = this.pos.i;
+        signal.range = signal.range.copyWithNewEnd(this.pos.i);
       }
 
+    }
+    for (const object of objects) {
+      object.range.copyWithNewEnd(this.getToken().range.end);
     }
     this.advanceSemicolonToken();
     if (constant) {

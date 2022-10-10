@@ -1,26 +1,33 @@
 import { Position, Range, TextEdit } from 'vscode-languageserver';
 import { config } from './config';
 import { OLexerToken } from '../lexer';
-
+let counter = 0;
 export class OI implements Position {
-  private i_: number;
-  constructor(public parent: ObjectBase | OFile, i: number, j?: number) {
-    if (typeof j === 'undefined') {
+  protected i_?: number;
+  constructor(parent: ObjectBase | OFile, i: number)
+  constructor(parent: ObjectBase | OFile, line: number, character: number)
+  constructor(parent: ObjectBase | OFile, line: number, character: number, i: number)
+  constructor(public parent: ObjectBase | OFile, i: number, j?: number, k?: number) {
+    if (k !== undefined && j !== undefined) {
+      this.i_ = k;
+      this.position = {
+        line: i,
+        character: j
+      };
+    } else if (typeof j === 'undefined') {
       this.i_ = i;
     } else {
       this.position = {
         line: i,
         character: j,
       };
-      this.calcI();
     }
   }
-  set i(i: number) {
-    this.position = undefined;
-    this.i_ = i;
-  }
   get i() {
-    return this.i_;
+    if (this.i_ === undefined) {
+      this.calcI();
+    }
+    return this.i_ as number;
   }
   private position?: Position;
   get line() {
@@ -28,13 +35,6 @@ export class OI implements Position {
       this.position = this.calcPosition();
     }
     return this.position.line;
-  }
-  set line(line: number) {
-    if (!this.position) {
-      this.position = this.calcPosition();
-    }
-    this.position.line = line;
-    this.calcI();
   }
   toJSON() {
     if (!this.position) {
@@ -48,16 +48,10 @@ export class OI implements Position {
     }
     return this.position.character;
   }
-  set character(character: number) {
-    if (!this.position) {
-      this.position = this.calcPosition();
-    }
-    this.position.character = character;
-    this.calcI();
-  }
+
   getRangeToEndLine(): OIRange {
     const start = this.i;
-    const text = this.parent instanceof OFile ? this.parent.text : this.parent.getRoot().text;
+    const text = this.parent.getRoot().text;
     let end = text.length;
     const match = /\n/.exec(text.substr(start));
     if (match) {
@@ -76,14 +70,15 @@ export class OI implements Position {
     if (typeof this.position === 'undefined') {
       throw new Error('Something went wrong with OIRange');
     }
-    const lines = (this.parent instanceof OFile ? this.parent : this.parent.getRoot()).text.split('\n');
+    const lines = (this.parent instanceof OFile ? this.parent : this.parent.getRoot()).lines;
     this.i_ = lines.slice(0, this.position.line).join('\n').length + 1 + Math.min(this.position.character, lines[this.position.line].length);
   }
 }
+
 export class OIRange implements Range {
 
-  public start: OI;
-  public end: OI;
+  public readonly start: OI;
+  public readonly end: OI;
   constructor(public parent: ObjectBase | OFile, start: number | OI, end: number | OI) {
     if (start instanceof OI) {
       this.start = start;
@@ -96,13 +91,13 @@ export class OIRange implements Range {
       this.end = new OI(parent, end);
     }
   }
-  setEndBacktraceWhitespace(i: number) {
-    this.end.i = i - 1;
-    const text = this.parent instanceof OFile ? this.parent.text : this.parent.getRoot().text;
-    while (text[this.end.i].match(/\s/)) {
-      this.end.i--;
-    }
+  copyWithNewEnd(newEnd: OI | number) {
+    return new OIRange(this.parent, this.start, newEnd);
   }
+  copyWithNewStart(newStart: OI | number) {
+    return new OIRange(this.parent, newStart, this.end);
+  }
+
   toJSON() {
     return Range.create(this.start, this.end);
   }
@@ -113,7 +108,7 @@ export class OIRange implements Range {
     return new OIRange(this.parent, this.start, newEnd);
   }
   copyExtendBeginningOfLine() {
-    const lines = (this.parent instanceof OFile ? this.parent : this.parent.getRoot()).text.split('\n');
+    const lines = (this.parent instanceof OFile ? this.parent : this.parent.getRoot()).lines;
     let startCol = 0;
     const match = lines[this.start.line].match(/\S/);
     if (match) {
@@ -134,6 +129,8 @@ export class OIRange implements Range {
     return new OIRange(this.parent, this.start.i, end);
   }
 }
+
+
 
 export class ObjectBase {
   name?: OName;
@@ -496,6 +493,13 @@ export class OElseGenerateClause extends OArchitecture {
 }
 
 export class OName extends ObjectBase {
+  constructor(parent: ObjectBase, range: OIRange | OLexerToken) {
+    super(parent, range instanceof OIRange ? range : range.range);
+    if (range instanceof OLexerToken) {
+      this.text = range.text;
+    }
+
+  }
   text: string;
   public parent: ObjectBase;
   toString() {

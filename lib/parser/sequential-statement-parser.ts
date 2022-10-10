@@ -97,23 +97,22 @@ export class SequentialStatementParser extends ParserBase {
   parseSubprogramCall(parent: OHasSequentialStatements | OIf, label: string|undefined) {
     const subprogramCall = new OInstantiation(parent, this.getToken().range.copyExtendEndOfLine(), 'subprogram');
     subprogramCall.label = label;
-    subprogramCall.componentName = new OName(subprogramCall, new OIRange(subprogramCall, this.pos.i, this.pos.i));
-    subprogramCall.componentName.text = this.getNextWord();
-    subprogramCall.componentName.range.end.i = subprogramCall.componentName.range.start.i + subprogramCall.componentName.text.length;
+    let componentName = this.consumeToken();
+    subprogramCall.componentName = new OName(subprogramCall, componentName);
     while (this.getToken().getLText() === '.') {
       this.expect('.');
       subprogramCall.library = subprogramCall.package?.text;
       subprogramCall.package = subprogramCall.componentName;
-      subprogramCall.componentName = new OName(subprogramCall, new OIRange(subprogramCall, this.pos.i, this.pos.i));
-      subprogramCall.componentName.range.start.i = this.pos.i;
-      subprogramCall.componentName.text = this.getNextWord();
-      subprogramCall.componentName.range.end.i = subprogramCall.componentName.range.start.i + subprogramCall.componentName.text.length;
+      componentName = this.consumeToken();
+      subprogramCall.componentName = new OName(subprogramCall, componentName);
+      subprogramCall.componentName.range = componentName.range;
+      subprogramCall.componentName.text = componentName.text;
 
     }
     if (this.getToken().getLText() === '(') {
       subprogramCall.portAssociationList = new AssociationListParser(this.pos, this.filePath, subprogramCall).parse();
     }
-    subprogramCall.range.end.i = this.pos.i;
+    subprogramCall.range = subprogramCall.range.copyWithNewEnd(this.pos.i);
     this.expect(';');
     return subprogramCall;
   }
@@ -124,7 +123,7 @@ export class SequentialStatementParser extends ParserBase {
     assertion.reads = [];
     let assertionTokens = this.advanceSemicolonToken();
     let startI = assertion.range.start.i;
-    assertion.range.end.i = this.pos.i;
+    assertion.range = assertion.range.copyWithNewEnd(this.pos.i);
     const reportIndex = assertionTokens.findIndex(token => token.getLText() === 'report');
     if (reportIndex > -1) {
       assertion.reads.push(...this.extractReads(assertion, assertionTokens.slice(0, reportIndex)));
@@ -144,7 +143,7 @@ export class SequentialStatementParser extends ParserBase {
     let report = new OReport(parent, this.getToken().range.copyExtendEndOfLine());
     const text = this.advanceSemicolonToken();
     report.reads = this.extractReads(report, text);
-    report.range.end.i = this.pos.i;
+    report.range = report.range.copyWithNewEnd(this.pos.i);
     return report;
   }
 
@@ -153,7 +152,7 @@ export class SequentialStatementParser extends ParserBase {
     let _return = new OReturn(parent, this.getToken().range.copyExtendEndOfLine());
     const text = this.advanceSemicolonToken();
     _return.reads = this.extractReads(_return, text);
-    _return.range.end.i = this.pos.i;
+    _return.range = _return.range.copyWithNewEnd(this.pos.i);
     return _return;
   }
 
@@ -187,7 +186,7 @@ export class SequentialStatementParser extends ParserBase {
       nextWord = this.getNextWord({ consume: false });
     }
 
-    assignment.range.end.i = this.pos.i;
+    assignment.range = assignment.range.copyWithNewEnd(this.pos.i);
     this.expect(';');
     return assignment;
   }
@@ -237,7 +236,7 @@ export class SequentialStatementParser extends ParserBase {
     clause.condition = this.advancePastToken('then');
     clause.conditionReads = this.extractReads(clause, clause.condition);
     clause.statements = this.parse(clause, ['else', 'elsif', 'end']);
-    clause.range.setEndBacktraceWhitespace(this.pos.i);
+    clause.range = clause.range.copyWithNewEnd(this.getToken(-1, true).range.end);
     if_.clauses.push(clause);
     let nextWord = this.getNextWord({ consume: false }).toLowerCase();
     while (nextWord === 'elsif') {
@@ -248,7 +247,7 @@ export class SequentialStatementParser extends ParserBase {
       clause.condition = this.advancePastToken('then');
       clause.conditionReads = this.extractReads(clause, clause.condition);
       clause.statements = this.parse(clause, ['else', 'elsif', 'end']);
-      clause.range.setEndBacktraceWhitespace(this.pos.i);
+      clause.range = clause.range.copyWithNewEnd(this.getToken(-1, true).range.end);
       if_.clauses.push(clause);
       nextWord = this.getNextWord({ consume: false }).toLowerCase();
     }
@@ -256,7 +255,7 @@ export class SequentialStatementParser extends ParserBase {
       this.expect('else');
       if_.else = new OElseClause(if_, new OIRange(if_, this.pos.i, this.pos.i));
       if_.else.statements = this.parse(if_, ['end']);
-      if_.else.range.setEndBacktraceWhitespace(this.pos.i);
+      if_.else.range = if_.else.range.copyWithNewEnd(this.getToken(-1, true).range.end);
 
     }
     this.expect('end');
@@ -282,7 +281,7 @@ export class SequentialStatementParser extends ParserBase {
       const pos = this.pos.i;
       whenClause.condition = this.extractReads(whenClause, this.advancePastToken('=>'));
       whenClause.statements = this.parse(whenClause, ['when', 'end']);
-      whenClause.range.setEndBacktraceWhitespace(this.pos.i);
+      whenClause.range = whenClause.range.copyWithNewEnd(this.getToken(-1, true).range.end);
       case_.whenClauses.push(whenClause);
       nextWord = this.getNextWord().toLowerCase();
     }

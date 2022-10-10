@@ -21,7 +21,7 @@ export class AssignmentParser extends ParserBase {
     this.consumeToken();
     const rightHandSide = this.advanceSemicolonToken();
     assignment.reads.push(...this.extractReads(assignment, rightHandSide));
-    assignment.range.end.i = this.pos.i;
+    assignment.range = assignment.range.copyWithNewEnd(this.pos.i)
     this.debug('parse end');
     return assignment;
   }

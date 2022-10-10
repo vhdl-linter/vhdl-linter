@@ -44,9 +44,9 @@ export class ConcurrentStatementParser extends ParserBase {
 
       const subarchitecture = new ArchitectureParser(this.pos, this.filePath, (this.parent as OArchitecture), label);
       const block = subarchitecture.parse(true, 'block');
-      block.range.start.i = savedI;
+      block.range = block.range.copyWithNewStart(savedI);
       this.reverseWhitespace();
-      block.range.end.i = this.pos.i;
+      block.range = block.range.copyWithNewEnd(this.pos.i);
       if (typeof label === 'undefined') {
         throw new ParserError('A block needs a label.', block.range);
       }
@@ -68,9 +68,10 @@ export class ConcurrentStatementParser extends ParserBase {
       const constantRange = this.extractReads(this.parent, rangeToken);
       const subarchitecture = new ArchitectureParser(this.pos, this.filePath, (this.parent as OArchitecture), label);
       const generate: OForGenerate = subarchitecture.parse(true, 'generate', { constantName, constantRange, startPosI: startI });
-      generate.range.start.i = savedI;
+      generate.range = generate.range.copyWithNewStart(savedI);
+
       this.reverseWhitespace();
-      generate.range.end.i = this.pos.i;
+      generate.range = generate.range.copyWithNewEnd(this.pos.i);
       this.advanceWhitespace();
       //        console.log(generate, generate.constructor.name);
       (this.parent as OArchitecture).statements.push(generate);
@@ -92,7 +93,7 @@ export class ConcurrentStatementParser extends ParserBase {
         const subarchitecture = new ArchitectureParser(this.pos, this.filePath, caseGenerate, label);
         const whenGenerateClause = subarchitecture.parse(true, 'when-generate');
         whenGenerateClause.condition.push(...this.extractReads(whenGenerateClause, whenConditionToken));
-        whenGenerateClause.range.start.i = whenI;
+        whenGenerateClause.range = whenGenerateClause.range.copyWithNewStart(whenI);
         nextWord = this.getNextWord({ consume: false });
       }
       this.expect('end');
@@ -102,7 +103,7 @@ export class ConcurrentStatementParser extends ParserBase {
       }
       this.advanceSemicolonToken();
       this.reverseWhitespace();
-      caseGenerate.range.end.i = this.pos.i;
+      caseGenerate.range = caseGenerate.range.copyWithNewEnd(this.pos.i);
       this.advanceWhitespace();
     } else if (nextWord === 'if' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {
       const ifGenerate = new OIfGenerate(this.parent, new OIRange(this.parent, this.pos.i, this.pos.i));
@@ -112,7 +113,8 @@ export class ConcurrentStatementParser extends ParserBase {
       this.debug('parse if generate ' + label);
       const subarchitecture = new ArchitectureParser(this.pos, this.filePath, ifGenerate, label);
       const ifGenerateClause = subarchitecture.parse(true, 'generate');
-      ifGenerateClause.range.start.i = savedI;
+      ifGenerateClause.range = ifGenerateClause.range.copyWithNewStart(savedI);
+
       if (ifGenerateClause.conditions) {
         ifGenerateClause.conditions = conditionTokens.concat(ifGenerateClause.conditions);
         ifGenerateClause.conditionReads = this.extractReads(ifGenerateClause, conditionTokens).concat(ifGenerateClause.conditionReads);
@@ -123,8 +125,8 @@ export class ConcurrentStatementParser extends ParserBase {
       ifGenerate.ifGenerates.push(ifGenerateClause);
       (this.parent as OArchitecture).statements.push(ifGenerate);
       this.reverseWhitespace();
-      ifGenerate.range.end.i = this.pos.i;
-      ifGenerateClause.range.end.i = this.pos.i;
+      ifGenerate.range = ifGenerate.range.copyWithNewEnd(this.pos.i);
+      ifGenerateClause.range = ifGenerateClause.range.copyWithNewEnd(this.pos.i);
       this.advanceWhitespace();
     } else if (nextWord === 'elsif' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {
       if (!(this.parent instanceof OIfGenerateClause)) {
@@ -133,14 +135,15 @@ export class ConcurrentStatementParser extends ParserBase {
       if (!previousArchitecture) {
         throw new ParserError('WTF', this.pos.getRangeToEndLine());
       }
-      previousArchitecture.range.end = this.getToken(-1, true).range.end;
+      previousArchitecture.range = previousArchitecture.range.copyWithNewEnd(this.getToken(-1, true).range.end);
 
       let conditionI = this.pos.i;
       let condition = this.advancePastToken('generate');
       this.debug('parse elsif generate ' + label);
       const subarchitecture = new ArchitectureParser(this.pos, this.filePath, this.parent.parent, label);
       const ifGenerateObject = subarchitecture.parse(true, 'generate');
-      ifGenerateObject.range.start.i = savedI;
+      ifGenerateObject.range = ifGenerateObject.range.copyWithNewStart(savedI);
+
       if (ifGenerateObject.conditions) {
         ifGenerateObject.conditions = condition.concat(ifGenerateObject.conditions);
         ifGenerateObject.conditionReads = this.extractReads(ifGenerateObject, condition).concat(ifGenerateObject.conditionReads);
@@ -157,16 +160,15 @@ export class ConcurrentStatementParser extends ParserBase {
       if (!previousArchitecture) {
         throw new ParserError('WTF', this.pos.getRangeToEndLine());
       }
-      previousArchitecture.range.end = this.getToken(-1, true).range.end;
-      previousArchitecture.range.end.character = 999;
+      previousArchitecture.range = previousArchitecture.range.copyWithNewEnd(this.getToken(-1, true).range.copyExtendEndOfLine().end);
       this.advancePast('generate');
       this.debug('parse else generate ' + label);
       const subarchitecture = new ArchitectureParser(this.pos, this.filePath, this.parent.parent, label);
 
       const ifGenerateObject = subarchitecture.parse(true, 'generate');
-      ifGenerateObject.range.start.i = savedI;
+      ifGenerateObject.range = ifGenerateObject.range.copyWithNewStart(savedI);
       this.reverseWhitespace();
-      ifGenerateObject.range.end.i = this.pos.i;
+      ifGenerateObject.range = ifGenerateObject.range.copyWithNewEnd(this.pos.i);
       this.advanceWhitespace();
       this.parent.parent.elseGenerate = ifGenerateObject;
       return true;

@@ -46,8 +46,8 @@ export class EntityParser extends ParserBase {
         this.getNextWord();
         this.maybeWord('entity');
         this.maybeWord(this.entity.name.text);
-
-        this.entity.range.end.i = this.expect(';');
+        this.entity.range = this.entity.range.copyWithNewEnd(this.getToken(-1, true).range.end);
+        this.expect(';');
         break;
       } else if (nextWord === 'begin') {
         this.getNextWord();
@@ -63,7 +63,7 @@ export class EntityParser extends ParserBase {
         this.getNextWord();
         this.maybeWord('entity');
         this.maybeWord(this.entity.name.text);
-        this.entity.range.end.i = this.expect(';');
+        this.entity.range = this.entity.range.copyWithNewEnd(this.getToken(-1, true).range.end);
         break;
 
       } else {

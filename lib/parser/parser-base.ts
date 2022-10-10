@@ -57,8 +57,7 @@ export class ParserBase {
       const startI = this.pos.i;
       this.consumeToken();
       if (this.getToken().text === ')') {
-        const range = new OIRange(parent, startI, startI + 1);
-        range.start.character = 0;
+        const range = new OIRange(parent, startI, startI + 1).copyExtendBeginningOfLine();
         throw new ParserError(`Unexpected ';' at end of port list`, range, {
           message: `Remove ';'`,
           edits: [TextEdit.del(new OIRange(parent, startI, startI + 1))]
@@ -68,14 +67,13 @@ export class ParserBase {
     if (defaultValue.length === 0) {
       return {
         type: type,
-        endI
+
       };
 
     }
     return {
       type: type,
       defaultValue: this.extractReads(parent, defaultValue),
-      endI
     };
   }
   message(message: string, severity = 'error') {
@@ -264,7 +262,7 @@ export class ParserBase {
               this.consumeToken();
             }
           }
-          return [tokens, lastToken];
+          return [tokens.filter(token => token.isWhitespace() === false), lastToken];
         }
       }
       if (this.getToken(offset).getLText() === '(') {

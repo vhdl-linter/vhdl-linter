@@ -8,7 +8,7 @@ export class PackageParser extends ParserBase {
   parse(parent: OFile): OPackage|OPackageBody {
     let nextWord = this.consumeToken();
     if (nextWord.getLText() === 'body') {
-      const pkg = new OPackageBody(parent, this.getToken().range.copyExtendEndOfLine());
+      const pkg = new OPackageBody(parent, this.getToken().range);
       const match = parent.originalText.match(/!\s*@library\s+(\S+)/i);
       pkg.library = match ? match[1] : undefined;
 
@@ -23,11 +23,11 @@ export class PackageParser extends ParserBase {
       this.maybeWord('package');
       this.maybeWord('body');
       this.maybeWord(pkg.name.text);
-      pkg.range.end.i = this.pos.i;
+      pkg.range = pkg.range.copyWithNewEnd(this.getToken(-1, true).range.end);
       const tokens = this.advanceSemicolonToken();
       return pkg;
     } else {
-      const pkg = new OPackage(parent, this.getToken().range.copyExtendEndOfLine());
+      const pkg = new OPackage(parent, this.getToken().range);
       const match = parent.originalText.match(/!\s*@library\s+(\S+)/i);
       pkg.library = match ? match[1] : undefined;
 
@@ -51,6 +51,7 @@ export class PackageParser extends ParserBase {
           this.expect('map');
           pkg.genericAssociationList = new AssociationListParser(this.pos, this.filePath, pkg).parse('generic');
         }
+        pkg.range = pkg.range.copyWithNewEnd(this.getToken(-1, true).range.end);
         this.expect(';');
         return pkg;
       }

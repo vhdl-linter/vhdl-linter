@@ -38,8 +38,7 @@ export class ComponentParser extends ParserBase {
         this.getNextWord();
         this.expect('component');
         this.maybeWord(component.name.text);
-
-        component.range.end.i = this.expect(';');
+        component.range = component.range.copyWithNewEnd(this.getToken(-1, true).range.end);
         break;
       }
       if (lastI === this.pos.i) {

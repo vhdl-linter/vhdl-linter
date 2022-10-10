@@ -21,10 +21,10 @@ export class SubtypeParser extends ParserBase {
     }
     const startISuperType = this.pos.i;
     const superType = this.consumeToken();
-    this.subtype.range.end.i = this.pos.i;
+    this.subtype.range = this.subtype.range.copyWithNewEnd(this.pos.i);
     const tokens = this.advanceSemicolonToken(true);
     if (tokens.length > 0) {
-      this.subtype.range.end.i = tokens[tokens.length - 1].range.end.i;
+      this.subtype.range = this.subtype.range.copyWithNewEnd(tokens[tokens.length - 1].range.end.i);
     }
     // const reads = this.extractReads(this.subtype, this.advanceSemicolon(true), startIReads);
     this.subtype.superType = new ORead(this.subtype, superType.range, superType.text);

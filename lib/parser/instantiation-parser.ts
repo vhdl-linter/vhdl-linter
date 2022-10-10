@@ -63,7 +63,8 @@ export class InstantiationParser extends ParserBase {
       }
       lastI = this.pos.i;
     }
-    instantiation.range.end.i = this.expect(';');
+    instantiation.range = instantiation.range.copyWithNewEnd(this.getToken(-1, true).range.end);
+    this.expect(';');
     return instantiation;
   }
 }

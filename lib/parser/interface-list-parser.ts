@@ -85,8 +85,9 @@ export class InterfaceListParser extends ParserBase {
           this.getNextWord(); // consume direction
         }
         const iBeforeType = this.pos.i;
-        const { type, defaultValue, endI } = this.getTypeDefintion(port);
-        port.range.end.i = endI;
+        const { type, defaultValue } = this.getTypeDefintion(port);
+        const end = defaultValue?.[defaultValue?.length - 1]?.range.end ?? type[type.length - 1]?.range?.end ?? port.range.end;
+        port.range = port.range.copyWithNewEnd(end);
         port.type = this.extractReads(port, type);
 
         port.defaultValue = defaultValue;
@@ -95,7 +96,7 @@ export class InterfaceListParser extends ParserBase {
             interface_.direction = (port as OPort).direction;
             interface_.directionRange = (port as OPort).directionRange;
           }
-          interface_.range.end.i = endI;
+          interface_.range = interface_.range.copyWithNewEnd(end);
           interface_.type = port.type;
           interface_.defaultValue = port.defaultValue;
           if (generics) {

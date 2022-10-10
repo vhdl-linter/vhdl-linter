@@ -22,7 +22,7 @@ export class ContextParser extends ParserBase {
       if (nextWord === 'end') {
         this.maybeWord('context');
         this.maybeWord(name.text);
-        context.range.end.i = this.pos.i;
+        context.range = context.range.copyWithNewEnd(this.pos.i)
         this.expect(';');
         break;
       } else if (nextWord === 'context') {

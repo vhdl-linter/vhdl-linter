@@ -42,13 +42,10 @@ export class AssociationListParser extends ParserBase {
       }
       if (lastChar.text === ',') {
         if (this.getToken().getLText() === ')') {
-          const range = new OIRange(list, this.pos.i, this.pos.i + 1);
-          range.start.character = 0;
-
-          throw new ParserError(`Unexpected ',' at end of association list`, range);
+          throw new ParserError(`Unexpected ',' at end of association list`, this.getToken().range.copyExtendBeginningOfLine());
         }
       } else if (lastChar.text === ')') {
-        list.range.end.i = this.pos.i;
+        list.range = list.range.copyWithNewEnd(this.pos.i);
         break;
       }
     }

@@ -27,7 +27,7 @@ export class ProcessParser extends ParserBase {
     if (label) {
       this.maybeWord(label);
     }
-    process.range.end.i = this.pos.i;
+    process.range = process.range.copyWithNewEnd(this.pos.i)
     this.expect(';');
 
     // [\s\S] for . but with newlines

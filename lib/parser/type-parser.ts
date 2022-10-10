@@ -64,7 +64,7 @@ export class TypeParser extends ParserBase {
           state.name.text = item.text;
           return state;
         });
-        type.range.end.i = this.pos.i;
+        type.range = type.range.copyWithNewEnd(this.pos.i);
         this.advanceWhitespace();
         this.expect(';');
       } else if (this.isUnits()) {
@@ -78,7 +78,7 @@ export class TypeParser extends ParserBase {
         }
         this.expect('end');
         this.expect('units');
-        type.range.end.i = this.pos.i;
+        type.range = type.range.copyWithNewEnd(this.pos.i);
         this.expect(';');
       } else {
         const nextWord = this.getNextWord().toLowerCase();
@@ -93,7 +93,7 @@ export class TypeParser extends ParserBase {
             child.name.text = recordToken.text;
             (type as ORecord).children.push(child);
             this.advanceSemicolonToken();
-            child.range.end.i = this.pos.i;
+            child.range = child.range.copyWithNewEnd(this.pos.i);
             position = this.pos.i;
             recordToken = this.consumeToken();
           }
@@ -122,11 +122,11 @@ export class TypeParser extends ParserBase {
           port.direction = 'inout';
           deallocateProcedure.ports = [port];
         }
-        type.range.end.i = this.pos.i;
+        type.range = type.range.copyWithNewEnd(this.pos.i);
         this.advancePast(';');
       }
     } else {
-      type.range.end.i = this.pos.i;
+      type.range = type.range.copyWithNewEnd(this.pos.i);
       this.advancePast(';');
     }
     return type;
