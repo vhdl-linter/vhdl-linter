@@ -133,8 +133,7 @@ export class ConcurrentStatementParser extends ParserBase {
       if (!previousArchitecture) {
         throw new ParserError('WTF', this.pos.getRangeToEndLine());
       }
-      previousArchitecture.range.end.line = this.pos.line - 1;
-      previousArchitecture.range.end.character = 999;
+      previousArchitecture.range.end = this.getToken(-1, true).range.end;
 
       let conditionI = this.pos.i;
       let condition = this.advancePastToken('generate');
@@ -158,7 +157,7 @@ export class ConcurrentStatementParser extends ParserBase {
       if (!previousArchitecture) {
         throw new ParserError('WTF', this.pos.getRangeToEndLine());
       }
-      previousArchitecture.range.end.line = this.pos.line - 1;
+      previousArchitecture.range.end = this.getToken(-1, true).range.end;
       previousArchitecture.range.end.character = 999;
       this.advancePast('generate');
       this.debug('parse else generate ' + label);

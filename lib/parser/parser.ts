@@ -28,10 +28,6 @@ export class ParserPosition {
   public isValid() {
     return this.num >= 0 && this.num < this.lexerTokens.length;
   }
-
-  public get line() {
-    return 0;
-  }
   public getRangeToEndLine() {
     return this.lexerTokens[this.num].range.copyExtendEndOfLine();
   }

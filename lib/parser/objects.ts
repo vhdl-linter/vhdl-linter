@@ -1,7 +1,6 @@
 import { Position, Range, TextEdit } from 'vscode-languageserver';
 import { config } from './config';
 import { OLexerToken } from '../lexer';
-import { line } from 'blessed';
 
 export class OI implements Position {
   private i_: number;
@@ -113,7 +112,7 @@ export class OIRange implements Range {
       : this.end;
     return new OIRange(this.parent, this.start, newEnd);
   }
-  copyExtendBeginngOfLine() {
+  copyExtendBeginningOfLine() {
     const lines = (this.parent instanceof OFile ? this.parent : this.parent.getRoot()).text.split('\n');
     let startCol = 0;
     const match = lines[this.start.line].match(/\S/);
