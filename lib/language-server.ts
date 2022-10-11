@@ -1,4 +1,3 @@
-import { text } from 'blessed';
 import {
   CodeAction, createConnection, DidChangeConfigurationNotification, ErrorCodes, Hover, InitializeParams, IPCMessageReader, IPCMessageWriter, Position, ProposedFeatures, TextDocument, TextDocuments
 } from 'vscode-languageserver';
@@ -15,7 +14,6 @@ import { handleOnWorkspaceSymbol } from './languageFeatures/workspaceSymbols';
 import { implementsIHasDefinitions, OFile, OInstantiation, OName, OMagicCommentDisable, OComponent, OUseClause } from './parser/objects';
 import { ProjectParser } from './project-parser';
 import { VhdlLinter } from './vhdl-linter';
-import { window } from 'vscode';
 import { attachOnCompletion } from './languageFeatures/completion';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
