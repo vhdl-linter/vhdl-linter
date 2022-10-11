@@ -1,4 +1,4 @@
-name: workflow
+name: tslint
 on:
   push:
     branches: [ "main" ]
