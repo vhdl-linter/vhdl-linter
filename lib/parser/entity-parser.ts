@@ -64,6 +64,7 @@ export class EntityParser extends ParserBase {
         this.maybeWord('entity');
         this.maybeWord(this.entity.name.text);
         this.entity.range = this.entity.range.copyWithNewEnd(this.getToken(-1, true).range.end);
+        this.expect(';');
         break;
 
       } else {
