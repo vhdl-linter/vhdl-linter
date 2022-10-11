@@ -61,7 +61,11 @@ export function attachOnCompletion() {
 
     let parent = obj.parent;
     let counter = 100;
+    let architecture: undefined|OArchitecture = undefined;
     while ((parent instanceof OFile) === false) {
+      if (parent instanceof OArchitecture) {
+        architecture = parent;
+      }
       // console.log(parent instanceof OFile, parent);
       if (implementsIHasSignals(parent)) {
         for (const signal of parent.signals) {
@@ -116,6 +120,8 @@ export function attachOnCompletion() {
       entity = parent;
     } else if (parent instanceof OArchitecture && parent.correspondingEntity) {
       entity = parent.correspondingEntity;
+    } else if (architecture && architecture.correspondingEntity) {
+      entity = architecture.correspondingEntity;
     }
     if (entity) {
       for (const port of entity.ports) {
