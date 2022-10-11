@@ -31,6 +31,14 @@
 			"runtimeExecutable": "npm",
 			"runtimeArgs": ["run", "test"]
 		}
+		{
+			"name": "Run formatter",
+			"type": "node",
+			"request": "launch",
+			"cwd": "${workspaceFolder}",
+			"runtimeExecutable": "dist/lib/formatter.js",
+			"runtimeArgs": []
+		}
 
 	],
 	"compounds": [

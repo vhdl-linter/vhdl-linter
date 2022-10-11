@@ -46,23 +46,30 @@ class Formatter {
         if (match === null) {
             return false;
         }
-        this.matchStart = this.pos + match.index;
-        this.matchEnd = this.matchStart + match[0].length;
+        this.match = match;
+        this.matchStart = this.pos + this.match.index;
+        this.matchEnd = this.matchStart + this.match[0].length;
         return true;
     }
     replaceMatch(replacement: string, subgroup?: number) {
+        if (replacement === undefined) {
+            replacement = '';
+        }
         if (subgroup === undefined) {
             this.text = this.text.substring(0, this.matchStart) + replacement + this.text.substring(this.matchEnd);
+            this.pos += replacement.length - this.match[0].length;
         } else {
             let newReplacement = '';
-            for (let i = 0; i < this.match.length; i++) {
+            for (let i = 1; i < this.match.length; i++) {
                 if (i === subgroup) {
                     newReplacement += replacement;
                 } else {
-                    newReplacement += this.match[i];
+                    newReplacement += this.match[i] ?? '';
                 }
             }
             this.text = this.text.substring(0, this.matchStart) + newReplacement + this.text.substring(this.matchEnd);
+            this.pos += newReplacement.length - this.match[0].length;
+
         }
         // TODO: Correct Cursor?
     }
@@ -78,9 +85,11 @@ class Formatter {
         //       (if (match-string 1)
         // 	  (goto-char (match-end 1))
         // 	(replace-match "\\3 " nil nil nil 2)))
-        while (this.reSearchForward("\\(--.*\\n\\|\"[^\"\\n]*[\"\\n]\\|'.'\\|\\\\[^\\n]*[\\n]\\)\\|\\(\\s-*\\([,;]\\)\\)")) {
+        while (this.reSearchForward(/(--.*\n|"[^"\n]*["\n]|'.'|[^\n]*[\n])|(\s-*([,;]))/)) {
             this.gotoChar(this.matchEnd);
+            console.log(this.match);
             this.replaceMatch(this.match[3], 2);
+            // process.exit(0);
         }
         //     ;; have no space after `('
         //             (goto - char beg)
@@ -89,10 +98,10 @@ class Formatter {
         //         (if (match - string 1)
         //         (goto - char(match - end 1))
         //             (replace - match "\\2")))
-        // while (this.reSearchForward("\\(--.*\n\\|\"[^\"\n]*[\"\n]\\|'.'\\|\\\\[^\\\n]*[\\\n]\\)\\|\\((\\)\\s-+")) {
-        //     this.gotoChar(this.matchEnd);
-        //     this.replaceMatch(this.match[3], 2);
-        // }
+        while (this.reSearchForward(/(--.*\n|\"[^\"\n]*[\"\n]|'.'|[^\n]*[\n])|((\\)\\s-+/)) {
+            this.gotoChar(this.matchEnd);
+            this.replaceMatch(this.match[3], 2);
+        }
 
 
 
@@ -131,8 +140,9 @@ class Formatter {
     }
 }
 
-const test = `asdasd,asdasd
-asdasdasd ; 
+const test = `asdasd , asdasd
+asdasdasd ;  asd
+asdasd ;  
 asdasd`;
 const formatter = new Formatter(test);
 formatter.vhdlBeautifyRegion();
