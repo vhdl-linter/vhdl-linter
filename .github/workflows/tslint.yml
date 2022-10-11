@@ -1,0 +1,14 @@
+name: workflow
+on: [push]
+jobs:
+  job:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16.x]
+    steps:
+      - uses: actions/checkout@v1
+      - name: Prepare
+        run: npm ci
+      - name: Lint
+        run: npm run lint
