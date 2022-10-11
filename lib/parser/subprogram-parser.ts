@@ -39,7 +39,7 @@ export class SubprogramParser extends ParserBase {
       this.expect('end');
       this.maybeWord(isFunction ? 'function' : 'procedure');
       this.maybeWord(name.text);
-      subprogram.range = subprogram.range.copyWithNewEnd(this.pos.i)
+      subprogram.range = subprogram.range.copyWithNewEnd(this.pos.i);
 
     }
 
