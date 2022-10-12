@@ -8,7 +8,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: VUnit/vunit_action@v0.1.0
         with:
           run_file: test/test_files/test_no_error/01/vunit_compile.py
