@@ -1,4 +1,4 @@
-import { implementsIHasPackageInstantiations, OComponent, OEntity, OGeneric, OI, OIRange, OName, OPackage, OPort, OSubprogram } from './objects';
+import { OComponent, OEntity, OGeneric, OIRange, OName, OPackage, OPort, OSubprogram, implementsIHasPackageInstantiations } from './objects';
 import { ParserBase } from './parser-base';
 import { SubprogramParser } from './subprogram-parser';
 import { ParserPosition } from './parser';
@@ -14,25 +14,25 @@ export class InterfaceListParser extends ParserBase {
   parse(generics: boolean) {
     this.debug('parse');
     this.expect('(');
-    const ports: any[] = [];
+    const ports: (OPort|OGeneric)[] = [];
     if (generics) {
       if (this.parent instanceof OSubprogram) {
         throw new Error('Subprogram cannot have generics');
       }
-      this.parent.generics = ports;
+      this.parent.generics = ports as OGeneric[];
     } else {
       if (this.parent instanceof OPackage) {
         throw new Error('Package can only have generics and no ports');
       }
-      this.parent.ports = ports;
+      this.parent.ports = ports as OPort[];
     }
-    let multiInterface = [];
+    const multiInterface = [];
     while (this.pos.isValid()) {
       this.debug('parse i ' + this.pos.i);
 
       this.advanceWhitespace();
 
-      let port = generics ?
+      const port = generics ?
         new OGeneric(this.parent, this.getToken().range.copyExtendEndOfLine()) :
         new OPort(this.parent, this.getToken().range.copyExtendEndOfLine());
 
@@ -47,15 +47,11 @@ export class InterfaceListParser extends ParserBase {
         const name = this.consumeToken();
         port.name = new OName(port, name.range);
         port.name.text = name.text;
-        if (generics) {
-          ports.push(port);
-        } else {
-          ports.push(port as any);
-        }
+        ports.push(port);
         this.maybeWord(';');
       } else if (nextWord === 'procedure' || nextWord === 'impure' || nextWord === 'pure' || nextWord === 'function') {
         const subprogramParser = new SubprogramParser(this.pos, this.filePath, this.parent);
-        this.parent.subprograms.push(subprogramParser.parse(this.pos.i));
+        this.parent.subprograms.push(subprogramParser.parse());
         this.maybeWord(';');
       } else if (nextWord === 'package') { // TODO: Handle correctly
         if (implementsIHasPackageInstantiations(this.parent)) {
@@ -89,7 +85,6 @@ export class InterfaceListParser extends ParserBase {
           }
           this.getNextWord(); // consume direction
         }
-        const iBeforeType = this.pos.i;
         const { type, defaultValue } = this.getTypeDefintion(port);
         const end = defaultValue?.[defaultValue?.length - 1]?.range.end ?? type[type.length - 1]?.range?.end ?? port.range.end;
         port.range = port.range.copyWithNewEnd(end);
@@ -104,17 +99,9 @@ export class InterfaceListParser extends ParserBase {
           interface_.range = interface_.range.copyWithNewEnd(end);
           interface_.type = port.type;
           interface_.defaultValue = port.defaultValue;
-          if (generics) {
-            ports.push(interface_);
-          } else {
-            ports.push(interface_ as any);
-          }
+          ports.push(interface_);
         }
-        if (generics) {
-          ports.push(port);
-        } else {
-          ports.push(port as any);
-        }
+        ports.push(port);
       }
     }
     this.debug('parseEnd');

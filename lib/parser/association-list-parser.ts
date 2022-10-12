@@ -1,4 +1,4 @@
-import { OI, OInstantiation, OAssociation, OAssociationFormal, OGenericAssociationList as OGenericAssociationList, OIRange, OPortAssociationList as OPortAssotiationList, ParserError, OPackage, OPackageInstantiation } from './objects';
+import { OInstantiation, OAssociation, OGenericAssociationList as OGenericAssociationList, OIRange, OPortAssociationList as OPortAssotiationList, ParserError, OPackage, OPackageInstantiation } from './objects';
 import { ParserBase } from './parser-base';
 import { ParserPosition } from './parser';
 
@@ -16,9 +16,9 @@ export class AssociationListParser extends ParserBase {
     while (this.pos.isValid()) {
       const savedI = this.pos.i;
       // let associationString = this.advancePast(/[,)]/, {returnMatch: true});
+      // eslint-disable-next-line prefer-const
       let [associationTokens, lastChar] = this.advanceBraceAwareToken([',', ')']);
       if (associationTokens.length > 0) {
-        let actualStart = savedI;
         const association = new OAssociation(list, new OIRange(list, savedI, associationTokens[0]?.range?.end?.i ?? savedI));
         const index = associationTokens.findIndex(token => token.text === '=>');
         if (index > -1) {

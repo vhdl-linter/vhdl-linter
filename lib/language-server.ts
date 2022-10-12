@@ -3,6 +3,7 @@ import {
 } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { handleCodeLens } from './languageFeatures/codeLens';
+import { attachOnCompletion } from './languageFeatures/completion';
 import { handleDocumentFormatting } from './languageFeatures/documentFormatting';
 import { documentHighlightHandler } from './languageFeatures/documentHightlightHandler';
 import { handleOnDocumentSymbol } from './languageFeatures/documentSymbol';
@@ -11,10 +12,9 @@ import { findReferencesHandler, prepareRenameHandler, renameHandler } from './la
 import { foldingHandler } from './languageFeatures/folding';
 import { handleReferences } from './languageFeatures/references';
 import { handleOnWorkspaceSymbol } from './languageFeatures/workspaceSymbols';
-import { implementsIHasDefinitions, OFile, OInstantiation, OName, OMagicCommentDisable, OComponent, OUseClause } from './parser/objects';
+import { implementsIHasDefinitions, OComponent, OFile, OInstantiation, OName, OUseClause } from './parser/objects';
 import { ProjectParser } from './project-parser';
 import { VhdlLinter } from './vhdl-linter';
-import { attachOnCompletion } from './languageFeatures/completion';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -25,7 +25,7 @@ export const connection = createConnection(ProposedFeatures.all, new IPCMessageR
 // supports full document sync only
 export const documents: TextDocuments = new TextDocuments();
 
-let hasWorkspaceFolderCapability: boolean = false;
+let hasWorkspaceFolderCapability = false;
 // let hasDiagnosticRelatedInformationCapability: boolean = false;
 export let projectParser: ProjectParser;
 let rootUri: string | undefined;
@@ -78,9 +78,9 @@ export class CancelationError extends Error {
 
 
 let globalSettings: ISettings = defaultSettings;
-let hasConfigurationCapability: boolean = false;
+let hasConfigurationCapability = false;
 // Cache the settings of all open documents
-let documentSettings: Map<string, Thenable<ISettings>> = new Map();
+const documentSettings: Map<string, Thenable<ISettings>> = new Map();
 connection.onDidChangeConfiguration(change => {
 
   if (hasConfigurationCapability) {
@@ -110,7 +110,7 @@ export function getDocumentSettings(resource: string): Thenable<ISettings> {
   return result;
 }
 connection.onInitialize((params: InitializeParams) => {
-  let capabilities = params.capabilities;
+  const capabilities = params.capabilities;
   hasWorkspaceFolderCapability =
     capabilities.workspace && !!capabilities.workspace.workspaceFolders || false;
   if (params.rootUri) {
@@ -182,7 +182,7 @@ export const initialization = new Promise<void>(resolve => {
     for (const textDocument of documents.all()) {
       await validateTextDocument(textDocument);
     }
-    projectParser.events.on('change', (...args) => {
+    projectParser.events.on('change', () => {
       // console.log('projectParser.events.change', new Date().getTime(), ... args);
       documents.all().forEach((textDocument) => validateTextDocument(textDocument));
     });
@@ -254,7 +254,7 @@ async function validateTextDocument(textDocument: TextDocument, cancelationObjec
 
 }
 
-connection.onDidChangeWatchedFiles(_change => {
+connection.onDidChangeWatchedFiles(() => {
   // Monitored files have change in VS Code
   connection.console.log('We received an file change event');
 });
@@ -299,7 +299,7 @@ const findDefinitions = async (params: IFindDefinitionParams) => {
     return [];
   }
 
-  let startI = linter.getIFromPosition(params.position);
+  const startI = linter.getIFromPosition(params.position);
   let candidates = linter.file?.objectList.filter(object => object.range.start.i <= startI && startI <= object.range.end.i) ?? [];
   for (const architecture of linter.file.architectures) {
     candidates.push(...architecture.components.filter(object => object.range.start.i <= startI && startI <= object.range.end.i));
@@ -371,7 +371,8 @@ connection.onCodeLens(handleCodeLens);
 connection.onReferences(findReferencesHandler);
 connection.onExecuteCommand(handleExecuteCommand);
 connection.onWorkspaceSymbol(handleOnWorkspaceSymbol);
-connection.onRequest('vhdl-linter/listing', async (params: any, b: any) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+connection.onRequest('vhdl-linter/listing', async (params: any) => {
   await initialization;
   const textDocumentUri = params.textDocument.uri;
   const linter = linters.get(textDocumentUri);

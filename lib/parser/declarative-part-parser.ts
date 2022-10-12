@@ -1,7 +1,6 @@
 import { ComponentParser } from './component-parser';
-import { EntityParser } from './entity-parser';
 import { ObjectDeclarationParser } from './object-declaration-parser';
-import { implementsIHasComponents, implementsIHasSubprograms, OArchitecture, OEntity, OI, OName, OPackage, OPackageBody, OProcess, OSignal, OSubprogram, OType, OVariable, ParserError, OConfiguration } from './objects';
+import { implementsIHasComponents,OArchitecture, OEntity, OName, OPackage, OPackageBody, OProcess, OSubprogram, OType, ParserError } from './objects';
 import { ParserBase } from './parser-base';
 import { SubprogramParser } from './subprogram-parser';
 import { SubtypeParser } from './subtype-parser';
@@ -16,7 +15,7 @@ export class DeclarativePartParser extends ParserBase {
     super(pos, file);
     this.debug('start');
   }
-  parse(optional: boolean = false, lastWord = 'begin') {
+  parse(optional = false, lastWord = 'begin') {
     let nextWord = this.getNextWord({ consume: false }).toLowerCase();
     while (nextWord !== lastWord) {
       if (nextWord === 'signal'
@@ -57,7 +56,7 @@ export class DeclarativePartParser extends ParserBase {
         this.parent.components.push(componentParser.parse());
       } else if (nextWord === 'procedure' || nextWord === 'impure' || nextWord === 'pure' || nextWord === 'function') {
         const subprogramParser = new SubprogramParser(this.pos, this.filePath, this.parent);
-        this.parent.subprograms.push(subprogramParser.parse(this.pos.i));
+        this.parent.subprograms.push(subprogramParser.parse());
         this.expect(';');
       } else if (nextWord === 'package') {
         this.parent.packageInstantiations.push(new PackageInstantiationParser(this.pos, this.filePath, this.parent).parse());

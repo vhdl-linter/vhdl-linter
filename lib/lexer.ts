@@ -85,7 +85,6 @@ export class Lexer {
     let offset = 0;
     let lastOffset = -1;
     let text = this.text;
-    let iterationCount = 0;
     loop: do {
       // if (iterationCount++ > 10000) {
       //   throw new ParserError('Lexer infinite loop2!', new OIRange(this.file, offset, offset));
@@ -110,7 +109,7 @@ export class Lexer {
         }
       }
       for (const tokenType of this.tokenTypes) {
-        let match = text.match(tokenType.regex);
+        const match = text.match(tokenType.regex);
         if (match) {
           const token = new OLexerToken(match[2] ? match[2] : match[0],
             new OIRange(this.file, offset, offset + match[0].length), tokenType.tokenType);

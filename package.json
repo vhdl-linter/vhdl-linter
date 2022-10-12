@@ -204,7 +204,7 @@
 		"vscode:postpublish": "git push",
 		"compile": "tsc --project .",
 		"watch": "tsc -w  --project  .",
-		"lint": "tslint --project .",
+		"lint": "eslint --ext .ts .",
 		"test": "node dist/test/test.js"
 	},
 	"dependencies": {
@@ -226,8 +226,9 @@
 		"@types/node": "^10.12.0",
 		"@types/string-similarity": "^3.0.0",
 		"@types/vscode": "^1.39.0",
-		"tslint": "^5.20.1",
-		"tslint-microsoft-contrib": "^5.2.1",
+		"@typescript-eslint/eslint-plugin": "^5.40.0",
+		"@typescript-eslint/parser": "^5.40.0",
+		"eslint": "^8.25.0",
 		"typescript": "^3.8.3",
 		"vsce": "^2.11.0",
 		"vscode-languageserver-types": "^3.16.0"

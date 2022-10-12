@@ -12,7 +12,6 @@ export class PackageParser extends ParserBase {
       const match = parent.originalText.match(/!\s*@library\s+(\S+)/i);
       pkg.library = match ? match[1] : undefined;
 
-      const savedI = this.pos.i;
       const name = this.consumeToken();
       pkg.name = new OName(pkg, name.range);
       pkg.name.text = name.text;
@@ -24,22 +23,20 @@ export class PackageParser extends ParserBase {
       this.maybeWord('body');
       this.maybeWord(pkg.name.text);
       pkg.range = pkg.range.copyWithNewEnd(this.getToken(-1, true).range.end);
-      const tokens = this.advanceSemicolonToken();
+      this.advanceSemicolonToken();
       return pkg;
     } else {
       const pkg = new OPackage(parent, this.getToken().range);
       const match = parent.originalText.match(/!\s*@library\s+(\S+)/i);
       pkg.library = match ? match[1] : undefined;
 
-      let savedI = this.pos.i;
       pkg.name = new OName(pkg, nextWord.range);
       pkg.name.text = nextWord.text;
       this.expect('is');
       nextWord = this.getToken();
       if (nextWord.getLText() === 'new') {
         this.getNextWord();
-        savedI = this.pos.i;
-        const uninstantiatedPackageLibrary = this.consumeToken();
+        this.consumeToken();
         this.expect('.');
         const uninstantiatedPackageName = this.consumeToken();
         pkg.uninstantiatedPackageName = new OName(pkg, uninstantiatedPackageName.range);

@@ -1,8 +1,6 @@
-import * as escapeStringRegexp from 'escape-string-regexp';
 import { TextEdit } from 'vscode-languageserver';
 import { config } from './config';
-import { OAssociation, OAssociationFormal, ObjectBase, OElementRead, OGeneric, OI, OIRange, OPort, ORead, OWrite, ParserError } from './objects';
-import { tokenizer } from './tokenizer';
+import { OAssociation, OAssociationFormal, ObjectBase, OElementRead, OGeneric, OIRange, OPort, ORead, OWrite, ParserError } from './objects';
 import { ParserPosition } from './parser';
 import { OLexerToken, TokenType } from '../lexer';
 
@@ -13,11 +11,11 @@ export class ParserBase {
   }
   debug(_message: string) {
     if (config.debug) {
-      let pos = this.getPosition();
+      const pos = this.getPosition();
       console.log(`${this.constructor.name}: ${_message} at ${pos.line}:${pos.col}, (${this.filePath})`);
     }
   }
-  debugObject(_object: any) {
+  // debugObject(_object: any) {
     // let target: any = {};
     // const filter = (object: any) => {
     //   const target: any = {};
@@ -40,18 +38,16 @@ export class ParserBase {
     // };
     // target = filter(object);
     //     console.log(`${this.constructor.name}: ${JSON.stringify(target, null, 2)} in line: ${this.getLine()}, (${this.file})`);
-  }
+  // }
   getTypeDefintion(parent: OGeneric | OPort) {
     this.debug('getTypeDefintion');
-    let [type, last] = this.advanceBraceAwareToken([')', ';', ':='], true, false);
-    const startI = this.pos.i + 2;
+    const [type, last] = this.advanceBraceAwareToken([')', ';', ':='], true, false);
     let defaultValue: OLexerToken[] = [];
     if (last.getLText() === ':=') {
       this.consumeToken();
       [defaultValue] = this.advanceBraceAwareToken([')', ';'], true, false);
     }
     this.reverseWhitespace();
-    const endI = this.pos.i;
     this.advanceWhitespace();
     if (this.getToken().text === ';') {
       const startI = this.pos.i;
@@ -79,12 +75,11 @@ export class ParserBase {
   message(message: string, severity = 'error') {
     if (severity === 'error') {
       throw new ParserError(message + ` in line: ${this.getLine()}`, this.pos.getRangeToEndLine());
-    } else {
     }
   }
   // Offset gives an offset to the current parser position. If offsetIgnoresWhitespaces is set whitespace (and comment) is not counted.
   // Meaning offset = 2 counts only the next two non-whitespaces tokens
-  getToken(offset: number = 0, offsetIgnoresWhitespaces = false) {
+  getToken(offset = 0, offsetIgnoresWhitespaces = false) {
     if (!this.pos.isValid()) {
       throw new ParserError(`EOF reached`, this.pos.lexerTokens[this.pos.lexerTokens.length - 1].range);
     }
@@ -132,7 +127,7 @@ export class ParserBase {
     return token;
   }
   findToken(options: string | string[]) {
-    let start = this.pos.num;
+    const start = this.pos.num;
     if (!Array.isArray(options)) {
       options = [options];
     }
@@ -179,9 +174,9 @@ export class ParserBase {
     if (typeof options.consume === 'undefined') {
       options.consume = true;
     }
-    let tokens = [];
+    const tokens = [];
     search = search.toLowerCase();
-    let searchStart = this.pos;
+    const searchStart = this.pos;
 
     while (this.getToken().getLText() !== search) {
       if (!options.allowSemicolon && this.getToken().getLText() === ';') {
@@ -213,13 +208,13 @@ export class ParserBase {
     if (typeof options.returnMatch === 'undefined') {
       options.returnMatch = false;
     }
-    let text = this.advancePastToken(search, options).map(token => token.text).join(' ');
+    const text = this.advancePastToken(search, options).map(token => token.text).join(' ');
     return text.trim();
   }
   advanceBraceToken() {
     const tokens = [];
     let braceLevel = 0;
-    let quote = false;
+    const quote = false;
     const savedI = this.pos;
     while (this.pos.num < this.pos.lexerTokens.length) {
       if (this.getToken().getLText() === '(' && !quote) {
@@ -282,10 +277,10 @@ export class ParserBase {
       lastToken.text
     ];
   }
-  advanceSemicolon(braceAware: boolean = false, { consume } = { consume: true }) {
+  advanceSemicolon(braceAware = false, { consume } = { consume: true }) {
     return this.advanceSemicolonToken(braceAware, { consume }).map(token => token.text).join('');
   }
-  advanceSemicolonToken(braceAware: boolean = false, { consume } = { consume: true }) {
+  advanceSemicolonToken(braceAware = false, { consume } = { consume: true }) {
     if (consume !== false) {
       consume = true;
     }
@@ -344,7 +339,7 @@ export class ParserBase {
       expected = [expected];
     }
     if (expected.find(exp => exp.toLowerCase() === this.getToken().getLText())) {
-      let token = this.consumeToken(false);
+      const token = this.consumeToken(false);
       this.advanceWhitespace();
       return token.range.end.i;
     } else {
@@ -356,7 +351,7 @@ export class ParserBase {
       expected = [expected];
     }
     if (expected.find(exp => exp.toLowerCase() === this.getToken().getLText())) {
-      let token = this.consumeToken(false);
+      const token = this.consumeToken(false);
       this.advanceWhitespace();
       return token;
     } else {
@@ -370,7 +365,6 @@ export class ParserBase {
   }
   getType(parent: ObjectBase, advanceSemicolon = true, endWithBrace = false) {
     let type;
-    const startI = this.pos.i;
     if (endWithBrace) {
       [type] = this.advanceBraceAwareToken([';', 'is', ')'], true, false);
     } else {
@@ -403,7 +397,7 @@ export class ParserBase {
   }
   extractReads(parent: ObjectBase | OAssociation, tokens: OLexerToken[], asMappingName?: false): ORead[];
   extractReads(parent: ObjectBase | OAssociation, tokens: OLexerToken[], asMappingName: true): OAssociationFormal[];
-  extractReads(parent: ObjectBase | OAssociation, tokens: OLexerToken[], asMappingName: boolean = false): (ORead | OAssociationFormal)[] {
+  extractReads(parent: ObjectBase | OAssociation, tokens: OLexerToken[], asMappingName = false): (ORead | OAssociationFormal)[] {
     tokens = tokens.filter(token => !token.isWhitespace() && token.type !== TokenType.keyword);
     const libraries = parent.getRoot().libraries;
     libraries.push('work');
@@ -411,7 +405,7 @@ export class ParserBase {
     let functionOrArraySlice = false;
     let braceLevel = 0;
     for (let i = 0; i < tokens.length; i++) {
-      let token = tokens[i];
+      const token = tokens[i];
       if (tokens[i].text === '(') {
         if (functionOrArraySlice) {
           braceLevel++;

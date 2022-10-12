@@ -1,7 +1,7 @@
 import { ConcurrentStatementParser, ConcurrentStatementTypes } from './concurrent-statement-parser';
 import { DeclarativePartParser } from './declarative-part-parser';
 import { InterfaceListParser } from './interface-list-parser';
-import { OArchitecture, OEntity, OI, OIRange, OName, ParserError, OFile } from './objects';
+import { OArchitecture, OEntity, OIRange, OName, ParserError, OFile } from './objects';
 import { ParserBase } from './parser-base';
 import { ParserPosition } from './parser';
 
@@ -28,7 +28,7 @@ export class EntityParser extends ParserBase {
     let lastI;
     while (this.pos.isValid()) {
       this.advanceWhitespace();
-      let nextWord = this.getNextWord({ consume: false }).toLowerCase();
+      const nextWord = this.getNextWord({ consume: false }).toLowerCase();
       const savedI = this.pos.i;
       if (nextWord === 'port') {
         this.getNextWord();

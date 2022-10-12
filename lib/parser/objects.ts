@@ -1,7 +1,6 @@
 import { Position, Range, TextEdit } from 'vscode-languageserver';
 import { config } from './config';
 import { OLexerToken } from '../lexer';
-let counter = 0;
 export class OI implements Position {
   protected i_?: number;
   constructor(parent: ObjectBase | OFile, i: number)
@@ -151,6 +150,7 @@ export class ObjectBase {
     if (this.root) {
       return this.root;
     }
+    // eslint-disable-next-line @typescript-eslint/no-this-alias, @typescript-eslint/no-explicit-any
     let parent: any = this;
     while (parent instanceof OFile === false) {
       parent = parent.parent;
@@ -164,6 +164,7 @@ export class ObjectBase {
     if (this.rootElement) {
       return this.rootElement;
     }
+    // eslint-disable-next-line @typescript-eslint/no-this-alias, @typescript-eslint/no-explicit-any
     let parent: any = this;
     while (parent instanceof OArchitecture === false
       && parent instanceof OEntity && parent instanceof OPackage && parent instanceof OPackageBody) {
@@ -281,7 +282,6 @@ export class OFile {
     return this;
   }
   getJSON() {
-    const obj = {};
     const seen = new WeakSet();
 
     return JSON.stringify(this, (key, value) => {
@@ -434,9 +434,9 @@ export class OType extends ObjectBase implements IReferenceable, IHasSubprograms
   references: OToken[] = [];
   units?: string[] = [];
   reads: ORead[] = [];
-  alias: boolean = false;
+  alias = false;
   name: OName;
-  addReadsToMap(map: Map<String, ObjectBase>) {
+  addReadsToMap(map: Map<string, ObjectBase>) {
     map.set(this.name.text.toLowerCase(), this);
 
     if (this.units) {
@@ -777,7 +777,7 @@ export class OProcess extends OHasSequentialStatements implements IHasSubprogram
   files: OFileVariable[] = [];
   constants: OConstant[] = [];
   resetClause?: OIfClause;
-  registerProcess: boolean = false;
+  registerProcess = false;
   private resets: string[] | null = null;
   getResets(): string[] {
     if (this.resets !== null) {
@@ -828,6 +828,7 @@ export class OToken extends ObjectBase implements IHasDefinitions {
 
   }
   elaborate() {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     let object: (OFile | ObjectBase) = this;
     let lastIteration = false;
     let stop = false;

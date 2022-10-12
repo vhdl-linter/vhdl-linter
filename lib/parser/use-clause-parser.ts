@@ -1,6 +1,6 @@
-import { OI, ObjectBase, OContext, OName, OFile, OContextReference, OUseClause, ParserError, OIRange } from './objects';
-import { ParserBase } from './parser-base';
+import { OContext, OFile, OIRange, OUseClause } from './objects';
 import { ParserPosition } from './parser';
+import { ParserBase } from './parser-base';
 
 export class UseClauseParser extends ParserBase {
   constructor(pos: ParserPosition, file: string, private parent: OFile|OContext) {

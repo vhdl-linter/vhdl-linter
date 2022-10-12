@@ -1,9 +1,9 @@
+import { OLexerToken } from '../lexer';
 import { AssignmentParser } from './assignment-parser';
 import { AssociationListParser } from './association-list-parser';
-import { OArchitecture, OAssertion, OAssignment, ObjectBase, OCase, OConstant, OElseClause, OEntity, OForLoop, OHasSequentialStatements, OI, OIf, OIfClause, OInstantiation, OLoop, OName, OProcess, OReport, OSequentialStatement, OVariable, OWhenClause, OWhileLoop, ParserError, OIRange, OReturn } from './objects';
-import { ParserBase } from './parser-base';
+import { OAssertion, OAssignment, ObjectBase, OCase, OConstant, OElseClause, OForLoop, OHasSequentialStatements, OIf, OIfClause, OInstantiation, OIRange, OLoop, OName, OReport, OReturn, OSequentialStatement, OWhenClause, OWhileLoop, ParserError } from './objects';
 import { ParserPosition } from './parser';
-import { OLexerToken } from '../lexer';
+import { ParserBase } from './parser-base';
 
 export class SequentialStatementParser extends ParserBase {
   constructor(pos: ParserPosition, file: string) {
@@ -122,7 +122,6 @@ export class SequentialStatementParser extends ParserBase {
     const assertion = new OAssertion(parent, this.getToken().range.copyExtendEndOfLine());
     assertion.reads = [];
     let assertionTokens = this.advanceSemicolonToken();
-    let startI = assertion.range.start.i;
     assertion.range = assertion.range.copyWithNewEnd(this.pos.i);
     const reportIndex = assertionTokens.findIndex(token => token.getLText() === 'report');
     if (reportIndex > -1) {
@@ -140,7 +139,7 @@ export class SequentialStatementParser extends ParserBase {
 
   parseReport(parent: OHasSequentialStatements | OIf): OReport {
     this.expect('report');
-    let report = new OReport(parent, this.getToken().range.copyExtendEndOfLine());
+    const report = new OReport(parent, this.getToken().range.copyExtendEndOfLine());
     const text = this.advanceSemicolonToken();
     report.reads = this.extractReads(report, text);
     report.range = report.range.copyWithNewEnd(this.pos.i);
@@ -149,7 +148,7 @@ export class SequentialStatementParser extends ParserBase {
 
   parseReturn(parent: OHasSequentialStatements | OIf): OReport {
     this.expect('return');
-    let _return = new OReturn(parent, this.getToken().range.copyExtendEndOfLine());
+    const _return = new OReturn(parent, this.getToken().range.copyExtendEndOfLine());
     const text = this.advanceSemicolonToken();
     _return.reads = this.extractReads(_return, text);
     _return.range = _return.range.copyWithNewEnd(this.pos.i);
@@ -158,12 +157,11 @@ export class SequentialStatementParser extends ParserBase {
 
   parseWait(parent: OHasSequentialStatements | OIf) {
     this.expect('wait');
-    let assignment = new OAssignment(parent, this.getToken().range.copyExtendEndOfLine());
+    const assignment = new OAssignment(parent, this.getToken().range.copyExtendEndOfLine());
     let nextWord = this.getNextWord({ consume: false });
 
     if (nextWord.toLowerCase() === 'on') { // Sensitivity Clause
       this.expect('on');
-      let rightHandSideI = this.pos.i;
       const [rightHandSide] = this.advanceBraceAwareToken(['until', 'for', ';'], true, false);
       assignment.reads.push(...this.extractReads(assignment, rightHandSide));
       nextWord = this.getNextWord({ consume: false });
@@ -171,7 +169,6 @@ export class SequentialStatementParser extends ParserBase {
 
     if (nextWord.toLowerCase() === 'until') {
       this.expect('until');
-      let rightHandSideI = this.pos.i;
       const [rightHandSide] = this.advanceBraceAwareToken(['for', ';'], true, false);
       assignment.reads.push(...this.extractReads(assignment, rightHandSide));
       nextWord = this.getNextWord({ consume: false });
@@ -180,7 +177,6 @@ export class SequentialStatementParser extends ParserBase {
 
     if (nextWord.toLowerCase() === 'for') {
       this.expect('for');
-      let rightHandSideI = this.pos.i;
       const [rightHandSide] = this.advanceBraceAwareToken([';'], true, false);
       assignment.reads.push(...this.extractReads(assignment, rightHandSide));
       nextWord = this.getNextWord({ consume: false });
@@ -193,8 +189,6 @@ export class SequentialStatementParser extends ParserBase {
   parseWhile(parent: OHasSequentialStatements | OIf, label?: string): OWhileLoop {
     const whileLoop = new OWhileLoop(parent, this.getToken().range.copyExtendEndOfLine());
     this.expect('while');
-    const startI = this.pos.i;
-    const position = this.pos.i;
     const condition = this.advancePastToken('loop');
     whileLoop.conditionReads = this.extractReads(whileLoop, condition);
     whileLoop.statements = this.parse(whileLoop, ['end']);
@@ -232,7 +226,6 @@ export class SequentialStatementParser extends ParserBase {
     const if_ = new OIf(parent, this.getToken().range.copyExtendEndOfLine());
     const clause = new OIfClause(if_, this.getToken().range.copyExtendEndOfLine());
     this.expect('if');
-    const position = this.pos.i;
     clause.condition = this.advancePastToken('then');
     clause.conditionReads = this.extractReads(clause, clause.condition);
     clause.statements = this.parse(clause, ['else', 'elsif', 'end']);
@@ -243,7 +236,6 @@ export class SequentialStatementParser extends ParserBase {
       const clause = new OIfClause(if_, this.getToken().range.copyExtendEndOfLine());
 
       this.expect('elsif');
-      const position = this.pos.i;
       clause.condition = this.advancePastToken('then');
       clause.conditionReads = this.extractReads(clause, clause.condition);
       clause.statements = this.parse(clause, ['else', 'elsif', 'end']);
@@ -270,7 +262,6 @@ export class SequentialStatementParser extends ParserBase {
   parseCase(parent: ObjectBase, label?: string): OCase {
     this.debug(`parseCase ${label}`);
     const case_ = new OCase(parent, this.getToken().range.copyExtendEndOfLine());
-    const posI = this.pos.i;
     case_.variable = this.extractReads(case_, this.advancePastToken('is'));
     // this.debug(`Apfel`);
 
@@ -278,7 +269,6 @@ export class SequentialStatementParser extends ParserBase {
     while (nextWord === 'when') {
       this.debug(`parseWhen`);
       const whenClause = new OWhenClause(case_, this.getToken().range.copyExtendEndOfLine());
-      const pos = this.pos.i;
       whenClause.condition = this.extractReads(whenClause, this.advancePastToken('=>'));
       whenClause.statements = this.parse(whenClause, ['when', 'end']);
       whenClause.range = whenClause.range.copyWithNewEnd(this.getToken(-1, true).range.end);

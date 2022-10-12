@@ -1,8 +1,8 @@
 import { ContextReferenceParser } from './context-reference-parser';
-import { OI, ObjectBase, OContext, OName, OFile, OIRange } from './objects';
+import { OContext, OFile, OIRange, OName } from './objects';
+import { ParserPosition } from './parser';
 import { ParserBase } from './parser-base';
 import { UseClauseParser } from './use-clause-parser';
-import { ParserPosition } from './parser';
 
 export class ContextParser extends ParserBase {
   constructor(pos: ParserPosition, file: string, private parent: OFile) {
@@ -12,7 +12,6 @@ export class ContextParser extends ParserBase {
 
   parse() {
     const context = new OContext(this.parent, new OIRange(this.parent, this.pos.i, this.pos.i));
-    const savedI = this.pos.i;
     const name = this.consumeToken();
     context.name = new OName(context, name.range);
     context.name.text = name.text;

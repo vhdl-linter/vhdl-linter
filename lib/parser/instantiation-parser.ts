@@ -1,5 +1,5 @@
 import { AssociationListParser } from './association-list-parser';
-import { OArchitecture, OAssociation, OAssociationFormal, ObjectBase, OEntity, OGenericAssociationList, OI, OInstantiation, OIRange, OName, OPortAssociationList, ParserError } from './objects';
+import { OArchitecture, OEntity, OInstantiation, OIRange, OName, ParserError } from './objects';
 import { ParserBase } from './parser-base';
 import { ParserPosition } from './parser';
 

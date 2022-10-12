@@ -1,6 +1,6 @@
 import { CompletionItem, CompletionItemKind, CompletionParams, InsertTextFormat, Position, Range, ErrorCodes } from 'vscode-languageserver';
 import { documents, initialization, linters, projectParser, connection } from '../language-server';
-import { implementsIHasConstants, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables, ORecord, OEnum, OFile, OName, OArchitecture, OEntity, ObjectBase } from '../parser/objects';
+import { implementsIHasConstants, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables, ORecord, OEnum, OFile, OArchitecture, OEntity, implementsIHasName, ObjectBase } from '../parser/objects';
 
 export function attachOnCompletion() {
   connection.onCompletion(async (params: CompletionParams, token): Promise<CompletionItem[]> => {
@@ -14,7 +14,7 @@ export function attachOnCompletion() {
     if (document) {
       const range = Range.create(Position.create(params.position.line, 0), Position.create(params.position.line + 1, 0));
       const line = document.getText(range);
-      let match = line.match(/^(\s*)-*\s*(.*)/);
+      const match = line.match(/^(\s*)-*\s*(.*)/);
       if (match) {
         completions.push({
           label: 'Block comment',
@@ -29,13 +29,9 @@ export function attachOnCompletion() {
 
     const linter = linters.get(params.textDocument.uri);
     if (typeof linter === 'undefined') {
-      debugger;
-
       return completions;
     }
     if (typeof linter.file === 'undefined') {
-      debugger;
-
       return completions;
     }
     if (document) {
@@ -51,7 +47,7 @@ export function attachOnCompletion() {
       completions.push({ label: 'work' });
     }
 
-    let startI = linter.getIFromPosition(params.position);
+    const startI = linter.getIFromPosition(params.position);
     const candidates = linter.file.objectList.filter(object => object.range.start.i <= startI && startI <= object.range.end.i);
     candidates.sort((a, b) => (a.range.end.i - a.range.start.i) - (b.range.end.i - b.range.start.i));
     const obj = candidates[0];
@@ -110,7 +106,6 @@ export function attachOnCompletion() {
       counter--;
       if (counter === 0) {
         //        console.log(parent, parent.parent);
-        debugger;
         throw new Error('Infinite Loop?');
       }
     }
@@ -143,10 +138,9 @@ export function attachOnCompletion() {
     for (const pkg of linter.packages) {
       const ieee = pkg.parent.file.match(/ieee/i) !== null;
       for (const obj of pkg.getRoot().objectList) {
-        if ((obj as any).name) {
-          const text = (obj as any).name instanceof OName ? (obj as any).name.text : (obj as any).name;
+        if (implementsIHasName(obj)) {
           completions.push({
-            label: ieee ? text.toLowerCase() : text,
+            label: ieee ? obj.name.text.toLowerCase() : obj.name.text,
             kind: CompletionItemKind.Text
           });
         }
