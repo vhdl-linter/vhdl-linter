@@ -2,8 +2,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.pkg_genericStuff.all;
-
 entity test is
   generic (
    package pkg_instanceFromGeneric is new work.pkg_genericStuff
@@ -22,6 +20,6 @@ architecture arch of test is
   signal test1 : pkg_instanceInArch.t_testData;
   signal test2 : pkg_instanceFromGeneric.t_testData;
 begin
-  test1 <= test2;
-  test2 <= test1;
+  test1 <= test1;
+  test2 <= test2;
 end arch;
