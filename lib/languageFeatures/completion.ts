@@ -1,6 +1,6 @@
 import { CompletionItem, CompletionItemKind, CompletionParams, InsertTextFormat, Position, Range, ErrorCodes } from 'vscode-languageserver';
 import { documents, initialization, linters, projectParser, connection } from '../language-server';
-import { implementsIHasConstants, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables, ORecord, OEnum, OFile, OArchitecture, OEntity, implementsIHasName, ObjectBase } from '../parser/objects';
+import { implementsIHasConstants, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables, ORecord, OEnum, OFile, OName, OArchitecture, OEntity, ObjectBase, implementsIHasName } from '../parser/objects';
 
 export function attachOnCompletion() {
   connection.onCompletion(async (params: CompletionParams, token): Promise<CompletionItem[]> => {
