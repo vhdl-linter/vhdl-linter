@@ -4,13 +4,13 @@ import { ParserPosition } from './parser';
 
 
 export class AssociationListParser extends ParserBase {
-  constructor(pos: ParserPosition, file: string, private parent: OInstantiation|OPackage|OPackageInstantiation) {
+  constructor(pos: ParserPosition, file: string, private parent: OInstantiation | OPackage | OPackageInstantiation) {
     super(pos, file);
     this.debug(`start`);
   }
   parse(type: 'port' | 'generic' = 'port') {
     const braceToken = this.expectToken('(');
-    
+
     const list = type === 'generic' ? new OGenericAssociationList(this.parent, braceToken.range) : new OPortAssotiationList(this.parent, braceToken.range);
 
     while (this.pos.isValid()) {

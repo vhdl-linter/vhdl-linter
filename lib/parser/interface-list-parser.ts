@@ -59,7 +59,7 @@ export class InterfaceListParser extends ParserBase {
         this.maybeWord(';');
       } else if (nextWord === 'package') { // TODO: Handle correctly
         if (implementsIHasPackageInstantiations(this.parent)) {
-          this.parent.packageInstantiations.push(new PackageInstantiationParser(this.pos, this.filePath, this.parent).parse())
+          this.parent.packageInstantiations.push(new PackageInstantiationParser(this.pos, this.filePath, this.parent).parse());
         } else {
           this.advanceBraceAwareToken([';', ')'], true, false);
         }
