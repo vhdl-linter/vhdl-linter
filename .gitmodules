@@ -1,0 +1,4 @@
+
+[submodule "test/test_files/test_no_error/OSVVM"]
+	path = test/test_files/test_no_error/OSVVM
+	url = https://github.com/OSVVM/OSVVM.git
