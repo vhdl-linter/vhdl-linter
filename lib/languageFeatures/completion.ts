@@ -1,6 +1,6 @@
 import { CompletionItem, CompletionItemKind, CompletionParams, InsertTextFormat, Position, Range, ErrorCodes } from 'vscode-languageserver';
 import { documents, initialization, linters, projectParser, connection } from '../language-server';
-import { implementsIHasConstants, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables, ORecord, OEnum, OFile, OName, OArchitecture, OEntity, ObjectBase } from '../parser/objects';
+import { implementsIHasConstants, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables, ORecord, OEnum, OFile, OArchitecture, OEntity, implementsIHasName, ObjectBase } from '../parser/objects';
 
 export function attachOnCompletion() {
   connection.onCompletion(async (params: CompletionParams, token): Promise<CompletionItem[]> => {
@@ -138,12 +138,9 @@ export function attachOnCompletion() {
     for (const pkg of linter.packages) {
       const ieee = pkg.parent.file.match(/ieee/i) !== null;
       for (const obj of pkg.getRoot().objectList) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        if ((obj as any).name) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const text = (obj as any).name instanceof OName ? (obj as any).name.text : (obj as any).name;
+        if (implementsIHasName(obj)) {
           completions.push({
-            label: ieee ? text.toLowerCase() : text,
+            label: ieee ? obj.name.text.toLowerCase() : obj.name.text,
             kind: CompletionItemKind.Text
           });
         }
