@@ -1,6 +1,6 @@
-import { OAssignment, ObjectBase, OI, ParserError } from './objects';
-import { ParserBase } from './parser-base';
+import { OAssignment, ObjectBase } from './objects';
 import { ParserPosition } from './parser';
+import { ParserBase } from './parser-base';
 
 export class AssignmentParser extends ParserBase {
   constructor(pos: ParserPosition, file: string, private parent: ObjectBase) {
@@ -9,7 +9,7 @@ export class AssignmentParser extends ParserBase {
   }
   parse(): OAssignment {
     this.debug('parse');
-    let assignment = new OAssignment(this.parent, this.getToken().range.copyExtendEndOfLine());
+    const assignment = new OAssignment(this.parent, this.getToken().range.copyExtendEndOfLine());
     let leftHandSideNum = this.pos.num;
     this.findToken(['<=', ':=']);
     const leftHandSideTokens = [];

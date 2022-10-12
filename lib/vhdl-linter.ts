@@ -4,8 +4,8 @@ import {
   Command, Diagnostic, DiagnosticSeverity, Position, Range, TextEdit
 } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
-import { getDocumentSettings, CancelationObject, CancelationError } from './language-server';
-import { implementsIHasInstantiations, implementsIHasSubprograms, implementsIMentionable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, ObjectBase, OCase, OComponent, OConstant, OContext, OEntity, OEnum, OFile, OGeneric, OGenericAssociationList, OHasSequentialStatements, OIf, OInstantiation, OPackage, OPackageBody, OPort, OPortAssociationList, OProcess, ORead, ORecord, OSignal, OSignalBase, OSubprogram, OType, OUseClause, OWhenClause, OWrite, ParserError, OToken, OAssociationList, OIRange, OVariable, OI, implementsIHasSignals, implementsIHasVariables, implementsIHasConstants, implementsIHasTypes, implementsIHasUseClause, IHasUseClauses, IHasContextReference, implementsIHasContextReference, implementsIHasName, IHasName } from './parser/objects';
+import { CancelationError, CancelationObject, getDocumentSettings } from './language-server';
+import { IHasContextReference, IHasName, IHasUseClauses, implementsIHasConstants, implementsIHasContextReference, implementsIHasInstantiations, implementsIHasName, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasUseClause, implementsIHasVariables, implementsIMentionable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, OAssociationList, ObjectBase, OCase, OComponent, OConstant, OEntity, OEnum, OFile, OGeneric, OGenericAssociationList, OHasSequentialStatements, OI, OIf, OInstantiation, OIRange, OPackage, OPackageBody, OPort, OPortAssociationList, OProcess, ORead, OSignal, OSignalBase, OSubprogram, OToken, OType, OVariable, OWrite, ParserError } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 export enum LinterRules {
@@ -24,12 +24,13 @@ export interface IIgnoreLineCommandArguments {
   range: Range;
 }
 export type diagnosticCodeActionCallback = (textDocumentUri: string) => CodeAction[];
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type commandCallback = (textDocumentUri: string, ...args: any[]) => TextEdit[];
 export class VhdlLinter {
   messages: Diagnostic[] = [];
   file: OFile;
   parser: Parser;
-  parsedSuccessfully: boolean = false;
+  parsedSuccessfully = false;
   packages: (OPackage | OPackageBody)[] = [];
   constructor(private editorPath: string, public text: string, public projectParser: ProjectParser,
     public onlyEntity: boolean = false, public cancelationObject: CancelationObject = { canceled: false }) {
@@ -127,6 +128,7 @@ export class VhdlLinter {
 
     if (this.checkMagicComments(diagnostic.range, rule, parameter)) {
       const newCode = this.addCodeActionCallback((textDocumentUri: string) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const actions = [] as any[];
         // [textDocumentUri]: [TextEdit.replace(Range.create(write.range.start, write.range.end), bestMatch.bestMatch.target)]
         actions.push(CodeAction.create(
@@ -199,7 +201,7 @@ export class VhdlLinter {
     }
     await this.handleCanceled();
 
-    let start = Date.now();
+    // const start = Date.now();
     // Map architectures to entity
     for (const architecture of this.file.architectures) {
       if (architecture.entityName === undefined) {
@@ -280,7 +282,7 @@ export class VhdlLinter {
     // console.log(`elab: otherFileEntity for: ${Date.now() - start} ms.`);
     // start = Date.now();
 
-    const readObjectMap = new Map<String, ObjectBase>();
+    const readObjectMap = new Map<string, ObjectBase>();
     for (const pkg of packages) {
       for (const constant of pkg.constants) {
         readObjectMap.set(constant.name.text.toLowerCase(), constant);
@@ -323,13 +325,14 @@ export class VhdlLinter {
 
     for (const instantiation of this.file.objectList.filter(object => object instanceof OInstantiation) as OInstantiation[]) {
       switch (instantiation.type) {
-        case 'component':
+        case 'component': {
           const components = this.getComponents(instantiation);
           instantiation.definitions.push(...components);
           for (const component of components) {
             component.references.push(instantiation);
           }
           break;
+        }
         case 'entity':
           instantiation.definitions.push(...this.getEntities(instantiation));
           break;
@@ -364,9 +367,9 @@ export class VhdlLinter {
         if (!(association.parent.parent instanceof OInstantiation)) {
           continue;
         }
-        let definitions = association.parent.parent.definitions;
+        const definitions = association.parent.parent.definitions;
 
-        let possibleFormals: (OPort | OGeneric)[] = [];
+        const possibleFormals: (OPort | OGeneric)[] = [];
         possibleFormals.push(...definitions.flatMap(definition => {
           let elements: (OPort | OGeneric)[] = [];
           if (association.parent instanceof OPortAssociationList) {
@@ -873,7 +876,6 @@ export class VhdlLinter {
     for (const entity of this.file.entities) {
       signalLike = signalLike.concat(entity.ports);
     }
-    const processes = this.file.objectList.filter(object => object instanceof OProcess) as OProcess[];
     const signalsMissingReset = signalLike.filter(signal => {
       if (typeof signal.registerProcess === 'undefined') {
         return false;
@@ -929,8 +931,6 @@ export class VhdlLinter {
       if (architecture.correspondingEntity !== undefined) {
         signalLike = signalLike.concat(architecture.correspondingEntity.ports);
       }
-      const processes = this.file.objectList.filter(object => object instanceof OProcess) as OProcess[];
-
       for (const signal of signalLike) {
         if (typeof signal.registerProcess === 'undefined') {
           continue;
@@ -967,7 +967,7 @@ export class VhdlLinter {
               resetValue = `0`;
             }
             if (resetValue !== null && typeof registerProcess.resetClause !== 'undefined') {
-              let positionStart = Position.create(registerProcess.resetClause.range.start.line, registerProcess.resetClause.range.start.character);
+              const positionStart = Position.create(registerProcess.resetClause.range.start.line, registerProcess.resetClause.range.start.character);
               positionStart.line++;
               const indent = positionStart.character + 2;
               positionStart.character = 0;
@@ -983,7 +983,6 @@ export class VhdlLinter {
             }
             return actions;
           });
-          const endCharacter = this.text.split('\n')[registerProcess.range.start.line].length;
           const range = registerProcess.range.getLimitedRange(1);
           const message = `Reset '${signal.name}' missing`;
           this.addMessage({
@@ -1284,6 +1283,7 @@ export class VhdlLinter {
                 return actions;
               });
               this.addMessage({
+                code,
                 range: port.name.range,
                 severity: DiagnosticSeverity.Information,
                 message: `ouput port '${port.name}' should match output regex ${portSettings.outRegex}`
@@ -1297,7 +1297,6 @@ export class VhdlLinter {
   async checkPortType() {
     for (const entity of this.file.entities) {
 
-      const tree = this.file;
       const settings = (await getDocumentSettings(URI.file(this.editorPath).toString()));
       if (settings.rules.warnLogicType) {
         for (const port of entity.ports ?? []) {
@@ -1603,8 +1602,8 @@ export class VhdlLinter {
     }
   }
   getIFromPosition(p: Position): number {
-    let text = this.text.split('\n').slice(0, p.line);
-    let i = text.join('\n').length + p.character;
+    const text = this.text.split('\n').slice(0, p.line);
+    const i = text.join('\n').length + p.character;
     return i;
   }
 }

@@ -1,8 +1,8 @@
-import { DeclarativePartParser } from './declarative-part-parser';
-import { OArchitecture, OEntity, OEnum, OI, OName, OPackage, OPackageBody, OProcess, ORecord, ORecordChild, OEnumLiteral, OSubprogram, OType, ParserError, OPort, OIRange } from './objects';
-import { ParserBase } from './parser-base';
-import { ParserPosition } from './parser';
 import { OLexerToken } from '../lexer';
+import { DeclarativePartParser } from './declarative-part-parser';
+import { OArchitecture, OEntity, OEnum, OEnumLiteral, OIRange, OName, OPackage, OPackageBody, OPort, OProcess, ORecord, ORecordChild, OSubprogram, OType, ParserError } from './objects';
+import { ParserPosition } from './parser';
+import { ParserBase } from './parser-base';
 
 
 export class TypeParser extends ParserBase {
@@ -27,7 +27,6 @@ export class TypeParser extends ParserBase {
   parse(): OType {
     const type = new OType(this.parent, this.getToken().range.copyExtendEndOfLine());
     this.getNextWord();
-    const startTypeName = this.pos.i;
     const typeName = this.consumeToken();
     type.name = new OName(type, typeName.range);
     type.name.text = typeName.text;
@@ -40,15 +39,12 @@ export class TypeParser extends ParserBase {
         this.expect('(');
         Object.setPrototypeOf(type, OEnum.prototype);
         const enumItems: OLexerToken[] = [];
-        let i = this.pos.i;
-        let lastI = i;
         while (this.pos.isValid()) {
           if (this.getToken().getLText() === '\'') {
             this.consumeToken();
           }
           if (this.getToken().getLText() === ',') {
             enumItems.push(this.getToken(-1, true));
-            lastI = i + 1;
           }
           if (this.getToken().getLText() === ')') {
             enumItems.push(this.getToken(-1, true));
@@ -85,7 +81,6 @@ export class TypeParser extends ParserBase {
         if (nextWord === 'record') {
           Object.setPrototypeOf(type, ORecord.prototype);
           (type as ORecord).children = [];
-          let position = this.pos.i;
           let recordToken = this.consumeToken();
           while (recordToken.getLText() !== 'end') {
             const child = new ORecordChild(type, recordToken.range);
@@ -94,13 +89,11 @@ export class TypeParser extends ParserBase {
             (type as ORecord).children.push(child);
             this.advanceSemicolonToken();
             child.range = child.range.copyWithNewEnd(this.pos.i);
-            position = this.pos.i;
             recordToken = this.consumeToken();
           }
           this.maybeWord('record');
           this.maybeWord(type.name.text);
         } else if (nextWord === 'array') {
-          const startI = this.pos.i;
           const [token] = this.advanceBraceAwareToken([';'], true, false);
           type.reads.push(...this.extractReads(type, token));
         } else if (nextWord === 'protected') {

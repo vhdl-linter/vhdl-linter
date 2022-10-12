@@ -36,7 +36,7 @@ export function copy(type: CopyTypes) {
 }
 function longestinArray(array: OPort[]|OGeneric[]) {
     let longest = 0;
-    for (let object of array) {
+    for (const object of array) {
         if (object.name.text.length > longest) {
             longest = object.name.text.length;
         }
@@ -50,7 +50,7 @@ function instanceTemplate(entity: OEntity) {
     if (entity.generics.length > 0) {
         text += `\ngeneric map (\n`;
         const longest = longestinArray(entity.generics);
-        for (let generic of entity.generics) {
+        for (const generic of entity.generics) {
             const name = generic.name.text.padEnd(longest, ' ');
             text += `${indentString}${name} => ${generic.name},\n`;
         }
@@ -62,7 +62,7 @@ function instanceTemplate(entity: OEntity) {
     if (entity.ports.length > 0) {
         text += `\nport map (\n`;
         const longest = longestinArray(entity.ports);
-        for (let port of entity.ports) {
+        for (const port of entity.ports) {
             const name = port.name.text.padEnd(longest, ' ');
             text += `${indentString}${name} => ${port.name},\n`;
         }
@@ -81,7 +81,7 @@ function sysVerilogTemplate(entity: OEntity) {
     if (entity.generics.length > 0) {
         text += ` #(\n`;
         const longest = longestinArray(entity.generics);
-        for (let generic of entity.generics) {
+        for (const generic of entity.generics) {
             const name = generic.name.text.padEnd(longest, ' ');
             text += `${indentString}.${name}(dut_${generic.name}),\n`;
         }
@@ -93,7 +93,7 @@ function sysVerilogTemplate(entity: OEntity) {
     if (entity.ports.length > 0) {
         text += ` i_dut (\n`;
         const longest = longestinArray(entity.ports);
-        for (let port of entity.ports) {
+        for (const port of entity.ports) {
             const name = port.name.text.padEnd(longest, ' ');
             text += `${indentString}.${name}(dut_s_${port.name}),\n`;
         }
@@ -109,7 +109,7 @@ function signalsTemplate(entity: OEntity) {
     let text = '';
     if (entity.ports.length > 0) {
         const longest = longestinArray(entity.ports);
-        for (let port of entity.ports) {
+        for (const port of entity.ports) {
             const name = port.name.text.padEnd(longest, ' ');
             text += `signal s_${name} : ${port.type};\n`;
         }

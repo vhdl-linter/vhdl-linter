@@ -1,4 +1,4 @@
-import { IHasConstants, IHasSignals, IHasVariables, implementsIHasConstants, implementsIHasSignals, implementsIHasVariables, OConstant, OI, OName, OSignal, OVariable, ParserError, IHasFileVariables, OFileVariable, implementsIHasFileVariables, ORead } from './objects';
+import { IHasConstants, IHasSignals, IHasVariables, implementsIHasConstants, implementsIHasSignals, implementsIHasVariables, OConstant, OName, OSignal, OVariable, ParserError, IHasFileVariables, OFileVariable, implementsIHasFileVariables, ORead } from './objects';
 import { ParserBase } from './parser-base';
 import { ParserPosition } from './parser';
 
@@ -52,7 +52,6 @@ export class ObjectDeclarationParser extends ParserBase {
     } while (this.getToken().getLText() === ',');
     this.expect(':');
     if (file) {
-      let startI = this.pos.i;
       const typeText = this.consumeToken();
       for (const file of objects) {
         const typeRead = new ORead(file, typeText.range, typeText.text);

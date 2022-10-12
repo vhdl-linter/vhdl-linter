@@ -1,9 +1,9 @@
+import { OLexerToken } from '../lexer';
 import { ConcurrentStatementParser, ConcurrentStatementTypes } from './concurrent-statement-parser';
 import { DeclarativePartParser } from './declarative-part-parser';
-import { OArchitecture, OBlock, OCaseGenerate, OConstant, OFile, OForGenerate, OI, OIfGenerate, OIfGenerateClause, OName, ORead, OVariable, OWhenGenerateClause, ParserError } from './objects';
-import { ParserBase } from './parser-base';
+import { OArchitecture, OBlock, OCaseGenerate, OConstant, OFile, OForGenerate, OI, OIfGenerate, OIfGenerateClause, OName, ORead, OWhenGenerateClause, ParserError } from './objects';
 import { ParserPosition } from './parser';
-import { OLexerToken } from '../lexer';
+import { ParserBase } from './parser-base';
 
 export class ArchitectureParser extends ParserBase {
   entityName: string;
@@ -34,7 +34,7 @@ export class ArchitectureParser extends ParserBase {
       if (this.parent instanceof OFile) {
         throw new ParserError(`For Generate can not be top level architecture!`, this.pos.getRangeToEndLine());
       }
-      const { constantName, constantRange, startPosI } = forConstant;
+      const { constantName, constantRange } = forConstant;
       this.architecture = new OForGenerate(this.parent as OArchitecture, this.getToken().range.copyExtendEndOfLine(), constantRange);
       const iterateConstant = new OConstant(this.architecture, constantName.range);
       iterateConstant.type = [];
@@ -58,7 +58,7 @@ export class ArchitectureParser extends ParserBase {
 
     while (this.pos.isValid()) {
       this.advanceWhitespace();
-      let nextWord = this.getNextWord({ consume: false }).toLowerCase();
+      const nextWord = this.getNextWord({ consume: false }).toLowerCase();
       if (nextWord === 'end') {
         if (structureName === 'when-generate') {
           break;

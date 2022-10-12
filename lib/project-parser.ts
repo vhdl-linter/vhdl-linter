@@ -2,7 +2,7 @@ import { FSWatcher, watch } from 'chokidar';
 import { EventEmitter } from 'events';
 import { promises, readFileSync } from 'fs';
 import { join, sep } from 'path';
-import { OContext, OEntity, OFile, OPackage, OPackageBody, OSubprogram } from './parser/objects';
+import { OContext, OEntity, OPackage, OPackageBody } from './parser/objects';
 import { VhdlLinter } from './vhdl-linter';
 
 export class ProjectParser {
@@ -14,7 +14,7 @@ export class ProjectParser {
   events = new EventEmitter();
   constructor(public workspaces: string[], public fileIgnoreRegex: string) { }
   async init() {
-    let files = new Set<string>();
+    const files = new Set<string>();
     await Promise.all(this.workspaces.map(async (directory) => {
       // console.log('dir', directory);
       const directories = await this.parseDirectory(directory);
@@ -30,7 +30,7 @@ export class ProjectParser {
     }
 
     for (const file of files) {
-      let cachedFile = new OFileCache(file, this);
+      const cachedFile = new OFileCache(file, this);
       this.cachedFiles.push(cachedFile);
     }
     this.cachedFiles.sort((a, b) => b.lintingTime - a.lintingTime);
@@ -39,7 +39,7 @@ export class ProjectParser {
     for (const workspace of this.workspaces) {
       const watcher = watch(workspace.replace(sep, '/') + '/**/*.vhd', { ignoreInitial: true });
       watcher.on('add', async (path) => {
-        let cachedFile = new OFileCache(path, this);
+        const cachedFile = new OFileCache(path, this);
         this.cachedFiles.push(cachedFile);
         this.fetchEntitesAndPackagesAndContexts();
         this.events.emit('change', 'add', path);

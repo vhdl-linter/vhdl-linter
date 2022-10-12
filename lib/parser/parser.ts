@@ -2,7 +2,7 @@ import { ArchitectureParser } from './architecture-parser';
 import { ContextParser } from './context-parser';
 import { ContextReferenceParser } from './context-reference-parser';
 import { EntityParser } from './entity-parser';
-import { MagicCommentType, OArchitecture, OContextReference, OEntity, OFile, OI, OIRange, OMagicCommentDisable, OMagicCommentParameter, OMagicCommentTodo, OPackage, OPackageBody, OUseClause, ParserError, OConfiguration } from './objects';
+import { MagicCommentType, OFile, OI, OIRange, OMagicCommentDisable, OMagicCommentParameter, OMagicCommentTodo, ParserError, OConfiguration } from './objects';
 import { PackageParser } from './package-parser';
 import { ParserBase } from './parser-base';
 import { UseClauseParser } from './use-clause-parser';
@@ -12,10 +12,7 @@ import { Lexer, OLexerToken } from '../lexer';
 export class ParserPosition {
   public lexerTokens: OLexerToken[];
   public file: OFile;
-  constructor() {
-
-  }
-  public num: number = 0;
+  public num = 0;
   public get i() {
     if (this.num >= this.lexerTokens.length) {
       throw new ParserError(`I out of range`, this.lexerTokens[this.lexerTokens.length - 1].range);
@@ -53,7 +50,7 @@ export class Parser extends ParserBase {
   parse(): OFile {
 
     let disabledRangeStart = undefined;
-    let ignoreRegex: RegExp[] = [];
+    const ignoreRegex: RegExp[] = [];
     for (const [lineNumber, line] of this.originalText.split('\n').entries()) {
       let match = /(--\s*vhdl-linter)(.*)/.exec(line); // vhdl-linter-disable-next-line //vhdl-linter-disable-this-line
 
@@ -70,7 +67,7 @@ export class Parser extends ParserBase {
           }
         } else if ((innerMatch = match[2].match('-enable-region')) !== null) {
           if (disabledRangeStart !== undefined) {
-            let disabledRange = new OIRange(this.file, new OI(this.file, disabledRangeStart, 0), new OI(this.file, lineNumber, line.length - 1));
+            const disabledRange = new OIRange(this.file, new OI(this.file, disabledRangeStart, 0), new OI(this.file, lineNumber, line.length - 1));
             this.file.magicComments.push(new OMagicCommentDisable(this.file, MagicCommentType.Disable, disabledRange));
             disabledRangeStart = undefined;
           }
@@ -88,12 +85,12 @@ export class Parser extends ParserBase {
           //   return read;
           // });
           this.file.magicComments.push(new OMagicCommentParameter(this.file, MagicCommentType.Parameter, nextLineRange, parameter));
-        } else if ((innerMatch = match[2].match(/-ignore\s+\/([^\/]*)\/(.)?/)) !== null) {
+        } else if ((innerMatch = match[2].match(/-ignore\s+\/([^/]*)\/(.)?/)) !== null) {
           ignoreRegex.push(RegExp(innerMatch[1], innerMatch[2]));
         }
       }
       if (disabledRangeStart !== undefined) {
-        let disabledRange = new OIRange(this.file, new OI(this.file, disabledRangeStart, 0), new OI(this.file, this.originalText.length - 1));
+        const disabledRange = new OIRange(this.file, new OI(this.file, disabledRangeStart, 0), new OI(this.file, this.originalText.length - 1));
         this.file.magicComments.push(new OMagicCommentDisable(this.file, MagicCommentType.Disable, disabledRange));
         disabledRangeStart = undefined;
       }
@@ -116,15 +113,12 @@ export class Parser extends ParserBase {
     if (this.text.length > 500 * 1024) {
       throw new ParserError('this.file too large', this.pos.getRangeToEndLine());
     }
-    let entity: OEntity | undefined;
-    let architecture: OArchitecture | undefined;
-    const packages: (OPackage | OPackageBody)[] = [];
     let contextReferences = [];
     let useClauses = [];
 
     while (this.pos.isValid()) {
       this.advanceWhitespace();
-      let nextWord = this.getNextWord().toLowerCase();
+      const nextWord = this.getNextWord().toLowerCase();
       if (nextWord === 'context') {
         if (this.advanceSemicolonToken(true, { consume: false }).find(token => token.getLText() === 'is')) {
           const contextParser = new ContextParser(this.pos, this.filePath, this.file);

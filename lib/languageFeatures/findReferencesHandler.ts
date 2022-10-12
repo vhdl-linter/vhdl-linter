@@ -11,7 +11,7 @@ export async function findReferences(params: { textDocument: TextDocumentIdentif
   if (typeof linter.file === 'undefined') {
     return [];
   }
-  let startI = linter.getIFromPosition(params.position);
+  const startI = linter.getIFromPosition(params.position);
   const candidates = linter.file.objectList.filter(object => object.range.start.i <= startI && startI <= object.range.end.i);
   candidates.sort((a, b) => (a.range.end.i - a.range.start.i) - (b.range.end.i - b.range.start.i));
   let candidate = candidates[0];
@@ -48,7 +48,7 @@ export async function prepareRenameHandler(params: TextDocumentPositionParams) {
   if (typeof linter.file === 'undefined') {
     throw new ResponseError(ErrorCodes.InvalidRequest, 'Parser not ready', 'Parser not ready');
   }
-  let startI = linter.getIFromPosition(params.position);
+  const startI = linter.getIFromPosition(params.position);
   const candidates = linter.file.objectList.filter(object => object.range.start.i <= startI && startI <= object.range.end.i);
   candidates.sort((a, b) => (a.range.end.i - a.range.start.i) - (b.range.end.i - b.range.start.i));
   const candidate = candidates[0];

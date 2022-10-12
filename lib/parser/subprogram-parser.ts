@@ -1,6 +1,6 @@
 import { DeclarativePartParser } from './declarative-part-parser';
 import { InterfaceListParser } from './interface-list-parser';
-import { ObjectBase, OI, OName, OSubprogram } from './objects';
+import { ObjectBase, OName, OSubprogram } from './objects';
 import { ParserBase } from './parser-base';
 import { SequentialStatementParser } from './sequential-statement-parser';
 import { ParserPosition } from './parser';
@@ -11,13 +11,12 @@ export class SubprogramParser extends ParserBase {
     this.debug(`start`);
 
   }
-  parse(startI: number): OSubprogram {
+  parse(): OSubprogram {
     let nextWord = this.consumeToken();
     if (nextWord.getLText() === 'impure' || nextWord.getLText() === 'pure') {
       nextWord = this.consumeToken();
     }
     const isFunction = nextWord.getLText() === 'function';
-    const beforeNameI = this.pos.i;
     const name = this.consumeToken();
     const subprogram = new OSubprogram(this.parent, nextWord.range.copyExtendEndOfLine());
     subprogram.name = new OName(subprogram, name.range);

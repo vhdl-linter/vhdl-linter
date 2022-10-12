@@ -1,9 +1,7 @@
-import { ConcurrentStatementParser, ConcurrentStatementTypes } from './concurrent-statement-parser';
-import { DeclarativePartParser } from './declarative-part-parser';
 import { InterfaceListParser } from './interface-list-parser';
-import { IHasComponents, OArchitecture, OComponent, OEntity, OI, OIRange, OName, ParserError } from './objects';
-import { ParserBase } from './parser-base';
+import { IHasComponents, OComponent, OIRange, OName, ParserError } from './objects';
 import { ParserPosition } from './parser';
+import { ParserBase } from './parser-base';
 
 export class ComponentParser extends ParserBase {
   constructor(pos: ParserPosition, file: string, private parent: IHasComponents) {
@@ -20,7 +18,7 @@ export class ComponentParser extends ParserBase {
     let lastI;
     while (this.pos.isValid()) {
       this.advanceWhitespace();
-      let nextWord = this.getNextWord({ consume: false }).toLowerCase();
+      const nextWord = this.getNextWord({ consume: false }).toLowerCase();
       const savedI = this.pos.i;
       if (nextWord === 'port') {
         this.getNextWord();

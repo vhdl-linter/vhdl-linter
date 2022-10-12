@@ -36,7 +36,7 @@ function blockFolding(text: string) {
   const foldBlock: [number, number][] = [];
   const foldCompact: [number, number][] = [];
   let indentBlockHeader: number|undefined = undefined;
-  let lastIndentBlockHeader: number = 0;
+  let lastIndentBlockHeader = 0;
   let indentCompactDivider: number|undefined = undefined;
   text.split('\n').forEach((line, index) => {
     const match = line.match(/^(\s*)(-*)(\s*[^-]*\s*)(-*)/);

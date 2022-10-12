@@ -1,4 +1,4 @@
-import { ObjectBase, OI, OName, ORead, OSubType, OIRange } from './objects';
+import { ObjectBase, OName, ORead, OSubType, OIRange } from './objects';
 import { ParserBase } from './parser-base';
 import { ParserPosition } from './parser';
 
@@ -11,7 +11,6 @@ export class SubtypeParser extends ParserBase {
   }
   parse() {
     this.expect('subtype');
-    const beforeNameText = this.pos.i;
     const nameText = this.consumeToken();
     this.subtype.name = new OName(this.subtype, nameText.range);
     this.subtype.name.text = nameText.text;
@@ -19,7 +18,6 @@ export class SubtypeParser extends ParserBase {
     if (this.getToken().getLText() === '(') { // funky vhdl stuff
       this.advancePast(')');
     }
-    const startISuperType = this.pos.i;
     const superType = this.consumeToken();
     this.subtype.range = this.subtype.range.copyWithNewEnd(this.pos.i);
     const tokens = this.advanceSemicolonToken(true);

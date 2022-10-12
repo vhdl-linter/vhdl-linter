@@ -14,7 +14,7 @@ export function attachOnCompletion() {
     if (document) {
       const range = Range.create(Position.create(params.position.line, 0), Position.create(params.position.line + 1, 0));
       const line = document.getText(range);
-      let match = line.match(/^(\s*)-*\s*(.*)/);
+      const match = line.match(/^(\s*)-*\s*(.*)/);
       if (match) {
         completions.push({
           label: 'Block comment',
@@ -29,13 +29,9 @@ export function attachOnCompletion() {
 
     const linter = linters.get(params.textDocument.uri);
     if (typeof linter === 'undefined') {
-      debugger;
-
       return completions;
     }
     if (typeof linter.file === 'undefined') {
-      debugger;
-
       return completions;
     }
     if (document) {
@@ -51,7 +47,7 @@ export function attachOnCompletion() {
       completions.push({ label: 'work' });
     }
 
-    let startI = linter.getIFromPosition(params.position);
+    const startI = linter.getIFromPosition(params.position);
     const candidates = linter.file.objectList.filter(object => object.range.start.i <= startI && startI <= object.range.end.i);
     candidates.sort((a, b) => (a.range.end.i - a.range.start.i) - (b.range.end.i - b.range.start.i));
     const obj = candidates[0];
@@ -110,7 +106,6 @@ export function attachOnCompletion() {
       counter--;
       if (counter === 0) {
         //        console.log(parent, parent.parent);
-        debugger;
         throw new Error('Infinite Loop?');
       }
     }
@@ -143,7 +138,9 @@ export function attachOnCompletion() {
     for (const pkg of linter.packages) {
       const ieee = pkg.parent.file.match(/ieee/i) !== null;
       for (const obj of pkg.getRoot().objectList) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if ((obj as any).name) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const text = (obj as any).name instanceof OName ? (obj as any).name.text : (obj as any).name;
           completions.push({
             label: ieee ? text.toLowerCase() : text,

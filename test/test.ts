@@ -1,5 +1,5 @@
 import { VhdlLinter } from '../lib/vhdl-linter';
-import { env, cwd } from 'process';
+import { cwd } from 'process';
 import { readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { ProjectParser } from '../lib/project-parser';

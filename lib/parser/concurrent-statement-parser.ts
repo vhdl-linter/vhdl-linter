@@ -1,10 +1,10 @@
 import { ArchitectureParser } from './architecture-parser';
 import { AssignmentParser } from './assignment-parser';
 import { InstantiationParser } from './instantiation-parser';
-import { OArchitecture, OCaseGenerate, OEntity, OForGenerate, OI, OIfGenerate, OIfGenerateClause, ORead, ParserError, OIRange } from './objects';
+import { OArchitecture, OCaseGenerate, OEntity, OForGenerate, OIfGenerate, OIfGenerateClause, OIRange, ORead, ParserError } from './objects';
+import { ParserPosition } from './parser';
 import { ParserBase } from './parser-base';
 import { ProcessParser } from './process-parser';
-import { ParserPosition } from './parser';
 export enum ConcurrentStatementTypes {
   Process,
   ProcedureInstantiation,
@@ -18,7 +18,7 @@ export class ConcurrentStatementParser extends ParserBase {
     super(pos, file);
     this.debug('start');
   }
-  parse(allowedStatements: ConcurrentStatementTypes[], previousArchitecture?: OArchitecture, returnOnWhen: boolean = false) {
+  parse(allowedStatements: ConcurrentStatementTypes[], previousArchitecture?: OArchitecture, returnOnWhen = false) {
     let nextWord = this.getNextWord({ consume: false }).toLowerCase();
 
     let label: string | undefined;
@@ -62,7 +62,7 @@ export class ConcurrentStatementParser extends ParserBase {
       }
 
       const startI = this.pos.i;
-      let [constantName] = this.advancePastToken('in');
+      const [constantName] = this.advancePastToken('in');
 
       const rangeToken = this.advancePastToken('generate');
       const constantRange = this.extractReads(this.parent, rangeToken);
@@ -108,8 +108,7 @@ export class ConcurrentStatementParser extends ParserBase {
     } else if (nextWord === 'if' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {
       const ifGenerate = new OIfGenerate(this.parent, new OIRange(this.parent, this.pos.i, this.pos.i));
       this.getNextWord();
-      let conditionI = this.pos.i;
-      let conditionTokens = this.advancePastToken('generate');
+      const conditionTokens = this.advancePastToken('generate');
       this.debug('parse if generate ' + label);
       const subarchitecture = new ArchitectureParser(this.pos, this.filePath, ifGenerate, label);
       const ifGenerateClause = subarchitecture.parse(true, 'generate');
@@ -137,8 +136,7 @@ export class ConcurrentStatementParser extends ParserBase {
       }
       previousArchitecture.range = previousArchitecture.range.copyWithNewEnd(this.getToken(-1, true).range.end);
 
-      let conditionI = this.pos.i;
-      let condition = this.advancePastToken('generate');
+      const condition = this.advancePastToken('generate');
       this.debug('parse elsif generate ' + label);
       const subarchitecture = new ArchitectureParser(this.pos, this.filePath, this.parent.parent, label);
       const ifGenerateObject = subarchitecture.parse(true, 'generate');
@@ -232,9 +230,7 @@ export class ConcurrentStatementParser extends ParserBase {
         try {
           this.parent.statements.push(assignment);
         } catch (err) {
-          debugger;
           throw new ParserError(`AAA`, this.pos.getRangeToEndLine());
-
         }
 
       } else {

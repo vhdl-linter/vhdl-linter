@@ -14,16 +14,16 @@ let client: LanguageClient;
 
 export function activate(context: ExtensionContext) {
   // The server is implemented in node
-  let serverModule = require.resolve('./language-server');
+  const serverModule = require.resolve('./language-server');
   // The debug options for the server
   // --inspect=6009: runs the server in Node's Inspector mode so VS Code can attach to the server for debugging
-  let debugOptions = { execArgv: ['--nolazy', '--inspect=6011', '--enable-source-maps'] };
+  const debugOptions = { execArgv: ['--nolazy', '--inspect=6011', '--enable-source-maps'] };
 
   // If the extension is launched in debug mode then the debug server options are used
   // Otherwise the run options are used
 
 
-  let serverOptions: ServerOptions = {
+  const serverOptions: ServerOptions = {
     run: {
       module: serverModule,
       transport: TransportKind.ipc,
@@ -36,7 +36,7 @@ export function activate(context: ExtensionContext) {
   };
 
   // Options to control the language client
-  let clientOptions: LanguageClientOptions = {
+  const clientOptions: LanguageClientOptions = {
     // Register the server for plain text documents
     documentSelector: [{ scheme: 'file', language: 'vhdl' }],
     synchronize: {
@@ -54,7 +54,7 @@ export function activate(context: ExtensionContext) {
   );
 
   // Start the client. This will also launch the server
-  let disposable = client.start();
+  const disposable = client.start();
   context.subscriptions.push(commands.registerCommand('vhdl-linter:add-signal', async (args: IAddSignalCommandArguments) => {
     const editor = window.activeTextEditor;
     if (!editor) {
