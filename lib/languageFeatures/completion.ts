@@ -1,6 +1,6 @@
 import { CompletionItem, CompletionItemKind, CompletionParams, InsertTextFormat, Position, Range, ErrorCodes } from 'vscode-languageserver';
 import { documents, initialization, linters, projectParser, connection } from '../language-server';
-import { implementsIHasConstants, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables, ORecord, OEnum, OFile, OName, OArchitecture, OEntity } from '../parser/objects';
+import { implementsIHasConstants, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables, ORecord, OEnum, OFile, OName, OArchitecture, OEntity, ObjectBase } from '../parser/objects';
 
 export function attachOnCompletion() {
   connection.onCompletion(async (params: CompletionParams, token): Promise<CompletionItem[]> => {
@@ -61,11 +61,7 @@ export function attachOnCompletion() {
 
     let parent = obj.parent;
     let counter = 100;
-    let architecture: undefined|OArchitecture = undefined;
     while ((parent instanceof OFile) === false) {
-      if (parent instanceof OArchitecture) {
-        architecture = parent;
-      }
       // console.log(parent instanceof OFile, parent);
       if (implementsIHasSignals(parent)) {
         for (const signal of parent.signals) {
@@ -107,7 +103,10 @@ export function attachOnCompletion() {
           }
         }
       }
-      parent = (parent as any).parent;
+      if ((parent as ObjectBase).parent instanceof OFile) {
+        break;
+      }
+      parent = (parent as ObjectBase).parent;
       counter--;
       if (counter === 0) {
         //        console.log(parent, parent.parent);
@@ -120,8 +119,6 @@ export function attachOnCompletion() {
       entity = parent;
     } else if (parent instanceof OArchitecture && parent.correspondingEntity) {
       entity = parent.correspondingEntity;
-    } else if (architecture && architecture.correspondingEntity) {
-      entity = architecture.correspondingEntity;
     }
     if (entity) {
       for (const port of entity.ports) {
