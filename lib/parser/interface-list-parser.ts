@@ -1,7 +1,8 @@
-import { OComponent, OEntity, OGeneric, OI, OIRange, OName, OPackage, OPort, OSubprogram } from './objects';
+import { implementsIHasPackageInstantiations, OComponent, OEntity, OGeneric, OI, OIRange, OName, OPackage, OPort, OSubprogram } from './objects';
 import { ParserBase } from './parser-base';
 import { SubprogramParser } from './subprogram-parser';
 import { ParserPosition } from './parser';
+import { PackageInstantiationParser } from './package-instantiation-parser';
 
 
 export class InterfaceListParser extends ParserBase {
@@ -57,7 +58,11 @@ export class InterfaceListParser extends ParserBase {
         this.parent.subprograms.push(subprogramParser.parse(this.pos.i));
         this.maybeWord(';');
       } else if (nextWord === 'package') { // TODO: Handle correctly
-        this.advanceBraceAwareToken([';', ')'], true, false);
+        if (implementsIHasPackageInstantiations(this.parent)) {
+          this.parent.packageInstantiations.push(new PackageInstantiationParser(this.pos, this.filePath, this.parent).parse());
+        } else {
+          this.advanceBraceAwareToken([';', ')'], true, false);
+        }
         this.maybeWord(';');
       } else {
         if (nextWord === 'signal' || nextWord === 'variable' || nextWord === 'constant' || nextWord === 'file') {

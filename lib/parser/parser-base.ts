@@ -443,7 +443,7 @@ export class ParserBase {
         // Detection if in possible function
 
         // If in possible function check if possible named function call, then ignore.
-        if (functionOrArraySlice && tokens[i].isIdentifier && tokens[i + 1]?.text === '=>') {
+        if (functionOrArraySlice && tokens[i].isIdentifier() && tokens[i + 1]?.text === '=>') {
           continue;
         }
         if (tokens[i - 1]?.text === '.' && token.getLText() !== 'all') {

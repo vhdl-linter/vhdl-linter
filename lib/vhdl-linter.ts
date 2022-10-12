@@ -206,7 +206,7 @@ export class VhdlLinter {
         continue;
       }
       // Find entity first in this file
-      let entity = this.file.entities.find(entity => architecture.entityName?.toLowerCase() === architecture.entityName?.toLowerCase());
+      let entity = this.file.entities.find(entity => entity.name.text.toLowerCase() === architecture.entityName?.toLowerCase());
       if (!entity) { // Find entity in all files
         entity = this.projectParser.getEntities().find(entity => entity.name.text.toLowerCase() === architecture.entityName?.toLowerCase());
       }
