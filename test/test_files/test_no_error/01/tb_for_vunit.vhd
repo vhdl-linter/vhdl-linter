@@ -16,9 +16,12 @@ architecture behavioural of tb_for_vunit is
 begin
   main : process
   begin
+    -- the runner variable is injected by vunit
+    --vhdl-linter-disable-region
     test_runner_setup(runner, runner_cfg);
     report "Hello world!";
-    test_runner_cleanup(runner); -- Simulation ends here
+    test_runner_cleanup(runner);
+    --vhdl-linter-enable-region
   end process;
 
 end architecture;
