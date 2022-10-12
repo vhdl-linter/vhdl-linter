@@ -8,10 +8,11 @@ import { SubtypeParser } from './subtype-parser';
 import { TypeParser } from './type-parser';
 import { UseClauseParser } from './use-clause-parser';
 import { ParserPosition } from './parser';
+import { PackageInstantiationParser } from './package-instantiation-parser';
 
 export class DeclarativePartParser extends ParserBase {
   type: string;
-  constructor(pos: ParserPosition, file: string, private parent: OArchitecture | OEntity | OPackage | OPackageBody | OProcess | OSubprogram | OType ) {
+  constructor(pos: ParserPosition, file: string, private parent: OArchitecture | OEntity | OPackage | OPackageBody | OProcess | OSubprogram | OType) {
     super(pos, file);
     this.debug('start');
   }
@@ -58,7 +59,10 @@ export class DeclarativePartParser extends ParserBase {
         const subprogramParser = new SubprogramParser(this.pos, this.filePath, this.parent);
         this.parent.subprograms.push(subprogramParser.parse(this.pos.i));
         this.expect(';');
-      } else if (nextWord === 'package' || nextWord === 'generic') {
+      } else if (nextWord === 'package') {
+        this.parent.packageInstantiations.push(new PackageInstantiationParser(this.pos, this.filePath, this.parent).parse());
+        this.expect(';');
+      } else if (nextWord === 'generic') {
         this.advanceSemicolonToken();
       } else if (nextWord === 'disconnect') {
         this.advanceSemicolonToken();
