@@ -87,7 +87,7 @@ class Formatter {
         // 	(replace-match "\\3 " nil nil nil 2)))
         while (this.reSearchForward(/(--.*\n|"[^"\n]*["\n]|'.'|[^\n]*[\n])|(\s-*([,;]))/)) {
             this.gotoChar(this.matchEnd);
-            console.log(this.match);
+            // console.log(this.match);
             this.replaceMatch(this.match[3], 2);
             // process.exit(0);
         }
@@ -96,11 +96,11 @@ class Formatter {
         this.gotoChar(0);
         //             (while (re - search - forward "\\(--.*\n\\|\"[^\"\n]*[\"\n]\\|'.'\\|\\\\[^\\\n]*[\\\n]\\)\\|\\((\\)\\s-+" end t)
         //         (if (match - string 1)
-        //         (goto - char(match - end 1))
-        //             (replace - match "\\2")))
-        while (this.reSearchForward(/(--.*\n|\"[^\"\n]*[\"\n]|'.'|[^\n]*[\n])|((\\)\\s-+/)) {
+        //         (goto-char(match-end 1))
+        //             (replace-match "\\2")))
+        while (this.reSearchForward(/(--.*\n|"[^"\n]*["\n]|'.'|[^\n]*[\n])|(\()\s-+/)) {
             this.gotoChar(this.matchEnd);
-            this.replaceMatch(this.match[3], 2);
+            this.replaceMatch(this.match[2]);
         }
 
 
@@ -143,6 +143,11 @@ class Formatter {
 const test = `asdasd , asdasd
 asdasdasd ;  asd
 asdasd ;  
+
+asdsd(a
+asd( a
+asd ( a
+asd (a
 asdasd`;
 const formatter = new Formatter(test);
 formatter.vhdlBeautifyRegion();
