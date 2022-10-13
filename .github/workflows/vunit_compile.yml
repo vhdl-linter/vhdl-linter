@@ -1,0 +1,17 @@
+name: VUnit Compile
+
+on:
+  push:
+    branches: ['main']
+  pull_request:
+    branches: ['main']
+
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: VUnit/vunit_action@v0.1.0
+        with:
+          run_file: test/vunit_compile_test_no_error.py

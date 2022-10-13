@@ -1,9 +1,13 @@
-entity test is
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+entity test_read_written is
   port (
     o : out integer --vhdl-linter-disable-this-line
     );
-end test;
-architecture arch of test is
+end test_read_written;
+architecture arch of test_read_written is
 
   signal test : integer;
 
