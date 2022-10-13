@@ -12,7 +12,6 @@ package body deallocate_test_pkg_call is
     return boolean is
     variable test : test_type;
   begin
-    test := new test_type;
     deallocate (test);
 
   end function;
