@@ -158,7 +158,14 @@ export class Parser extends ParserBase {
           // break;
         }
         const packageParser = new PackageParser(this.pos, this.filePath);
-        this.file.packages.push(packageParser.parse(this.file));
+        const pkg = packageParser.parse(this.file);
+        pkg.useClauses = useClauses;
+        this.file.packages.push(pkg);
+        pkg.contextReferences = contextReferences;
+        contextReferences = [];
+        useClauses = [];
+
+
       } else if (nextWord === 'configuration') {
         const configuration = new OConfiguration(this.file, this.getToken().range.copyExtendEndOfLine());
         configuration.identifier = this.consumeToken();

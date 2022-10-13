@@ -155,16 +155,13 @@ export class VhdlLinter {
   getUseClauses(parent: IHasUseClauses | IHasContextReference) {
     const useClauses = implementsIHasUseClause(parent) ? parent.useClauses.slice() : [];
     const contextReferences = implementsIHasContextReference(parent) ? parent.contextReferences.slice() : [];
-    // if (parent instanceof OFile) {
-    //   if (parent.entity === undefined && parent.architecture !== undefined && parent.architecture.entityName !== undefined) {
-    //     const architectureName = parent.architecture.entityName.toLowerCase();
-    //     const entity = this.projectParser.getEntities().find(entity => entity.name.text.toLowerCase() === architectureName);
-    //     if (entity !== undefined) {
-    //       useClauses.push(...entity.parent.useClauses);
-    //       contextReferences.push(...entity.parent.contextReferences);
-    //     }
-    //   }
-    // }
+    if (parent instanceof OPackageBody && parent.correspondingPackage) {
+      useClauses.push(...parent.correspondingPackage.useClauses);
+      contextReferences.push(...parent.correspondingPackage.contextReferences);
+    } else if (parent instanceof OArchitecture && parent.correspondingEntity) {
+      useClauses.push(...parent.correspondingEntity.useClauses);
+      contextReferences.push(...parent.correspondingEntity.contextReferences);
+    }
     if (contextReferences.length > 0) {
       const contexts = this.projectParser.getContexts();
       for (const reference of contextReferences) {
