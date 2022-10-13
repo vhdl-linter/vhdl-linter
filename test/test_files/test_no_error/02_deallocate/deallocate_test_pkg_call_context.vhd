@@ -1,11 +1,11 @@
 context work.test_context;
 
-package deallocate_test_pkg_call is
+package deallocate_test_pkg_call_context is
   function test_func
     return boolean;
 
 end package;
-package body deallocate_test_pkg_call is
+package body deallocate_test_pkg_call_context is
 
   function test_func
 

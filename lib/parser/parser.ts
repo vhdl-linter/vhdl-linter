@@ -161,6 +161,8 @@ export class Parser extends ParserBase {
         const pkg = packageParser.parse(this.file);
         pkg.useClauses = useClauses;
         this.file.packages.push(pkg);
+        pkg.contextReferences = contextReferences;
+        contextReferences = [];
         useClauses = [];
 
 
