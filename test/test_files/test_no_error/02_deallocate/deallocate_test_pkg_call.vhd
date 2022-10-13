@@ -18,4 +18,4 @@ package body deallocate_test_pkg_call is
   end function;
 
 
-end package;
+end package body;
