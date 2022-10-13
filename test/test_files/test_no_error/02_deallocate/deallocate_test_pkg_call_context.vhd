@@ -1,4 +1,4 @@
-context work.test_context;
+context work.test_contextA;
 
 package deallocate_test_pkg_call_context is
   function test_func

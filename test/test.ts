@@ -37,8 +37,8 @@ async function run_test(path: string, error_expected: boolean) {
 
   }
   if (messages.length > 0) {
-    console.log(messages.map(file => file.file));
-    // console.log(JSON.stringify(messages, null, 2));
+    // console.log(messages.map(file => file.file));
+    console.log(JSON.stringify(messages, null, 2));
   }
   return messages;
 }
