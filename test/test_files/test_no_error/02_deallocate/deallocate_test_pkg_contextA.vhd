@@ -1,3 +1,3 @@
 context test_contextA is
-  context work.test_ContextB;
+  context test.test_ContextB;
 end context;
