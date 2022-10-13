@@ -78,8 +78,8 @@ export class InterfaceListParser extends ParserBase {
           } else {
             port.direction = directionString;
             port.directionRange = new OIRange(port, this.pos.i, this.pos.i + directionString.length);
+            this.getNextWord(); // consume direction
           }
-          this.getNextWord(); // consume direction
         }
         const { type, defaultValue } = this.getTypeDefintion(port);
         const end = defaultValue?.[defaultValue?.length - 1]?.range.end ?? type[type.length - 1]?.range?.end ?? port.range.end;
@@ -98,6 +98,8 @@ export class InterfaceListParser extends ParserBase {
           ports.push(interface_);
         }
         ports.push(port);
+        // clear multiInterface list to avoid duplicates
+        multiInterface.splice(0, multiInterface.length);
       }
     }
     this.debug('parseEnd');
