@@ -821,8 +821,6 @@ export class OAssertion extends ObjectBase {
 export class OToken extends ObjectBase implements IHasDefinitions, IHasName {
   definitions: ObjectBase[] = [];
 
-  public scope?: ObjectBase; // TODO: What is this scope used for?
-
   name: OName;
 
   constructor(public parent: ObjectBase, range: OIRange, text: string) {
@@ -846,7 +844,6 @@ export class OToken extends ObjectBase implements IHasDefinitions, IHasName {
         for (const signal of object.signals) {
           if (signal.name.text.toLowerCase() === text.toLowerCase()) {
             this.definitions.push(signal);
-            this.scope = object as ObjectBase;
             signal.references.push(this);
           }
         }
@@ -855,7 +852,6 @@ export class OToken extends ObjectBase implements IHasDefinitions, IHasName {
         for (const constant of object.constants) {
           if (constant.name.text.toLowerCase() === text.toLowerCase()) {
             this.definitions.push(constant);
-            this.scope = object as ObjectBase;
             constant.references.push(this);
           }
         }
@@ -864,7 +860,6 @@ export class OToken extends ObjectBase implements IHasDefinitions, IHasName {
         for (const subprogram of object.subprograms) {
           if (subprogram.name.text.toLowerCase() === text.toLowerCase()) {
             this.definitions.push(subprogram);
-            this.scope = object as ObjectBase;
             subprogram.references.push(this);
           }
         }
@@ -873,14 +868,12 @@ export class OToken extends ObjectBase implements IHasDefinitions, IHasName {
         for (const type of object.types) {
           if (type.name.text.toLowerCase() === text.toLowerCase()) {
             this.definitions.push(type);
-            this.scope = object;
             type.references.push(this);
           }
           if (type instanceof OEnum) {
             for (const state of type.literals) {
               if (state.name.text.toLowerCase() === text.toLowerCase()) {
                 this.definitions.push(state);
-                this.scope = object;
                 state.references.push(this);
               }
             }
@@ -889,7 +882,6 @@ export class OToken extends ObjectBase implements IHasDefinitions, IHasName {
             for (const child of type.children) {
               if (child.name.text.toLowerCase() === text.toLowerCase()) {
                 this.definitions.push(child);
-                this.scope = object;
                 child.references.push(this);
               }
             }
@@ -900,7 +892,6 @@ export class OToken extends ObjectBase implements IHasDefinitions, IHasName {
         for (const variable of object.variables) {
           if (variable.name.text.toLowerCase() === text.toLowerCase()) {
             this.definitions.push(variable);
-            this.scope = object as ObjectBase;
             variable.references.push(this);
           }
         }
@@ -909,7 +900,6 @@ export class OToken extends ObjectBase implements IHasDefinitions, IHasName {
         for (const file of object.files) {
           if (file.name.text.toLowerCase() === text.toLowerCase()) {
             this.definitions.push(file);
-            this.scope = object as ObjectBase;
             file.references.push(this);
           }
         }
@@ -920,7 +910,6 @@ export class OToken extends ObjectBase implements IHasDefinitions, IHasName {
         for (const port of object.ports) {
           if (port.name.text.toLowerCase() === text.toLowerCase()) {
             this.definitions.push(port);
-            this.scope = object;
             port.references.push(this);
           }
         }
@@ -929,7 +918,6 @@ export class OToken extends ObjectBase implements IHasDefinitions, IHasName {
         for (const generic of object.generics) {
           if (generic.name.text.toLowerCase() === text.toLowerCase()) {
             this.definitions.push(generic);
-            this.scope = object;
             generic.references.push(this);
           }
         }
@@ -938,7 +926,6 @@ export class OToken extends ObjectBase implements IHasDefinitions, IHasName {
         for (const inst of object.packageInstantiations) {
           if (inst.name?.text?.toLowerCase() === text.toLowerCase()) {
             this.definitions.push(inst);
-            this.scope = object as ObjectBase;
             inst.references.push(this);
           }
         }

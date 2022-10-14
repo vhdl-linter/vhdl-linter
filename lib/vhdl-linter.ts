@@ -301,7 +301,6 @@ export class VhdlLinter {
         for (const port of rootElement.ports) {
           if (port.name.text.toLowerCase() === read.name.text.toLowerCase()) {
             read.definitions.push(port);
-            read.scope = port;
             port.references.push(read);
           }
         }
@@ -309,7 +308,6 @@ export class VhdlLinter {
         for (const port of rootElement.correspondingEntity?.ports ?? []) {
           if (port.name.text.toLowerCase() === read.name.text.toLowerCase()) {
             read.definitions.push(port);
-            read.scope = port;
             port.references.push(read);
           }
         }
