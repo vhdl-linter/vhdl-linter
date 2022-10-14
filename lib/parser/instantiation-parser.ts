@@ -1,5 +1,5 @@
 import { AssociationListParser } from './association-list-parser';
-import { OArchitecture, OEntity, OInstantiation, OIRange, OName, ParserError } from './objects';
+import { OArchitecture, OEntity, OInstantiation, OIRange, ParserError } from './objects';
 import { ParserBase } from './parser-base';
 import { ParserPosition } from './parser';
 
@@ -12,7 +12,6 @@ export class InstantiationParser extends ParserBase {
   parse(nextWord: string, label: string | undefined, startI: number): OInstantiation {
     const instantiation = new OInstantiation(this.parent, new OIRange(this.parent, startI, this.getEndOfLineI()));
     instantiation.label = label;
-    const savedI = this.pos.i;
     if (nextWord === 'entity') {
       this.getNextWord();
       instantiation.type = 'entity';
@@ -24,14 +23,12 @@ export class InstantiationParser extends ParserBase {
       instantiation.type = 'component';
     }
     // all names may have multiple '.' in them...
-    nextWord = this.getNextWord().toLowerCase();
+    let nextToken = this.consumeToken();
     while (this.getToken().text === '.') {
       this.consumeToken();
-      nextWord = this.getNextWord().toLowerCase();
+      nextToken = this.consumeToken();
     }
-    const name = nextWord.replace(/^.*\./, '');
-    instantiation.componentName = new OName(instantiation, new OIRange(this.parent, savedI, savedI + nextWord.length));
-    instantiation.componentName.text = name;
+    instantiation.componentName = nextToken;
     let hasPortMap = false;
     let hasGenericMap = false;
     let lastI;

@@ -12,7 +12,7 @@ import { findReferencesHandler, prepareRenameHandler, renameHandler } from './la
 import { foldingHandler } from './languageFeatures/folding';
 import { handleReferences } from './languageFeatures/references';
 import { handleOnWorkspaceSymbol } from './languageFeatures/workspaceSymbols';
-import { implementsIHasDefinitions, OComponent, OFile, OInstantiation, OName, OUseClause } from './parser/objects';
+import { implementsIHasDefinitions, OComponent, OFile, OInstantiation, OReference, OUseClause } from './parser/objects';
 import { ProjectParser } from './project-parser';
 import { VhdlLinter } from './vhdl-linter';
 
@@ -309,7 +309,7 @@ const findDefinitions = async (params: IFindDefinitionParams) => {
     return [];
   }
   const firstRange = candidates[0].range.end.i - candidates[0].range.start.i;
-  candidates = candidates.filter(c => (c.range.end.i - c.range.start.i) === firstRange).map(c => c instanceof OName ? c.parent : c);
+  candidates = candidates.filter(c => (c.range.end.i - c.range.start.i) === firstRange).map(c => c instanceof OReference ? c.parent : c);
   return candidates.flatMap(candidate => {
     if (implementsIHasDefinitions(candidate) && candidate.definitions) {
       return candidate.definitions.map(definition => {
@@ -420,7 +420,7 @@ connection.onRequest('vhdl-linter/listing', async (params: any) => {
         if (obj.library.toLowerCase() === 'ieee' || obj.library.toLowerCase() === 'std') {
           continue;
         }
-        const matchingPackages = projectParser.getPackages().filter(pkg => pkg.name.text === obj.packageName);
+        const matchingPackages = projectParser.getPackages().filter(pkg => pkg.lexerToken.text === obj.packageName);
         if (matchingPackages.length > 0) {
           found = matchingPackages[0].parent;
         }

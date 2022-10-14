@@ -1,6 +1,6 @@
 import { DeclarativePartParser } from './declarative-part-parser';
 import { InterfaceListParser } from './interface-list-parser';
-import { ObjectBase, OName, OSubprogram } from './objects';
+import { ObjectBase, OSubprogram } from './objects';
 import { ParserBase } from './parser-base';
 import { SequentialStatementParser } from './sequential-statement-parser';
 import { ParserPosition } from './parser';
@@ -17,10 +17,9 @@ export class SubprogramParser extends ParserBase {
       nextWord = this.consumeToken();
     }
     const isFunction = nextWord.getLText() === 'function';
-    const name = this.consumeToken();
+    const token = this.consumeToken();
     const subprogram = new OSubprogram(this.parent, nextWord.range.copyExtendEndOfLine());
-    subprogram.name = new OName(subprogram, name.range);
-    subprogram.name.text = name.text;
+    subprogram.lexerToken = token;
 
     if (this.getToken().getLText() === '(') {
       const interfaceListParser = new InterfaceListParser(this.pos, this.filePath, subprogram);
@@ -37,7 +36,7 @@ export class SubprogramParser extends ParserBase {
       subprogram.statements = new SequentialStatementParser(this.pos, this.filePath).parse(subprogram, ['end']);
       this.expect('end');
       this.maybeWord(isFunction ? 'function' : 'procedure');
-      this.maybeWord(name.text);
+      this.maybeWord(token.text);
       subprogram.range = subprogram.range.copyWithNewEnd(this.pos.i);
 
     }

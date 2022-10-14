@@ -1,5 +1,5 @@
 import { InterfaceListParser } from './interface-list-parser';
-import { IHasComponents, OComponent, OIRange, OName, ParserError } from './objects';
+import { IHasComponents, OComponent, OIRange, ParserError } from './objects';
 import { ParserPosition } from './parser';
 import { ParserBase } from './parser-base';
 
@@ -10,9 +10,7 @@ export class ComponentParser extends ParserBase {
   }
   parse() {
     const component = new OComponent(this.parent, this.getToken().range.copyExtendEndOfLine());
-    const nameText = this.consumeToken();
-    component.name = new OName(component, nameText.range);
-    component.name.text = nameText.text;
+    component.lexerToken = this.consumeToken();
     this.maybeWord('is');
 
     let lastI;
@@ -35,7 +33,7 @@ export class ComponentParser extends ParserBase {
       } else if (nextWord === 'end') {
         this.getNextWord();
         this.expect('component');
-        this.maybeWord(component.name.text);
+        this.maybeWord(component.lexerToken.text);
         component.range = component.range.copyWithNewEnd(this.getToken(-1, true).range.end);
         break;
       }

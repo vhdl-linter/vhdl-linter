@@ -1,6 +1,6 @@
 import { OLexerToken } from '../lexer';
 import { DeclarativePartParser } from './declarative-part-parser';
-import { OArchitecture, OEntity, OEnum, OEnumLiteral, OIRange, OName, OPackage, OPackageBody, OPort, OProcess, ORecord, ORecordChild, OSubprogram, OType, ParserError } from './objects';
+import { OArchitecture, OEntity, OEnum, OEnumLiteral, OIRange, OPackage, OPackageBody, OPort, OProcess, ORecord, ORecordChild, OSubprogram, OType, ParserError } from './objects';
 import { ParserPosition } from './parser';
 import { ParserBase } from './parser-base';
 
@@ -27,9 +27,7 @@ export class TypeParser extends ParserBase {
   parse(): OType {
     const type = new OType(this.parent, this.getToken().range.copyExtendEndOfLine());
     this.getNextWord();
-    const typeName = this.consumeToken();
-    type.name = new OName(type, typeName.range);
-    type.name.text = typeName.text;
+    type.lexerToken = this.consumeToken();
     if (this.getToken().getLText() === ';') {
       this.advancePast(';');
       return type;
@@ -55,10 +53,9 @@ export class TypeParser extends ParserBase {
         }
 
         (type as OEnum).literals = enumItems.map(item => {
-          const state = new OEnumLiteral(type, item.range);
-          state.name = new OName(state, item.range);
-          state.name.text = item.text;
-          return state;
+          const enumLiteral = new OEnumLiteral(type, item.range);
+          enumLiteral.lexerToken = item;
+          return enumLiteral;
         });
         type.range = type.range.copyWithNewEnd(this.pos.i);
         this.advanceWhitespace();
@@ -84,15 +81,14 @@ export class TypeParser extends ParserBase {
           let recordToken = this.consumeToken();
           while (recordToken.getLText() !== 'end') {
             const child = new ORecordChild(type, recordToken.range);
-            child.name = new OName(child, recordToken.range);
-            child.name.text = recordToken.text;
+            child.lexerToken = recordToken;
             (type as ORecord).children.push(child);
             this.advanceSemicolonToken();
             child.range = child.range.copyWithNewEnd(this.pos.i);
             recordToken = this.consumeToken();
           }
           this.maybeWord('record');
-          this.maybeWord(type.name.text);
+          this.maybeWord(type.lexerToken.text);
         } else if (nextWord === 'array') {
           const [token] = this.advanceBraceAwareToken([';'], true, false);
           type.reads.push(...this.extractReads(type, token));
@@ -101,17 +97,16 @@ export class TypeParser extends ParserBase {
           new DeclarativePartParser(this.pos, this.filePath, type).parse(false, 'end');
           this.expect('end');
           this.expect('protected');
-          this.maybeWord(type.name.text);
+          this.maybeWord(type.lexerToken.text);
         } else if (nextWord === 'range') {
           // TODO
         } else if (nextWord === 'access') {
           // Is this a hack, or is it just fantasy/vhdl
           const [typeTokens] = this.advanceBraceAwareToken([';'], true, false);
           const deallocateProcedure = new OSubprogram(this.parent, new OIRange(this.parent, typeTokens[0].range.start.i, typeTokens[typeTokens.length - 1].range.end.i));
-          deallocateProcedure.name = new OName(deallocateProcedure, type.name.range);
-          deallocateProcedure.name.text = 'deallocate';
+          deallocateProcedure.lexerToken = new OLexerToken('deallocate', type.lexerToken.range, type.lexerToken.type);
           this.parent.subprograms.push(deallocateProcedure);
-          const port = new OPort(deallocateProcedure, type.name.range);
+          const port = new OPort(deallocateProcedure, type.lexerToken.range);
           port.direction = 'inout';
           deallocateProcedure.ports = [port];
         }

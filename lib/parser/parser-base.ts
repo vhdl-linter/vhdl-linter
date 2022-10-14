@@ -441,14 +441,14 @@ export class ParserBase {
           continue;
         }
         if (tokens[i - 1]?.text === '.' && token.getLText() !== 'all') {
-          reads.push(new OElementRead(parent, token.range, token.text));
+          reads.push(new OElementRead(parent, token));
         } else {
           if (asMappingName && !(parent instanceof OAssociation)) {
             throw new Error();
           }
           reads.push(asMappingName
             ? new OAssociationFormal((parent as OAssociation), token.range, token.text)
-            : new ORead(parent, token.range, token.text));
+            : new ORead(parent, token));
         }
       }
     }
@@ -477,16 +477,16 @@ export class ParserBase {
         }
       } else if (token.isIdentifier()) {
         if (slice === false && recordToken === false) {
-          const write = new OWrite(parent, token.range, token.text);
+          const write = new OWrite(parent, token);
           writes.push(write);
           if (readAndWrite) {
-            reads.push(new ORead(parent, token.range, token.text));
+            reads.push(new ORead(parent, token));
           }
         } else {
           if (recordToken) {
-            reads.push(new OElementRead(parent, token.range, token.text));
+            reads.push(new OElementRead(parent, token));
           } else if (tokens[i - 1]?.text !== '\'') { // skip attributes
-            reads.push(new ORead(parent, token.range, token.text));
+            reads.push(new ORead(parent, token));
           }
         }
       }

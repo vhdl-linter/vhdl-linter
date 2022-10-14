@@ -179,9 +179,7 @@ export class ConcurrentStatementParser extends ParserBase {
       // this.advancePast(/\bgenerate\b/i);
     } else if (nextWord === 'with' && allowedStatements.includes(ConcurrentStatementTypes.Assignment)) {
       this.getNextWord();
-      const beforeI = this.pos.i;
-      const readText = this.getNextWord();
-      const afterI = this.pos.i;
+      const readToken = this.consumeToken();
       if (this.getToken().text === '(') {
         this.consumeToken();
         this.advanceBrace();
@@ -189,7 +187,7 @@ export class ConcurrentStatementParser extends ParserBase {
       this.getNextWord();
       const assignmentParser = new AssignmentParser(this.pos, this.filePath, this.parent);
       const assignment = assignmentParser.parse();
-      const read = new ORead(assignment, new OIRange(assignment, beforeI, afterI), readText);
+      const read = new ORead(assignment, readToken);
       assignment.reads.push(read);
       this.parent.statements.push(assignment);
     } else if (nextWord === 'assert' && allowedStatements.includes(ConcurrentStatementTypes.Assert)) {

@@ -1,7 +1,7 @@
 import { OLexerToken } from '../lexer';
 import { ConcurrentStatementParser, ConcurrentStatementTypes } from './concurrent-statement-parser';
 import { DeclarativePartParser } from './declarative-part-parser';
-import { OArchitecture, OBlock, OCaseGenerate, OConstant, OFile, OForGenerate, OI, OIfGenerate, OIfGenerateClause, OName, ORead, OWhenGenerateClause, ParserError } from './objects';
+import { OArchitecture, OBlock, OCaseGenerate, OConstant, OFile, OForGenerate, OI, OIfGenerate, OIfGenerateClause, ORead, OWhenGenerateClause, ParserError } from './objects';
 import { ParserPosition } from './parser';
 import { ParserBase } from './parser-base';
 
@@ -38,14 +38,11 @@ export class ArchitectureParser extends ParserBase {
       this.architecture = new OForGenerate(this.parent as OArchitecture, this.getToken().range.copyExtendEndOfLine(), constantRange);
       const iterateConstant = new OConstant(this.architecture, constantName.range);
       iterateConstant.type = [];
-      iterateConstant.name = new OName(iterateConstant, constantName.range);
-      iterateConstant.name.text = constantName.text;
+      iterateConstant.lexerToken = constantName;
       this.architecture.constants.push(iterateConstant);
     }
     if (skipStart !== true) {
-      const name = this.consumeToken();
-      this.architecture.name = new OName(this.architecture, name.range);
-      this.architecture.name.text = name.text;
+      this.architecture.lexerToken = this.consumeToken();
       this.expect('of');
       this.entityName = this.getNextWord();
       this.architecture.entityName = this.entityName;
@@ -69,8 +66,8 @@ export class ArchitectureParser extends ParserBase {
         } else {
           this.maybeWord(structureName);
         }
-        if (this.architecture.name) {
-          this.maybeWord(this.architecture.name.text);
+        if (this.architecture.lexerToken) {
+          this.maybeWord(this.architecture.lexerToken.text);
         }
 
         if (this.entityName) {

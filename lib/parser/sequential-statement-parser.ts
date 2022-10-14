@@ -1,7 +1,7 @@
 import { OLexerToken } from '../lexer';
 import { AssignmentParser } from './assignment-parser';
 import { AssociationListParser } from './association-list-parser';
-import { OAssertion, OAssignment, ObjectBase, OCase, OConstant, OElseClause, OForLoop, OHasSequentialStatements, OIf, OIfClause, OInstantiation, OIRange, OLoop, OName, OReport, OReturn, OSequentialStatement, OWhenClause, OWhileLoop, ParserError } from './objects';
+import { OAssertion, OAssignment, ObjectBase, OCase, OConstant, OElseClause, OForLoop, OHasSequentialStatements, OIf, OIfClause, OInstantiation, OIRange, OLoop, OReport, OReturn, OSequentialStatement, OWhenClause, OWhileLoop, ParserError } from './objects';
 import { ParserPosition } from './parser';
 import { ParserBase } from './parser-base';
 
@@ -97,17 +97,12 @@ export class SequentialStatementParser extends ParserBase {
   parseSubprogramCall(parent: OHasSequentialStatements | OIf, label: string|undefined) {
     const subprogramCall = new OInstantiation(parent, this.getToken().range.copyExtendEndOfLine(), 'subprogram');
     subprogramCall.label = label;
-    let componentName = this.consumeToken();
-    subprogramCall.componentName = new OName(subprogramCall, componentName);
+    subprogramCall.componentName = this.consumeToken();
     while (this.getToken().getLText() === '.') {
       this.expect('.');
       subprogramCall.library = subprogramCall.package?.text;
       subprogramCall.package = subprogramCall.componentName;
-      componentName = this.consumeToken();
-      subprogramCall.componentName = new OName(subprogramCall, componentName);
-      subprogramCall.componentName.range = componentName.range;
-      subprogramCall.componentName.text = componentName.text;
-
+      subprogramCall.componentName = this.consumeToken();
     }
     if (this.getToken().getLText() === '(') {
       subprogramCall.portAssociationList = new AssociationListParser(this.pos, this.filePath, subprogramCall).parse();
@@ -203,10 +198,9 @@ export class SequentialStatementParser extends ParserBase {
   parseFor(parent: OHasSequentialStatements | OIf, label?: string): OForLoop {
     const forLoop = new OForLoop(parent, this.getToken().range.copyExtendEndOfLine());
     this.expect('for');
-    const variableName = this.consumeToken();
-    const constant = new OConstant(forLoop, variableName.range);
-    constant.name = new OName(constant, variableName.range);
-    constant.name.text = variableName.text;
+    const variableToken = this.consumeToken();
+    const constant = new OConstant(forLoop, variableToken.range);
+    constant.lexerToken = variableToken;
     forLoop.constants.push(constant);
     this.expect('in');
     const rangeToken = this.advancePastToken('loop');

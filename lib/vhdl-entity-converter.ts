@@ -31,28 +31,28 @@ export function copy(type: CopyTypes) {
         text = '';
     }
     vscode.env.clipboard.writeText(text);
-    vscode.window.showInformationMessage(`Instance for '${entity.name}' copied to the clipboard`);
+    vscode.window.showInformationMessage(`Instance for '${entity.lexerToken}' copied to the clipboard`);
 
 }
 function longestinArray(array: OPort[]|OGeneric[]) {
     let longest = 0;
     for (const object of array) {
-        if (object.name.text.length > longest) {
-            longest = object.name.text.length;
+        if (object.lexerToken.text.length > longest) {
+            longest = object.lexerToken.text.length;
         }
     }
     return longest;
 }
 
 function instanceTemplate(entity: OEntity) {
-    let text = `inst_${entity.name} : entity work.${entity.name}`;
+    let text = `inst_${entity.lexerToken} : entity work.${entity.lexerToken}`;
     const indentString = '  ';
     if (entity.generics.length > 0) {
         text += `\ngeneric map (\n`;
         const longest = longestinArray(entity.generics);
         for (const generic of entity.generics) {
-            const name = generic.name.text.padEnd(longest, ' ');
-            text += `${indentString}${name} => ${generic.name},\n`;
+            const name = generic.lexerToken.text.padEnd(longest, ' ');
+            text += `${indentString}${name} => ${generic.lexerToken},\n`;
         }
         // Strip the final comma
         text = text.slice(0, -2);
@@ -63,8 +63,8 @@ function instanceTemplate(entity: OEntity) {
         text += `\nport map (\n`;
         const longest = longestinArray(entity.ports);
         for (const port of entity.ports) {
-            const name = port.name.text.padEnd(longest, ' ');
-            text += `${indentString}${name} => ${port.name},\n`;
+            const name = port.lexerToken.text.padEnd(longest, ' ');
+            text += `${indentString}${name} => ${port.lexerToken},\n`;
         }
         // Strip the final comma
         text = text.slice(0, -2);
@@ -76,14 +76,14 @@ function instanceTemplate(entity: OEntity) {
 }
 
 function sysVerilogTemplate(entity: OEntity) {
-    let text = entity.name.text;
+    let text = entity.lexerToken.text;
     const indentString = '  ';
     if (entity.generics.length > 0) {
         text += ` #(\n`;
         const longest = longestinArray(entity.generics);
         for (const generic of entity.generics) {
-            const name = generic.name.text.padEnd(longest, ' ');
-            text += `${indentString}.${name}(dut_${generic.name}),\n`;
+            const name = generic.lexerToken.text.padEnd(longest, ' ');
+            text += `${indentString}.${name}(dut_${generic.lexerToken}),\n`;
         }
         // Strip the final comma
         text = text.slice(0, -2);
@@ -94,8 +94,8 @@ function sysVerilogTemplate(entity: OEntity) {
         text += ` i_dut (\n`;
         const longest = longestinArray(entity.ports);
         for (const port of entity.ports) {
-            const name = port.name.text.padEnd(longest, ' ');
-            text += `${indentString}.${name}(dut_s_${port.name}),\n`;
+            const name = port.lexerToken.text.padEnd(longest, ' ');
+            text += `${indentString}.${name}(dut_s_${port.lexerToken}),\n`;
         }
         // Strip the final comma
         text = text.slice(0, -2);
@@ -110,7 +110,7 @@ function signalsTemplate(entity: OEntity) {
     if (entity.ports.length > 0) {
         const longest = longestinArray(entity.ports);
         for (const port of entity.ports) {
-            const name = port.name.text.padEnd(longest, ' ');
+            const name = port.lexerToken.text.padEnd(longest, ' ');
             text += `signal s_${name} : ${port.type};\n`;
         }
     }
