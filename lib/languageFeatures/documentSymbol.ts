@@ -50,12 +50,12 @@ function parseStatements(statement: OSequentialStatement): DocumentSymbol[] {
   // OCase | OAssignment | OIf | OForLoop
   if (statement instanceof OCase) {
     const result = [{
-      name: statement.variable.map(read => read.text).join(' '),
+      name: statement.variable.map(read => read.name.text).join(' '),
       kind: SymbolKind.Enum,
       range: statement.range,
       selectionRange: statement.range,
       children: statement.whenClauses.map(whenClause => {
-        let name = whenClause.condition.map(read => read.text).join(' ');
+        let name = whenClause.condition.map(read => read.name.text).join(' ');
         if (name === '') {
           name = 'others';
         }

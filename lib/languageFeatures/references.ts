@@ -19,7 +19,7 @@ export async function handleReferences (params: ReferenceParams): Promise<Locati
     return [];
   }
   if (candidate instanceof OToken) {
-    return linter.file.objectList.filter(obj => obj instanceof OToken && obj.text.toLowerCase() === candidate.text.toLowerCase() && obj !== candidate).map(obj => Location.create(params.textDocument.uri, obj.range));
+    return linter.file.objectList.filter(obj => obj instanceof OToken && obj.name.text.toLowerCase() === candidate.name.text.toLowerCase() && obj !== candidate).map(obj => Location.create(params.textDocument.uri, obj.range));
   }
   return [];
 }

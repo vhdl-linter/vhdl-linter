@@ -788,7 +788,7 @@ export class OProcess extends OHasSequentialStatements implements IHasSubprogram
       return this.resets;
     }
     for (const assignments of this.resetClause?.assignments ?? []) {
-      this.resets.push(...assignments.writes.map(write => write.text));
+      this.resets.push(...assignments.writes.map(write => write.name.text));
     }
     return this.resets;
   }
@@ -818,21 +818,25 @@ export class OAssertion extends ObjectBase {
   reads: ORead[] = [];
 }
 
-export class OToken extends ObjectBase implements IHasDefinitions {
+export class OToken extends ObjectBase implements IHasDefinitions, IHasName {
   definitions: ObjectBase[] = [];
 
   public scope?: ObjectBase; // TODO: What is this scope used for?
 
-  constructor(public parent: ObjectBase, range: OIRange, public text: string) {
-    super(parent, range);
+  name: OName;
 
+  constructor(public parent: ObjectBase, range: OIRange, text: string) {
+    super(parent, range);
+    this.name = new OName(this, range);
+    this.name.text = text;
   }
+
   elaborate() {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     let object: (OFile | ObjectBase) = this;
     let lastIteration = false;
     let stop = false;
-    const text = this.text;
+    const text = this.name.text;
     do {
       stop = lastIteration;
       if (!lastIteration) {
@@ -1004,7 +1008,7 @@ export class ORead extends OToken {
 }
 // Read of Record element or something
 export class OElementRead extends ORead {
-  constructor(public parent: ObjectBase, range: OIRange, public text: string) {
+  constructor(public parent: ObjectBase, range: OIRange, text: string) {
     super(parent, range, text);
   }
 }

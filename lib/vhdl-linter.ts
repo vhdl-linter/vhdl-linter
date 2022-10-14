@@ -292,14 +292,14 @@ export class VhdlLinter {
       }
     }
     for (const read of this.file.objectList.filter(object => object instanceof ORead) as ORead[]) {
-      const match = readObjectMap.get(read.text.toLowerCase());
+      const match = readObjectMap.get(read.name.text.toLowerCase());
       if (match) {
         read.definitions.push(match);
       }
       const rootElement = read.getRootElement();
       if (rootElement instanceof OEntity) {
         for (const port of rootElement.ports) {
-          if (port.name.text.toLowerCase() === read.text.toLowerCase()) {
+          if (port.name.text.toLowerCase() === read.name.text.toLowerCase()) {
             read.definitions.push(port);
             read.scope = port;
             port.references.push(read);
@@ -307,7 +307,7 @@ export class VhdlLinter {
         }
       } else if (rootElement instanceof OArchitecture) {
         for (const port of rootElement.correspondingEntity?.ports ?? []) {
-          if (port.name.text.toLowerCase() === read.text.toLowerCase()) {
+          if (port.name.text.toLowerCase() === read.name.text.toLowerCase()) {
             read.definitions.push(port);
             read.scope = port;
             port.references.push(read);
@@ -770,8 +770,8 @@ export class VhdlLinter {
     const code = this.addCodeActionCallback((textDocumentUri: string) => {
       const actions = [];
       for (const pkg of this.packages) {
-        const thing = pkg.constants.find(constant => constant.name.text.toLowerCase() === token.text.toLowerCase()) || pkg.types.find(type => type.name.text.toLowerCase() === token.text.toLowerCase())
-          || pkg.subprograms.find(subprogram => subprogram.name.text.toLowerCase() === token.text.toLowerCase());
+        const thing = pkg.constants.find(constant => constant.name.text.toLowerCase() === token.name.text.toLowerCase()) || pkg.types.find(type => type.name.text.toLowerCase() === token.name.text.toLowerCase())
+          || pkg.subprograms.find(subprogram => subprogram.name.text.toLowerCase() === token.name.text.toLowerCase());
         if (thing) {
           const architecture = token.getRootElement();
           const pos = Position.create(0, 0);
@@ -790,7 +790,7 @@ export class VhdlLinter {
         }
       }
       for (const architecture of this.file.architectures) {
-        const args: IAddSignalCommandArguments = { textDocumentUri, signalName: token.text, position: architecture.endOfDeclarativePart ?? architecture.range.start };
+        const args: IAddSignalCommandArguments = { textDocumentUri, signalName: token.name.text, position: architecture.endOfDeclarativePart ?? architecture.range.start };
         actions.push(CodeAction.create(
           'add signal to architecture',
           Command.create('add signal to architecture', 'vhdl-linter:add-signal', args),
@@ -799,7 +799,7 @@ export class VhdlLinter {
       const possibleMatches = this.file.objectList
         .filter(obj => typeof obj !== 'undefined' && implementsIHasName(obj))
         .map(obj => (obj as IHasName).name.text);
-      const bestMatch = findBestMatch(token.text, possibleMatches);
+      const bestMatch = findBestMatch(token.name.text, possibleMatches);
       if (bestMatch.bestMatch.rating > 0.5) {
         actions.push(CodeAction.create(
           `Replace with ${bestMatch.bestMatch.target} (score: ${bestMatch.bestMatch.rating})`,
@@ -816,7 +816,7 @@ export class VhdlLinter {
       code,
       range: token.range,
       severity: DiagnosticSeverity.Error,
-      message: `signal '${token.text}' is ${token instanceof ORead ? 'read' : 'written'} but not declared`
+      message: `signal '${token.name.text}' is ${token instanceof ORead ? 'read' : 'written'} but not declared`
     });
   }
   private pushAssociationError(read: OAssociationFormal) {
@@ -956,11 +956,11 @@ export class VhdlLinter {
               CodeActionKind.QuickFix
             ));
             let resetValue = null;
-            if (signal.type.map(read => read.text).join(' ').match(/^std_u?logic_vector|unsigned|signed/i)) {
+            if (signal.type.map(read => read.name.text).join(' ').match(/^std_u?logic_vector|unsigned|signed/i)) {
               resetValue = `(others => '0')`;
-            } else if (signal.type.map(read => read.text).join(' ').match(/^std_u?logic/i)) {
+            } else if (signal.type.map(read => read.name.text).join(' ').match(/^std_u?logic/i)) {
               resetValue = `'0'`;
-            } else if (signal.type.map(read => read.text).join(' ').match(/^integer|natural|positive/i)) {
+            } else if (signal.type.map(read => read.name.text).join(' ').match(/^integer|natural|positive/i)) {
               resetValue = `0`;
             }
             if (resetValue !== null && typeof registerProcess.resetClause !== 'undefined') {
@@ -1296,12 +1296,12 @@ export class VhdlLinter {
 
       const settings = (await getDocumentSettings(URI.file(this.editorPath).toString()));
       if (settings.rules.warnLogicType) {
-        for (const port of entity.ports ?? []) {
-          if ((settings.style.preferedLogicType === 'std_logic' && port.type[0]?.text?.match(/^std_ulogic/i))
-            || (settings.style.preferedLogicType === 'std_ulogic' && port.type[0]?.text?.match(/^std_logic/i))) {
-            const match = port.type[0].text.match(/^std_u?logic/i);
+        for (const port of entity.ports) {
+          if ((settings.style.preferedLogicType === 'std_logic' && port.type[0]?.name?.text?.match(/^std_ulogic/i))
+            || (settings.style.preferedLogicType === 'std_ulogic' && port.type[0]?.name?.text?.match(/^std_logic/i))) {
+            const match = port.type[0].name.text.match(/^std_u?logic/i);
             if (match) {
-              const replacement = port.type[0].text.replace(match[0], settings.style.preferedLogicType);
+              const replacement = port.type[0].name.text.replace(match[0], settings.style.preferedLogicType);
               const code = this.addCodeActionCallback((textDocumentUri: string) => {
                 const actions = [];
                 actions.push(CodeAction.create(
@@ -1318,7 +1318,7 @@ export class VhdlLinter {
               this.addMessage({
                 range: port.type[0].range,
                 severity: DiagnosticSeverity.Information,
-                message: `Port should be ${replacement} but is ${port.type[0].text}`,
+                message: `Port should be ${replacement} but is ${port.type[0].name.text}`,
                 code
               });
             }
