@@ -1,6 +1,6 @@
 import { SemanticTokenModifiers, SemanticTokens, SemanticTokensBuilder, SemanticTokensLegend, SemanticTokensParams, SemanticTokenTypes } from "vscode-languageserver";
 import { initialization, linters } from "../language-server";
-import { implementsIHasLexerToken, IHasLexerToken, OPort, OSignal, implementsIHasDefinitions, ObjectBase, OIRange, OType, OEnumLiteral, OEnum, ORecord, OVariable, OConstant, OGeneric, OWrite, OVariableBase } from "../parser/objects";
+import { implementsIHasLexerToken, IHasLexerToken, OPort, OSignal, implementsIHasDefinitions, ObjectBase, OIRange, OType, OEnumLiteral, OEnum, ORecord, OVariable, OConstant, OGeneric, OWrite, OVariableBase, OEntity, OSubprogram, ORecordChild, OInstantiation } from "../parser/objects";
 
 export const semanticTokensLegend: SemanticTokensLegend = {
   tokenTypes: Object.values(SemanticTokenTypes),
@@ -37,20 +37,17 @@ function findDefinition(obj: ObjectBase) {
 
 function pushCorrectToken(builder: SemanticTokensBuilder, obj: ObjectBase, range: OIRange, fixedModifiers: SemanticTokenModifiers[]) {
   if (obj instanceof OEnum) {
-    const type = SemanticTokenTypes.enum;
-    pushToken(builder, range, type, [...fixedModifiers, SemanticTokenModifiers.readonly]);
+    pushToken(builder, range, SemanticTokenTypes.enum, [...fixedModifiers, SemanticTokenModifiers.readonly]);
   } else if (obj instanceof ORecord) {
-    const type = SemanticTokenTypes.struct;
-    pushToken(builder, range, type, [...fixedModifiers, SemanticTokenModifiers.readonly]);
+    pushToken(builder, range, SemanticTokenTypes.struct, [...fixedModifiers, SemanticTokenModifiers.readonly]);
+  } else if (obj instanceof ORecordChild) {
+    pushToken(builder, range, SemanticTokenTypes.property, [...fixedModifiers, SemanticTokenModifiers.readonly]);
   } else if (obj instanceof OType) {
-    const type = SemanticTokenTypes.type;
-    pushToken(builder, range, type, [...fixedModifiers, SemanticTokenModifiers.readonly]);
+    pushToken(builder, range, SemanticTokenTypes.type, [...fixedModifiers, SemanticTokenModifiers.readonly]);
   } else if (obj instanceof OEnumLiteral) {
-    const type = SemanticTokenTypes.enumMember;
-    pushToken(builder, range, type, [...fixedModifiers, SemanticTokenModifiers.readonly]);
+    pushToken(builder, range, SemanticTokenTypes.enumMember, [...fixedModifiers, SemanticTokenModifiers.readonly]);
   } else if (obj instanceof OPort && obj.direction === 'in') {
-    const type = SemanticTokenTypes.variable;
-    pushToken(builder, range, type, [...fixedModifiers, SemanticTokenModifiers.readonly]);
+    pushToken(builder, range, SemanticTokenTypes.variable, [...fixedModifiers, SemanticTokenModifiers.readonly]);
   } else if (obj instanceof OVariableBase) {
     if (obj instanceof OConstant || obj instanceof OGeneric) {
       pushToken(builder, range, SemanticTokenTypes.parameter, [...fixedModifiers, SemanticTokenModifiers.readonly]);
@@ -58,6 +55,10 @@ function pushCorrectToken(builder: SemanticTokensBuilder, obj: ObjectBase, range
       const modifiers = obj instanceof OWrite ? [SemanticTokenModifiers.modification] : [];
       pushToken(builder, range, SemanticTokenTypes.variable, [...fixedModifiers, ...modifiers]);
     }
+  } else if (obj instanceof OEntity) {
+    pushToken(builder, range, SemanticTokenTypes.class, fixedModifiers);
+  } else if (obj instanceof OSubprogram) {
+    pushToken(builder, range, SemanticTokenTypes.function, fixedModifiers);
   }
 }
 
@@ -77,6 +78,12 @@ export async function handleSemanticTokens(params: SemanticTokensParams): Promis
       pushCorrectToken(tokensBuilder, definition, obj.lexerToken.range, []);
     } else if (implementsIHasLexerToken(obj)) { // is the definition itself?
       pushCorrectToken(tokensBuilder, obj, obj.lexerToken.range, [SemanticTokenModifiers.declaration]);
+    } else if (obj instanceof OInstantiation) {
+      if (obj.type === 'subprogram') {
+        pushToken(tokensBuilder, obj.componentName.range, SemanticTokenTypes.function, []);
+      } else {
+        pushToken(tokensBuilder, obj.componentName.range, SemanticTokenTypes.class, []);
+      }
     }
   }
 
