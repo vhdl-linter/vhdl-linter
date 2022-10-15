@@ -15,6 +15,7 @@ import { handleOnWorkspaceSymbol } from './languageFeatures/workspaceSymbols';
 import { implementsIHasDefinitions, OComponent, OFile, OInstantiation, OReference, OUseClause } from './parser/objects';
 import { ProjectParser } from './project-parser';
 import { VhdlLinter } from './vhdl-linter';
+import { OLexerToken } from './lexer';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -309,7 +310,7 @@ const findDefinitions = async (params: IFindDefinitionParams) => {
     return [];
   }
   const firstRange = candidates[0].range.end.i - candidates[0].range.start.i;
-  candidates = candidates.filter(c => (c.range.end.i - c.range.start.i) === firstRange).map(c => c instanceof OReference ? c.parent : c);
+  candidates = candidates.filter(c => (c.range.end.i - c.range.start.i) === firstRange);
   return candidates.flatMap(candidate => {
     if (implementsIHasDefinitions(candidate) && candidate.definitions) {
       return candidate.definitions.map(definition => {
