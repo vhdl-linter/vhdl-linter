@@ -12,10 +12,9 @@ import { findReferencesHandler, prepareRenameHandler, renameHandler } from './la
 import { foldingHandler } from './languageFeatures/folding';
 import { handleReferences } from './languageFeatures/references';
 import { handleOnWorkspaceSymbol } from './languageFeatures/workspaceSymbols';
-import { implementsIHasDefinitions, OComponent, OFile, OInstantiation, OReference, OUseClause } from './parser/objects';
+import { implementsIHasDefinitions, OComponent, OFile, OInstantiation, OUseClause } from './parser/objects';
 import { ProjectParser } from './project-parser';
 import { VhdlLinter } from './vhdl-linter';
-import { OLexerToken } from './lexer';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
