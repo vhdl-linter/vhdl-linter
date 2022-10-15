@@ -3,9 +3,12 @@ import { EventEmitter } from 'events';
 import { promises, readFileSync } from 'fs';
 import { Worker } from 'node:worker_threads';
 import { join, sep } from 'path';
-import { OContext, OEntity, OPackage, OPackageBody } from './parser/objects';
-import { VhdlLinter } from './vhdl-linter';
-import { StaticPool } from 'node-worker-threads-pool';
+import { OContext, OEntity, OFile, OPackage, OPackageBody } from '../parser/objects';
+import * as objects from '../parser/objects';
+import { VhdlLinter } from '../vhdl-linter';
+// import { StaticPool } from 'node-worker-threads-pool';
+import { Parser } from '../parser/parser';
+import { pool } from './parser-pool';
 export class ProjectParser {
 
   public cachedFiles: OFileCache[] = [];
@@ -27,21 +30,25 @@ export class ProjectParser {
     const pkg = __dirname;
     if (pkg) {
       //       console.log(pkg, new Directory(pkg + '/ieee2008'));
-      (await this.parseDirectory(join(pkg, `${sep}..${sep}..${sep}ieee2008`))).forEach(file => files.add(file));
+      (await this.parseDirectory(join(pkg, `${sep}..${sep}..${sep}..${sep}ieee2008`))).forEach(file => files.add(file));
     }
-
     for (const file of files) {
-      const cachedFile = new OFileCache(file, this);
+      const cachedFile = new OFileCache(file);
       await cachedFile.parse();
       this.cachedFiles.push(cachedFile);
     }
+    // this.cachedFiles.push(...await Promise.all(Array.from(files).map(async file => {
+    //   const cachedFile = new OFileCache(file, this);
+    //   await cachedFile.parse();
+    //   return cachedFile;
+    // })));
     this.cachedFiles.sort((a, b) => b.lintingTime - a.lintingTime);
     // console.log('Times: \n' + this.cachedFiles.slice(0, 10).map(file => `${file.path}: ${file.lintingTime}ms`).join('\n'));
     this.fetchEntitesAndPackagesAndContexts();
     for (const workspace of this.workspaces) {
       const watcher = watch(workspace.replace(sep, '/') + '/**/*.vhd', { ignoreInitial: true });
       watcher.on('add', async (path) => {
-        const cachedFile = new OFileCache(path, this);
+        const cachedFile = new OFileCache(path);
         await cachedFile.parse();
         this.cachedFiles.push(cachedFile);
         this.fetchEntitesAndPackagesAndContexts();
@@ -120,44 +127,31 @@ export class ProjectParser {
     return this.entities;
   }
 }
-const pool = new StaticPool({
-  size: 4,
-  task: __dirname + '/parser-worker.js'
-});
+
 export class OFileCache {
 
   path: string;
   digest: string;
+  file: OFile;
   packages?: (OPackage | OPackageBody)[];
   contexts: OContext[] = [];
   entities: OEntity[] = [];
-  text: string;
-  linter: VhdlLinter;
   lintingTime: number;
-  constructor(file: string, public projectParser: ProjectParser) {
-    const text = readFileSync(file, { encoding: 'utf8' });
-    if (!text) {
-      return;
-    }
-    this.text = text;
+  constructor(file: string) {
     // this.digest = await file.getDigest();
     this.path = file;
-    const date = Date.now();
-    this.linter = new VhdlLinter(this.path, this.text, this.projectParser, true);
-    this.lintingTime = Date.now() - date;
-    this.packages = this.linter.file.packages;
-    this.entities = this.linter.file.entities;
-    this.contexts = this.linter.file.contexts;
   }
   async parse() {
     console.log(this.path, 'start');
+    // const parser = new Parser(readFileSync(this.path, { encoding: 'utf-8' }), this.path, true);
+    // this.file = parser.parse();
 
-    const file = await pool.exec({
+    this.file = await pool.exec({
       path: this.path,
     });
     console.log(this.path, 'end');
-    this.packages = file.packages;
-    this.entities = file.entities;
-    this.contexts = file.contexts;
+    this.packages = this.file.packages;
+    this.entities = this.file.entities;
+    this.contexts = this.file.contexts;
   }
 }

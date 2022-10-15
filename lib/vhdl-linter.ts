@@ -5,9 +5,9 @@ import {
 } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { CancelationError, CancelationObject, getDocumentSettings } from './language-server';
-import { IHasContextReference, IHasName, IHasUseClauses, implementsIHasConstants, implementsIHasContextReference, implementsIHasInstantiations, implementsIHasName, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasUseClause, implementsIHasVariables, implementsIMentionable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, OAssociationList, ObjectBase, OCase, OComponent, OConstant, OEntity, OEnum, OFile, OGeneric, OGenericAssociationList, OHasSequentialStatements, OI, OIf, OInstantiation, OIRange, OPackage, OPackageBody, OPort, OPortAssociationList, OProcess, ORead, OSignal, OSignalBase, OSubprogram, OToken, OType, OVariable, OWrite, ParserError } from './parser/objects';
+import { IHasContextReference, IHasName, IHasUseClauses, implementsIHasConstants, implementsIHasContextReference, implementsIHasInstantiations, implementsIHasName, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasUseClause, implementsIHasVariables, implementsIMentionable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, OAssociationList, ObjectBase, OCase, OComponent, OConstant, OEntity, OEnum, OFile, OGeneric, OGenericAssociationList, OHasSequentialStatements, OI, OIf, OInstantiation, OIRange, OPackage, OPackageBody, OPort, OPortAssociationList, OProcess, ORead, ORecord, OSignal, OSignalBase, OSubprogram, OToken, OType, OVariable, OWrite, ParserError } from './parser/objects';
 import { Parser } from './parser/parser';
-import { ProjectParser } from './project-parser';
+import { ProjectParser } from './projectParser/project-parser';
 export enum LinterRules {
   Reset
 }
@@ -23,6 +23,7 @@ export interface IIgnoreLineCommandArguments {
   textDocumentUri: string;
   range: Range;
 }
+
 export type diagnosticCodeActionCallback = (textDocumentUri: string) => CodeAction[];
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type commandCallback = (textDocumentUri: string, ...args: any[]) => TextEdit[];
@@ -100,14 +101,14 @@ export class VhdlLinter {
       }
       return true;
     }).filter(magicComment => {
-          if (magicComment.commentType === MagicCommentType.Disable) {
-            return true;
-          }
-          if (magicComment.commentType === MagicCommentType.Parameter && rule === LinterRules.Reset && typeof parameter !== 'undefined' && magicComment.parameter.find(parameterFind => parameterFind.toLowerCase() === parameter.toLowerCase())) {
-            return true;
-          }
-          return false;
-        });
+      if (magicComment.commentType === MagicCommentType.Disable) {
+        return true;
+      }
+      if (magicComment.commentType === MagicCommentType.Parameter && rule === LinterRules.Reset && typeof parameter !== 'undefined' && magicComment.parameter.find(parameterFind => parameterFind.toLowerCase() === parameter.toLowerCase())) {
+        return true;
+      }
+      return false;
+    });
     return matchingMagiComments.length === 0;
   }
   checkTodos() {
@@ -220,7 +221,7 @@ export class VhdlLinter {
         // Find entity first in this file
         let pkgHeader: OPackage | undefined = this.file.packages.find(pkgHeader => pkgHeader instanceof OPackage && pkgHeader.name.text.toLowerCase() === pkg.name.text.toLowerCase()) as OPackage | undefined;
         if (!pkgHeader) { // Find entity in all files
-          pkgHeader = this.projectParser.getPackages().find(pkgHeader => pkgHeader instanceof OPackage && pkgHeader.name.text.toLowerCase() === pkg.name.text.toLowerCase()) as OPackage|undefined;
+          pkgHeader = this.projectParser.getPackages().find(pkgHeader => pkgHeader instanceof OPackage && pkgHeader.name.text.toLowerCase() === pkg.name.text.toLowerCase()) as OPackage | undefined;
         }
         if (pkgHeader) {
           pkg.correspondingPackage = pkgHeader;
@@ -288,7 +289,26 @@ export class VhdlLinter {
         readObjectMap.set(subprogram.name.text.toLowerCase(), subprogram);
       }
       for (const type of pkg.types) {
-        // type.addReadsToMap(readObjectMap);
+        readObjectMap.set(type.name.text.toLowerCase(), type);
+
+        if (type.units) {
+          for (const unit of type.units) {
+            readObjectMap.set(unit.toLowerCase(), type);
+
+          }
+        }
+        if (type instanceof OEnum) {
+          for (const state of type.literals) {
+            readObjectMap.set(state.name.text.toLowerCase(), state);
+          }
+        } else if (type instanceof ORecord) {
+          for (const child of type.children) {
+            readObjectMap.set(child.name.text.toLowerCase(), child);
+          }
+        }
+        for (const subprogram of type.subprograms) {
+          readObjectMap.set(subprogram.name.text.toLowerCase(), subprogram);
+        }
       }
     }
     for (const read of this.file.objectList.filter(object => object instanceof ORead) as ORead[]) {

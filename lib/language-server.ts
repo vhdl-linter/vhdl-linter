@@ -13,7 +13,7 @@ import { foldingHandler } from './languageFeatures/folding';
 import { handleReferences } from './languageFeatures/references';
 import { handleOnWorkspaceSymbol } from './languageFeatures/workspaceSymbols';
 import { implementsIHasDefinitions, OComponent, OFile, OInstantiation, OName, OUseClause } from './parser/objects';
-import { ProjectParser } from './project-parser';
+import { ProjectParser } from './projectParser/project-parser';
 import { VhdlLinter } from './vhdl-linter';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.

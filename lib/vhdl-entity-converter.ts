@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { OEntity, OGeneric, OPort } from './parser/objects';
-import { ProjectParser } from './project-parser';
+import { ProjectParser } from './projectParser/project-parser';
 import { VhdlLinter } from './vhdl-linter';
 function getEntity() {
     const editor = vscode.window.activeTextEditor;

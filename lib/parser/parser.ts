@@ -36,7 +36,7 @@ export class Parser extends ParserBase {
   public lexerTokens: OLexerToken[] = [];
   text: string;
   file: OFile;
-  constructor(text: string, filePath: string, public onlyEntity: boolean = false, public cancelationObject: CancelationObject) {
+  constructor(text: string, filePath: string, public onlyEntity: boolean = false, public cancelationObject: CancelationObject = { canceled: false }) {
     super(new ParserPosition(), filePath);
     this.originalText = text;
     this.text = text;

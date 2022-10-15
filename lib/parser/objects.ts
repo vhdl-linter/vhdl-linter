@@ -438,28 +438,7 @@ export class OType extends ObjectBase implements IReferenceable, IHasSubprograms
   reads: ORead[] = [];
   alias = false;
   name: OName;
-  addReadsToMap(map: Map<string, ObjectBase>) {
-    map.set(this.name.text.toLowerCase(), this);
 
-    if (this.units) {
-      for (const unit of this.units) {
-        map.set(unit.toLowerCase(), this);
-
-      }
-    }
-    if (this instanceof OEnum) {
-      for (const state of this.literals) {
-        map.set(state.name.text.toLowerCase(), state);
-      }
-    } else if (this instanceof ORecord) {
-      for (const child of this.children) {
-        map.set(child.name.text.toLowerCase(), child);
-      }
-    }
-    for (const subprogram of this.subprograms) {
-      map.set(subprogram.name.text.toLowerCase(), subprogram);
-    }
-  }
 }
 export class OSubType extends OType {
   superType: ORead;

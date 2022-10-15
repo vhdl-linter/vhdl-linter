@@ -5,7 +5,7 @@ import {
   ServerOptions,
   TransportKind
 } from 'vscode-languageclient';
-import { ProjectParser } from './project-parser';
+import { ProjectParser } from './projectParser/project-parser';
 import { copy, CopyTypes } from './vhdl-entity-converter';
 import { IAddSignalCommandArguments, IIgnoreLineCommandArguments, VhdlLinter } from './vhdl-linter';
 

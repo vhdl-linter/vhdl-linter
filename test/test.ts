@@ -2,7 +2,7 @@ import { VhdlLinter } from '../lib/vhdl-linter';
 import { cwd } from 'process';
 import { readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
-import { ProjectParser } from '../lib/project-parser';
+import { ProjectParser } from '../lib/projectParser/project-parser';
 function readDirPath(path: string) {
   return readdirSync(path).map(file => join(path, file));
 }
