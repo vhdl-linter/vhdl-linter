@@ -49,9 +49,9 @@ export class ObjectDeclarationParser extends ParserBase {
     } while (this.getToken().getLText() === ',');
     this.expect(':');
     if (file) {
-      const typeText = this.consumeToken();
+      const typeToken = this.consumeToken();
       for (const file of objects) {
-        const typeRead = new ORead(file, typeText);
+        const typeRead = new ORead(file, typeToken);
         file.type = [typeRead];
         // TODO: Parse optional parts of file definition
         file.range = file.range.copyWithNewEnd(this.pos.i);
