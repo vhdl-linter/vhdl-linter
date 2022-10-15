@@ -616,7 +616,7 @@ export class OInstantiation extends ObjectBase implements IHasDefinitions {
         if (entity) {
           const entityPort = entity.ports.find(port => {
             for (const part of portAssociation.formalPart) {
-              if (part.text.toLowerCase() === port.lexerToken.getLText()) {
+              if (part.lexerToken.getLText() === port.lexerToken.getLText()) {
                 return true;
               }
             }
@@ -652,7 +652,7 @@ export class OInstantiation extends ObjectBase implements IHasDefinitions {
         if (entity) {
           const entityPort = entity.ports.find(port => {
             for (const part of association.formalPart) {
-              if (part.text.toLowerCase() === port.lexerToken.getLText()) {
+              if (part.lexerToken.getLText() === port.lexerToken.getLText()) {
                 return true;
               }
             }
@@ -991,10 +991,10 @@ export class ORead extends OReference {
 }
 export class OElementRead extends ORead {
 }
-export class OAssociationFormal extends ObjectBase implements IHasDefinitions {
+export class OAssociationFormal extends ObjectBase implements IHasDefinitions, IHasLexerToken {
   definitions: (OPort | OGeneric)[] = [];
-  constructor(public parent: OAssociation, range: OIRange, public text: string) {
-    super(parent, range);
+  constructor(public parent: OAssociation, public lexerToken: OLexerToken) {
+    super(parent, lexerToken.range);
   }
 }
 export class ParserError extends Error {
