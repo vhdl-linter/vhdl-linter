@@ -122,7 +122,7 @@ connection.onInitialize((params: InitializeParams) => {
   );
   return {
     capabilities: {
-      textDocumentSync: TextDocumentSyncKind.Incremental,
+      textDocumentSync: TextDocumentSyncKind.Full,
       codeActionProvider: true,
       // Tell the client that the server supports code completion
       completionProvider: {
