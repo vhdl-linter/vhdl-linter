@@ -1,6 +1,6 @@
 import { ComponentParser } from './component-parser';
 import { ObjectDeclarationParser } from './object-declaration-parser';
-import { implementsIHasComponents,OArchitecture, OEntity, OName, OPackage, OPackageBody, OProcess, OSubprogram, OType, ParserError } from './objects';
+import { implementsIHasComponents,OArchitecture, OEntity, OPackage, OPackageBody, OProcess, OSubprogram, OType, ParserError } from './objects';
 import { ParserBase } from './parser-base';
 import { SubprogramParser } from './subprogram-parser';
 import { SubtypeParser } from './subtype-parser';
@@ -37,9 +37,7 @@ export class DeclarativePartParser extends ParserBase {
       } else if (nextWord === 'alias') {
         const type = new OType(this.parent, this.getToken().range.copyExtendEndOfLine());
         this.getNextWord();
-        const typeName = this.consumeToken();
-        type.name = new OName(type, typeName.range);
-        type.name.text = typeName.text;
+        type.lexerToken =  this.consumeToken();
         type.alias = true;
         if (this.getToken().getLText() === ':') {
           this.consumeToken();

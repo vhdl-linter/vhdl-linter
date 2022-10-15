@@ -28,7 +28,7 @@ function parseArchitecture(architecture: OArchitecture, linter: VhdlLinter): Doc
     selectionRange: process.range,
     children: process.statements.map(statement => parseStatements(statement)).flat()
       .concat(process.subprograms.map(procedure => ({
-        name: procedure.name.text,
+        name: procedure.lexerToken.text,
         detail: 'procedure',
         kind: SymbolKind.Method,
         range: procedure.range,
@@ -50,12 +50,12 @@ function parseStatements(statement: OSequentialStatement): DocumentSymbol[] {
   // OCase | OAssignment | OIf | OForLoop
   if (statement instanceof OCase) {
     const result = [{
-      name: statement.variable.map(read => read.text).join(' '),
+      name: statement.variable.map(read => read.lexerToken.text).join(' '),
       kind: SymbolKind.Enum,
       range: statement.range,
       selectionRange: statement.range,
       children: statement.whenClauses.map(whenClause => {
-        let name = whenClause.condition.map(read => read.text).join(' ');
+        let name = whenClause.condition.map(read => read.lexerToken.text).join(' ');
         if (name === '') {
           name = 'others';
         }
@@ -91,9 +91,9 @@ export async function handleOnDocumentSymbol(params: DocumentSymbolParams): Prom
   }
   const returnValue: DocumentSymbol[] = [];
 
-  returnValue.push(...linter.file.packages.map(pkg => pkg.types).flat().map(type => DocumentSymbol.create(type.name.text, undefined, SymbolKind.Enum, type.range, type.range)));
-  returnValue.push(...linter.file.packages.map(pkg => pkg.subprograms).flat().map(subprogram => DocumentSymbol.create(subprogram.name.text, undefined, SymbolKind.Function, subprogram.range, subprogram.range)));
-  returnValue.push(...linter.file.packages.map(pkg => pkg.constants).flat().map(constants => DocumentSymbol.create(constants.name.text, undefined, SymbolKind.Constant, constants.range, constants.range)));
+  returnValue.push(...linter.file.packages.map(pkg => pkg.types).flat().map(type => DocumentSymbol.create(type.lexerToken.text, undefined, SymbolKind.Enum, type.range, type.range)));
+  returnValue.push(...linter.file.packages.map(pkg => pkg.subprograms).flat().map(subprogram => DocumentSymbol.create(subprogram.lexerToken.text, undefined, SymbolKind.Function, subprogram.range, subprogram.range)));
+  returnValue.push(...linter.file.packages.map(pkg => pkg.constants).flat().map(constants => DocumentSymbol.create(constants.lexerToken.text, undefined, SymbolKind.Constant, constants.range, constants.range)));
   for (const architecture of linter.file.architectures) {
     returnValue.push(...parseArchitecture(architecture, linter));
   }

@@ -1,6 +1,7 @@
 import { ErrorCodes, Location, Position, ReferenceParams, RenameParams, ResponseError, TextDocumentIdentifier, TextDocumentPositionParams, TextEdit } from 'vscode-languageserver';
 import { initialization, linters, lintersValid } from '../language-server';
-import { implementsIMentionable, ObjectBase, OName, OToken, implementsIHasName } from '../parser/objects';
+import { OLexerToken } from '../lexer';
+import { implementsIReferencable, ObjectBase, OReference, implementsIHasLexerToken } from '../parser/objects';
 
 export async function findReferences(params: { textDocument: TextDocumentIdentifier, position: Position }) {
   await initialization;
@@ -18,16 +19,16 @@ export async function findReferences(params: { textDocument: TextDocumentIdentif
   if (!candidate) {
     return [];
   }
-  if (candidate instanceof OName && candidate.parent instanceof ObjectBase) {
+  if (candidate instanceof OLexerToken && candidate.parent instanceof ObjectBase) {
     candidate = candidate.parent;
   }
   // debugger;
-  if (candidate instanceof OToken && candidate.definitions) {
+  if (candidate instanceof OReference && candidate.definitions) {
     return candidate.definitions.concat(candidate.definitions.flatMap(c => {
-      return implementsIMentionable(c) ? c.references : [];
+      return implementsIReferencable(c) ? c.references : [];
     }));
   }
-  if (implementsIMentionable(candidate)) {
+  if (implementsIReferencable(candidate)) {
     return ([candidate] as ObjectBase[]).concat(candidate.references ?? []);
   }
   return [];
@@ -59,8 +60,8 @@ export async function prepareRenameHandler(params: TextDocumentPositionParams) {
 }
 export async function renameHandler(params: RenameParams) {
   const references = (await findReferences(params)).map(reference => {
-    if (implementsIMentionable(reference) && implementsIHasName(reference)) {
-      return reference.name;
+    if (implementsIReferencable(reference) && implementsIHasLexerToken(reference)) {
+      return reference.lexerToken;
     }
     return reference;
   });

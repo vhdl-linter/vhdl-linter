@@ -1,4 +1,4 @@
-import { ObjectBase, OName, ORead, OSubType, OIRange } from './objects';
+import { ObjectBase, ORead, OSubType, OIRange } from './objects';
 import { ParserBase } from './parser-base';
 import { ParserPosition } from './parser';
 
@@ -11,9 +11,7 @@ export class SubtypeParser extends ParserBase {
   }
   parse() {
     this.expect('subtype');
-    const nameText = this.consumeToken();
-    this.subtype.name = new OName(this.subtype, nameText.range);
-    this.subtype.name.text = nameText.text;
+    this.subtype.lexerToken = this.consumeToken();
     this.expect('is');
     if (this.getToken().getLText() === '(') { // funky vhdl stuff
       this.advancePast(')');
@@ -25,7 +23,7 @@ export class SubtypeParser extends ParserBase {
       this.subtype.range = this.subtype.range.copyWithNewEnd(tokens[tokens.length - 1].range.end.i);
     }
     // const reads = this.extractReads(this.subtype, this.advanceSemicolon(true), startIReads);
-    this.subtype.superType = new ORead(this.subtype, superType.range, superType.text);
+    this.subtype.superType = new ORead(this.subtype, superType);
     return this.subtype;
   }
 

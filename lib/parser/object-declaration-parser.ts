@@ -1,4 +1,4 @@
-import { IHasConstants, IHasSignals, IHasVariables, implementsIHasConstants, implementsIHasSignals, implementsIHasVariables, OConstant, OName, OSignal, OVariable, ParserError, IHasFileVariables, OFileVariable, implementsIHasFileVariables, ORead } from './objects';
+import { IHasConstants, IHasSignals, IHasVariables, implementsIHasConstants, implementsIHasSignals, implementsIHasVariables, OConstant, OSignal, OVariable, ParserError, IHasFileVariables, OFileVariable, implementsIHasFileVariables, ORead } from './objects';
 import { ParserBase } from './parser-base';
 import { ParserPosition } from './parser';
 
@@ -43,18 +43,15 @@ export class ObjectDeclarationParser extends ParserBase {
       } else {
         object = new OSignal(this.parent as IHasSignals, this.getToken().range);
       }
-      const name = this.consumeToken();
-      object.name = new OName(object, name.range);
-      object.name.text = name.text;
-
+      object.lexerToken = this.consumeToken();
       objects.push(object);
 
     } while (this.getToken().getLText() === ',');
     this.expect(':');
     if (file) {
-      const typeText = this.consumeToken();
+      const typeToken = this.consumeToken();
       for (const file of objects) {
-        const typeRead = new ORead(file, typeText.range, typeText.text);
+        const typeRead = new ORead(file, typeToken);
         file.type = [typeRead];
         // TODO: Parse optional parts of file definition
         file.range = file.range.copyWithNewEnd(this.pos.i);

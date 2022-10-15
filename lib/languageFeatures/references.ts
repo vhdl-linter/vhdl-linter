@@ -1,6 +1,6 @@
 import { Location, ReferenceParams } from 'vscode-languageserver';
 import { initialization, linters } from '../language-server';
-import { OToken } from '../parser/objects';
+import { OReference } from '../parser/objects';
 
 export async function handleReferences (params: ReferenceParams): Promise<Location[]> {
   await initialization;
@@ -18,8 +18,8 @@ export async function handleReferences (params: ReferenceParams): Promise<Locati
   if (!candidate) {
     return [];
   }
-  if (candidate instanceof OToken) {
-    return linter.file.objectList.filter(obj => obj instanceof OToken && obj.text.toLowerCase() === candidate.text.toLowerCase() && obj !== candidate).map(obj => Location.create(params.textDocument.uri, obj.range));
+  if (candidate instanceof OReference) {
+    return linter.file.objectList.filter(obj => obj instanceof OReference && obj.lexerToken.getLText() === candidate.lexerToken.getLText() && obj !== candidate).map(obj => Location.create(params.textDocument.uri, obj.range));
   }
   return [];
 }

@@ -1,7 +1,7 @@
 import { ConcurrentStatementParser, ConcurrentStatementTypes } from './concurrent-statement-parser';
 import { DeclarativePartParser } from './declarative-part-parser';
 import { InterfaceListParser } from './interface-list-parser';
-import { OArchitecture, OEntity, OIRange, OName, ParserError, OFile } from './objects';
+import { OArchitecture, OEntity, OIRange, ParserError, OFile } from './objects';
 import { ParserBase } from './parser-base';
 import { ParserPosition } from './parser';
 
@@ -16,9 +16,7 @@ export class EntityParser extends ParserBase {
     this.debug(`start`);
   }
   parse(): OEntity {
-    const nameText = this.consumeToken();
-    this.entity.name = new OName(this.entity, nameText.range);
-    this.entity.name.text = nameText.text;
+    this.entity.lexerToken = this.consumeToken();
     if (this.parent instanceof OArchitecture) {
       this.maybeWord('is');
     } else {
@@ -45,7 +43,7 @@ export class EntityParser extends ParserBase {
       } else if (nextWord === 'end') {
         this.getNextWord();
         this.maybeWord('entity');
-        this.maybeWord(this.entity.name.text);
+        this.maybeWord(this.entity.lexerToken.text);
         this.entity.range = this.entity.range.copyWithNewEnd(this.getToken(-1, true).range.end);
         this.expect(';');
         break;
@@ -62,7 +60,7 @@ export class EntityParser extends ParserBase {
         }
         this.getNextWord();
         this.maybeWord('entity');
-        this.maybeWord(this.entity.name.text);
+        this.maybeWord(this.entity.lexerToken.text);
         this.entity.range = this.entity.range.copyWithNewEnd(this.getToken(-1, true).range.end);
         this.expect(';');
         break;

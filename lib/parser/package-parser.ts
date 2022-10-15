@@ -1,27 +1,25 @@
 import { AssociationListParser } from './association-list-parser';
 import { DeclarativePartParser } from './declarative-part-parser';
 import { InterfaceListParser } from './interface-list-parser';
-import { OFile, OIRange, OName, OPackage, OPackageBody } from './objects';
+import { OFile, OIRange, OPackage, OPackageBody } from './objects';
 import { ParserBase } from './parser-base';
 
 export class PackageParser extends ParserBase {
   parse(parent: OFile): OPackage|OPackageBody {
-    let nextWord = this.consumeToken();
-    if (nextWord.getLText() === 'body') {
+    let nextToken = this.consumeToken();
+    if (nextToken.getLText() === 'body') {
       const pkg = new OPackageBody(parent, this.getToken().range);
       const match = parent.originalText.match(/!\s*@library\s+(\S+)/i);
       pkg.library = match ? match[1] : undefined;
 
-      const name = this.consumeToken();
-      pkg.name = new OName(pkg, name.range);
-      pkg.name.text = name.text;
+      pkg.lexerToken = this.consumeToken();
       this.expect('is');
       const declarativePartParser = new DeclarativePartParser(this.pos, this.filePath, pkg);
       declarativePartParser.parse(false, 'end');
       this.expect('end');
       this.maybeWord('package');
       this.maybeWord('body');
-      this.maybeWord(pkg.name.text);
+      this.maybeWord(pkg.lexerToken.text);
       pkg.range = pkg.range.copyWithNewEnd(this.getToken(-1, true).range.end);
       this.advanceSemicolonToken();
       return pkg;
@@ -30,20 +28,17 @@ export class PackageParser extends ParserBase {
       const match = parent.originalText.match(/!\s*@library\s+(\S+)/i);
       pkg.library = match ? match[1] : undefined;
 
-      pkg.name = new OName(pkg, nextWord.range);
-      pkg.name.text = nextWord.text;
+      pkg.lexerToken = nextToken;
       this.expect('is');
-      nextWord = this.getToken();
-      if (nextWord.getLText() === 'new') {
+      nextToken = this.getToken();
+      if (nextToken.getLText() === 'new') {
         this.getNextWord();
         this.consumeToken();
         this.expect('.');
-        const uninstantiatedPackageName = this.consumeToken();
-        pkg.uninstantiatedPackageName = new OName(pkg, uninstantiatedPackageName.range);
-        pkg.uninstantiatedPackageName.text = uninstantiatedPackageName.text;
+        pkg.uninstantiatedPackage = this.consumeToken();
 
-        nextWord = this.getToken();
-        if (nextWord.getLText() === 'generic') {
+        nextToken = this.getToken();
+        if (nextToken.getLText() === 'generic') {
           this.expect('generic');
           this.expect('map');
           pkg.genericAssociationList = new AssociationListParser(this.pos, this.filePath, pkg).parse('generic');
@@ -52,7 +47,7 @@ export class PackageParser extends ParserBase {
         this.expect(';');
         return pkg;
       }
-      if (nextWord.getLText() === 'generic') {
+      if (nextToken.getLText() === 'generic') {
         this.getNextWord();
         const savedI = this.pos.i;
         const interfaceListParser = new InterfaceListParser(this.pos, this.filePath, pkg);
@@ -63,7 +58,7 @@ export class PackageParser extends ParserBase {
       const declarativePartParser = new DeclarativePartParser(this.pos, this.filePath, pkg);
       declarativePartParser.parse(false, 'end');
       this.maybeWord('package');
-      this.maybeWord(pkg.name.text);
+      this.maybeWord(pkg.lexerToken.text);
       this.advanceSemicolonToken();
       return pkg;
     }

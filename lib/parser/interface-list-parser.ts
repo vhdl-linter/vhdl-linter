@@ -1,4 +1,4 @@
-import { OComponent, OEntity, OGeneric, OIRange, OName, OPackage, OPort, OSubprogram, implementsIHasPackageInstantiations } from './objects';
+import { OComponent, OEntity, OGeneric, OIRange, OPackage, OPort, OSubprogram, implementsIHasPackageInstantiations } from './objects';
 import { ParserBase } from './parser-base';
 import { SubprogramParser } from './subprogram-parser';
 import { ParserPosition } from './parser';
@@ -44,9 +44,7 @@ export class InterfaceListParser extends ParserBase {
       const nextWord = this.getNextWord({ consume: false }).toLowerCase();
       if (nextWord === 'type') {
         this.getNextWord();
-        const name = this.consumeToken();
-        port.name = new OName(port, name.range);
-        port.name.text = name.text;
+        port.lexerToken = this.consumeToken();
         ports.push(port);
         this.maybeWord(';');
       } else if (nextWord === 'procedure' || nextWord === 'impure' || nextWord === 'pure' || nextWord === 'function') {
@@ -64,9 +62,7 @@ export class InterfaceListParser extends ParserBase {
         if (nextWord === 'signal' || nextWord === 'variable' || nextWord === 'constant' || nextWord === 'file') {
           this.getNextWord();
         }
-        const name = this.consumeToken();
-        port.name = new OName(port, name.range);
-        port.name.text = name.text;
+        port.lexerToken = this.consumeToken();
         if (this.getToken().getLText() === ',') {
           this.expect(',');
           multiInterface.push(port);
