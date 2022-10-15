@@ -30,7 +30,7 @@ export class OLexerToken {
     return this.text.toLowerCase();
   }
   toString() {
-    return this.getLText();
+    return this.text;
   }
 }
 export const GRAPHIC_CHARACTER = String.raw`[a-z0-9 "#&'()*+,-./:;<£¤¥¦§ ̈©ª«¬- ® ̄°±=>_|!$%?@\[\\\]\^\`{}~¡¢²³ ́μ¶· ̧¹º»¼½¾¿×÷]`;
