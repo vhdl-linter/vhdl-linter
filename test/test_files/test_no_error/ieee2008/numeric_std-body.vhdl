@@ -59,9 +59,6 @@
 -- $Date: 2008-04-10 17:16:09 +0930 (Thu, 10 Apr 2008) $
 -- --------------------------------------------------------------------
 
--- Vhdl-linter checking still has problems with this file. Disable all linting messages for now.
--- Parser error will still apply
--- vhdl-linter-disable-region
 
 
 
