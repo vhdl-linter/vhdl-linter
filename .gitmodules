@@ -1,6 +1,0 @@
-[submodule "test/audiovhd"]
-	path = test/audiovhd
-	url = git@github.com:g0t00/audiovhd
-[submodule "test/ABP"]
-	path = test/ABP
-	url = git@github.com:Nik-Sch/ABP

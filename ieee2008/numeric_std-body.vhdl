@@ -54,10 +54,6 @@
 --             :  The package body may be changed only in accordance with
 --             :  the terms of Clause 16 of this standard.
 --             :
--- --------------------------------------------------------------------
--- $Revision: 1220 $
--- $Date: 2008-04-10 17:16:09 +0930 (Thu, 10 Apr 2008) $
--- --------------------------------------------------------------------
 
 
 
