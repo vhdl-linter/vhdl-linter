@@ -356,6 +356,8 @@ export class OContextReference extends ObjectBase {
   constructor(public parent: OFile | OContext, range: OIRange, public library: string, public contextName: string) {
     super(parent, range);
   }
+  definitions: ObjectBase[] = [];
+
 }
 export class OContext extends ObjectBase implements IHasUseClauses, IHasContextReference, IHasLexerToken {
   parent: OFile;
