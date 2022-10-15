@@ -201,7 +201,7 @@ export function implementsIHasContextReference(obj: unknown): obj is IHasContext
 export interface IReferenceable {
   references: OReference[];
 }
-export function implementsIMentionable(obj: unknown): obj is IReferenceable {
+export function implementsIReferencable(obj: unknown): obj is IReferenceable {
   return (obj as IReferenceable).references !== undefined;
 }
 export interface IHasDefinitions {

@@ -5,7 +5,7 @@ import {
 } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { CancelationError, CancelationObject, getDocumentSettings } from './language-server';
-import { IHasContextReference, IHasLexerToken, IHasUseClauses, implementsIHasConstants, implementsIHasContextReference, implementsIHasInstantiations, implementsIHasLexerToken, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasUseClause, implementsIHasVariables, implementsIMentionable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, OAssociationList, ObjectBase, OCase, OComponent, OConstant, OEntity, OEnum, OFile, OGeneric, OGenericAssociationList, OHasSequentialStatements, OI, OIf, OInstantiation, OIRange, OPackage, OPackageBody, OPort, OPortAssociationList, OProcess, ORead, OSignal, OSignalBase, OSubprogram, OReference, OType, OVariable, OWrite, ParserError } from './parser/objects';
+import { IHasContextReference, IHasLexerToken, IHasUseClauses, implementsIHasConstants, implementsIHasContextReference, implementsIHasInstantiations, implementsIHasLexerToken, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasUseClause, implementsIHasVariables, implementsIReferencable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, OAssociationList, ObjectBase, OCase, OComponent, OConstant, OEntity, OEnum, OFile, OGeneric, OGenericAssociationList, OHasSequentialStatements, OI, OIf, OInstantiation, OIRange, OPackage, OPackageBody, OPort, OPortAssociationList, OProcess, ORead, OSignal, OSignalBase, OSubprogram, OReference, OType, OVariable, OWrite, ParserError } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 export enum LinterRules {
@@ -406,7 +406,7 @@ export class VhdlLinter {
           const index = this.file.objectList.indexOf(mapping);
           this.file.objectList.splice(index, 1);
           for (const mentionable of this.file.objectList) {
-            if (implementsIMentionable(mentionable)) {
+            if (implementsIReferencable(mentionable)) {
               for (const [index, mention] of mentionable.references.entries()) {
                 if (mention === mapping) {
                   mentionable.references.splice(index, 1);
@@ -420,7 +420,7 @@ export class VhdlLinter {
           const index = this.file.objectList.indexOf(mapping);
           this.file.objectList.splice(index, 1);
           for (const mentionable of this.file.objectList) {
-            if (implementsIMentionable(mentionable)) {
+            if (implementsIReferencable(mentionable)) {
               for (const [index, mention] of mentionable.references.entries()) {
                 if (mention === mapping) {
                   mentionable.references.splice(index, 1);
@@ -435,7 +435,7 @@ export class VhdlLinter {
           const index = this.file.objectList.indexOf(mapping);
           this.file.objectList.splice(index, 1);
           for (const mentionable of this.file.objectList) {
-            if (implementsIMentionable(mentionable)) {
+            if (implementsIReferencable(mentionable)) {
               for (const [index, mention] of mentionable.references.entries()) {
                 if (mention === mapping) {
                   mentionable.references.splice(index, 1);
@@ -449,7 +449,7 @@ export class VhdlLinter {
           const index = this.file.objectList.indexOf(mapping);
           this.file.objectList.splice(index, 1);
           for (const mentionable of this.file.objectList) {
-            if (implementsIMentionable(mentionable)) {
+            if (implementsIReferencable(mentionable)) {
               for (const [index, mention] of mentionable.references.entries()) {
                 if (mention === mapping) {
                   mentionable.references.splice(index, 1);
@@ -464,7 +464,7 @@ export class VhdlLinter {
           const index = this.file.objectList.indexOf(mapping);
           this.file.objectList.splice(index, 1);
           for (const mentionable of this.file.objectList) {
-            if (implementsIMentionable(mentionable)) {
+            if (implementsIReferencable(mentionable)) {
               for (const [index, mention] of mentionable.references.entries()) {
                 if (mention === mapping) {
                   mentionable.references.splice(index, 1);
@@ -478,7 +478,7 @@ export class VhdlLinter {
           const index = this.file.objectList.indexOf(mapping);
           this.file.objectList.splice(index, 1);
           for (const mentionable of this.file.objectList) {
-            if (implementsIMentionable(mentionable)) {
+            if (implementsIReferencable(mentionable)) {
               for (const [index, mention] of mentionable.references.entries()) {
                 if (mention === mapping) {
                   mentionable.references.splice(index, 1);
@@ -502,7 +502,7 @@ export class VhdlLinter {
           const index = this.file.objectList.indexOf(mapping);
           this.file.objectList.splice(index, 1);
           for (const mentionable of this.file.objectList) {
-            if (implementsIMentionable(mentionable)) {
+            if (implementsIReferencable(mentionable)) {
               for (const [index, mention] of mentionable.references.entries()) {
                 if (mention === mapping) {
                   mentionable.references.splice(index, 1);
@@ -516,7 +516,7 @@ export class VhdlLinter {
           const index = this.file.objectList.indexOf(mapping);
           this.file.objectList.splice(index, 1);
           for (const mentionable of this.file.objectList) {
-            if (implementsIMentionable(mentionable)) {
+            if (implementsIReferencable(mentionable)) {
               for (const [index, mention] of mentionable.references.entries()) {
                 if (mention === mapping) {
                   mentionable.references.splice(index, 1);

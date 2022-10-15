@@ -1,7 +1,7 @@
 import { ErrorCodes, Location, Position, ReferenceParams, RenameParams, ResponseError, TextDocumentIdentifier, TextDocumentPositionParams, TextEdit } from 'vscode-languageserver';
 import { initialization, linters, lintersValid } from '../language-server';
 import { OLexerToken } from '../lexer';
-import { implementsIMentionable, ObjectBase, OReference, implementsIHasLexerToken } from '../parser/objects';
+import { implementsIReferencable, ObjectBase, OReference, implementsIHasLexerToken } from '../parser/objects';
 
 export async function findReferences(params: { textDocument: TextDocumentIdentifier, position: Position }) {
   await initialization;
@@ -25,10 +25,10 @@ export async function findReferences(params: { textDocument: TextDocumentIdentif
   // debugger;
   if (candidate instanceof OReference && candidate.definitions) {
     return candidate.definitions.concat(candidate.definitions.flatMap(c => {
-      return implementsIMentionable(c) ? c.references : [];
+      return implementsIReferencable(c) ? c.references : [];
     }));
   }
-  if (implementsIMentionable(candidate)) {
+  if (implementsIReferencable(candidate)) {
     return ([candidate] as ObjectBase[]).concat(candidate.references ?? []);
   }
   return [];
@@ -60,7 +60,7 @@ export async function prepareRenameHandler(params: TextDocumentPositionParams) {
 }
 export async function renameHandler(params: RenameParams) {
   const references = (await findReferences(params)).map(reference => {
-    if (implementsIMentionable(reference) && implementsIHasLexerToken(reference)) {
+    if (implementsIReferencable(reference) && implementsIHasLexerToken(reference)) {
       return reference.lexerToken;
     }
     return reference;
