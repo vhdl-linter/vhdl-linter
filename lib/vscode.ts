@@ -1,11 +1,10 @@
-import { commands, env, ExtensionContext, languages, Position, ProgressLocation, window, workspace } from 'vscode';
+import { commands, env, ExtensionContext, Position, ProgressLocation, window, workspace } from 'vscode';
 import {
   LanguageClient,
   LanguageClientOptions,
   ServerOptions,
   TransportKind
 } from 'vscode-languageclient/node';
-import { semanticTokensLegend, semanticTokensProvider } from './languageFeatures/semanticTokens';
 import { ProjectParser } from './project-parser';
 import { copy, CopyTypes } from './vhdl-entity-converter';
 import { IAddSignalCommandArguments, IIgnoreLineCommandArguments, VhdlLinter } from './vhdl-linter';
@@ -115,7 +114,6 @@ export function activate(context: ExtensionContext) {
     env.clipboard.writeText(result as string);
     window.showInformationMessage(`Copied list of files to clipboard.`);
   }));
-  context.subscriptions.push(languages.registerDocumentSemanticTokensProvider({ language: 'vhdl' }, semanticTokensProvider, semanticTokensLegend));
 }
 
 export function deactivate(): Thenable<void> | undefined {

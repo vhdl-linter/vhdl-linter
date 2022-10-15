@@ -16,6 +16,7 @@ import { handleOnWorkspaceSymbol } from './languageFeatures/workspaceSymbols';
 import { implementsIHasDefinitions, OComponent, OFile, OInstantiation, OUseClause } from './parser/objects';
 import { ProjectParser } from './project-parser';
 import { VhdlLinter } from './vhdl-linter';
+import { handleSemanticTokens, semanticTokensLegend } from './languageFeatures/semanticTokens';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -127,6 +128,13 @@ connection.onInitialize((params: InitializeParams) => {
       // Tell the client that the server supports code completion
       completionProvider: {
         resolveProvider: false
+      },
+      semanticTokensProvider: {
+        legend: semanticTokensLegend,
+        range: false,
+        full: {
+          delta: false
+        }
       },
 
       documentSymbolProvider: true,
@@ -372,6 +380,7 @@ connection.onCodeLens(handleCodeLens);
 connection.onReferences(findReferencesHandler);
 connection.onExecuteCommand(handleExecuteCommand);
 connection.onWorkspaceSymbol(handleOnWorkspaceSymbol);
+// connection.on
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 connection.onRequest('vhdl-linter/listing', async (params: any) => {
   await initialization;
@@ -441,6 +450,7 @@ connection.onRequest('vhdl-linter/listing', async (params: any) => {
   const unresolvedList = unresolved.join('\n');
   return `files:\n${filesList}\n\nUnresolved instantiations:\n${unresolvedList}`;
 });
+connection.languages.semanticTokens.on(handleSemanticTokens);
 documents.listen(connection);
 
 // Listen on the connection

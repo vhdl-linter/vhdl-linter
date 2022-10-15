@@ -1,42 +1,84 @@
-import { DocumentSemanticTokensProvider, TextDocument, SemanticTokensBuilder, SemanticTokensLegend, Position, Range } from "vscode";
-import { IHasLexerToken, implementsIHasDefinitions, implementsIHasLexerToken, OIRange, OPort, OSignal } from "../parser/objects";
-import { ProjectParser } from "../project-parser";
-import { VhdlLinter } from "../vhdl-linter";
+import { SemanticTokenModifiers, SemanticTokens, SemanticTokensBuilder, SemanticTokensLegend, SemanticTokensParams, SemanticTokenTypes } from "vscode-languageserver";
+import { initialization, linters } from "../language-server";
+import { implementsIHasLexerToken, IHasLexerToken, OPort, OSignal, implementsIHasDefinitions, ObjectBase, OIRange, OType, OEnumLiteral, OEnum, ORecord, OVariable, OConstant, OGeneric, OWrite, OVariableBase } from "../parser/objects";
 
-const tokenTypes = ['variable', 'parameter'];
-const tokenModifiers = ['declaration', 'readonly'];
-export const semanticTokensLegend = new SemanticTokensLegend(tokenTypes, tokenModifiers);
-
-const range2Range = (range: OIRange) => {
-  return new Range(new Position(range.start.line, range.start.character), new Position(range.end.line, range.end.character));
+export const semanticTokensLegend: SemanticTokensLegend = {
+  tokenTypes: Object.values(SemanticTokenTypes),
+  tokenModifiers: Object.values(SemanticTokenModifiers)
+};
+function tokenType(type: SemanticTokenTypes) {
+  return semanticTokensLegend.tokenTypes.indexOf(type);
 }
 
-const provideDocumentSemanticTokens = async (document: TextDocument) => {
-  const tokensBuilder = new SemanticTokensBuilder(semanticTokensLegend);
-
-  // TODO: get the already linted file + project parser
-  // somehow move this to the lsp instead of the client?
-  const linter = new VhdlLinter(document.uri.path, document.getText(), new ProjectParser([], ''));
-  await linter.elaborate();
-
-  for (const obj of (linter.file.objectList.filter(obj => implementsIHasLexerToken(obj)) as IHasLexerToken[])) {
-    if (obj instanceof OPort && obj.direction === 'in') {
-      tokensBuilder.push(range2Range(obj.lexerToken.range), 'variable', ['readonly', 'declaration']);
-    } else if (obj instanceof OPort || obj instanceof OSignal) {
-      tokensBuilder.push(range2Range(obj.lexerToken.range), 'variable', ['declaration']);
+function tokenModifier(modifiers: SemanticTokenModifiers[]) {
+  let result = 0;
+  for (const modifier of modifiers) {
+    const index = semanticTokensLegend.tokenModifiers.indexOf(modifier);
+    if (index > 0) {
+      result |= 1 << index;
     }
-    if (implementsIHasDefinitions(obj)) {
-      if (obj.definitions.filter(def => def instanceof OPort && def.direction === 'in').length > 0) {
-        tokensBuilder.push(range2Range(obj.lexerToken.range), 'variable', ['readonly']);
-      } else if (obj.definitions.filter(def => def instanceof OPort || def instanceof OSignal).length > 0) {
-        tokensBuilder.push(range2Range(obj.lexerToken.range), 'variable', []);
-      }
+  }
+  return result;
+}
+
+function pushToken(builder: SemanticTokensBuilder, range: OIRange, type: SemanticTokenTypes, modifiers: SemanticTokenModifiers[]) {
+    const line = range.start.line;
+    const char = range.start.character;
+    const length = range.end.i - range.start.i;
+    builder.push(line, char, length, tokenType(type), tokenModifier(modifiers));
+}
+
+
+function findDefinition(obj: ObjectBase) {
+  if (implementsIHasDefinitions(obj) && obj.definitions.length > 0) {
+    return obj.definitions[0];
+  }
+}
+
+function pushCorrectToken(builder: SemanticTokensBuilder, obj: ObjectBase, range: OIRange, fixedModifiers: SemanticTokenModifiers[]) {
+  if (obj instanceof OEnum) {
+    const type = SemanticTokenTypes.enum;
+    pushToken(builder, range, type, [...fixedModifiers, SemanticTokenModifiers.readonly]);
+  } else if (obj instanceof ORecord) {
+    const type = SemanticTokenTypes.struct;
+    pushToken(builder, range, type, [...fixedModifiers, SemanticTokenModifiers.readonly]);
+  } else if (obj instanceof OType) {
+    const type = SemanticTokenTypes.type;
+    pushToken(builder, range, type, [...fixedModifiers, SemanticTokenModifiers.readonly]);
+  } else if (obj instanceof OEnumLiteral) {
+    const type = SemanticTokenTypes.enumMember;
+    pushToken(builder, range, type, [...fixedModifiers, SemanticTokenModifiers.readonly]);
+  } else if (obj instanceof OPort && obj.direction === 'in') {
+    const type = SemanticTokenTypes.variable;
+    pushToken(builder, range, type, [...fixedModifiers, SemanticTokenModifiers.readonly]);
+  } else if (obj instanceof OVariableBase) {
+    if (obj instanceof OConstant || obj instanceof OGeneric) {
+      pushToken(builder, range, SemanticTokenTypes.parameter, [...fixedModifiers, SemanticTokenModifiers.readonly]);
+    } else {
+      const modifiers = obj instanceof OWrite ? [SemanticTokenModifiers.modification] : [];
+      pushToken(builder, range, SemanticTokenTypes.variable, [...fixedModifiers, ...modifiers]);
+    }
+  }
+}
+
+export async function handleSemanticTokens(params: SemanticTokensParams): Promise<SemanticTokens> {
+
+  const tokensBuilder = new SemanticTokensBuilder();
+
+  await initialization;
+  const linter = linters.get(params.textDocument.uri);
+  if (typeof linter === 'undefined') {
+    return tokensBuilder.build();
+  }
+
+  for (const obj of linter.file.objectList) {
+    const definition = findDefinition(obj);
+    if (typeof definition !== 'undefined' && implementsIHasLexerToken(obj)) {
+      pushCorrectToken(tokensBuilder, definition, obj.lexerToken.range, []);
+    } else if (implementsIHasLexerToken(obj)) { // is the definition itself?
+      pushCorrectToken(tokensBuilder, obj, obj.lexerToken.range, [SemanticTokenModifiers.declaration]);
     }
   }
 
   return tokensBuilder.build();
 }
-
-export const semanticTokensProvider: DocumentSemanticTokensProvider = {
-  provideDocumentSemanticTokens
-};
