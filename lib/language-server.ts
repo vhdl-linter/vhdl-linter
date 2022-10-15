@@ -1,6 +1,7 @@
 import {
-  CodeAction, createConnection, DidChangeConfigurationNotification, ErrorCodes, Hover, InitializeParams, IPCMessageReader, IPCMessageWriter, Position, ProposedFeatures, TextDocument, TextDocuments
-} from 'vscode-languageserver';
+  CodeAction, createConnection, DidChangeConfigurationNotification, ErrorCodes, Hover, InitializeParams, IPCMessageReader, IPCMessageWriter, Position, ProposedFeatures, TextDocuments, TextDocumentSyncKind
+} from 'vscode-languageserver/node';
+import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
 import { handleCodeLens } from './languageFeatures/codeLens';
 import { attachOnCompletion } from './languageFeatures/completion';
@@ -23,7 +24,7 @@ export const connection = createConnection(ProposedFeatures.all, new IPCMessageR
 
 // Create a simple text document manager. The text document manager
 // supports full document sync only
-export const documents: TextDocuments = new TextDocuments();
+export const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 
 let hasWorkspaceFolderCapability = false;
 // let hasDiagnosticRelatedInformationCapability: boolean = false;
@@ -121,7 +122,7 @@ connection.onInitialize((params: InitializeParams) => {
   );
   return {
     capabilities: {
-      textDocumentSync: documents.syncKind,
+      textDocumentSync: TextDocumentSyncKind.Incremental,
       codeActionProvider: true,
       // Tell the client that the server supports code completion
       completionProvider: {
@@ -338,7 +339,7 @@ connection.onHover(async (params, token): Promise<Hover | null> => {
   await initialization;
   if (token.isCancellationRequested) {
     console.log('hover canceled');
-    throw ErrorCodes.RequestCancelled;
+    throw ErrorCodes.PendingResponseRejected;
   }
   const definition = await findBestDefinition(params);
   if (definition === null) {

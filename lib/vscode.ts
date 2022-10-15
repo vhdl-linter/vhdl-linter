@@ -4,7 +4,7 @@ import {
   LanguageClientOptions,
   ServerOptions,
   TransportKind
-} from 'vscode-languageclient';
+} from 'vscode-languageclient/node';
 import { semanticTokensLegend, semanticTokensProvider } from './languageFeatures/semanticTokens';
 import { ProjectParser } from './project-parser';
 import { copy, CopyTypes } from './vhdl-entity-converter';
@@ -55,7 +55,7 @@ export function activate(context: ExtensionContext) {
   );
 
   // Start the client. This will also launch the server
-  const disposable = client.start();
+  client.start();
   context.subscriptions.push(commands.registerCommand('vhdl-linter:add-signal', async (args: IAddSignalCommandArguments) => {
     const editor = window.activeTextEditor;
     if (!editor) {
@@ -115,7 +115,6 @@ export function activate(context: ExtensionContext) {
     env.clipboard.writeText(result as string);
     window.showInformationMessage(`Copied list of files to clipboard.`);
   }));
-  context.subscriptions.push(disposable);
   context.subscriptions.push(languages.registerDocumentSemanticTokensProvider({ language: 'vhdl' }, semanticTokensProvider, semanticTokensLegend));
 }
 
