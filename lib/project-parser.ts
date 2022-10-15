@@ -1,10 +1,11 @@
 import { FSWatcher, watch } from 'chokidar';
 import { EventEmitter } from 'events';
 import { promises, readFileSync } from 'fs';
+import { Worker } from 'node:worker_threads';
 import { join, sep } from 'path';
 import { OContext, OEntity, OPackage, OPackageBody } from './parser/objects';
 import { VhdlLinter } from './vhdl-linter';
-
+import { StaticPool } from 'node-worker-threads-pool';
 export class ProjectParser {
 
   public cachedFiles: OFileCache[] = [];
@@ -31,6 +32,7 @@ export class ProjectParser {
 
     for (const file of files) {
       const cachedFile = new OFileCache(file, this);
+      await cachedFile.parse();
       this.cachedFiles.push(cachedFile);
     }
     this.cachedFiles.sort((a, b) => b.lintingTime - a.lintingTime);
@@ -40,6 +42,7 @@ export class ProjectParser {
       const watcher = watch(workspace.replace(sep, '/') + '/**/*.vhd', { ignoreInitial: true });
       watcher.on('add', async (path) => {
         const cachedFile = new OFileCache(path, this);
+        await cachedFile.parse();
         this.cachedFiles.push(cachedFile);
         this.fetchEntitesAndPackagesAndContexts();
         this.events.emit('change', 'add', path);
@@ -50,7 +53,7 @@ export class ProjectParser {
           ? this.cachedFiles.find(cachedFile => cachedFile.path.toLowerCase() === path.toLowerCase())
           : this.cachedFiles.find(cachedFile => cachedFile.path === path);
         if (cachedFile) {
-          cachedFile.reparse();
+          await cachedFile.parse();
         } else {
           console.error('modified file not found', path);
         }
@@ -117,7 +120,10 @@ export class ProjectParser {
     return this.entities;
   }
 }
-
+const pool = new StaticPool({
+  size: 4,
+  task: __dirname + '/parser-worker.js'
+});
 export class OFileCache {
 
   path: string;
@@ -139,26 +145,19 @@ export class OFileCache {
     const date = Date.now();
     this.linter = new VhdlLinter(this.path, this.text, this.projectParser, true);
     this.lintingTime = Date.now() - date;
-    this.parsePackages();
-    this.parseEntity();
-    this.parseContexts();
-  }
-  reparse() {
-    this.text = readFileSync(this.path, { encoding: 'utf8' });
-    this.linter = new VhdlLinter(this.path, this.text, this.projectParser);
-    this.parsePackages();
-    this.parseEntity();
-    this.parseContexts();
-  }
-  private parsePackages(): void {
     this.packages = this.linter.file.packages;
-  }
-  private parseContexts(): void {
+    this.entities = this.linter.file.entities;
     this.contexts = this.linter.file.contexts;
   }
-  private parseEntity(): void {
-    if (this.linter.file.entities.length > 0) {
-      this.entities = this.linter.file.entities;
-    }
+  async parse() {
+    console.log(this.path, 'start');
+
+    const file = await pool.exec({
+      path: this.path,
+    });
+    console.log(this.path, 'end');
+    this.packages = file.packages;
+    this.entities = file.entities;
+    this.contexts = file.contexts;
   }
 }

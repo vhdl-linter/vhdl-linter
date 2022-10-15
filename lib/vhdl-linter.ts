@@ -288,7 +288,7 @@ export class VhdlLinter {
         readObjectMap.set(subprogram.name.text.toLowerCase(), subprogram);
       }
       for (const type of pkg.types) {
-        type.addReadsToMap(readObjectMap);
+        // type.addReadsToMap(readObjectMap);
       }
     }
     for (const read of this.file.objectList.filter(object => object instanceof ORead) as ORead[]) {

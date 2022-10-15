@@ -133,7 +133,9 @@ export class OIRange implements Range {
 
 export class ObjectBase {
   name?: OName;
+  classname: string;
   constructor(public parent: ObjectBase | OFile, public range: OIRange) {
+    this.classname = this.constructor.name;
     let maximumIterationCounter = 5000;
     let p = parent;
     while (!(p instanceof OFile)) {

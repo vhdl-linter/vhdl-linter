@@ -1,15 +1,14 @@
 {
     "compilerOptions": {
         "module": "commonjs",
-        "target": "es2019",
+        "target": "es2021",
         "noImplicitAny": true,
         "strictNullChecks": true,
         "sourceMap": true,
         "inlineSourceMap": false,
         "alwaysStrict": true,
         "outDir": "./dist",
-        "jsx": "react",
-        "lib": ["ES2020"]
+        "lib": ["es2021"]
     },
     "include": ["lib/**/*", "test/**/*"]
 }
