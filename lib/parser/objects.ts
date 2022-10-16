@@ -1025,6 +1025,11 @@ export class OAssociationFormal extends ObjectBase implements IHasDefinitions, I
     super(parent, lexerToken.range);
   }
 }
+export class OAssociationFormalSelectedName extends OAssociationFormal {
+  constructor(public parent: OAssociation, public lexerToken: OLexerToken, public prefixTokens: OLexerToken[]) {
+    super(parent, lexerToken);
+  }
+}
 export class ParserError extends Error {
   constructor(message: string, public range: OIRange, public solution?: { message: string, edits: TextEdit[] }) {
     super(message);

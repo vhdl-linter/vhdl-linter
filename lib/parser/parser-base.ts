@@ -1,6 +1,6 @@
 import { TextEdit } from 'vscode-languageserver';
 import { config } from './config';
-import { OAssociation, OAssociationFormal, ObjectBase, OSelectedNameRead, OGeneric, OIRange, OPort, ORead, OWrite, ParserError } from './objects';
+import { OAssociation, OAssociationFormal, ObjectBase, OSelectedNameRead, OGeneric, OIRange, OPort, ORead, OWrite, ParserError, OAssociationFormalSelectedName } from './objects';
 import { ParserPosition } from './parser';
 import { OLexerToken, TokenType } from '../lexer';
 
@@ -402,6 +402,7 @@ export class ParserBase {
     const reads = [];
     let functionOrArraySlice = false;
     let braceLevel = 0;
+    let prefixTokens: OLexerToken[] = [];
     for (let i = 0; i < tokens.length; i++) {
       const token = tokens[i];
       if (tokens[i].text === '(') {
@@ -420,7 +421,6 @@ export class ParserBase {
           braceLevel = 0;
         }
       }
-      let prefixTokens: OLexerToken[] = [];
       if (token.isIdentifier()) {
         if (tokens[i - 1]?.text === '\'') { // Attribute skipped for now
           continue;
@@ -437,7 +437,8 @@ export class ParserBase {
           continue;
         }
         if (prefixTokens.length > 0) {
-          reads.push(new OSelectedNameRead(parent, token, prefixTokens));
+          reads.push(asMappingName ? new OAssociationFormalSelectedName((parent as OAssociation), token, prefixTokens)
+          : new OSelectedNameRead(parent, token, prefixTokens));
           prefixTokens = [];
         } else {
           if (asMappingName && !(parent instanceof OAssociation)) {
