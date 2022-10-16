@@ -1,6 +1,6 @@
 import { TextEdit } from 'vscode-languageserver';
 import { config } from './config';
-import { OAssociation, OAssociationFormal, ObjectBase, OElementRead, OGeneric, OIRange, OPort, ORead, OWrite, ParserError } from './objects';
+import { OAssociation, OAssociationFormal, ObjectBase, OSelectedNameRead, OGeneric, OIRange, OPort, ORead, OWrite, ParserError } from './objects';
 import { ParserPosition } from './parser';
 import { OLexerToken, TokenType } from '../lexer';
 
@@ -436,8 +436,8 @@ export class ParserBase {
         if (functionOrArraySlice && tokens[i].isIdentifier() && tokens[i + 1]?.text === '=>') {
           continue;
         }
-        if (tokens[i - 1]?.text === '.' && token.getLText() !== 'all') {
-          reads.push(new OElementRead(parent, token, prefixTokens));
+        if (prefixTokens.length > 0) {
+          reads.push(new OSelectedNameRead(parent, token, prefixTokens));
           prefixTokens = [];
         } else {
           if (asMappingName && !(parent instanceof OAssociation)) {
@@ -445,7 +445,7 @@ export class ParserBase {
           }
           reads.push(asMappingName
             ? new OAssociationFormal((parent as OAssociation), token)
-            : new ORead(parent, token, prefixTokens));
+            : new ORead(parent, token));
           prefixTokens = [];
         }
       }
@@ -478,13 +478,19 @@ export class ParserBase {
           const write = new OWrite(parent, token);
           writes.push(write);
           if (readAndWrite) {
-            reads.push(new ORead(parent, token, []));
+            reads.push(new ORead(parent, token));
           }
         } else {
           if (recordToken) {
-            reads.push(new OElementRead(parent, token, []));
+            const prefixTokens = [];
+            let x = i - 1;
+            while (tokens[x]?.text === '.') {
+              prefixTokens.unshift(tokens[x - 1]);
+              x = x - 2;
+            }
+            reads.push(new OSelectedNameRead(parent, token, prefixTokens));
           } else if (tokens[i - 1]?.text !== '\'') { // skip attributes
-            reads.push(new ORead(parent, token, []));
+            reads.push(new ORead(parent, token));
           }
         }
       }

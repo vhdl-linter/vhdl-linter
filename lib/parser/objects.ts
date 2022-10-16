@@ -1012,12 +1012,12 @@ export class OReference extends ObjectBase implements IHasDefinitions, IHasLexer
 export class OWrite extends OReference {
 }
 export class ORead extends OReference {
+
+}
+export class OSelectedNameRead extends ORead {
   constructor(public parent: ObjectBase, public lexerToken: OLexerToken, public prefixTokens: OLexerToken[]) {
     super(parent, lexerToken);
   }
-
-}
-export class OElementRead extends ORead {
 }
 export class OAssociationFormal extends ObjectBase implements IHasDefinitions, IHasLexerToken {
   definitions: (OPort | OGeneric)[] = [];

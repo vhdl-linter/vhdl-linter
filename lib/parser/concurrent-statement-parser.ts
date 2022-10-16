@@ -187,7 +187,7 @@ export class ConcurrentStatementParser extends ParserBase {
       this.getNextWord();
       const assignmentParser = new AssignmentParser(this.pos, this.filePath, this.parent);
       const assignment = assignmentParser.parse();
-      const read = new ORead(assignment, readToken, []);
+      const read = new ORead(assignment, readToken);
       assignment.reads.push(read);
       this.parent.statements.push(assignment);
     } else if (nextWord === 'assert' && allowedStatements.includes(ConcurrentStatementTypes.Assert)) {
