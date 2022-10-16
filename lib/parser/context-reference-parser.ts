@@ -1,9 +1,9 @@
-import { OContext, OContextReference, OFile } from './objects';
+import { OContext, OContextReference, ObjectBase } from './objects';
 import { ParserPosition } from './parser';
 import { ParserBase } from './parser-base';
 
 export class ContextReferenceParser extends ParserBase {
-  constructor(pos: ParserPosition, file: string, private parent: OFile | OContext) {
+  constructor(pos: ParserPosition, file: string, private parent: ObjectBase | OContext) {
     super(pos, file);
     this.debug(`start`);
   }
@@ -13,6 +13,6 @@ export class ContextReferenceParser extends ParserBase {
     this.expect('.');
     const suffix = this.consumeToken();
     this.expect(';');
-    return new OContextReference(this.parent, prefix.range.copyWithNewEnd(suffix.range.end), prefix.text, suffix.text);
+    return new OContextReference(this.parent, prefix.range.copyWithNewEnd(suffix.range), prefix, suffix.text);
   }
 }

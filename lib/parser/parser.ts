@@ -2,12 +2,12 @@ import { ArchitectureParser } from './architecture-parser';
 import { ContextParser } from './context-parser';
 import { ContextReferenceParser } from './context-reference-parser';
 import { EntityParser } from './entity-parser';
-import { MagicCommentType, OFile, OI, OIRange, OMagicCommentDisable, OMagicCommentParameter, OMagicCommentTodo, ParserError, OConfiguration } from './objects';
+import { MagicCommentType, OFile, OI, OIRange, OMagicCommentDisable, OMagicCommentParameter, OMagicCommentTodo, ParserError, OConfiguration, OUseClause } from './objects';
 import { PackageParser } from './package-parser';
 import { ParserBase } from './parser-base';
 import { UseClauseParser } from './use-clause-parser';
 import { CancelationObject } from '../language-server';
-import { Lexer, OLexerToken } from '../lexer';
+import { Lexer, OLexerToken, TokenType } from '../lexer';
 
 export class ParserPosition {
   public lexerTokens: OLexerToken[];
@@ -114,7 +114,17 @@ export class Parser extends ParserBase {
       throw new ParserError('this.file too large', this.pos.getRangeToEndLine());
     }
     let contextReferences = [];
-    let useClauses = [];
+    const defaultLibrary = [
+      new OLexerToken('std', new OIRange(this.file, 0, 0), TokenType.keyword),
+      new OLexerToken('work', new OIRange(this.file, 0, 0), TokenType.keyword),
+    ];
+    const defaultUseClause = [
+      new OUseClause(this.file, new OIRange(this.file, 0, 0), new OLexerToken('std', new OIRange(this.file, 0, 0), TokenType.keyword),
+        'standard', 'all')
+    ];
+    // TODO: Add library STD, WORK; use STD.STANDARD.all;
+    let libraries = defaultLibrary.slice(0);
+    let useClauses = defaultUseClause.slice(0);
 
     while (this.pos.isValid()) {
       this.advanceWhitespace();
@@ -122,13 +132,28 @@ export class Parser extends ParserBase {
       if (nextWord === 'context') {
         if (this.advanceSemicolonToken(true, { consume: false }).find(token => token.getLText() === 'is')) {
           const contextParser = new ContextParser(this.pos, this.filePath, this.file);
-          this.file.contexts.push(contextParser.parse());
+          const context = contextParser.parse();
+          context.libraries.push(...libraries);
+          context.useClauses.push(...useClauses);
+          context.contextReferences.push(...contextReferences);
+          for (const contextReference of contextReferences) {
+            contextReference.parent = context;
+          }
+          for (const useClause of useClauses) {
+            useClause.parent = context;
+          }
+          libraries = defaultLibrary.slice(0);
+          useClauses = defaultUseClause.slice(0);
+          contextReferences = [];
+          this.file.contexts.push(context);
         } else {
-          const contextReferenceParser = new ContextReferenceParser(this.pos, this.filePath, this.file);
+          // The Parent gets overwritten when attaching the reference to the correct object
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const contextReferenceParser = new ContextReferenceParser(this.pos, this.filePath, (this.file as any));
           contextReferences.push(contextReferenceParser.parse());
         }
       } else if (nextWord === 'library') {
-        this.file.libraries.push(this.getNextWord());
+        libraries.push(this.consumeToken());
         this.expect(';');
       } else if (nextWord === 'use') {
         const useClauseParser = new UseClauseParser(this.pos, this.filePath, this.file);
@@ -138,9 +163,17 @@ export class Parser extends ParserBase {
         const entity = entityParser.parse();
         this.file.entities.push(entity);
         entity.contextReferences = contextReferences;
+        for (const contextReference of contextReferences) {
+          contextReference.parent = entity;
+        }
+        for (const useClause of useClauses) {
+          useClause.parent = entity;
+        }
         contextReferences = [];
         entity.useClauses = useClauses;
-        useClauses = [];
+        entity.libraries = libraries;
+        libraries = defaultLibrary.slice(0);
+        useClauses = defaultUseClause.slice(0);
         if (this.onlyEntity) {
           break;
         }
@@ -150,21 +183,37 @@ export class Parser extends ParserBase {
         const architecture = architectureParser.parse();
         this.file.architectures.push(architecture);
         architecture.contextReferences = contextReferences;
+        for (const contextReference of contextReferences) {
+          contextReference.parent = architecture;
+        }
+        for (const useClause of useClauses) {
+          useClause.parent = architecture;
+        }
         contextReferences = [];
         architecture.useClauses = useClauses;
-        useClauses = [];
+        architecture.libraries = libraries;
+
+        libraries = defaultLibrary.slice(0);
+        useClauses = defaultUseClause.slice(0);
       } else if (nextWord === 'package') {
         if (this.onlyEntity && this.getNextWord({ consume: false }) === 'body') {
           // break;
         }
         const packageParser = new PackageParser(this.pos, this.filePath);
         const pkg = packageParser.parse(this.file);
+        pkg.libraries = libraries;
         pkg.useClauses = useClauses;
         this.file.packages.push(pkg);
         pkg.contextReferences = contextReferences;
+        for (const contextReference of contextReferences) {
+          contextReference.parent = pkg;
+        }
+        for (const useClause of useClauses) {
+          useClause.parent = pkg;
+        }
         contextReferences = [];
-        useClauses = [];
-
+        libraries = defaultLibrary.slice(0);
+        useClauses = defaultUseClause.slice(0);
 
       } else if (nextWord === 'configuration') {
         const configuration = new OConfiguration(this.file, this.getToken().range.copyExtendEndOfLine());

@@ -1,9 +1,10 @@
-import { OContext, OFile, OIRange, OUseClause } from './objects';
+import { OFile, OIRange, OUseClause, ObjectBase } from './objects';
 import { ParserPosition } from './parser';
 import { ParserBase } from './parser-base';
+import { OLexerToken, TokenType } from '../lexer';
 
 export class UseClauseParser extends ParserBase {
-  constructor(pos: ParserPosition, file: string, private parent: OFile|OContext) {
+  constructor(pos: ParserPosition, file: string, private parent: ObjectBase|OFile) {
     super(pos, file);
     this.debug(`start`);
   }
@@ -24,10 +25,10 @@ export class UseClauseParser extends ParserBase {
     if (tokens.length === 3) {
       const [library, packageName, suffix] = tokens;
 
-      return new OUseClause(this.parent, new OIRange(this.parent, startI, this.pos.i), library.text, packageName.text, suffix.text);
+      return new OUseClause(this.parent, new OIRange(this.parent, startI, this.pos.i), library, packageName.text, suffix.text);
     } else {
       const [packageName, suffix] = tokens;
-      return new OUseClause(this.parent, new OIRange(this.parent, startI, this.pos.i), 'work', packageName.text, suffix.text);
+      return new OUseClause(this.parent, new OIRange(this.parent, startI, this.pos.i), new OLexerToken('work', packageName.range, TokenType.keyword), packageName.text, suffix.text);
 
     }
   }
