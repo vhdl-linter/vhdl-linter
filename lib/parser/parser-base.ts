@@ -16,28 +16,28 @@ export class ParserBase {
     }
   }
   // debugObject(_object: any) {
-    // let target: any = {};
-    // const filter = (object: any) => {
-    //   const target: any = {};
-    //   if (!object) {
-    //     return;
-    //   }
-    //   for (const key of Object.keys(object)) {
-    //     if (key === 'parent') {
-    //       continue;
-    //     } else if (Array.isArray(object[key])) {
-    //       target[key] = object[key].map(filter);
-    //
-    //     } else if (typeof object[key] === 'object') {
-    //       target[key] = filter(object[key]);
-    //     } else {
-    //       target[key] = object[key];
-    //     }
-    //   }
-    //   return target;
-    // };
-    // target = filter(object);
-    //     console.log(`${this.constructor.name}: ${JSON.stringify(target, null, 2)} in line: ${this.getLine()}, (${this.file})`);
+  // let target: any = {};
+  // const filter = (object: any) => {
+  //   const target: any = {};
+  //   if (!object) {
+  //     return;
+  //   }
+  //   for (const key of Object.keys(object)) {
+  //     if (key === 'parent') {
+  //       continue;
+  //     } else if (Array.isArray(object[key])) {
+  //       target[key] = object[key].map(filter);
+  //
+  //     } else if (typeof object[key] === 'object') {
+  //       target[key] = filter(object[key]);
+  //     } else {
+  //       target[key] = object[key];
+  //     }
+  //   }
+  //   return target;
+  // };
+  // target = filter(object);
+  //     console.log(`${this.constructor.name}: ${JSON.stringify(target, null, 2)} in line: ${this.getLine()}, (${this.file})`);
   // }
   getTypeDefintion(parent: OGeneric | OPort) {
     this.debug('getTypeDefintion');
@@ -87,7 +87,7 @@ export class ParserBase {
       let offsetCorrected = 0;
       if (offset > 0) {
         for (let i = 0; i < offset; i++) {
-          do  {
+          do {
             offsetCorrected += 1;
             if (this.pos.lexerTokens[this.pos.num + offsetCorrected] === undefined) {
               throw new ParserError(`Out of bound while doing getToken(${offset}, ${offsetIgnoresWhitespaces})`, this.getToken(0).range);
@@ -96,7 +96,7 @@ export class ParserBase {
         }
       } else if (offset < 0) {
         for (let i = 0; i > offset; i--) {
-          do  {
+          do {
             offsetCorrected -= 1;
             if (this.pos.lexerTokens[this.pos.num + offsetCorrected] === undefined) {
               throw new ParserError(`Out of bound while doing getToken(${offset}, ${offsetIgnoresWhitespaces})`, this.getToken(0).range);
@@ -399,8 +399,7 @@ export class ParserBase {
   extractReads(parent: ObjectBase | OAssociation, tokens: OLexerToken[], asMappingName: true): OAssociationFormal[];
   extractReads(parent: ObjectBase | OAssociation, tokens: OLexerToken[], asMappingName = false): (ORead | OAssociationFormal)[] {
     tokens = tokens.filter(token => !token.isWhitespace() && token.type !== TokenType.keyword);
-    const libraries = parent.getRoot().libraries;
-    libraries.push('work');
+    const libraries = parent.getRootElement().libraries;
     const reads = [];
     let functionOrArraySlice = false;
     let braceLevel = 0;
@@ -426,11 +425,11 @@ export class ParserBase {
         if (tokens[i - 1]?.text === '\'') { // Attribute skipped for now
           continue;
         }
-        if (tokens[i + 1]?.text === '.' && libraries.findIndex(l => l === token.getLText()) !== -1) {
+        if (tokens[i + 1]?.text === '.' && libraries.findIndex(l => l.getLText() === token.getLText()) !== -1) {
           // skip library itself
           continue;
         }
-        if (tokens[i - 1]?.text === '.' && libraries.findIndex(l => l === tokens[i - 2]?.getLText()) !== -1) {
+        if (tokens[i - 1]?.text === '.' && libraries.findIndex(l => l.getLText() === tokens[i - 2]?.getLText()) !== -1) {
           // skip package -> only read the actual variable
           continue;
         }

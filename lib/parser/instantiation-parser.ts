@@ -17,7 +17,7 @@ export class InstantiationParser extends ParserBase {
       instantiation.type = 'entity';
       const libraryToken = this.consumeToken();
       this.expect('.');
-      instantiation.library = libraryToken.text;
+      instantiation.library = libraryToken;
     } else if (nextWord === 'component') {
       this.getNextWord();
       instantiation.type = 'component';

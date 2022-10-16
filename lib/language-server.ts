@@ -417,7 +417,7 @@ connection.onRequest('vhdl-linter/listing', async (params: any) => {
         }
       } else if (obj instanceof OUseClause) {
         // do not generate file listings for ieee files
-        if (obj.library.toLowerCase() === 'ieee' || obj.library.toLowerCase() === 'std') {
+        if (obj.library.getLText() === 'ieee' || obj.library.getLText() === 'std') {
           continue;
         }
         const matchingPackages = projectParser.getPackages().filter(pkg => pkg.lexerToken.text === obj.packageName);

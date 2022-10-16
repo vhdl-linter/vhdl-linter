@@ -5,7 +5,7 @@ import {
 } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { CancelationError, CancelationObject, getDocumentSettings } from './language-server';
-import { IHasContextReference, IHasLexerToken, IHasUseClauses, implementsIHasConstants, implementsIHasContextReference, implementsIHasInstantiations, implementsIHasLexerToken, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasUseClause, implementsIHasVariables, implementsIReferencable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, OAssociationList, ObjectBase, OCase, OComponent, OConstant, OEntity, OEnum, OFile, OGeneric, OGenericAssociationList, OHasSequentialStatements, OI, OIf, OInstantiation, OIRange, OPackage, OPackageBody, OPort, OPortAssociationList, OProcess, ORead, OSignal, OSignalBase, OSubprogram, OReference, OType, OVariable, OWrite, ParserError } from './parser/objects';
+import { IHasContextReference, IHasLexerToken, IHasUseClauses, implementsIHasConstants, implementsIHasContextReference, implementsIHasInstantiations, implementsIHasLexerToken, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasUseClause, implementsIHasVariables, implementsIReferencable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, OAssociationList, ObjectBase, OCase, OComponent, OConstant, OEntity, OEnum, OFile, OGeneric, OGenericAssociationList, OHasSequentialStatements, OI, OIf, OInstantiation, OIRange, OPackage, OPackageBody, OPort, OPortAssociationList, OProcess, ORead, OSignal, OSignalBase, OSubprogram, OReference, OType, OVariable, OWrite, ParserError, OContextReference, implementsIHasLibraries, OUseClause, implementsIHasLibraryReference } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 export enum LinterRules {
@@ -121,7 +121,40 @@ export class VhdlLinter {
       }
     });
   }
-
+  checkLibraryReferences() {
+    for (const object of this.file.objectList) {
+      if (implementsIHasLibraryReference(object) && object.library !== undefined) {
+        const libraryReference = object.library;
+        let iterator = object.parent as ObjectBase;
+        let library;
+        while (iterator instanceof OFile !== true) {
+          library = implementsIHasLibraries(iterator) ?
+            iterator.libraries.find(library => library.getLText() === libraryReference.getLText()) : undefined;
+          if (library) {
+            break;
+          }
+          if (iterator.parent instanceof OFile) {
+            if (iterator instanceof OArchitecture && iterator.correspondingEntity) {
+              iterator = iterator.correspondingEntity;
+            } else if (iterator instanceof OPackageBody && iterator.correspondingPackage) {
+              iterator = iterator.correspondingPackage;
+            } else {
+              break;
+            }
+          } else {
+            iterator = iterator.parent;
+          }
+        }
+        if (library === undefined) {
+          this.addMessage({
+            range: object.library.range,
+            severity: DiagnosticSeverity.Error,
+            message: `Library ${object.library} not declared.`
+          });
+        }
+      }
+    }
+  }
   addMessage(diagnostic: OIDiagnostic, rule: LinterRules, parameter: string): void;
   addMessage(diagnostic: OIDiagnostic): void;
   addMessage(diagnostic: OIDiagnostic, rule?: LinterRules, parameter?: string) {
@@ -180,6 +213,7 @@ export class VhdlLinter {
     }
     return useClauses;
   }
+
   async handleCanceled() {
     await new Promise(resolve => setImmediate(resolve));
     if (this.cancelationObject.canceled) {
@@ -609,6 +643,7 @@ export class VhdlLinter {
             start = Date.now();
           }
         }
+        this.checkLibraryReferences();
         for (const pkg of this.file.packages) {
           this.checkInstantiations(pkg);
         }
@@ -1330,10 +1365,10 @@ export class VhdlLinter {
     }
     // find project entities
     const projectEntities = this.projectParser.getEntities();
-    if (instantiation instanceof OInstantiation && typeof instantiation.library !== 'undefined' && instantiation.library !== 'work') {
+    if (instantiation instanceof OInstantiation && typeof instantiation.library !== 'undefined' && instantiation.library.getLText() !== 'work') {
       entities.push(...projectEntities.filter(entity => {
         if (entity.library !== undefined) {
-          return entity.library.toLowerCase() === instantiation.library?.toLowerCase() ?? '';
+          return entity.library.toLowerCase() === instantiation.library?.getLText() ?? '';
         }
         return true;
 
