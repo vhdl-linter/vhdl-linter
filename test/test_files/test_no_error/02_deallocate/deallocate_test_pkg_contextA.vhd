@@ -1,5 +1,5 @@
 context test_contextA is
-  library test_lib;
+  library test_02_deallocate;
 
-  context test_lib.test_ContextB;
+  context test_02_deallocate.test_ContextB;
 end context;
