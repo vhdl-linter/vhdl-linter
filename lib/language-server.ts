@@ -50,6 +50,7 @@ export interface ISettings {
     warnLogicType: boolean;
     warnMultipleDriver: boolean;
   };
+  semanticTokens: boolean;
 }
 const defaultSettings: ISettings = {
   ports: {
@@ -69,7 +70,8 @@ const defaultSettings: ISettings = {
     warnLogicType: true,
     warnLibrary: false,
     warnMultipleDriver: false
-  }
+  },
+  semanticTokens: true
 };
 export interface CancelationObject {
   canceled: boolean;

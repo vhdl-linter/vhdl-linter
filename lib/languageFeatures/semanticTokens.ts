@@ -1,6 +1,6 @@
 import { SemanticTokenModifiers, SemanticTokens, SemanticTokensBuilder, SemanticTokensLegend, SemanticTokensParams, SemanticTokenTypes } from "vscode-languageserver";
-import { initialization, linters } from "../language-server";
-import { implementsIHasLexerToken, IHasLexerToken, OPort, OSignal, implementsIHasDefinitions, ObjectBase, OIRange, OType, OEnumLiteral, OEnum, ORecord, OVariable, OConstant, OGeneric, OWrite, OVariableBase, OEntity, OSubprogram, ORecordChild, OInstantiation } from "../parser/objects";
+import { getDocumentSettings, initialization, linters } from "../language-server";
+import { implementsIHasLexerToken, OPort, implementsIHasDefinitions, ObjectBase, OIRange, OType, OEnumLiteral, OEnum, ORecord, OConstant, OGeneric, OWrite, OVariableBase, OEntity, OSubprogram, ORecordChild, OInstantiation } from "../parser/objects";
 
 export const semanticTokensLegend: SemanticTokensLegend = {
   tokenTypes: Object.values(SemanticTokenTypes),
@@ -65,6 +65,9 @@ function pushCorrectToken(builder: SemanticTokensBuilder, obj: ObjectBase, range
 export async function handleSemanticTokens(params: SemanticTokensParams): Promise<SemanticTokens> {
 
   const tokensBuilder = new SemanticTokensBuilder();
+  if (!(await getDocumentSettings(params.textDocument.uri)).semanticTokens) {
+    return tokensBuilder.build();
+  }
 
   await initialization;
   const linter = linters.get(params.textDocument.uri);

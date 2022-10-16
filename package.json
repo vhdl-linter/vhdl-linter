@@ -192,6 +192,12 @@
 					"scope": "window",
 					"type": "string",
 					"description": "Regex for files to be ignored by the Project Parser"
+				},
+				"VhdlLinter.semanticTokens": {
+					"scope": "window",
+					"type": "boolean",
+					"default": true,
+					"description": "[Beta] Enable semantic tokens which enhance syntax highlighting. "
 				}
 			}
 		}
