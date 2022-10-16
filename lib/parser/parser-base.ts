@@ -447,7 +447,7 @@ export class ParserBase {
             throw new Error();
           }
           reads.push(asMappingName
-            ? new OAssociationFormal((parent as OAssociation), token.range, token.text)
+            ? new OAssociationFormal((parent as OAssociation), token)
             : new ORead(parent, token));
         }
       }
