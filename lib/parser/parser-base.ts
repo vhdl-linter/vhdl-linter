@@ -399,7 +399,6 @@ export class ParserBase {
   extractReads(parent: ObjectBase | OAssociation, tokens: OLexerToken[], asMappingName: true): OAssociationFormal[];
   extractReads(parent: ObjectBase | OAssociation, tokens: OLexerToken[], asMappingName = false): (ORead | OAssociationFormal)[] {
     tokens = tokens.filter(token => !token.isWhitespace() && token.type !== TokenType.keyword);
-    const libraries = parent.getRootElement().libraries;
     const reads = [];
     let functionOrArraySlice = false;
     let braceLevel = 0;
@@ -421,16 +420,14 @@ export class ParserBase {
           braceLevel = 0;
         }
       }
+      let prefixTokens: OLexerToken[] = [];
       if (token.isIdentifier()) {
         if (tokens[i - 1]?.text === '\'') { // Attribute skipped for now
           continue;
         }
-        if (tokens[i + 1]?.text === '.' && libraries.findIndex(l => l.getLText() === token.getLText()) !== -1) {
-          // skip library itself
-          continue;
-        }
-        if (tokens[i - 1]?.text === '.' && libraries.findIndex(l => l.getLText() === tokens[i - 2]?.getLText()) !== -1) {
-          // skip package -> only read the actual variable
+        if (tokens[i + 1]?.text === '.' && tokens[i + 2]?.isIdentifier()) {
+          prefixTokens.push(token);
+          // only use last of path
           continue;
         }
         // Detection if in possible function
@@ -440,14 +437,16 @@ export class ParserBase {
           continue;
         }
         if (tokens[i - 1]?.text === '.' && token.getLText() !== 'all') {
-          reads.push(new OElementRead(parent, token));
+          reads.push(new OElementRead(parent, token, prefixTokens));
+          prefixTokens = [];
         } else {
           if (asMappingName && !(parent instanceof OAssociation)) {
             throw new Error();
           }
           reads.push(asMappingName
             ? new OAssociationFormal((parent as OAssociation), token)
-            : new ORead(parent, token));
+            : new ORead(parent, token, prefixTokens));
+          prefixTokens = [];
         }
       }
     }
@@ -479,13 +478,13 @@ export class ParserBase {
           const write = new OWrite(parent, token);
           writes.push(write);
           if (readAndWrite) {
-            reads.push(new ORead(parent, token));
+            reads.push(new ORead(parent, token, []));
           }
         } else {
           if (recordToken) {
-            reads.push(new OElementRead(parent, token));
+            reads.push(new OElementRead(parent, token, []));
           } else if (tokens[i - 1]?.text !== '\'') { // skip attributes
-            reads.push(new ORead(parent, token));
+            reads.push(new ORead(parent, token, []));
           }
         }
       }

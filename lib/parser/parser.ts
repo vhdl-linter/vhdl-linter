@@ -2,7 +2,7 @@ import { ArchitectureParser } from './architecture-parser';
 import { ContextParser } from './context-parser';
 import { ContextReferenceParser } from './context-reference-parser';
 import { EntityParser } from './entity-parser';
-import { MagicCommentType, OFile, OI, OIRange, OMagicCommentDisable, OMagicCommentParameter, OMagicCommentTodo, ParserError, OConfiguration, ObjectBase, OUseClause } from './objects';
+import { MagicCommentType, OFile, OI, OIRange, OMagicCommentDisable, OMagicCommentParameter, OMagicCommentTodo, ParserError, OConfiguration, OUseClause } from './objects';
 import { PackageParser } from './package-parser';
 import { ParserBase } from './parser-base';
 import { UseClauseParser } from './use-clause-parser';
@@ -148,6 +148,7 @@ export class Parser extends ParserBase {
           this.file.contexts.push(context);
         } else {
           // The Parent gets overwritten when attaching the reference to the correct object
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const contextReferenceParser = new ContextReferenceParser(this.pos, this.filePath, (this.file as any));
           contextReferences.push(contextReferenceParser.parse());
         }

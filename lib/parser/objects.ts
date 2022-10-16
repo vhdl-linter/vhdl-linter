@@ -1012,6 +1012,9 @@ export class OReference extends ObjectBase implements IHasDefinitions, IHasLexer
 export class OWrite extends OReference {
 }
 export class ORead extends OReference {
+  constructor(public parent: ObjectBase, public lexerToken: OLexerToken, public prefixTokens: OLexerToken[]) {
+    super(parent, lexerToken);
+  }
 
 }
 export class OElementRead extends ORead {
