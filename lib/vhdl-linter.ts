@@ -100,14 +100,14 @@ export class VhdlLinter {
       }
       return true;
     }).filter(magicComment => {
-          if (magicComment.commentType === MagicCommentType.Disable) {
-            return true;
-          }
-          if (magicComment.commentType === MagicCommentType.Parameter && rule === LinterRules.Reset && typeof parameter !== 'undefined' && magicComment.parameter.find(parameterFind => parameterFind.toLowerCase() === parameter.toLowerCase())) {
-            return true;
-          }
-          return false;
-        });
+      if (magicComment.commentType === MagicCommentType.Disable) {
+        return true;
+      }
+      if (magicComment.commentType === MagicCommentType.Parameter && rule === LinterRules.Reset && typeof parameter !== 'undefined' && magicComment.parameter.find(parameterFind => parameterFind.toLowerCase() === parameter.toLowerCase())) {
+        return true;
+      }
+      return false;
+    });
     return matchingMagiComments.length === 0;
   }
   checkTodos() {
@@ -167,14 +167,13 @@ export class VhdlLinter {
       for (const reference of contextReferences) {
         const context = contexts.find(c => c.lexerToken.getLText() === reference.contextName.toLowerCase());
         if (!context) {
-          if (parent instanceof OFile) {
-            this.addMessage({
-              range: reference.range,
-              severity: DiagnosticSeverity.Warning,
-              message: `could not find context for ${reference.library}.${reference.contextName}`
-            });
-          }
+          this.addMessage({
+            range: reference.range,
+            severity: DiagnosticSeverity.Warning,
+            message: `could not find context for ${reference.library}.${reference.contextName}`
+          });
         } else {
+          reference.definitions.push(context);
           useClauses.push(...this.getUseClauses(context));
         }
       }
@@ -220,7 +219,7 @@ export class VhdlLinter {
         // Find entity first in this file
         let pkgHeader: OPackage | undefined = this.file.packages.find(pkgHeader => pkgHeader instanceof OPackage && pkgHeader.lexerToken.getLText() === pkg.lexerToken.getLText()) as OPackage | undefined;
         if (!pkgHeader) { // Find entity in all files
-          pkgHeader = this.projectParser.getPackages().find(pkgHeader => pkgHeader instanceof OPackage && pkgHeader.lexerToken.getLText() === pkg.lexerToken.getLText()) as OPackage|undefined;
+          pkgHeader = this.projectParser.getPackages().find(pkgHeader => pkgHeader instanceof OPackage && pkgHeader.lexerToken.getLText() === pkg.lexerToken.getLText()) as OPackage | undefined;
         }
         if (pkgHeader) {
           pkg.correspondingPackage = pkgHeader;

@@ -13,6 +13,6 @@ export class ContextReferenceParser extends ParserBase {
     this.expect('.');
     const suffix = this.consumeToken();
     this.expect(';');
-    return new OContextReference(this.parent, prefix.range, prefix.text, suffix.text);
+    return new OContextReference(this.parent, prefix.range.copyWithNewEnd(suffix.range.end), prefix.text, suffix.text);
   }
 }
