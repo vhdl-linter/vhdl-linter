@@ -7,5 +7,6 @@ package pkg_record_child_multi is
     element, this_also_exists: integer;
   end record t_testData;
 
-  constant apfel: integer := this_also_exists;
+  constant x: t_testData;
+  constant y: integer := x.this_also_exists;
 end package;
