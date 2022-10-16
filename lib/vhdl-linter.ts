@@ -100,14 +100,14 @@ export class VhdlLinter {
       }
       return true;
     }).filter(magicComment => {
-          if (magicComment.commentType === MagicCommentType.Disable) {
-            return true;
-          }
-          if (magicComment.commentType === MagicCommentType.Parameter && rule === LinterRules.Reset && typeof parameter !== 'undefined' && magicComment.parameter.find(parameterFind => parameterFind.toLowerCase() === parameter.toLowerCase())) {
-            return true;
-          }
-          return false;
-        });
+      if (magicComment.commentType === MagicCommentType.Disable) {
+        return true;
+      }
+      if (magicComment.commentType === MagicCommentType.Parameter && rule === LinterRules.Reset && typeof parameter !== 'undefined' && magicComment.parameter.find(parameterFind => parameterFind.toLowerCase() === parameter.toLowerCase())) {
+        return true;
+      }
+      return false;
+    });
     return matchingMagiComments.length === 0;
   }
   checkTodos() {
@@ -167,14 +167,13 @@ export class VhdlLinter {
       for (const reference of contextReferences) {
         const context = contexts.find(c => c.lexerToken.getLText() === reference.contextName.toLowerCase());
         if (!context) {
-          if (parent instanceof OFile) {
-            this.addMessage({
-              range: reference.range,
-              severity: DiagnosticSeverity.Warning,
-              message: `could not find context for ${reference.library}.${reference.contextName}`
-            });
-          }
+          this.addMessage({
+            range: reference.range,
+            severity: DiagnosticSeverity.Warning,
+            message: `could not find context for ${reference.library}.${reference.contextName}`
+          });
         } else {
+          reference.definitions.push(context);
           useClauses.push(...this.getUseClauses(context));
         }
       }
@@ -220,7 +219,7 @@ export class VhdlLinter {
         // Find entity first in this file
         let pkgHeader: OPackage | undefined = this.file.packages.find(pkgHeader => pkgHeader instanceof OPackage && pkgHeader.lexerToken.getLText() === pkg.lexerToken.getLText()) as OPackage | undefined;
         if (!pkgHeader) { // Find entity in all files
-          pkgHeader = this.projectParser.getPackages().find(pkgHeader => pkgHeader instanceof OPackage && pkgHeader.lexerToken.getLText() === pkg.lexerToken.getLText()) as OPackage|undefined;
+          pkgHeader = this.projectParser.getPackages().find(pkgHeader => pkgHeader instanceof OPackage && pkgHeader.lexerToken.getLText() === pkg.lexerToken.getLText()) as OPackage | undefined;
         }
         if (pkgHeader) {
           pkg.correspondingPackage = pkgHeader;
@@ -373,7 +372,7 @@ export class VhdlLinter {
             elements = definition.generics;
           }
           return elements.filter((port, portNumber) => {
-            const formalMatch = association.formalPart.find(name => name.text.toLowerCase() === port.lexerToken.getLText());
+            const formalMatch = association.formalPart.find(name => name.lexerToken.getLText() === port.lexerToken.getLText());
             if (formalMatch) {
               return true;
             }
@@ -820,8 +819,8 @@ export class VhdlLinter {
     const code = this.addCodeActionCallback((textDocumentUri: string) => {
       const actions = [];
       for (const pkg of this.packages) {
-        const thing = pkg.constants.find(constant => constant.lexerToken.getLText() === read.text.toLowerCase()) || pkg.types.find(type => type.lexerToken.getLText() === read.text.toLowerCase())
-          || pkg.subprograms.find(subprogram => subprogram.lexerToken.getLText() === read.text.toLowerCase());
+        const thing = pkg.constants.find(constant => constant.lexerToken.getLText() === read.lexerToken.getLText()) || pkg.types.find(type => type.lexerToken.getLText() === read.lexerToken.getLText())
+          || pkg.subprograms.find(subprogram => subprogram.lexerToken.getLText() === read.lexerToken.getLText());
         if (thing) {
           const architecture = read.getRootElement();
           const pos = Position.create(0, 0);
@@ -846,7 +845,7 @@ export class VhdlLinter {
       range: read.range,
       code: code,
       severity: DiagnosticSeverity.Error,
-      message: `port '${read.text}' does not exist`
+      message: `port '${read.lexerToken.text}' does not exist`
     });
   }
   checkNotDeclared() {
@@ -1427,7 +1426,7 @@ export class VhdlLinter {
         allElementsWithoutFormal = false;
         const interfaceElement = availableInterfaceElementsFlat.find(port => {
           for (const part of association.formalPart) {
-            if (part.text.toLowerCase() === port.lexerToken.getLText()) {
+            if (part.lexerToken.getLText() === port.lexerToken.getLText()) {
               return true;
             }
           }
@@ -1437,7 +1436,7 @@ export class VhdlLinter {
           let code: number | undefined = undefined;
           const possibleMatches = availableInterfaceElementsFlat.map(element => element.lexerToken.text);
           if (possibleMatches.length > 0) {
-            const bestMatch = findBestMatch(association.formalPart[0].text, possibleMatches);
+            const bestMatch = findBestMatch(association.formalPart[0].lexerToken.text, possibleMatches);
             code = this.addCodeActionCallback((textDocumentUri: string) => {
               const actions = [];
               actions.push(CodeAction.create(
@@ -1455,7 +1454,7 @@ export class VhdlLinter {
           this.addMessage({
             range: association.range,
             severity: DiagnosticSeverity.Error,
-            message: `no ${kind} ${association.formalPart.map(name => name.text).join(', ')} on ${typeName}`,
+            message: `no ${kind} ${association.formalPart.map(name => name.lexerToken.text).join(', ')} on ${typeName}`,
             code
           });
         } else {
