@@ -1,4 +1,4 @@
-library test;
-use test.foo.all;
+library test_03_library;
+use test_03_library.foo.all;
 entity test is
 end entity;
