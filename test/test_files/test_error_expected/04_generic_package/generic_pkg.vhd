@@ -1,5 +1,5 @@
 package generic_pkg is
   generic (
-    generic_parameter : integer := 0
-    ) --dummy error
+    generic_parameter : not_exists := 0  --dummy error
+    );
 end package;
