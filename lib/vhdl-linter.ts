@@ -5,7 +5,7 @@ import {
 } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { CancelationError, CancelationObject, getDocumentSettings } from './language-server';
-import { IHasContextReference, IHasLexerToken, IHasUseClauses, implementsIHasConstants, implementsIHasContextReference, implementsIHasInstantiations, implementsIHasLexerToken, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasUseClause, implementsIHasVariables, implementsIReferencable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, OAssociationList, ObjectBase, OCase, OComponent, OConstant, OEntity, OEnum, OFile, OGeneric, OGenericAssociationList, OHasSequentialStatements, OI, OIf, OInstantiation, OIRange, OPackage, OPackageBody, OPort, OPortAssociationList, OProcess, ORead, OSignal, OSignalBase, OSubprogram, OReference, OType, OVariable, OWrite, ParserError } from './parser/objects';
+import { IHasContextReference, IHasLexerToken, IHasUseClauses, implementsIHasConstants, implementsIHasContextReference, implementsIHasInstantiations, implementsIHasLexerToken, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasUseClause, implementsIHasVariables, implementsIReferencable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, OAssociationList, ObjectBase, OCase, OComponent, OConstant, OEntity, OEnum, OFile, OGeneric, OGenericAssociationList, OHasSequentialStatements, OI, OIf, OInstantiation, OIRange, OPackage, OPackageBody, OPort, OPortAssociationList, OProcess, ORead, OSignal, OSignalBase, OSubprogram, OReference, OType, OVariable, OWrite, ParserError, implementsIHasLibraries, implementsIHasLibraryReference, OSelectedNameRead } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 export enum LinterRules {
@@ -100,14 +100,14 @@ export class VhdlLinter {
       }
       return true;
     }).filter(magicComment => {
-          if (magicComment.commentType === MagicCommentType.Disable) {
-            return true;
-          }
-          if (magicComment.commentType === MagicCommentType.Parameter && rule === LinterRules.Reset && typeof parameter !== 'undefined' && magicComment.parameter.find(parameterFind => parameterFind.toLowerCase() === parameter.toLowerCase())) {
-            return true;
-          }
-          return false;
-        });
+      if (magicComment.commentType === MagicCommentType.Disable) {
+        return true;
+      }
+      if (magicComment.commentType === MagicCommentType.Parameter && rule === LinterRules.Reset && typeof parameter !== 'undefined' && magicComment.parameter.find(parameterFind => parameterFind.toLowerCase() === parameter.toLowerCase())) {
+        return true;
+      }
+      return false;
+    });
     return matchingMagiComments.length === 0;
   }
   checkTodos() {
@@ -121,7 +121,40 @@ export class VhdlLinter {
       }
     });
   }
-
+  checkLibraryReferences() {
+    for (const object of this.file.objectList) {
+      if (implementsIHasLibraryReference(object) && object.library !== undefined) {
+        const libraryReference = object.library;
+        let iterator = object.parent as ObjectBase;
+        let library;
+        while (iterator instanceof OFile !== true) {
+          library = implementsIHasLibraries(iterator) ?
+            iterator.libraries.find(library => library.getLText() === libraryReference.getLText()) : undefined;
+          if (library) {
+            break;
+          }
+          if (iterator.parent instanceof OFile) {
+            if (iterator instanceof OArchitecture && iterator.correspondingEntity) {
+              iterator = iterator.correspondingEntity;
+            } else if (iterator instanceof OPackageBody && iterator.correspondingPackage) {
+              iterator = iterator.correspondingPackage;
+            } else {
+              break;
+            }
+          } else {
+            iterator = iterator.parent;
+          }
+        }
+        if (library === undefined) {
+          this.addMessage({
+            range: object.library.range,
+            severity: DiagnosticSeverity.Error,
+            message: `Library ${object.library} not declared.`
+          });
+        }
+      }
+    }
+  }
   addMessage(diagnostic: OIDiagnostic, rule: LinterRules, parameter: string): void;
   addMessage(diagnostic: OIDiagnostic): void;
   addMessage(diagnostic: OIDiagnostic, rule?: LinterRules, parameter?: string) {
@@ -167,20 +200,20 @@ export class VhdlLinter {
       for (const reference of contextReferences) {
         const context = contexts.find(c => c.lexerToken.getLText() === reference.contextName.toLowerCase());
         if (!context) {
-          if (parent instanceof OFile) {
-            this.addMessage({
-              range: reference.range,
-              severity: DiagnosticSeverity.Warning,
-              message: `could not find context for ${reference.library}.${reference.contextName}`
-            });
-          }
+          this.addMessage({
+            range: reference.range,
+            severity: DiagnosticSeverity.Warning,
+            message: `could not find context for ${reference.library}.${reference.contextName}`
+          });
         } else {
+          reference.definitions.push(context);
           useClauses.push(...this.getUseClauses(context));
         }
       }
     }
     return useClauses;
   }
+
   async handleCanceled() {
     await new Promise(resolve => setImmediate(resolve));
     if (this.cancelationObject.canceled) {
@@ -192,10 +225,6 @@ export class VhdlLinter {
 
     await this.handleCanceled();
     const packages = this.projectParser.getPackages();
-    const standard = packages.find(pkg => pkg.lexerToken.getLText() === 'standard');
-    if (standard) {
-      this.packages.push(standard);
-    }
     await this.handleCanceled();
 
     // const start = Date.now();
@@ -220,7 +249,7 @@ export class VhdlLinter {
         // Find entity first in this file
         let pkgHeader: OPackage | undefined = this.file.packages.find(pkgHeader => pkgHeader instanceof OPackage && pkgHeader.lexerToken.getLText() === pkg.lexerToken.getLText()) as OPackage | undefined;
         if (!pkgHeader) { // Find entity in all files
-          pkgHeader = this.projectParser.getPackages().find(pkgHeader => pkgHeader instanceof OPackage && pkgHeader.lexerToken.getLText() === pkg.lexerToken.getLText()) as OPackage|undefined;
+          pkgHeader = this.projectParser.getPackages().find(pkgHeader => pkgHeader instanceof OPackage && pkgHeader.lexerToken.getLText() === pkg.lexerToken.getLText()) as OPackage | undefined;
         }
         if (pkgHeader) {
           pkg.correspondingPackage = pkgHeader;
@@ -231,6 +260,13 @@ export class VhdlLinter {
     for (const obj of this.file.objectList) {
       if (obj instanceof OReference) {
         obj.elaborate();
+        if (obj instanceof OSelectedNameRead) {
+          for (const pkg of packages) {
+            if (obj.lexerToken.getLText() === pkg.lexerToken.getLText()) {
+              obj.definitions.push(pkg);
+            }
+          }
+        }
       }
     }
     //     console.log(packages);
@@ -373,7 +409,7 @@ export class VhdlLinter {
             elements = definition.generics;
           }
           return elements.filter((port, portNumber) => {
-            const formalMatch = association.formalPart.find(name => name.text.toLowerCase() === port.lexerToken.getLText());
+            const formalMatch = association.formalPart.find(name => name.lexerToken.getLText() === port.lexerToken.getLText());
             if (formalMatch) {
               return true;
             }
@@ -532,7 +568,7 @@ export class VhdlLinter {
   async checkLibrary() {
     const settings = await getDocumentSettings(URI.file(this.editorPath).toString());
     for (const entity of this.file.entities) {
-      if (settings.rules.warnLibrary && this.file && entity !== undefined && typeof entity.library === 'undefined') {
+      if (settings.rules.warnLibrary && entity !== undefined && typeof entity.targetLibrary === 'undefined') {
         this.addMessage({
           range: new OIRange(this.file, new OI(this.file, 0, 0), new OI(this.file, 1, 0)),
           severity: DiagnosticSeverity.Warning,
@@ -610,6 +646,7 @@ export class VhdlLinter {
             start = Date.now();
           }
         }
+        this.checkLibraryReferences();
         for (const pkg of this.file.packages) {
           this.checkInstantiations(pkg);
         }
@@ -779,7 +816,7 @@ export class VhdlLinter {
             'add use statement for ' + pkg.lexerToken,
             {
               changes: {
-                [textDocumentUri]: [TextEdit.insert(pos, `use ${pkg.library ? pkg.library : 'work'}.${pkg.lexerToken}.all;\n`)]
+                [textDocumentUri]: [TextEdit.insert(pos, `use ${pkg.targetLibrary ? pkg.targetLibrary : 'work'}.${pkg.lexerToken}.all;\n`)]
               }
             },
             CodeActionKind.QuickFix
@@ -820,8 +857,8 @@ export class VhdlLinter {
     const code = this.addCodeActionCallback((textDocumentUri: string) => {
       const actions = [];
       for (const pkg of this.packages) {
-        const thing = pkg.constants.find(constant => constant.lexerToken.getLText() === read.text.toLowerCase()) || pkg.types.find(type => type.lexerToken.getLText() === read.text.toLowerCase())
-          || pkg.subprograms.find(subprogram => subprogram.lexerToken.getLText() === read.text.toLowerCase());
+        const thing = pkg.constants.find(constant => constant.lexerToken.getLText() === read.lexerToken.getLText()) || pkg.types.find(type => type.lexerToken.getLText() === read.lexerToken.getLText())
+          || pkg.subprograms.find(subprogram => subprogram.lexerToken.getLText() === read.lexerToken.getLText());
         if (thing) {
           const architecture = read.getRootElement();
           const pos = Position.create(0, 0);
@@ -832,7 +869,7 @@ export class VhdlLinter {
             'add use statement for ' + pkg.lexerToken,
             {
               changes: {
-                [textDocumentUri]: [TextEdit.insert(pos, `use ${pkg.library ? pkg.library : 'work'}.${pkg.lexerToken}.all;\n`)]
+                [textDocumentUri]: [TextEdit.insert(pos, `use ${pkg.targetLibrary ? pkg.targetLibrary : 'work'}.${pkg.lexerToken}.all;\n`)]
               }
             },
             CodeActionKind.QuickFix
@@ -846,7 +883,7 @@ export class VhdlLinter {
       range: read.range,
       code: code,
       severity: DiagnosticSeverity.Error,
-      message: `port '${read.text}' does not exist`
+      message: `port '${read.lexerToken.text}' does not exist`
     });
   }
   checkNotDeclared() {
@@ -1331,10 +1368,10 @@ export class VhdlLinter {
     }
     // find project entities
     const projectEntities = this.projectParser.getEntities();
-    if (instantiation instanceof OInstantiation && typeof instantiation.library !== 'undefined' && instantiation.library !== 'work') {
+    if (instantiation instanceof OInstantiation && typeof instantiation.library !== 'undefined' && instantiation.library.getLText() !== 'work') {
       entities.push(...projectEntities.filter(entity => {
-        if (entity.library !== undefined) {
-          return entity.library.toLowerCase() === instantiation.library?.toLowerCase() ?? '';
+        if (typeof entity.targetLibrary !== 'undefined') {
+          return entity.targetLibrary.toLowerCase() === instantiation.library?.getLText() ?? '';
         }
         return true;
 
@@ -1427,7 +1464,7 @@ export class VhdlLinter {
         allElementsWithoutFormal = false;
         const interfaceElement = availableInterfaceElementsFlat.find(port => {
           for (const part of association.formalPart) {
-            if (part.text.toLowerCase() === port.lexerToken.getLText()) {
+            if (part.lexerToken.getLText() === port.lexerToken.getLText()) {
               return true;
             }
           }
@@ -1437,7 +1474,7 @@ export class VhdlLinter {
           let code: number | undefined = undefined;
           const possibleMatches = availableInterfaceElementsFlat.map(element => element.lexerToken.text);
           if (possibleMatches.length > 0) {
-            const bestMatch = findBestMatch(association.formalPart[0].text, possibleMatches);
+            const bestMatch = findBestMatch(association.formalPart[0].lexerToken.text, possibleMatches);
             code = this.addCodeActionCallback((textDocumentUri: string) => {
               const actions = [];
               actions.push(CodeAction.create(
@@ -1455,7 +1492,7 @@ export class VhdlLinter {
           this.addMessage({
             range: association.range,
             severity: DiagnosticSeverity.Error,
-            message: `no ${kind} ${association.formalPart.map(name => name.text).join(', ')} on ${typeName}`,
+            message: `no ${kind} ${association.formalPart.map(name => name.lexerToken.text).join(', ')} on ${typeName}`,
             code
           });
         } else {

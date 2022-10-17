@@ -23,13 +23,13 @@ export class ContextParser extends ParserBase {
         this.expect(';');
         break;
       } else if (nextWord === 'context') {
-          const contextReferenceParser = new ContextReferenceParser(this.pos, this.filePath, this.parent);
-          context.contextReferences.push(contextReferenceParser.parse());
+        const contextReferenceParser = new ContextReferenceParser(this.pos, this.filePath, context);
+        context.contextReferences.push(contextReferenceParser.parse());
       } else if (nextWord === 'library') {
-        context.libraries.push(this.getNextWord());
+        context.libraries.push(this.consumeToken());
         this.expect(';');
       } else if (nextWord === 'use') {
-        const useClauseParser = new UseClauseParser(this.pos, this.filePath, this.parent);
+        const useClauseParser = new UseClauseParser(this.pos, this.filePath, context);
         context.useClauses.push(useClauseParser.parse());
       }
     }

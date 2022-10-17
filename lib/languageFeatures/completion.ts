@@ -6,7 +6,7 @@ export function attachOnCompletion() {
   connection.onCompletion(async (params: CompletionParams, token): Promise<CompletionItem[]> => {
     await initialization;
     if (token.isCancellationRequested) {
-      throw ErrorCodes.RequestCancelled;
+      throw ErrorCodes.PendingResponseRejected;
     }
     const completions: CompletionItem[] = [];
     const document = documents.get(params.textDocument.uri);
@@ -40,7 +40,7 @@ export function attachOnCompletion() {
       if (match) {
         for (const pkg of projectParser.getPackages()) {
           completions.push({ label: pkg.lexerToken.text });
-          pkg.library && completions.push({ label: pkg.library });
+          pkg.targetLibrary && completions.push({ label: pkg.targetLibrary });
         }
       }
       completions.push({ label: 'all' });

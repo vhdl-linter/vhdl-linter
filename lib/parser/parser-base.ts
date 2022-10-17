@@ -1,6 +1,6 @@
 import { TextEdit } from 'vscode-languageserver';
 import { config } from './config';
-import { OAssociation, OAssociationFormal, ObjectBase, OElementRead, OGeneric, OIRange, OPort, ORead, OWrite, ParserError } from './objects';
+import { OAssociation, OAssociationFormal, ObjectBase, OSelectedNameRead, OGeneric, OIRange, OPort, ORead, OWrite, ParserError, OAssociationFormalSelectedName } from './objects';
 import { ParserPosition } from './parser';
 import { OLexerToken, TokenType } from '../lexer';
 
@@ -16,28 +16,28 @@ export class ParserBase {
     }
   }
   // debugObject(_object: any) {
-    // let target: any = {};
-    // const filter = (object: any) => {
-    //   const target: any = {};
-    //   if (!object) {
-    //     return;
-    //   }
-    //   for (const key of Object.keys(object)) {
-    //     if (key === 'parent') {
-    //       continue;
-    //     } else if (Array.isArray(object[key])) {
-    //       target[key] = object[key].map(filter);
-    //
-    //     } else if (typeof object[key] === 'object') {
-    //       target[key] = filter(object[key]);
-    //     } else {
-    //       target[key] = object[key];
-    //     }
-    //   }
-    //   return target;
-    // };
-    // target = filter(object);
-    //     console.log(`${this.constructor.name}: ${JSON.stringify(target, null, 2)} in line: ${this.getLine()}, (${this.file})`);
+  // let target: any = {};
+  // const filter = (object: any) => {
+  //   const target: any = {};
+  //   if (!object) {
+  //     return;
+  //   }
+  //   for (const key of Object.keys(object)) {
+  //     if (key === 'parent') {
+  //       continue;
+  //     } else if (Array.isArray(object[key])) {
+  //       target[key] = object[key].map(filter);
+  //
+  //     } else if (typeof object[key] === 'object') {
+  //       target[key] = filter(object[key]);
+  //     } else {
+  //       target[key] = object[key];
+  //     }
+  //   }
+  //   return target;
+  // };
+  // target = filter(object);
+  //     console.log(`${this.constructor.name}: ${JSON.stringify(target, null, 2)} in line: ${this.getLine()}, (${this.file})`);
   // }
   getTypeDefintion(parent: OGeneric | OPort) {
     this.debug('getTypeDefintion');
@@ -87,7 +87,7 @@ export class ParserBase {
       let offsetCorrected = 0;
       if (offset > 0) {
         for (let i = 0; i < offset; i++) {
-          do  {
+          do {
             offsetCorrected += 1;
             if (this.pos.lexerTokens[this.pos.num + offsetCorrected] === undefined) {
               throw new ParserError(`Out of bound while doing getToken(${offset}, ${offsetIgnoresWhitespaces})`, this.getToken(0).range);
@@ -96,7 +96,7 @@ export class ParserBase {
         }
       } else if (offset < 0) {
         for (let i = 0; i > offset; i--) {
-          do  {
+          do {
             offsetCorrected -= 1;
             if (this.pos.lexerTokens[this.pos.num + offsetCorrected] === undefined) {
               throw new ParserError(`Out of bound while doing getToken(${offset}, ${offsetIgnoresWhitespaces})`, this.getToken(0).range);
@@ -399,11 +399,10 @@ export class ParserBase {
   extractReads(parent: ObjectBase | OAssociation, tokens: OLexerToken[], asMappingName: true): OAssociationFormal[];
   extractReads(parent: ObjectBase | OAssociation, tokens: OLexerToken[], asMappingName = false): (ORead | OAssociationFormal)[] {
     tokens = tokens.filter(token => !token.isWhitespace() && token.type !== TokenType.keyword);
-    const libraries = parent.getRoot().libraries;
-    libraries.push('work');
     const reads = [];
     let functionOrArraySlice = false;
     let braceLevel = 0;
+    let prefixTokens: OLexerToken[] = [];
     for (let i = 0; i < tokens.length; i++) {
       const token = tokens[i];
       if (tokens[i].text === '(') {
@@ -426,12 +425,9 @@ export class ParserBase {
         if (tokens[i - 1]?.text === '\'') { // Attribute skipped for now
           continue;
         }
-        if (tokens[i + 1]?.text === '.' && libraries.findIndex(l => l === token.getLText()) !== -1) {
-          // skip library itself
-          continue;
-        }
-        if (tokens[i - 1]?.text === '.' && libraries.findIndex(l => l === tokens[i - 2]?.getLText()) !== -1) {
-          // skip package -> only read the actual variable
+        if (tokens[i + 1]?.text === '.' && tokens[i + 2]?.isIdentifier()) {
+          prefixTokens.push(token);
+          // only use last of path
           continue;
         }
         // Detection if in possible function
@@ -440,15 +436,18 @@ export class ParserBase {
         if (functionOrArraySlice && tokens[i].isIdentifier() && tokens[i + 1]?.text === '=>') {
           continue;
         }
-        if (tokens[i - 1]?.text === '.' && token.getLText() !== 'all') {
-          reads.push(new OElementRead(parent, token));
+        if (prefixTokens.length > 0) {
+          reads.push(asMappingName ? new OAssociationFormalSelectedName((parent as OAssociation), token, prefixTokens)
+          : new OSelectedNameRead(parent, token, prefixTokens));
+          prefixTokens = [];
         } else {
           if (asMappingName && !(parent instanceof OAssociation)) {
             throw new Error();
           }
           reads.push(asMappingName
-            ? new OAssociationFormal((parent as OAssociation), token.range, token.text)
+            ? new OAssociationFormal((parent as OAssociation), token)
             : new ORead(parent, token));
+          prefixTokens = [];
         }
       }
     }
@@ -484,7 +483,13 @@ export class ParserBase {
           }
         } else {
           if (recordToken) {
-            reads.push(new OElementRead(parent, token));
+            const prefixTokens = [];
+            let x = i - 1;
+            while (tokens[x]?.text === '.') {
+              prefixTokens.unshift(tokens[x - 1]);
+              x = x - 2;
+            }
+            reads.push(new OSelectedNameRead(parent, token, prefixTokens));
           } else if (tokens[i - 1]?.text !== '\'') { // skip attributes
             reads.push(new ORead(parent, token));
           }

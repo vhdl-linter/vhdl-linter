@@ -90,7 +90,10 @@ export class OIRange implements Range {
       this.end = new OI(parent, end);
     }
   }
-  copyWithNewEnd(newEnd: OI | number) {
+  copyWithNewEnd(newEnd: OI | number | OIRange) {
+    if (newEnd instanceof OIRange) {
+      newEnd = newEnd.end;
+    }
     return new OIRange(this.parent, this.start, newEnd);
   }
   copyWithNewStart(newStart: OI | number) {
@@ -164,17 +167,17 @@ export class ObjectBase {
     if (this.rootElement) {
       return this.rootElement;
     }
-    // eslint-disable-next-line @typescript-eslint/no-this-alias, @typescript-eslint/no-explicit-any
-    let parent: any = this;
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    let parent: ObjectBase = this;
     while (parent instanceof OArchitecture === false
-      && parent instanceof OEntity && parent instanceof OPackage && parent instanceof OPackageBody) {
-      parent = parent.parent;
-      if (parent instanceof OFile) {
+      && parent instanceof OEntity === false && parent instanceof OPackage === false && parent instanceof OPackageBody === false) {
+      if (parent.parent instanceof OFile) {
         throw new ParserError('Failed to find root element', this.range);
       }
+      parent = parent.parent;
     }
-    this.rootElement = parent;
-    return parent;
+    this.rootElement = parent as OArchitecture | OEntity | OPackage | OPackageBody;
+    return this.rootElement;
   }
   lexerTokenEquals(other: ObjectBase) {
     return this.lexerToken?.text?.toLowerCase() === other?.lexerToken?.text?.toLowerCase();
@@ -264,12 +267,24 @@ export interface IHasVariables {
 export function implementsIHasVariables(obj: unknown): obj is IHasVariables {
   return (obj as IHasVariables).variables !== undefined;
 }
+interface IHasLibraries {
+  libraries: OLexerToken[];
+}
+export function implementsIHasLibraries(obj: unknown): obj is IHasLibraries {
+  return (obj as IHasLibraries).libraries !== undefined;
+
+}
+interface IHasLibraryReference {
+  library?: OLexerToken;
+}
+export function implementsIHasLibraryReference(obj: unknown): obj is IHasLibraryReference {
+  return (obj as IHasLibraryReference).library !== undefined;
+}
 export class OFile {
   public lines: string[];
   constructor(public text: string, public file: string, public originalText: string) {
     this.lines = originalText.split('\n');
   }
-  libraries: string[] = [];
 
   objectList: ObjectBase[] = [];
   contexts: OContext[] = [];
@@ -311,8 +326,11 @@ export class OPackageInstantiation extends ObjectBase implements IReferenceable 
 }
 
 export class OPackage extends ObjectBase implements IHasSubprograms, IHasComponents, IHasSignals, IHasConstants,
-  IHasVariables, IHasTypes, IHasFileVariables, IHasUseClauses, IHasContextReference, IHasLexerToken, IHasPackageInstantiations {
+  IHasVariables, IHasTypes, IHasFileVariables, IHasUseClauses, IHasContextReference, IHasLexerToken, IHasPackageInstantiations,
+  IHasLibraries {
   parent: OFile;
+  libraries: OLexerToken[] = [];
+
   lexerToken: OLexerToken;
   useClauses: OUseClause[] = [];
   packageInstantiations: OPackageInstantiation[] = [];
@@ -328,12 +346,14 @@ export class OPackage extends ObjectBase implements IHasSubprograms, IHasCompone
   genericRange?: OIRange;
   generics: OGeneric[] = [];
   genericAssociationList?: OGenericAssociationList;
-  library?: string;
+  targetLibrary?: string;
 }
 
 export class OPackageBody extends ObjectBase implements IHasSubprograms, IHasConstants, IHasVariables, IHasTypes,
-  IHasFileVariables, IHasUseClauses, IHasContextReference, IHasLexerToken, IHasPackageInstantiations {
+  IHasFileVariables, IHasUseClauses, IHasContextReference, IHasLexerToken, IHasPackageInstantiations, IHasLibraries {
   lexerToken: OLexerToken;
+  libraries: OLexerToken[] = [];
+
   packageInstantiations: OPackageInstantiation[] = [];
   useClauses: OUseClause[] = [];
   contextReferences: OContextReference[] = [];
@@ -343,37 +363,41 @@ export class OPackageBody extends ObjectBase implements IHasSubprograms, IHasCon
   variables: OVariable[] = [];
   types: OType[] = [];
   files: OFileVariable[] = [];
-  library?: string;
+  targetLibrary?: string;
   correspondingPackage?: OPackage;
 }
-export class OUseClause extends ObjectBase {
-  constructor(public parent: OFile | OContext, range: OIRange, public library: string, public packageName: string, public suffix: string) {
+export class OUseClause extends ObjectBase implements IHasLibraryReference {
+  constructor(public parent: ObjectBase | OFile, range: OIRange, public library: OLexerToken, public packageName: string, public suffix: string) {
     super(parent, range);
   }
 }
 
-export class OContextReference extends ObjectBase {
-  constructor(public parent: OFile | OContext, range: OIRange, public library: string, public contextName: string) {
+export class OContextReference extends ObjectBase implements IHasLibraryReference {
+  constructor(public parent: OContext | ObjectBase, range: OIRange, public library: OLexerToken, public contextName: string) {
     super(parent, range);
   }
+  definitions: ObjectBase[] = [];
+
 }
-export class OContext extends ObjectBase implements IHasUseClauses, IHasContextReference, IHasLexerToken {
+
+export class OContext extends ObjectBase implements IHasUseClauses, IHasContextReference, IHasLexerToken, IHasLibraries {
   parent: OFile;
   lexerToken: OLexerToken;
   useClauses: OUseClause[] = [];
   contextReferences: OContextReference[] = [];
-  libraries: string[] = [];
+  libraries: OLexerToken[] = [];
 }
 export type OConcurrentStatements = OProcess | OInstantiation | OIfGenerate | OForGenerate | OBlock | OAssignment;
 export class OHasConcurrentStatements extends ObjectBase {
 }
 
 export class OArchitecture extends ObjectBase implements IHasSubprograms, IHasComponents, IHasInstantiations,
-  IHasSignals, IHasConstants, IHasVariables, IHasTypes, IHasFileVariables, IHasUseClauses, IHasContextReference, IHasPackageInstantiations, IHasLexerToken {
+  IHasSignals, IHasConstants, IHasVariables, IHasTypes, IHasFileVariables, IHasUseClauses, IHasContextReference,
+  IHasPackageInstantiations, IHasLexerToken, IHasLibraries {
   lexerToken: OLexerToken;
   useClauses: OUseClause[] = [];
   contextReferences: OContextReference[] = [];
-
+  libraries: OLexerToken[] = [];
   packageInstantiations: OPackageInstantiation[] = [];
   signals: OSignal[] = [];
   constants: OConstant[] = [];
@@ -527,7 +551,6 @@ export abstract class OVariableBase extends ObjectBase implements IReferenceable
   type: ORead[] = [];
   defaultValue?: ORead[] = [];
   lexerToken: OLexerToken;
-
 }
 export abstract class OSignalBase extends OVariableBase {
   registerProcess?: OProcess;
@@ -592,7 +615,7 @@ export class OPortAssociationList extends OAssociationList {
     super(parent, range);
   }
 }
-export class OInstantiation extends ObjectBase implements IHasDefinitions {
+export class OInstantiation extends ObjectBase implements IHasDefinitions, IHasLibraryReference {
   constructor(public parent: OArchitecture | OEntity | OProcess | OLoop | OIf, range: OIRange, public type: 'entity' | 'component' | 'configuration' | 'subprogram' | 'unknown' = 'unknown') {
     super(parent, range);
   }
@@ -602,7 +625,7 @@ export class OInstantiation extends ObjectBase implements IHasDefinitions {
   package?: OLexerToken;
   portAssociationList?: OPortAssociationList;
   genericAssociationList?: OGenericAssociationList;
-  library?: string;
+  library?: OLexerToken;
   private flatReads: ORead[] | null = null;
   private flatWrites: OWrite[] | null = null;
   getFlatReads(entity: OEntity | undefined): ORead[] {
@@ -616,7 +639,7 @@ export class OInstantiation extends ObjectBase implements IHasDefinitions {
         if (entity) {
           const entityPort = entity.ports.find(port => {
             for (const part of portAssociation.formalPart) {
-              if (part.text.toLowerCase() === port.lexerToken.getLText()) {
+              if (part.lexerToken.getLText() === port.lexerToken.getLText()) {
                 return true;
               }
             }
@@ -652,7 +675,7 @@ export class OInstantiation extends ObjectBase implements IHasDefinitions {
         if (entity) {
           const entityPort = entity.ports.find(port => {
             for (const part of association.formalPart) {
-              if (part.text.toLowerCase() === port.lexerToken.getLText()) {
+              if (part.lexerToken.getLText() === port.lexerToken.getLText()) {
                 return true;
               }
             }
@@ -682,10 +705,11 @@ export class OAssociation extends ObjectBase implements IHasDefinitions {
   actualIfInoutput: [ORead[], OWrite[]] = [[], []];
 }
 export class OEntity extends ObjectBase implements IHasDefinitions, IHasSubprograms, IHasSignals, IHasConstants, IHasVariables,
-  IHasTypes, IHasFileVariables, IHasUseClauses, IHasContextReference, IHasLexerToken, IHasPackageInstantiations {
-  constructor(public parent: OFile, range: OIRange, public library?: string) {
+  IHasTypes, IHasFileVariables, IHasUseClauses, IHasContextReference, IHasLexerToken, IHasPackageInstantiations, IHasLibraries {
+  constructor(public parent: OFile, range: OIRange, public targetLibrary?: string) {
     super(parent, range);
   }
+  libraries: OLexerToken[] = [];
   packageInstantiations: OPackageInstantiation[] = [];
   lexerToken: OLexerToken;
   useClauses: OUseClause[] = [];
@@ -989,12 +1013,20 @@ export class OWrite extends OReference {
 export class ORead extends OReference {
 
 }
-export class OElementRead extends ORead {
+export class OSelectedNameRead extends ORead {
+  constructor(public parent: ObjectBase, public lexerToken: OLexerToken, public prefixTokens: OLexerToken[]) {
+    super(parent, lexerToken);
+  }
 }
-export class OAssociationFormal extends ObjectBase implements IHasDefinitions {
+export class OAssociationFormal extends ObjectBase implements IHasDefinitions, IHasLexerToken {
   definitions: (OPort | OGeneric)[] = [];
-  constructor(public parent: OAssociation, range: OIRange, public text: string) {
-    super(parent, range);
+  constructor(public parent: OAssociation, public lexerToken: OLexerToken) {
+    super(parent, lexerToken.range);
+  }
+}
+export class OAssociationFormalSelectedName extends OAssociationFormal {
+  constructor(public parent: OAssociation, public lexerToken: OLexerToken, public prefixTokens: OLexerToken[]) {
+    super(parent, lexerToken);
   }
 }
 export class ParserError extends Error {
@@ -1044,7 +1076,8 @@ export class OSubprogram extends OHasSequentialStatements implements IReferencea
   return: ORead[] = [];
   lexerToken: OLexerToken;
 }
-export class OConfiguration extends ObjectBase {
+export class OConfiguration extends ObjectBase implements IHasLibraries {
   identifier: OLexerToken;
   entityName: OLexerToken;
+  libraries: OLexerToken[] = [];
 }

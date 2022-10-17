@@ -100,7 +100,7 @@ export class SequentialStatementParser extends ParserBase {
     subprogramCall.componentName = this.consumeToken();
     while (this.getToken().getLText() === '.') {
       this.expect('.');
-      subprogramCall.library = subprogramCall.package?.text;
+      subprogramCall.library = subprogramCall.package;
       subprogramCall.package = subprogramCall.componentName;
       subprogramCall.componentName = this.consumeToken();
     }

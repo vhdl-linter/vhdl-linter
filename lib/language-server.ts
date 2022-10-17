@@ -1,6 +1,7 @@
 import {
-  CodeAction, createConnection, DidChangeConfigurationNotification, ErrorCodes, Hover, InitializeParams, IPCMessageReader, IPCMessageWriter, Position, ProposedFeatures, TextDocument, TextDocuments
-} from 'vscode-languageserver';
+  CodeAction, createConnection, DidChangeConfigurationNotification, ErrorCodes, Hover, InitializeParams, IPCMessageReader, IPCMessageWriter, Position, ProposedFeatures, TextDocuments, TextDocumentSyncKind
+} from 'vscode-languageserver/node';
+import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
 import { handleCodeLens } from './languageFeatures/codeLens';
 import { attachOnCompletion } from './languageFeatures/completion';
@@ -15,6 +16,7 @@ import { handleOnWorkspaceSymbol } from './languageFeatures/workspaceSymbols';
 import { implementsIHasDefinitions, OComponent, OFile, OInstantiation, OUseClause } from './parser/objects';
 import { ProjectParser } from './project-parser';
 import { VhdlLinter } from './vhdl-linter';
+import { handleSemanticTokens, semanticTokensLegend } from './languageFeatures/semanticTokens';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -23,7 +25,7 @@ export const connection = createConnection(ProposedFeatures.all, new IPCMessageR
 
 // Create a simple text document manager. The text document manager
 // supports full document sync only
-export const documents: TextDocuments = new TextDocuments();
+export const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 
 let hasWorkspaceFolderCapability = false;
 // let hasDiagnosticRelatedInformationCapability: boolean = false;
@@ -48,6 +50,7 @@ export interface ISettings {
     warnLogicType: boolean;
     warnMultipleDriver: boolean;
   };
+  semanticTokens: boolean;
 }
 const defaultSettings: ISettings = {
   ports: {
@@ -67,7 +70,8 @@ const defaultSettings: ISettings = {
     warnLogicType: true,
     warnLibrary: false,
     warnMultipleDriver: false
-  }
+  },
+  semanticTokens: true
 };
 export interface CancelationObject {
   canceled: boolean;
@@ -121,11 +125,18 @@ connection.onInitialize((params: InitializeParams) => {
   );
   return {
     capabilities: {
-      textDocumentSync: documents.syncKind,
+      textDocumentSync: TextDocumentSyncKind.Full,
       codeActionProvider: true,
       // Tell the client that the server supports code completion
       completionProvider: {
         resolveProvider: false
+      },
+      semanticTokensProvider: {
+        legend: semanticTokensLegend,
+        range: false,
+        full: {
+          delta: false
+        }
       },
 
       documentSymbolProvider: true,
@@ -338,7 +349,7 @@ connection.onHover(async (params, token): Promise<Hover | null> => {
   await initialization;
   if (token.isCancellationRequested) {
     console.log('hover canceled');
-    throw ErrorCodes.RequestCancelled;
+    throw ErrorCodes.PendingResponseRejected;
   }
   const definition = await findBestDefinition(params);
   if (definition === null) {
@@ -371,6 +382,7 @@ connection.onCodeLens(handleCodeLens);
 connection.onReferences(findReferencesHandler);
 connection.onExecuteCommand(handleExecuteCommand);
 connection.onWorkspaceSymbol(handleOnWorkspaceSymbol);
+// connection.on
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 connection.onRequest('vhdl-linter/listing', async (params: any) => {
   await initialization;
@@ -417,7 +429,7 @@ connection.onRequest('vhdl-linter/listing', async (params: any) => {
         }
       } else if (obj instanceof OUseClause) {
         // do not generate file listings for ieee files
-        if (obj.library.toLowerCase() === 'ieee' || obj.library.toLowerCase() === 'std') {
+        if (obj.library.getLText() === 'ieee' || obj.library.getLText() === 'std') {
           continue;
         }
         const matchingPackages = projectParser.getPackages().filter(pkg => pkg.lexerToken.text === obj.packageName);
@@ -440,6 +452,7 @@ connection.onRequest('vhdl-linter/listing', async (params: any) => {
   const unresolvedList = unresolved.join('\n');
   return `files:\n${filesList}\n\nUnresolved instantiations:\n${unresolvedList}`;
 });
+connection.languages.semanticTokens.on(handleSemanticTokens);
 documents.listen(connection);
 
 // Listen on the connection
