@@ -4,7 +4,7 @@ import {
   LanguageClientOptions,
   ServerOptions,
   TransportKind
-} from 'vscode-languageclient';
+} from 'vscode-languageclient/node';
 import { ProjectParser } from './project-parser';
 import { copy, CopyTypes } from './vhdl-entity-converter';
 import { IAddSignalCommandArguments, IIgnoreLineCommandArguments, VhdlLinter } from './vhdl-linter';
@@ -54,7 +54,7 @@ export function activate(context: ExtensionContext) {
   );
 
   // Start the client. This will also launch the server
-  const disposable = client.start();
+  client.start();
   context.subscriptions.push(commands.registerCommand('vhdl-linter:add-signal', async (args: IAddSignalCommandArguments) => {
     const editor = window.activeTextEditor;
     if (!editor) {
@@ -114,7 +114,6 @@ export function activate(context: ExtensionContext) {
     env.clipboard.writeText(result as string);
     window.showInformationMessage(`Copied list of files to clipboard.`);
   }));
-  context.subscriptions.push(disposable);
 }
 
 export function deactivate(): Thenable<void> | undefined {
