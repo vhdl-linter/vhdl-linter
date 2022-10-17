@@ -78,14 +78,21 @@ export class TypeParser extends ParserBase {
         if (nextWord === 'record') {
           Object.setPrototypeOf(type, ORecord.prototype);
           (type as ORecord).children = [];
-          let recordToken = this.consumeToken();
-          while (recordToken.getLText() !== 'end') {
-            const child = new ORecordChild(type, recordToken.range);
-            child.lexerToken = recordToken;
-            (type as ORecord).children.push(child);
-            this.advanceSemicolonToken();
-            child.range = child.range.copyWithNewEnd(this.pos.i);
-            recordToken = this.consumeToken();
+          while (this.getToken().getLText() !== 'end') {
+            const children: ORecordChild[] = [];
+            do {
+              this.maybeWord(',');
+              const lexerToken = this.consumeToken();
+              const child = new ORecordChild(type, lexerToken.range);
+              child.lexerToken = lexerToken;
+              children.push(child);
+            } while (this.getToken().getLText() === ',');
+            this.expect(':');
+            const typeTokens = this.advanceSemicolonToken();
+            for (const child of children) {
+              child.reads = this.extractReads(child, typeTokens);
+            }
+            (type as ORecord).children.push(...children);
           }
           this.maybeWord('record');
           this.maybeWord(type.lexerToken.text);
