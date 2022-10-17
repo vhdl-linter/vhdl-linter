@@ -8,9 +8,9 @@ import { VhdlLinter } from './vhdl-linter';
 export class ProjectParser {
 
   public cachedFiles: OFileCache[] = [];
-  private packages: (OPackage | OPackageBody)[];
+  private packages: (OPackage | OPackageBody)[] = [];
   private contexts: OContext[] = [];
-  private entities: OEntity[];
+  private entities: OEntity[] = [];
   events = new EventEmitter();
   constructor(public workspaces: string[], public fileIgnoreRegex: string) { }
   async init() {
