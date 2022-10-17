@@ -1,4 +1,4 @@
-import { OComponent, OEntity, OGeneric, OIRange, OPackage, OPort, OSubprogram, implementsIHasPackageInstantiations } from './objects';
+import { OComponent, OEntity, OGeneric, OIRange, OPackage, OPort, OSubprogram, implementsIHasPackageInstantiations, OPackageInstantiation } from './objects';
 import { ParserBase } from './parser-base';
 import { SubprogramParser } from './subprogram-parser';
 import { ParserPosition } from './parser';
@@ -6,7 +6,7 @@ import { PackageInstantiationParser } from './package-instantiation-parser';
 
 
 export class InterfaceListParser extends ParserBase {
-  constructor(pos: ParserPosition, file: string, private parent: OEntity | OSubprogram | OPackage | OComponent) {
+  constructor(pos: ParserPosition, file: string, private parent: OEntity | OSubprogram | OPackageInstantiation | OComponent) {
     super(pos, file);
     this.debug('start');
   }
@@ -21,8 +21,8 @@ export class InterfaceListParser extends ParserBase {
       }
       this.parent.generics = ports as OGeneric[];
     } else {
-      if (this.parent instanceof OPackage) {
-        throw new Error('Package can only have generics and no ports');
+      if (this.parent instanceof OPackageInstantiation) {
+        throw new Error('Package instantiations can only have generics and no ports');
       }
       this.parent.ports = ports as OPort[];
     }

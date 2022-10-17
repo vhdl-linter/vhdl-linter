@@ -1,10 +1,10 @@
-import { ObjectBase, OPackageInstantiation } from './objects';
+import { ObjectBase, OFile, OPackageInstantiation } from './objects';
 import { ParserBase } from './parser-base';
 import { ParserPosition } from './parser';
 import { AssociationListParser } from './association-list-parser';
 
 export class PackageInstantiationParser extends ParserBase {
-  constructor(pos: ParserPosition, file: string, private parent: ObjectBase) {
+  constructor(pos: ParserPosition, file: string, private parent: ObjectBase | OFile) {
     super(pos, file);
     this.debug(`start`);
 

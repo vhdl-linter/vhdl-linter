@@ -333,10 +333,15 @@ export class OFile {
   }
 }
 
-export class OPackageInstantiation extends ObjectBase implements IReferenceable {
+export class OPackageInstantiation extends ObjectBase implements IReferenceable, IHasUseClauses, IHasContextReference, IHasLibraries {
   uninstantiatedPackage: OLexerToken;
   genericAssociationList?: OGenericAssociationList;
   references: OReference[] = [];
+  libraries: OLexerToken[] = [];
+  useClauses: OUseClause[] = [];
+  contextReferences: OContextReference[] = [];
+  generics: OGeneric[] = [];
+  genericRange?: OIRange;
 }
 
 export class OPackage extends ObjectBase implements IHasSubprograms, IHasComponents, IHasSignals, IHasConstants,
@@ -350,7 +355,6 @@ export class OPackage extends ObjectBase implements IHasSubprograms, IHasCompone
   packageInstantiations: OPackageInstantiation[] = [];
   contextReferences: OContextReference[] = [];
   library?: OLexerToken;
-  uninstantiatedPackage?: OLexerToken; // TODO: remove this
   subprograms: OSubprogram[] = [];
   components: OComponent[] = [];
   signals: OSignal[] = [];
@@ -358,9 +362,6 @@ export class OPackage extends ObjectBase implements IHasSubprograms, IHasCompone
   variables: OVariable[] = [];
   files: OFileVariable[] = [];
   types: OType[] = [];
-  genericRange?: OIRange;
-  generics: OGeneric[] = [];
-  genericAssociationList?: OGenericAssociationList;
   targetLibrary?: string;
 }
 
@@ -730,8 +731,8 @@ export class OEntity extends ObjectBase implements IHasDefinitions, IHasSubprogr
   useClauses: OUseClause[] = [];
   contextReferences: OContextReference[] = [];
   portRange?: OIRange;
-  genericRange?: OIRange;
   ports: OPort[] = [];
+  genericRange?: OIRange;
   generics: OGeneric[] = [];
   signals: OSignal[] = [];
   constants: OConstant[] = [];
