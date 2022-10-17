@@ -40,7 +40,7 @@ export function attachOnCompletion() {
       if (match) {
         for (const pkg of projectParser.getPackages()) {
           completions.push({ label: pkg.lexerToken.text });
-          pkg.library && completions.push({ label: pkg.library });
+          pkg.targetLibrary && completions.push({ label: pkg.targetLibrary });
         }
       }
       completions.push({ label: 'all' });

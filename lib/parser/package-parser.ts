@@ -10,7 +10,7 @@ export class PackageParser extends ParserBase {
     if (nextToken.getLText() === 'body') {
       const pkg = new OPackageBody(parent, this.getToken().range);
       const match = parent.originalText.match(/!\s*@library\s+(\S+)/i);
-      pkg.library = match ? match[1] : undefined;
+      pkg.targetLibrary = match ? match[1] : undefined;
 
       pkg.lexerToken = this.consumeToken();
       this.expect('is');
@@ -26,7 +26,7 @@ export class PackageParser extends ParserBase {
     } else {
       const pkg = new OPackage(parent, this.getToken().range);
       const match = parent.originalText.match(/!\s*@library\s+(\S+)/i);
-      pkg.library = match ? match[1] : undefined;
+      pkg.targetLibrary = match ? match[1] : undefined;
 
       pkg.lexerToken = nextToken;
       this.expect('is');
