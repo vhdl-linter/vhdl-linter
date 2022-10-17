@@ -58,7 +58,7 @@ jobs:
       - name: Push Tags
         run: |
           git log -1 --stat
-          git push origin fix-release-workflow --tags
+          git push origin main --tags
       - run: |
           export GIT_TAG=$(git describe --tags --abbrev=0)
           echo "GIT_TAG=$GIT_TAG" >> $GITHUB_ENV
