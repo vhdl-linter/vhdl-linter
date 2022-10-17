@@ -274,9 +274,10 @@ export class VhdlLinter {
       if (implementsIHasUseClause(obj) || implementsIHasContextReference(obj)) {
         for (const useClause of this.getUseClauses(obj)) {
           let found = false;
+          if (useClause.library !== undefined) { // Search only in the library for the package if library is defined (not generic package from generic)
           for (let foundPkg of packages) {
-            if (foundPkg.lexerToken.getLText() === useClause.packageName.toLowerCase()) {
-              if (foundPkg instanceof OPackage && typeof foundPkg.uninstantiatedPackage !== 'undefined') {
+            if (foundPkg.lexerToken.getLText() === useClause.packageName.getLText()) {
+                if (foundPkg instanceof OPackage && foundPkg.uninstantiatedPackage !== undefined) {
                 const uninstantiatedPackage = packages.find(p => p.lexerToken.getLText() === (foundPkg as OPackage).uninstantiatedPackage?.text.toLowerCase());
                 if (uninstantiatedPackage) {
                   foundPkg = uninstantiatedPackage;
@@ -294,12 +295,53 @@ export class VhdlLinter {
               found = true;
             }
           }
+          } else {
+            let parentWithGeneric: OPackage | OPackageBody | OArchitecture | OEntity | undefined = obj.getRootElement();
+            if (parentWithGeneric instanceof OArchitecture) {
+              parentWithGeneric = parentWithGeneric.correspondingEntity;
+            }
+            if (parentWithGeneric instanceof OPackageBody) {
+              parentWithGeneric = parentWithGeneric.correspondingPackage;
+            }
+            if (parentWithGeneric === undefined) {
+              this.addMessage({
+                range: useClause.range,
+                severity: DiagnosticSeverity.Warning,
+                message: `could not find instantiated package from package ${useClause.packageName}`
+              });
+              break;
+          }
+            const packageInstantiation = (parentWithGeneric as OPackage | OEntity).packageInstantiations.find(packageInstantiation => packageInstantiation.lexerToken?.getLText() === useClause.packageName.getLText());
+            if (!packageInstantiation) {
+              found = true;
+              this.addMessage({
+                range: useClause.range,
+                severity: DiagnosticSeverity.Warning,
+                message: `could not find generic for ${useClause.packageName}`
+              });
+              break;
+          }
+            const uninstantiatedPackage = packages.find(p => p.lexerToken.getLText() === packageInstantiation?.uninstantiatedPackage?.text.toLowerCase());
+            if (uninstantiatedPackage) {
+              this.packages.push(uninstantiatedPackage);
+              found = true;
+            } else {
+              found = true;
+              this.addMessage({
+                range: useClause.range,
+                severity: DiagnosticSeverity.Warning,
+                message: `could not find instantiated package from package ${useClause.packageName}`
+              });
+              break;
+            }
+          }
+
           if (!found) {
             if (useClause.getRoot().file === this.file.file) {
               this.addMessage({
                 range: useClause.range,
                 severity: DiagnosticSeverity.Warning,
-                message: `could not find package for ${useClause.library}.${useClause.packageName}`
+                message: `could not find package for ${useClause.library !== undefined ? `${useClause.library}.` : ''}${useClause.packageName}`
               });
             }
           }
@@ -322,6 +364,11 @@ export class VhdlLinter {
       }
       for (const subprogram of pkg.subprograms) {
         readObjectMap.set(subprogram.lexerToken.getLText(), subprogram);
+      }
+      if (pkg instanceof OPackage) {
+        for (const generic of pkg.generics) {
+          readObjectMap.set(generic.lexerToken.getLText(), generic);
+        }
       }
       for (const type of pkg.types) {
         type.addReadsToMap(readObjectMap);

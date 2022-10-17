@@ -367,7 +367,7 @@ export class OPackageBody extends ObjectBase implements IHasSubprograms, IHasCon
   correspondingPackage?: OPackage;
 }
 export class OUseClause extends ObjectBase implements IHasLibraryReference {
-  constructor(public parent: ObjectBase | OFile, range: OIRange, public library: OLexerToken, public packageName: string, public suffix: string) {
+  constructor(public parent: ObjectBase | OFile, range: OIRange, public library: OLexerToken | undefined, public packageName: OLexerToken, public suffix: OLexerToken) {
     super(parent, range);
   }
 }

@@ -120,7 +120,8 @@ export class Parser extends ParserBase {
     ];
     const defaultUseClause = [
       new OUseClause(this.file, new OIRange(this.file, 0, 0), new OLexerToken('std', new OIRange(this.file, 0, 0), TokenType.keyword),
-        'standard', 'all')
+        new OLexerToken('standard', new OIRange(this.file, 0, 0), TokenType.keyword),
+        new OLexerToken('all', new OIRange(this.file, 0, 0), TokenType.keyword))
     ];
     // TODO: Add library STD, WORK; use STD.STANDARD.all;
     let libraries = defaultLibrary.slice(0);
@@ -170,8 +171,8 @@ export class Parser extends ParserBase {
           useClause.parent = entity;
         }
         contextReferences = [];
-        entity.useClauses = useClauses;
-        entity.libraries = libraries;
+        entity.useClauses.push(...useClauses);
+        entity.libraries.push(...libraries);
         libraries = defaultLibrary.slice(0);
         useClauses = defaultUseClause.slice(0);
         if (this.onlyEntity) {
@@ -190,8 +191,8 @@ export class Parser extends ParserBase {
           useClause.parent = architecture;
         }
         contextReferences = [];
-        architecture.useClauses = useClauses;
-        architecture.libraries = libraries;
+        architecture.useClauses.push(...useClauses);
+        architecture.libraries.push(...libraries);
 
         libraries = defaultLibrary.slice(0);
         useClauses = defaultUseClause.slice(0);
@@ -201,8 +202,8 @@ export class Parser extends ParserBase {
         }
         const packageParser = new PackageParser(this.pos, this.filePath);
         const pkg = packageParser.parse(this.file);
-        pkg.libraries = libraries;
-        pkg.useClauses = useClauses;
+        pkg.useClauses.push(...useClauses);
+        pkg.libraries.push(...libraries);
         this.file.packages.push(pkg);
         pkg.contextReferences = contextReferences;
         for (const contextReference of contextReferences) {
