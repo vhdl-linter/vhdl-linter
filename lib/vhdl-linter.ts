@@ -125,7 +125,7 @@ export class VhdlLinter {
     for (const object of this.file.objectList) {
       if (implementsIHasLibraryReference(object) && object.library !== undefined) {
         const libraryReference = object.library;
-        let iterator = object.parent as ObjectBase;
+        let iterator = object as ObjectBase;
         let library;
         while (iterator instanceof OFile !== true) {
           library = implementsIHasLibraries(iterator) ?

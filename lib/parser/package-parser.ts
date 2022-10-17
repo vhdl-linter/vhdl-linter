@@ -33,7 +33,7 @@ export class PackageParser extends ParserBase {
       nextToken = this.getToken();
       if (nextToken.getLText() === 'new') {
         this.getNextWord();
-        this.consumeToken();
+        pkg.library = this.consumeToken();
         this.expect('.');
         pkg.uninstantiatedPackage = this.consumeToken();
 

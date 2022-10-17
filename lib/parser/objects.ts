@@ -327,7 +327,7 @@ export class OPackageInstantiation extends ObjectBase implements IReferenceable 
 
 export class OPackage extends ObjectBase implements IHasSubprograms, IHasComponents, IHasSignals, IHasConstants,
   IHasVariables, IHasTypes, IHasFileVariables, IHasUseClauses, IHasContextReference, IHasLexerToken, IHasPackageInstantiations,
-  IHasLibraries {
+  IHasLibraries, IHasLibraryReference {
   parent: OFile;
   libraries: OLexerToken[] = [];
 
@@ -335,6 +335,7 @@ export class OPackage extends ObjectBase implements IHasSubprograms, IHasCompone
   useClauses: OUseClause[] = [];
   packageInstantiations: OPackageInstantiation[] = [];
   contextReferences: OContextReference[] = [];
+  library?: OLexerToken;
   uninstantiatedPackage?: OLexerToken; // TODO: remove this
   subprograms: OSubprogram[] = [];
   components: OComponent[] = [];
