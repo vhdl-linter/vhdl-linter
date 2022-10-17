@@ -568,7 +568,7 @@ export class VhdlLinter {
   async checkLibrary() {
     const settings = await getDocumentSettings(URI.file(this.editorPath).toString());
     for (const entity of this.file.entities) {
-      if (settings.rules.warnLibrary && this.file && entity !== undefined && typeof entity.library === 'undefined') {
+      if (settings.rules.warnLibrary && entity !== undefined && typeof entity.targetLibrary === 'undefined') {
         this.addMessage({
           range: new OIRange(this.file, new OI(this.file, 0, 0), new OI(this.file, 1, 0)),
           severity: DiagnosticSeverity.Warning,
@@ -816,7 +816,7 @@ export class VhdlLinter {
             'add use statement for ' + pkg.lexerToken,
             {
               changes: {
-                [textDocumentUri]: [TextEdit.insert(pos, `use ${pkg.library ? pkg.library : 'work'}.${pkg.lexerToken}.all;\n`)]
+                [textDocumentUri]: [TextEdit.insert(pos, `use ${pkg.targetLibrary ? pkg.targetLibrary : 'work'}.${pkg.lexerToken}.all;\n`)]
               }
             },
             CodeActionKind.QuickFix
@@ -869,7 +869,7 @@ export class VhdlLinter {
             'add use statement for ' + pkg.lexerToken,
             {
               changes: {
-                [textDocumentUri]: [TextEdit.insert(pos, `use ${pkg.library ? pkg.library : 'work'}.${pkg.lexerToken}.all;\n`)]
+                [textDocumentUri]: [TextEdit.insert(pos, `use ${pkg.targetLibrary ? pkg.targetLibrary : 'work'}.${pkg.lexerToken}.all;\n`)]
               }
             },
             CodeActionKind.QuickFix
@@ -1370,8 +1370,8 @@ export class VhdlLinter {
     const projectEntities = this.projectParser.getEntities();
     if (instantiation instanceof OInstantiation && typeof instantiation.library !== 'undefined' && instantiation.library.getLText() !== 'work') {
       entities.push(...projectEntities.filter(entity => {
-        if (entity.library !== undefined) {
-          return entity.library.toLowerCase() === instantiation.library?.getLText() ?? '';
+        if (typeof entity.targetLibrary !== 'undefined') {
+          return entity.targetLibrary.toLowerCase() === instantiation.library?.getLText() ?? '';
         }
         return true;
 
