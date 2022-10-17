@@ -816,7 +816,7 @@ export class VhdlLinter {
             'add use statement for ' + pkg.lexerToken,
             {
               changes: {
-                [textDocumentUri]: [TextEdit.insert(pos, `use ${pkg.library ? pkg.library : 'work'}.${pkg.lexerToken}.all;\n`)]
+                [textDocumentUri]: [TextEdit.insert(pos, `use ${pkg.targetLibrary ? pkg.targetLibrary : 'work'}.${pkg.lexerToken}.all;\n`)]
               }
             },
             CodeActionKind.QuickFix
@@ -869,7 +869,7 @@ export class VhdlLinter {
             'add use statement for ' + pkg.lexerToken,
             {
               changes: {
-                [textDocumentUri]: [TextEdit.insert(pos, `use ${pkg.library ? pkg.library : 'work'}.${pkg.lexerToken}.all;\n`)]
+                [textDocumentUri]: [TextEdit.insert(pos, `use ${pkg.targetLibrary ? pkg.targetLibrary : 'work'}.${pkg.lexerToken}.all;\n`)]
               }
             },
             CodeActionKind.QuickFix
