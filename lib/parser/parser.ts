@@ -52,7 +52,7 @@ export class Parser extends ParserBase {
     let disabledRangeStart = undefined;
     const ignoreRegex: RegExp[] = [];
     for (const [lineNumber, line] of this.originalText.split('\n').entries()) {
-      let match = /(--\s*vhdl-linter)(.*)/.exec(line); // vhdl-linter-disable-next-line //vhdl-linter-disable-this-line
+      const match = /(--\s*vhdl-linter)(.*)/.exec(line); // vhdl-linter-disable-next-line //vhdl-linter-disable-this-line
 
       if (match) {
         let innerMatch: RegExpMatchArray | null;
