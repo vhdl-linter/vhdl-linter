@@ -53,8 +53,8 @@ jobs:
           git tag -a $RELEASE_VERSION -m "$RELEASE_VERSION"
       - name: Package Extension (Stable)
         run: npx vsce package $RELEASE_VERSION --no-git-tag-version --no-update-package-json -o "./vhdl-linter-$RELEASE_VERSION.vsix"
-      # - name: Publish to Visual Studio Marketplace
-      #   run: npx vsce publish --packagePath "./vhdl-linter-$RELEASE_VERSION.vsix" --no-git-tag-version --no-update-package-json -p  ${{ secrets.VSC_MKTP_PAT }}
+      - name: Publish to Visual Studio Marketplace
+        run: npx vsce publish --packagePath "./vhdl-linter-$RELEASE_VERSION.vsix" --no-git-tag-version --no-update-package-json -p  ${{ secrets.VSC_MKTP_PAT }}
       - name: Push Tags
         run: |
           git log -1 --stat
