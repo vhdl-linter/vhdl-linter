@@ -6,7 +6,7 @@ export function attachOnCompletion() {
   connection.onCompletion(async (params: CompletionParams, token): Promise<CompletionItem[]> => {
     await initialization;
     if (token.isCancellationRequested) {
-      throw ErrorCodes.RequestCancelled;
+      throw ErrorCodes.PendingResponseRejected;
     }
     const completions: CompletionItem[] = [];
     const document = documents.get(params.textDocument.uri);

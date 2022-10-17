@@ -552,7 +552,6 @@ export abstract class OVariableBase extends ObjectBase implements IReferenceable
   type: ORead[] = [];
   defaultValue?: ORead[] = [];
   lexerToken: OLexerToken;
-
 }
 export abstract class OSignalBase extends OVariableBase {
   registerProcess?: OProcess;
