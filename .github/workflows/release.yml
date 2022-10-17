@@ -58,7 +58,6 @@ jobs:
       - name: Push Tags
         run: |
           git log -1 --stat
-          git remote set-url origin
           git push origin fix-release-workflow --tags
       - run: |
           export GIT_TAG=$(git describe --tags --abbrev=0)
