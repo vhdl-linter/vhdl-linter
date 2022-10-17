@@ -346,7 +346,7 @@ export class OPackage extends ObjectBase implements IHasSubprograms, IHasCompone
   genericRange?: OIRange;
   generics: OGeneric[] = [];
   genericAssociationList?: OGenericAssociationList;
-  library?: string;
+  targetLibrary?: string;
 }
 
 export class OPackageBody extends ObjectBase implements IHasSubprograms, IHasConstants, IHasVariables, IHasTypes,
@@ -363,7 +363,7 @@ export class OPackageBody extends ObjectBase implements IHasSubprograms, IHasCon
   variables: OVariable[] = [];
   types: OType[] = [];
   files: OFileVariable[] = [];
-  library?: string;
+  targetLibrary?: string;
   correspondingPackage?: OPackage;
 }
 export class OUseClause extends ObjectBase implements IHasLibraryReference {
@@ -707,7 +707,7 @@ export class OAssociation extends ObjectBase implements IHasDefinitions {
 }
 export class OEntity extends ObjectBase implements IHasDefinitions, IHasSubprograms, IHasSignals, IHasConstants, IHasVariables,
   IHasTypes, IHasFileVariables, IHasUseClauses, IHasContextReference, IHasLexerToken, IHasPackageInstantiations, IHasLibraries {
-  constructor(public parent: OFile, range: OIRange, public library?: string) {
+  constructor(public parent: OFile, range: OIRange, public targetLibrary?: string) {
     super(parent, range);
   }
   libraries: OLexerToken[] = [];
