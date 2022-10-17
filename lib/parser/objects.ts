@@ -707,7 +707,7 @@ export class OAssociation extends ObjectBase implements IHasDefinitions {
 }
 export class OEntity extends ObjectBase implements IHasDefinitions, IHasSubprograms, IHasSignals, IHasConstants, IHasVariables,
   IHasTypes, IHasFileVariables, IHasUseClauses, IHasContextReference, IHasLexerToken, IHasPackageInstantiations, IHasLibraries {
-  constructor(public parent: OFile, range: OIRange, public library?: string) {
+  constructor(public parent: OFile, range: OIRange, public libraryMagicComment?: string) {
     super(parent, range);
   }
   libraries: OLexerToken[] = [];
