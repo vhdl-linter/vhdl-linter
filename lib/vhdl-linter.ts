@@ -110,17 +110,6 @@ export class VhdlLinter {
     });
     return matchingMagiComments.length === 0;
   }
-  checkTodos() {
-    this.file.magicComments.forEach(magicComment => {
-      if (magicComment.commentType === MagicCommentType.Todo) {
-        this.messages.push({
-          range: magicComment.range,
-          severity: DiagnosticSeverity.Information,
-          message: magicComment.message
-        });
-      }
-    });
-  }
   checkLibraryReferences() {
     for (const object of this.file.objectList) {
       if (implementsIHasLibraryReference(object) && object.library !== undefined) {
@@ -605,11 +594,6 @@ export class VhdlLinter {
           start = Date.now();
         }
         await this.checkLibrary();
-        if (profiling) {
-          console.log(`check ${i++}: ${Date.now() - start}ms`);
-          start = Date.now();
-        }
-        await this.checkTodos();
         if (profiling) {
           console.log(`check ${i++}: ${Date.now() - start}ms`);
           start = Date.now();

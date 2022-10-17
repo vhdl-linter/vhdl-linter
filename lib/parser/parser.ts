@@ -2,7 +2,7 @@ import { ArchitectureParser } from './architecture-parser';
 import { ContextParser } from './context-parser';
 import { ContextReferenceParser } from './context-reference-parser';
 import { EntityParser } from './entity-parser';
-import { MagicCommentType, OFile, OI, OIRange, OMagicCommentDisable, OMagicCommentParameter, OMagicCommentTodo, ParserError, OConfiguration, OUseClause } from './objects';
+import { MagicCommentType, OFile, OI, OIRange, OMagicCommentDisable, OMagicCommentParameter, ParserError, OConfiguration, OUseClause } from './objects';
 import { PackageParser } from './package-parser';
 import { ParserBase } from './parser-base';
 import { UseClauseParser } from './use-clause-parser';
@@ -93,11 +93,6 @@ export class Parser extends ParserBase {
         const disabledRange = new OIRange(this.file, new OI(this.file, disabledRangeStart, 0), new OI(this.file, this.originalText.length - 1));
         this.file.magicComments.push(new OMagicCommentDisable(this.file, MagicCommentType.Disable, disabledRange));
         disabledRangeStart = undefined;
-      }
-      match = /(--\s*)(.*TODO.*)/.exec(line);
-      if (match) {
-        const todoRange = new OIRange(this.file, new OI(this.file, lineNumber, line.length - match[2].length), new OI(this.file, lineNumber, line.length));
-        this.file.magicComments.push(new OMagicCommentTodo(this.file, MagicCommentType.Todo, todoRange, match[2].toString()));
       }
 
     }

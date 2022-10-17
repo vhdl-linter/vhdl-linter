@@ -288,7 +288,7 @@ export class OFile {
 
   objectList: ObjectBase[] = [];
   contexts: OContext[] = [];
-  magicComments: (OMagicCommentParameter | OMagicCommentDisable | OMagicCommentTodo)[] = [];
+  magicComments: (OMagicCommentParameter | OMagicCommentDisable)[] = [];
   entities: OEntity[] = [];
   architectures: OArchitecture[] = [];
   packages: (OPackage | OPackageBody)[] = [];
@@ -1036,8 +1036,7 @@ export class ParserError extends Error {
 }
 export enum MagicCommentType {
   Disable,
-  Parameter,
-  Todo
+  Parameter
 }
 export class OMagicComment extends ObjectBase {
   constructor(public parent: OFile, public commentType: MagicCommentType, range: OIRange) {
@@ -1047,13 +1046,6 @@ export class OMagicComment extends ObjectBase {
 export class OMagicCommentDisable extends OMagicComment {
   constructor(public parent: OFile, public commentType: MagicCommentType.Disable, range: OIRange) {
     super(parent, commentType, range);
-  }
-}
-export class OMagicCommentTodo extends OMagicComment {
-  public message: string;
-  constructor(public parent: OFile, public commentType: MagicCommentType.Todo, range: OIRange, message: string) {
-    super(parent, commentType, range);
-    this.message = message;
   }
 }
 export class OMagicCommentParameter extends OMagicComment {
