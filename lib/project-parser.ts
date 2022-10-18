@@ -148,17 +148,32 @@ export class OFileCache {
     const date = Date.now();
     this.linter = new VhdlLinter(this.path, this.text, this.projectParser, true);
     this.lintingTime = Date.now() - date;
-    this.packages = this.linter.file.packages;
-    this.packageInstantiations = this.linter.file.packageInstantiations;
-    this.entities = this.linter.file.entities;
-    this.contexts = this.linter.file.contexts;
+    this.parsePackages();
+    this.parsePackageInstantiations();
+    this.parseEntity();
+    this.parseContexts();
   }
   reparse() {
     this.text = readFileSync(this.path, { encoding: 'utf8' });
     this.linter = new VhdlLinter(this.path, this.text, this.projectParser);
+    this.parsePackages();
+    this.parsePackageInstantiations();
+    this.parseEntity();
+    this.parseContexts();
+  }
+
+  private parsePackages(): void {
     this.packages = this.linter.file.packages;
+  }
+  private parsePackageInstantiations(): void {
     this.packageInstantiations = this.linter.file.packageInstantiations;
-    this.entities = this.linter.file.entities;
+  }
+  private parseContexts(): void {
     this.contexts = this.linter.file.contexts;
+  }
+  private parseEntity(): void {
+    if (this.linter.file.entities.length > 0) {
+      this.entities = this.linter.file.entities;
+    }
   }
 }
