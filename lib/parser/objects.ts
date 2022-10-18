@@ -349,7 +349,8 @@ export class OPackage extends ObjectBase implements IHasSubprograms, IHasCompone
   IHasLibraries, IHasLibraryReference, IHasGenerics {
   parent: OFile;
   libraries: OLexerToken[] = [];
-
+  generics: OGeneric[] = [];
+  genericRange?: OIRange;
   lexerToken: OLexerToken;
   useClauses: OUseClause[] = [];
   packageInstantiations: OPackageInstantiation[] = [];

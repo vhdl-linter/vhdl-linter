@@ -790,7 +790,7 @@ export class VhdlLinter {
           if (type.alias) { // Aliases can be overloaded like subprograms.
             continue;
           }
-          if (type.incomplete) { // Incompete types can be overloaded
+          if (type.incomplete) { // Incomplete types can be overloaded
             continue;
           }
           objList.push(type);
