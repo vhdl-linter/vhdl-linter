@@ -280,6 +280,20 @@ interface IHasLibraryReference {
 export function implementsIHasLibraryReference(obj: unknown): obj is IHasLibraryReference {
   return (obj as IHasLibraryReference).library !== undefined;
 }
+interface IHasGenerics {
+  generics: OGeneric[];
+  genericRange?: OIRange;
+}
+export function implementsIHasGenerics(obj: unknown): obj is IHasGenerics {
+  return (obj as IHasGenerics).generics !== undefined;
+}
+interface IHasPorts {
+  ports: OPort[];
+  portRange?: OIRange;
+}
+export function implementsIHasPorts(obj: unknown): obj is IHasPorts {
+  return (obj as IHasPorts).ports !== undefined;
+}
 export class OFile {
   public lines: string[];
   constructor(public text: string, public file: string, public originalText: string) {
@@ -327,7 +341,7 @@ export class OPackageInstantiation extends ObjectBase implements IReferenceable 
 
 export class OPackage extends ObjectBase implements IHasSubprograms, IHasComponents, IHasSignals, IHasConstants,
   IHasVariables, IHasTypes, IHasFileVariables, IHasUseClauses, IHasContextReference, IHasLexerToken, IHasPackageInstantiations,
-  IHasLibraries {
+  IHasLibraries, IHasGenerics {
   parent: OFile;
   libraries: OLexerToken[] = [];
 
@@ -705,7 +719,7 @@ export class OAssociation extends ObjectBase implements IHasDefinitions {
   actualIfInoutput: [ORead[], OWrite[]] = [[], []];
 }
 export class OEntity extends ObjectBase implements IHasDefinitions, IHasSubprograms, IHasSignals, IHasConstants, IHasVariables,
-  IHasTypes, IHasFileVariables, IHasUseClauses, IHasContextReference, IHasLexerToken, IHasPackageInstantiations, IHasLibraries {
+  IHasTypes, IHasFileVariables, IHasUseClauses, IHasContextReference, IHasLexerToken, IHasPackageInstantiations, IHasLibraries, IHasGenerics, IHasPorts {
   constructor(public parent: OFile, range: OIRange, public targetLibrary?: string) {
     super(parent, range);
   }
@@ -727,7 +741,7 @@ export class OEntity extends ObjectBase implements IHasDefinitions, IHasSubprogr
   definitions: OEntity[] = [];
   files: OFileVariable[] = [];
 }
-export class OComponent extends ObjectBase implements IHasDefinitions, IHasSubprograms, IHasLexerToken, IHasPackageInstantiations {
+export class OComponent extends ObjectBase implements IHasDefinitions, IHasSubprograms, IHasLexerToken, IHasPackageInstantiations, IHasPorts, IHasGenerics {
   constructor(parent: IHasComponents, range: OIRange) {
     super((parent as unknown) as ObjectBase, range);
   }
@@ -924,9 +938,7 @@ export class OReference extends ObjectBase implements IHasDefinitions, IHasLexer
           }
         }
       }
-      if (object instanceof OSubprogram
-        || object instanceof OEntity
-        || object instanceof OComponent) {
+      if (implementsIHasPorts(object)) {
         for (const port of object.ports) {
           if (port.lexerToken.getLText() === text.toLowerCase()) {
             this.definitions.push(port);
@@ -934,7 +946,7 @@ export class OReference extends ObjectBase implements IHasDefinitions, IHasLexer
           }
         }
       }
-      if (object instanceof OEntity || object instanceof OComponent || object instanceof OPackage) {
+      if (implementsIHasGenerics(object)) {
         for (const generic of object.generics) {
           if (generic.lexerToken.getLText() === text.toLowerCase()) {
             this.definitions.push(generic);
@@ -1054,7 +1066,7 @@ export class OMagicCommentParameter extends OMagicComment {
   }
 }
 export class OSubprogram extends OHasSequentialStatements implements IReferenceable, IHasSubprograms, IHasInstantiations, IHasConstants,
-  IHasVariables, IHasTypes, IHasFileVariables, IHasUseClauses, IHasLexerToken, IHasPackageInstantiations {
+  IHasVariables, IHasTypes, IHasFileVariables, IHasUseClauses, IHasLexerToken, IHasPackageInstantiations, IHasPorts {
   useClauses: OUseClause[] = [];
   parent: OPackage;
   packageInstantiations: OPackageInstantiation[] = [];
