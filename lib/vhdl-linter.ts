@@ -726,8 +726,8 @@ export class VhdlLinter {
     }
   }
   checkAllMultipleDefinitions() {
-    for (const obj of this.file.objectList) {
-      const objList: ObjectBase[] = [];
+    const extractObjects = (obj: ObjectBase) => {
+      const objList = [];
       if (implementsIHasSignals(obj)) {
         objList.push(...obj.signals);
       }
@@ -760,6 +760,18 @@ export class VhdlLinter {
         objList.push(...obj.generates);
         objList.push(...obj.processes);
       }
+      return objList;
+    }
+    for (const obj of this.file.objectList) {
+      const objList: ObjectBase[] = [];
+      objList.push(...extractObjects(obj));
+      if (obj instanceof OArchitecture && obj.correspondingEntity) {
+        objList.push(...extractObjects(obj.correspondingEntity));
+      }
+      if (obj instanceof OPackageBody && obj.correspondingPackage) {
+        objList.push(...extractObjects(obj.correspondingPackage));
+      }
+      // TODO Handle generic packages?
       this.checkMultipleDefinitions(objList);
     }
   }
