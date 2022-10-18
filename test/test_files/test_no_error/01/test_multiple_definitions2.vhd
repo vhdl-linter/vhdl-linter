@@ -12,7 +12,7 @@ end test_multiple_definitions2;
 architecture arch of test_multiple_definitions2 is
 begin
   block_test : block
-    signal test : std_ulogic; -- According to ghdl this is fine. This seems wrong though!
+    signal test : std_ulogic; -- shadowing of signals is fine
   begin
     test <= test;
   end block;
