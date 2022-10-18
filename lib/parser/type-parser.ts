@@ -29,6 +29,7 @@ export class TypeParser extends ParserBase {
     this.getNextWord();
     type.lexerToken = this.consumeToken();
     if (this.getToken().getLText() === ';') {
+      type.incomplete = true;
       this.advancePast(';');
       return type;
     }

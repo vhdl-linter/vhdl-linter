@@ -742,6 +742,9 @@ export class VhdlLinter {
           if (type.alias) { // Aliases can be overloaded like functions.
             continue;
           }
+          if (type.incomplete) { // Incompete types can be overloaded
+            continue;
+          }
           objList.push(type);
         }
       }
@@ -767,6 +770,9 @@ export class VhdlLinter {
       // objList.push(...entity.subprograms);
       for (const type of entity.types) {
         if (type.alias) { // Aliases can be overloaded like functions.
+          continue;
+        }
+        if (type.incomplete) { // Incompete types can be overloaded
           continue;
         }
         objList.push(type);
