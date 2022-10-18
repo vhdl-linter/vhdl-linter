@@ -11,13 +11,12 @@ export class PackageInstantiationParser extends ParserBase {
   }
   parse(): OPackageInstantiation {
     const inst = new OPackageInstantiation(this.parent, this.pos.getRangeToEndLine());
-    this.expect('package');
     inst.lexerToken = this.consumeToken();
     this.expect('is');
     this.expect('new');
     this.consumeToken(); // ignore package library
     this.expect('.');
-    inst.uninstantiatedPackage = this.consumeToken();
+    inst.uninstantiatedPackageToken = this.consumeToken();
     const nextWord = this.getNextWord({consume: false});
     if (nextWord === 'generic') {
       this.consumeToken();

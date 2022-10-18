@@ -2,13 +2,14 @@ import { FSWatcher, watch } from 'chokidar';
 import { EventEmitter } from 'events';
 import { promises, readFileSync } from 'fs';
 import { join, sep } from 'path';
-import { OContext, OEntity, OPackage, OPackageBody } from './parser/objects';
+import { OContext, OEntity, OPackage, OPackageBody, OPackageInstantiation } from './parser/objects';
 import { VhdlLinter } from './vhdl-linter';
 
 export class ProjectParser {
 
   public cachedFiles: OFileCache[] = [];
   private packages: (OPackage | OPackageBody)[] = [];
+  private packageInstantiations: OPackageInstantiation[] = [];
   private contexts: OContext[] = [];
   private entities: OEntity[] = [];
   events = new EventEmitter();
@@ -92,11 +93,15 @@ export class ProjectParser {
   private fetchEntitesAndPackagesAndContexts() {
     //     console.log(this.cachedFiles);
     this.packages = [];
+    this.packageInstantiations = [];
     this.entities = [];
     for (const cachedFile of this.cachedFiles) {
       this.entities.push(...cachedFile.entities);
       if (cachedFile.packages) {
         this.packages.push(...cachedFile.packages);
+      }
+      if (cachedFile.packageInstantiations) {
+        this.packageInstantiations.push(...cachedFile.packageInstantiations);
       }
       if (cachedFile.contexts) {
         this.contexts.push(...cachedFile.contexts);
@@ -109,6 +114,9 @@ export class ProjectParser {
   }
   public getPackages() {
     return this.packages;
+  }
+  public getPackageInstantiations() {
+    return this.packageInstantiations;
   }
   public getContexts() {
     return this.contexts;
@@ -123,6 +131,7 @@ export class OFileCache {
   path: string;
   digest: string;
   packages?: (OPackage | OPackageBody)[];
+  packageInstantiations?: OPackageInstantiation[];
   contexts: OContext[] = [];
   entities: OEntity[] = [];
   text: string;
@@ -139,26 +148,17 @@ export class OFileCache {
     const date = Date.now();
     this.linter = new VhdlLinter(this.path, this.text, this.projectParser, true);
     this.lintingTime = Date.now() - date;
-    this.parsePackages();
-    this.parseEntity();
-    this.parseContexts();
+    this.packages = this.linter.file.packages;
+    this.packageInstantiations = this.linter.file.packageInstantiations;
+    this.entities = this.linter.file.entities;
+    this.contexts = this.linter.file.contexts;
   }
   reparse() {
     this.text = readFileSync(this.path, { encoding: 'utf8' });
     this.linter = new VhdlLinter(this.path, this.text, this.projectParser);
-    this.parsePackages();
-    this.parseEntity();
-    this.parseContexts();
-  }
-  private parsePackages(): void {
     this.packages = this.linter.file.packages;
-  }
-  private parseContexts(): void {
+    this.packageInstantiations = this.linter.file.packageInstantiations;
+    this.entities = this.linter.file.entities;
     this.contexts = this.linter.file.contexts;
-  }
-  private parseEntity(): void {
-    if (this.linter.file.entities.length > 0) {
-      this.entities = this.linter.file.entities;
-    }
   }
 }

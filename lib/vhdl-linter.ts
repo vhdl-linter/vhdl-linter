@@ -5,7 +5,7 @@ import {
 } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { CancelationError, CancelationObject, getDocumentSettings } from './language-server';
-import { IHasContextReference, IHasLexerToken, IHasUseClauses, implementsIHasConstants, implementsIHasContextReference, implementsIHasInstantiations, implementsIHasLexerToken, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasUseClause, implementsIHasVariables, implementsIReferencable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, OAssociationList, ObjectBase, OCase, OComponent, OConstant, OEntity, OEnum, OFile, OGeneric, OGenericAssociationList, OHasSequentialStatements, OI, OIf, OInstantiation, OIRange, OPackage, OPackageBody, OPort, OPortAssociationList, OProcess, ORead, OSignal, OSignalBase, OSubprogram, OReference, OType, OVariable, OWrite, ParserError, implementsIHasLibraries, implementsIHasLibraryReference, OSelectedNameRead, implementsIHasPorts, implementsIHasGenerics } from './parser/objects';
+import { IHasContextReference, IHasLexerToken, IHasUseClauses, implementsIHasConstants, implementsIHasContextReference, implementsIHasInstantiations, implementsIHasLexerToken, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasUseClause, implementsIHasVariables, implementsIReferencable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, OAssociationList, ObjectBase, OCase, OComponent, OConstant, OEntity, OFile, OGeneric, OGenericAssociationList, OHasSequentialStatements, OI, OIf, OInstantiation, OIRange, OPackage, OPackageBody, OPort, OPortAssociationList, OProcess, ORead, OSignal, OSignalBase, OSubprogram, OReference, OType, OVariable, OWrite, ParserError, implementsIHasLibraries, implementsIHasLibraryReference, OSelectedNameRead, implementsIHasPorts, implementsIHasGenerics, implementsIHasPackageInstantiations, OPackageInstantiation } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 export enum LinterRules {
@@ -210,10 +210,24 @@ export class VhdlLinter {
       throw new CancelationError();
     }
   }
+
+  addPackageFromPackageInst(packageInstantiation: OPackageInstantiation, packages: (OPackage | OPackageBody)[], warningRange: OIRange) {
+    const uninstantiatedPackage = packages.find(p => p.lexerToken.getLText() === packageInstantiation.uninstantiatedPackageToken.text.toLowerCase());
+    if (uninstantiatedPackage) {
+      this.packages.push(uninstantiatedPackage);
+    } else {
+      this.addMessage({
+        range: warningRange,
+        severity: DiagnosticSeverity.Warning,
+        message: `could not find uninstantiated package of package instantiation ${packageInstantiation.lexerToken.text}.`
+      });
+    }
+  }
   async elaborate() {
 
     await this.handleCanceled();
     const packages = this.projectParser.getPackages();
+    const packageInstantiations = this.projectParser.getPackageInstantiations();
     await this.handleCanceled();
 
     // const start = Date.now();
@@ -255,6 +269,11 @@ export class VhdlLinter {
               obj.definitions.push(pkg);
             }
           }
+          for (const pkg of packageInstantiations) {
+            if (obj.lexerToken.getLText() === pkg.lexerToken.getLText()) {
+              obj.definitions.push(pkg);
+            }
+          }
         }
       }
     }
@@ -263,66 +282,51 @@ export class VhdlLinter {
       if (implementsIHasUseClause(obj) || implementsIHasContextReference(obj)) {
         for (const useClause of this.getUseClauses(obj)) {
           let found = false;
-          if (useClause.library !== undefined) { // Search only in the library for the package if library is defined (not generic package from generic)
-          for (let foundPkg of packages) {
-            if (foundPkg.lexerToken.getLText() === useClause.packageName.getLText()) {
-                if (foundPkg instanceof OPackage && foundPkg.uninstantiatedPackage !== undefined) {
-                const uninstantiatedPackage = packages.find(p => p.lexerToken.getLText() === (foundPkg as OPackage).uninstantiatedPackage?.text.toLowerCase());
-                if (uninstantiatedPackage) {
-                  foundPkg = uninstantiatedPackage;
-                } else {
-                  found = true;
-                  this.addMessage({
-                    range: useClause.range,
-                    severity: DiagnosticSeverity.Warning,
-                    message: `could not find instantiated package from package ${useClause.library}.${useClause.packageName}`
-                  });
-                  break;
-                }
+          // if library is defined, uses a "normal" Package; i.e. not an uninstantiated package
+          // or an instantiated package
+          if (useClause.library !== undefined) {
+            for (const possiblePkg of packages) {
+              if (possiblePkg.lexerToken.getLText() === useClause.packageName.getLText()) {
+                this.packages.push(possiblePkg);
+                found = true;
               }
-              this.packages.push(foundPkg);
-              found = true;
             }
-          }
-          } else {
-            let parentWithGeneric: OPackage | OPackageBody | OArchitecture | OEntity | undefined = obj.getRootElement();
-            if (parentWithGeneric instanceof OArchitecture) {
-              parentWithGeneric = parentWithGeneric.correspondingEntity;
+            for (const possiblePkg of packageInstantiations) {
+              if (possiblePkg.lexerToken.getLText() === useClause.packageName.getLText()) {
+                this.addPackageFromPackageInst(possiblePkg, packages, useClause.range);
+                found = true;
+              }
             }
-            if (parentWithGeneric instanceof OPackageBody) {
-              parentWithGeneric = parentWithGeneric.correspondingPackage;
+          } else { // if using package directly, it is an instantiated package
+            const pkgInstantations = [];
+            // go through scope to find all package instantiations
+            let parent: ObjectBase | OFile = obj;
+            while (parent instanceof ObjectBase) {
+              if (implementsIHasPackageInstantiations(parent)) {
+                pkgInstantations.push(...parent.packageInstantiations);
+              }
+              if (parent instanceof OArchitecture && typeof parent.correspondingEntity !== 'undefined') {
+                pkgInstantations.push(...parent.correspondingEntity.packageInstantiations);
+              }
+              parent = parent.parent;
             }
-            if (parentWithGeneric === undefined) {
-              this.addMessage({
-                range: useClause.range,
-                severity: DiagnosticSeverity.Warning,
-                message: `could not find instantiated package from package ${useClause.packageName}`
-              });
-              break;
-          }
-            const packageInstantiation = (parentWithGeneric as OPackage | OEntity).packageInstantiations.find(packageInstantiation => packageInstantiation.lexerToken?.getLText() === useClause.packageName.getLText());
+            pkgInstantations.push(...parent.packageInstantiations);
+
+            const packageInstantiation = pkgInstantations.find(inst => inst.lexerToken.getLText() === useClause.packageName.getLText());
             if (!packageInstantiation) {
               found = true;
-              this.addMessage({
-                range: useClause.range,
-                severity: DiagnosticSeverity.Warning,
-                message: `could not find generic for ${useClause.packageName}`
-              });
-              break;
-          }
-            const uninstantiatedPackage = packages.find(p => p.lexerToken.getLText() === packageInstantiation?.uninstantiatedPackage?.text.toLowerCase());
-            if (uninstantiatedPackage) {
-              this.packages.push(uninstantiatedPackage);
-              found = true;
-            } else {
-              found = true;
-              this.addMessage({
-                range: useClause.range,
-                severity: DiagnosticSeverity.Warning,
-                message: `could not find instantiated package from package ${useClause.packageName}`
-              });
+              if (useClause.getRoot().file === this.file.file) {
+                this.addMessage({
+                  range: useClause.range,
+                  severity: DiagnosticSeverity.Warning,
+                  message: `could not find package instantiation for ${useClause.packageName}`
+                });
+              }
               break;
             }
+            this.addPackageFromPackageInst(packageInstantiation, packages, useClause.range);
+            found = true;
+            break;
           }
 
           if (!found) {

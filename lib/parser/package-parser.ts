@@ -1,4 +1,3 @@
-import { AssociationListParser } from './association-list-parser';
 import { DeclarativePartParser } from './declarative-part-parser';
 import { InterfaceListParser } from './interface-list-parser';
 import { OFile, OIRange, OPackage, OPackageBody } from './objects';

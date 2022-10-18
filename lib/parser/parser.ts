@@ -2,7 +2,7 @@ import { ArchitectureParser } from './architecture-parser';
 import { ContextParser } from './context-parser';
 import { ContextReferenceParser } from './context-reference-parser';
 import { EntityParser } from './entity-parser';
-import { MagicCommentType, OFile, OI, OIRange, OMagicCommentDisable, OMagicCommentParameter, ParserError, OConfiguration, OUseClause } from './objects';
+import { MagicCommentType, OFile, OI, OIRange, OMagicCommentDisable, OMagicCommentParameter, ParserError, OConfiguration, OUseClause, OPackageInstantiation } from './objects';
 import { PackageParser } from './package-parser';
 import { ParserBase } from './parser-base';
 import { UseClauseParser } from './use-clause-parser';
@@ -196,9 +196,9 @@ export class Parser extends ParserBase {
         if (this.onlyEntity && this.getNextWord({ consume: false }) === 'body') {
           // break;
         }
-        const pkg = (this.getToken(3, true).getLText() === 'new')
-        ? new PackageInstantiationParser(this.pos, this.filePath, this.file).parse()
-        :  new PackageParser(this.pos, this.filePath).parse(this.file);
+        const pkg = (this.getToken(2, true).getLText() === 'new')
+          ? new PackageInstantiationParser(this.pos, this.filePath, this.file).parse()
+          : new PackageParser(this.pos, this.filePath).parse(this.file);
         pkg.useClauses.push(...useClauses);
         pkg.libraries.push(...libraries);
         pkg.contextReferences = contextReferences;
@@ -208,7 +208,12 @@ export class Parser extends ParserBase {
         for (const useClause of useClauses) {
           useClause.parent = pkg;
         }
-        this.file.packages.push(pkg);
+        if (pkg instanceof OPackageInstantiation) {
+          this.file.packageInstantiations.push(pkg);
+          this.expect(';'); // package instantiations do not parse ';'
+        } else {
+          this.file.packages.push(pkg);
+        }
         contextReferences = [];
         libraries = defaultLibrary.slice(0);
         useClauses = defaultUseClause.slice(0);

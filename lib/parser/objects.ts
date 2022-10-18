@@ -170,7 +170,10 @@ export class ObjectBase {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     let parent: ObjectBase = this;
     while (parent instanceof OArchitecture === false
-      && parent instanceof OEntity === false && parent instanceof OPackage === false && parent instanceof OPackageBody === false) {
+      && parent instanceof OEntity === false
+      && parent instanceof OPackage === false
+      && parent instanceof OPackageInstantiation === false
+      && parent instanceof OPackageBody === false) {
       if (parent.parent instanceof OFile) {
         throw new ParserError('Failed to find root element', this.range);
       }
@@ -306,6 +309,7 @@ export class OFile {
   entities: OEntity[] = [];
   architectures: OArchitecture[] = [];
   packages: (OPackage | OPackageBody)[] = [];
+  packageInstantiations: OPackageInstantiation[] = [];
   configurations: OConfiguration[] = [];
   getRoot() { // Provided as a convience to equalize to ObjectBase
     return this;
@@ -333,15 +337,15 @@ export class OFile {
   }
 }
 
-export class OPackageInstantiation extends ObjectBase implements IReferenceable, IHasUseClauses, IHasContextReference, IHasLibraries {
-  uninstantiatedPackage: OLexerToken;
+export class OPackageInstantiation extends ObjectBase implements IReferenceable, IHasUseClauses, IHasContextReference, IHasLibraries, IHasLexerToken, IHasDefinitions {
+  lexerToken: OLexerToken;
+  uninstantiatedPackageToken: OLexerToken;
+  definitions: OPackage[] = [];
   genericAssociationList?: OGenericAssociationList;
   references: OReference[] = [];
   libraries: OLexerToken[] = [];
   useClauses: OUseClause[] = [];
   contextReferences: OContextReference[] = [];
-  generics: OGeneric[] = [];
-  genericRange?: OIRange;
 }
 
 export class OPackage extends ObjectBase implements IHasSubprograms, IHasComponents, IHasSignals, IHasConstants,
