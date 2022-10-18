@@ -461,7 +461,7 @@ export class OBlock extends OArchitecture {
 export class OType extends ObjectBase implements IReferenceable, IHasSubprograms, IHasSignals, IHasConstants, IHasVariables,
   IHasTypes, IHasFileVariables, IHasUseClauses, IHasLexerToken, IHasPackageInstantiations {
   useClauses: OUseClause[] = [];
-
+  incomplete = false;
   packageInstantiations: OPackageInstantiation[] = [];
   types: OType[] = [];
   subprograms: OSubprogram[] = [];
