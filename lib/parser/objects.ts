@@ -170,7 +170,10 @@ export class ObjectBase {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     let parent: ObjectBase = this;
     while (parent instanceof OArchitecture === false
-      && parent instanceof OEntity === false && parent instanceof OPackage === false && parent instanceof OPackageBody === false) {
+      && parent instanceof OEntity === false
+      && parent instanceof OPackage === false
+      && parent instanceof OPackageInstantiation === false
+      && parent instanceof OPackageBody === false) {
       if (parent.parent instanceof OFile) {
         throw new ParserError('Failed to find root element', this.range);
       }
@@ -306,6 +309,7 @@ export class OFile {
   entities: OEntity[] = [];
   architectures: OArchitecture[] = [];
   packages: (OPackage | OPackageBody)[] = [];
+  packageInstantiations: OPackageInstantiation[] = [];
   configurations: OConfiguration[] = [];
   getRoot() { // Provided as a convience to equalize to ObjectBase
     return this;
@@ -333,10 +337,15 @@ export class OFile {
   }
 }
 
-export class OPackageInstantiation extends ObjectBase implements IReferenceable {
-  uninstantiatedPackage: OLexerToken;
+export class OPackageInstantiation extends ObjectBase implements IReferenceable, IHasUseClauses, IHasContextReference, IHasLibraries, IHasLexerToken, IHasDefinitions {
+  lexerToken: OLexerToken;
+  uninstantiatedPackageToken: OLexerToken;
+  definitions: OPackage[] = [];
   genericAssociationList?: OGenericAssociationList;
   references: OReference[] = [];
+  libraries: OLexerToken[] = [];
+  useClauses: OUseClause[] = [];
+  contextReferences: OContextReference[] = [];
 }
 
 export class OPackage extends ObjectBase implements IHasSubprograms, IHasComponents, IHasSignals, IHasConstants,
@@ -344,13 +353,13 @@ export class OPackage extends ObjectBase implements IHasSubprograms, IHasCompone
   IHasLibraries, IHasLibraryReference, IHasGenerics {
   parent: OFile;
   libraries: OLexerToken[] = [];
-
+  generics: OGeneric[] = [];
+  genericRange?: OIRange;
   lexerToken: OLexerToken;
   useClauses: OUseClause[] = [];
   packageInstantiations: OPackageInstantiation[] = [];
   contextReferences: OContextReference[] = [];
   library?: OLexerToken;
-  uninstantiatedPackage?: OLexerToken; // TODO: remove this
   subprograms: OSubprogram[] = [];
   components: OComponent[] = [];
   signals: OSignal[] = [];
@@ -358,9 +367,6 @@ export class OPackage extends ObjectBase implements IHasSubprograms, IHasCompone
   variables: OVariable[] = [];
   files: OFileVariable[] = [];
   types: OType[] = [];
-  genericRange?: OIRange;
-  generics: OGeneric[] = [];
-  genericAssociationList?: OGenericAssociationList;
   targetLibrary?: string;
 }
 
@@ -730,8 +736,8 @@ export class OEntity extends ObjectBase implements IHasDefinitions, IHasSubprogr
   useClauses: OUseClause[] = [];
   contextReferences: OContextReference[] = [];
   portRange?: OIRange;
-  genericRange?: OIRange;
   ports: OPort[] = [];
+  genericRange?: OIRange;
   generics: OGeneric[] = [];
   signals: OSignal[] = [];
   constants: OConstant[] = [];

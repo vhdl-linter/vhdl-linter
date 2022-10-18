@@ -22,7 +22,7 @@ export class InterfaceListParser extends ParserBase {
       this.parent.generics = ports as OGeneric[];
     } else {
       if (this.parent instanceof OPackage) {
-        throw new Error('Package can only have generics and no ports');
+        throw new Error('Package instantiations can only have generics and no ports');
       }
       this.parent.ports = ports as OPort[];
     }
@@ -51,8 +51,9 @@ export class InterfaceListParser extends ParserBase {
         const subprogramParser = new SubprogramParser(this.pos, this.filePath, this.parent);
         this.parent.subprograms.push(subprogramParser.parse());
         this.maybeWord(';');
-      } else if (nextWord === 'package') { // TODO: Handle correctly
+      } else if (nextWord === 'package') {
         if (implementsIHasPackageInstantiations(this.parent)) {
+          this.consumeToken(); // consume 'package'
           this.parent.packageInstantiations.push(new PackageInstantiationParser(this.pos, this.filePath, this.parent).parse());
         } else {
           this.advanceBraceAwareToken([';', ')'], true, false);

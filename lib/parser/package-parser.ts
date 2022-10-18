@@ -1,4 +1,3 @@
-import { AssociationListParser } from './association-list-parser';
 import { DeclarativePartParser } from './declarative-part-parser';
 import { InterfaceListParser } from './interface-list-parser';
 import { OFile, OIRange, OPackage, OPackageBody } from './objects';
@@ -31,22 +30,22 @@ export class PackageParser extends ParserBase {
       pkg.lexerToken = nextToken;
       this.expect('is');
       nextToken = this.getToken();
-      if (nextToken.getLText() === 'new') {
-        this.getNextWord();
-        pkg.library = this.consumeToken();
-        this.expect('.');
-        pkg.uninstantiatedPackage = this.consumeToken();
+      // if (nextToken.getLText() === 'new') {
+      //   this.getNextWord();
+      //   pkg.library = this.consumeToken();
+      //   this.expect('.');
+      //   pkg.uninstantiatedPackage = this.consumeToken();
 
-        nextToken = this.getToken();
-        if (nextToken.getLText() === 'generic') {
-          this.expect('generic');
-          this.expect('map');
-          pkg.genericAssociationList = new AssociationListParser(this.pos, this.filePath, pkg).parse('generic');
-        }
-        pkg.range = pkg.range.copyWithNewEnd(this.getToken(-1, true).range.end);
-        this.expect(';');
-        return pkg;
-      }
+      //   nextToken = this.getToken();
+      //   if (nextToken.getLText() === 'generic') {
+      //     this.expect('generic');
+      //     this.expect('map');
+      //     pkg.genericAssociationList = new AssociationListParser(this.pos, this.filePath, pkg).parse('generic');
+      //   }
+      //   pkg.range = pkg.range.copyWithNewEnd(this.getToken(-1, true).range.end);
+      //   this.expect(';');
+      //   return pkg;
+      // }
       if (nextToken.getLText() === 'generic') {
         this.getNextWord();
         const savedI = this.pos.i;
