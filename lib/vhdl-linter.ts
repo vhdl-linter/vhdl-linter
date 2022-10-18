@@ -5,7 +5,7 @@ import {
 } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { CancelationError, CancelationObject, getDocumentSettings } from './language-server';
-import { IHasContextReference, IHasLexerToken, IHasUseClauses, implementsIHasConstants, implementsIHasContextReference, implementsIHasInstantiations, implementsIHasLexerToken, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasUseClause, implementsIHasVariables, implementsIReferencable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, OAssociationList, ObjectBase, OCase, OComponent, OConstant, OEntity, OEnum, OFile, OGeneric, OGenericAssociationList, OHasSequentialStatements, OI, OIf, OInstantiation, OIRange, OPackage, OPackageBody, OPort, OPortAssociationList, OProcess, ORead, OSignal, OSignalBase, OSubprogram, OReference, OType, OVariable, OWrite, ParserError, implementsIHasLibraries, implementsIHasLibraryReference, OSelectedNameRead } from './parser/objects';
+import { IHasContextReference, IHasLexerToken, IHasUseClauses, implementsIHasConstants, implementsIHasContextReference, implementsIHasInstantiations, implementsIHasLexerToken, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasUseClause, implementsIHasVariables, implementsIReferencable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, OAssociationList, ObjectBase, OCase, OComponent, OConstant, OEntity, OEnum, OFile, OGeneric, OGenericAssociationList, OHasSequentialStatements, OI, OIf, OInstantiation, OIRange, OPackage, OPackageBody, OPort, OPortAssociationList, OProcess, ORead, OSignal, OSignalBase, OSubprogram, OReference, OType, OVariable, OWrite, ParserError, implementsIHasLibraries, implementsIHasLibraryReference, OSelectedNameRead, implementsIHasPorts, implementsIHasGenerics } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 export enum LinterRules {
@@ -322,7 +322,7 @@ export class VhdlLinter {
         read.definitions.push(match);
       }
       const rootElement = read.getRootElement();
-      if (rootElement instanceof OEntity) {
+      if (implementsIHasPorts(rootElement)) {
         for (const port of rootElement.ports) {
           if (port.lexerToken.getLText() === read.lexerToken.getLText()) {
             read.definitions.push(port);
@@ -737,9 +737,10 @@ export class VhdlLinter {
       if (implementsIHasConstants(obj)) {
         objList.push(...obj.constants);
       }
+      // subprograms can be overloaded
       if (implementsIHasTypes(obj)) {
         for (const type of obj.types) {
-          if (type.alias) { // Aliases can be overloaded like functions.
+          if (type.alias) { // Aliases can be overloaded like subprograms.
             continue;
           }
           objList.push(type);
@@ -748,39 +749,17 @@ export class VhdlLinter {
       if (implementsIHasInstantiations(obj)) {
         objList.push(...obj.instantiations);
       }
-      // subprograms can be overloaded...
-      // if (implementsIHasSubprograms(obj)) {
-      //   objList.push(...obj.subprograms);
-      // }
+      if (implementsIHasPorts(obj)) {
+        objList.push(...obj.ports);
+      }
+      if (implementsIHasGenerics(obj)) {
+        objList.push(...obj.generics);
+      }
       if (obj instanceof OArchitecture) {
         objList.push(...obj.blocks);
         objList.push(...obj.generates);
         objList.push(...obj.processes);
       }
-      this.checkMultipleDefinitions(objList);
-    }
-    for (const entity of this.file.entities) {
-      const objList: ObjectBase[] = entity.ports;
-      objList.push(...entity.generics);
-      objList.push(...entity.constants);
-      objList.push(...entity.variables);
-      // objList.push(...entity.subprograms);
-      for (const type of entity.types) {
-        if (type.alias) { // Aliases can be overloaded like functions.
-          continue;
-        }
-        objList.push(type);
-        if (type instanceof OEnum) {
-          objList.push(...type.literals);
-        }
-      }
-      this.checkMultipleDefinitions(objList);
-    }
-    for (const pkg of this.file.packages) {
-      const objList: ObjectBase[] = pkg.constants;
-      // objList.push(...pkg.subprograms);
-      objList.push(...pkg.types.filter(type => type.alias === false)); // Aliases can be overloaded like functions.
-      objList.push(...pkg.variables);
       this.checkMultipleDefinitions(objList);
     }
   }
