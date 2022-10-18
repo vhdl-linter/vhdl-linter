@@ -818,7 +818,9 @@ export class VhdlLinter {
       if (obj instanceof OArchitecture && obj.correspondingEntity) {
         objList.push(...extractObjects(obj.correspondingEntity));
       }
-      // TODO Handle generic packages?
+      if (obj instanceof OPackageBody && obj.correspondingPackage) {
+        objList.push(...obj.correspondingPackage.generics);
+      }
       this.checkMultipleDefinitions(objList);
     }
   }
