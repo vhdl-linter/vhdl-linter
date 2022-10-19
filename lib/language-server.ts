@@ -71,7 +71,7 @@ const defaultSettings: ISettings = {
     warnLibrary: false,
     warnMultipleDriver: false
   },
-  semanticTokens: true
+  semanticTokens: false
 };
 export interface CancelationObject {
   canceled: boolean;
