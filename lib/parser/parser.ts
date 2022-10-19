@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ArchitectureParser } from './architecture-parser';
 import { ContextParser } from './context-parser';
 import { ContextReferenceParser } from './context-reference-parser';
 import { EntityParser } from './entity-parser';
-import { MagicCommentType, OFile, OI, OIRange, OMagicCommentDisable, OMagicCommentParameter, ParserError, OConfiguration, OUseClause } from './objects';
+import { MagicCommentType, OFile, OI, OIRange, OMagicCommentDisable, OMagicCommentParameter, ParserError, OConfiguration, OUseClause, OLibrary } from './objects';
 import { PackageParser } from './package-parser';
 import { ParserBase } from './parser-base';
 import { UseClauseParser } from './use-clause-parser';
@@ -128,7 +129,7 @@ export class Parser extends ParserBase {
         if (this.advanceSemicolonToken(true, { consume: false }).find(token => token.getLText() === 'is')) {
           const contextParser = new ContextParser(this.pos, this.filePath, this.file);
           const context = contextParser.parse();
-          context.libraries.push(...libraries);
+          context.libraries.push(...libraries.map(library => new OLibrary(context, library)));
           context.useClauses.push(...useClauses);
           context.contextReferences.push(...contextReferences);
           for (const contextReference of contextReferences) {
@@ -137,6 +138,7 @@ export class Parser extends ParserBase {
           for (const useClause of useClauses) {
             useClause.parent = context;
           }
+
           libraries = defaultLibrary.slice(0);
           useClauses = defaultUseClause.slice(0);
           contextReferences = [];
@@ -166,7 +168,7 @@ export class Parser extends ParserBase {
         }
         contextReferences = [];
         entity.useClauses = useClauses;
-        entity.libraries = libraries;
+        entity.libraries = libraries.map(library => new OLibrary(entity, library));
         libraries = defaultLibrary.slice(0);
         useClauses = defaultUseClause.slice(0);
         if (this.onlyEntity) {
@@ -186,7 +188,7 @@ export class Parser extends ParserBase {
         }
         contextReferences = [];
         architecture.useClauses = useClauses;
-        architecture.libraries = libraries;
+        architecture.libraries = libraries.map(library => new OLibrary(architecture, library));
 
         libraries = defaultLibrary.slice(0);
         useClauses = defaultUseClause.slice(0);
@@ -196,7 +198,7 @@ export class Parser extends ParserBase {
         }
         const packageParser = new PackageParser(this.pos, this.filePath);
         const pkg = packageParser.parse(this.file);
-        pkg.libraries = libraries;
+        pkg.libraries = libraries.map(library => new OLibrary(pkg, library));
         pkg.useClauses = useClauses;
         this.file.packages.push(pkg);
         pkg.contextReferences = contextReferences;

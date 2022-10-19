@@ -2,13 +2,13 @@ import { FSWatcher, watch } from 'chokidar';
 import { EventEmitter } from 'events';
 import { promises, readFileSync } from 'fs';
 import { join, sep } from 'path';
-import { OContext, OEntity, OPackage, OPackageBody } from './parser/objects';
+import { OContext, OEntity, OPackage } from './parser/objects';
 import { VhdlLinter } from './vhdl-linter';
 
 export class ProjectParser {
 
   public cachedFiles: OFileCache[] = [];
-  private packages: (OPackage | OPackageBody)[] = [];
+  private packages: (OPackage)[] = [];
   private contexts: OContext[] = [];
   private entities: OEntity[] = [];
   events = new EventEmitter();
@@ -122,7 +122,7 @@ export class OFileCache {
 
   path: string;
   digest: string;
-  packages?: (OPackage | OPackageBody)[];
+  packages?: (OPackage)[];
   contexts: OContext[] = [];
   entities: OEntity[] = [];
   text: string;
@@ -151,7 +151,7 @@ export class OFileCache {
     this.parseContexts();
   }
   private parsePackages(): void {
-    this.packages = this.linter.file.packages;
+    this.packages = this.linter.file.packages.filter((p): p is OPackage => p instanceof OPackage);
   }
   private parseContexts(): void {
     this.contexts = this.linter.file.contexts;
