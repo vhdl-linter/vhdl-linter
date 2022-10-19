@@ -57,6 +57,7 @@ export class DeclarativePartParser extends ParserBase {
         this.parent.subprograms.push(subprogramParser.parse());
         this.expect(';');
       } else if (nextWord === 'package') {
+        this.consumeToken(); // consume 'package
         this.parent.packageInstantiations.push(new PackageInstantiationParser(this.pos, this.filePath, this.parent).parse());
         this.expect(';');
       } else if (nextWord === 'generic') {

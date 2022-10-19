@@ -296,32 +296,6 @@ export class ParserBase {
       this.advanceWhitespace();
     }
     return token.text;
-    // let { re, consume } = options;
-    // if (!re) {
-    //   re = /^\w+/;
-    // }
-    // if (typeof consume === 'undefined') {
-    //   consume = true;
-    // }
-
-    // if (consume) {
-    //   let word = '';
-    //   const match = this.text.substring(this.pos.i).match(re);
-    //   if (match) {
-    //     word = match[0];
-    //     this.pos.i += word.length;
-    //     this.advanceWhitespace();
-    //     return word;
-    //   }
-    //   throw new ParserError(`did not find ${re}. EOF line: ${this.getLine()}`, this.pos.getRangeToEndLine());
-    // }
-    // let word = '';
-    // let j = 0;
-    // while (this.pos.i + j < this.text.length && this.text[this.pos.i + j].match(re)) {
-    //   word += this.text[this.pos.i + j];
-    //   j++;
-    // }
-    // return word;
   }
 
   getLine() {
@@ -502,5 +476,23 @@ export class ParserBase {
       }
     }
     return [reads, writes];
+  }
+  getTextDebug(lines = 3) { // This gets the current Text (for Debugger)
+    let text = '';
+    let i = 0;
+    const re = /\n/g;
+    while (Array.from(text.matchAll(re)).length < lines) {
+      try {
+        text += this.getToken(i);
+      } catch(err) {
+        if (err instanceof ParserError) {
+          return text;
+        }
+        throw err;
+      }
+      i++;
+    }
+    return text;
+
   }
 }
