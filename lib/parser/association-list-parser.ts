@@ -1,12 +1,27 @@
 import { OInstantiation, OAssociation, OGenericAssociationList as OGenericAssociationList, OIRange, OPortAssociationList as OPortAssotiationList, ParserError, OPackage, OPackageInstantiation } from './objects';
 import { ParserBase } from './parser-base';
 import { ParserPosition } from './parser';
+import { OLexerToken } from '../lexer';
 
 
 export class AssociationListParser extends ParserBase {
   constructor(pos: ParserPosition, file: string, private parent: OInstantiation | OPackage | OPackageInstantiation) {
     super(pos, file);
     this.debug(`start`);
+  }
+  findFormal(associationTokens: OLexerToken[]) {
+    // associationTokens.findIndex(token => token.text === '=>');
+    let braceLevel = 0;
+    for (const [index, token] of associationTokens.entries()) {
+      if (token.getLText() === '(') {
+        braceLevel++;
+      } else if (token.getLText() === ')') {
+        braceLevel--;
+      } else if (braceLevel === 0 && token.getLText() === '=>') {
+        return index;
+      }
+    }
+    return -1;
   }
   parse(type: 'port' | 'generic' = 'port') {
     const braceToken = this.expectToken('(');
@@ -20,7 +35,7 @@ export class AssociationListParser extends ParserBase {
       let [associationTokens, lastChar] = this.advanceBraceAwareToken([',', ')']);
       if (associationTokens.length > 0) {
         const association = new OAssociation(list, new OIRange(list, savedI, associationTokens[0]?.range?.end?.i ?? savedI));
-        const index = associationTokens.findIndex(token => token.text === '=>');
+        const index = this.findFormal(associationTokens);
         if (index > -1) {
           const formalTokens = associationTokens.slice(0, index);
           const actualTokens = associationTokens.slice(index + 1);

@@ -1,3 +1,4 @@
+import { OLexerToken } from '../lexer';
 import { ArchitectureParser } from './architecture-parser';
 import { AssignmentParser } from './assignment-parser';
 import { InstantiationParser } from './instantiation-parser';
@@ -21,10 +22,10 @@ export class ConcurrentStatementParser extends ParserBase {
   parse(allowedStatements: ConcurrentStatementTypes[], previousArchitecture?: OArchitecture, returnOnWhen = false) {
     let nextWord = this.getNextWord({ consume: false }).toLowerCase();
 
-    let label: string | undefined;
+    let label: OLexerToken | undefined;
     const savedI = this.pos.i;
     if (this.getToken(1, true).text === ':') {
-      label = this.consumeToken().text;
+      label = this.consumeToken();
       this.debug('parse label ' + label);
       this.consumeToken();
       this.advanceWhitespace();
@@ -99,7 +100,7 @@ export class ConcurrentStatementParser extends ParserBase {
       this.expect('end');
       this.expect('generate');
       if (label) {
-        this.maybeWord(label);
+        this.maybeWord(label.text);
       }
       this.advanceSemicolonToken();
       this.reverseWhitespace();
@@ -171,12 +172,6 @@ export class ConcurrentStatementParser extends ParserBase {
       this.parent.parent.elseGenerate = ifGenerateObject;
       return true;
 
-      // this.getNextWord();
-      // if (!(this.parent instanceof OArchitecture)) {
-      //   throw new ParserError('Found Else generate without preceding if generate', this.pos.i);
-      // }
-      // this.debug('parse else generate ' + this.name);
-      // this.advancePast(/\bgenerate\b/i);
     } else if (nextWord === 'with' && allowedStatements.includes(ConcurrentStatementTypes.Assignment)) {
       this.getNextWord();
       const readToken = this.consumeToken();

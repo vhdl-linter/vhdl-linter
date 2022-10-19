@@ -1,3 +1,4 @@
+import { OLexerToken } from '../lexer';
 import { DeclarativePartParser } from './declarative-part-parser';
 import { ObjectBase, OIf, OIRange, OProcess } from './objects';
 import { ParserPosition } from './parser';
@@ -10,7 +11,7 @@ export class ProcessParser extends ParserBase {
     this.debug(`start`);
 
   }
-  parse(startI: number, label?: string): OProcess {
+  parse(startI: number, label?: OLexerToken): OProcess {
     const process = new OProcess(this.parent, new OIRange(this.parent, startI, this.getEndOfLineI()));
     process.label = label;
     if (this.getToken().getLText() === '(') {
@@ -25,7 +26,7 @@ export class ProcessParser extends ParserBase {
     this.expect('end');
     this.expect('process');
     if (label) {
-      this.maybeWord(label);
+      this.maybeToken(label);
     }
     process.range = process.range.copyWithNewEnd(this.pos.i);
     this.expect(';');
