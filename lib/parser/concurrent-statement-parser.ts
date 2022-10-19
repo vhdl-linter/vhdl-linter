@@ -171,12 +171,6 @@ export class ConcurrentStatementParser extends ParserBase {
       this.parent.parent.elseGenerate = ifGenerateObject;
       return true;
 
-      // this.getNextWord();
-      // if (!(this.parent instanceof OArchitecture)) {
-      //   throw new ParserError('Found Else generate without preceding if generate', this.pos.i);
-      // }
-      // this.debug('parse else generate ' + this.name);
-      // this.advancePast(/\bgenerate\b/i);
     } else if (nextWord === 'with' && allowedStatements.includes(ConcurrentStatementTypes.Assignment)) {
       this.getNextWord();
       const readToken = this.consumeToken();
