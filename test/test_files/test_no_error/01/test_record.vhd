@@ -8,7 +8,7 @@ end test_record;
 architecture arch of test_record is
   type test_record is record
     test_child : std_logic;
-  end record t_TO_FIFO;
+  end record;
   signal test : test_record;
 begin
   test.test_child <= test.test_child;
