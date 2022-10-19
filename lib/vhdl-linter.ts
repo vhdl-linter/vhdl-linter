@@ -31,7 +31,7 @@ export class VhdlLinter {
   file: OFile;
   parser: Parser;
   parsedSuccessfully = false;
-  packages: (OPackage | OPackageBody)[] = [];
+  packages: (OPackage)[] = [];
   constructor(private editorPath: string, public text: string, public projectParser: ProjectParser,
     public onlyEntity: boolean = false, public cancelationObject: CancelationObject = { canceled: false }) {
     try {
@@ -211,8 +211,8 @@ export class VhdlLinter {
     }
   }
 
-  addPackageFromPackageInst(packageInstantiation: OPackageInstantiation, packages: (OPackage | OPackageBody)[], warningRange: OIRange) {
-    const uninstantiatedPackage = packages.find(p => p.lexerToken.getLText() === packageInstantiation.uninstantiatedPackageToken.text.toLowerCase());
+  addPackageFromPackageInst(packageInstantiation: OPackageInstantiation, packages: (OPackage|OPackageBody)[], warningRange: OIRange) {
+    const uninstantiatedPackage = (packages.filter(p => p instanceof OPackage) as OPackage[]).find(p => p.lexerToken.getLText() === packageInstantiation.uninstantiatedPackageToken.text.toLowerCase());
     if (uninstantiatedPackage) {
       this.packages.push(uninstantiatedPackage);
     } else {
@@ -286,6 +286,9 @@ export class VhdlLinter {
           // or an instantiated package
           if (useClause.library !== undefined) {
             for (const possiblePkg of packages) {
+              if (possiblePkg instanceof OPackageBody) {
+                continue;
+              }
               if (possiblePkg.lexerToken.getLText() === useClause.packageName.getLText()) {
                 this.packages.push(possiblePkg);
                 found = true;
@@ -308,6 +311,9 @@ export class VhdlLinter {
               if (parent instanceof OArchitecture && typeof parent.correspondingEntity !== 'undefined') {
                 pkgInstantations.push(...parent.correspondingEntity.packageInstantiations);
               }
+              if (parent instanceof OPackageBody && typeof parent.correspondingPackage !== 'undefined') {
+                pkgInstantations.push(...parent.correspondingPackage.packageInstantiations);
+              }
               parent = parent.parent;
             }
             pkgInstantations.push(...parent.packageInstantiations);
@@ -321,12 +327,17 @@ export class VhdlLinter {
                   severity: DiagnosticSeverity.Warning,
                   message: `could not find package instantiation for ${useClause.packageName}`
                 });
+              } else {
+                this.addMessage({
+                  range: obj.getRootElement().range.getLimitedRange(1),
+                  severity: DiagnosticSeverity.Warning,
+                  message: `could not find package instantiation for ${useClause.packageName} (in ${useClause.getRoot().file})`
+                });
               }
-              break;
+              continue;
             }
             this.addPackageFromPackageInst(packageInstantiation, packages, useClause.range);
             found = true;
-            break;
           }
 
           if (!found) {
