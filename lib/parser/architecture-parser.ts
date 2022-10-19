@@ -6,8 +6,8 @@ import { ParserPosition } from './parser';
 import { ParserBase } from './parser-base';
 
 export class ArchitectureParser extends ParserBase {
-  entityName: string;
-  constructor(pos: ParserPosition, file: string, private parent: OArchitecture | OFile | OIfGenerate | OCaseGenerate, name?: string) {
+  entityName: OLexerToken;
+  constructor(pos: ParserPosition, file: string, private parent: OArchitecture | OFile | OIfGenerate | OCaseGenerate, name?: OLexerToken) {
     super(pos, file);
     this.debug('start');
     if (name) {
@@ -44,7 +44,7 @@ export class ArchitectureParser extends ParserBase {
     if (skipStart !== true) {
       this.architecture.lexerToken = this.consumeToken();
       this.expect('of');
-      this.entityName = this.getNextWord();
+      this.entityName = this.consumeToken();
       this.architecture.entityName = this.entityName;
       this.expect('is');
     }
@@ -71,7 +71,7 @@ export class ArchitectureParser extends ParserBase {
         }
 
         if (this.entityName) {
-          this.maybeWord(this.entityName);
+          this.maybeWord(this.entityName.text);
         }
         this.expect(';');
         break;

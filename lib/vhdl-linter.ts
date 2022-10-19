@@ -5,7 +5,7 @@ import {
 } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { CancelationError, CancelationObject, getDocumentSettings } from './language-server';
-import { IHasContextReference, IHasLexerToken, IHasUseClauses, implementsIHasConstants, implementsIHasContextReference, implementsIHasInstantiations, implementsIHasLexerToken, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasUseClause, implementsIHasVariables, implementsIReferencable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, OAssociationList, ObjectBase, OCase, OComponent, OConstant, OEntity, OEnum, OFile, OGeneric, OGenericAssociationList, OHasSequentialStatements, OI, OIf, OInstantiation, OIRange, OPackage, OPackageBody, OPort, OPortAssociationList, OProcess, ORead, OSignal, OSignalBase, OSubprogram, OReference, OType, OVariable, OWrite, ParserError, implementsIHasLibraries, implementsIHasLibraryReference, OSelectedNameRead } from './parser/objects';
+import { IHasContextReference, IHasLexerToken, IHasUseClauses, implementsIHasConstants, implementsIHasContextReference, implementsIHasInstantiations, implementsIHasLexerToken, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasUseClause, implementsIHasVariables, implementsIReferencable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, OAssociationList, ObjectBase, OCase, OComponent, OConstant, OEntity, OFile, OGeneric, OGenericAssociationList, OHasSequentialStatements, OI, OIf, OInstantiation, OIRange, OPackage, OPackageBody, OPort, OPortAssociationList, OProcess, ORead, OSignal, OSignalBase, OSubprogram, OReference, OType, OVariable, OWrite, ParserError, implementsIHasLibraries, implementsIHasLibraryReference, OSelectedNameRead, implementsIHasPorts, implementsIHasGenerics, implementsIHasPackageInstantiations, OPackageInstantiation } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 export enum LinterRules {
@@ -31,7 +31,7 @@ export class VhdlLinter {
   file: OFile;
   parser: Parser;
   parsedSuccessfully = false;
-  packages: (OPackage | OPackageBody)[] = [];
+  packages: (OPackage)[] = [];
   constructor(private editorPath: string, public text: string, public projectParser: ProjectParser,
     public onlyEntity: boolean = false, public cancelationObject: CancelationObject = { canceled: false }) {
     try {
@@ -110,22 +110,11 @@ export class VhdlLinter {
     });
     return matchingMagiComments.length === 0;
   }
-  checkTodos() {
-    this.file.magicComments.forEach(magicComment => {
-      if (magicComment.commentType === MagicCommentType.Todo) {
-        this.messages.push({
-          range: magicComment.range,
-          severity: DiagnosticSeverity.Information,
-          message: magicComment.message
-        });
-      }
-    });
-  }
   checkLibraryReferences() {
     for (const object of this.file.objectList) {
       if (implementsIHasLibraryReference(object) && object.library !== undefined) {
         const libraryReference = object.library;
-        let iterator = object.parent as ObjectBase;
+        let iterator = object as ObjectBase;
         let library;
         while (iterator instanceof OFile !== true) {
           library = implementsIHasLibraries(iterator) ?
@@ -221,10 +210,24 @@ export class VhdlLinter {
       throw new CancelationError();
     }
   }
+
+  addPackageFromPackageInst(packageInstantiation: OPackageInstantiation, packages: (OPackage|OPackageBody)[], warningRange: OIRange) {
+    const uninstantiatedPackage = (packages.filter(p => p instanceof OPackage) as OPackage[]).find(p => p.lexerToken.getLText() === packageInstantiation.uninstantiatedPackageToken.text.toLowerCase());
+    if (uninstantiatedPackage) {
+      this.packages.push(uninstantiatedPackage);
+    } else {
+      this.addMessage({
+        range: warningRange,
+        severity: DiagnosticSeverity.Warning,
+        message: `could not find uninstantiated package of package instantiation ${packageInstantiation.lexerToken.text}.`
+      });
+    }
+  }
   async elaborate() {
 
     await this.handleCanceled();
     const packages = this.projectParser.getPackages();
+    const packageInstantiations = this.projectParser.getPackageInstantiations();
     await this.handleCanceled();
 
     // const start = Date.now();
@@ -234,9 +237,9 @@ export class VhdlLinter {
         continue;
       }
       // Find entity first in this file
-      let entity = this.file.entities.find(entity => entity.lexerToken.getLText() === architecture.entityName?.toLowerCase());
+      let entity = this.file.entities.find(entity => entity.lexerToken.getLText() === architecture.entityName?.getLText());
       if (!entity) { // Find entity in all files
-        entity = this.projectParser.getEntities().find(entity => entity.lexerToken.getLText() === architecture.entityName?.toLowerCase());
+        entity = this.projectParser.getEntities().find(entity => entity.lexerToken.getLText() === architecture.entityName?.getLText());
       }
       if (entity) {
         architecture.correspondingEntity = entity;
@@ -266,6 +269,11 @@ export class VhdlLinter {
               obj.definitions.push(pkg);
             }
           }
+          for (const pkg of packageInstantiations) {
+            if (obj.lexerToken.getLText() === pkg.lexerToken.getLText()) {
+              obj.definitions.push(pkg);
+            }
+          }
         }
       }
     }
@@ -274,32 +282,70 @@ export class VhdlLinter {
       if (implementsIHasUseClause(obj) || implementsIHasContextReference(obj)) {
         for (const useClause of this.getUseClauses(obj)) {
           let found = false;
-          for (let foundPkg of packages) {
-            if (foundPkg.lexerToken.getLText() === useClause.packageName.toLowerCase()) {
-              if (foundPkg instanceof OPackage && typeof foundPkg.uninstantiatedPackage !== 'undefined') {
-                const uninstantiatedPackage = packages.find(p => p.lexerToken.getLText() === (foundPkg as OPackage).uninstantiatedPackage?.text.toLowerCase());
-                if (uninstantiatedPackage) {
-                  foundPkg = uninstantiatedPackage;
-                } else {
-                  found = true;
-                  this.addMessage({
-                    range: useClause.range,
-                    severity: DiagnosticSeverity.Warning,
-                    message: `could not find instantiated package from package ${useClause.library}.${useClause.packageName}`
-                  });
-                  break;
-                }
+          // if library is defined, uses a "normal" Package; i.e. not an uninstantiated package
+          // or an instantiated package
+          if (useClause.library !== undefined) {
+            for (const possiblePkg of packages) {
+              if (possiblePkg instanceof OPackageBody) {
+                continue;
               }
-              this.packages.push(foundPkg);
-              found = true;
+              if (possiblePkg.lexerToken.getLText() === useClause.packageName.getLText()) {
+                this.packages.push(possiblePkg);
+                found = true;
+              }
             }
+            for (const possiblePkg of packageInstantiations) {
+              if (possiblePkg.lexerToken.getLText() === useClause.packageName.getLText()) {
+                this.addPackageFromPackageInst(possiblePkg, packages, useClause.range);
+                found = true;
+              }
+            }
+          } else { // if using package directly, it is an instantiated package
+            const pkgInstantations = [];
+            // go through scope to find all package instantiations
+            let parent: ObjectBase | OFile = obj;
+            while (parent instanceof ObjectBase) {
+              if (implementsIHasPackageInstantiations(parent)) {
+                pkgInstantations.push(...parent.packageInstantiations);
+              }
+              if (parent instanceof OArchitecture && typeof parent.correspondingEntity !== 'undefined') {
+                pkgInstantations.push(...parent.correspondingEntity.packageInstantiations);
+              }
+              if (parent instanceof OPackageBody && typeof parent.correspondingPackage !== 'undefined') {
+                pkgInstantations.push(...parent.correspondingPackage.packageInstantiations);
+              }
+              parent = parent.parent;
+            }
+            pkgInstantations.push(...parent.packageInstantiations);
+
+            const packageInstantiation = pkgInstantations.find(inst => inst.lexerToken.getLText() === useClause.packageName.getLText());
+            if (!packageInstantiation) {
+              found = true;
+              if (useClause.getRoot().file === this.file.file) {
+                this.addMessage({
+                  range: useClause.range,
+                  severity: DiagnosticSeverity.Warning,
+                  message: `could not find package instantiation for ${useClause.packageName}`
+                });
+              } else {
+                this.addMessage({
+                  range: obj.getRootElement().range.getLimitedRange(1),
+                  severity: DiagnosticSeverity.Warning,
+                  message: `could not find package instantiation for ${useClause.packageName} (in ${useClause.getRoot().file})`
+                });
+              }
+              continue;
+            }
+            this.addPackageFromPackageInst(packageInstantiation, packages, useClause.range);
+            found = true;
           }
+
           if (!found) {
             if (useClause.getRoot().file === this.file.file) {
               this.addMessage({
                 range: useClause.range,
                 severity: DiagnosticSeverity.Warning,
-                message: `could not find package for ${useClause.library}.${useClause.packageName}`
+                message: `could not find package for ${useClause.library !== undefined ? `${useClause.library}.` : ''}${useClause.packageName}`
               });
             }
           }
@@ -323,6 +369,11 @@ export class VhdlLinter {
       for (const subprogram of pkg.subprograms) {
         readObjectMap.set(subprogram.lexerToken.getLText(), subprogram);
       }
+      if (pkg instanceof OPackage) {
+        for (const generic of pkg.generics) {
+          readObjectMap.set(generic.lexerToken.getLText(), generic);
+        }
+      }
       for (const type of pkg.types) {
         type.addReadsToMap(readObjectMap);
       }
@@ -333,7 +384,7 @@ export class VhdlLinter {
         read.definitions.push(match);
       }
       const rootElement = read.getRootElement();
-      if (rootElement instanceof OEntity) {
+      if (implementsIHasPorts(rootElement)) {
         for (const port of rootElement.ports) {
           if (port.lexerToken.getLText() === read.lexerToken.getLText()) {
             read.definitions.push(port);
@@ -609,11 +660,6 @@ export class VhdlLinter {
           console.log(`check ${i++}: ${Date.now() - start}ms`);
           start = Date.now();
         }
-        await this.checkTodos();
-        if (profiling) {
-          console.log(`check ${i++}: ${Date.now() - start}ms`);
-          start = Date.now();
-        }
         this.checkAllMultipleDefinitions();
         if (profiling) {
           console.log(`check ${i++}: ${Date.now() - start}ms`);
@@ -742,8 +788,8 @@ export class VhdlLinter {
     }
   }
   checkAllMultipleDefinitions() {
-    for (const obj of this.file.objectList) {
-      const objList: ObjectBase[] = [];
+    const extractObjects = (obj: ObjectBase) => {
+      const objList = [];
       if (implementsIHasSignals(obj)) {
         objList.push(...obj.signals);
       }
@@ -753,9 +799,13 @@ export class VhdlLinter {
       if (implementsIHasConstants(obj)) {
         objList.push(...obj.constants);
       }
+      // subprograms can be overloaded
       if (implementsIHasTypes(obj)) {
         for (const type of obj.types) {
-          if (type.alias) { // Aliases can be overloaded like functions.
+          if (type.alias) { // Aliases can be overloaded like subprograms.
+            continue;
+          }
+          if (type.incomplete) { // Incomplete types can be overloaded
             continue;
           }
           objList.push(type);
@@ -764,39 +814,28 @@ export class VhdlLinter {
       if (implementsIHasInstantiations(obj)) {
         objList.push(...obj.instantiations);
       }
-      // subprograms can be overloaded...
-      // if (implementsIHasSubprograms(obj)) {
-      //   objList.push(...obj.subprograms);
-      // }
+      if (implementsIHasPorts(obj)) {
+        objList.push(...obj.ports);
+      }
+      if (implementsIHasGenerics(obj)) {
+        objList.push(...obj.generics);
+      }
       if (obj instanceof OArchitecture) {
         objList.push(...obj.blocks);
         objList.push(...obj.generates);
         objList.push(...obj.processes);
       }
-      this.checkMultipleDefinitions(objList);
+      return objList;
     }
-    for (const entity of this.file.entities) {
-      const objList: ObjectBase[] = entity.ports;
-      objList.push(...entity.generics);
-      objList.push(...entity.constants);
-      objList.push(...entity.variables);
-      // objList.push(...entity.subprograms);
-      for (const type of entity.types) {
-        if (type.alias) { // Aliases can be overloaded like functions.
-          continue;
-        }
-        objList.push(type);
-        if (type instanceof OEnum) {
-          objList.push(...type.literals);
-        }
+    for (const obj of this.file.objectList) {
+      const objList: ObjectBase[] = [];
+      objList.push(...extractObjects(obj));
+      if (obj instanceof OArchitecture && obj.correspondingEntity) {
+        objList.push(...extractObjects(obj.correspondingEntity));
       }
-      this.checkMultipleDefinitions(objList);
-    }
-    for (const pkg of this.file.packages) {
-      const objList: ObjectBase[] = pkg.constants;
-      // objList.push(...pkg.subprograms);
-      objList.push(...pkg.types.filter(type => type.alias === false)); // Aliases can be overloaded like functions.
-      objList.push(...pkg.variables);
+      if (obj instanceof OPackageBody && obj.correspondingPackage) {
+        objList.push(...obj.correspondingPackage.generics);
+      }
       this.checkMultipleDefinitions(objList);
     }
   }
