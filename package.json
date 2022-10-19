@@ -2,10 +2,10 @@
 	"name": "vhdl-linter",
 	"publisher": "g0t00",
 	"main": "./dist/lib/vscode.js",
-	"version": "1.3.6",
+	"version": "1.3.7",
 	"description": "A typescript based linter for vhdl",
 	"keywords": [],
-	"repository": "https://github.com/g0t00/vhdl-linter",
+	"repository": "https://github.com/vhdl-linter/vhdl-linter",
 	"license": "MIT",
 	"engines": {
 		"vscode": "^1.42.0"
@@ -211,7 +211,7 @@
 		"compile": "tsc --project .",
 		"watch": "tsc -w  --project  .",
 		"lint": "eslint --ext .ts .",
-		"test": "node dist/test/test.js"
+		"test": "npm run compile && node dist/test/test.js"
 	},
 	"dependencies": {
 		"chokidar": "^3.2.2",
