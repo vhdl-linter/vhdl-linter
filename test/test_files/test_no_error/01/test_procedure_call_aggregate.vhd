@@ -8,7 +8,7 @@ entity test_procedure_call is
 end entity;
 
 architecture rtl of test_procedure_call is
-  constant NUM_OUTPUTS : integer := 32;
+  constant LENGTH : integer := 32;
 begin
   process
     procedure spi_write (
@@ -19,7 +19,7 @@ begin
 
     end procedure;
   begin
-    spi_write((NUM_OUTPUTS - 1 downto 0 => '1')); -- This is fine
+    spi_write((LENGTH - 1 downto 0 => '1')); -- This is fine
   end process;
 
 end architecture;
