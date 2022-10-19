@@ -2,13 +2,14 @@ import { FSWatcher, watch } from 'chokidar';
 import { EventEmitter } from 'events';
 import { promises, readFileSync } from 'fs';
 import { join, sep } from 'path';
-import { OContext, OEntity, OPackage } from './parser/objects';
+import { OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
 import { VhdlLinter } from './vhdl-linter';
 
 export class ProjectParser {
 
   public cachedFiles: OFileCache[] = [];
-  private packages: (OPackage)[] = [];
+  private packages: OPackage[] = [];
+  private packageInstantiations: OPackageInstantiation[] = [];
   private contexts: OContext[] = [];
   private entities: OEntity[] = [];
   events = new EventEmitter();
@@ -92,11 +93,15 @@ export class ProjectParser {
   private fetchEntitesAndPackagesAndContexts() {
     //     console.log(this.cachedFiles);
     this.packages = [];
+    this.packageInstantiations = [];
     this.entities = [];
     for (const cachedFile of this.cachedFiles) {
       this.entities.push(...cachedFile.entities);
       if (cachedFile.packages) {
         this.packages.push(...cachedFile.packages);
+      }
+      if (cachedFile.packageInstantiations) {
+        this.packageInstantiations.push(...cachedFile.packageInstantiations);
       }
       if (cachedFile.contexts) {
         this.contexts.push(...cachedFile.contexts);
@@ -110,6 +115,9 @@ export class ProjectParser {
   public getPackages() {
     return this.packages;
   }
+  public getPackageInstantiations() {
+    return this.packageInstantiations;
+  }
   public getContexts() {
     return this.contexts;
   }
@@ -122,7 +130,8 @@ export class OFileCache {
 
   path: string;
   digest: string;
-  packages?: (OPackage)[];
+  packages?: OPackage[];
+  packageInstantiations?: OPackageInstantiation[];
   contexts: OContext[] = [];
   entities: OEntity[] = [];
   text: string;
@@ -140,6 +149,7 @@ export class OFileCache {
     this.linter = new VhdlLinter(this.path, this.text, this.projectParser, true);
     this.lintingTime = Date.now() - date;
     this.parsePackages();
+    this.parsePackageInstantiations();
     this.parseEntity();
     this.parseContexts();
   }
@@ -147,11 +157,16 @@ export class OFileCache {
     this.text = readFileSync(this.path, { encoding: 'utf8' });
     this.linter = new VhdlLinter(this.path, this.text, this.projectParser);
     this.parsePackages();
+    this.parsePackageInstantiations();
     this.parseEntity();
     this.parseContexts();
   }
+
   private parsePackages(): void {
     this.packages = this.linter.file.packages.filter((p): p is OPackage => p instanceof OPackage);
+  }
+  private parsePackageInstantiations(): void {
+    this.packageInstantiations = this.linter.file.packageInstantiations;
   }
   private parseContexts(): void {
     this.contexts = this.linter.file.contexts;

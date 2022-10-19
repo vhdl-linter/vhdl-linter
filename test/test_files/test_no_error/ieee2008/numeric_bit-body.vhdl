@@ -52,9 +52,7 @@
 -- --------------------------------------------------------------------
 
 
--- Vhdl-linter checking still has problems with this file. Disable all linting messages for now.
--- Parser error will still apply
--- vhdl-linter-disable-region
+
 
 
 package body NUMERIC_BIT is

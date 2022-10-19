@@ -3,12 +3,13 @@ import { ArchitectureParser } from './architecture-parser';
 import { ContextParser } from './context-parser';
 import { ContextReferenceParser } from './context-reference-parser';
 import { EntityParser } from './entity-parser';
-import { MagicCommentType, OFile, OI, OIRange, OMagicCommentDisable, OMagicCommentParameter, ParserError, OConfiguration, OUseClause, OLibrary } from './objects';
+import { MagicCommentType, OFile, OI, OIRange, OMagicCommentDisable, OMagicCommentParameter, ParserError, OConfiguration, OUseClause, OLibrary, OPackageInstantiation } from './objects';
 import { PackageParser } from './package-parser';
 import { ParserBase } from './parser-base';
 import { UseClauseParser } from './use-clause-parser';
 import { CancelationObject } from '../language-server';
 import { Lexer, OLexerToken, TokenType } from '../lexer';
+import { PackageInstantiationParser } from './package-instantiation-parser';
 
 export class ParserPosition {
   public lexerTokens: OLexerToken[];
@@ -116,7 +117,8 @@ export class Parser extends ParserBase {
     ];
     const defaultUseClause = [
       new OUseClause(this.file, new OIRange(this.file, 0, 0), new OLexerToken('std', new OIRange(this.file, 0, 0), TokenType.keyword),
-        'standard', 'all')
+        new OLexerToken('standard', new OIRange(this.file, 0, 0), TokenType.keyword),
+        new OLexerToken('all', new OIRange(this.file, 0, 0), TokenType.keyword))
     ];
     // TODO: Add library STD, WORK; use STD.STANDARD.all;
     let libraries = defaultLibrary.slice(0);
@@ -124,8 +126,8 @@ export class Parser extends ParserBase {
 
     while (this.pos.isValid()) {
       this.advanceWhitespace();
-      const nextWord = this.getNextWord().toLowerCase();
-      if (nextWord === 'context') {
+      const nextToken = this.consumeToken();
+      if (nextToken.getLText() === 'context') {
         if (this.advanceSemicolonToken(true, { consume: false }).find(token => token.getLText() === 'is')) {
           const contextParser = new ContextParser(this.pos, this.filePath, this.file);
           const context = contextParser.parse();
@@ -149,13 +151,13 @@ export class Parser extends ParserBase {
           const contextReferenceParser = new ContextReferenceParser(this.pos, this.filePath, (this.file as any));
           contextReferences.push(contextReferenceParser.parse());
         }
-      } else if (nextWord === 'library') {
+      } else if (nextToken.getLText() === 'library') {
         libraries.push(this.consumeToken());
         this.expect(';');
-      } else if (nextWord === 'use') {
+      } else if (nextToken.getLText() === 'use') {
         const useClauseParser = new UseClauseParser(this.pos, this.filePath, this.file);
         useClauses.push(useClauseParser.parse());
-      } else if (nextWord === 'entity') {
+      } else if (nextToken.getLText() === 'entity') {
         const entityParser = new EntityParser(this.pos, this.filePath, this.file);
         const entity = entityParser.parse();
         this.file.entities.push(entity);
@@ -167,15 +169,15 @@ export class Parser extends ParserBase {
           useClause.parent = entity;
         }
         contextReferences = [];
-        entity.useClauses = useClauses;
-        entity.libraries = libraries.map(library => new OLibrary(entity, library));
+        entity.useClauses.push(...useClauses);
+        entity.libraries.push(...libraries.map(library => new OLibrary(entity, library)));
         libraries = defaultLibrary.slice(0);
         useClauses = defaultUseClause.slice(0);
         if (this.onlyEntity) {
           break;
         }
         //         // console.log(this.file, typeof this.file.entity, 'typeof');
-      } else if (nextWord === 'architecture') {
+      } else if (nextToken.getLText() === 'architecture') {
         const architectureParser = new ArchitectureParser(this.pos, this.filePath, this.file);
         const architecture = architectureParser.parse();
         this.file.architectures.push(architecture);
@@ -187,20 +189,20 @@ export class Parser extends ParserBase {
           useClause.parent = architecture;
         }
         contextReferences = [];
-        architecture.useClauses = useClauses;
-        architecture.libraries = libraries.map(library => new OLibrary(architecture, library));
+        architecture.useClauses.push(...useClauses);
+        architecture.libraries.push(...libraries.map(library => new OLibrary(architecture, library)));
 
         libraries = defaultLibrary.slice(0);
         useClauses = defaultUseClause.slice(0);
-      } else if (nextWord === 'package') {
+      } else if (nextToken.getLText() === 'package') {
         if (this.onlyEntity && this.getNextWord({ consume: false }) === 'body') {
           // break;
         }
-        const packageParser = new PackageParser(this.pos, this.filePath);
-        const pkg = packageParser.parse(this.file);
-        pkg.libraries = libraries.map(library => new OLibrary(pkg, library));
-        pkg.useClauses = useClauses;
-        this.file.packages.push(pkg);
+        const pkg = (this.getToken(2, true).getLText() === 'new')
+          ? new PackageInstantiationParser(this.pos, this.filePath, this.file).parse()
+          : new PackageParser(this.pos, this.filePath).parse(this.file);
+        pkg.useClauses.push(...useClauses);
+        pkg.libraries.push(...libraries.map(library => new OLibrary(pkg, library)));
         pkg.contextReferences = contextReferences;
         for (const contextReference of contextReferences) {
           contextReference.parent = pkg;
@@ -208,11 +210,16 @@ export class Parser extends ParserBase {
         for (const useClause of useClauses) {
           useClause.parent = pkg;
         }
+        if (pkg instanceof OPackageInstantiation) {
+          this.file.packageInstantiations.push(pkg);
+          this.expect(';'); // package instantiations do not parse ';'
+        } else {
+          this.file.packages.push(pkg);
+        }
         contextReferences = [];
         libraries = defaultLibrary.slice(0);
         useClauses = defaultUseClause.slice(0);
-
-      } else if (nextWord === 'configuration') {
+      } else if (nextToken.getLText() === 'configuration') {
         const configuration = new OConfiguration(this.file, this.getToken().range.copyExtendEndOfLine());
         configuration.identifier = this.consumeToken();
         this.expect('of');
@@ -231,7 +238,7 @@ export class Parser extends ParserBase {
         this.file.configurations.push(configuration);
         this.advanceSemicolon();
       } else {
-        throw new ParserError(`Unexpected token ${nextWord}`, this.getToken().range);
+        throw new ParserError(`Unexpected token ${nextToken.text}`, this.getToken().range);
       }
     }
     return this.file;

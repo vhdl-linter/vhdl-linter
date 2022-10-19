@@ -5,7 +5,7 @@ import {
 } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { CancelationError, CancelationObject, getDocumentSettings } from './language-server';
-import { IHasContextReference, IHasLexerToken, IHasUseClauses, implementsIHasConstants, implementsIHasContextReference, implementsIHasInstantiations, implementsIHasLexerToken, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasUseClause, implementsIHasVariables, implementsIReferencable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, OAssociationList, ObjectBase, OCase, OComponent, OConstant, OEntity, OFile, OGeneric, OGenericAssociationList, OHasSequentialStatements, OI, OIf, OInstantiation, OIRange, OPackage, OPackageBody, OPort, OPortAssociationList, OProcess, ORead, OSignal, OSignalBase, OSubprogram, OReference, OType, OVariable, OWrite, ParserError, implementsIHasLibraries, implementsIHasLibraryReference, OSelectedNameRead, implementsIHasPorts, implementsIHasGenerics, scope, implementsIHasPackageInstantiations } from './parser/objects';
+import { IHasContextReference, IHasLexerToken, IHasUseClauses, implementsIHasConstants, implementsIHasContextReference, implementsIHasInstantiations, implementsIHasLexerToken, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasUseClause, implementsIHasVariables, implementsIReferencable, MagicCommentType, OArchitecture, OAssociation, OAssociationFormal, OAssociationList, ObjectBase, OCase, OComponent, OConstant, OEntity, OFile, OGeneric, OGenericAssociationList, OHasSequentialStatements, OI, OIf, OInstantiation, OIRange, OPackage, OPackageBody, OPort, OPortAssociationList, OProcess, ORead, OSignal, OSignalBase, OSubprogram, OReference, OType, OVariable, OWrite, ParserError, implementsIHasLibraries, implementsIHasLibraryReference, OSelectedNameRead, implementsIHasPorts, implementsIHasGenerics, implementsIHasPackageInstantiations, OPackageInstantiation, scope } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 export enum LinterRules {
@@ -31,7 +31,6 @@ export class VhdlLinter {
   file: OFile;
   parser: Parser;
   parsedSuccessfully = false;
-
   constructor(private editorPath: string, public text: string, public projectParser: ProjectParser,
     public onlyEntity: boolean = false, public cancelationObject: CancelationObject = { canceled: false }) {
     try {
@@ -114,7 +113,7 @@ export class VhdlLinter {
     for (const object of this.file.objectList) {
       if (implementsIHasLibraryReference(object) && object.library !== undefined) {
         const libraryReference = object.library;
-        let iterator = object.parent as ObjectBase;
+        let iterator = object as ObjectBase;
         let library;
         while (iterator instanceof OFile !== true) {
           library = implementsIHasLibraries(iterator) ?
@@ -211,20 +210,31 @@ export class VhdlLinter {
     }
   }
   async elaborateUseClauses() {
+
     const packages = this.projectParser.getPackages();
+    const packageInstantiations = this.projectParser.getPackageInstantiations();
 
     for (const obj of this.file.objectList) {
       if (implementsIHasUseClause(obj) || implementsIHasContextReference(obj)) {
         for (const useClause of this.getUseClauses(obj)) {
           let found = false;
-          for (let foundPkg of packages) {
-            if (foundPkg.lexerToken.getLText() === useClause.packageName.toLowerCase()) {
-              if (foundPkg instanceof OPackage && typeof foundPkg.uninstantiatedPackage !== 'undefined') {
-                const uninstantiatedPackage = packages.find(p => p.lexerToken.getLText() === (foundPkg as OPackage).uninstantiatedPackage?.text.toLowerCase());
+          // if library is defined, uses a "normal" Package; i.e. not an uninstantiated package
+          // or an instantiated package
+          if (useClause.library !== undefined) {
+            for (const foundPkg of packages) {
+              if (foundPkg.lexerToken.getLText() === useClause.packageName.getLText()) {
+                obj.packageDefinitions.push(foundPkg);
+                found = true;
+              }
+            }
+
+            for (const foundPkg of packageInstantiations) {
+              if (foundPkg.lexerToken.getLText() === useClause.packageName.getLText()) {
+                found = true;
+                const uninstantiatedPackage = packages.find(p => p.lexerToken.getLText() === foundPkg.uninstantiatedPackageToken.getLText());
                 if (uninstantiatedPackage) {
-                  foundPkg = uninstantiatedPackage;
+                  obj.packageDefinitions.push(uninstantiatedPackage);
                 } else {
-                  found = true;
                   this.addMessage({
                     range: useClause.range,
                     severity: DiagnosticSeverity.Warning,
@@ -233,8 +243,54 @@ export class VhdlLinter {
                   break;
                 }
               }
-              obj.packageDefinitions.push(foundPkg);
+            }
+          } else { // if using package directly, it is an instantiated package
+            const pkgInstantations = [];
+            // go through scope to find all package instantiations
+            let parent: ObjectBase | OFile = obj;
+            while (parent instanceof ObjectBase) {
+              if (implementsIHasPackageInstantiations(parent)) {
+                pkgInstantations.push(...parent.packageInstantiations);
+              }
+              if (parent instanceof OArchitecture && typeof parent.correspondingEntity !== 'undefined') {
+                pkgInstantations.push(...parent.correspondingEntity.packageInstantiations);
+              }
+              if (parent instanceof OPackageBody && typeof parent.correspondingPackage !== 'undefined') {
+                pkgInstantations.push(...parent.correspondingPackage.packageInstantiations);
+              }
+              parent = parent.parent;
+            }
+            pkgInstantations.push(...parent.packageInstantiations);
+
+            const packageInstantiation = pkgInstantations.find(inst => inst.lexerToken.getLText() === useClause.packageName.getLText());
+            if (!packageInstantiation) {
               found = true;
+              if (useClause.getRoot().file === this.file.file) {
+                this.addMessage({
+                  range: useClause.range,
+                  severity: DiagnosticSeverity.Warning,
+                  message: `could not find package instantiation for ${useClause.packageName}`
+                });
+              } else {
+                this.addMessage({
+                  range: obj.getRootElement().range.getLimitedRange(1),
+                  severity: DiagnosticSeverity.Warning,
+                  message: `could not find package instantiation for ${useClause.packageName} (in ${useClause.getRoot().file})`
+                });
+              }
+              continue;
+            }
+            const uninstantiatedPackage = (packages.filter(p => p instanceof OPackage) as OPackage[]).find(p => p.lexerToken.getLText() === packageInstantiation.uninstantiatedPackageToken.text.toLowerCase());
+            if (uninstantiatedPackage) {
+              obj.packageDefinitions.push(uninstantiatedPackage);
+              found = true;
+
+            } else {
+              this.addMessage({
+                range: useClause.range,
+                severity: DiagnosticSeverity.Warning,
+                message: `could not find uninstantiated package of package instantiation ${packageInstantiation.lexerToken.text}.`
+              });
             }
           }
           if (!found) {
@@ -242,7 +298,7 @@ export class VhdlLinter {
               this.addMessage({
                 range: useClause.range,
                 severity: DiagnosticSeverity.Warning,
-                message: `could not find package for ${useClause.library}.${useClause.packageName}`
+                message: `could not find package for ${useClause.library !== undefined ? `${useClause.library}.` : ''}${useClause.packageName}`
               });
             }
           }
@@ -286,6 +342,7 @@ export class VhdlLinter {
     //     console.log(packages);
     await this.elaborateUseClauses();
     await this.handleCanceled();
+    //     console.log(packages);
     for (const obj of this.file.objectList) {
       if (obj instanceof OReference) {
         obj.elaborate();
@@ -316,6 +373,9 @@ export class VhdlLinter {
           }
           for (const type of pkg.types) {
             type.addReadsToMap(innerMap);
+          }
+          for (const generic of pkg.generics) {
+            innerMap.set(generic.lexerToken.getLText(), generic);
           }
         }
         readObjectMap.set(object, innerMap);
@@ -366,6 +426,11 @@ export class VhdlLinter {
                   read.definitions.push(subprogram);
                 }
               }
+              for (const generic of pkg.generics) {
+                if (generic.lexerToken.getLText() === read.lexerToken.getLText()) {
+                  read.definitions.push(generic);
+                }
+              }
               for (const type of pkg.types) {
                 const map = new Map();
                 type.addReadsToMap(map);
@@ -396,13 +461,18 @@ export class VhdlLinter {
                 read.definitions.push(pkg);
               }
             }
+            for (const pkg of this.projectParser.getPackageInstantiations()) {
+              if (read.lexerToken.getLText() === pkg.lexerToken.getLText()) {
+                read.definitions.push(pkg);
+              }
+            }
           } else {
             const packages: OPackage[] = [];
             for (const obj of scope(read)) {
               if (implementsIHasPackageInstantiations(obj)) {
                 for (const pkgInst of obj.packageInstantiations) {
                   if (pkgInst.lexerToken?.getLText() === read.prefixTokens[0].getLText()) {
-                    const pkg = this.projectParser.getPackages().filter(pkg => pkg.lexerToken.getLText() === pkgInst.uninstantiatedPackage.getLText());
+                    const pkg = this.projectParser.getPackages().filter(pkg => pkg.lexerToken.getLText() === pkgInst.uninstantiatedPackageToken.getLText());
                     packages.push(...pkg);
                   }
                 }
@@ -417,6 +487,11 @@ export class VhdlLinter {
               for (const subprogram of pkg.subprograms) {
                 if (subprogram.lexerToken.getLText() === read.lexerToken.getLText()) {
                   read.definitions.push(subprogram);
+                }
+              }
+              for (const generic of pkg.generics) {
+                if (generic.lexerToken.getLText() === read.lexerToken.getLText()) {
+                  read.definitions.push(generic);
                 }
               }
               for (const type of pkg.types) {
@@ -844,7 +919,7 @@ export class VhdlLinter {
           if (type.alias) { // Aliases can be overloaded like subprograms.
             continue;
           }
-          if (type.incomplete) { // Incompete types can be overloaded
+          if (type.incomplete) { // Incomplete types can be overloaded
             continue;
           }
           objList.push(type);
@@ -873,9 +948,8 @@ export class VhdlLinter {
         objList.push(...extractObjects(obj.correspondingEntity));
       }
       if (obj instanceof OPackageBody && obj.correspondingPackage) {
-        objList.push(...extractObjects(obj.correspondingPackage));
+        objList.push(...obj.correspondingPackage.generics);
       }
-      // TODO Handle generic packages?
       this.checkMultipleDefinitions(objList);
     }
   }
