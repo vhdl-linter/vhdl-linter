@@ -337,6 +337,11 @@ export class ParserBase {
       this.consumeToken();
     }
   }
+  maybeToken(expected: OLexerToken) { // This only compares the text!
+    if (this.getToken().getLText() === expected.getLText()) {
+      this.consumeToken();
+    }
+  }
   getType(parent: ObjectBase, advanceSemicolon = true, endWithBrace = false) {
     let type;
     if (endWithBrace) {

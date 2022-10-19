@@ -20,25 +20,25 @@ export class SequentialStatementParser extends ParserBase {
   parse(parent: OHasSequentialStatements | OIf, exitConditions: string[]): OSequentialStatement[] {
     const statements: OSequentialStatement[] = [];
     while (this.pos.isValid()) {
-      let nextWord = this.getNextWord({ consume: false });
+      let nextToken = this.getToken();
       let label;
       if (this.isLabel()) {
-        label = nextWord;
+        label = nextToken;
         this.getNextWord(); // consume label
         this.expect(':');
-        nextWord = this.getNextWord({ consume: false });
+        nextToken = this.getToken();
       }
       const statementText = this.advanceSemicolonToken(true, { consume: false });
-      if (nextWord.toLowerCase() === 'if') {
+      if (nextToken.getLText() === 'if') {
         statements.push(this.parseIf(parent, label));
-      } else if (exitConditions.indexOf(nextWord.toLowerCase()) > -1) {
+      } else if (exitConditions.indexOf(nextToken.getLText()) > -1) {
         break;
-      } else if (nextWord.toLowerCase() === 'case') {
+      } else if (nextToken.getLText() === 'case') {
         this.getNextWord();
         statements.push(this.parseCase(parent, label));
-      } else if (nextWord.toLowerCase() === 'for') {
+      } else if (nextToken.getLText() === 'for') {
         statements.push(this.parseFor(parent, label));
-      } else if (nextWord.toLowerCase() === 'loop') {
+      } else if (nextToken.getLText() === 'loop') {
         this.expect('loop');
         const loop = new OLoop(parent, this.getToken().range.copyExtendEndOfLine());
         loop.statements = this.parse(loop, ['end']);
@@ -46,24 +46,24 @@ export class SequentialStatementParser extends ParserBase {
         this.expect('end');
         this.expect('loop');
         if (label) {
-          this.maybeWord(label);
+          this.maybeToken(label);
         }
         this.expect(';');
-      } else if (nextWord.toLowerCase() === 'report') {
+      } else if (nextToken.getLText() === 'report') {
         statements.push(this.parseReport(parent));
-      } else if (nextWord.toLowerCase() === 'assert') {
+      } else if (nextToken.getLText() === 'assert') {
         statements.push(this.parseAssertion(parent));
-      } else if (nextWord.toLowerCase() === 'wait') {
+      } else if (nextToken.getLText() === 'wait') {
         statements.push(this.parseWait(parent));
-      } else if (nextWord.toLowerCase() === 'exit') {
+      } else if (nextToken.getLText() === 'exit') {
         this.advancePast(';');
-      } else if (nextWord.toLowerCase() === 'return') {
+      } else if (nextToken.getLText() === 'return') {
         statements.push(this.parseReturn(parent));
-      } else if (nextWord.toLowerCase() === 'null') {
+      } else if (nextToken.getLText() === 'null') {
         this.advancePast(';');
-      } else if (nextWord.toLowerCase() === 'next') {
+      } else if (nextToken.getLText() === 'next') {
         this.advancePast(';');
-      } else if (nextWord.toLowerCase() === 'while') {
+      } else if (nextToken.getLText() === 'while') {
         statements.push(this.parseWhile(parent, label));
       } else if (this.checkIfIsAssigment(statementText)) {
         const assignmentParser = new AssignmentParser(this.pos, this.filePath, parent);
@@ -94,7 +94,7 @@ export class SequentialStatementParser extends ParserBase {
     return false;
   }
 
-  parseSubprogramCall(parent: OHasSequentialStatements | OIf, label: string|undefined) {
+  parseSubprogramCall(parent: OHasSequentialStatements | OIf, label: OLexerToken|undefined) {
     const subprogramCall = new OInstantiation(parent, this.getToken().range.copyExtendEndOfLine(), 'subprogram');
     subprogramCall.label = label;
     subprogramCall.componentName = this.consumeToken();
@@ -181,7 +181,7 @@ export class SequentialStatementParser extends ParserBase {
     this.expect(';');
     return assignment;
   }
-  parseWhile(parent: OHasSequentialStatements | OIf, label?: string): OWhileLoop {
+  parseWhile(parent: OHasSequentialStatements | OIf, label?: OLexerToken): OWhileLoop {
     const whileLoop = new OWhileLoop(parent, this.getToken().range.copyExtendEndOfLine());
     this.expect('while');
     const condition = this.advancePastToken('loop');
@@ -190,12 +190,12 @@ export class SequentialStatementParser extends ParserBase {
     this.expect('end');
     this.expect('loop');
     if (label) {
-      this.maybeWord(label);
+      this.maybeToken(label);
     }
     this.expect(';');
     return whileLoop;
   }
-  parseFor(parent: OHasSequentialStatements | OIf, label?: string): OForLoop {
+  parseFor(parent: OHasSequentialStatements | OIf, label?: OLexerToken): OForLoop {
     const forLoop = new OForLoop(parent, this.getToken().range.copyExtendEndOfLine());
     this.expect('for');
     const variableToken = this.consumeToken();
@@ -209,12 +209,12 @@ export class SequentialStatementParser extends ParserBase {
     this.expect('end');
     this.expect('loop');
     if (label) {
-      this.maybeWord(label);
+      this.maybeToken(label);
     }
     this.expect(';');
     return forLoop;
   }
-  parseIf(parent: OHasSequentialStatements | OIf, label?: string) {
+  parseIf(parent: OHasSequentialStatements | OIf, label?: OLexerToken) {
     this.debug(`parseIf`);
 
     const if_ = new OIf(parent, this.getToken().range.copyExtendEndOfLine());
@@ -247,13 +247,13 @@ export class SequentialStatementParser extends ParserBase {
     this.expect('end');
     this.expect('if');
     if (label) {
-      this.maybeWord(label);
+      this.maybeToken(label);
     }
     this.expect(';');
 
     return if_;
   }
-  parseCase(parent: ObjectBase, label?: string): OCase {
+  parseCase(parent: ObjectBase, label?: OLexerToken): OCase {
     this.debug(`parseCase ${label}`);
     const case_ = new OCase(parent, this.getToken().range.copyExtendEndOfLine());
     case_.variable = this.extractReads(case_, this.advancePastToken('is'));
@@ -271,10 +271,10 @@ export class SequentialStatementParser extends ParserBase {
     }
     this.expect('case');
     if (label) {
-      this.maybeWord(label);
+      this.maybeToken(label);
     }
     this.expect(';');
-    this.debug(`parseCaseDone ${label}`);
+    this.debug(`parseCaseDone ${label?.text}`);
 
     return case_;
   }

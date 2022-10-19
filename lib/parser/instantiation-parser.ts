@@ -2,6 +2,7 @@ import { AssociationListParser } from './association-list-parser';
 import { OArchitecture, OEntity, OInstantiation, OIRange, ParserError } from './objects';
 import { ParserBase } from './parser-base';
 import { ParserPosition } from './parser';
+import { OLexerToken } from '../lexer';
 
 export class InstantiationParser extends ParserBase {
   constructor(pos: ParserPosition, file: string, private parent: OArchitecture | OEntity) {
@@ -9,7 +10,7 @@ export class InstantiationParser extends ParserBase {
     this.debug(`start`);
 
   }
-  parse(nextWord: string, label: string | undefined, startI: number): OInstantiation {
+  parse(nextWord: string, label: OLexerToken | undefined, startI: number): OInstantiation {
     const instantiation = new OInstantiation(this.parent, new OIRange(this.parent, startI, this.getEndOfLineI()));
     instantiation.label = label;
     if (nextWord === 'entity') {

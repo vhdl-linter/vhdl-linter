@@ -237,9 +237,9 @@ export class VhdlLinter {
         continue;
       }
       // Find entity first in this file
-      let entity = this.file.entities.find(entity => entity.lexerToken.getLText() === architecture.entityName?.toLowerCase());
+      let entity = this.file.entities.find(entity => entity.lexerToken.getLText() === architecture.entityName?.getLText());
       if (!entity) { // Find entity in all files
-        entity = this.projectParser.getEntities().find(entity => entity.lexerToken.getLText() === architecture.entityName?.toLowerCase());
+        entity = this.projectParser.getEntities().find(entity => entity.lexerToken.getLText() === architecture.entityName?.getLText());
       }
       if (entity) {
         architecture.correspondingEntity = entity;
