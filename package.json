@@ -211,7 +211,7 @@
 		"compile": "tsc --project .",
 		"watch": "tsc -w  --project  .",
 		"lint": "eslint --ext .ts .",
-		"test": "node dist/test/test.js"
+		"test": "npm run compile && node dist/test/test.js"
 	},
 	"dependencies": {
 		"chokidar": "^3.2.2",
