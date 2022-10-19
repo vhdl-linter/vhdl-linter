@@ -442,7 +442,7 @@ export class OArchitecture extends ObjectBase implements IHasSubprograms, IHasCo
   subprograms: OSubprogram[] = [];
   components: OComponent[] = [];
   statements: OConcurrentStatements[] = [];
-  entityName?: string;
+  entityName?: OLexerToken;
   correspondingEntity?: OEntity;
   endOfDeclarativePart?: OI;
   get processes() {
@@ -476,7 +476,7 @@ export class OArchitecture extends ObjectBase implements IHasSubprograms, IHasCo
   }
 }
 export class OBlock extends OArchitecture {
-  label: string;
+  label: OLexerToken;
 
 }
 export class OType extends ObjectBase implements IReferenceable, IHasSubprograms, IHasSignals, IHasConstants, IHasVariables,
@@ -655,7 +655,7 @@ export class OInstantiation extends ObjectBase implements IHasDefinitions, IHasL
   constructor(public parent: OArchitecture | OEntity | OProcess | OLoop | OIf, range: OIRange, public type: 'entity' | 'component' | 'configuration' | 'subprogram' | 'unknown' = 'unknown') {
     super(parent, range);
   }
-  label?: string;
+  label?: OLexerToken;
   definitions: (OEntity | OSubprogram | OComponent)[] = [];
   componentName: OLexerToken;
   package?: OLexerToken;
@@ -832,7 +832,7 @@ export class OProcess extends OHasSequentialStatements implements IHasSubprogram
   useClauses: OUseClause[] = [];
   packageDefinitions: OPackage[] = [];
   sensitivityList: ORead[] = [];
-  label?: string;
+  label?: OLexerToken;
   types: OType[] = [];
   subprograms: OSubprogram[] = [];
   variables: OVariable[] = [];

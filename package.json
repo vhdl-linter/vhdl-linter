@@ -196,7 +196,7 @@
 				"VhdlLinter.semanticTokens": {
 					"scope": "window",
 					"type": "boolean",
-					"default": true,
+					"default": false,
 					"description": "[Beta] Enable semantic tokens which enhance syntax highlighting. "
 				}
 			}
