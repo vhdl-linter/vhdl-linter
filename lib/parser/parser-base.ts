@@ -380,7 +380,7 @@ export class ParserBase {
     do {
       const token = this.consumeToken();
       if (prefixTokens.length > 0) {
-        reads.push(new OSelectedNameRead(parent, token, prefixTokens));
+        reads.push(new OSelectedNameRead(parent, token, prefixTokens.slice(0)));
       } else {
         reads.push(new ORead(parent, token));
       }
