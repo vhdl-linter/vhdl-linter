@@ -420,7 +420,7 @@ export class ParserBase {
         }
         if (tokens[i + 1]?.text === '.' && tokens[i + 2]?.isIdentifier()) {
           prefixTokens.push(token);
-          // only use last of path
+
           continue;
         }
         // Detection if in possible function
@@ -430,6 +430,16 @@ export class ParserBase {
           continue;
         }
         if (prefixTokens.length > 0) {
+          for (const [index, token] of prefixTokens.entries()) {
+            if (index > 0) {
+              reads.push(asMappingName ? new OAssociationFormalSelectedName((parent as OAssociation), token, prefixTokens.slice(0, index))
+                : new OSelectedNameRead(parent, token, prefixTokens.slice(0, index)));
+            } else {
+              reads.push(asMappingName
+                ? new OAssociationFormal((parent as OAssociation), token)
+                : new ORead(parent, token))
+            }
+          }
           reads.push(asMappingName ? new OAssociationFormalSelectedName((parent as OAssociation), token, prefixTokens)
             : new OSelectedNameRead(parent, token, prefixTokens));
           prefixTokens = [];

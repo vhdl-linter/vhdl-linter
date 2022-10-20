@@ -1,5 +1,5 @@
 import { ContextReferenceParser } from './context-reference-parser';
-import { OContext, OFile, OIRange } from './objects';
+import { OContext, OFile, OIRange, OLibrary } from './objects';
 import { ParserPosition } from './parser';
 import { ParserBase } from './parser-base';
 import { UseClauseParser } from './use-clause-parser';
@@ -26,7 +26,7 @@ export class ContextParser extends ParserBase {
         const contextReferenceParser = new ContextReferenceParser(this.pos, this.filePath, context);
         context.contextReferences.push(contextReferenceParser.parse());
       } else if (nextWord === 'library') {
-        context.libraries.push(this.consumeToken());
+        context.libraries.push(new OLibrary(context, this.consumeToken()));
         this.expect(';');
       } else if (nextWord === 'use') {
         const useClauseParser = new UseClauseParser(this.pos, this.filePath, context);
