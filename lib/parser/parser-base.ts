@@ -374,6 +374,20 @@ export class ParserBase {
       defaultValueReads
     };
   }
+  consumeNameRead(parent: ObjectBase): ORead[] {
+    const prefixTokens = [];
+    const reads = [];
+    do {
+      const token = this.consumeToken();
+      if (prefixTokens.length > 0) {
+        reads.push(new OSelectedNameRead(parent, token, prefixTokens));
+      } else {
+        reads.push(new ORead(parent, token));
+      }
+      prefixTokens.push(token);
+    } while (this.getToken().text === '.' && this.consumeToken());
+    return reads;
+  }
   extractReads(parent: ObjectBase | OAssociation, tokens: OLexerToken[], asMappingName?: false): ORead[];
   extractReads(parent: ObjectBase | OAssociation, tokens: OLexerToken[], asMappingName: true): OAssociationFormal[];
   extractReads(parent: ObjectBase | OAssociation, tokens: OLexerToken[], asMappingName = false): (ORead | OAssociationFormal)[] {
@@ -417,7 +431,7 @@ export class ParserBase {
         }
         if (prefixTokens.length > 0) {
           reads.push(asMappingName ? new OAssociationFormalSelectedName((parent as OAssociation), token, prefixTokens)
-          : new OSelectedNameRead(parent, token, prefixTokens));
+            : new OSelectedNameRead(parent, token, prefixTokens));
           prefixTokens = [];
         } else {
           if (asMappingName && !(parent instanceof OAssociation)) {
@@ -484,7 +498,7 @@ export class ParserBase {
     while (Array.from(text.matchAll(re)).length < lines) {
       try {
         text += this.getToken(i);
-      } catch(err) {
+      } catch (err) {
         if (err instanceof ParserError) {
           return text;
         }

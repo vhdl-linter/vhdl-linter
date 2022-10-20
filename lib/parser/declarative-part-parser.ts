@@ -1,6 +1,6 @@
 import { ComponentParser } from './component-parser';
 import { ObjectDeclarationParser } from './object-declaration-parser';
-import { implementsIHasComponents,OArchitecture, OEntity, OPackage, OPackageBody, OProcess, OSubprogram, OType, ParserError } from './objects';
+import { implementsIHasComponents, OArchitecture, OEntity, OPackage, OPackageBody, OProcess, OSubprogram, OSubprogramAlias, OType, OTypeMark, ParserError } from './objects';
 import { ParserBase } from './parser-base';
 import { SubprogramParser } from './subprogram-parser';
 import { SubtypeParser } from './subtype-parser';
@@ -35,19 +35,66 @@ export class DeclarativePartParser extends ParserBase {
         const subtypeParser = new SubtypeParser(this.pos, this.filePath, this.parent);
         this.parent.types.push(subtypeParser.parse());
       } else if (nextWord === 'alias') {
-        const type = new OType(this.parent, this.getToken().range.copyExtendEndOfLine());
-        this.getNextWord();
-        type.lexerToken =  this.consumeToken();
-        type.alias = true;
-        if (this.getToken().getLText() === ':') {
-          this.consumeToken();
-          this.advanceWhitespace();
-          this.getNextWord();
-          type.reads.push(...this.getType(type, false).typeReads);
+        this.consumeToken();
+        let i = 0;
+        let foundSignature = false;
+        while (this.getToken(i).getLText() !== ';') {
+          if (this.getToken(i).getLText() === '[') {
+            foundSignature = true;
+            break;
+          }
+          i++;
         }
-        this.expect('is');
-        this.parent.types.push(type);
-        this.advanceSemicolonToken(true);
+        if (foundSignature) {
+          const subprogramAlias = new OSubprogramAlias(this.parent, this.getToken().range.copyExtendEndOfLine());
+          subprogramAlias.lexerToken = this.consumeToken();
+          if (this.getToken().getLText() === ':') {
+            this.consumeToken();
+            this.advanceWhitespace();
+            this.getNextWord();
+            subprogramAlias.subtypeReads.push(...this.getType(subprogramAlias, false).typeReads);
+          }
+          this.expect('is');
+          subprogramAlias.reads = this.consumeNameRead(subprogramAlias);
+          this.expect('[');
+          // eslint-disable-next-line no-constant-condition
+          while (true) {
+            if (this.getToken().getLText() !== 'return') {
+              subprogramAlias.typeMarks.push(new OTypeMark(subprogramAlias, this.consumeNameRead(subprogramAlias)));
+            } else {
+              this.expect('return');
+              subprogramAlias.return = this.consumeNameRead(subprogramAlias);
+            }
+            if (this.getToken().getLText() === ',') {
+              this.expect(',');
+            } else if (this.getToken().getLText() === 'return') {
+              this.expect('return');
+              subprogramAlias.typeMarks.push(new OTypeMark(subprogramAlias, this.consumeNameRead(subprogramAlias)));
+              this.expect(']');
+              break;
+            } else {
+              this.expect(']');
+              break;
+            }
+          }
+          this.expect(';');
+          this.parent.subprogramAliases.push(subprogramAlias);
+        } else {
+          const type = new OType(this.parent, this.getToken().range.copyExtendEndOfLine());
+
+          type.lexerToken = this.consumeToken();
+          type.alias = true;
+          if (this.getToken().getLText() === ':') {
+            this.consumeToken();
+            this.advanceWhitespace();
+            this.getNextWord();
+            type.reads.push(...this.getType(type, false).typeReads);
+          }
+          this.expect('is');
+          this.parent.types.push(type);
+          this.advanceSemicolonToken(true);
+        }
+
       } else if (nextWord === 'component' && implementsIHasComponents(this.parent)) {
         this.getNextWord();
         const componentParser = new ComponentParser(this.pos, this.filePath, this.parent);
