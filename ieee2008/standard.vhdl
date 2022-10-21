@@ -24,6 +24,17 @@ package standard is
   type string is array (positive range <>) of character;
   type boolean_vector is array (natural range <>) of boolean;
   type bit_vector is array (natural range <>) of bit;
+    function MINIMUM (L, R     : bit_vector) return bit_vector;
+  function MAXIMUM (L, R     : bit_vector) return bit_vector;
+--
+--function MINIMUM (L: BIT_VECTOR) return BIT;
+  function MAXIMUM (L        : bit_vector) return bit;
+  function TO_STRING (VALUE  : bit_vector) return string;
+  alias TO_BSTRING is TO_STRING [bit_vector return string];
+  function TO_HSTRING (VALUE : bit_vector) return string;
+  function TO_OSTRING (VALUE : bit_vector) return string;
+
+  
   type integer_vector is array (natural range <>) of integer;
   type real_vector is array (natural range <>) of real;
   type time_vector is array (natural range <>) of time;
