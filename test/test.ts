@@ -47,6 +47,7 @@ async function run_test(path: string, error_expected: boolean) {
   const messages = [];
   messages.push(... await run_test(join(cwd(), 'test', 'test_files', 'test_error_expected'), true));
   messages.push(... await run_test(join(cwd(), 'test', 'test_files', 'test_no_error'), false));
+  messages.push(... await run_test(join(cwd(), 'ieee2008'), false));
   const timeTaken = new Date().getTime() - start;
   let timeOutError = 0;
   const TIMEOUT_TIME = 25;
