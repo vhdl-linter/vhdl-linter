@@ -1,6 +1,6 @@
 import { CompletionItem, CompletionItemKind, CompletionParams, InsertTextFormat, Position, Range, ErrorCodes } from 'vscode-languageserver';
 import { documents, initialization, linters, projectParser, connection } from '../language-server';
-import { implementsIHasConstants, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables, ORecord, OEnum, OFile, OArchitecture, OEntity, implementsIHasLexerToken, ObjectBase } from '../parser/objects';
+import { implementsIHasConstants, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables, ORecord, OEnum, OFile, OArchitecture, OEntity, implementsIHasLexerToken, ObjectBase, implementsIHasUseClause } from '../parser/objects';
 
 export function attachOnCompletion() {
   connection.onCompletion(async (params: CompletionParams, token): Promise<CompletionItem[]> => {
@@ -135,16 +135,22 @@ export function attachOnCompletion() {
         completions.push({ label: subprogram.lexerToken.text, kind: CompletionItemKind.Function });
       }
     }
-    for (const pkg of linter.packages) {
-      const ieee = pkg.parent.file.match(/ieee/i) !== null;
-      for (const obj of pkg.getRoot().objectList) {
-        if (implementsIHasLexerToken(obj)) {
-          completions.push({
-            label: ieee ? obj.lexerToken.getLText() : obj.lexerToken.text,
-            kind: CompletionItemKind.Text
-          });
+    for (const object of linter.file.objectList) {
+      if (implementsIHasUseClause(object)) {
+        for (const pkg of linter.getPackages(object)) {
+          const ieee = pkg.parent.file.match(/ieee/i) !== null;
+          for (const obj of pkg.getRoot().objectList) {
+            if (implementsIHasLexerToken(obj)) {
+              completions.push({
+                label: ieee ? obj.lexerToken.getLText() : obj.lexerToken.text,
+                kind: CompletionItemKind.Text
+              });
+            }
+          }
         }
+
       }
+
     }
     const uniqueSet = new Set();
     const completionsUnique: CompletionItem[] = [];
