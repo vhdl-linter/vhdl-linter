@@ -1,3 +1,7 @@
+-- related to file hack
+library ieee;
+use ieee.Textio.line;
+
 package standard is
   type boolean is (false, true);
   type bit is ('0', '1');
@@ -34,7 +38,7 @@ package standard is
   function TO_HSTRING (VALUE : bit_vector) return string;
   function TO_OSTRING (VALUE : bit_vector) return string;
 
-  
+
   type integer_vector is array (natural range <>) of integer;
   type real_vector is array (natural range <>) of real;
   type time_vector is array (natural range <>) of time;
