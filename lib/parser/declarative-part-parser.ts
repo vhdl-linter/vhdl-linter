@@ -1,6 +1,6 @@
 import { ComponentParser } from './component-parser';
 import { ObjectDeclarationParser } from './object-declaration-parser';
-import { implementsIHasComponents, OArchitecture, OEntity, OPackage, OPackageBody, OProcess, OSubprogram, OSubprogramAlias, OType, OTypeMark, ParserError } from './objects';
+import { implementsIHasComponents, OArchitecture, OEntity, OPackage, OPackageBody, OProcess, OSubprogram, OType, ParserError } from './objects';
 import { ParserBase } from './parser-base';
 import { SubprogramParser } from './subprogram-parser';
 import { SubtypeParser } from './subtype-parser';
@@ -8,6 +8,7 @@ import { TypeParser } from './type-parser';
 import { UseClauseParser } from './use-clause-parser';
 import { ParserPosition } from './parser';
 import { PackageInstantiationParser } from './package-instantiation-parser';
+import { AliasParser } from './alias-parser';
 
 export class DeclarativePartParser extends ParserBase {
   type: string;
@@ -46,38 +47,7 @@ export class DeclarativePartParser extends ParserBase {
           i++;
         }
         if (foundSignature) {
-          const subprogramAlias = new OSubprogramAlias(this.parent, this.getToken().range.copyExtendEndOfLine());
-          subprogramAlias.lexerToken = this.consumeToken();
-          if (this.getToken().getLText() === ':') {
-            this.consumeToken();
-            this.advanceWhitespace();
-            this.getNextWord();
-            subprogramAlias.subtypeReads.push(...this.getType(subprogramAlias, false).typeReads);
-          }
-          this.expect('is');
-          subprogramAlias.reads = this.consumeNameRead(subprogramAlias);
-          this.expect('[');
-          // eslint-disable-next-line no-constant-condition
-          while (true) {
-            if (this.getToken().getLText() !== 'return') {
-              subprogramAlias.typeMarks.push(new OTypeMark(subprogramAlias, this.consumeNameRead(subprogramAlias)));
-            } else {
-              this.expect('return');
-              subprogramAlias.return = this.consumeNameRead(subprogramAlias);
-            }
-            if (this.getToken().getLText() === ',') {
-              this.expect(',');
-            } else if (this.getToken().getLText() === 'return') {
-              this.expect('return');
-              subprogramAlias.typeMarks.push(new OTypeMark(subprogramAlias, this.consumeNameRead(subprogramAlias)));
-              this.expect(']');
-              break;
-            } else {
-              this.expect(']');
-              break;
-            }
-          }
-          this.expect(';');
+          const subprogramAlias = new AliasParser(this.pos, this.filePath, this.parent).parse();
           this.parent.subprogramAliases.push(subprogramAlias);
         } else {
           const type = new OType(this.parent, this.getToken().range.copyExtendEndOfLine());
