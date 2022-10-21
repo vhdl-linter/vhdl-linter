@@ -9,8 +9,9 @@ function readDirPath(path: string) {
 }
 interface MessageWrapper {
   file: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   messages: any
-};
+}
 // Do a recursive walk on the folders. Each folder is a library and shares a project parser.
 async function run_test(path: string, error_expected: boolean): Promise<MessageWrapper[]> {
   const messageWrappers: MessageWrapper[] = [];
