@@ -35,7 +35,7 @@ export class DeclarativePartParser extends ParserBase {
       } else if (nextToken.getLText() === 'subtype') {
         const subtypeParser = new SubtypeParser(this.pos, this.filePath, this.parent);
         this.parent.types.push(subtypeParser.parse());
-      } else if (nextWord === 'alias') {
+      } else if (nextToken.getLText() === 'alias') {
         this.consumeToken();
         let i = 0;
         let foundSignature = false;
@@ -65,7 +65,7 @@ export class DeclarativePartParser extends ParserBase {
           this.advanceSemicolonToken(true);
         }
 
-      } else if (nextWord === 'component' && implementsIHasComponents(this.parent)) {
+      } else if (nextToken.getLText() === 'component' && implementsIHasComponents(this.parent)) {
         this.getNextWord();
         const componentParser = new ComponentParser(this.pos, this.filePath, this.parent);
         this.parent.components.push(componentParser.parse());

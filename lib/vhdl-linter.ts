@@ -12,7 +12,7 @@ import { IHasContextReference, IHasLexerToken, IHasUseClauses, implementsIHasCon
   OFile, OGeneric, OGenericAssociationList, OHasSequentialStatements, OI, OIf, OInstantiation, OIRange, OPackage,
   OPackageBody, OPort, OPortAssociationList, OProcess, ORead, OSignal, OSubprogram, OReference, OType,
   OVariable, OWrite, ParserError, implementsIHasLibraries, implementsIHasLibraryReference, OSelectedNameRead,
-  implementsIHasPorts, implementsIHasGenerics, implementsIHasPackageInstantiations, scope, OTypeMark } from './parser/objects';
+  implementsIHasPorts, implementsIHasGenerics, implementsIHasPackageInstantiations, scope, OTypeMark, implementsIHasSubprogramAlias, OSubprogramAlias } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 export enum LinterRules {
