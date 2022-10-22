@@ -101,7 +101,12 @@ export class TypeParser extends ParserBase {
           const [token] = this.advanceBraceAwareToken([';'], true, false);
           type.reads.push(...this.extractReads(type, token));
         } else if (nextWord === 'protected') {
-          this.maybeWord('body');
+          const protectedBody = this.maybeWord('body');
+          if (protectedBody) {
+            type.protectedBody = true;
+          } else {
+            type.protected = true;
+          }
           new DeclarativePartParser(this.pos, this.filePath, type).parse(false, 'end');
           this.expect('end');
           this.expect('protected');

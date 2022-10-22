@@ -63,6 +63,9 @@ async function run_test(path: string, error_expected: boolean): Promise<MessageW
   } else {
     console.log(`Test took ${timeTaken / 1000}s`);
   }
+  console.log("---- Summary of files with error: ");
+  for (const message of messages) {
+    console.log(message.file);
+  }
   process.exit(messages.length + timeOutError);
 })();
-

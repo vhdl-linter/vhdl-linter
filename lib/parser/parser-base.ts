@@ -335,12 +335,16 @@ export class ParserBase {
   maybeWord(expected: string) {
     if (this.getToken().getLText() === expected.toLowerCase()) {
       this.consumeToken();
+      return true;
     }
+    return false;
   }
   maybeToken(expected: OLexerToken) { // This only compares the text!
     if (this.getToken().getLText() === expected.getLText()) {
       this.consumeToken();
+      return true;
     }
+    return false;
   }
   getType(parent: ObjectBase, advanceSemicolon = true, endWithBrace = false) {
     let type;

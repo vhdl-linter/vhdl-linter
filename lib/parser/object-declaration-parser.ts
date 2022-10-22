@@ -10,8 +10,9 @@ export class ObjectDeclarationParser extends ParserBase {
     this.debug('start');
   }
   parse(nextToken: OLexerToken) {
-
+    let shared = false
     if (nextToken.getLText() === 'shared') {
+      shared = true;
       this.getNextWord();
       nextToken = this.getToken();
     }
@@ -37,6 +38,7 @@ export class ObjectDeclarationParser extends ParserBase {
       let object;
       if (variable) {
         object = new OVariable(this.parent as IHasVariables, this.getToken().range);
+        object.shared = shared;
       } else if (constant) {
         object = new OConstant(this.parent as IHasConstants, this.getToken().range);
       } else if (file) {
@@ -73,7 +75,7 @@ export class ObjectDeclarationParser extends ParserBase {
     if (constant) {
       (this.parent as IHasConstants).constants.push(...objects as OSignal[]);
     } else if (variable) {
-      (this.parent as IHasVariables).variables.push(...objects);
+      (this.parent as IHasVariables).variables.push(...objects as OVariable[]);
     } else if (file) {
       (this.parent as IHasFileVariables).files.push(...objects as OFileVariable[]);
     } else {

@@ -5,14 +5,16 @@ import {
 } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { CancelationError, CancelationObject, getDocumentSettings } from './language-server';
-import { IHasContextReference, IHasLexerToken, IHasUseClauses, implementsIHasConstants, implementsIHasContextReference,
+import {
+  IHasContextReference, IHasLexerToken, IHasUseClauses, implementsIHasConstants, implementsIHasContextReference,
   implementsIHasInstantiations, implementsIHasLexerToken, implementsIHasSignals, implementsIHasSubprograms,
   implementsIHasTypes, implementsIHasUseClause, implementsIHasVariables, implementsIReferencable, MagicCommentType,
   OArchitecture, OAssociation, OAssociationFormal, OAssociationList, ObjectBase, OCase, OComponent, OConstant, OEntity,
   OFile, OGeneric, OGenericAssociationList, OHasSequentialStatements, OI, OIf, OInstantiation, OIRange, OPackage,
   OPackageBody, OPort, OPortAssociationList, OProcess, ORead, OSignal, OSubprogram, OReference, OType,
   OVariable, OWrite, ParserError, implementsIHasLibraries, implementsIHasLibraryReference, OSelectedNameRead,
-  implementsIHasPorts, implementsIHasGenerics, implementsIHasPackageInstantiations, scope, OTypeMark, implementsIHasSubprogramAlias, OSubprogramAlias } from './parser/objects';
+  implementsIHasPorts, implementsIHasGenerics, implementsIHasPackageInstantiations, scope, OTypeMark, implementsIHasSubprogramAlias, OSubprogramAlias
+} from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 export enum LinterRules {
@@ -343,7 +345,14 @@ export class VhdlLinter {
         }
         if (pkgHeader) {
           pkg.correspondingPackage = pkgHeader;
+        } else {
+          this.addMessage({
+            range: pkg.range,
+            severity: DiagnosticSeverity.Warning,
+            message: `Can not find package for package body.`
+          })
         }
+
       }
     }
     //     console.log(packages);
@@ -377,6 +386,9 @@ export class VhdlLinter {
           }
           for (const subprogram of pkg.subprograms) {
             innerMap.set(subprogram.lexerToken.getLText(), subprogram);
+          }
+          for (const subprogramAlias of pkg.subprogramAliases) {
+            innerMap.set(subprogramAlias.lexerToken.getLText(), subprogramAlias);
           }
           for (const type of pkg.types) {
             type.addReadsToMap(innerMap);
@@ -420,35 +432,48 @@ export class VhdlLinter {
       }
       if (read instanceof OSelectedNameRead) {
         if (read.prefixTokens.length === 2) {
-          const [, pkgToken] = read.prefixTokens;
-          for (const pkg of this.projectParser.getPackages()) {
-            if (pkg.lexerToken.getLText() === pkgToken.getLText()) {
-              for (const constant of pkg.constants) {
-                if (constant.lexerToken.getLText() === read.lexerToken.getLText()) {
-                  read.definitions.push(constant);
+          const [libraryToken, pkgToken] = read.prefixTokens;
+          let library;
+          for (const obj of scope(read)) {
+            if (implementsIHasLibraries(obj)) {
+              for (const findLibrary of obj.libraries) {
+                if (findLibrary.lexerToken.getLText() == libraryToken.getLText()) {
+                  library = findLibrary;
                 }
               }
-              for (const subprogram of pkg.subprograms) {
-                if (subprogram.lexerToken.getLText() === read.lexerToken.getLText()) {
-                  read.definitions.push(subprogram);
-                }
-              }
-              for (const generic of pkg.generics) {
-                if (generic.lexerToken.getLText() === read.lexerToken.getLText()) {
-                  read.definitions.push(generic);
-                }
-              }
-              for (const type of pkg.types) {
-                const map = new Map();
-                type.addReadsToMap(map);
-                const definition = map.get(read.lexerToken.getLText());
-                if (definition) {
-                  read.definitions.push(definition)
-                }
-              }
-
             }
           }
+          if (library) {
+            for (const pkg of this.projectParser.getPackages()) {
+              if (pkg.lexerToken.getLText() === pkgToken.getLText()) {
+                for (const constant of pkg.constants) {
+                  if (constant.lexerToken.getLText() === read.lexerToken.getLText()) {
+                    read.definitions.push(constant);
+                  }
+                }
+                for (const subprogram of pkg.subprograms) {
+                  if (subprogram.lexerToken.getLText() === read.lexerToken.getLText()) {
+                    read.definitions.push(subprogram);
+                  }
+                }
+                for (const generic of pkg.generics) {
+                  if (generic.lexerToken.getLText() === read.lexerToken.getLText()) {
+                    read.definitions.push(generic);
+                  }
+                }
+                for (const type of pkg.types) {
+                  const map = new Map();
+                  type.addReadsToMap(map);
+                  const definition = map.get(read.lexerToken.getLText());
+                  if (definition) {
+                    read.definitions.push(definition)
+                  }
+                }
+
+              }
+            }
+          }
+
         } else if (read.prefixTokens.length === 1) {
           // If first token is library this is referencing a package
           // Otherwise object from package
@@ -510,7 +535,16 @@ export class VhdlLinter {
                 }
               }
             }
-
+            for (const obj of scope(read)) {
+              if (implementsIHasVariables(obj)) {
+                for (const variable of obj.variables) {
+                  if (variable.shared && variable.lexerToken.getLText() === read.prefixTokens[0].getLText()) {
+                    // TODO: Link the actual subprogramm
+                    read.definitions.push(variable);
+                  }
+                }
+              }
+            }
           }
         } else {
           this.addMessage({
@@ -901,7 +935,18 @@ export class VhdlLinter {
 
   checkMultipleDefinitions(objList: ObjectBase[]) {
     for (const obj of objList) {
-      if (implementsIHasLexerToken(obj) && objList.find(o => obj !== o && obj.lexerTokenEquals(o))) {
+      if (implementsIHasLexerToken(obj) && objList.find(o => {
+        if (obj !== o && obj.lexerTokenEquals(o)) {
+          if (obj instanceof OType && o instanceof OType) {
+            if ((obj.protected && o.protectedBody) || (obj.protectedBody && o.protected)) {
+              return false;
+            }
+          }
+          return true;
+        }
+        return false;
+      }
+      )) {
         this.addMessage({
           range: obj.range,
           severity: DiagnosticSeverity.Error,
@@ -1591,14 +1636,10 @@ export class VhdlLinter {
     return components.filter(e => e.lexerToken.getLText() === name.text.toLowerCase());
   }
 
-  getSubprograms(instantiation: OInstantiation): (OSubprogram | OSubprogramAlias)[] {
+  getSubprograms(instantiation: OInstantiation) {
     const subprograms: (OSubprogram | OSubprogramAlias)[] = [];
     // find all defined subprograms in current scope
-    let parent: ObjectBase | OFile | undefined = instantiation.parent;
-    if (!parent) {
-      throw new Error('Error in getSubprograms');
-    }
-    while (parent instanceof ObjectBase) {
+    for (const parent of scope(instantiation)) {
       if (implementsIHasSubprograms(parent)) {
         subprograms.push(...parent.subprograms);
       }
@@ -1608,7 +1649,17 @@ export class VhdlLinter {
       if (parent instanceof OPackageBody && parent.correspondingPackage) {
         subprograms.push(...parent.correspondingPackage.subprograms);
       }
-      parent = parent.parent;
+      if (instantiation.package) {
+        if (implementsIHasVariables(parent)) {
+          for (const variable of parent.variables) {
+            if (variable.shared) {
+              const type = variable.type[0].definitions[0] as OType;
+              subprograms.push(...type.subprograms);
+              subprograms.push(...type.subprogramAliases);
+            }
+          }
+        }
+      }
     }
     // find project subprograms
     // in packages
@@ -1637,7 +1688,7 @@ export class VhdlLinter {
       subprograms.push(...this.projectParser.getPackages().filter(pkg => pkg.lexerToken.getLText() === instantiation.package?.text.toLowerCase()).map(pkg => pkg.subprograms).flat());
 
     }
-    return subprograms.filter(e => e.lexerToken.getLText() === instantiation.componentName.text.toLowerCase());
+    return subprograms.filter(e => e.lexerToken.getLText() === instantiation.componentName.getLText() );
   }
 
   checkAssociations(availableInterfaceElements: (OPort | OGeneric | OTypeMark)[][], associationList: OAssociationList | undefined, typeName: string, range: OIRange, kind: 'port' | 'generic') {
@@ -1696,7 +1747,8 @@ export class VhdlLinter {
     if (allElementsWithoutFormal) {
       const counts = [...new Set(availableInterfaceElements.flatMap(elements => {
         const totalLength = elements.length;
-        const withDefault = elements.filter(p => !(p instanceof OTypeMark) && p.defaultValue !== undefined).length;
+        // TODO: This assumes all SubprogramAlias Parameters are optional. This actually depends on the function definition
+        const withDefault = elements.filter(p => (p instanceof OTypeMark) || p.defaultValue !== undefined).length;
         const result = [];
         for (let i = totalLength; i >= totalLength - withDefault; i--) {
           result.push(i);

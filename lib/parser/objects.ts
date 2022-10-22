@@ -507,6 +507,8 @@ export class OType extends ObjectBase implements IReferenceable, IHasSubprograms
   reads: ORead[] = [];
   alias = false;
   lexerToken: OLexerToken;
+  protected = false;
+  protectedBody = false;
   addReadsToMap(map: Map<string, ObjectBase>) {
     map.set(this.lexerToken.getLText(), this);
 
@@ -603,6 +605,7 @@ export class OVariable extends ObjectBase implements IVariableBase {
   type: ORead[] = [];
   defaultValue?: ORead[] = [];
   lexerToken: OLexerToken;
+  shared = false;
   constructor(parent: IHasVariables, range: OIRange) {
     super((parent as unknown) as ObjectBase, range);
   }
@@ -648,7 +651,7 @@ export class OInstantiation extends ObjectBase implements IHasDefinitions, IHasL
     super(parent, range);
   }
   label?: OLexerToken;
-  definitions: (OEntity | OSubprogram | OComponent | OSubprogramAlias)[] = []; // TODO: OType is for alias. This is slightly wrong
+  definitions: (OEntity | OSubprogram | OComponent | OSubprogramAlias)[] = [];
   componentName: OLexerToken;
   package?: OLexerToken;
   portAssociationList?: OPortAssociationList;
@@ -853,6 +856,14 @@ export class OReference extends ObjectBase implements IHasDefinitions, IHasLexer
           if (subprogram.lexerToken.getLText() === text.toLowerCase()) {
             this.definitions.push(subprogram);
             subprogram.references.push(this);
+          }
+        }
+      }
+      if (implementsIHasSubprogramAlias(object)) {
+        for (const subprogramAlias of object.subprogramAliases) {
+          if (subprogramAlias.lexerToken.getLText() === text.toLowerCase()) {
+            this.definitions.push(subprogramAlias);
+            subprogramAlias.references.push(this);
           }
         }
       }
