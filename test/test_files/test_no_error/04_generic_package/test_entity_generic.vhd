@@ -6,7 +6,9 @@ end entity;
 architecture arch of test_entity_generic is
   use test_pkg.all;
   signal a : t_testData;
+  signal b : integer := generic_parameter;
 
 begin
 a.element <= a.element;
+b <= b;
 end arch;
