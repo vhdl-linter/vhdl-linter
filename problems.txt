@@ -1,9 +1,0 @@
-
-> vhdl-linter@1.3.7 test
-> npm run compile && node dist/test/test.js
-
-
-> vhdl-linter@1.3.7 compile
-> tsc --project .
-
-Test took 14.278s
