@@ -13,7 +13,7 @@ export class InterfaceListParser extends ParserBase {
 
   parse(generics: boolean) {
     this.debug('parse');
-    this.expect('(');
+    this.expectToken('(');
     const ports: (OPort|OGeneric)[] = [];
     if (generics) {
       if (this.parent instanceof OSubprogram) {
@@ -65,11 +65,11 @@ export class InterfaceListParser extends ParserBase {
         }
         port.lexerToken = this.consumeToken();
         if (this.getToken().getLText() === ',') {
-          this.expect(',');
+          this.expectToken(',');
           multiInterface.push(port);
           continue;
         }
-        this.expect(':');
+        this.expectToken(':');
         let directionString;
         if (port instanceof OPort) {
           directionString = this.getToken().getLText();

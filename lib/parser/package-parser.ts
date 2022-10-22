@@ -12,10 +12,10 @@ export class PackageParser extends ParserBase {
       pkg.targetLibrary = match ? match[1] : undefined;
 
       pkg.lexerToken = this.consumeToken();
-      this.expect('is');
+      this.expectToken('is');
       const declarativePartParser = new DeclarativePartParser(this.pos, this.filePath, pkg);
       declarativePartParser.parse(false, 'end');
-      this.expect('end');
+      this.expectToken('end');
       this.maybeWord('package');
       this.maybeWord('body');
       this.maybeWord(pkg.lexerToken.text);
@@ -28,7 +28,7 @@ export class PackageParser extends ParserBase {
       pkg.targetLibrary = match ? match[1] : undefined;
 
       pkg.lexerToken = nextToken;
-      this.expect('is');
+      this.expectToken('is');
       nextToken = this.getToken();
       // if (nextToken.getLText() === 'new') {
       //   this.getNextWord();
@@ -52,7 +52,7 @@ export class PackageParser extends ParserBase {
         const interfaceListParser = new InterfaceListParser(this.pos, this.filePath, pkg);
         interfaceListParser.parse(true);
         pkg.genericRange = new OIRange(pkg, savedI, this.pos.i);
-        this.expect(';');
+        this.expectToken(';');
       }
       const declarativePartParser = new DeclarativePartParser(this.pos, this.filePath, pkg);
       declarativePartParser.parse(false, 'end');

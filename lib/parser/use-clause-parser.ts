@@ -11,14 +11,14 @@ export class UseClauseParser extends ParserBase {
   parse() {
     const tokens = [];
     tokens.push(this.consumeToken());
-    this.expect('.');
+    this.expectToken('.');
     tokens.push(this.consumeToken());
     if (this.getToken().getLText() === '.') {
       this.consumeToken();
       tokens.push(this.consumeToken());
-      this.expect(';');
+      this.expectToken(';');
     } else {
-      this.expect(';');
+      this.expectToken(';');
     }
     if (tokens.length === 3) {
       const [library, packageName, suffix] = tokens;

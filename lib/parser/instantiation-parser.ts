@@ -17,7 +17,7 @@ export class InstantiationParser extends ParserBase {
       this.consumeToken();
       instantiation.type = 'entity';
       instantiation.library = this.consumeToken();
-      this.expect('.');
+      this.expectToken('.');
     } else if (nextToken.getLText() === 'component') {
       this.consumeToken();
       instantiation.type = 'component';
@@ -40,7 +40,7 @@ export class InstantiationParser extends ParserBase {
         }
         hasPortMap = true;
         this.consumeToken();
-        this.expect('map');
+        this.expectToken('map');
         instantiation.portAssociationList = new AssociationListParser(this.pos, this.filePath, instantiation).parse();
 
       } else if (nextToken.getLText() === 'generic' && instantiation.type !== 'subprogram') {
@@ -49,7 +49,7 @@ export class InstantiationParser extends ParserBase {
         }
         hasGenericMap = true;
         this.consumeToken();
-        this.expect('map');
+        this.expectToken('map');
         instantiation.genericAssociationList = new AssociationListParser(this.pos, this.filePath, instantiation).parse('generic');
       } else if (nextToken.getLText() === '(' && !hasGenericMap && !hasPortMap) { // is subprogram call
         instantiation.type = 'subprogram';
@@ -61,7 +61,7 @@ export class InstantiationParser extends ParserBase {
       lastI = this.pos.i;
     }
     instantiation.range = instantiation.range.copyWithNewEnd(this.getToken(-1, true).range.end);
-    this.expect(';');
+    this.expectToken(';');
     return instantiation;
   }
 }

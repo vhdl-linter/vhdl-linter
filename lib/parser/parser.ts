@@ -153,7 +153,7 @@ export class Parser extends ParserBase {
         }
       } else if (nextToken.getLText() === 'library') {
         libraries.push(this.consumeToken());
-        this.expect(';');
+        this.expectToken(';');
       } else if (nextToken.getLText() === 'use') {
         const useClauseParser = new UseClauseParser(this.pos, this.filePath, this.file);
         useClauses.push(useClauseParser.parse());
@@ -209,7 +209,7 @@ export class Parser extends ParserBase {
         }
         if (pkg instanceof OPackageInstantiation) {
           this.file.packageInstantiations.push(pkg);
-          this.expect(';'); // package instantiations do not parse ';'
+          this.expectToken(';'); // package instantiations do not parse ';'
         } else {
           this.file.packages.push(pkg);
         }
@@ -219,7 +219,7 @@ export class Parser extends ParserBase {
       } else if (nextToken.getLText() === 'configuration') {
         const configuration = new OConfiguration(this.file, this.getToken().range.copyExtendEndOfLine());
         configuration.identifier = this.consumeToken();
-        this.expect('of');
+        this.expectToken('of');
         configuration.entityName = this.consumeToken();
         while (
           ((this.getToken(0).getLText() === 'end' && this.getToken(1, true).getLText() === ';')
@@ -233,7 +233,7 @@ export class Parser extends ParserBase {
           this.consumeToken(true);
         }
         this.file.configurations.push(configuration);
-        this.advanceSemicolon();
+        this.advanceSemicolonToken();
       } else {
         throw new ParserError(`Unexpected token ${nextToken.text}`, this.getToken().range);
       }

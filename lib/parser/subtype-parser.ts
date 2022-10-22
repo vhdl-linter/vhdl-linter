@@ -10,9 +10,9 @@ export class SubtypeParser extends ParserBase {
     this.subtype = new OSubType(parent, new OIRange(parent, this.pos.i, this.pos.i));
   }
   parse() {
-    this.expect('subtype');
+    this.expectToken('subtype');
     this.subtype.lexerToken = this.consumeToken();
-    this.expect('is');
+    this.expectToken('is');
     if (this.getToken().getLText() === '(') { // funky vhdl stuff
       this.advancePastToken(')');
     }

@@ -36,7 +36,7 @@ export class TypeParser extends ParserBase {
     const nextToken = this.consumeToken();
     if (nextToken.getLText() === 'is') {
       if (this.getToken().text === '(') {
-        this.expect('(');
+        this.expectToken('(');
         Object.setPrototypeOf(type, OEnum.prototype);
         const enumItems: OLexerToken[] = [];
         while (this.pos.isValid()) {
@@ -61,7 +61,7 @@ export class TypeParser extends ParserBase {
         });
         type.range = type.range.copyWithNewEnd(this.pos.i);
         this.advanceWhitespace();
-        this.expect(';');
+        this.expectToken(';');
       } else if (this.isUnits()) {
         this.advancePastToken('units');
         type.units = [];
@@ -71,10 +71,10 @@ export class TypeParser extends ParserBase {
           type.units.push(this.consumeToken().getLText());
           this.advanceSemicolonToken();
         }
-        this.expect('end');
-        this.expect('units');
+        this.expectToken('end');
+        this.expectToken('units');
         type.range = type.range.copyWithNewEnd(this.pos.i);
-        this.expect(';');
+        this.expectToken(';');
       } else {
         const nextToken = this.consumeToken();
         if (nextToken.getLText() === 'record') {
@@ -89,7 +89,7 @@ export class TypeParser extends ParserBase {
               child.lexerToken = lexerToken;
               children.push(child);
             } while (this.getToken().getLText() === ',');
-            this.expect(':');
+            this.expectToken(':');
             const typeTokens = this.advanceSemicolonToken();
             for (const child of children) {
               child.reads = this.extractReads(child, typeTokens);
@@ -104,8 +104,8 @@ export class TypeParser extends ParserBase {
         } else if (nextToken.getLText() === 'protected') {
           this.maybeWord('body');
           new DeclarativePartParser(this.pos, this.filePath, type).parse(false, 'end');
-          this.expect('end');
-          this.expect('protected');
+          this.expectToken('end');
+          this.expectToken('protected');
           this.maybeWord(type.lexerToken.text);
         } else if (nextToken.getLText() === 'range') {
           // TODO

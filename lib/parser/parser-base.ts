@@ -257,16 +257,6 @@ export class ParserBase {
     }
     throw new ParserError(`could not find ${searchStrings}`, savedI.getRangeToEndLine());
   }
-  advanceBraceAware(searchStrings: (string)[], consume = true, consumeSearchString = true) {
-    const [tokens, lastToken] = this.advanceBraceAwareToken(searchStrings, consume, consumeSearchString);
-    return [
-      tokens.map(token => token.text).join(''),
-      lastToken.text
-    ];
-  }
-  advanceSemicolon(braceAware = false, { consume } = { consume: true }) {
-    return this.advanceSemicolonToken(braceAware, { consume }).map(token => token.text).join('');
-  }
   advanceSemicolonToken(braceAware = false, { consume } = { consume: true }) {
     if (consume !== false) {
       consume = true;
@@ -286,18 +276,6 @@ export class ParserBase {
   getPosition() {
     const pos = this.getToken().range.start;
     return { line: pos.line, col: pos.character };
-  }
-  expect(expected: string | string[]) {
-    if (!Array.isArray(expected)) {
-      expected = [expected];
-    }
-    if (expected.find(exp => exp.toLowerCase() === this.getToken().getLText())) {
-      const token = this.consumeToken(false);
-      this.advanceWhitespace();
-      return token.range.end.i;
-    } else {
-      throw new ParserError(`expected '${expected.join(', ')}' found '${this.getToken().text}' line: ${this.getLine()}`, this.pos.getRangeToEndLine());
-    }
   }
   expectToken(expected: string | string[]) {
     if (!Array.isArray(expected)) {
@@ -345,7 +323,7 @@ export class ParserBase {
 
     }
     if (advanceSemicolon) {
-      this.expect(';');
+      this.expectToken(';');
       this.advanceWhitespace();
     }
     return {

@@ -88,7 +88,7 @@ export class ConcurrentStatementParser extends ParserBase {
       caseGenerate.signal.push(...this.extractReads(caseGenerate, caseConditionToken));
       let nextToken = this.getToken();
       while (nextToken.getLText() === 'when') {
-        this.expect('when');
+        this.expectToken('when');
         const whenI = this.pos.i;
         const whenConditionToken = this.advancePastToken('=>');
         const subarchitecture = new ArchitectureParser(this.pos, this.filePath, caseGenerate, label);
@@ -97,8 +97,8 @@ export class ConcurrentStatementParser extends ParserBase {
         whenGenerateClause.range = whenGenerateClause.range.copyWithNewStart(whenI);
         nextToken = this.getToken();
       }
-      this.expect('end');
-      this.expect('generate');
+      this.expectToken('end');
+      this.expectToken('generate');
       if (label) {
         this.maybeWord(label.text);
       }

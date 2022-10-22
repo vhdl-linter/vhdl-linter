@@ -13,21 +13,21 @@ export class ContextParser extends ParserBase {
   parse() {
     const context = new OContext(this.parent, new OIRange(this.parent, this.pos.i, this.pos.i));
     context.lexerToken = this.consumeToken();
-    this.expect('is');
+    this.expectToken('is');
     while (this.pos.isValid()) {
       const nextToken = this.consumeToken();
       if (nextToken.getLText() === 'end') {
         this.maybeWord('context');
         this.maybeWord(context.lexerToken.text);
         context.range = context.range.copyWithNewEnd(this.pos.i);
-        this.expect(';');
+        this.expectToken(';');
         break;
       } else if (nextToken.getLText() === 'context') {
         const contextReferenceParser = new ContextReferenceParser(this.pos, this.filePath, context);
         context.contextReferences.push(contextReferenceParser.parse());
       } else if (nextToken.getLText() === 'library') {
         context.libraries.push(new OLibrary(context, this.consumeToken()));
-        this.expect(';');
+        this.expectToken(';');
       } else if (nextToken.getLText() === 'use') {
         const useClauseParser = new UseClauseParser(this.pos, this.filePath, context);
         context.useClauses.push(useClauseParser.parse());

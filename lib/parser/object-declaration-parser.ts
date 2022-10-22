@@ -48,7 +48,7 @@ export class ObjectDeclarationParser extends ParserBase {
       objects.push(object);
 
     } while (this.getToken().getLText() === ',');
-    this.expect(':');
+    this.expectToken(':');
     if (file) {
       const typeToken = this.consumeToken();
       for (const file of objects) {

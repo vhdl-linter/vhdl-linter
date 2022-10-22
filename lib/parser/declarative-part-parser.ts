@@ -60,7 +60,7 @@ export class DeclarativePartParser extends ParserBase {
             this.consumeToken();
             type.reads.push(...this.getType(type, false).typeReads);
           }
-          this.expect('is');
+          this.expectToken('is');
           this.parent.types.push(type);
           this.advanceSemicolonToken(true);
         }
@@ -72,11 +72,11 @@ export class DeclarativePartParser extends ParserBase {
       } else if (nextToken.getLText() === 'procedure' || nextToken.getLText() === 'impure' || nextToken.getLText() === 'pure' || nextToken.getLText() === 'function') {
         const subprogramParser = new SubprogramParser(this.pos, this.filePath, this.parent);
         this.parent.subprograms.push(subprogramParser.parse());
-        this.expect(';');
+        this.expectToken(';');
       } else if (nextToken.getLText() === 'package') {
         this.consumeToken(); // consume 'package
         this.parent.packageInstantiations.push(new PackageInstantiationParser(this.pos, this.filePath, this.parent).parse());
-        this.expect(';');
+        this.expectToken(';');
       } else if (nextToken.getLText() === 'generic') {
         this.advanceSemicolonToken();
       } else if (nextToken.getLText() === 'disconnect') {

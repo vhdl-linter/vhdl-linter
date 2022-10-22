@@ -12,14 +12,14 @@ export class PackageInstantiationParser extends ParserBase {
   parse(): OPackageInstantiation {
     const inst = new OPackageInstantiation(this.parent, this.pos.getRangeToEndLine());
     inst.lexerToken = this.consumeToken();
-    this.expect('is');
-    this.expect('new');
+    this.expectToken('is');
+    this.expectToken('new');
     this.consumeToken(); // ignore package library
-    this.expect('.');
+    this.expectToken('.');
     inst.uninstantiatedPackageToken = this.consumeToken();
     if (this.getToken().getLText() === 'generic') {
       this.consumeToken();
-      this.expect('map');
+      this.expectToken('map');
       inst.genericAssociationList = new AssociationListParser(this.pos, this.filePath, inst).parse('generic');
     }
 
