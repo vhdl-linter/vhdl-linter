@@ -826,16 +826,8 @@ export class OReference extends ObjectBase implements IHasDefinitions, IHasLexer
   }
 
   elaborate() {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    let object: (OFile | ObjectBase) = this;
-    let lastIteration = false;
-    let stop = false;
     const text = this.lexerToken.text;
-    do {
-      stop = lastIteration;
-      if (!lastIteration) {
-        object = object.parent;
-      }
+    for (const object of scope(this)) {
       if (implementsIHasSignals(object)) {
         for (const signal of object.signals) {
           if (signal.lexerToken.getLText() === text.toLowerCase()) {
@@ -868,7 +860,7 @@ export class OReference extends ObjectBase implements IHasDefinitions, IHasLexer
           }
         }
       }
-      if (object instanceof ObjectBase && implementsIHasTypes(object)) {
+      if (implementsIHasTypes(object)) {
         for (const type of object.types) {
           if (type.lexerToken.getLText() === text.toLowerCase()) {
             this.definitions.push(type);
@@ -975,19 +967,7 @@ export class OReference extends ObjectBase implements IHasDefinitions, IHasLexer
         }
 
       }
-      if (object instanceof OArchitecture && object.correspondingEntity) {
-        object = object.correspondingEntity;
-        lastIteration = true;
-      }
-      if (object instanceof OPackageBody && object.correspondingPackage) {
-        object = object.correspondingPackage;
-        lastIteration = true;
-      }
-      // if (object instanceof OFile && object.entity) {
-      //   object = object.entity;
-      //   lastIteration = true;
-      // }
-    } while (!(object instanceof OFile || stop));
+    }
   }
 }
 export class OWrite extends OReference {
