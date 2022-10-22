@@ -177,7 +177,7 @@ export class ConcurrentStatementParser extends ParserBase {
       const readToken = this.consumeToken();
       if (this.getToken().text === '(') {
         this.consumeToken();
-        this.advanceBrace();
+        this.advanceBraceToken();
       }
       this.consumeToken();
       const assignmentParser = new AssignmentParser(this.pos, this.filePath, this.parent);

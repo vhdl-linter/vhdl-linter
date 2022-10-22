@@ -221,9 +221,6 @@ export class ParserBase {
     }
     throw new ParserError(`could not find closing brace`, savedI.getRangeToEndLine());
   }
-  advanceBrace() {
-    return this.advanceBraceToken().map(token => token.text).join('');
-  }
   advanceBraceAwareToken(searchStrings: (string)[], consume = true, consumeLastToken = true): [OLexerToken[], OLexerToken] {
     searchStrings = searchStrings.map(str => str.toLowerCase());
     const savedI = this.pos;
