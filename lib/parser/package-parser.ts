@@ -16,11 +16,11 @@ export class PackageParser extends ParserBase {
       const declarativePartParser = new DeclarativePartParser(this.pos, this.filePath, pkg);
       declarativePartParser.parse(false, 'end');
       this.expect('end');
-      this.maybeWord('package');
-      this.maybeWord('body');
-      this.maybeWord(pkg.lexerToken.text);
+      this.maybe('package');
+      this.maybe('body');
+      this.maybe(pkg.lexerToken.text);
       pkg.range = pkg.range.copyWithNewEnd(this.getToken(-1, true).range.end);
-      this.advanceSemicolonToken();
+      this.advanceSemicolon();
       return pkg;
     } else {
       const pkg = new OPackage(parent, this.getToken().range);
@@ -47,7 +47,7 @@ export class PackageParser extends ParserBase {
       //   return pkg;
       // }
       if (nextToken.getLText() === 'generic') {
-        this.getNextWord();
+        this.consumeToken();
         const savedI = this.pos.i;
         const interfaceListParser = new InterfaceListParser(this.pos, this.filePath, pkg);
         interfaceListParser.parse(true);
@@ -56,9 +56,9 @@ export class PackageParser extends ParserBase {
       }
       const declarativePartParser = new DeclarativePartParser(this.pos, this.filePath, pkg);
       declarativePartParser.parse(false, 'end');
-      this.maybeWord('package');
-      this.maybeWord(pkg.lexerToken.text);
-      this.advanceSemicolonToken();
+      this.maybe('package');
+      this.maybe(pkg.lexerToken.text);
+      this.advanceSemicolon();
       return pkg;
     }
   }

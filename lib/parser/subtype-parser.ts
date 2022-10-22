@@ -18,7 +18,7 @@ export class SubtypeParser extends ParserBase {
     }
     const superType = this.consumeToken();
     this.subtype.range = this.subtype.range.copyWithNewEnd(this.pos.i);
-    const tokens = this.advanceSemicolonToken(true);
+    const tokens = this.advanceSemicolon(true);
     if (tokens.length > 0) {
       this.subtype.range = this.subtype.range.copyWithNewEnd(tokens[tokens.length - 1].range.end.i);
     }
