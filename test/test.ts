@@ -30,7 +30,7 @@ async function run_test(path: string, error_expected: boolean, projectParser?: P
   }
   for (const subPath of readDirPath(path)) {
     if (lstatSync(subPath).isDirectory()) {
-      messageWrappers.push(...await run_test(subPath, error_expected));
+      messageWrappers.push(...await run_test(subPath, error_expected, projectParser));
     } else if (subPath.match(/\.vhdl?$/i)) {
       const text = readFileSync(subPath, { encoding: 'utf8' });
       const vhdlLinter = new VhdlLinter(subPath, text, projectParser);

@@ -538,7 +538,8 @@ export class VhdlLinter {
             for (const obj of scope(read)) {
               if (implementsIHasVariables(obj)) {
                 for (const variable of obj.variables) {
-                  if (variable.shared && variable.lexerToken.getLText() === read.prefixTokens[0].getLText()) {
+                  // TODO: Find out way to check for proteced
+                  if (variable.lexerToken.getLText() === read.prefixTokens[0].getLText()) {
                     // TODO: Link the actual subprogramm
                     read.definitions.push(variable);
                   }
@@ -1655,11 +1656,11 @@ export class VhdlLinter {
       if (instantiation.package) {
         if (implementsIHasVariables(parent)) {
           for (const variable of parent.variables) {
-            if (variable.shared) {
+            // if (variable.shared) { // TODO: Does not have to be shared to be protected
               const type = variable.type[0].definitions[0] as OType;
               subprograms.push(...type.subprograms);
               subprograms.push(...type.subprogramAliases);
-            }
+            // }
           }
         }
       }
