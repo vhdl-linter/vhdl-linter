@@ -56,7 +56,7 @@ export class InterfaceListParser extends ParserBase {
           this.consumeToken(); // consume 'package'
           this.parent.packageInstantiations.push(new PackageInstantiationParser(this.pos, this.filePath, this.parent).parse());
         } else {
-          this.advanceBraceAware([';', ')'], true, false);
+          this.advanceParentheseAware([';', ')'], true, false);
         }
         this.maybe(';');
       } else {

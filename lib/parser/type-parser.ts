@@ -99,7 +99,7 @@ export class TypeParser extends ParserBase {
           this.maybe('record');
           this.maybe(type.lexerToken.text);
         } else if (nextToken.getLText() === 'array') {
-          const [token] = this.advanceBraceAware([';'], true, false);
+          const [token] = this.advanceParentheseAware([';'], true, false);
           type.reads.push(...this.extractReads(type, token));
         } else if (nextToken.getLText() === 'protected') {
           this.maybe('body');
@@ -111,7 +111,7 @@ export class TypeParser extends ParserBase {
           // TODO
         } else if (nextToken.getLText() === 'access') {
           // Is this a hack, or is it just fantasy/vhdl
-          const [typeTokens] = this.advanceBraceAware([';'], true, false);
+          const [typeTokens] = this.advanceParentheseAware([';'], true, false);
           const deallocateProcedure = new OSubprogram(this.parent, new OIRange(this.parent, typeTokens[0].range.start.i, typeTokens[typeTokens.length - 1].range.end.i));
           deallocateProcedure.lexerToken = new OLexerToken('deallocate', type.lexerToken.range, type.lexerToken.type);
           this.parent.subprograms.push(deallocateProcedure);

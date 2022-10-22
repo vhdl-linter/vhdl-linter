@@ -16,7 +16,7 @@ export class ProcessParser extends ParserBase {
     process.label = label;
     if (this.getToken().getLText() === '(') {
       this.expect('(');
-      const sensitivityListTokens = this.advanceBraceToken();
+      const sensitivityListTokens = this.advanceClosingParenthese();
       process.sensitivityList.push(...this.extractReads(process, sensitivityListTokens));
     }
     this.maybe('is');

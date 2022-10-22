@@ -41,11 +41,11 @@ export class ParserBase {
   // }
   getTypeDefintion(parent: OGeneric | OPort) {
     this.debug('getTypeDefintion');
-    const [type, last] = this.advanceBraceAware([')', ';', ':='], true, false);
+    const [type, last] = this.advanceParentheseAware([')', ';', ':='], true, false);
     let defaultValue: OLexerToken[] = [];
     if (last.getLText() === ':=') {
       this.consumeToken();
-      [defaultValue] = this.advanceBraceAware([')', ';'], true, false);
+      [defaultValue] = this.advanceParentheseAware([')', ';'], true, false);
     }
     this.reverseWhitespace();
     this.advanceWhitespace();
@@ -201,17 +201,17 @@ export class ParserBase {
     }
     return tokens;
   }
-  advanceBraceToken() {
+  advanceClosingParenthese() {
     const tokens = [];
-    let braceLevel = 0;
+    let parentheseLevel = 0;
     const quote = false;
     const savedI = this.pos;
     while (this.pos.num < this.pos.lexerTokens.length) {
       if (this.getToken().getLText() === '(' && !quote) {
-        braceLevel++;
+        parentheseLevel++;
       } else if (this.getToken().getLText() === ')' && !quote) {
-        if (braceLevel > 0) {
-          braceLevel--;
+        if (parentheseLevel > 0) {
+          parentheseLevel--;
         } else {
           this.consumeToken();
           return tokens;
@@ -219,16 +219,16 @@ export class ParserBase {
       }
       tokens.push(this.consumeToken(false));
     }
-    throw new ParserError(`could not find closing brace`, savedI.getRangeToEndLine());
+    throw new ParserError(`could not find closing parenthese`, savedI.getRangeToEndLine());
   }
-  advanceBraceAware(searchStrings: (string)[], consume = true, consumeLastToken = true): [OLexerToken[], OLexerToken] {
+  advanceParentheseAware(searchStrings: (string)[], consume = true, consumeLastToken = true): [OLexerToken[], OLexerToken] {
     searchStrings = searchStrings.map(str => str.toLowerCase());
     const savedI = this.pos;
-    let braceLevel = 0;
+    let parentheseLevel = 0;
     const tokens = [];
     let offset = 0;
     while (this.pos.isValid()) {
-      if (braceLevel === 0) {
+      if (parentheseLevel === 0) {
         let found;
         for (const searchString of searchStrings) {
           if (searchString.toLowerCase() === this.getToken(offset).getLText()) {
@@ -248,21 +248,21 @@ export class ParserBase {
         }
       }
       if (this.getToken(offset).getLText() === '(') {
-        braceLevel++;
+        parentheseLevel++;
       } else if (this.getToken(offset).getLText() === ')') {
-        braceLevel--;
+        parentheseLevel--;
       }
       tokens.push(this.getToken(offset));
       offset++;
     }
     throw new ParserError(`could not find ${searchStrings}`, savedI.getRangeToEndLine());
   }
-  advanceSemicolon(braceAware = false, { consume } = { consume: true }) {
+  advanceSemicolon(parenthesesAware = false, { consume } = { consume: true }) {
     if (consume !== false) {
       consume = true;
     }
-    if (braceAware) {
-      return this.advanceBraceAware([';'], consume)[0];
+    if (parenthesesAware) {
+      return this.advanceParentheseAware([';'], consume)[0];
     }
     return this.advancePast(';', { consume });
   }
@@ -295,12 +295,12 @@ export class ParserBase {
       this.consumeToken();
     }
   }
-  getType(parent: ObjectBase, advanceSemicolon = true, endWithBrace = false) {
+  getType(parent: ObjectBase, advanceSemicolon = true, endWithParenthese = false) {
     let type;
-    if (endWithBrace) {
-      [type] = this.advanceBraceAware([';', 'is', ')'], true, false);
+    if (endWithParenthese) {
+      [type] = this.advanceParentheseAware([';', 'is', ')'], true, false);
     } else {
-      [type] = this.advanceBraceAware([';', 'is'], true, false);
+      [type] = this.advanceParentheseAware([';', 'is'], true, false);
     }
     // while (this.text[this.pos.i].match(/[^;]/)) {
     //   type += this.text[this.pos.i];
@@ -347,24 +347,24 @@ export class ParserBase {
     tokens = tokens.filter(token => !token.isWhitespace() && token.type !== TokenType.keyword);
     const reads = [];
     let functionOrArraySlice = false;
-    let braceLevel = 0;
+    let parentheseLevel = 0;
     let prefixTokens: OLexerToken[] = [];
     for (let i = 0; i < tokens.length; i++) {
       const token = tokens[i];
       if (tokens[i].text === '(') {
         if (functionOrArraySlice) {
-          braceLevel++;
+          parentheseLevel++;
         } else if (tokens[i - 1]?.isIdentifier()) {
           functionOrArraySlice = true;
-          braceLevel++;
+          parentheseLevel++;
         }
       }
       if (tokens[i].text === ')') {
-        if (braceLevel > 1) {
-          braceLevel--;
+        if (parentheseLevel > 1) {
+          parentheseLevel--;
         } else {
           functionOrArraySlice = false;
-          braceLevel = 0;
+          parentheseLevel = 0;
         }
       }
       if (token.isIdentifier()) {
@@ -412,7 +412,7 @@ export class ParserBase {
   extractReadsOrWrite(parent: ObjectBase, tokens: OLexerToken[], readAndWrite = false): [ORead[], OWrite[]] {
     const reads: ORead[] = [];
     const writes: OWrite[] = [];
-    let braceLevel = 0;
+    let parentheseLevel = 0;
     tokens = tokens.filter(token => token.isWhitespace() === false && token.type !== TokenType.keyword);
 
     let slice = false;
@@ -424,10 +424,10 @@ export class ParserBase {
         if (i > 0) {
           slice = true;
         }
-        braceLevel++;
+        parentheseLevel++;
       } else if (token.text === ')') {
-        braceLevel--;
-        if (braceLevel === 0) {
+        parentheseLevel--;
+        if (parentheseLevel === 0) {
           slice = false;
         }
       } else if (token.isIdentifier()) {

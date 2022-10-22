@@ -32,7 +32,7 @@ export class AssociationListParser extends ParserBase {
       const savedI = this.pos.i;
       // let associationString = this.advancePast(/[,)]/, {returnMatch: true});
       // eslint-disable-next-line prefer-const
-      let [associationTokens, lastChar] = this.advanceBraceAware([',', ')']);
+      let [associationTokens, lastChar] = this.advanceParentheseAware([',', ')']);
       if (associationTokens.length > 0) {
         const association = new OAssociation(list, new OIRange(list, savedI, associationTokens[0]?.range?.end?.i ?? savedI));
         const index = this.findFormal(associationTokens);
