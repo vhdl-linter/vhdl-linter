@@ -1,6 +1,6 @@
 import { ComponentParser } from './component-parser';
 import { ObjectDeclarationParser } from './object-declaration-parser';
-import { implementsIHasComponents, OArchitecture, OEntity, OPackage, OPackageBody, OProcess, OSubprogram, OType, ParserError } from './objects';
+import { implementsIHasComponents,  OArchitecture, OEntity, OPackage, OPackageBody, OProcess, OSubprogram, OType, ParserError } from './objects';
 import { ParserBase } from './parser-base';
 import { SubprogramParser } from './subprogram-parser';
 import { SubtypeParser } from './subtype-parser';
@@ -8,6 +8,7 @@ import { TypeParser } from './type-parser';
 import { UseClauseParser } from './use-clause-parser';
 import { ParserPosition } from './parser';
 import { PackageInstantiationParser } from './package-instantiation-parser';
+import { AliasParser } from './alias-parser';
 
 export class DeclarativePartParser extends ParserBase {
   type: string;
@@ -35,19 +36,35 @@ export class DeclarativePartParser extends ParserBase {
         const subtypeParser = new SubtypeParser(this.pos, this.filePath, this.parent);
         this.parent.types.push(subtypeParser.parse());
       } else if (nextToken.getLText() === 'alias') {
-        const type = new OType(this.parent, this.getToken().range.copyExtendEndOfLine());
-        this.getNextWord();
-        type.lexerToken = this.consumeToken();
-        type.alias = true;
-        if (this.getToken().getLText() === ':') {
-          this.consumeToken();
-          this.advanceWhitespace();
-          this.getNextWord();
-          type.reads.push(...this.getType(type, false).typeReads);
+        this.consumeToken();
+        let i = 0;
+        let foundSignature = false;
+        while (this.getToken(i).getLText() !== ';') {
+          if (this.getToken(i).getLText() === '[') {
+            foundSignature = true;
+            break;
+          }
+          i++;
         }
-        this.expect('is');
-        this.parent.types.push(type);
-        this.advanceSemicolonToken(true);
+        if (foundSignature) {
+          const subprogramAlias = new AliasParser(this.pos, this.filePath, this.parent).parse();
+          this.parent.subprogramAliases.push(subprogramAlias);
+        } else {
+          const type = new OType(this.parent, this.getToken().range.copyExtendEndOfLine());
+
+          type.lexerToken = this.consumeToken();
+          type.alias = true;
+          if (this.getToken().getLText() === ':') {
+            this.consumeToken();
+            this.advanceWhitespace();
+            this.consumeToken();
+            type.reads.push(...this.getType(type, false).typeReads);
+          }
+          this.expect('is');
+          this.parent.types.push(type);
+          this.advanceSemicolonToken(true);
+        }
+
       } else if (nextToken.getLText() === 'component' && implementsIHasComponents(this.parent)) {
         this.getNextWord();
         const componentParser = new ComponentParser(this.pos, this.filePath, this.parent);

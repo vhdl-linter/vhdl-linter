@@ -5,16 +5,14 @@ import {
 } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { CancelationError, CancelationObject, getDocumentSettings } from './language-server';
-import {
-  IHasContextReference, IHasLexerToken, IHasUseClauses, implementsIHasConstants, implementsIHasContextReference,
+import { IHasContextReference, IHasLexerToken, IHasUseClauses, implementsIHasConstants, implementsIHasContextReference,
   implementsIHasInstantiations, implementsIHasLexerToken, implementsIHasSignals, implementsIHasSubprograms,
   implementsIHasTypes, implementsIHasUseClause, implementsIHasVariables, implementsIReferencable, MagicCommentType,
   OArchitecture, OAssociation, OAssociationFormal, OAssociationList, ObjectBase, OCase, OComponent, OConstant, OEntity,
   OFile, OGeneric, OGenericAssociationList, OHasSequentialStatements, OI, OIf, OInstantiation, OIRange, OPackage,
   OPackageBody, OPort, OPortAssociationList, OProcess, ORead, OSignal, OSubprogram, OReference, OType,
   OVariable, OWrite, ParserError, implementsIHasLibraries, implementsIHasLibraryReference, OSelectedNameRead,
-  implementsIHasPorts, implementsIHasGenerics, implementsIHasPackageInstantiations, scope
-} from './parser/objects';
+  implementsIHasPorts, implementsIHasGenerics, implementsIHasPackageInstantiations, scope, OTypeMark, implementsIHasSubprogramAlias, OSubprogramAlias } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 export enum LinterRules {
@@ -574,18 +572,20 @@ export class VhdlLinter {
         }
         const definitions = association.parent.parent.definitions;
 
-        const possibleFormals: (OPort | OGeneric)[] = [];
+        const possibleFormals: (OPort | OGeneric | OTypeMark)[] = [];
         possibleFormals.push(...definitions.flatMap(definition => {
-          let elements: (OPort | OGeneric)[] = [];
+          let elements: (OPort | OGeneric | OTypeMark)[] = [];
           if (association.parent instanceof OPortAssociationList) {
-            elements = definition.ports;
+            elements = definition instanceof OSubprogramAlias ? definition.typeMarks : definition.ports;
           } else if (definition instanceof OComponent || definition instanceof OEntity) {
             elements = definition.generics;
           }
           return elements.filter((port, portNumber) => {
-            const formalMatch = association.formalPart.find(name => name.lexerToken.getLText() === port.lexerToken.getLText());
-            if (formalMatch) {
-              return true;
+            if (!(port instanceof OTypeMark)) {
+              const formalMatch = association.formalPart.find(name => name.lexerToken.getLText() === port.lexerToken.getLText());
+              if (formalMatch) {
+                return true;
+              }
             }
             return association.formalPart.length === 0 && portNumber === association.parent.children.findIndex(o => o === association);
           });
@@ -609,7 +609,7 @@ export class VhdlLinter {
 
   }
 
-  elaborateAssociationMentionables(possibleFormal: OPort | OGeneric, association: OAssociation) {
+  elaborateAssociationMentionables(possibleFormal: OPort | OGeneric | OTypeMark, association: OAssociation) {
     if (possibleFormal instanceof OPort) {
       if (possibleFormal.direction === 'in') {
         for (const mapping of association.actualIfOutput.flat()) {
@@ -1591,8 +1591,8 @@ export class VhdlLinter {
     return components.filter(e => e.lexerToken.getLText() === name.text.toLowerCase());
   }
 
-  getSubprograms(instantiation: OInstantiation): OSubprogram[] {
-    const subprograms: OSubprogram[] = [];
+  getSubprograms(instantiation: OInstantiation): (OSubprogram | OSubprogramAlias)[] {
+    const subprograms: (OSubprogram | OSubprogramAlias)[] = [];
     // find all defined subprograms in current scope
     let parent: ObjectBase | OFile | undefined = instantiation.parent;
     if (!parent) {
@@ -1601,6 +1601,9 @@ export class VhdlLinter {
     while (parent instanceof ObjectBase) {
       if (implementsIHasSubprograms(parent)) {
         subprograms.push(...parent.subprograms);
+      }
+      if (implementsIHasSubprogramAlias(parent)) {
+        subprograms.push(...parent.subprogramAliases);
       }
       if (parent instanceof OPackageBody && parent.correspondingPackage) {
         subprograms.push(...parent.correspondingPackage.subprograms);
@@ -1625,6 +1628,7 @@ export class VhdlLinter {
 
     for (const pkg of this.getPackages(instantiation)) {
       subprograms.push(...pkg.subprograms);
+      subprograms.push(...pkg.subprogramAliases);
       addTypes(pkg.types);
     }
     // in entities
@@ -1636,9 +1640,9 @@ export class VhdlLinter {
     return subprograms.filter(e => e.lexerToken.getLText() === instantiation.componentName.text.toLowerCase());
   }
 
-  checkAssociations(availableInterfaceElements: (OPort | OGeneric)[][], associationList: OAssociationList | undefined, typeName: string, range: OIRange, kind: 'port' | 'generic') {
+  checkAssociations(availableInterfaceElements: (OPort | OGeneric | OTypeMark)[][], associationList: OAssociationList | undefined, typeName: string, range: OIRange, kind: 'port' | 'generic') {
     const availableInterfaceElementsFlat = availableInterfaceElements.flat().filter((v, i, self) => self.findIndex(o => o.lexerTokenEquals(v)) === i);
-    const foundElements: (OPort | OGeneric)[] = [];
+    const foundElements: (OPort | OGeneric | OTypeMark)[] = [];
     let elementsWithoutFormal = false;
     let allElementsWithoutFormal = true;
     if (associationList) {
@@ -1650,6 +1654,9 @@ export class VhdlLinter {
         allElementsWithoutFormal = false;
         const interfaceElement = availableInterfaceElementsFlat.find(port => {
           for (const part of association.formalPart) {
+            if (port instanceof OTypeMark) {
+              return false;
+            }
             if (part.lexerToken.getLText() === port.lexerToken.getLText()) {
               return true;
             }
@@ -1658,7 +1665,7 @@ export class VhdlLinter {
         });
         if (!interfaceElement) {
           let code: number | undefined = undefined;
-          const possibleMatches = availableInterfaceElementsFlat.map(element => element.lexerToken.text);
+          const possibleMatches = availableInterfaceElementsFlat.filter(implementsIHasLexerToken).map(element => (element as IHasLexerToken).lexerToken.text);
           if (possibleMatches.length > 0) {
             const bestMatch = findBestMatch(association.formalPart[0].lexerToken.text, possibleMatches);
             code = this.addCodeActionCallback((textDocumentUri: string) => {
@@ -1689,7 +1696,7 @@ export class VhdlLinter {
     if (allElementsWithoutFormal) {
       const counts = [...new Set(availableInterfaceElements.flatMap(elements => {
         const totalLength = elements.length;
-        const withDefault = elements.filter(p => typeof p.defaultValue !== 'undefined').length;
+        const withDefault = elements.filter(p => !(p instanceof OTypeMark) && p.defaultValue !== undefined).length;
         const result = [];
         for (let i = totalLength; i >= totalLength - withDefault; i--) {
           result.push(i);
@@ -1750,7 +1757,7 @@ export class VhdlLinter {
     }
     if (implementsIHasInstantiations(object)) {
       for (const instantiation of object.instantiations) {
-        let definitions: (OComponent | OEntity | OSubprogram)[] = [];
+        let definitions: (OComponent | OEntity | OSubprogram | OSubprogramAlias)[] = [];
         switch (instantiation.type) {
           case 'component':
             definitions = this.getComponents(instantiation);
@@ -1770,7 +1777,15 @@ export class VhdlLinter {
           });
         } else {
           const range = instantiation.range.start.getRangeToEndLine();
-          const availablePorts = definitions.map(e => e.ports);
+          const availablePorts = definitions.map(e => {
+            if (implementsIHasPorts(e)) {
+              return e.ports
+            }
+            if (e instanceof OSubprogramAlias) {
+              return e.typeMarks;
+            }
+            return [];
+          });
           this.checkAssociations(availablePorts, instantiation.portAssociationList, instantiation.type, range, 'port');
           const availableGenerics = definitions.map(d => (d instanceof OComponent || d instanceof OEntity) ? d.generics : []);
           this.checkAssociations(availableGenerics, instantiation.genericAssociationList, instantiation.type, range, 'generic');
