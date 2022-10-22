@@ -26,15 +26,15 @@ export class SubprogramParser extends ParserBase {
       interfaceListParser.parse(false);
     }
     if (isFunction) {
-      this.expectToken('return');
+      this.expect('return');
       subprogram.return = this.getType(subprogram, false, true).typeReads;
     }
     if (this.getToken().getLText() === 'is') {
-      this.expectToken('is');
+      this.expect('is');
       new DeclarativePartParser(this.pos, this.filePath, subprogram).parse();
-      this.expectToken('begin');
+      this.expect('begin');
       subprogram.statements = new SequentialStatementParser(this.pos, this.filePath).parse(subprogram, ['end']);
-      this.expectToken('end');
+      this.expect('end');
       this.maybe(isFunction ? 'function' : 'procedure');
       this.maybe(token.text);
       subprogram.range = subprogram.range.copyWithNewEnd(this.pos.i);

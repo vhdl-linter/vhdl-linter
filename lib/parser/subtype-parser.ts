@@ -10,15 +10,15 @@ export class SubtypeParser extends ParserBase {
     this.subtype = new OSubType(parent, new OIRange(parent, this.pos.i, this.pos.i));
   }
   parse() {
-    this.expectToken('subtype');
+    this.expect('subtype');
     this.subtype.lexerToken = this.consumeToken();
-    this.expectToken('is');
+    this.expect('is');
     if (this.getToken().getLText() === '(') { // funky vhdl stuff
-      this.advancePastToken(')');
+      this.advancePast(')');
     }
     const superType = this.consumeToken();
     this.subtype.range = this.subtype.range.copyWithNewEnd(this.pos.i);
-    const tokens = this.advanceSemicolonToken(true);
+    const tokens = this.advanceSemicolon(true);
     if (tokens.length > 0) {
       this.subtype.range = this.subtype.range.copyWithNewEnd(tokens[tokens.length - 1].range.end.i);
     }

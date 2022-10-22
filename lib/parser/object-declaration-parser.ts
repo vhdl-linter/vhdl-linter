@@ -48,7 +48,7 @@ export class ObjectDeclarationParser extends ParserBase {
       objects.push(object);
 
     } while (this.getToken().getLText() === ',');
-    this.expectToken(':');
+    this.expect(':');
     if (file) {
       const typeToken = this.consumeToken();
       for (const file of objects) {
@@ -69,7 +69,7 @@ export class ObjectDeclarationParser extends ParserBase {
     for (const object of objects) {
       object.range.copyWithNewEnd(this.getToken().range.end);
     }
-    this.advanceSemicolonToken();
+    this.advanceSemicolon();
     if (constant) {
       (this.parent as IHasConstants).constants.push(...objects as OSignal[]);
     } else if (variable) {

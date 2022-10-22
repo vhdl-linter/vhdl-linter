@@ -16,30 +16,30 @@ export class AliasParser extends ParserBase {
             this.consumeToken();
             subprogramAlias.subtypeReads.push(...this.getType(subprogramAlias, false).typeReads);
         }
-        this.expectToken('is');
+        this.expect('is');
         subprogramAlias.reads = this.consumeNameRead(subprogramAlias);
-        this.expectToken('[');
+        this.expect('[');
         // eslint-disable-next-line no-constant-condition
         while (true) {
             if (this.getToken().getLText() !== 'return') {
                 subprogramAlias.typeMarks.push(new OTypeMark(subprogramAlias, this.consumeNameRead(subprogramAlias)));
             } else {
-                this.expectToken('return');
+                this.expect('return');
                 subprogramAlias.return = this.consumeNameRead(subprogramAlias);
             }
             if (this.getToken().getLText() === ',') {
-                this.expectToken(',');
+                this.expect(',');
             } else if (this.getToken().getLText() === 'return') {
-                this.expectToken('return');
+                this.expect('return');
                 subprogramAlias.typeMarks.push(new OTypeMark(subprogramAlias, this.consumeNameRead(subprogramAlias)));
-                this.expectToken(']');
+                this.expect(']');
                 break;
             } else {
-                this.expectToken(']');
+                this.expect(']');
                 break;
             }
         }
-        this.expectToken(';');
+        this.expect(';');
         return subprogramAlias;
     }
 }

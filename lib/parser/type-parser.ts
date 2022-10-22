@@ -30,13 +30,13 @@ export class TypeParser extends ParserBase {
     type.lexerToken = this.consumeToken();
     if (this.getToken().getLText() === ';') {
       type.incomplete = true;
-      this.advancePastToken(';');
+      this.advancePast(';');
       return type;
     }
     const nextToken = this.consumeToken();
     if (nextToken.getLText() === 'is') {
       if (this.getToken().text === '(') {
-        this.expectToken('(');
+        this.expect('(');
         Object.setPrototypeOf(type, OEnum.prototype);
         const enumItems: OLexerToken[] = [];
         while (this.pos.isValid()) {
@@ -61,20 +61,20 @@ export class TypeParser extends ParserBase {
         });
         type.range = type.range.copyWithNewEnd(this.pos.i);
         this.advanceWhitespace();
-        this.expectToken(';');
+        this.expect(';');
       } else if (this.isUnits()) {
-        this.advancePastToken('units');
+        this.advancePast('units');
         type.units = [];
         type.units.push(this.consumeToken().getLText());
-        this.advanceSemicolonToken();
+        this.advanceSemicolon();
         while (this.getToken().getLText() !== 'end' || this.getToken(1, true).getLText() !== 'units') {
           type.units.push(this.consumeToken().getLText());
-          this.advanceSemicolonToken();
+          this.advanceSemicolon();
         }
-        this.expectToken('end');
-        this.expectToken('units');
+        this.expect('end');
+        this.expect('units');
         type.range = type.range.copyWithNewEnd(this.pos.i);
-        this.expectToken(';');
+        this.expect(';');
       } else {
         const nextToken = this.consumeToken();
         if (nextToken.getLText() === 'record') {
@@ -89,8 +89,8 @@ export class TypeParser extends ParserBase {
               child.lexerToken = lexerToken;
               children.push(child);
             } while (this.getToken().getLText() === ',');
-            this.expectToken(':');
-            const typeTokens = this.advanceSemicolonToken();
+            this.expect(':');
+            const typeTokens = this.advanceSemicolon();
             for (const child of children) {
               child.reads = this.extractReads(child, typeTokens);
             }
@@ -99,19 +99,19 @@ export class TypeParser extends ParserBase {
           this.maybe('record');
           this.maybe(type.lexerToken.text);
         } else if (nextToken.getLText() === 'array') {
-          const [token] = this.advanceBraceAwareToken([';'], true, false);
+          const [token] = this.advanceBraceAware([';'], true, false);
           type.reads.push(...this.extractReads(type, token));
         } else if (nextToken.getLText() === 'protected') {
           this.maybe('body');
           new DeclarativePartParser(this.pos, this.filePath, type).parse(false, 'end');
-          this.expectToken('end');
-          this.expectToken('protected');
+          this.expect('end');
+          this.expect('protected');
           this.maybe(type.lexerToken.text);
         } else if (nextToken.getLText() === 'range') {
           // TODO
         } else if (nextToken.getLText() === 'access') {
           // Is this a hack, or is it just fantasy/vhdl
-          const [typeTokens] = this.advanceBraceAwareToken([';'], true, false);
+          const [typeTokens] = this.advanceBraceAware([';'], true, false);
           const deallocateProcedure = new OSubprogram(this.parent, new OIRange(this.parent, typeTokens[0].range.start.i, typeTokens[typeTokens.length - 1].range.end.i));
           deallocateProcedure.lexerToken = new OLexerToken('deallocate', type.lexerToken.range, type.lexerToken.type);
           this.parent.subprograms.push(deallocateProcedure);
@@ -120,11 +120,11 @@ export class TypeParser extends ParserBase {
           deallocateProcedure.ports = [port];
         }
         type.range = type.range.copyWithNewEnd(this.pos.i);
-        this.advancePastToken(';');
+        this.advancePast(';');
       }
     } else {
       type.range = type.range.copyWithNewEnd(this.pos.i);
-      this.advancePastToken(';');
+      this.advancePast(';');
     }
     return type;
   }

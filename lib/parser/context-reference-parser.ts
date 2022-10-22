@@ -10,9 +10,9 @@ export class ContextReferenceParser extends ParserBase {
 
   parse() {
     const prefix = this.consumeToken();
-    this.expectToken('.');
+    this.expect('.');
     const suffix = this.consumeToken();
-    this.expectToken(';');
+    this.expect(';');
     return new OContextReference(this.parent, prefix.range.copyWithNewEnd(suffix.range), prefix, suffix.text);
   }
 }

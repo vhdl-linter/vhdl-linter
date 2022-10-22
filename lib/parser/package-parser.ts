@@ -12,15 +12,15 @@ export class PackageParser extends ParserBase {
       pkg.targetLibrary = match ? match[1] : undefined;
 
       pkg.lexerToken = this.consumeToken();
-      this.expectToken('is');
+      this.expect('is');
       const declarativePartParser = new DeclarativePartParser(this.pos, this.filePath, pkg);
       declarativePartParser.parse(false, 'end');
-      this.expectToken('end');
+      this.expect('end');
       this.maybe('package');
       this.maybe('body');
       this.maybe(pkg.lexerToken.text);
       pkg.range = pkg.range.copyWithNewEnd(this.getToken(-1, true).range.end);
-      this.advanceSemicolonToken();
+      this.advanceSemicolon();
       return pkg;
     } else {
       const pkg = new OPackage(parent, this.getToken().range);
@@ -28,7 +28,7 @@ export class PackageParser extends ParserBase {
       pkg.targetLibrary = match ? match[1] : undefined;
 
       pkg.lexerToken = nextToken;
-      this.expectToken('is');
+      this.expect('is');
       nextToken = this.getToken();
       // if (nextToken.getLText() === 'new') {
       //   this.getNextWord();
@@ -52,13 +52,13 @@ export class PackageParser extends ParserBase {
         const interfaceListParser = new InterfaceListParser(this.pos, this.filePath, pkg);
         interfaceListParser.parse(true);
         pkg.genericRange = new OIRange(pkg, savedI, this.pos.i);
-        this.expectToken(';');
+        this.expect(';');
       }
       const declarativePartParser = new DeclarativePartParser(this.pos, this.filePath, pkg);
       declarativePartParser.parse(false, 'end');
       this.maybe('package');
       this.maybe(pkg.lexerToken.text);
-      this.advanceSemicolonToken();
+      this.advanceSemicolon();
       return pkg;
     }
   }

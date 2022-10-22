@@ -43,10 +43,10 @@ export class ArchitectureParser extends ParserBase {
     }
     if (skipStart !== true) {
       this.architecture.lexerToken = this.consumeToken();
-      this.expectToken('of');
+      this.expect('of');
       this.entityName = this.consumeToken();
       this.architecture.entityName = this.entityName;
-      this.expectToken('is');
+      this.expect('is');
     }
 
     new DeclarativePartParser(this.pos, this.filePath, this.architecture).parse(structureName !== 'architecture');
@@ -62,7 +62,7 @@ export class ArchitectureParser extends ParserBase {
         }
         this.consumeToken();
         if (structureName === 'block') {
-          this.expectToken(structureName);
+          this.expect(structureName);
         } else {
           this.maybe(structureName);
         }
@@ -73,7 +73,7 @@ export class ArchitectureParser extends ParserBase {
         if (this.entityName) {
           this.maybe(this.entityName.text);
         }
-        this.expectToken(';');
+        this.expect(';');
         break;
       }
       const statementParser = new ConcurrentStatementParser(this.pos, this.filePath, this.architecture);

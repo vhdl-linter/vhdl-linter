@@ -63,9 +63,9 @@ export class ConcurrentStatementParser extends ParserBase {
       }
 
       const startI = this.pos.i;
-      const [constantName] = this.advancePastToken('in');
+      const [constantName] = this.advancePast('in');
 
-      const rangeToken = this.advancePastToken('generate');
+      const rangeToken = this.advancePast('generate');
       const constantRange = this.extractReads(this.parent, rangeToken);
       const subarchitecture = new ArchitectureParser(this.pos, this.filePath, (this.parent as OArchitecture), label);
       const generate: OForGenerate = subarchitecture.parse(true, 'generate', { constantName, constantRange, startPosI: startI });
@@ -84,32 +84,32 @@ export class ConcurrentStatementParser extends ParserBase {
       }
       const caseGenerate = new OCaseGenerate(this.parent, new OIRange(this.parent, this.pos.i, this.pos.i));
       this.consumeToken();
-      const caseConditionToken = this.advancePastToken('generate');
+      const caseConditionToken = this.advancePast('generate');
       caseGenerate.signal.push(...this.extractReads(caseGenerate, caseConditionToken));
       let nextToken = this.getToken();
       while (nextToken.getLText() === 'when') {
-        this.expectToken('when');
+        this.expect('when');
         const whenI = this.pos.i;
-        const whenConditionToken = this.advancePastToken('=>');
+        const whenConditionToken = this.advancePast('=>');
         const subarchitecture = new ArchitectureParser(this.pos, this.filePath, caseGenerate, label);
         const whenGenerateClause = subarchitecture.parse(true, 'when-generate');
         whenGenerateClause.condition.push(...this.extractReads(whenGenerateClause, whenConditionToken));
         whenGenerateClause.range = whenGenerateClause.range.copyWithNewStart(whenI);
         nextToken = this.getToken();
       }
-      this.expectToken('end');
-      this.expectToken('generate');
+      this.expect('end');
+      this.expect('generate');
       if (label) {
         this.maybe(label.text);
       }
-      this.advanceSemicolonToken();
+      this.advanceSemicolon();
       this.reverseWhitespace();
       caseGenerate.range = caseGenerate.range.copyWithNewEnd(this.pos.i);
       this.advanceWhitespace();
     } else if (nextToken.getLText() === 'if' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {
       const ifGenerate = new OIfGenerate(this.parent, new OIRange(this.parent, this.pos.i, this.pos.i));
       this.consumeToken();
-      const conditionTokens = this.advancePastToken('generate');
+      const conditionTokens = this.advancePast('generate');
       this.debug('parse if generate ' + label);
       const subarchitecture = new ArchitectureParser(this.pos, this.filePath, ifGenerate, label);
       const ifGenerateClause = subarchitecture.parse(true, 'generate');
@@ -137,7 +137,7 @@ export class ConcurrentStatementParser extends ParserBase {
       }
       previousArchitecture.range = previousArchitecture.range.copyWithNewEnd(this.getToken(-1, true).range.end);
 
-      const condition = this.advancePastToken('generate');
+      const condition = this.advancePast('generate');
       this.debug('parse elsif generate ' + label);
       const subarchitecture = new ArchitectureParser(this.pos, this.filePath, this.parent.parent, label);
       const ifGenerateObject = subarchitecture.parse(true, 'generate');
@@ -160,7 +160,7 @@ export class ConcurrentStatementParser extends ParserBase {
         throw new ParserError('WTF', this.pos.getRangeToEndLine());
       }
       previousArchitecture.range = previousArchitecture.range.copyWithNewEnd(this.getToken(-1, true).range.copyExtendEndOfLine().end);
-      this.advancePastToken('generate');
+      this.advancePast('generate');
       this.debug('parse else generate ' + label);
       const subarchitecture = new ArchitectureParser(this.pos, this.filePath, this.parent.parent, label);
 
@@ -188,7 +188,7 @@ export class ConcurrentStatementParser extends ParserBase {
     } else if (nextToken.getLText() === 'assert' && allowedStatements.includes(ConcurrentStatementTypes.Assert)) {
       this.consumeToken();
       //        console.log('report');
-      this.advancePastToken(';');
+      this.advancePast(';');
     } else {
       let braceLevel = 0;
       let i = 0;

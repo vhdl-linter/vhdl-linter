@@ -20,7 +20,7 @@ export class EntityParser extends ParserBase {
     if (this.parent instanceof OArchitecture) {
       this.maybe('is');
     } else {
-      this.expectToken('is');
+      this.expect('is');
     }
 
     let lastI;
@@ -33,19 +33,19 @@ export class EntityParser extends ParserBase {
         const interfaceListParser = new InterfaceListParser(this.pos, this.filePath, this.entity);
         interfaceListParser.parse(false);
         this.entity.portRange = new OIRange(this.entity, savedI, this.pos.i);
-        this.expectToken(';');
+        this.expect(';');
       } else if (nextToken.getLText() === 'generic') {
         this.consumeToken();
         const interfaceListParser = new InterfaceListParser(this.pos, this.filePath, this.entity);
         interfaceListParser.parse(true);
         this.entity.genericRange = new OIRange(this.entity, savedI, this.pos.i);
-        this.expectToken(';');
+        this.expect(';');
       } else if (nextToken.getLText() === 'end') {
         this.consumeToken();
         this.maybe('entity');
         this.maybe(this.entity.lexerToken.text);
         this.entity.range = this.entity.range.copyWithNewEnd(this.getToken(-1, true).range.end);
-        this.expectToken(';');
+        this.expect(';');
         break;
       } else if (nextToken.getLText() === 'begin') {
         this.consumeToken();
@@ -60,7 +60,7 @@ export class EntityParser extends ParserBase {
         this.maybe('entity');
         this.maybe(this.entity.lexerToken.text);
         this.entity.range = this.entity.range.copyWithNewEnd(this.getToken(-1, true).range.end);
-        this.expectToken(';');
+        this.expect(';');
         break;
 
       } else {

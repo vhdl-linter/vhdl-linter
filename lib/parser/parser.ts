@@ -128,7 +128,7 @@ export class Parser extends ParserBase {
       this.advanceWhitespace();
       const nextToken = this.consumeToken();
       if (nextToken.getLText() === 'context') {
-        if (this.advanceSemicolonToken(true, { consume: false }).find(token => token.getLText() === 'is')) {
+        if (this.advanceSemicolon(true, { consume: false }).find(token => token.getLText() === 'is')) {
           const contextParser = new ContextParser(this.pos, this.filePath, this.file);
           const context = contextParser.parse();
           context.libraries.push(...libraries.map(library => new OLibrary(context, library)));
@@ -153,7 +153,7 @@ export class Parser extends ParserBase {
         }
       } else if (nextToken.getLText() === 'library') {
         libraries.push(this.consumeToken());
-        this.expectToken(';');
+        this.expect(';');
       } else if (nextToken.getLText() === 'use') {
         const useClauseParser = new UseClauseParser(this.pos, this.filePath, this.file);
         useClauses.push(useClauseParser.parse());
@@ -209,7 +209,7 @@ export class Parser extends ParserBase {
         }
         if (pkg instanceof OPackageInstantiation) {
           this.file.packageInstantiations.push(pkg);
-          this.expectToken(';'); // package instantiations do not parse ';'
+          this.expect(';'); // package instantiations do not parse ';'
         } else {
           this.file.packages.push(pkg);
         }
@@ -219,7 +219,7 @@ export class Parser extends ParserBase {
       } else if (nextToken.getLText() === 'configuration') {
         const configuration = new OConfiguration(this.file, this.getToken().range.copyExtendEndOfLine());
         configuration.identifier = this.consumeToken();
-        this.expectToken('of');
+        this.expect('of');
         configuration.entityName = this.consumeToken();
         while (
           ((this.getToken(0).getLText() === 'end' && this.getToken(1, true).getLText() === ';')
@@ -233,7 +233,7 @@ export class Parser extends ParserBase {
           this.consumeToken(true);
         }
         this.file.configurations.push(configuration);
-        this.advanceSemicolonToken();
+        this.advanceSemicolon();
       } else {
         throw new ParserError(`Unexpected token ${nextToken.text}`, this.getToken().range);
       }

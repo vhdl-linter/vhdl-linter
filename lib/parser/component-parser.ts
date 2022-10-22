@@ -23,16 +23,16 @@ export class ComponentParser extends ParserBase {
         const interfaceListParser = new InterfaceListParser(this.pos, this.filePath, component);
         interfaceListParser.parse(false);
         component.portRange = new OIRange(component, savedI, this.pos.i);
-        this.expectToken(';');
+        this.expect(';');
       } else if (nextToken.getLText() === 'generic') {
         this.consumeToken();
         const interfaceListParser = new InterfaceListParser(this.pos, this.filePath, component);
         interfaceListParser.parse(true);
         component.genericRange = new OIRange(component, savedI, this.pos.i);
-        this.expectToken(';');
+        this.expect(';');
       } else if (nextToken.getLText() === 'end') {
         this.consumeToken();
-        this.expectToken('component');
+        this.expect('component');
         this.maybe(component.lexerToken.text);
         component.range = component.range.copyWithNewEnd(this.getToken(-1, true).range.end);
         break;

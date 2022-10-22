@@ -15,21 +15,21 @@ export class ProcessParser extends ParserBase {
     const process = new OProcess(this.parent, new OIRange(this.parent, startI, this.getEndOfLineI()));
     process.label = label;
     if (this.getToken().getLText() === '(') {
-      this.expectToken('(');
+      this.expect('(');
       const sensitivityListTokens = this.advanceBraceToken();
       process.sensitivityList.push(...this.extractReads(process, sensitivityListTokens));
     }
     this.maybe('is');
     new DeclarativePartParser(this.pos, this.filePath, process).parse();
-    this.expectToken('begin');
+    this.expect('begin');
     process.statements = new SequentialStatementParser(this.pos, this.filePath).parse(process, ['end']);
-    this.expectToken('end');
-    this.expectToken('process');
+    this.expect('end');
+    this.expect('process');
     if (label) {
       this.maybe(label);
     }
     process.range = process.range.copyWithNewEnd(this.pos.i);
-    this.expectToken(';');
+    this.expect(';');
 
     // [\s\S] for . but with newlines
     const resetRegex = /^(?![\s\S]*and|or)[\s\S]*(?:res|rst)[\s\S]*$/i;

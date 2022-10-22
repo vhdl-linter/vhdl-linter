@@ -28,7 +28,7 @@ export class DeclarativePartParser extends ParserBase {
         objectDeclarationParser.parse(nextToken);
       } else if (nextToken.getLText() === 'attribute') {
         this.consumeToken();
-        this.advanceSemicolonToken(true);
+        this.advanceSemicolon(true);
       } else if (nextToken.getLText() === 'type') {
         const typeParser = new TypeParser(this.pos, this.filePath, this.parent);
         this.parent.types.push(typeParser.parse());
@@ -60,9 +60,9 @@ export class DeclarativePartParser extends ParserBase {
             this.consumeToken();
             type.reads.push(...this.getType(type, false).typeReads);
           }
-          this.expectToken('is');
+          this.expect('is');
           this.parent.types.push(type);
-          this.advanceSemicolonToken(true);
+          this.advanceSemicolon(true);
         }
 
       } else if (nextToken.getLText() === 'component' && implementsIHasComponents(this.parent)) {
@@ -72,15 +72,15 @@ export class DeclarativePartParser extends ParserBase {
       } else if (nextToken.getLText() === 'procedure' || nextToken.getLText() === 'impure' || nextToken.getLText() === 'pure' || nextToken.getLText() === 'function') {
         const subprogramParser = new SubprogramParser(this.pos, this.filePath, this.parent);
         this.parent.subprograms.push(subprogramParser.parse());
-        this.expectToken(';');
+        this.expect(';');
       } else if (nextToken.getLText() === 'package') {
         this.consumeToken(); // consume 'package
         this.parent.packageInstantiations.push(new PackageInstantiationParser(this.pos, this.filePath, this.parent).parse());
-        this.expectToken(';');
+        this.expect(';');
       } else if (nextToken.getLText() === 'generic') {
-        this.advanceSemicolonToken();
+        this.advanceSemicolon();
       } else if (nextToken.getLText() === 'disconnect') {
-        this.advanceSemicolonToken();
+        this.advanceSemicolon();
       } else if (optional) {
         return;
       } else if (nextToken.getLText() === 'use') {

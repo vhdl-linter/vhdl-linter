@@ -41,11 +41,11 @@ export class ParserBase {
   // }
   getTypeDefintion(parent: OGeneric | OPort) {
     this.debug('getTypeDefintion');
-    const [type, last] = this.advanceBraceAwareToken([')', ';', ':='], true, false);
+    const [type, last] = this.advanceBraceAware([')', ';', ':='], true, false);
     let defaultValue: OLexerToken[] = [];
     if (last.getLText() === ':=') {
       this.consumeToken();
-      [defaultValue] = this.advanceBraceAwareToken([')', ';'], true, false);
+      [defaultValue] = this.advanceBraceAware([')', ';'], true, false);
     }
     this.reverseWhitespace();
     this.advanceWhitespace();
@@ -164,7 +164,7 @@ export class ParserBase {
       this.pos.num--;
     }
   }
-  advancePastToken(search: string, options: { allowSemicolon?: boolean, returnMatch?: boolean, consume?: boolean } = {}) {
+  advancePast(search: string, options: { allowSemicolon?: boolean, returnMatch?: boolean, consume?: boolean } = {}) {
     if (typeof options.allowSemicolon === 'undefined') {
       options.allowSemicolon = false;
     }
@@ -221,7 +221,7 @@ export class ParserBase {
     }
     throw new ParserError(`could not find closing brace`, savedI.getRangeToEndLine());
   }
-  advanceBraceAwareToken(searchStrings: (string)[], consume = true, consumeLastToken = true): [OLexerToken[], OLexerToken] {
+  advanceBraceAware(searchStrings: (string)[], consume = true, consumeLastToken = true): [OLexerToken[], OLexerToken] {
     searchStrings = searchStrings.map(str => str.toLowerCase());
     const savedI = this.pos;
     let braceLevel = 0;
@@ -257,14 +257,14 @@ export class ParserBase {
     }
     throw new ParserError(`could not find ${searchStrings}`, savedI.getRangeToEndLine());
   }
-  advanceSemicolonToken(braceAware = false, { consume } = { consume: true }) {
+  advanceSemicolon(braceAware = false, { consume } = { consume: true }) {
     if (consume !== false) {
       consume = true;
     }
     if (braceAware) {
-      return this.advanceBraceAwareToken([';'], consume)[0];
+      return this.advanceBraceAware([';'], consume)[0];
     }
-    return this.advancePastToken(';', { consume });
+    return this.advancePast(';', { consume });
   }
 
   getLine() {
@@ -277,7 +277,7 @@ export class ParserBase {
     const pos = this.getToken().range.start;
     return { line: pos.line, col: pos.character };
   }
-  expectToken(expected: string | string[]) {
+  expect(expected: string | string[]) {
     if (!Array.isArray(expected)) {
       expected = [expected];
     }
@@ -298,9 +298,9 @@ export class ParserBase {
   getType(parent: ObjectBase, advanceSemicolon = true, endWithBrace = false) {
     let type;
     if (endWithBrace) {
-      [type] = this.advanceBraceAwareToken([';', 'is', ')'], true, false);
+      [type] = this.advanceBraceAware([';', 'is', ')'], true, false);
     } else {
-      [type] = this.advanceBraceAwareToken([';', 'is'], true, false);
+      [type] = this.advanceBraceAware([';', 'is'], true, false);
     }
     // while (this.text[this.pos.i].match(/[^;]/)) {
     //   type += this.text[this.pos.i];
@@ -319,7 +319,7 @@ export class ParserBase {
 
     }
     if (advanceSemicolon) {
-      this.expectToken(';');
+      this.expect(';');
       this.advanceWhitespace();
     }
     return {
