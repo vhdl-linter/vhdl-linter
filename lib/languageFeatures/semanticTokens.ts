@@ -1,6 +1,6 @@
 import { SemanticTokenModifiers, SemanticTokens, SemanticTokensBuilder, SemanticTokensLegend, SemanticTokensParams, SemanticTokenTypes } from "vscode-languageserver";
 import { getDocumentSettings, initialization, linters } from "../language-server";
-import { implementsIHasLexerToken, OPort, implementsIHasDefinitions, ObjectBase, OIRange, OType, OEnumLiteral, OEnum, ORecord, OConstant, OGeneric, OWrite, OVariableBase, OEntity, OSubprogram, ORecordChild, OInstantiation } from "../parser/objects";
+import { implementsIHasLexerToken, OPort, implementsIHasDefinitions, ObjectBase, OIRange, OType, OEnumLiteral, OEnum, ORecord, OConstant, OGeneric, OWrite, OEntity, OSubprogram, ORecordChild, OInstantiation, OSignal, OVariable } from "../parser/objects";
 
 export const semanticTokensLegend: SemanticTokensLegend = {
   tokenTypes: Object.values(SemanticTokenTypes),
@@ -22,10 +22,10 @@ function tokenModifier(modifiers: SemanticTokenModifiers[]) {
 }
 
 function pushToken(builder: SemanticTokensBuilder, range: OIRange, type: SemanticTokenTypes, modifiers: SemanticTokenModifiers[]) {
-    const line = range.start.line;
-    const char = range.start.character;
-    const length = range.end.i - range.start.i;
-    builder.push(line, char, length, tokenType(type), tokenModifier(modifiers));
+  const line = range.start.line;
+  const char = range.start.character;
+  const length = range.end.i - range.start.i;
+  builder.push(line, char, length, tokenType(type), tokenModifier(modifiers));
 }
 
 
@@ -48,13 +48,11 @@ function pushCorrectToken(builder: SemanticTokensBuilder, obj: ObjectBase, range
     pushToken(builder, range, SemanticTokenTypes.enumMember, [...fixedModifiers, SemanticTokenModifiers.readonly]);
   } else if (obj instanceof OPort && obj.direction === 'in') {
     pushToken(builder, range, SemanticTokenTypes.variable, [...fixedModifiers, SemanticTokenModifiers.readonly]);
-  } else if (obj instanceof OVariableBase) {
-    if (obj instanceof OConstant || obj instanceof OGeneric) {
-      pushToken(builder, range, SemanticTokenTypes.parameter, [...fixedModifiers, SemanticTokenModifiers.readonly]);
-    } else {
-      const modifiers = obj instanceof OWrite ? [SemanticTokenModifiers.modification] : [];
-      pushToken(builder, range, SemanticTokenTypes.variable, [...fixedModifiers, ...modifiers]);
-    }
+  } else if (obj instanceof OConstant || obj instanceof OGeneric) {
+    pushToken(builder, range, SemanticTokenTypes.parameter, [...fixedModifiers, SemanticTokenModifiers.readonly]);
+  } else if (obj instanceof OSignal || obj instanceof OVariable) {
+    const modifiers = obj instanceof OWrite ? [SemanticTokenModifiers.modification] : [];
+    pushToken(builder, range, SemanticTokenTypes.variable, [...fixedModifiers, ...modifiers]);
   } else if (obj instanceof OEntity) {
     pushToken(builder, range, SemanticTokenTypes.class, fixedModifiers);
   } else if (obj instanceof OSubprogram) {

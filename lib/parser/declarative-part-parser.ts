@@ -1,6 +1,6 @@
 import { ComponentParser } from './component-parser';
 import { ObjectDeclarationParser } from './object-declaration-parser';
-import { implementsIHasComponents,OArchitecture, OEntity, OPackage, OPackageBody, OProcess, OSubprogram, OType, ParserError } from './objects';
+import { implementsIHasComponents, OArchitecture, OEntity, OPackage, OPackageBody, OProcess, OSubprogram, OType, ParserError } from './objects';
 import { ParserBase } from './parser-base';
 import { SubprogramParser } from './subprogram-parser';
 import { SubtypeParser } from './subtype-parser';
@@ -16,28 +16,28 @@ export class DeclarativePartParser extends ParserBase {
     this.debug('start');
   }
   parse(optional = false, lastWord = 'begin') {
-    let nextWord = this.getNextWord({ consume: false }).toLowerCase();
-    while (nextWord !== lastWord) {
-      if (nextWord === 'signal'
-        || nextWord === 'constant'
-        || nextWord === 'shared'
-        || nextWord === 'variable'
-        || nextWord === 'file') {
+    let nextToken = this.getToken();
+    while (nextToken.getLText() !== lastWord) {
+      if (nextToken.getLText() === 'signal'
+        || nextToken.getLText() === 'constant'
+        || nextToken.getLText() === 'shared'
+        || nextToken.getLText() === 'variable'
+        || nextToken.getLText() === 'file') {
         const objectDeclarationParser = new ObjectDeclarationParser(this.pos, this.filePath, this.parent);
-        objectDeclarationParser.parse(nextWord);
-      } else if (nextWord === 'attribute') {
+        objectDeclarationParser.parse(nextToken);
+      } else if (nextToken.getLText() === 'attribute') {
         this.getNextWord();
         this.advanceSemicolonToken(true);
-      } else if (nextWord === 'type') {
+      } else if (nextToken.getLText() === 'type') {
         const typeParser = new TypeParser(this.pos, this.filePath, this.parent);
         this.parent.types.push(typeParser.parse());
-      } else if (nextWord === 'subtype') {
+      } else if (nextToken.getLText() === 'subtype') {
         const subtypeParser = new SubtypeParser(this.pos, this.filePath, this.parent);
         this.parent.types.push(subtypeParser.parse());
-      } else if (nextWord === 'alias') {
+      } else if (nextToken.getLText() === 'alias') {
         const type = new OType(this.parent, this.getToken().range.copyExtendEndOfLine());
         this.getNextWord();
-        type.lexerToken =  this.consumeToken();
+        type.lexerToken = this.consumeToken();
         type.alias = true;
         if (this.getToken().getLText() === ':') {
           this.consumeToken();
@@ -48,32 +48,32 @@ export class DeclarativePartParser extends ParserBase {
         this.expect('is');
         this.parent.types.push(type);
         this.advanceSemicolonToken(true);
-      } else if (nextWord === 'component' && implementsIHasComponents(this.parent)) {
+      } else if (nextToken.getLText() === 'component' && implementsIHasComponents(this.parent)) {
         this.getNextWord();
         const componentParser = new ComponentParser(this.pos, this.filePath, this.parent);
         this.parent.components.push(componentParser.parse());
-      } else if (nextWord === 'procedure' || nextWord === 'impure' || nextWord === 'pure' || nextWord === 'function') {
+      } else if (nextToken.getLText() === 'procedure' || nextToken.getLText() === 'impure' || nextToken.getLText() === 'pure' || nextToken.getLText() === 'function') {
         const subprogramParser = new SubprogramParser(this.pos, this.filePath, this.parent);
         this.parent.subprograms.push(subprogramParser.parse());
         this.expect(';');
-      } else if (nextWord === 'package') {
+      } else if (nextToken.getLText() === 'package') {
         this.consumeToken(); // consume 'package
         this.parent.packageInstantiations.push(new PackageInstantiationParser(this.pos, this.filePath, this.parent).parse());
         this.expect(';');
-      } else if (nextWord === 'generic') {
+      } else if (nextToken.getLText() === 'generic') {
         this.advanceSemicolonToken();
-      } else if (nextWord === 'disconnect') {
+      } else if (nextToken.getLText() === 'disconnect') {
         this.advanceSemicolonToken();
       } else if (optional) {
         return;
-      } else if (nextWord === 'use') {
+      } else if (nextToken.getLText() === 'use') {
         this.getNextWord();
         const useClauseParser = new UseClauseParser(this.pos, this.filePath, this.parent);
         this.parent.useClauses.push(useClauseParser.parse());
       } else {
-        throw new ParserError(`Unknown Ding: '${nextWord}' on line ${this.getLine()}`, this.pos.getRangeToEndLine());
+        throw new ParserError(`Unknown Ding: '${nextToken.text}' on line ${this.getLine()}`, this.pos.getRangeToEndLine());
       }
-      nextWord = this.getNextWord({ consume: false }).toLowerCase();
+      nextToken = this.getToken();
     }
   }
 

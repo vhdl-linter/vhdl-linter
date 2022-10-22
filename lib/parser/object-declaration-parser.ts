@@ -1,23 +1,24 @@
-import { IHasConstants, IHasSignals, IHasVariables, implementsIHasConstants, implementsIHasSignals, implementsIHasVariables, OConstant, OSignal, OVariable, ParserError, IHasFileVariables, OFileVariable, implementsIHasFileVariables, ORead } from './objects';
+import { IHasConstants, IHasSignals, IHasVariables, implementsIHasConstants, implementsIHasSignals, implementsIHasVariables, OConstant, OSignal, OVariable, ParserError, IHasFileVariables, OFileVariable, implementsIHasFileVariables, ORead, ObjectBase } from './objects';
 import { ParserBase } from './parser-base';
 import { ParserPosition } from './parser';
+import { OLexerToken } from '../lexer';
 
 export class ObjectDeclarationParser extends ParserBase {
 
-  constructor(pos: ParserPosition, file: string, private parent: IHasSignals | IHasConstants | IHasVariables | IHasFileVariables) {
+  constructor(pos: ParserPosition, file: string, private parent: ObjectBase & (IHasSignals | IHasConstants | IHasVariables | IHasFileVariables)) {
     super(pos, file);
     this.debug('start');
   }
-  parse(nextWord: string) {
+  parse(nextToken: OLexerToken) {
 
-    if (nextWord === 'shared') {
+    if (nextToken.getLText() === 'shared') {
       this.getNextWord();
-      nextWord = this.getNextWord({ consume: false });
+      nextToken = this.getToken();
     }
     const objects = [];
-    const constant = nextWord.toLowerCase() === 'constant';
-    const variable = nextWord.toLowerCase() === 'variable';
-    const file = nextWord.toLowerCase() === 'file';
+    const constant = nextToken.getLText() === 'constant';
+    const variable = nextToken.getLText() === 'variable';
+    const file = nextToken.getLText() === 'file';
     if ((variable) && !implementsIHasVariables(this.parent)) {
       throw new ParserError(`No variables allowed here.`, this.pos.getRangeToEndLine());
     }
@@ -41,7 +42,7 @@ export class ObjectDeclarationParser extends ParserBase {
       } else if (file) {
         object = new OFileVariable(this.parent as IHasFileVariables, this.getToken().range);
       } else {
-        object = new OSignal(this.parent as IHasSignals, this.getToken().range);
+        object = new OSignal((this.parent as ObjectBase & IHasSignals), this.getToken().range);
       }
       object.lexerToken = this.consumeToken();
       objects.push(object);
