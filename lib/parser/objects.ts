@@ -135,6 +135,7 @@ export class OIRange implements Range {
 
 export class ObjectBase {
   lexerToken?: OLexerToken;
+  hasBody = false;
   constructor(public parent: ObjectBase | OFile, public range: OIRange) {
     let maximumIterationCounter = 5000;
     let p = parent;

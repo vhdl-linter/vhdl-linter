@@ -1251,6 +1251,9 @@ export class VhdlLinter {
 
   private checkUnusedPorts(ports: OPort[]) {
     for (const port of ports) {
+      if (port.parent instanceof OSubprogram && port.parent.hasBody === false) { // For empty procedures/function the ports can not be used
+        continue;
+      }
       if ((port.direction === 'in' || port.direction === 'inout') && port.references.filter(token => token instanceof ORead).length === 0) {
         this.addMessage({
           range: port.range,
@@ -1688,7 +1691,7 @@ export class VhdlLinter {
       subprograms.push(...this.projectParser.getPackages().filter(pkg => pkg.lexerToken.getLText() === instantiation.package?.text.toLowerCase()).map(pkg => pkg.subprograms).flat());
 
     }
-    return subprograms.filter(e => e.lexerToken.getLText() === instantiation.componentName.getLText() );
+    return subprograms.filter(e => e.lexerToken.getLText() === instantiation.componentName.getLText());
   }
 
   checkAssociations(availableInterfaceElements: (OPort | OGeneric | OTypeMark)[][], associationList: OAssociationList | undefined, typeName: string, range: OIRange, kind: 'port' | 'generic') {

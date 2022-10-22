@@ -12,11 +12,22 @@ interface MessageWrapper {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   messages: any
 }
-// Do a recursive walk on the folders. Each folder is a library and shares a project parser.
-async function run_test(path: string, error_expected: boolean): Promise<MessageWrapper[]> {
+// Take each directory in path as a project run test on every file
+async function run_test_folder(path: string, error_expected: boolean): Promise<MessageWrapper[]> {
   const messageWrappers: MessageWrapper[] = [];
-  const projectParser = new ProjectParser([path], '');
-  await projectParser.init();
+
+  for (const subPath of readDirPath(path)) {
+    messageWrappers.push(...await run_test(subPath, error_expected));
+  }
+  return messageWrappers;
+}
+// Take path as a project run test on every file
+async function run_test(path: string, error_expected: boolean, projectParser?: ProjectParser): Promise<MessageWrapper[]> {
+  const messageWrappers: MessageWrapper[] = [];
+  if (!projectParser) {
+    projectParser = new ProjectParser([path], '');
+    await projectParser.init();
+  }
   for (const subPath of readDirPath(path)) {
     if (lstatSync(subPath).isDirectory()) {
       messageWrappers.push(...await run_test(subPath, error_expected));
@@ -39,7 +50,6 @@ async function run_test(path: string, error_expected: boolean): Promise<MessageW
           });
         }
       }
-
     }
   }
   if (messageWrappers.length > 0) {
@@ -51,8 +61,8 @@ async function run_test(path: string, error_expected: boolean): Promise<MessageW
 (async () => {
   const start = new Date().getTime();
   const messages = [];
-  messages.push(... await run_test(join(cwd(), 'test', 'test_files', 'test_error_expected'), true));
-  messages.push(... await run_test(join(cwd(), 'test', 'test_files', 'test_no_error'), false));
+  messages.push(... await run_test_folder(join(cwd(), 'test', 'test_files', 'test_error_expected'), true));
+  messages.push(... await run_test_folder(join(cwd(), 'test', 'test_files', 'test_no_error'), false));
   messages.push(... await run_test(join(cwd(), 'ieee2008'), false));
   const timeTaken = new Date().getTime() - start;
   let timeOutError = 0;
