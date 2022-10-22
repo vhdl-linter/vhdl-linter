@@ -5,14 +5,14 @@ import {
 } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { CancelationError, CancelationObject, getDocumentSettings } from './language-server';
-import { IHasContextReference, IHasLexerToken, IHasUseClauses, implementsIHasConstants, implementsIHasContextReference, 
-  implementsIHasInstantiations, implementsIHasLexerToken, implementsIHasSignals, implementsIHasSubprograms, 
-  implementsIHasTypes, implementsIHasUseClause, implementsIHasVariables, implementsIReferencable, MagicCommentType, 
-  OArchitecture, OAssociation, OAssociationFormal, OAssociationList, ObjectBase, OCase, OComponent, OConstant, OEntity, 
-  OFile, OGeneric, OGenericAssociationList, OHasSequentialStatements, OI, OIf, OInstantiation, OIRange, OPackage, 
-  OPackageBody, OPort, OPortAssociationList, OProcess, ORead, OSignal, OSignalBase, OSubprogram, OReference, OType, 
-  OVariable, OWrite, ParserError, implementsIHasLibraries, implementsIHasLibraryReference, OSelectedNameRead, 
-  implementsIHasPorts, implementsIHasGenerics, implementsIHasPackageInstantiations, scope, OTypeMark, OSubprogramAlias, implementsIHasSubprogramAlias } from './parser/objects';
+import { IHasContextReference, IHasLexerToken, IHasUseClauses, implementsIHasConstants, implementsIHasContextReference,
+  implementsIHasInstantiations, implementsIHasLexerToken, implementsIHasSignals, implementsIHasSubprograms,
+  implementsIHasTypes, implementsIHasUseClause, implementsIHasVariables, implementsIReferencable, MagicCommentType,
+  OArchitecture, OAssociation, OAssociationFormal, OAssociationList, ObjectBase, OCase, OComponent, OConstant, OEntity,
+  OFile, OGeneric, OGenericAssociationList, OHasSequentialStatements, OI, OIf, OInstantiation, OIRange, OPackage,
+  OPackageBody, OPort, OPortAssociationList, OProcess, ORead, OSignal, OSubprogram, OReference, OType,
+  OVariable, OWrite, ParserError, implementsIHasLibraries, implementsIHasLibraryReference, OSelectedNameRead,
+  implementsIHasPorts, implementsIHasGenerics, implementsIHasPackageInstantiations, scope, OTypeMark } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 export enum LinterRules {
@@ -1070,7 +1070,7 @@ export class VhdlLinter {
     }
   }
   getCodeLens(textDocumentUri: string): CodeLens[] {
-    let signalLike: OSignalBase[] = [];
+    let signalLike: OSignal[] = [];
     for (const architecture of this.file.architectures) {
       signalLike = signalLike.concat(architecture.signals);
     }
@@ -1091,7 +1091,7 @@ export class VhdlLinter {
     if (signalsMissingReset.length === 0) {
       return [];
     }
-    const registerProcessMap = new Map<OProcess, OSignalBase[]>();
+    const registerProcessMap = new Map<OProcess, OSignal[]>();
     for (const signal of signalsMissingReset) {
       const registerProcess = signal.registerProcess;
       if (typeof registerProcess === 'undefined') {
@@ -1128,11 +1128,17 @@ export class VhdlLinter {
   }
   checkResets() {
     for (const architecture of this.file.architectures) {
-      let signalLike: OSignalBase[] = architecture.signals;
+      let signalLike: OSignal[] = architecture.signals;
       if (architecture.correspondingEntity !== undefined) {
         signalLike = signalLike.concat(architecture.correspondingEntity.ports);
       }
       for (const signal of signalLike) {
+        for (const obj of scope(signal)) {
+          if (obj instanceof OProcess && obj.registerProcess) {
+            signal.registerProcess = obj;
+            break;
+          }
+        }
         if (typeof signal.registerProcess === 'undefined') {
           continue;
         }
