@@ -56,13 +56,13 @@ export class SequentialStatementParser extends ParserBase {
       } else if (nextToken.getLText() === 'wait') {
         statements.push(this.parseWait(parent));
       } else if (nextToken.getLText() === 'exit') {
-        this.advancePast(';');
+        this.advancePastToken(';');
       } else if (nextToken.getLText() === 'return') {
         statements.push(this.parseReturn(parent));
       } else if (nextToken.getLText() === 'null') {
-        this.advancePast(';');
+        this.advancePastToken(';');
       } else if (nextToken.getLText() === 'next') {
-        this.advancePast(';');
+        this.advancePastToken(';');
       } else if (nextToken.getLText() === 'while') {
         statements.push(this.parseWhile(parent, label));
       } else if (this.checkIfIsAssigment(statementText)) {

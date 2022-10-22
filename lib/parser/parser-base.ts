@@ -201,16 +201,6 @@ export class ParserBase {
     }
     return tokens;
   }
-  advancePast(search: string, options: { allowSemicolon?: boolean, returnMatch?: boolean, consume?: boolean } = {}) {
-    if (typeof options.allowSemicolon === 'undefined') {
-      options.allowSemicolon = false;
-    }
-    if (typeof options.returnMatch === 'undefined') {
-      options.returnMatch = false;
-    }
-    const text = this.advancePastToken(search, options).map(token => token.text).join(' ');
-    return text.trim();
-  }
   advanceBraceToken() {
     const tokens = [];
     let braceLevel = 0;

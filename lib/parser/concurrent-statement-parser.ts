@@ -160,7 +160,7 @@ export class ConcurrentStatementParser extends ParserBase {
         throw new ParserError('WTF', this.pos.getRangeToEndLine());
       }
       previousArchitecture.range = previousArchitecture.range.copyWithNewEnd(this.getToken(-1, true).range.copyExtendEndOfLine().end);
-      this.advancePast('generate');
+      this.advancePastToken('generate');
       this.debug('parse else generate ' + label);
       const subarchitecture = new ArchitectureParser(this.pos, this.filePath, this.parent.parent, label);
 
@@ -188,7 +188,7 @@ export class ConcurrentStatementParser extends ParserBase {
     } else if (nextToken.getLText() === 'assert' && allowedStatements.includes(ConcurrentStatementTypes.Assert)) {
       this.consumeToken();
       //        console.log('report');
-      this.advancePast(';');
+      this.advancePastToken(';');
     } else {
       let braceLevel = 0;
       let i = 0;

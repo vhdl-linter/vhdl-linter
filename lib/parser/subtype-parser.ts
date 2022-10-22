@@ -14,7 +14,7 @@ export class SubtypeParser extends ParserBase {
     this.subtype.lexerToken = this.consumeToken();
     this.expect('is');
     if (this.getToken().getLText() === '(') { // funky vhdl stuff
-      this.advancePast(')');
+      this.advancePastToken(')');
     }
     const superType = this.consumeToken();
     this.subtype.range = this.subtype.range.copyWithNewEnd(this.pos.i);
