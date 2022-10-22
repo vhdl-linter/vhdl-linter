@@ -20,7 +20,7 @@ export class ConcurrentStatementParser extends ParserBase {
     this.debug('start');
   }
   parse(allowedStatements: ConcurrentStatementTypes[], previousArchitecture?: OArchitecture, returnOnWhen = false) {
-    let nextWord = this.getNextWord({ consume: false }).toLowerCase();
+    let nextToken = this.getToken();
 
     let label: OLexerToken | undefined;
     const savedI = this.pos.i;
@@ -29,18 +29,18 @@ export class ConcurrentStatementParser extends ParserBase {
       this.debug('parse label ' + label);
       this.consumeToken();
       this.advanceWhitespace();
-      nextWord = this.getNextWord({ consume: false }).toLowerCase();
+      nextToken = this.getToken();
     }
 
-    this.maybeWord('postponed');
-    this.maybeWord('guarded');
+    this.maybe('postponed');
+    this.maybe('guarded');
 
-    if (nextWord === 'process' && allowedStatements.includes(ConcurrentStatementTypes.Process)) {
-      this.getNextWord();
+    if (nextToken.getLText() === 'process' && allowedStatements.includes(ConcurrentStatementTypes.Process)) {
+      this.consumeToken();
       const processParser = new ProcessParser(this.pos, this.filePath, this.parent);
       this.parent.statements.push(processParser.parse(savedI, label));
-    } else if (nextWord === 'block' && allowedStatements.includes(ConcurrentStatementTypes.Block)) {
-      this.getNextWord();
+    } else if (nextToken.getLText() === 'block' && allowedStatements.includes(ConcurrentStatementTypes.Block)) {
+      this.consumeToken();
       this.debug('parse block');
 
       const subarchitecture = new ArchitectureParser(this.pos, this.filePath, (this.parent as OArchitecture), label);
@@ -55,17 +55,17 @@ export class ConcurrentStatementParser extends ParserBase {
       this.advanceWhitespace();
       //        console.log(generate, generate.constructor.name);
       (this.parent as OArchitecture).statements.push(block);
-    } else if (nextWord === 'for' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {
-      this.getNextWord();
+    } else if (nextToken .getLText()=== 'for' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {
+      this.consumeToken();
       this.debug('parse for generate');
       if (typeof label === 'undefined') {
         throw new ParserError('A for generate needs a label.', this.pos.getRangeToEndLine());
       }
 
       const startI = this.pos.i;
-      const [constantName] = this.advancePastToken('in');
+      const [constantName] = this.advancePast('in');
 
-      const rangeToken = this.advancePastToken('generate');
+      const rangeToken = this.advancePast('generate');
       const constantRange = this.extractReads(this.parent, rangeToken);
       const subarchitecture = new ArchitectureParser(this.pos, this.filePath, (this.parent as OArchitecture), label);
       const generate: OForGenerate = subarchitecture.parse(true, 'generate', { constantName, constantRange, startPosI: startI });
@@ -76,40 +76,40 @@ export class ConcurrentStatementParser extends ParserBase {
       this.advanceWhitespace();
       //        console.log(generate, generate.constructor.name);
       (this.parent as OArchitecture).statements.push(generate);
-    } else if (nextWord === 'when' && returnOnWhen) {
+    } else if (nextToken.getLText() === 'when' && returnOnWhen) {
       return true;
-    } else if (nextWord === 'case' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {
+    } else if (nextToken.getLText() === 'case' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {
       if (typeof label === 'undefined') {
         throw new ParserError('A case generate needs a label.', this.pos.getRangeToEndLine());
       }
       const caseGenerate = new OCaseGenerate(this.parent, new OIRange(this.parent, this.pos.i, this.pos.i));
-      this.getNextWord();
-      const caseConditionToken = this.advancePastToken('generate');
+      this.consumeToken();
+      const caseConditionToken = this.advancePast('generate');
       caseGenerate.signal.push(...this.extractReads(caseGenerate, caseConditionToken));
-      let nextWord = this.getNextWord({ consume: false });
-      while (nextWord.toLowerCase() === 'when') {
+      let nextToken = this.getToken();
+      while (nextToken.getLText() === 'when') {
         this.expect('when');
         const whenI = this.pos.i;
-        const whenConditionToken = this.advancePastToken('=>');
+        const whenConditionToken = this.advancePast('=>');
         const subarchitecture = new ArchitectureParser(this.pos, this.filePath, caseGenerate, label);
         const whenGenerateClause = subarchitecture.parse(true, 'when-generate');
         whenGenerateClause.condition.push(...this.extractReads(whenGenerateClause, whenConditionToken));
         whenGenerateClause.range = whenGenerateClause.range.copyWithNewStart(whenI);
-        nextWord = this.getNextWord({ consume: false });
+        nextToken = this.getToken();
       }
       this.expect('end');
       this.expect('generate');
       if (label) {
-        this.maybeWord(label.text);
+        this.maybe(label.text);
       }
-      this.advanceSemicolonToken();
+      this.advanceSemicolon();
       this.reverseWhitespace();
       caseGenerate.range = caseGenerate.range.copyWithNewEnd(this.pos.i);
       this.advanceWhitespace();
-    } else if (nextWord === 'if' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {
+    } else if (nextToken.getLText() === 'if' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {
       const ifGenerate = new OIfGenerate(this.parent, new OIRange(this.parent, this.pos.i, this.pos.i));
-      this.getNextWord();
-      const conditionTokens = this.advancePastToken('generate');
+      this.consumeToken();
+      const conditionTokens = this.advancePast('generate');
       this.debug('parse if generate ' + label);
       const subarchitecture = new ArchitectureParser(this.pos, this.filePath, ifGenerate, label);
       const ifGenerateClause = subarchitecture.parse(true, 'generate');
@@ -128,7 +128,7 @@ export class ConcurrentStatementParser extends ParserBase {
       ifGenerate.range = ifGenerate.range.copyWithNewEnd(this.pos.i);
       ifGenerateClause.range = ifGenerateClause.range.copyWithNewEnd(this.pos.i);
       this.advanceWhitespace();
-    } else if (nextWord === 'elsif' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {
+    } else if (nextToken.getLText() === 'elsif' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {
       if (!(this.parent instanceof OIfGenerateClause)) {
         throw new ParserError('elsif generate without if generate', this.pos.getRangeToEndLine());
       }
@@ -137,7 +137,7 @@ export class ConcurrentStatementParser extends ParserBase {
       }
       previousArchitecture.range = previousArchitecture.range.copyWithNewEnd(this.getToken(-1, true).range.end);
 
-      const condition = this.advancePastToken('generate');
+      const condition = this.advancePast('generate');
       this.debug('parse elsif generate ' + label);
       const subarchitecture = new ArchitectureParser(this.pos, this.filePath, this.parent.parent, label);
       const ifGenerateObject = subarchitecture.parse(true, 'generate');
@@ -152,7 +152,7 @@ export class ConcurrentStatementParser extends ParserBase {
       }
       this.parent.parent.ifGenerates.push(ifGenerateObject);
       return true;
-    } else if (nextWord === 'else' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {
+    } else if (nextToken.getLText() === 'else' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {
       if (!(this.parent instanceof OIfGenerateClause)) {
         throw new ParserError('elsif generate without if generate', this.pos.getRangeToEndLine());
       }
@@ -172,21 +172,21 @@ export class ConcurrentStatementParser extends ParserBase {
       this.parent.parent.elseGenerate = ifGenerateObject;
       return true;
 
-    } else if (nextWord === 'with' && allowedStatements.includes(ConcurrentStatementTypes.Assignment)) {
-      this.getNextWord();
+    } else if (nextToken.getLText() === 'with' && allowedStatements.includes(ConcurrentStatementTypes.Assignment)) {
+      this.consumeToken();
       const readToken = this.consumeToken();
       if (this.getToken().text === '(') {
         this.consumeToken();
-        this.advanceBrace();
+        this.advanceClosingParenthese();
       }
-      this.getNextWord();
+      this.consumeToken();
       const assignmentParser = new AssignmentParser(this.pos, this.filePath, this.parent);
       const assignment = assignmentParser.parse();
       const read = new ORead(assignment, readToken);
       assignment.reads.push(read);
       this.parent.statements.push(assignment);
-    } else if (nextWord === 'assert' && allowedStatements.includes(ConcurrentStatementTypes.Assert)) {
-      this.getNextWord();
+    } else if (nextToken.getLText() === 'assert' && allowedStatements.includes(ConcurrentStatementTypes.Assert)) {
+      this.consumeToken();
       //        console.log('report');
       this.advancePast(';');
     } else {
@@ -228,7 +228,7 @@ export class ConcurrentStatementParser extends ParserBase {
 
       } else {
         const instantiationParser = new InstantiationParser(this.pos, this.filePath, this.parent);
-        (this.parent as OArchitecture).statements.push(instantiationParser.parse(nextWord, label, savedI));
+        (this.parent as OArchitecture).statements.push(instantiationParser.parse(nextToken, label, savedI));
       }
     }
     return false;

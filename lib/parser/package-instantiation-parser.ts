@@ -17,8 +17,7 @@ export class PackageInstantiationParser extends ParserBase {
     this.consumeToken(); // ignore package library
     this.expect('.');
     inst.uninstantiatedPackageToken = this.consumeToken();
-    const nextWord = this.getNextWord({consume: false});
-    if (nextWord === 'generic') {
+    if (this.getToken().getLText() === 'generic') {
       this.consumeToken();
       this.expect('map');
       inst.genericAssociationList = new AssociationListParser(this.pos, this.filePath, inst).parse('generic');

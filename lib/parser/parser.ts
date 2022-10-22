@@ -128,7 +128,7 @@ export class Parser extends ParserBase {
       this.advanceWhitespace();
       const nextToken = this.consumeToken();
       if (nextToken.getLText() === 'context') {
-        if (this.advanceSemicolonToken(true, { consume: false }).find(token => token.getLText() === 'is')) {
+        if (this.advanceSemicolon(true, { consume: false }).find(token => token.getLText() === 'is')) {
           const contextParser = new ContextParser(this.pos, this.filePath, this.file);
           const context = contextParser.parse();
           context.libraries.push(...libraries.map(library => new OLibrary(context, library)));
@@ -195,9 +195,6 @@ export class Parser extends ParserBase {
         libraries = defaultLibrary.slice(0);
         useClauses = defaultUseClause.slice(0);
       } else if (nextToken.getLText() === 'package') {
-        if (this.onlyEntity && this.getNextWord({ consume: false }) === 'body') {
-          // break;
-        }
         const pkg = (this.getToken(2, true).getLText() === 'new')
           ? new PackageInstantiationParser(this.pos, this.filePath, this.file).parse()
           : new PackageParser(this.pos, this.filePath).parse(this.file);

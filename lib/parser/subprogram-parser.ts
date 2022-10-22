@@ -35,8 +35,8 @@ export class SubprogramParser extends ParserBase {
       this.expect('begin');
       subprogram.statements = new SequentialStatementParser(this.pos, this.filePath).parse(subprogram, ['end']);
       this.expect('end');
-      this.maybeWord(isFunction ? 'function' : 'procedure');
-      this.maybeWord(token.text);
+      this.maybe(isFunction ? 'function' : 'procedure');
+      this.maybe(token.text);
       subprogram.range = subprogram.range.copyWithNewEnd(this.pos.i);
 
     }

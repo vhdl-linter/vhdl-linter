@@ -12,7 +12,7 @@ export class ObjectDeclarationParser extends ParserBase {
   parse(nextToken: OLexerToken) {
 
     if (nextToken.getLText() === 'shared') {
-      this.getNextWord();
+      this.consumeToken();
       nextToken = this.getToken();
     }
     const objects = [];
@@ -31,9 +31,9 @@ export class ObjectDeclarationParser extends ParserBase {
     if (!variable && !constant && !file && !implementsIHasSignals(this.parent)) {
       throw new ParserError(`No signals allowed here`, this.pos.getRangeToEndLine());
     }
-    this.getNextWord();
+    this.consumeToken();
     do {
-      this.maybeWord(',');
+      this.maybe(',');
       let object;
       if (variable) {
         object = new OVariable(this.parent as IHasVariables, this.getToken().range);
@@ -69,7 +69,7 @@ export class ObjectDeclarationParser extends ParserBase {
     for (const object of objects) {
       object.range.copyWithNewEnd(this.getToken().range.end);
     }
-    this.advanceSemicolonToken();
+    this.advanceSemicolon();
     if (constant) {
       (this.parent as IHasConstants).constants.push(...objects as OSignal[]);
     } else if (variable) {

@@ -10,20 +10,20 @@ export class InstantiationParser extends ParserBase {
     this.debug(`start`);
 
   }
-  parse(nextWord: string, label: OLexerToken | undefined, startI: number): OInstantiation {
+  parse(nextToken: OLexerToken, label: OLexerToken | undefined, startI: number): OInstantiation {
     const instantiation = new OInstantiation(this.parent, new OIRange(this.parent, startI, this.getEndOfLineI()));
     instantiation.label = label;
-    if (nextWord === 'entity') {
-      this.getNextWord();
+    if (nextToken.getLText() === 'entity') {
+      this.consumeToken();
       instantiation.type = 'entity';
       instantiation.library = this.consumeToken();
       this.expect('.');
-    } else if (nextWord === 'component') {
-      this.getNextWord();
+    } else if (nextToken.getLText() === 'component') {
+      this.consumeToken();
       instantiation.type = 'component';
     }
     // all names may have multiple '.' in them...
-    let nextToken = this.consumeToken();
+    nextToken = this.consumeToken();
     while (this.getToken().text === '.') {
       this.consumeToken();
       nextToken = this.consumeToken();
@@ -33,25 +33,25 @@ export class InstantiationParser extends ParserBase {
     let hasGenericMap = false;
     let lastI;
     while (this.getToken().getLText() !== ';') {
-      nextWord = this.getNextWord({consume: false}).toLowerCase();
-      if (nextWord === 'port' && instantiation.type !== 'subprogram') {
+      nextToken = this.getToken();
+      if (nextToken.getLText() === 'port' && instantiation.type !== 'subprogram') {
         if (instantiation.type === 'unknown') {
           instantiation.type = 'component';
         }
         hasPortMap = true;
-        this.getNextWord();
+        this.consumeToken();
         this.expect('map');
         instantiation.portAssociationList = new AssociationListParser(this.pos, this.filePath, instantiation).parse();
 
-      } else if (nextWord === 'generic' && instantiation.type !== 'subprogram') {
+      } else if (nextToken.getLText() === 'generic' && instantiation.type !== 'subprogram') {
         if (instantiation.type === 'unknown') {
           instantiation.type = 'component';
         }
         hasGenericMap = true;
-        this.getNextWord();
+        this.consumeToken();
         this.expect('map');
         instantiation.genericAssociationList = new AssociationListParser(this.pos, this.filePath, instantiation).parse('generic');
-      } else if (nextWord === '(' && !hasGenericMap && !hasPortMap) { // is subprogram call
+      } else if (nextToken.getLText() === '(' && !hasGenericMap && !hasPortMap) { // is subprogram call
         instantiation.type = 'subprogram';
         instantiation.portAssociationList = new AssociationListParser(this.pos, this.filePath, instantiation).parse();
       }

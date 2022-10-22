@@ -51,27 +51,27 @@ export class ArchitectureParser extends ParserBase {
 
     new DeclarativePartParser(this.pos, this.filePath, this.architecture).parse(structureName !== 'architecture');
     this.architecture.endOfDeclarativePart = new OI(this.architecture, this.pos.i);
-    this.maybeWord('begin');
+    this.maybe('begin');
 
     while (this.pos.isValid()) {
       this.advanceWhitespace();
-      const nextWord = this.getNextWord({ consume: false }).toLowerCase();
-      if (nextWord === 'end') {
+      const nextToken = this.getToken();
+      if (nextToken.getLText() === 'end') {
         if (structureName === 'when-generate') {
           break;
         }
-        this.getNextWord();
+        this.consumeToken();
         if (structureName === 'block') {
           this.expect(structureName);
         } else {
-          this.maybeWord(structureName);
+          this.maybe(structureName);
         }
         if (this.architecture.lexerToken) {
-          this.maybeWord(this.architecture.lexerToken.text);
+          this.maybe(this.architecture.lexerToken.text);
         }
 
         if (this.entityName) {
-          this.maybeWord(this.entityName.text);
+          this.maybe(this.entityName.text);
         }
         this.expect(';');
         break;

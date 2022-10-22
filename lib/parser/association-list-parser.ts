@@ -24,7 +24,7 @@ export class AssociationListParser extends ParserBase {
     return -1;
   }
   parse(type: 'port' | 'generic' = 'port') {
-    const braceToken = this.expectToken('(');
+    const braceToken = this.expect('(');
 
     const list = type === 'generic' ? new OGenericAssociationList(this.parent, braceToken.range) : new OPortAssotiationList(this.parent, braceToken.range);
 
@@ -32,7 +32,7 @@ export class AssociationListParser extends ParserBase {
       const savedI = this.pos.i;
       // let associationString = this.advancePast(/[,)]/, {returnMatch: true});
       // eslint-disable-next-line prefer-const
-      let [associationTokens, lastChar] = this.advanceBraceAwareToken([',', ')']);
+      let [associationTokens, lastChar] = this.advanceParentheseAware([',', ')']);
       if (associationTokens.length > 0) {
         const association = new OAssociation(list, new OIRange(list, savedI, associationTokens[0]?.range?.end?.i ?? savedI));
         const index = this.findFormal(associationTokens);
