@@ -57,7 +57,7 @@ export class DeclarativePartParser extends ParserBase {
           if (this.getToken().getLText() === ':') {
             this.consumeToken();
             this.advanceWhitespace();
-            this.getNextWord();
+            this.consumeToken();
             type.reads.push(...this.getType(type, false).typeReads);
           }
           this.expect('is');
