@@ -11,7 +11,7 @@ export class ComponentParser extends ParserBase {
   parse() {
     const component = new OComponent(this.parent, this.getToken().range.copyExtendEndOfLine());
     component.lexerToken = this.consumeToken();
-    this.maybeWord('is');
+    this.maybe('is');
 
     let lastI;
     while (this.pos.isValid()) {
@@ -33,7 +33,7 @@ export class ComponentParser extends ParserBase {
       } else if (nextToken.getLText() === 'end') {
         this.consumeToken();
         this.expectToken('component');
-        this.maybeWord(component.lexerToken.text);
+        this.maybe(component.lexerToken.text);
         component.range = component.range.copyWithNewEnd(this.getToken(-1, true).range.end);
         break;
       }

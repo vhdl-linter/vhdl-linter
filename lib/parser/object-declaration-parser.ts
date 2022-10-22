@@ -33,7 +33,7 @@ export class ObjectDeclarationParser extends ParserBase {
     }
     this.consumeToken();
     do {
-      this.maybeWord(',');
+      this.maybe(',');
       let object;
       if (variable) {
         object = new OVariable(this.parent as IHasVariables, this.getToken().range);

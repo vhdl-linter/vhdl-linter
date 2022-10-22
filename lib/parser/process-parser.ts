@@ -19,14 +19,14 @@ export class ProcessParser extends ParserBase {
       const sensitivityListTokens = this.advanceBraceToken();
       process.sensitivityList.push(...this.extractReads(process, sensitivityListTokens));
     }
-    this.maybeWord('is');
+    this.maybe('is');
     new DeclarativePartParser(this.pos, this.filePath, process).parse();
     this.expectToken('begin');
     process.statements = new SequentialStatementParser(this.pos, this.filePath).parse(process, ['end']);
     this.expectToken('end');
     this.expectToken('process');
     if (label) {
-      this.maybeToken(label);
+      this.maybe(label);
     }
     process.range = process.range.copyWithNewEnd(this.pos.i);
     this.expectToken(';');

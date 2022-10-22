@@ -51,7 +51,7 @@ export class ArchitectureParser extends ParserBase {
 
     new DeclarativePartParser(this.pos, this.filePath, this.architecture).parse(structureName !== 'architecture');
     this.architecture.endOfDeclarativePart = new OI(this.architecture, this.pos.i);
-    this.maybeWord('begin');
+    this.maybe('begin');
 
     while (this.pos.isValid()) {
       this.advanceWhitespace();
@@ -64,14 +64,14 @@ export class ArchitectureParser extends ParserBase {
         if (structureName === 'block') {
           this.expectToken(structureName);
         } else {
-          this.maybeWord(structureName);
+          this.maybe(structureName);
         }
         if (this.architecture.lexerToken) {
-          this.maybeWord(this.architecture.lexerToken.text);
+          this.maybe(this.architecture.lexerToken.text);
         }
 
         if (this.entityName) {
-          this.maybeWord(this.entityName.text);
+          this.maybe(this.entityName.text);
         }
         this.expectToken(';');
         break;

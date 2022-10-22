@@ -289,13 +289,9 @@ export class ParserBase {
       throw new ParserError(`expected '${expected.join(', ')}' found '${this.getToken().text}' line: ${this.getLine()}`, this.pos.getRangeToEndLine());
     }
   }
-  maybeWord(expected: string) {
-    if (this.getToken().getLText() === expected.toLowerCase()) {
-      this.consumeToken();
-    }
-  }
-  maybeToken(expected: OLexerToken) { // This only compares the text!
-    if (this.getToken().getLText() === expected.getLText()) {
+  maybe(expected: string|OLexerToken) {
+    const text = (typeof expected === 'string') ? expected.toLowerCase() : expected.getLText();
+    if (this.getToken().getLText() === text) {
       this.consumeToken();
     }
   }

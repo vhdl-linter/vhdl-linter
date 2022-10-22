@@ -32,8 +32,8 @@ export class ConcurrentStatementParser extends ParserBase {
       nextToken = this.getToken();
     }
 
-    this.maybeWord('postponed');
-    this.maybeWord('guarded');
+    this.maybe('postponed');
+    this.maybe('guarded');
 
     if (nextToken.getLText() === 'process' && allowedStatements.includes(ConcurrentStatementTypes.Process)) {
       this.consumeToken();
@@ -100,7 +100,7 @@ export class ConcurrentStatementParser extends ParserBase {
       this.expectToken('end');
       this.expectToken('generate');
       if (label) {
-        this.maybeWord(label.text);
+        this.maybe(label.text);
       }
       this.advanceSemicolonToken();
       this.reverseWhitespace();

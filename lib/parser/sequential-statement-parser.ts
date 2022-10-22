@@ -46,7 +46,7 @@ export class SequentialStatementParser extends ParserBase {
         this.expectToken('end');
         this.expectToken('loop');
         if (label) {
-          this.maybeToken(label);
+          this.maybe(label);
         }
         this.expectToken(';');
       } else if (nextToken.getLText() === 'report') {
@@ -186,7 +186,7 @@ export class SequentialStatementParser extends ParserBase {
     this.expectToken('end');
     this.expectToken('loop');
     if (label) {
-      this.maybeToken(label);
+      this.maybe(label);
     }
     this.expectToken(';');
     return whileLoop;
@@ -205,7 +205,7 @@ export class SequentialStatementParser extends ParserBase {
     this.expectToken('end');
     this.expectToken('loop');
     if (label) {
-      this.maybeToken(label);
+      this.maybe(label);
     }
     this.expectToken(';');
     return forLoop;
@@ -241,7 +241,7 @@ export class SequentialStatementParser extends ParserBase {
     this.expectToken('end');
     this.expectToken('if');
     if (label) {
-      this.maybeToken(label);
+      this.maybe(label);
     }
     this.expectToken(';');
 
@@ -264,7 +264,7 @@ export class SequentialStatementParser extends ParserBase {
     this.expectToken('end');
     this.expectToken('case');
     if (label) {
-      this.maybeToken(label);
+      this.maybe(label);
     }
     this.expectToken(';');
     this.debug(`parseCaseDone ${label?.text}`);

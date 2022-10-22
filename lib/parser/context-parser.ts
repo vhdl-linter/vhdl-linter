@@ -17,8 +17,8 @@ export class ContextParser extends ParserBase {
     while (this.pos.isValid()) {
       const nextToken = this.consumeToken();
       if (nextToken.getLText() === 'end') {
-        this.maybeWord('context');
-        this.maybeWord(context.lexerToken.text);
+        this.maybe('context');
+        this.maybe(context.lexerToken.text);
         context.range = context.range.copyWithNewEnd(this.pos.i);
         this.expectToken(';');
         break;

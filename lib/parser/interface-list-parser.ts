@@ -46,11 +46,11 @@ export class InterfaceListParser extends ParserBase {
         this.consumeToken();
         port.lexerToken = this.consumeToken();
         ports.push(port);
-        this.maybeWord(';');
+        this.maybe(';');
       } else if (nextWord.getLText() === 'procedure' || nextWord.getLText() === 'impure' || nextWord.getLText() === 'pure' || nextWord.getLText() === 'function') {
         const subprogramParser = new SubprogramParser(this.pos, this.filePath, this.parent);
         this.parent.subprograms.push(subprogramParser.parse());
-        this.maybeWord(';');
+        this.maybe(';');
       } else if (nextWord.getLText() === 'package') {
         if (implementsIHasPackageInstantiations(this.parent)) {
           this.consumeToken(); // consume 'package'
@@ -58,7 +58,7 @@ export class InterfaceListParser extends ParserBase {
         } else {
           this.advanceBraceAwareToken([';', ')'], true, false);
         }
-        this.maybeWord(';');
+        this.maybe(';');
       } else {
         if (nextWord.getLText() === 'signal' || nextWord.getLText() === 'variable' || nextWord.getLText() === 'constant' || nextWord.getLText() === 'file') {
           this.consumeToken();

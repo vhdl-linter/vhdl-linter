@@ -83,7 +83,7 @@ export class TypeParser extends ParserBase {
           while (this.getToken().getLText() !== 'end') {
             const children: ORecordChild[] = [];
             do {
-              this.maybeWord(',');
+              this.maybe(',');
               const lexerToken = this.consumeToken();
               const child = new ORecordChild(type, lexerToken.range);
               child.lexerToken = lexerToken;
@@ -96,17 +96,17 @@ export class TypeParser extends ParserBase {
             }
             (type as ORecord).children.push(...children);
           }
-          this.maybeWord('record');
-          this.maybeWord(type.lexerToken.text);
+          this.maybe('record');
+          this.maybe(type.lexerToken.text);
         } else if (nextToken.getLText() === 'array') {
           const [token] = this.advanceBraceAwareToken([';'], true, false);
           type.reads.push(...this.extractReads(type, token));
         } else if (nextToken.getLText() === 'protected') {
-          this.maybeWord('body');
+          this.maybe('body');
           new DeclarativePartParser(this.pos, this.filePath, type).parse(false, 'end');
           this.expectToken('end');
           this.expectToken('protected');
-          this.maybeWord(type.lexerToken.text);
+          this.maybe(type.lexerToken.text);
         } else if (nextToken.getLText() === 'range') {
           // TODO
         } else if (nextToken.getLText() === 'access') {

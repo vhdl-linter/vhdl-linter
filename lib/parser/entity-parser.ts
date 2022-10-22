@@ -18,7 +18,7 @@ export class EntityParser extends ParserBase {
   parse(): OEntity {
     this.entity.lexerToken = this.consumeToken();
     if (this.parent instanceof OArchitecture) {
-      this.maybeWord('is');
+      this.maybe('is');
     } else {
       this.expectToken('is');
     }
@@ -42,8 +42,8 @@ export class EntityParser extends ParserBase {
         this.expectToken(';');
       } else if (nextToken.getLText() === 'end') {
         this.consumeToken();
-        this.maybeWord('entity');
-        this.maybeWord(this.entity.lexerToken.text);
+        this.maybe('entity');
+        this.maybe(this.entity.lexerToken.text);
         this.entity.range = this.entity.range.copyWithNewEnd(this.getToken(-1, true).range.end);
         this.expectToken(';');
         break;
@@ -57,8 +57,8 @@ export class EntityParser extends ParserBase {
           ]);
         }
         this.consumeToken();
-        this.maybeWord('entity');
-        this.maybeWord(this.entity.lexerToken.text);
+        this.maybe('entity');
+        this.maybe(this.entity.lexerToken.text);
         this.entity.range = this.entity.range.copyWithNewEnd(this.getToken(-1, true).range.end);
         this.expectToken(';');
         break;
