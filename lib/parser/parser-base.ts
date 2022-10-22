@@ -289,14 +289,6 @@ export class ParserBase {
     }
     return this.advancePastToken(';', { consume });
   }
-  getNextWord(options: { consume?: boolean } = {}) {
-    const token = this.getToken();
-    if (options.consume !== false) {
-      this.pos.num++;
-      this.advanceWhitespace();
-    }
-    return token.text;
-  }
 
   getLine() {
     return this.getToken().range.start.line;

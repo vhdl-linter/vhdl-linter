@@ -27,7 +27,7 @@ export class DeclarativePartParser extends ParserBase {
         const objectDeclarationParser = new ObjectDeclarationParser(this.pos, this.filePath, this.parent);
         objectDeclarationParser.parse(nextToken);
       } else if (nextToken.getLText() === 'attribute') {
-        this.getNextWord();
+        this.consumeToken();
         this.advanceSemicolonToken(true);
       } else if (nextToken.getLText() === 'type') {
         const typeParser = new TypeParser(this.pos, this.filePath, this.parent);
@@ -66,7 +66,7 @@ export class DeclarativePartParser extends ParserBase {
         }
 
       } else if (nextToken.getLText() === 'component' && implementsIHasComponents(this.parent)) {
-        this.getNextWord();
+        this.consumeToken();
         const componentParser = new ComponentParser(this.pos, this.filePath, this.parent);
         this.parent.components.push(componentParser.parse());
       } else if (nextToken.getLText() === 'procedure' || nextToken.getLText() === 'impure' || nextToken.getLText() === 'pure' || nextToken.getLText() === 'function') {
@@ -84,7 +84,7 @@ export class DeclarativePartParser extends ParserBase {
       } else if (optional) {
         return;
       } else if (nextToken.getLText() === 'use') {
-        this.getNextWord();
+        this.consumeToken();
         const useClauseParser = new UseClauseParser(this.pos, this.filePath, this.parent);
         this.parent.useClauses.push(useClauseParser.parse());
       } else {

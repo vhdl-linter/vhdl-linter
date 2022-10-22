@@ -55,12 +55,12 @@ export class ArchitectureParser extends ParserBase {
 
     while (this.pos.isValid()) {
       this.advanceWhitespace();
-      const nextWord = this.getNextWord({ consume: false }).toLowerCase();
-      if (nextWord === 'end') {
+      const nextToken = this.getToken();
+      if (nextToken.getLText() === 'end') {
         if (structureName === 'when-generate') {
           break;
         }
-        this.getNextWord();
+        this.consumeToken();
         if (structureName === 'block') {
           this.expect(structureName);
         } else {

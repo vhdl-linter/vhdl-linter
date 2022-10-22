@@ -26,14 +26,15 @@ export class TypeParser extends ParserBase {
   }
   parse(): OType {
     const type = new OType(this.parent, this.getToken().range.copyExtendEndOfLine());
-    this.getNextWord();
+    this.consumeToken();
     type.lexerToken = this.consumeToken();
     if (this.getToken().getLText() === ';') {
       type.incomplete = true;
       this.advancePast(';');
       return type;
     }
-    if (this.getNextWord().toLowerCase() === 'is') {
+    const nextToken = this.consumeToken();
+    if (nextToken.getLText() === 'is') {
       if (this.getToken().text === '(') {
         this.expect('(');
         Object.setPrototypeOf(type, OEnum.prototype);
@@ -64,10 +65,10 @@ export class TypeParser extends ParserBase {
       } else if (this.isUnits()) {
         this.advancePast('units');
         type.units = [];
-        type.units.push(this.getNextWord());
+        type.units.push(this.consumeToken().getLText());
         this.advanceSemicolonToken();
         while (this.getToken().getLText() !== 'end' || this.getToken(1, true).getLText() !== 'units') {
-          type.units.push(this.getNextWord());
+          type.units.push(this.consumeToken().getLText());
           this.advanceSemicolonToken();
         }
         this.expect('end');
@@ -75,8 +76,8 @@ export class TypeParser extends ParserBase {
         type.range = type.range.copyWithNewEnd(this.pos.i);
         this.expect(';');
       } else {
-        const nextWord = this.getNextWord().toLowerCase();
-        if (nextWord === 'record') {
+        const nextToken = this.consumeToken();
+        if (nextToken.getLText() === 'record') {
           Object.setPrototypeOf(type, ORecord.prototype);
           (type as ORecord).children = [];
           while (this.getToken().getLText() !== 'end') {
@@ -97,18 +98,18 @@ export class TypeParser extends ParserBase {
           }
           this.maybeWord('record');
           this.maybeWord(type.lexerToken.text);
-        } else if (nextWord === 'array') {
+        } else if (nextToken.getLText() === 'array') {
           const [token] = this.advanceBraceAwareToken([';'], true, false);
           type.reads.push(...this.extractReads(type, token));
-        } else if (nextWord === 'protected') {
+        } else if (nextToken.getLText() === 'protected') {
           this.maybeWord('body');
           new DeclarativePartParser(this.pos, this.filePath, type).parse(false, 'end');
           this.expect('end');
           this.expect('protected');
           this.maybeWord(type.lexerToken.text);
-        } else if (nextWord === 'range') {
+        } else if (nextToken.getLText() === 'range') {
           // TODO
-        } else if (nextWord === 'access') {
+        } else if (nextToken.getLText() === 'access') {
           // Is this a hack, or is it just fantasy/vhdl
           const [typeTokens] = this.advanceBraceAwareToken([';'], true, false);
           const deallocateProcedure = new OSubprogram(this.parent, new OIRange(this.parent, typeTokens[0].range.start.i, typeTokens[typeTokens.length - 1].range.end.i));

@@ -16,22 +16,22 @@ export class ComponentParser extends ParserBase {
     let lastI;
     while (this.pos.isValid()) {
       this.advanceWhitespace();
-      const nextWord = this.getNextWord({ consume: false }).toLowerCase();
+      const nextToken = this.getToken();
       const savedI = this.pos.i;
-      if (nextWord === 'port') {
-        this.getNextWord();
+      if (nextToken.getLText() === 'port') {
+        this.consumeToken();
         const interfaceListParser = new InterfaceListParser(this.pos, this.filePath, component);
         interfaceListParser.parse(false);
         component.portRange = new OIRange(component, savedI, this.pos.i);
         this.expect(';');
-      } else if (nextWord === 'generic') {
-        this.getNextWord();
+      } else if (nextToken.getLText() === 'generic') {
+        this.consumeToken();
         const interfaceListParser = new InterfaceListParser(this.pos, this.filePath, component);
         interfaceListParser.parse(true);
         component.genericRange = new OIRange(component, savedI, this.pos.i);
         this.expect(';');
-      } else if (nextWord === 'end') {
-        this.getNextWord();
+      } else if (nextToken.getLText() === 'end') {
+        this.consumeToken();
         this.expect('component');
         this.maybeWord(component.lexerToken.text);
         component.range = component.range.copyWithNewEnd(this.getToken(-1, true).range.end);

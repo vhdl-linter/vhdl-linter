@@ -26,39 +26,37 @@ export class EntityParser extends ParserBase {
     let lastI;
     while (this.pos.isValid()) {
       this.advanceWhitespace();
-      const nextWord = this.getNextWord({ consume: false }).toLowerCase();
+      const nextToken = this.getToken();
       const savedI = this.pos.i;
-      if (nextWord === 'port') {
-        this.getNextWord();
+      if (nextToken.getLText() === 'port') {
+        this.consumeToken();
         const interfaceListParser = new InterfaceListParser(this.pos, this.filePath, this.entity);
         interfaceListParser.parse(false);
         this.entity.portRange = new OIRange(this.entity, savedI, this.pos.i);
         this.expect(';');
-      } else if (nextWord === 'generic') {
-        this.getNextWord();
+      } else if (nextToken.getLText() === 'generic') {
+        this.consumeToken();
         const interfaceListParser = new InterfaceListParser(this.pos, this.filePath, this.entity);
         interfaceListParser.parse(true);
         this.entity.genericRange = new OIRange(this.entity, savedI, this.pos.i);
         this.expect(';');
-      } else if (nextWord === 'end') {
-        this.getNextWord();
+      } else if (nextToken.getLText() === 'end') {
+        this.consumeToken();
         this.maybeWord('entity');
         this.maybeWord(this.entity.lexerToken.text);
         this.entity.range = this.entity.range.copyWithNewEnd(this.getToken(-1, true).range.end);
         this.expect(';');
         break;
-      } else if (nextWord === 'begin') {
-        this.getNextWord();
-        let nextWord = this.getNextWord({ consume: false }).toLowerCase();
-        while (nextWord !== 'end') {
+      } else if (nextToken.getLText() === 'begin') {
+        this.consumeToken();
+        while (this.getToken().getLText() !== 'end') {
           new ConcurrentStatementParser(this.pos, this.filePath, this.entity).parse([
             ConcurrentStatementTypes.Assert,
             ConcurrentStatementTypes.ProcedureInstantiation,
             ConcurrentStatementTypes.Process
           ]);
-          nextWord = this.getNextWord({ consume: false }).toLowerCase();
         }
-        this.getNextWord();
+        this.consumeToken();
         this.maybeWord('entity');
         this.maybeWord(this.entity.lexerToken.text);
         this.entity.range = this.entity.range.copyWithNewEnd(this.getToken(-1, true).range.end);

@@ -12,7 +12,7 @@ export class ObjectDeclarationParser extends ParserBase {
   parse(nextToken: OLexerToken) {
 
     if (nextToken.getLText() === 'shared') {
-      this.getNextWord();
+      this.consumeToken();
       nextToken = this.getToken();
     }
     const objects = [];
@@ -31,7 +31,7 @@ export class ObjectDeclarationParser extends ParserBase {
     if (!variable && !constant && !file && !implementsIHasSignals(this.parent)) {
       throw new ParserError(`No signals allowed here`, this.pos.getRangeToEndLine());
     }
-    this.getNextWord();
+    this.consumeToken();
     do {
       this.maybeWord(',');
       let object;

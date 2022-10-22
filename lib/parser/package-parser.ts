@@ -47,7 +47,7 @@ export class PackageParser extends ParserBase {
       //   return pkg;
       // }
       if (nextToken.getLText() === 'generic') {
-        this.getNextWord();
+        this.consumeToken();
         const savedI = this.pos.i;
         const interfaceListParser = new InterfaceListParser(this.pos, this.filePath, pkg);
         interfaceListParser.parse(true);

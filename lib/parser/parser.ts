@@ -195,9 +195,6 @@ export class Parser extends ParserBase {
         libraries = defaultLibrary.slice(0);
         useClauses = defaultUseClause.slice(0);
       } else if (nextToken.getLText() === 'package') {
-        if (this.onlyEntity && this.getNextWord({ consume: false }) === 'body') {
-          // break;
-        }
         const pkg = (this.getToken(2, true).getLText() === 'new')
           ? new PackageInstantiationParser(this.pos, this.filePath, this.file).parse()
           : new PackageParser(this.pos, this.filePath).parse(this.file);

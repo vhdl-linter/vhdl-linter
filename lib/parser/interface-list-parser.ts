@@ -41,17 +41,17 @@ export class InterfaceListParser extends ParserBase {
         break;
       }
 
-      const nextWord = this.getNextWord({ consume: false }).toLowerCase();
-      if (nextWord === 'type') {
-        this.getNextWord();
+      const nextWord = this.getToken();
+      if (nextWord.getLText() === 'type') {
+        this.consumeToken();
         port.lexerToken = this.consumeToken();
         ports.push(port);
         this.maybeWord(';');
-      } else if (nextWord === 'procedure' || nextWord === 'impure' || nextWord === 'pure' || nextWord === 'function') {
+      } else if (nextWord.getLText() === 'procedure' || nextWord.getLText() === 'impure' || nextWord.getLText() === 'pure' || nextWord.getLText() === 'function') {
         const subprogramParser = new SubprogramParser(this.pos, this.filePath, this.parent);
         this.parent.subprograms.push(subprogramParser.parse());
         this.maybeWord(';');
-      } else if (nextWord === 'package') {
+      } else if (nextWord.getLText() === 'package') {
         if (implementsIHasPackageInstantiations(this.parent)) {
           this.consumeToken(); // consume 'package'
           this.parent.packageInstantiations.push(new PackageInstantiationParser(this.pos, this.filePath, this.parent).parse());
@@ -60,8 +60,8 @@ export class InterfaceListParser extends ParserBase {
         }
         this.maybeWord(';');
       } else {
-        if (nextWord === 'signal' || nextWord === 'variable' || nextWord === 'constant' || nextWord === 'file') {
-          this.getNextWord();
+        if (nextWord.getLText() === 'signal' || nextWord.getLText() === 'variable' || nextWord.getLText() === 'constant' || nextWord.getLText() === 'file') {
+          this.consumeToken();
         }
         port.lexerToken = this.consumeToken();
         if (this.getToken().getLText() === ',') {
@@ -72,14 +72,14 @@ export class InterfaceListParser extends ParserBase {
         this.expect(':');
         let directionString;
         if (port instanceof OPort) {
-          directionString = this.getNextWord({ consume: false }).toLowerCase();
+          directionString = this.getToken().getLText();
           if (directionString !== 'in' && directionString !== 'out' && directionString !== 'inout') {
             port.direction = 'in';
             port.directionRange = new OIRange(port, this.pos.i, this.pos.i);
           } else {
             port.direction = directionString;
             port.directionRange = new OIRange(port, this.pos.i, this.pos.i + directionString.length);
-            this.getNextWord(); // consume direction
+            this.consumeToken(); // consume direction
           }
         }
         const { type, defaultValue } = this.getTypeDefintion(port);
