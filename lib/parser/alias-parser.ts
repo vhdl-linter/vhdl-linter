@@ -13,7 +13,7 @@ export class AliasParser extends ParserBase {
         if (this.getToken().getLText() === ':') {
             this.consumeToken();
             this.advanceWhitespace();
-            this.getNextWord();
+            this.consumeToken();
             subprogramAlias.subtypeReads.push(...this.getType(subprogramAlias, false).typeReads);
         }
         this.expect('is');
