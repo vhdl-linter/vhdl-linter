@@ -257,11 +257,11 @@ export class ParserBase {
     }
     throw new ParserError(`could not find ${searchStrings}`, savedI.getRangeToEndLine());
   }
-  advanceSemicolon(parenthesesAware = false, { consume } = { consume: true }) {
+  advanceSemicolon(parentheseAware = false, { consume } = { consume: true }) {
     if (consume !== false) {
       consume = true;
     }
-    if (parenthesesAware) {
+    if (parentheseAware) {
       return this.advanceParentheseAware([';'], consume)[0];
     }
     return this.advancePast(';', { consume });
