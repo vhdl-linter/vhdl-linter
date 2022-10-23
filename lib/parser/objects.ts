@@ -1060,6 +1060,11 @@ export function* scope(startObject: ObjectBase) {
     if (current instanceof OPackageBody && current.correspondingPackage) {
       yield current.correspondingPackage;
     }
+    if (implementsIHasUseClause(current)) {
+      for (const packages of current.packageDefinitions) {
+        yield packages;
+      }
+    }
     if (current.parent instanceof OFile) {
       break;
     }
