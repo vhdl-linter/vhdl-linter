@@ -1657,9 +1657,11 @@ export class VhdlLinter {
         if (implementsIHasVariables(parent)) {
           for (const variable of parent.variables) {
             // if (variable.shared) { // TODO: Does not have to be shared to be protected
-              const type = variable.type[0].definitions[0] as OType;
-              subprograms.push(...type.subprograms);
-              subprograms.push(...type.subprogramAliases);
+              const type = variable.type[0]?.definitions?.[0] as OType;
+              if (type) {
+                subprograms.push(...type.subprograms);
+                subprograms.push(...type.subprogramAliases);
+              }
             // }
           }
         }
