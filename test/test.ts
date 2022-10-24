@@ -5,6 +5,7 @@ import { join } from 'path';
 import { ProjectParser } from '../lib/project-parser';
 import { } from 'vscode';
 import { OIRange } from '../lib/parser/objects';
+import { DiagnosticSeverity } from 'vscode-languageserver';
 function readDirPath(path: string) {
   return readdirSync(path).map(file => join(path, file));
 }
@@ -19,16 +20,25 @@ function isOIDiagnostic(obj: unknown): obj is OIDiagnostic {
   }
   return false;
 }
+function getMessageColor(message: OIDiagnostic | { message: string}) {
+  if (isOIDiagnostic(message) && message.severity === DiagnosticSeverity.Error) {
+    return '\u001b[31m';
+  } else if (isOIDiagnostic(message) && message.severity === DiagnosticSeverity.Warning) {
+    return '\u001b[33m';
+  }
+  return '\u001b[34m';
+}
 function prettyPrintMessages(messages: MessageWrapper[]) {
   return messages.map(message => {
-    return `file: ${message.file.replace(cwd(), '')}\n` +
-      message.messages.map((innerMessage) => {
-    if (isOIDiagnostic(innerMessage)) {
-      return `${innerMessage.range.start.line}:${innerMessage.range.start.character} - ${innerMessage.range.end.line}:${innerMessage.range.end.character}: ${innerMessage.message}`;
-    }
-    return innerMessage.message;
+    const filename = message.file.replace(cwd(), '');
+    return message.messages.map((innerMessage) => {
+      const messageText = `${getMessageColor(innerMessage)}${innerMessage.message}\u001b[0m`;
+      if (isOIDiagnostic(innerMessage)) {
+        return `${filename}:${innerMessage.range.start.line + 1} (r: ${innerMessage.range.start.line}:${innerMessage.range.start.character} - ${innerMessage.range.end.line}:${innerMessage.range.end.character})\n  ${messageText}`; // lines are 0 based in OI
+      }
+      return `${filename}\n  ${messageText}`;
+    }).join('\n');
   }).join('\n');
-  }).join('\n---------\n');
 }
 // Do a recursive walk on the folders. Each folder is a library and shares a project parser.
 async function run_test(path: string, error_expected: boolean): Promise<MessageWrapper[]> {
