@@ -4,9 +4,7 @@ generic (
   );
 end entity;
 architecture arch of test is
-  use work.test_pkg.all; -- work. should not be here?
-  signal a : integer := generic_parameter;
+  use work.test_pkg.all; -- work. should not be here
 
 begin
-a <= a;
 end arch;
