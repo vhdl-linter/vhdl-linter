@@ -1,6 +1,6 @@
 entity test is
 generic (
-  package test_pkg is new work.generic_pkg_error generic map (<>)
+  package test_pkg is new work.generic_pkg generic map (<>)
   );
 end entity;
 architecture arch of test is
