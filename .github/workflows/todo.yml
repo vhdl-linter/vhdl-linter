@@ -1,12 +1,14 @@
 name: "Workflow"
-    on: ["push"]
-    jobs:
-      build:
-        runs-on: "ubuntu-latest"
-        steps:
-          - uses: "actions/checkout@master"
-          - name: "TODO to Issue"
-            uses: "alstr/todo-to-issue-action@v4"
-            id: "todo"
-            with:
-              - CLOSE_ISSUES: true
+on:
+  push:
+    branches: [ "main" ]
+jobs:
+  build:
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: "actions/checkout@master"
+      - name: "TODO to Issue"
+        uses: "alstr/todo-to-issue-action@v4"
+        id: "todo"
+        with:
+          - CLOSE_ISSUES: true
