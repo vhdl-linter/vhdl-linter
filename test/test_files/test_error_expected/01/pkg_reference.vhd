@@ -4,11 +4,10 @@ use ieee.numeric_std.all;
 
 entity pkg_reference is
 
-  signal c : std_ulogic;
 end pkg_reference;
 
 architecture arch of pkg_reference is
-  signal a : std_ulogic;
+  signal a : std_ulogic; -- No error here
 begin
   a <= a;
 
