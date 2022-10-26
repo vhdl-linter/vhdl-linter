@@ -93,8 +93,6 @@ export class TypeParser extends ParserBase {
             const typeTokens = this.advanceSemicolon();
             for (const child of children) {
               child.reads = this.extractReads(child, typeTokens);
-            }
-            for (const child of children) {
               child.range = child.range.copyWithNewEnd(this.pos.i);
             }
             (type as ORecord).children.push(...children);
