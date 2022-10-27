@@ -566,6 +566,9 @@ export class OWhenGenerateClause extends OArchitecture {
   public parent: OCaseGenerate;
 }
 export class OIfGenerate extends ObjectBase {
+  constructor(public parent: ObjectBase | OFile, public range: OIRange, public label: OLexerToken) {
+    super(parent, range);
+  }
   ifGenerates: OIfGenerateClause[] = [];
   elseGenerate: OElseGenerateClause;
 }
