@@ -810,7 +810,8 @@ export class OReference extends ObjectBase implements IHasDefinitions, IHasLexer
 
   elaborate() {
     const text = this.lexerToken.text;
-    for (const object of scope(this)) {
+    for (const iterator of scopeWithVisibility(this)) {
+      const object = iterator.obj;
       if (implementsIHasSignals(object)) {
         for (const signal of object.signals) {
           if (signal.lexerToken.getLText() === text.toLowerCase()) {
@@ -899,6 +900,13 @@ export class OReference extends ObjectBase implements IHasDefinitions, IHasLexer
           }
         }
       }
+
+      // package names are only referencable in direct visibility
+      if (iterator.directlyVisable && (object instanceof OPackage || object instanceof OPackageBody)) {
+        if (object.lexerToken && object.lexerToken.getLText() === text.toLowerCase()) {
+          this.definitions.push(object);
+        }
+      }
       // Handling for Attributes e.g. 'INSTANCE_name or 'PATH_NAME
       // TODO: check better if actual Attribute is following
       // Possible entities (objects where attributes are valid):
@@ -927,7 +935,7 @@ export class OReference extends ObjectBase implements IHasDefinitions, IHasLexer
         OEntity,
         OArchitecture,
         OSubprogram, // Procedure, Function
-        OPackage, OPackageBody,
+        // OPackage, OPackageBody,
         OType,
         OSubType,
         OConstant,
@@ -1026,18 +1034,27 @@ export class OConfiguration extends ObjectBase implements IHasLibraries {
   libraries: OLibrary[] = [];
 }
 export function* scope(startObject: ObjectBase) {
+  for (const iterator of scopeWithVisibility(startObject)) {
+    yield iterator.obj;
+  }
+}
+export function* scopeWithVisibility(startObject: ObjectBase) {
   let current = startObject;
+  let directlyVisable = true;
   while (true) {
-    yield current;
+    yield {obj: current, directlyVisable};
     if (current instanceof OArchitecture && current.correspondingEntity) {
-      yield current.correspondingEntity;
+      directlyVisable = false;
+      yield {obj: current.correspondingEntity, directlyVisable};
     }
     if (current instanceof OPackageBody && current.correspondingPackage) {
-      yield current.correspondingPackage;
+      directlyVisable = false;
+      yield {obj: current.correspondingPackage, directlyVisable};
     }
     if (implementsIHasUseClause(current)) {
       for (const packages of current.packageDefinitions) {
-        yield packages;
+        directlyVisable = false;
+        yield {obj: packages, directlyVisable};
       }
     }
     if (current.parent instanceof OFile) {
