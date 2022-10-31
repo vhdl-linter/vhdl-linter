@@ -17,6 +17,7 @@ import { implementsIHasDefinitions, OComponent, OFile, OInstantiation, OUseClaus
 import { ProjectParser } from './project-parser';
 import { VhdlLinter } from './vhdl-linter';
 import { handleSemanticTokens, semanticTokensLegend } from './languageFeatures/semanticTokens';
+import { existsSync } from 'fs';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -172,7 +173,7 @@ export const initialization = new Promise<void>(resolve => {
         const workspaceFolders = await connection.workspace.getWorkspaceFolders();
         const folders = (workspaceFolders ?? []).map(workspaceFolder => URI.parse(workspaceFolder.uri).fsPath);
         // console.log(configuration, 'configuration');
-        folders.push(...configuration.paths.additional);
+        folders.push(...configuration.paths.additional.filter(existsSync));
         projectParser = new ProjectParser(folders, configuration.paths.ignoreRegex);
         await projectParser.init();
       };
