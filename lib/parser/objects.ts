@@ -49,7 +49,7 @@ export class OI implements Position {
 
   getRangeToEndLine(): OIRange {
     const start = this.i;
-    const text = this.parent.sourceFile.text;
+    const text = this.parent.rootFile.text;
     let end = text.length;
     const match = /\n/.exec(text.substr(start));
     if (match) {
@@ -59,7 +59,7 @@ export class OI implements Position {
 
   }
   private calcPosition(): Position {
-    const lines = (this.parent instanceof OFile ? this.parent : this.parent.sourceFile).text.slice(0, this.i).split('\n');
+    const lines = (this.parent instanceof OFile ? this.parent : this.parent.rootFile).text.slice(0, this.i).split('\n');
     const line = lines.length - 1;
     const character = lines[lines.length - 1].length;
     return { character, line };
@@ -68,7 +68,7 @@ export class OI implements Position {
     if (typeof this.position === 'undefined') {
       throw new Error('Something went wrong with OIRange');
     }
-    const lines = (this.parent instanceof OFile ? this.parent : this.parent.sourceFile).lines;
+    const lines = (this.parent instanceof OFile ? this.parent : this.parent.rootFile).lines;
     this.i_ = lines.slice(0, this.position.line).join('\n').length + 1 + Math.min(this.position.character, lines[this.position.line].length);
   }
 }
@@ -109,7 +109,7 @@ export class OIRange implements Range {
     return new OIRange(this.parent, this.start, newEnd);
   }
   copyExtendBeginningOfLine() {
-    const lines = (this.parent instanceof OFile ? this.parent : this.parent.sourceFile).lines;
+    const lines = (this.parent instanceof OFile ? this.parent : this.parent.rootFile).lines;
     let startCol = 0;
     const match = lines[this.start.line].match(/\S/);
     if (match) {
@@ -121,7 +121,7 @@ export class OIRange implements Range {
 
   }
   copyExtendEndOfLine(): OIRange {
-    const text = this.parent.sourceFile.text;
+    const text = this.parent.rootFile.text;
     const match = /\n/.exec(text.substr(this.start.i));
     let end = text.length;
     if (match) {
@@ -135,7 +135,7 @@ export class OIRange implements Range {
 
 export class ObjectBase {
   lexerToken?: OLexerToken;
-  readonly sourceFile: OFile;
+  readonly rootFile: OFile;
   constructor(public parent: ObjectBase | OFile, public range: OIRange) {
     let maximumIterationCounter = 5000;
     let p = parent;
@@ -146,7 +146,7 @@ export class ObjectBase {
         throw new ParserError('Maximum Iteraction Counter overrung', range);
       }
     }
-    this.sourceFile = p;
+    this.rootFile = p;
     p.objectList.push(this);
   }
   private rootElement?: OArchitecture | OEntity | OPackage | OPackageBody;
@@ -309,7 +309,7 @@ export class OFile {
   packages: (OPackage | OPackageBody)[] = [];
   packageInstantiations: OPackageInstantiation[] = [];
   configurations: OConfiguration[] = [];
-  readonly sourceFile = this; // Provided as a convience to equalize to ObjectBase
+  readonly rootFile = this; // Provided as a convience to equalize to ObjectBase
   getJSON() {
     const seen = new WeakSet();
 

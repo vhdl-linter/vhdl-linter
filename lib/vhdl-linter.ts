@@ -253,7 +253,7 @@ export class VhdlLinter {
             const packageInstantiation = pkgInstantations.find(inst => inst.lexerToken.getLText() === useClause.packageName.getLText());
             if (!packageInstantiation) {
               found = true;
-              if (useClause.sourceFile.file === this.file.file) {
+              if (useClause.rootFile.file === this.file.file) {
                 this.addMessage({
                   range: useClause.range,
                   severity: DiagnosticSeverity.Warning,
@@ -263,7 +263,7 @@ export class VhdlLinter {
                 this.addMessage({
                   range: obj.getRootElement().range.getLimitedRange(1),
                   severity: DiagnosticSeverity.Warning,
-                  message: `could not find package instantiation for ${useClause.packageName} (in ${useClause.sourceFile.file})`
+                  message: `could not find package instantiation for ${useClause.packageName} (in ${useClause.rootFile.file})`
                 });
               }
               continue;
@@ -282,7 +282,7 @@ export class VhdlLinter {
             }
           }
           if (!found) {
-            if (useClause.sourceFile.file === this.file.file) {
+            if (useClause.rootFile.file === this.file.file) {
               this.addMessage({
                 range: useClause.range,
                 severity: DiagnosticSeverity.Warning,
@@ -1249,7 +1249,7 @@ export class VhdlLinter {
         });
       }
     }
-    for (const signal of architecture.sourceFile.objectList.filter(object => object instanceof OSignal) as OSignal[]) {
+    for (const signal of architecture.rootFile.objectList.filter(object => object instanceof OSignal) as OSignal[]) {
       if (unusedSignalRegex.exec(signal.lexerToken.text) === null && signal.references.filter(token => token instanceof ORead).length === 0) {
         this.addMessage({
           range: signal.lexerToken.range,
@@ -1329,7 +1329,7 @@ export class VhdlLinter {
         }
       }
     }
-    for (const variable of architecture.sourceFile.objectList.filter(object => object instanceof OVariable) as OVariable[]) {
+    for (const variable of architecture.rootFile.objectList.filter(object => object instanceof OVariable) as OVariable[]) {
       if (unusedSignalRegex.exec(variable.lexerToken.text) === null && variable.references.filter(token => token instanceof ORead).length === 0) {
         this.addMessage({
           range: variable.lexerToken.range,
@@ -1351,7 +1351,7 @@ export class VhdlLinter {
         }
       }
     }
-    for (const constant of architecture.sourceFile.objectList.filter(object => object instanceof OConstant) as OConstant[]) {
+    for (const constant of architecture.rootFile.objectList.filter(object => object instanceof OConstant) as OConstant[]) {
       if (unusedSignalRegex.exec(constant.lexerToken.text) === null && constant.references.filter(token => token instanceof ORead).length === 0) {
         this.addMessage({
           range: constant.lexerToken.range,
@@ -1367,7 +1367,7 @@ export class VhdlLinter {
         });
       }
     }
-    for (const subprogram of architecture.sourceFile.objectList.filter(object => object instanceof OSubprogram) as OSubprogram[]) {
+    for (const subprogram of architecture.rootFile.objectList.filter(object => object instanceof OSubprogram) as OSubprogram[]) {
       this.checkUnusedPorts(subprogram.ports);
     }
   }
