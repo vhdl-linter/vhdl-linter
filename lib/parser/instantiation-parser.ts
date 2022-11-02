@@ -29,6 +29,13 @@ export class InstantiationParser extends ParserBase {
       nextToken = this.consumeToken();
     }
     instantiation.componentName = nextToken;
+
+    if (instantiation.type === 'entity' && this.getToken().getLText() === '(') {
+      this.expect('(');
+      instantiation.archIdentifier = this.consumeToken();
+      this.expect(')');
+    }
+
     let hasPortMap = false;
     let hasGenericMap = false;
     let lastI;

@@ -553,6 +553,9 @@ export class OWhenGenerateClause extends OArchitecture {
   public parent: OCaseGenerate;
 }
 export class OIfGenerate extends ObjectBase {
+  constructor(public parent: ObjectBase | OFile, public range: OIRange, public label: OLexerToken) {
+    super(parent, range);
+  }
   ifGenerates: OIfGenerateClause[] = [];
   elseGenerate: OElseGenerateClause;
 }
@@ -641,6 +644,7 @@ export class OInstantiation extends ObjectBase implements IHasDefinitions, IHasL
   portAssociationList?: OPortAssociationList;
   genericAssociationList?: OGenericAssociationList;
   library?: OLexerToken;
+  archIdentifier?: OLexerToken;
 }
 export class OAssociation extends ObjectBase implements IHasDefinitions {
   constructor(public parent: OAssociationList, range: OIRange) {
