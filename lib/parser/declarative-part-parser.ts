@@ -69,6 +69,7 @@ export class DeclarativePartParser extends ParserBase {
         this.consumeToken();
         const componentParser = new ComponentParser(this.pos, this.filePath, this.parent);
         this.parent.components.push(componentParser.parse());
+        this.expect(';');
       } else if (nextToken.getLText() === 'procedure' || nextToken.getLText() === 'impure' || nextToken.getLText() === 'pure' || nextToken.getLText() === 'function') {
         const subprogramParser = new SubprogramParser(this.pos, this.filePath, this.parent);
         this.parent.subprograms.push(subprogramParser.parse());
