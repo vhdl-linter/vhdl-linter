@@ -657,6 +657,7 @@ export class OInstantiation extends ObjectBase implements IHasDefinitions, IHasL
   portAssociationList?: OPortAssociationList;
   genericAssociationList?: OGenericAssociationList;
   library?: OLexerToken;
+  archIdentifier?: OLexerToken;
 }
 export class OAssociation extends ObjectBase implements IHasDefinitions {
   constructor(public parent: OAssociationList, range: OIRange) {
