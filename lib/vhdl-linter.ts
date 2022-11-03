@@ -123,7 +123,7 @@ export class VhdlLinter {
       if (implementsIHasLibraryReference(object) && object.library !== undefined) {
         const libraryReference = object.library;
         let library;
-        for (const iterator of scope(object)) {
+        for (const [iterator] of scope(object)) {
           library = implementsIHasLibraries(iterator) ?
             iterator.libraries.find(library => library.lexerToken.getLText() === libraryReference.getLText()) : undefined;
           if (library) {
@@ -170,7 +170,7 @@ export class VhdlLinter {
     }
 
   }
-  getUseClauses(parent: IHasUseClauses | IHasContextReference) {
+  getUseClauses(parent: ObjectBase & (IHasUseClauses | IHasContextReference)) {
     const useClauses = implementsIHasUseClause(parent) ? parent.useClauses.slice() : [];
     const contextReferences = implementsIHasContextReference(parent) ? parent.contextReferences.slice() : [];
     if (parent instanceof OPackageBody && parent.correspondingPackage) {
@@ -244,7 +244,7 @@ export class VhdlLinter {
           } else { // if using package directly, it is an instantiated package
             const pkgInstantations = [];
             // go through scope to find all package instantiations
-            for (const iterator of scope(obj)) {
+            for (const [iterator] of scope(obj)) {
               if (implementsIHasPackageInstantiations(iterator)) {
                 pkgInstantations.push(...iterator.packageInstantiations);
               }
@@ -434,7 +434,7 @@ export class VhdlLinter {
           // If first token is library this is referencing a package
           // Otherwise object from package
           let library;
-          for (const obj of scope(read)) {
+          for (const [obj] of scope(read)) {
             if (implementsIHasLibraries(obj)) {
               for (const findLibrary of obj.libraries) {
                 if (findLibrary.lexerToken.getLText() == read.prefixTokens[0].getLText()) {
@@ -456,7 +456,7 @@ export class VhdlLinter {
             }
           } else {
             const packages: OPackage[] = [];
-            for (const obj of scope(read)) {
+            for (const [obj] of scope(read)) {
               if (implementsIHasPackageInstantiations(obj)) {
                 for (const pkgInst of obj.packageInstantiations) {
                   if (pkgInst.lexerToken?.getLText() === read.prefixTokens[0].getLText()) {
@@ -1114,7 +1114,7 @@ export class VhdlLinter {
         signalLike = signalLike.concat(architecture.correspondingEntity.ports);
       }
       for (const signal of signalLike) {
-        for (const obj of scope(signal)) {
+        for (const [obj] of scope(signal)) {
           if (obj instanceof OProcess && obj.registerProcess) {
             signal.registerProcess = obj;
             break;
@@ -1542,7 +1542,7 @@ export class VhdlLinter {
   }
   getPackages(object: ObjectBase) {
     const packages = [];
-    for (const iterator of scope(object)) {
+    for (const [iterator] of scope(object)) {
       if (implementsIHasUseClause(iterator)) {
         packages.push(...iterator.packageDefinitions);
       }
@@ -1555,7 +1555,7 @@ export class VhdlLinter {
       return components;
     }
     // find all defined components in current scope
-    for (const iterator of scope(instantiation)) {
+    for (const [iterator] of scope(instantiation)) {
       if (implementsIHasComponents(iterator)) {
         components.push(...iterator.components);
       }
@@ -1577,7 +1577,7 @@ export class VhdlLinter {
         throw new ParserError('Recursion Limit reached', instantiation.range);
       }
     };
-    for (const iterator of scope(instantiation)) {
+    for (const [iterator] of scope(instantiation)) {
       if (implementsIHasSubprograms(iterator)) {
         subprograms.push(...iterator.subprograms);
       }

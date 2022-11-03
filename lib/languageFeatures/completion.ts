@@ -1,6 +1,6 @@
 import { CompletionItem, CompletionItemKind, CompletionParams, InsertTextFormat, Position, Range, ErrorCodes } from 'vscode-languageserver';
 import { documents, initialization, linters, projectParser, connection } from '../language-server';
-import { implementsIHasConstants, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables, ORecord, OEnum, OFile, OArchitecture, OEntity, implementsIHasLexerToken, ObjectBase, implementsIHasUseClause, scope } from '../parser/objects';
+import { implementsIHasConstants, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables, ORecord, OEnum, OEntity, scope } from '../parser/objects';
 
 export function attachOnCompletion() {
   connection.onCompletion(async (params: CompletionParams, token): Promise<CompletionItem[]> => {
@@ -55,7 +55,7 @@ export function attachOnCompletion() {
       return completions;
     }
 
-    for (const object of scope(completionObject)) {
+    for (const [object] of scope(completionObject)) {
       if (implementsIHasSignals(object)) {
         for (const signal of object.signals) {
           completions.push({ label: signal.lexerToken.text, kind: CompletionItemKind.Variable });

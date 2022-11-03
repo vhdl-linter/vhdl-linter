@@ -182,34 +182,34 @@ export interface IHasLexerToken {
   lexerToken: OLexerToken;
 }
 
-export function implementsIHasUseClause(obj: unknown): obj is IHasUseClauses {
-  return (obj as IHasUseClauses).useClauses !== undefined;
+export function implementsIHasUseClause(obj: ObjectBase): obj is ObjectBase & IHasUseClauses {
+  return (obj as ObjectBase & IHasUseClauses).useClauses !== undefined;
 }
-export function implementsIHasLexerToken(obj: unknown): obj is IHasLexerToken {
-  return (obj as IHasLexerToken).lexerToken !== undefined;
+export function implementsIHasLexerToken(obj: ObjectBase): obj is ObjectBase & IHasLexerToken {
+  return (obj as ObjectBase & IHasLexerToken).lexerToken !== undefined;
 }
 export interface IHasContextReference {
   contextReferences: OContextReference[];
   packageDefinitions: OPackage[];
 
 }
-export function implementsIHasContextReference(obj: unknown): obj is IHasContextReference {
-  return (obj as IHasContextReference).contextReferences !== undefined;
+export function implementsIHasContextReference(obj: ObjectBase): obj is ObjectBase & IHasContextReference {
+  return (obj as ObjectBase & IHasContextReference).contextReferences !== undefined;
 }
 export interface IReferenceable {
   references: OReference[];
 }
-export function implementsIReferencable(obj: unknown): obj is IReferenceable {
-  return (obj as IReferenceable).references !== undefined;
+export function implementsIReferencable(obj: ObjectBase): obj is ObjectBase & IReferenceable {
+  return (obj as ObjectBase & IReferenceable).references !== undefined;
 }
 export interface IHasDefinitions {
   definitions: ObjectBase[];
 }
-export function implementsIHasDefinitions(obj: unknown): obj is IHasDefinitions {
-  return (obj as IHasDefinitions).definitions !== undefined;
+export function implementsIHasDefinitions(obj: ObjectBase): obj is ObjectBase & IHasDefinitions {
+  return (obj as ObjectBase & IHasDefinitions).definitions !== undefined;
 }
-export function implementsIHasPackageInstantiations(obj: unknown): obj is IHasPackageInstantiations {
-  return (obj as IHasPackageInstantiations).packageInstantiations !== undefined;
+export function implementsIHasPackageInstantiations(obj: ObjectBase): obj is ObjectBase & IHasPackageInstantiations {
+  return (obj as ObjectBase & IHasPackageInstantiations).packageInstantiations !== undefined;
 }
 export interface IHasPackageInstantiations {
   packageInstantiations: OPackageInstantiation[];
@@ -217,32 +217,32 @@ export interface IHasPackageInstantiations {
 export interface IHasSubprograms {
   subprograms: OSubprogram[];
 }
-export function implementsIHasSubprograms(obj: unknown): obj is IHasSubprograms {
-  return (obj as IHasSubprograms).subprograms !== undefined;
+export function implementsIHasSubprograms(obj: ObjectBase): obj is ObjectBase & IHasSubprograms {
+  return (obj as ObjectBase & IHasSubprograms).subprograms !== undefined;
 }
 export interface IHasTypes {
   types: OType[];
 }
-export function implementsIHasTypes(obj: unknown): obj is IHasTypes {
-  return (obj as IHasTypes).types !== undefined;
+export function implementsIHasTypes(obj: ObjectBase): obj is ObjectBase & IHasTypes {
+  return (obj as ObjectBase & IHasTypes).types !== undefined;
 }
 export interface IHasSubprogramAlias {
   subprogramAliases: OSubprogramAlias[];
 }
-export function implementsIHasSubprogramAlias(obj: unknown): obj is IHasSubprogramAlias {
-  return (obj as IHasSubprogramAlias).subprogramAliases !== undefined;
+export function implementsIHasSubprogramAlias(obj: ObjectBase): obj is ObjectBase & IHasSubprogramAlias {
+  return (obj as ObjectBase & IHasSubprogramAlias).subprogramAliases !== undefined;
 }
 export interface IHasComponents {
   components: OComponent[];
 }
-export function implementsIHasComponents(obj: unknown): obj is IHasComponents {
-  return (obj as IHasComponents).components !== undefined;
+export function implementsIHasComponents(obj: ObjectBase): obj is ObjectBase & IHasComponents {
+  return (obj as ObjectBase & IHasComponents).components !== undefined;
 }
 export interface IHasInstantiations {
   instantiations: OInstantiation[];
 }
-export function implementsIHasInstantiations(obj: unknown): obj is IHasInstantiations {
-  return (obj as IHasInstantiations).instantiations !== undefined;
+export function implementsIHasInstantiations(obj: ObjectBase): obj is ObjectBase & IHasInstantiations {
+  return (obj as ObjectBase & IHasInstantiations).instantiations !== undefined;
 }
 export interface IHasSignals {
   signals: OSignal[];
@@ -250,50 +250,49 @@ export interface IHasSignals {
 export interface IHasFileVariables {
   files: OFileVariable[];
 }
-export function implementsIHasFileVariables(obj: unknown): obj is IHasFileVariables {
-  return (obj as IHasFileVariables).files !== undefined;
+export function implementsIHasFileVariables(obj: ObjectBase): obj is ObjectBase & IHasFileVariables {
+  return (obj as ObjectBase & IHasFileVariables).files !== undefined;
 }
-export function implementsIHasSignals(obj: unknown): obj is IHasSignals {
-  return (obj as IHasSignals).signals !== undefined;
+export function implementsIHasSignals(obj: ObjectBase): obj is ObjectBase & IHasSignals {
+  return (obj as ObjectBase & IHasSignals).signals !== undefined;
 }
 export interface IHasConstants {
   constants: OConstant[];
 }
-export function implementsIHasConstants(obj: unknown): obj is IHasConstants {
-  return (obj as IHasConstants).constants !== undefined;
+export function implementsIHasConstants(obj: ObjectBase): obj is ObjectBase & IHasConstants {
+  return (obj as ObjectBase & IHasConstants).constants !== undefined;
 }
 export interface IHasVariables {
   variables: OVariable[];
 }
-export function implementsIHasVariables(obj: unknown): obj is IHasVariables {
-  return (obj as IHasVariables).variables !== undefined;
+export function implementsIHasVariables(obj: ObjectBase): obj is ObjectBase & IHasVariables {
+  return (obj as ObjectBase & IHasVariables).variables !== undefined;
 }
 interface IHasLibraries {
   libraries: OLibrary[];
 }
-export function implementsIHasLibraries(obj: unknown): obj is IHasLibraries {
-  return (obj as IHasLibraries).libraries !== undefined;
-
+export function implementsIHasLibraries(obj: ObjectBase): obj is ObjectBase & IHasLibraries {
+  return (obj as ObjectBase & IHasLibraries).libraries !== undefined;
 }
 interface IHasLibraryReference {
   library?: OLexerToken;
 }
-export function implementsIHasLibraryReference(obj: unknown): obj is IHasLibraryReference {
-  return (obj as IHasLibraryReference).library !== undefined;
+export function implementsIHasLibraryReference(obj: ObjectBase): obj is ObjectBase & IHasLibraryReference {
+  return (obj as ObjectBase & IHasLibraryReference).library !== undefined;
 }
 interface IHasGenerics {
   generics: OGeneric[];
   genericRange?: OIRange;
 }
-export function implementsIHasGenerics(obj: unknown): obj is IHasGenerics {
-  return (obj as IHasGenerics).generics !== undefined;
+export function implementsIHasGenerics(obj: ObjectBase): obj is ObjectBase & IHasGenerics {
+  return (obj as ObjectBase & IHasGenerics).generics !== undefined;
 }
 interface IHasPorts {
   ports: OPort[];
   portRange?: OIRange;
 }
-export function implementsIHasPorts(obj: unknown): obj is IHasPorts {
-  return (obj as IHasPorts).ports !== undefined;
+export function implementsIHasPorts(obj: ObjectBase): obj is ObjectBase & IHasPorts {
+  return (obj as ObjectBase & IHasPorts).ports !== undefined;
 }
 export class OFile {
   public lines: string[];
