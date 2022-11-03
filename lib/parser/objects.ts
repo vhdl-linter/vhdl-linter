@@ -814,8 +814,7 @@ export class OReference extends ObjectBase implements IHasDefinitions, IHasLexer
 
   elaborate() {
     const text = this.lexerToken.text;
-    for (const iterator of scopeWithVisibility(this)) {
-      const object = iterator.obj;
+    for (const [object, directlyVisible] of scope(this)) {
       if (implementsIHasSignals(object)) {
         for (const signal of object.signals) {
           if (signal.lexerToken.getLText() === text.toLowerCase()) {
@@ -906,7 +905,7 @@ export class OReference extends ObjectBase implements IHasDefinitions, IHasLexer
       }
 
       // package names are only referencable in direct visibility
-      if (iterator.directlyVisable && (object instanceof OPackage || object instanceof OPackageBody)) {
+      if (directlyVisible && (object instanceof OPackage || object instanceof OPackageBody)) {
         if (object.lexerToken && object.lexerToken.getLText() === text.toLowerCase()) {
           this.definitions.push(object);
         }
@@ -1037,28 +1036,25 @@ export class OConfiguration extends ObjectBase implements IHasLibraries {
   entityName: OLexerToken;
   libraries: OLibrary[] = [];
 }
-export function* scope(startObject: ObjectBase) {
-  for (const iterator of scopeWithVisibility(startObject)) {
-    yield iterator.obj;
-  }
-}
-export function* scopeWithVisibility(startObject: ObjectBase) {
+// Returns all object visible starting from the startObjects scope.
+// The second parameter defines if the object is directly visible.
+export function* scope(startObject: ObjectBase): Generator<[ObjectBase, boolean]> {
   let current = startObject;
-  let directlyVisable = true;
+  let directlyVisible = true;
   while (true) {
-    yield {obj: current, directlyVisable};
+    yield [current, directlyVisible];
     if (current instanceof OArchitecture && current.correspondingEntity) {
-      directlyVisable = false;
-      yield {obj: current.correspondingEntity, directlyVisable};
+      directlyVisible = false;
+      yield [current.correspondingEntity, directlyVisible];
     }
     if (current instanceof OPackageBody && current.correspondingPackage) {
-      directlyVisable = false;
-      yield {obj: current.correspondingPackage, directlyVisable};
+      directlyVisible = false;
+      yield [current.correspondingPackage, directlyVisible];
     }
     if (implementsIHasUseClause(current)) {
       for (const packages of current.packageDefinitions) {
-        directlyVisable = false;
-        yield {obj: packages, directlyVisable};
+        directlyVisible = false;
+        yield [packages, directlyVisible];
       }
     }
     if (current.parent instanceof OFile) {

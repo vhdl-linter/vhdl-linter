@@ -371,7 +371,7 @@ export class VhdlLinter {
     }
 
     for (const read of this.file.objectList.filter(object => object instanceof ORead) as ORead[]) {
-      for (const object of scope(read)) {
+      for (const [object] of scope(read)) {
         const match = readObjectMap.get(object)?.get(read.lexerToken.getLText());
         if (match) {
           read.definitions.push(match);
