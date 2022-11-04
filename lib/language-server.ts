@@ -326,9 +326,9 @@ const findDefinitions = async (params: IFindDefinitionParams) => {
         return {
           // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
           range: definition.range.copyExtendBeginningOfLine().getLimitedRange(10),
-          text: definition.getRoot().originalText,
+          text: definition.rootFile.originalText,
           // targetSelectionRange:  Range.create(Position.create(0, 0), Position.create(0, 0)),
-          uri: URI.file(definition.getRoot().file).toString()
+          uri: URI.file(definition.rootFile.file).toString()
         };
       });
     } else {

@@ -49,7 +49,7 @@ export class OI implements Position {
 
   getRangeToEndLine(): OIRange {
     const start = this.i;
-    const text = this.parent.getRoot().text;
+    const text = this.parent.rootFile.text;
     let end = text.length;
     const match = /\n/.exec(text.substr(start));
     if (match) {
@@ -59,7 +59,7 @@ export class OI implements Position {
 
   }
   private calcPosition(): Position {
-    const lines = (this.parent instanceof OFile ? this.parent : this.parent.getRoot()).text.slice(0, this.i).split('\n');
+    const lines = (this.parent instanceof OFile ? this.parent : this.parent.rootFile).text.slice(0, this.i).split('\n');
     const line = lines.length - 1;
     const character = lines[lines.length - 1].length;
     return { character, line };
@@ -68,7 +68,7 @@ export class OI implements Position {
     if (typeof this.position === 'undefined') {
       throw new Error('Something went wrong with OIRange');
     }
-    const lines = (this.parent instanceof OFile ? this.parent : this.parent.getRoot()).lines;
+    const lines = (this.parent instanceof OFile ? this.parent : this.parent.rootFile).lines;
     this.i_ = lines.slice(0, this.position.line).join('\n').length + 1 + Math.min(this.position.character, lines[this.position.line].length);
   }
 }
@@ -109,7 +109,7 @@ export class OIRange implements Range {
     return new OIRange(this.parent, this.start, newEnd);
   }
   copyExtendBeginningOfLine() {
-    const lines = (this.parent instanceof OFile ? this.parent : this.parent.getRoot()).lines;
+    const lines = (this.parent instanceof OFile ? this.parent : this.parent.rootFile).lines;
     let startCol = 0;
     const match = lines[this.start.line].match(/\S/);
     if (match) {
@@ -121,7 +121,7 @@ export class OIRange implements Range {
 
   }
   copyExtendEndOfLine(): OIRange {
-    const text = this.parent.getRoot().text;
+    const text = this.parent.rootFile.text;
     const match = /\n/.exec(text.substr(this.start.i));
     let end = text.length;
     if (match) {
@@ -135,6 +135,7 @@ export class OIRange implements Range {
 
 export class ObjectBase {
   lexerToken?: OLexerToken;
+  readonly rootFile: OFile;
   constructor(public parent: ObjectBase | OFile, public range: OIRange) {
     let maximumIterationCounter = 5000;
     let p = parent;
@@ -145,20 +146,8 @@ export class ObjectBase {
         throw new ParserError('Maximum Iteraction Counter overrung', range);
       }
     }
+    this.rootFile = p;
     p.objectList.push(this);
-  }
-  private root?: OFile;
-  getRoot(): OFile {
-    if (this.root) {
-      return this.root;
-    }
-    // eslint-disable-next-line @typescript-eslint/no-this-alias, @typescript-eslint/no-explicit-any
-    let parent: any = this;
-    while (parent instanceof OFile === false) {
-      parent = parent.parent;
-    }
-    this.root = parent;
-    return parent;
   }
   private rootElement?: OArchitecture | OEntity | OPackage | OPackageBody;
 
@@ -193,34 +182,34 @@ export interface IHasLexerToken {
   lexerToken: OLexerToken;
 }
 
-export function implementsIHasUseClause(obj: unknown): obj is IHasUseClauses {
-  return (obj as IHasUseClauses).useClauses !== undefined;
+export function implementsIHasUseClause(obj: ObjectBase): obj is ObjectBase & IHasUseClauses {
+  return (obj as ObjectBase & IHasUseClauses).useClauses !== undefined;
 }
-export function implementsIHasLexerToken(obj: unknown): obj is IHasLexerToken {
-  return (obj as IHasLexerToken).lexerToken !== undefined;
+export function implementsIHasLexerToken(obj: ObjectBase): obj is ObjectBase & IHasLexerToken {
+  return (obj as ObjectBase & IHasLexerToken).lexerToken !== undefined;
 }
 export interface IHasContextReference {
   contextReferences: OContextReference[];
   packageDefinitions: OPackage[];
 
 }
-export function implementsIHasContextReference(obj: unknown): obj is IHasContextReference {
-  return (obj as IHasContextReference).contextReferences !== undefined;
+export function implementsIHasContextReference(obj: ObjectBase): obj is ObjectBase & IHasContextReference {
+  return (obj as ObjectBase & IHasContextReference).contextReferences !== undefined;
 }
 export interface IReferenceable {
   references: OReference[];
 }
-export function implementsIReferencable(obj: unknown): obj is IReferenceable {
-  return (obj as IReferenceable).references !== undefined;
+export function implementsIReferencable(obj: ObjectBase): obj is ObjectBase & IReferenceable {
+  return (obj as ObjectBase & IReferenceable).references !== undefined;
 }
 export interface IHasDefinitions {
   definitions: ObjectBase[];
 }
-export function implementsIHasDefinitions(obj: unknown): obj is IHasDefinitions {
-  return (obj as IHasDefinitions).definitions !== undefined;
+export function implementsIHasDefinitions(obj: ObjectBase): obj is ObjectBase & IHasDefinitions {
+  return (obj as ObjectBase & IHasDefinitions).definitions !== undefined;
 }
-export function implementsIHasPackageInstantiations(obj: unknown): obj is IHasPackageInstantiations {
-  return (obj as IHasPackageInstantiations).packageInstantiations !== undefined;
+export function implementsIHasPackageInstantiations(obj: ObjectBase): obj is ObjectBase & IHasPackageInstantiations {
+  return (obj as ObjectBase & IHasPackageInstantiations).packageInstantiations !== undefined;
 }
 export interface IHasPackageInstantiations {
   packageInstantiations: OPackageInstantiation[];
@@ -228,32 +217,32 @@ export interface IHasPackageInstantiations {
 export interface IHasSubprograms {
   subprograms: OSubprogram[];
 }
-export function implementsIHasSubprograms(obj: unknown): obj is IHasSubprograms {
-  return (obj as IHasSubprograms).subprograms !== undefined;
+export function implementsIHasSubprograms(obj: ObjectBase): obj is ObjectBase & IHasSubprograms {
+  return (obj as ObjectBase & IHasSubprograms).subprograms !== undefined;
 }
 export interface IHasTypes {
   types: OType[];
 }
-export function implementsIHasTypes(obj: unknown): obj is IHasTypes {
-  return (obj as IHasTypes).types !== undefined;
+export function implementsIHasTypes(obj: ObjectBase): obj is ObjectBase & IHasTypes {
+  return (obj as ObjectBase & IHasTypes).types !== undefined;
 }
 export interface IHasSubprogramAlias {
   subprogramAliases: OSubprogramAlias[];
 }
-export function implementsIHasSubprogramAlias(obj: unknown): obj is IHasSubprogramAlias {
-  return (obj as IHasSubprogramAlias).subprogramAliases !== undefined;
+export function implementsIHasSubprogramAlias(obj: ObjectBase): obj is ObjectBase & IHasSubprogramAlias {
+  return (obj as ObjectBase & IHasSubprogramAlias).subprogramAliases !== undefined;
 }
 export interface IHasComponents {
   components: OComponent[];
 }
-export function implementsIHasComponents(obj: unknown): obj is IHasComponents {
-  return (obj as IHasComponents).components !== undefined;
+export function implementsIHasComponents(obj: ObjectBase): obj is ObjectBase & IHasComponents {
+  return (obj as ObjectBase & IHasComponents).components !== undefined;
 }
 export interface IHasInstantiations {
   instantiations: OInstantiation[];
 }
-export function implementsIHasInstantiations(obj: unknown): obj is IHasInstantiations {
-  return (obj as IHasInstantiations).instantiations !== undefined;
+export function implementsIHasInstantiations(obj: ObjectBase): obj is ObjectBase & IHasInstantiations {
+  return (obj as ObjectBase & IHasInstantiations).instantiations !== undefined;
 }
 export interface IHasSignals {
   signals: OSignal[];
@@ -261,50 +250,49 @@ export interface IHasSignals {
 export interface IHasFileVariables {
   files: OFileVariable[];
 }
-export function implementsIHasFileVariables(obj: unknown): obj is IHasFileVariables {
-  return (obj as IHasFileVariables).files !== undefined;
+export function implementsIHasFileVariables(obj: ObjectBase): obj is ObjectBase & IHasFileVariables {
+  return (obj as ObjectBase & IHasFileVariables).files !== undefined;
 }
-export function implementsIHasSignals(obj: unknown): obj is IHasSignals {
-  return (obj as IHasSignals).signals !== undefined;
+export function implementsIHasSignals(obj: ObjectBase): obj is ObjectBase & IHasSignals {
+  return (obj as ObjectBase & IHasSignals).signals !== undefined;
 }
 export interface IHasConstants {
   constants: OConstant[];
 }
-export function implementsIHasConstants(obj: unknown): obj is IHasConstants {
-  return (obj as IHasConstants).constants !== undefined;
+export function implementsIHasConstants(obj: ObjectBase): obj is ObjectBase & IHasConstants {
+  return (obj as ObjectBase & IHasConstants).constants !== undefined;
 }
 export interface IHasVariables {
   variables: OVariable[];
 }
-export function implementsIHasVariables(obj: unknown): obj is IHasVariables {
-  return (obj as IHasVariables).variables !== undefined;
+export function implementsIHasVariables(obj: ObjectBase): obj is ObjectBase & IHasVariables {
+  return (obj as ObjectBase & IHasVariables).variables !== undefined;
 }
 interface IHasLibraries {
   libraries: OLibrary[];
 }
-export function implementsIHasLibraries(obj: unknown): obj is IHasLibraries {
-  return (obj as IHasLibraries).libraries !== undefined;
-
+export function implementsIHasLibraries(obj: ObjectBase): obj is ObjectBase & IHasLibraries {
+  return (obj as ObjectBase & IHasLibraries).libraries !== undefined;
 }
 interface IHasLibraryReference {
   library?: OLexerToken;
 }
-export function implementsIHasLibraryReference(obj: unknown): obj is IHasLibraryReference {
-  return (obj as IHasLibraryReference).library !== undefined;
+export function implementsIHasLibraryReference(obj: ObjectBase): obj is ObjectBase & IHasLibraryReference {
+  return (obj as ObjectBase & IHasLibraryReference).library !== undefined;
 }
 interface IHasGenerics {
   generics: OGeneric[];
   genericRange?: OIRange;
 }
-export function implementsIHasGenerics(obj: unknown): obj is IHasGenerics {
-  return (obj as IHasGenerics).generics !== undefined;
+export function implementsIHasGenerics(obj: ObjectBase): obj is ObjectBase & IHasGenerics {
+  return (obj as ObjectBase & IHasGenerics).generics !== undefined;
 }
 interface IHasPorts {
   ports: OPort[];
   portRange?: OIRange;
 }
-export function implementsIHasPorts(obj: unknown): obj is IHasPorts {
-  return (obj as IHasPorts).ports !== undefined;
+export function implementsIHasPorts(obj: ObjectBase): obj is ObjectBase & IHasPorts {
+  return (obj as ObjectBase & IHasPorts).ports !== undefined;
 }
 export class OFile {
   public lines: string[];
@@ -320,9 +308,7 @@ export class OFile {
   packages: (OPackage | OPackageBody)[] = [];
   packageInstantiations: OPackageInstantiation[] = [];
   configurations: OConfiguration[] = [];
-  getRoot() { // Provided as a convience to equalize to ObjectBase
-    return this;
-  }
+  readonly rootFile = this; // Provided as a convience to equalize to ObjectBase
   getJSON() {
     const seen = new WeakSet();
 
@@ -826,16 +812,8 @@ export class OReference extends ObjectBase implements IHasDefinitions, IHasLexer
   }
 
   elaborate() {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    let object: (OFile | ObjectBase) = this;
-    let lastIteration = false;
-    let stop = false;
     const text = this.lexerToken.text;
-    do {
-      stop = lastIteration;
-      if (!lastIteration) {
-        object = object.parent;
-      }
+    for (const [object, directlyVisible] of scope(this)) {
       if (implementsIHasSignals(object)) {
         for (const signal of object.signals) {
           if (signal.lexerToken.getLText() === text.toLowerCase()) {
@@ -924,6 +902,13 @@ export class OReference extends ObjectBase implements IHasDefinitions, IHasLexer
           }
         }
       }
+
+      // package names are only referencable in direct visibility
+      if (directlyVisible && (object instanceof OPackage || object instanceof OPackageBody)) {
+        if (object.lexerToken && object.lexerToken.getLText() === text.toLowerCase()) {
+          this.definitions.push(object);
+        }
+      }
       // Handling for Attributes e.g. 'INSTANCE_name or 'PATH_NAME
       // TODO: check better if actual Attribute is following
       // Possible entities (objects where attributes are valid):
@@ -952,7 +937,7 @@ export class OReference extends ObjectBase implements IHasDefinitions, IHasLexer
         OEntity,
         OArchitecture,
         OSubprogram, // Procedure, Function
-        OPackage, OPackageBody,
+        // OPackage, OPackageBody,
         OType,
         OSubType,
         OConstant,
@@ -967,19 +952,7 @@ export class OReference extends ObjectBase implements IHasDefinitions, IHasLexer
         }
 
       }
-      if (object instanceof OArchitecture && object.correspondingEntity) {
-        object = object.correspondingEntity;
-        lastIteration = true;
-      }
-      if (object instanceof OPackageBody && object.correspondingPackage) {
-        object = object.correspondingPackage;
-        lastIteration = true;
-      }
-      // if (object instanceof OFile && object.entity) {
-      //   object = object.entity;
-      //   lastIteration = true;
-      // }
-    } while (!(object instanceof OFile || stop));
+    }
   }
 }
 export class OWrite extends OReference {
@@ -1062,15 +1035,26 @@ export class OConfiguration extends ObjectBase implements IHasLibraries {
   entityName: OLexerToken;
   libraries: OLibrary[] = [];
 }
-export function* scope(startObject: ObjectBase) {
+// Returns all object visible starting from the startObjects scope.
+// The second parameter defines if the object is directly visible.
+export function* scope(startObject: ObjectBase): Generator<[ObjectBase, boolean]> {
   let current = startObject;
+  let directlyVisible = true;
   while (true) {
-    yield current;
+    yield [current, directlyVisible];
     if (current instanceof OArchitecture && current.correspondingEntity) {
-      yield current.correspondingEntity;
+      directlyVisible = false;
+      yield [current.correspondingEntity, directlyVisible];
     }
     if (current instanceof OPackageBody && current.correspondingPackage) {
-      yield current.correspondingPackage;
+      directlyVisible = false;
+      yield [current.correspondingPackage, directlyVisible];
+    }
+    if (implementsIHasUseClause(current)) {
+      for (const packages of current.packageDefinitions) {
+        directlyVisible = false;
+        yield [packages, directlyVisible];
+      }
     }
     if (current.parent instanceof OFile) {
       break;
