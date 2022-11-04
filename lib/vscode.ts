@@ -87,12 +87,12 @@ export function activate(context: ExtensionContext) {
   context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-as-instance', () => copy(CopyTypes.Instance)));
   context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-as-sysverilog', () => copy(CopyTypes.Sysverilog)));
   context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-as-signals', () => copy(CopyTypes.Signals)));
-  context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-tree', () => {
+  context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-tree', async () => {
     const editor = window.activeTextEditor;
     if (!editor) {
       return;
     }
-    const vhdlLinter = new VhdlLinter(editor.document.uri.path, editor.document.getText(), new ProjectParser([], ''));
+    const vhdlLinter = new VhdlLinter(editor.document.uri.path, editor.document.getText(), await ProjectParser.create([], ''));
     if (vhdlLinter.file) {
       env.clipboard.writeText(vhdlLinter.file.getJSON());
       window.showInformationMessage(`VHDL file as JSON copied to clipboard`);

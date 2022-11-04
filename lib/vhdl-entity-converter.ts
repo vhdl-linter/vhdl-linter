@@ -2,12 +2,12 @@ import * as vscode from 'vscode';
 import { OEntity, OGeneric, OPort } from './parser/objects';
 import { ProjectParser } from './project-parser';
 import { VhdlLinter } from './vhdl-linter';
-function getEntity() {
+async function getEntity() {
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
         return;
     }
-    const vhdlLinter = new VhdlLinter(editor.document.uri.path, editor.document.getText(), new ProjectParser([], ''), true);
+    const vhdlLinter = new VhdlLinter(editor.document.uri.path, editor.document.getText(), await ProjectParser.create([], ''), true);
     if (vhdlLinter.file.entities[0] !== undefined) {
         return vhdlLinter.file.entities[0];
     }
@@ -15,8 +15,8 @@ function getEntity() {
 export enum CopyTypes {
     Instance, Sysverilog, Signals
 }
-export function copy(type: CopyTypes) {
-    const entity = getEntity();
+export async function copy(type: CopyTypes) {
+    const entity = await getEntity();
     if (!entity) {
         return;
     }
@@ -43,7 +43,7 @@ function longestinArray(array: OPort[]|OGeneric[]) {
     }
     return longest;
 }
-
+// TODO: Make the formatting configurable
 function instanceTemplate(entity: OEntity) {
     let text = `inst_${entity.lexerToken} : entity work.${entity.lexerToken}`;
     const indentString = '  ';

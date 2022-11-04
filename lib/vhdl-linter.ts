@@ -191,7 +191,7 @@ export class VhdlLinter {
       contextReferences.push(...parent.correspondingEntity.contextReferences);
     }
     if (contextReferences.length > 0) {
-      const contexts = this.projectParser.getContexts();
+      const contexts = this.projectParser.contexts;
       for (const reference of contextReferences) {
         const context = contexts.find(c => c.lexerToken.getLText() === reference.contextName.toLowerCase());
         if (!context) {
@@ -218,8 +218,8 @@ export class VhdlLinter {
   }
   async elaborateUseClauses() {
 
-    const packages = this.projectParser.getPackages();
-    const packageInstantiations = this.projectParser.getPackageInstantiations();
+    const packages = this.projectParser.packages;
+    const packageInstantiations = this.projectParser.packageInstantiations;
 
     for (const obj of this.file.objectList) {
       if (implementsIHasUseClause(obj) || implementsIHasContextReference(obj)) {
@@ -326,7 +326,7 @@ export class VhdlLinter {
       // Find entity first in this file
       let entity = this.file.entities.find(entity => entity.lexerToken.getLText() === architecture.entityName?.getLText());
       if (!entity) { // Find entity in all files
-        entity = this.projectParser.getEntities().find(entity => entity.lexerToken.getLText() === architecture.entityName?.getLText());
+        entity = this.projectParser.entities.find(entity => entity.lexerToken.getLText() === architecture.entityName?.getLText());
       }
       if (entity) {
         architecture.correspondingEntity = entity;
@@ -339,7 +339,7 @@ export class VhdlLinter {
         // Find entity first in this file
         let pkgHeader: OPackage | undefined = this.file.packages.find(pkgHeader => pkgHeader instanceof OPackage && pkgHeader.lexerToken.getLText() === pkg.lexerToken.getLText()) as OPackage | undefined;
         if (!pkgHeader) { // Find entity in all files
-          pkgHeader = this.projectParser.getPackages().find(pkgHeader => pkgHeader instanceof OPackage && pkgHeader.lexerToken.getLText() === pkg.lexerToken.getLText()) as OPackage | undefined;
+          pkgHeader = this.projectParser.packages.find(pkgHeader => pkgHeader instanceof OPackage && pkgHeader.lexerToken.getLText() === pkg.lexerToken.getLText()) as OPackage | undefined;
         }
         if (pkgHeader) {
           pkg.correspondingPackage = pkgHeader;
@@ -421,7 +421,7 @@ export class VhdlLinter {
       if (read instanceof OSelectedNameRead) {
         if (read.prefixTokens.length === 2) {
           const [, pkgToken] = read.prefixTokens;
-          for (const pkg of this.projectParser.getPackages()) {
+          for (const pkg of this.projectParser.packages) {
             if (pkg.lexerToken.getLText() === pkgToken.getLText()) {
               for (const constant of pkg.constants) {
                 if (constant.lexerToken.getLText() === read.lexerToken.getLText()) {
@@ -463,12 +463,12 @@ export class VhdlLinter {
             }
           }
           if (library) {
-            for (const pkg of this.projectParser.getPackages()) {
+            for (const pkg of this.projectParser.packages) {
               if (read.lexerToken.getLText() === pkg.lexerToken.getLText()) {
                 read.definitions.push(pkg);
               }
             }
-            for (const pkg of this.projectParser.getPackageInstantiations()) {
+            for (const pkg of this.projectParser.packageInstantiations) {
               if (read.lexerToken.getLText() === pkg.lexerToken.getLText()) {
                 read.definitions.push(pkg);
               }
@@ -479,7 +479,7 @@ export class VhdlLinter {
               if (implementsIHasPackageInstantiations(obj)) {
                 for (const pkgInst of obj.packageInstantiations) {
                   if (pkgInst.lexerToken?.getLText() === read.prefixTokens[0].getLText()) {
-                    const pkg = this.projectParser.getPackages().filter(pkg => pkg.lexerToken.getLText() === pkgInst.uninstantiatedPackageToken.getLText());
+                    const pkg = this.projectParser.packages.filter(pkg => pkg.lexerToken.getLText() === pkgInst.uninstantiatedPackageToken.getLText());
                     packages.push(...pkg);
                   }
                 }
@@ -1543,7 +1543,7 @@ export class VhdlLinter {
       return [];
     }
     // find project entities
-    const projectEntities = this.projectParser.getEntities();
+    const projectEntities = this.projectParser.entities;
     if (instantiation instanceof OInstantiation && typeof instantiation.library !== 'undefined' && instantiation.library.getLText() !== 'work') {
       entities.push(...projectEntities.filter(entity => {
         if (typeof entity.targetLibrary !== 'undefined') {
@@ -1632,9 +1632,9 @@ export class VhdlLinter {
       addTypes(pkg.types);
     }
     // in entities
-    subprograms.push(...this.projectParser.getEntities().flatMap(ent => ent.subprograms));
+    subprograms.push(...this.projectParser.entities.flatMap(ent => ent.subprograms));
     if (instantiation.library !== undefined && instantiation.package !== undefined) {
-      subprograms.push(...this.projectParser.getPackages().filter(pkg => pkg.lexerToken.getLText() === instantiation.package?.text.toLowerCase()).map(pkg => pkg.subprograms).flat());
+      subprograms.push(...this.projectParser.packages.filter(pkg => pkg.lexerToken.getLText() === instantiation.package?.text.toLowerCase()).map(pkg => pkg.subprograms).flat());
 
     }
     return subprograms.filter(e => e.lexerToken.getLText() === instantiation.componentName.text.toLowerCase());
