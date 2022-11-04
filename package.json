@@ -215,7 +215,6 @@
 	},
 	"dependencies": {
 		"chokidar": "^3.2.2",
-		"escape-string-regexp": "^2.0.0",
 		"string-similarity": "^3.0.0",
 		"vscode-languageclient": "^8.0.2",
 		"vscode-languageserver": "^8.0.2",
