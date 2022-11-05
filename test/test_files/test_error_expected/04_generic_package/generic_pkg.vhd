@@ -4,6 +4,7 @@ package generic_pkg is
     );
 end package;
 package body generic_pkg is
-    constant generic_parameter : integer := 0; --multiple declaration (disable to get only one error)--vhdl-linter-disable-this-line
+  -- vhdl-linter-disable-next-line multiple-definitions
+  constant generic_parameter : integer := 0;  --multiple declaration (disable to get only one error)
 
 end package body;

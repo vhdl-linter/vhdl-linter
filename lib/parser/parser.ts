@@ -3,7 +3,7 @@ import { ArchitectureParser } from './architecture-parser';
 import { ContextParser } from './context-parser';
 import { ContextReferenceParser } from './context-reference-parser';
 import { EntityParser } from './entity-parser';
-import { MagicCommentType, OFile, OI, OIRange, OMagicCommentDisable, OMagicCommentParameter, ParserError, OConfiguration, OUseClause, OLibrary, OPackageInstantiation } from './objects';
+import { MagicCommentType, OFile, OI, OIRange, OMagicCommentDisable, ParserError, OConfiguration, OUseClause, OLibrary, OPackageInstantiation } from './objects';
 import { PackageParser } from './package-parser';
 import { ParserBase } from './parser-base';
 import { UseClauseParser } from './use-clause-parser';
@@ -51,60 +51,71 @@ export class Parser extends ParserBase {
   }
   parse(): OFile {
 
-    let disabledRangeStart = undefined;
-    const ignoreRegex: RegExp[] = [];
+    const disabledRangeStart = new Map<string | undefined, number>();
     for (const [lineNumber, line] of this.originalText.split('\n').entries()) {
       const match = /(--\s*vhdl-linter)(.*)/.exec(line); // vhdl-linter-disable-next-line //vhdl-linter-disable-this-line
 
       if (match) {
         let innerMatch: RegExpMatchArray | null;
         const nextLineRange = new OIRange(this.file, new OI(this.file, lineNumber + 1, 0), new OI(this.file, lineNumber + 1, this.originalText.split('\n')[lineNumber + 1].length - 1));
-        if ((innerMatch = match[2].match('-disable-this-line')) !== null) {
-          this.file.magicComments.push(new OMagicCommentDisable(this.file, MagicCommentType.Disable, new OIRange(this.file, new OI(this.file, lineNumber, 0), new OI(this.file, lineNumber, line.length - 1))));
-        } else if ((innerMatch = match[2].match('-disable-next-line')) !== null) {// TODO: next nonempty line
-          this.file.magicComments.push(new OMagicCommentDisable(this.file, MagicCommentType.Disable, nextLineRange));
-        } else if ((innerMatch = match[2].match('-disable-region')) !== null) {
-          if (disabledRangeStart === undefined) {
-            disabledRangeStart = lineNumber;
+        if ((innerMatch = match[2].match(/-disable(?:-this)?-line(?:\s|$)(.+)?/i)) !== null) {
+          for (const rule of innerMatch[1]?.split(' ') ?? [undefined]) {
+            this.file.magicComments.push(new OMagicCommentDisable(
+              this.file,
+              MagicCommentType.Disable,
+              new OIRange(this.file, new OI(this.file, lineNumber, 0), new OI(this.file, lineNumber, line.length - 1)),
+              rule
+            ));
           }
-        } else if ((innerMatch = match[2].match('-enable-region')) !== null) {
-          if (disabledRangeStart !== undefined) {
-            const disabledRange = new OIRange(this.file, new OI(this.file, disabledRangeStart, 0), new OI(this.file, lineNumber, line.length - 1));
-            this.file.magicComments.push(new OMagicCommentDisable(this.file, MagicCommentType.Disable, disabledRange));
-            disabledRangeStart = undefined;
+
+        } else if ((innerMatch = match[2].match(/-disable-next-line(?:\s|$)(.+)?/i)) !== null) {// TODO: next nonempty line
+          for (const rule of innerMatch[1]?.split(' ') ?? [undefined]) {
+            this.file.magicComments.push(new OMagicCommentDisable(
+              this.file,
+              MagicCommentType.Disable,
+              nextLineRange,
+              rule
+            ));
           }
-        } else if ((innerMatch = match[2].match(/(-parameter-next-line\s+)(.*)/)) !== null) {// TODO: next nonempty line
-          const parameter = innerMatch[2].split(/,?\s+/);
-          // .map(parameter => {
-          //   const innerInnerMatch = new RegExp(String.raw`\b${escapeStringRegexp(parameter)}\b`, 'i').exec((innerMatch as RegExpMatchArray)[2]);
-          //   console.log(String.raw`\b${escapeStringRegexp(parameter)}\b`);
-          //   if (!innerInnerMatch) {
-          //     throw new Error('FUCK');
-          //   }
-          //   const startCharacter = (match as RegExpExecArray)[1].length + (innerMatch as RegExpMatchArray)[1].length + innerInnerMatch.index;
-          //   const read = new ORead(this.file, new OI(this.file, lineNumber, startCharacter).i, new OI(this.file, lineNumber, startCharacter + innerInnerMatch.length - 1).i);
-          //   read.text = parameter;
-          //   return read;
-          // });
-          this.file.magicComments.push(new OMagicCommentParameter(this.file, MagicCommentType.Parameter, nextLineRange, parameter));
-        } else if ((innerMatch = match[2].match(/-ignore\s+\/([^/]*)\/(.)?/)) !== null) {
-          ignoreRegex.push(RegExp(innerMatch[1], innerMatch[2]));
+        } else if ((innerMatch = match[2].match(/-disable(?:\s|$)(.+)?/i)) !== null) {
+          const rules: (string | undefined)[] = innerMatch[1]?.split(' ') ?? [];
+          if (rules.length == 0) {
+            rules.push(undefined);
+          }
+          for (const rule of rules) {
+            if (disabledRangeStart.has(rule) === false) {
+              disabledRangeStart.set(rule, lineNumber);
+            }
+          }
+        } else if ((innerMatch = match[2].match(/-enable(?:\s|$)(.+)?/i)) !== null) {
+          const rules: (string | undefined)[] = innerMatch[1]?.split(' ') ?? [];
+          if (rules.length == 0) { // If not rule is specified all rules are enabled
+            rules.push(...disabledRangeStart.keys());
+          }
+          for (const rule of rules) {
+            const rangeStart = disabledRangeStart.get(rule);
+            if (rangeStart !== undefined) {
+              const disabledRange = new OIRange(this.file,
+                new OI(this.file, rangeStart, 0),
+                new OI(this.file, lineNumber, line.length - 1));
+              this.file.magicComments.push(new OMagicCommentDisable(
+                this.file,
+                MagicCommentType.Disable,
+                disabledRange,
+                rule));
+              disabledRangeStart.delete(rule);
+            }
+          }
+
         }
       }
-      if (disabledRangeStart !== undefined) {
-        const disabledRange = new OIRange(this.file, new OI(this.file, disabledRangeStart, 0), new OI(this.file, this.originalText.length - 1));
-        this.file.magicComments.push(new OMagicCommentDisable(this.file, MagicCommentType.Disable, disabledRange));
-        disabledRangeStart = undefined;
-      }
+
 
     }
-    for (const regex of ignoreRegex) {
-      const ignores = this.text.match(regex);
-      if (ignores === null) continue;
-      for (const ignore of ignores) {
-        const replacement = ignore.replace(/\S/g, ' ');
-        this.text = this.text.replace(ignore, replacement);
-      }
+    for (const [rule, start] of disabledRangeStart) {
+      const disabledRange = new OIRange(this.file, new OI(this.file, start, 0), new OI(this.file, this.originalText.length - 1));
+      this.file.magicComments.push(new OMagicCommentDisable(
+        this.file, MagicCommentType.Disable, disabledRange, rule));
     }
     // this.pos = new OI(this.file, 0);
     if (this.text.length > 500 * 1024) {
