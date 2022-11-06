@@ -54,7 +54,7 @@ export class ProjectParser {
           ? this.cachedFiles.find(cachedFile => cachedFile.path.toLowerCase() === path.toLowerCase())
           : this.cachedFiles.find(cachedFile => cachedFile.path === path);
         if (cachedFile) {
-          cachedFile.parse();
+          await cachedFile.parse();
           this.flattenProject();
           this.events.emit('change', 'change', path);
         } else {
