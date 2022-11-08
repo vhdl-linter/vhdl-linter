@@ -4,7 +4,7 @@ use ieee.numeric_std.all;
 
 entity test_multiple_definitions is
   port (
-    test : in std_ulogic                --vhdl-linter-disable-this-line
+    i_test : in std_ulogic --vhdl-linter-disable-line multiple-definition
     );
 end test_multiple_definitions;
 

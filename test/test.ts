@@ -85,7 +85,7 @@ async function run_test(path: string, error_expected: boolean): Promise<MessageW
     console.log(prettyPrintMessages(messages));
   }
   let timeOutError = 0;
-  const TIMEOUT_TIME = 35;
+  const TIMEOUT_TIME = 40;
   if (timeTaken > TIMEOUT_TIME * 1000) {
     console.error(`Time toke more than ${TIMEOUT_TIME}s (${timeTaken / 1000} s)`);
     timeOutError++;

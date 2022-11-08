@@ -5,15 +5,16 @@ use ieee.numeric_std.all;
 
 entity test_multiple_definitions2 is
   port (
-    test : out std_ulogic                --vhdl-linter-disable-this-line
+    o_test : out std_ulogic
+
     );
 end test_multiple_definitions2;
 
 architecture arch of test_multiple_definitions2 is
 begin
   block_test : block
-    signal test : std_ulogic; -- shadowing of signals is fine
+    signal o_test : std_ulogic; -- shadowing of signals is fine
   begin
-    test <= test;
+    o_test <= o_test;
   end block;
 end architecture;

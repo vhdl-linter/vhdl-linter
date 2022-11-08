@@ -1,12 +1,9 @@
 entity test is
-  port (
-    o_a : out integer
-    );
 end test;
 architecture arch of test is
-
+  --vhdl-linter-disable-next-line unused
   signal test : integer;
 
 begin
-  o_a <= test;
-end arch;
+test <= 0;
+end arch ;

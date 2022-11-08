@@ -302,7 +302,7 @@ export class OFile {
 
   objectList: ObjectBase[] = [];
   contexts: OContext[] = [];
-  magicComments: (OMagicCommentParameter | OMagicCommentDisable)[] = [];
+  magicComments: (OMagicCommentDisable)[] = [];
   entities: OEntity[] = [];
   architectures: OArchitecture[] = [];
   packages: (OPackage | OPackageBody)[] = [];
@@ -982,22 +982,19 @@ export class ParserError extends Error {
   }
 }
 export enum MagicCommentType {
-  Disable,
-  Parameter
+  Disable
 }
 export class OMagicComment extends ObjectBase {
-  constructor(public parent: OFile, public commentType: MagicCommentType, range: OIRange) {
+  constructor(public parent: OFile, public commentType: MagicCommentType, range: OIRange,
+    public rule?: string) {
     super(parent, range);
   }
 }
 export class OMagicCommentDisable extends OMagicComment {
-  constructor(public parent: OFile, public commentType: MagicCommentType.Disable, range: OIRange) {
-    super(parent, commentType, range);
-  }
-}
-export class OMagicCommentParameter extends OMagicComment {
-  constructor(public parent: OFile, public commentType: MagicCommentType.Parameter, range: OIRange, public parameter: string[]) {
-    super(parent, commentType, range);
+  constructor(public parent: OFile,
+    public commentType: MagicCommentType.Disable,
+    range: OIRange, public rule?: string) {
+    super(parent, commentType, range, rule);
   }
 }
 export class OSubprogram extends OHasSequentialStatements implements IReferenceable, IHasSubprograms, IHasInstantiations, IHasPorts,
