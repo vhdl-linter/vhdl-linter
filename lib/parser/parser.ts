@@ -49,6 +49,12 @@ export class Parser extends ParserBase {
     this.pos.lexerTokens = this.lexerTokens;
     this.pos.file = this.file;
   }
+  getNextLineRange(lineNumber: number) {
+    while (this.originalText.split('\n')[lineNumber + 1].match(/^\s*(?:--.*)?$/)) {
+      lineNumber++;
+    }
+    return new OIRange(this.file, new OI(this.file, lineNumber + 1, 0), new OI(this.file, lineNumber + 1, this.originalText.split('\n')[lineNumber + 1].length));
+  }
   parse(): OFile {
 
     const disabledRangeStart = new Map<string | undefined, number>();
