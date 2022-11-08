@@ -1067,7 +1067,7 @@ export function* scope(startObject: ObjectBase): Generator<[ObjectBase, boolean]
     }
     if (implementsIHasUseClause(current)) {
       for (const packages of current.packageDefinitions) {
-        yield packages;
+        yield [packages, directlyVisible];
       }
     }
     if (current.parent instanceof OFile) {

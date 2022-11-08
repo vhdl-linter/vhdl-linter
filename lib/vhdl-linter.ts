@@ -1,8 +1,7 @@
 import {
   CodeAction, CodeActionKind, CodeLens, Command, Diagnostic, DiagnosticSeverity, Position, Range, TextEdit
 } from 'vscode-languageserver';
-import { URI } from 'vscode-uri';
-import { CancelationError, CancelationObject, getDocumentSettings } from './language-server';
+import { CancelationError, CancelationObject } from './language-server';
 
 import {
   IHasContextReference, IHasUseClauses, implementsIHasContextReference,
@@ -11,7 +10,7 @@ import {
   OFile, OGeneric, OGenericAssociationList, OI, OInstantiation, OIRange, OPackage,
   OPackageBody, OPort, OPortAssociationList, ORead, OSubprogram, OReference, OType,
   ParserError, implementsIHasLibraries, OSelectedNameRead,
-  implementsIHasPorts, implementsIHasPackageInstantiations, scope, OTypeMark, implementsIHasSubprogramAlias, OSubprogramAlias, implementsIHasComponents
+  implementsIHasPorts, implementsIHasPackageInstantiations, scope, OTypeMark, implementsIHasSubprogramAlias, OSubprogramAlias, implementsIHasComponents, implementsIHasVariables
 } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
@@ -464,7 +463,7 @@ export class VhdlLinter {
                 }
               }
             }
-            for (const obj of scope(read)) {
+            for (const [obj] of scope(read)) {
               if (implementsIHasVariables(obj)) {
                 for (const variable of obj.variables) {
                   // TODO: Find out way to check for proteced
