@@ -982,8 +982,7 @@ export class ParserError extends Error {
   }
 }
 export enum MagicCommentType {
-  Disable,
-  Parameter
+  Disable
 }
 export class OMagicComment extends ObjectBase {
   constructor(public parent: OFile, public commentType: MagicCommentType, range: OIRange,
