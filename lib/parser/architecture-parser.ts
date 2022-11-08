@@ -1,7 +1,7 @@
-import { OLexerToken } from '../lexer';
+import { OLexerToken, TokenType } from '../lexer';
 import { ConcurrentStatementParser, ConcurrentStatementTypes } from './concurrent-statement-parser';
 import { DeclarativePartParser } from './declarative-part-parser';
-import { OArchitecture, OBlock, OCaseGenerate, OConstant, OFile, OForGenerate, OI, OIfGenerate, OIfGenerateClause, ORead, OWhenGenerateClause, ParserError } from './objects';
+import { OArchitecture, OBlock, OCaseGenerate, OConstant, OFile, OForGenerate, OI, OIfGenerate, OIfGenerateClause, OIRange, ORead, OWhenGenerateClause, ParserError } from './objects';
 import { ParserPosition } from './parser';
 import { ParserBase } from './parser-base';
 
@@ -26,6 +26,20 @@ export class ArchitectureParser extends ParserBase {
       this.architecture = new OArchitecture(this.parent, this.getToken().range.copyExtendEndOfLine());
     } else if (structureName === 'block') {
       this.architecture = new OBlock(this.parent, this.getToken().range.copyExtendEndOfLine());
+      // guarded block
+      if (this.getToken().getLText() === '(') {
+        const startRange = this.getToken().range;
+        this.consumeToken(); // consume '('
+        (this.architecture as OBlock).guardCondition = this.extractReads(this.architecture, this.advanceClosingParenthese());
+        const guardRange = startRange.copyWithNewEnd(this.getToken().range.end);
+        // implicit declare constant GUARD
+        const constant = new OConstant(this.architecture, guardRange);
+        constant.lexerToken = new OLexerToken('GUARD', guardRange, TokenType.basicIdentifier);
+        // read GUARD constant to avoid 'not read' warning
+        (this.architecture as OBlock).guardCondition?.push(new ORead(this.architecture, constant.lexerToken));
+        this.architecture.constants.push(constant);
+      }
+      this.maybe('is');
     } else if (structureName === 'when-generate') {
       this.architecture = new OWhenGenerateClause(this.parent, this.getToken().range.copyExtendEndOfLine());
     } else if (!forConstant) {

@@ -1,48 +1,51 @@
 import { FSWatcher, watch } from 'chokidar';
 import { EventEmitter } from 'events';
-import { promises, readFileSync } from 'fs';
+import { promises } from 'fs';
 import { join, sep } from 'path';
 import { OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
 import { VhdlLinter } from './vhdl-linter';
 
 export class ProjectParser {
 
-  public cachedFiles: OFileCache[] = [];
-  private packages: OPackage[] = [];
-  private packageInstantiations: OPackageInstantiation[] = [];
-  private contexts: OContext[] = [];
-  private entities: OEntity[] = [];
+  public cachedFiles: FileCache[] = [];
+  public packages: OPackage[] = [];
+  public packageInstantiations: OPackageInstantiation[] = [];
+  public contexts: OContext[] = [];
+  public entities: OEntity[] = [];
   events = new EventEmitter();
-  constructor(public workspaces: string[], public fileIgnoreRegex: string) { }
+
+  // Constructor can not be async. So constructor is private and use factory to create
+  public static async create(workspaces: string[], fileIgnoreRegex: string) {
+    const projectParser = new ProjectParser(workspaces, fileIgnoreRegex);
+    await projectParser.init();
+    return projectParser;
+  }
+  private constructor(public workspaces: string[], public fileIgnoreRegex: string) { }
   async init() {
     const files = new Set<string>();
     await Promise.all(this.workspaces.map(async (directory) => {
-      // console.log('dir', directory);
       const directories = await this.parseDirectory(directory);
       return (await Promise.all(directories.map(file => promises.realpath(file)))).forEach(file => files.add(file));
     }));
-    // for (const directory of this.workspaces) {
-    //   this.parseDirectory(directory).forEach(file => files.add(realpathSync(file)));
-    // }
+
     const pkg = __dirname;
     if (pkg) {
-      //       console.log(pkg, new Directory(pkg + '/ieee2008'));
-      (await this.parseDirectory(join(pkg, `${sep}..${sep}..${sep}ieee2008`))).forEach(file => files.add(file));
+      (await this.parseDirectory(join(pkg, '..', '..', 'ieee2008'))).forEach(file => files.add(file));
     }
 
     for (const file of files) {
-      const cachedFile = new OFileCache(file, this);
+      const cachedFile = await FileCache.create(file, this);
       this.cachedFiles.push(cachedFile);
     }
     this.cachedFiles.sort((a, b) => b.lintingTime - a.lintingTime);
     // console.log('Times: \n' + this.cachedFiles.slice(0, 10).map(file => `${file.path}: ${file.lintingTime}ms`).join('\n'));
-    this.fetchEntitesAndPackagesAndContexts();
+    this.flattenProject();
     for (const workspace of this.workspaces) {
-      const watcher = watch(workspace.replace(sep, '/') + '/**/*.vhd', { ignoreInitial: true });
+      const watcher = watch(workspace.replace(sep, '/') + '/**/*.vhd?(l)', { ignoreInitial: true });
       watcher.on('add', async (path) => {
-        const cachedFile = new OFileCache(path, this);
+        const cachedFile = await (FileCache.create(path, this));
         this.cachedFiles.push(cachedFile);
-        this.fetchEntitesAndPackagesAndContexts();
+        this.flattenProject();
         this.events.emit('change', 'add', path);
       });
       watcher.on('change', async (path) => {
@@ -51,18 +54,20 @@ export class ProjectParser {
           ? this.cachedFiles.find(cachedFile => cachedFile.path.toLowerCase() === path.toLowerCase())
           : this.cachedFiles.find(cachedFile => cachedFile.path === path);
         if (cachedFile) {
-          cachedFile.reparse();
+          await cachedFile.parse();
+          this.flattenProject();
+          this.events.emit('change', 'change', path);
         } else {
           console.error('modified file not found', path);
         }
-        this.fetchEntitesAndPackagesAndContexts();
-        this.events.emit('change', 'change', path);
       });
       watcher.on('unlink', path => {
         const cachedFileIndex = this.cachedFiles.findIndex(cachedFile => cachedFile.path === path);
-        this.cachedFiles.splice(cachedFileIndex, 1);
-        this.fetchEntitesAndPackagesAndContexts();
-        this.events.emit('change', 'unlink', path);
+        if (cachedFileIndex > -1) {
+          this.cachedFiles.splice(cachedFileIndex, 1);
+          this.flattenProject();
+          this.events.emit('change', 'unlink', path);
+        }
       });
 
     }
@@ -90,8 +95,7 @@ export class ProjectParser {
     }));
     return files;
   }
-  private fetchEntitesAndPackagesAndContexts() {
-    //     console.log(this.cachedFiles);
+  private flattenProject() {
     this.packages = [];
     this.packageInstantiations = [];
     this.entities = [];
@@ -110,26 +114,11 @@ export class ProjectParser {
   }
   watcher: FSWatcher;
   addFolders(folders: string[]) {
-    this.watcher.add(folders.map(folder => folder.replace(sep, '/') + '/**/*.vhd'));
-  }
-  public getPackages() {
-    return this.packages;
-  }
-  public getPackageInstantiations() {
-    return this.packageInstantiations;
-  }
-  public getContexts() {
-    return this.contexts;
-  }
-  public getEntities() {
-    return this.entities;
+    this.watcher.add(folders.map(folder => folder.replace(sep, '/') + '/**/*.vhd?(l)'));
   }
 }
 
-export class OFileCache {
-
-  path: string;
-  digest: string;
+export class FileCache {
   packages?: OPackage[];
   packageInstantiations?: OPackageInstantiation[];
   contexts: OContext[] = [];
@@ -137,43 +126,21 @@ export class OFileCache {
   text: string;
   linter: VhdlLinter;
   lintingTime: number;
-  constructor(file: string, public projectParser: ProjectParser) {
-    const text = readFileSync(file, { encoding: 'utf8' });
-    if (!text) {
-      return;
-    }
-    this.text = text;
-    // this.digest = await file.getDigest();
-    this.path = file;
-    const date = Date.now();
-    this.linter = new VhdlLinter(this.path, this.text, this.projectParser, true);
-    this.lintingTime = Date.now() - date;
-    this.parsePackages();
-    this.parsePackageInstantiations();
-    this.parseEntity();
-    this.parseContexts();
+  // Constructor can not be async. So constructor is private and use factory to create
+  public static async create(path: string, projectParser: ProjectParser) {
+    const cache = new FileCache(path, projectParser);
+    await cache.parse();
+    return cache;
   }
-  reparse() {
-    this.text = readFileSync(this.path, { encoding: 'utf8' });
+  private constructor(public path: string, public projectParser: ProjectParser) {
+  }
+  async parse() {
+    this.text = await promises.readFile(this.path, { encoding: 'utf8' });
     this.linter = new VhdlLinter(this.path, this.text, this.projectParser);
-    this.parsePackages();
-    this.parsePackageInstantiations();
-    this.parseEntity();
-    this.parseContexts();
-  }
-
-  private parsePackages(): void {
     this.packages = this.linter.file.packages.filter((p): p is OPackage => p instanceof OPackage);
-  }
-  private parsePackageInstantiations(): void {
     this.packageInstantiations = this.linter.file.packageInstantiations;
-  }
-  private parseContexts(): void {
+    this.entities = this.linter.file.entities;
     this.contexts = this.linter.file.contexts;
   }
-  private parseEntity(): void {
-    if (this.linter.file.entities.length > 0) {
-      this.entities = this.linter.file.entities;
-    }
-  }
+
 }

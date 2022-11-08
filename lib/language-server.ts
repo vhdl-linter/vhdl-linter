@@ -17,6 +17,7 @@ import { implementsIHasDefinitions, OComponent, OFile, OInstantiation, OUseClaus
 import { ProjectParser } from './project-parser';
 import { VhdlLinter } from './vhdl-linter';
 import { handleSemanticTokens, semanticTokensLegend } from './languageFeatures/semanticTokens';
+import { existsSync } from 'fs';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -172,9 +173,8 @@ export const initialization = new Promise<void>(resolve => {
         const workspaceFolders = await connection.workspace.getWorkspaceFolders();
         const folders = (workspaceFolders ?? []).map(workspaceFolder => URI.parse(workspaceFolder.uri).fsPath);
         // console.log(configuration, 'configuration');
-        folders.push(...configuration.paths.additional);
-        projectParser = new ProjectParser(folders, configuration.paths.ignoreRegex);
-        await projectParser.init();
+        folders.push(...configuration.paths.additional.filter(existsSync));
+        projectParser = await ProjectParser.create(folders, configuration.paths.ignoreRegex);
       };
       await parseWorkspaces();
       connection.workspace.onDidChangeWorkspaceFolders(async event => {
@@ -187,8 +187,7 @@ export const initialization = new Promise<void>(resolve => {
         folders.push(URI.parse(rootUri).fsPath);
       }
       // console.log('folders', folders);
-      projectParser = new ProjectParser(folders, configuration.paths.ignoreRegex);
-      await projectParser.init();
+      projectParser = await ProjectParser.create(folders, configuration.paths.ignoreRegex);
     }
     for (const textDocument of documents.all()) {
       await validateTextDocument(textDocument);
@@ -327,9 +326,9 @@ const findDefinitions = async (params: IFindDefinitionParams) => {
         return {
           // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
           range: definition.range.copyExtendBeginningOfLine().getLimitedRange(10),
-          text: definition.getRoot().originalText,
+          text: definition.rootFile.originalText,
           // targetSelectionRange:  Range.create(Position.create(0, 0), Position.create(0, 0)),
-          uri: URI.file(definition.getRoot().file).toString()
+          uri: URI.file(definition.rootFile.file).toString()
         };
       });
     } else {
@@ -432,7 +431,7 @@ connection.onRequest('vhdl-linter/listing', async (params: any) => {
         if (obj.library?.getLText() === 'ieee' || obj.library?.getLText() === 'std') {
           continue;
         }
-        const matchingPackages = projectParser.getPackages().filter(pkg => pkg.lexerToken.getLText() === obj.packageName.getLText());
+        const matchingPackages = projectParser.packages.filter(pkg => pkg.lexerToken.getLText() === obj.packageName.getLText());
         if (matchingPackages.length > 0) {
           found = matchingPackages[0].parent;
         }

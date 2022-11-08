@@ -32,8 +32,6 @@ export class ConcurrentStatementParser extends ParserBase {
       nextToken = this.getToken();
     }
 
-    this.maybe('postponed');
-    this.maybe('guarded');
 
     if (nextToken.getLText() === 'process' && allowedStatements.includes(ConcurrentStatementTypes.Process)) {
       this.consumeToken();
@@ -107,7 +105,10 @@ export class ConcurrentStatementParser extends ParserBase {
       caseGenerate.range = caseGenerate.range.copyWithNewEnd(this.pos.i);
       this.advanceWhitespace();
     } else if (nextToken.getLText() === 'if' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {
-      const ifGenerate = new OIfGenerate(this.parent, new OIRange(this.parent, this.pos.i, this.pos.i));
+      if (typeof label === 'undefined') {
+        throw new ParserError('If generate requires a label.', this.pos.getRangeToEndLine());
+      }
+      const ifGenerate = new OIfGenerate(this.parent, new OIRange(this.parent, this.pos.i, this.pos.i), label);
       this.consumeToken();
       const conditionTokens = this.advancePast('generate');
       this.debug('parse if generate ' + label);
@@ -139,7 +140,7 @@ export class ConcurrentStatementParser extends ParserBase {
 
       const condition = this.advancePast('generate');
       this.debug('parse elsif generate ' + label);
-      const subarchitecture = new ArchitectureParser(this.pos, this.filePath, this.parent.parent, label);
+      const subarchitecture = new ArchitectureParser(this.pos, this.filePath, this.parent.parent, this.parent.parent.label);
       const ifGenerateObject = subarchitecture.parse(true, 'generate');
       ifGenerateObject.range = ifGenerateObject.range.copyWithNewStart(savedI);
 
@@ -154,7 +155,7 @@ export class ConcurrentStatementParser extends ParserBase {
       return true;
     } else if (nextToken.getLText() === 'else' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {
       if (!(this.parent instanceof OIfGenerateClause)) {
-        throw new ParserError('elsif generate without if generate', this.pos.getRangeToEndLine());
+        throw new ParserError('else generate without if generate', this.pos.getRangeToEndLine());
       }
       if (!previousArchitecture) {
         throw new ParserError('WTF', this.pos.getRangeToEndLine());
@@ -162,14 +163,14 @@ export class ConcurrentStatementParser extends ParserBase {
       previousArchitecture.range = previousArchitecture.range.copyWithNewEnd(this.getToken(-1, true).range.copyExtendEndOfLine().end);
       this.advancePast('generate');
       this.debug('parse else generate ' + label);
-      const subarchitecture = new ArchitectureParser(this.pos, this.filePath, this.parent.parent, label);
+      const subarchitecture = new ArchitectureParser(this.pos, this.filePath, this.parent.parent, this.parent.parent.label);
 
-      const ifGenerateObject = subarchitecture.parse(true, 'generate');
-      ifGenerateObject.range = ifGenerateObject.range.copyWithNewStart(savedI);
+      const elseGenerateObject = subarchitecture.parse(true, 'generate');
+      elseGenerateObject.range = elseGenerateObject.range.copyWithNewStart(savedI);
       this.reverseWhitespace();
-      ifGenerateObject.range = ifGenerateObject.range.copyWithNewEnd(this.pos.i);
+      elseGenerateObject.range = elseGenerateObject.range.copyWithNewEnd(this.pos.i);
       this.advanceWhitespace();
-      this.parent.parent.elseGenerate = ifGenerateObject;
+      this.parent.parent.elseGenerate = elseGenerateObject;
       return true;
 
     } else if (nextToken.getLText() === 'with' && allowedStatements.includes(ConcurrentStatementTypes.Assignment)) {

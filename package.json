@@ -2,7 +2,7 @@
 	"name": "vhdl-linter",
 	"publisher": "g0t00",
 	"main": "./dist/lib/vscode.js",
-	"version": "1.3.8",
+	"version": "1.3.10",
 	"description": "A typescript based linter for vhdl",
 	"keywords": [],
 	"repository": "https://github.com/vhdl-linter/vhdl-linter",
@@ -214,8 +214,7 @@
 		"test": "npm run compile && node dist/test/test.js"
 	},
 	"dependencies": {
-		"chokidar": "^3.2.2",
-		"escape-string-regexp": "^2.0.0",
+		"chokidar": "^3.5.3",
 		"string-similarity": "^3.0.0",
 		"vscode-languageclient": "^8.0.2",
 		"vscode-languageserver": "^8.0.2",
@@ -229,7 +228,6 @@
 	"providedServices": {},
 	"consumedServices": {},
 	"devDependencies": {
-		"@types/chokidar": "^2.1.3",
 		"@types/node": "^10.12.0",
 		"@types/string-similarity": "^3.0.0",
 		"@types/vscode": "^1.42.0",

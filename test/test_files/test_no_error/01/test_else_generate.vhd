@@ -19,6 +19,10 @@ begin
       end if;
     end process;
   else generate
+  end generate p_gen;
 
-  end generate;
+  p_gen2 : if true generate
+  elsif false generate
+
+  end generate p_gen2;
 end arch;
