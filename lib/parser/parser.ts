@@ -57,7 +57,7 @@ export class Parser extends ParserBase {
 
       if (match) {
         let innerMatch: RegExpMatchArray | null;
-        const nextLineRange = new OIRange(this.file, new OI(this.file, lineNumber + 1, 0), new OI(this.file, lineNumber + 1, this.originalText.split('\n')[lineNumber + 1].length - 1));
+        const nextLineRange = this.getNextLineRange(lineNumber)
         if ((innerMatch = match[2].match(/-disable(?:-this)?-line(?:\s|$)(.+)?/i)) !== null) {
           for (const rule of innerMatch[1]?.split(' ') ?? [undefined]) {
             this.file.magicComments.push(new OMagicCommentDisable(
