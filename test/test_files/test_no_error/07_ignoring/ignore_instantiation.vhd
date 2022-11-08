@@ -6,7 +6,7 @@ entity test_procedure_call is
 end entity;
 
 architecture rtl of test_procedure_call is
-  signal foo : std_ulogic;
+  signal foo : std_ulogic; --vhdl-linter-disable-line unused
 begin
   process
     procedure p(a : in std_ulogic; signal b : out std_ulogic) is
