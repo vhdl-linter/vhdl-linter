@@ -69,7 +69,7 @@ export class Parser extends ParserBase {
             this.file.magicComments.push(new OMagicCommentDisable(
               this.file,
               MagicCommentType.Disable,
-              new OIRange(this.file, new OI(this.file, lineNumber, 0), new OI(this.file, lineNumber, line.length - 1)),
+              new OIRange(this.file, new OI(this.file, lineNumber, 0), new OI(this.file, lineNumber, line.length)),
               rule
             ));
           }

@@ -1,4 +1,4 @@
-import { CodeAction, TextEdit, Position, CodeActionKind, DiagnosticTag } from "vscode-languageserver";
+import { CodeAction, TextEdit, Position, CodeActionKind } from "vscode-languageserver";
 import { MagicCommentType, OFile, OIRange } from "../parser/objects";
 import { OIDiagnostic, VhdlLinter } from "../vhdl-linter";
 

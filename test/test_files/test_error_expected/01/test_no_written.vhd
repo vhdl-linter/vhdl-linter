@@ -1,6 +1,6 @@
 entity test is
   port (
-    a_o : out integer --vhdl-linter-disable-this-line
+    o_a : out integer
     );
 end test;
 architecture arch of test is
@@ -8,5 +8,5 @@ architecture arch of test is
   signal test : integer;
 
 begin
-  a_o <= test;
+  o_a <= test;
 end arch;

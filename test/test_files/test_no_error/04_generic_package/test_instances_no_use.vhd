@@ -8,11 +8,11 @@ entity test_instances_no_use is
                            generic map (<>)
   );
   port (
-    o : out integer --vhdl-linter-disable-this-line
+    o : out integer --vhdl-linter-disable-this-line port-declaration unused
     );
 end test_instances_no_use;
 architecture arch of test_instances_no_use is
-  
+
   package pkg_instanceInArch is
       new work.generic_pkg
           generic map (generic_parameter => 16);

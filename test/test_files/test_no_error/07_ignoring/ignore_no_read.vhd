@@ -1,8 +1,7 @@
 entity test is
 end test;
 architecture arch of test is
-  --vhdl-linter-disable-next-line unused
-  signal test : integer;
+  signal test : integer; --vhdl-linter-disable-line unused
 
 begin
 test <= 0;
