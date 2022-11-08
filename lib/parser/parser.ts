@@ -68,7 +68,7 @@ export class Parser extends ParserBase {
             ));
           }
 
-        } else if ((innerMatch = match[2].match(/-disable-next-line(?:\s|$)(.+)?/i)) !== null) {// TODO: next nonempty line
+        } else if ((innerMatch = match[2].match(/-disable-next-line(?:\s|$)(.+)?/i)) !== null) {
           for (const rule of innerMatch[1]?.split(' ') ?? [undefined]) {
             this.file.magicComments.push(new OMagicCommentDisable(
               this.file,
