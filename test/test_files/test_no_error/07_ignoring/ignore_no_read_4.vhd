@@ -2,8 +2,8 @@
 entity test is
 end test;
 architecture arch of test is
-  signal test : integer;
+  signal test_signal : integer;
 
 begin
-  test <= 0;
+  test_signal <= 0;
 end arch;
