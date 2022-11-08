@@ -174,8 +174,7 @@ export const initialization = new Promise<void>(resolve => {
         const folders = (workspaceFolders ?? []).map(workspaceFolder => URI.parse(workspaceFolder.uri).fsPath);
         // console.log(configuration, 'configuration');
         folders.push(...configuration.paths.additional.filter(existsSync));
-        projectParser = new ProjectParser(folders, configuration.paths.ignoreRegex);
-        await projectParser.init();
+        projectParser = await ProjectParser.create(folders, configuration.paths.ignoreRegex);
       };
       await parseWorkspaces();
       connection.workspace.onDidChangeWorkspaceFolders(async event => {
@@ -188,8 +187,7 @@ export const initialization = new Promise<void>(resolve => {
         folders.push(URI.parse(rootUri).fsPath);
       }
       // console.log('folders', folders);
-      projectParser = new ProjectParser(folders, configuration.paths.ignoreRegex);
-      await projectParser.init();
+      projectParser = await ProjectParser.create(folders, configuration.paths.ignoreRegex);
     }
     for (const textDocument of documents.all()) {
       await validateTextDocument(textDocument);
@@ -433,7 +431,7 @@ connection.onRequest('vhdl-linter/listing', async (params: any) => {
         if (obj.library?.getLText() === 'ieee' || obj.library?.getLText() === 'std') {
           continue;
         }
-        const matchingPackages = projectParser.getPackages().filter(pkg => pkg.lexerToken.getLText() === obj.packageName.getLText());
+        const matchingPackages = projectParser.packages.filter(pkg => pkg.lexerToken.getLText() === obj.packageName.getLText());
         if (matchingPackages.length > 0) {
           found = matchingPackages[0].parent;
         }

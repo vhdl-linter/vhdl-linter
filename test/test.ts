@@ -43,8 +43,7 @@ function prettyPrintMessages(messages: MessageWrapper[]) {
 // Do a recursive walk on the folders. Each folder is a library and shares a project parser.
 async function run_test(path: string, error_expected: boolean): Promise<MessageWrapper[]> {
   const messageWrappers: MessageWrapper[] = [];
-  const projectParser = new ProjectParser([path], '');
-  await projectParser.init();
+  const projectParser = await ProjectParser.create([path], '');
   for (const subPath of readDirPath(path)) {
     if (lstatSync(subPath).isDirectory()) {
       messageWrappers.push(...await run_test(subPath, error_expected));

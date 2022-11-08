@@ -38,7 +38,7 @@ export function attachOnCompletion() {
       const line = document.getText(Range.create(Position.create(params.position.line, 0), Position.create(params.position.line + 1, 0)));
       const match = line.match(/^\s*use\s+/i);
       if (match) {
-        for (const pkg of projectParser.getPackages()) {
+        for (const pkg of projectParser.packages) {
           completions.push({ label: pkg.lexerToken.text });
           pkg.targetLibrary && completions.push({ label: pkg.targetLibrary });
         }

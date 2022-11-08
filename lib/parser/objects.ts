@@ -472,7 +472,7 @@ export class OArchitecture extends ObjectBase implements IHasSubprograms, IHasCo
 }
 export class OBlock extends OArchitecture {
   label: OLexerToken;
-
+  guardCondition?: ORead[];
 }
 export class OType extends ObjectBase implements IReferenceable, IHasSubprograms, IHasSignals, IHasConstants, IHasVariables,
   IHasTypes, IHasSubprogramAlias, IHasFileVariables, IHasUseClauses, IHasLexerToken, IHasPackageInstantiations {

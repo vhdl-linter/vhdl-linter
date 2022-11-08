@@ -32,8 +32,6 @@ export class ConcurrentStatementParser extends ParserBase {
       nextToken = this.getToken();
     }
 
-    this.maybe('postponed');
-    this.maybe('guarded');
 
     if (nextToken.getLText() === 'process' && allowedStatements.includes(ConcurrentStatementTypes.Process)) {
       this.consumeToken();
