@@ -4,7 +4,7 @@ import { IHasLexerToken, implementsIHasInstantiations, implementsIHasLexerToken,
 import { findBestMatch } from "string-similarity";
 
 export class RInstantiations extends RuleBase implements IRule {
-  public name = 'library';
+  public name = 'instantiation';
   file: OFile;
   checkAssociations(availableInterfaceElements: (OPort | OGeneric | OTypeMark)[][], associationList: OAssociationList | undefined, typeName: string, range: OIRange, kind: 'port' | 'generic') {
     const availableInterfaceElementsFlat = availableInterfaceElements.flat().filter((v, i, self) => self.findIndex(o => o.lexerTokenEquals(v)) === i);
