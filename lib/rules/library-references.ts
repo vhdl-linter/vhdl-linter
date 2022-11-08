@@ -2,8 +2,8 @@ import { RuleBase, IRule } from "./rules-base";
 import { DiagnosticSeverity } from "vscode-languageserver";
 import { implementsIHasLibraries, implementsIHasLibraryReference, OFile, scope } from "../parser/objects";
 
-export class RLibraryReferences extends RuleBase implements IRule {
-  public name = 'library-references';
+export class RLibraryReference extends RuleBase implements IRule {
+  public name = 'library-reference';
   file: OFile;
 
   async check() {

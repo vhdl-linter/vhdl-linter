@@ -3,7 +3,7 @@ import { CodeAction, CodeActionKind, DiagnosticSeverity, Range, TextEdit } from 
 import { IHasLexerToken, implementsIHasInstantiations, implementsIHasLexerToken, implementsIHasPorts, implementsIHasSubprograms, OArchitecture, OAssociationList, ObjectBase, OCase, OComponent, OEntity, OFile, OGeneric, OHasSequentialStatements, OIf, OIRange, OPort, OSubprogram, OSubprogramAlias, OTypeMark } from "../parser/objects";
 import { findBestMatch } from "string-similarity";
 
-export class RInstantiations extends RuleBase implements IRule {
+export class RInstantiation extends RuleBase implements IRule {
   public name = 'instantiation';
   file: OFile;
   checkAssociations(availableInterfaceElements: (OPort | OGeneric | OTypeMark)[][], associationList: OAssociationList | undefined, typeName: string, range: OIRange, kind: 'port' | 'generic') {

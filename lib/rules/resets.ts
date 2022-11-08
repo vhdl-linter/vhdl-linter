@@ -2,8 +2,8 @@ import { RuleBase, IRule } from "./rules-base";
 import { CodeAction, CodeActionKind, DiagnosticSeverity, Position, TextEdit } from "vscode-languageserver";
 import { OFile, OProcess, OSignal, scope } from "../parser/objects";
 
-export class RResets extends RuleBase implements IRule {
-  public name = 'resets';
+export class RReset extends RuleBase implements IRule {
+  public name = 'reset';
   file: OFile;
 
   async check() {

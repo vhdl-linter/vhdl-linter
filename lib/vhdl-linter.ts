@@ -1,16 +1,6 @@
 import {
   CodeAction, CodeActionKind, CodeLens, Command, Diagnostic, DiagnosticSeverity, Position, Range, TextEdit
 } from 'vscode-languageserver';
-import { RComponents as RComponents } from './rules/components';
-import { RInstantiations as RInstantiations } from './rules/instantions';
-import { RLibrary as Library } from './rules/library';
-import { RLibraryReferences as LibraryReferences } from './rules/library-references';
-import { RMultipleDefinitions } from './rules/multiple-definitions';
-import { RNotDeclared } from './rules/not-declared';
-import { RPortDeclaration } from './rules/port-declaration';
-import { RPortType } from './rules/port-type';
-import { RResets } from './rules/resets';
-import { RUnused } from './rules/unused';
 import { CancelationError, CancelationObject } from './language-server';
 import {
   IHasContextReference, IHasUseClauses, implementsIHasContextReference,
@@ -23,6 +13,7 @@ import {
 } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
+import { rules } from './rules/rule-index';
 
 export interface IAddSignalCommandArguments {
   textDocumentUri: string;
@@ -677,18 +668,7 @@ export class VhdlLinter {
       }
     }
   }
-  private rules = [
-    RComponents,
-    RInstantiations,
-    Library,
-    LibraryReferences,
-    RMultipleDefinitions,
-    RNotDeclared,
-    RPortDeclaration,
-    RPortType,
-    RResets,
-    RUnused
-  ];
+
   async checkAll(profiling = false) {
     console.profile();
     let start;
@@ -706,7 +686,7 @@ export class VhdlLinter {
           console.log(`check ${i++}: ${Date.now() - start}ms`);
           start = Date.now();
         }
-        for (const checkerClass of this.rules) {
+        for (const checkerClass of rules) {
           const checker = new checkerClass(this);
           await checker.check();
           if (profiling) {

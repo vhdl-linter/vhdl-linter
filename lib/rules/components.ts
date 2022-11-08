@@ -2,8 +2,8 @@ import { RuleBase, IRule } from "./rules-base";
 import { DiagnosticSeverity } from "vscode-languageserver";
 import { OFile } from "../parser/objects";
 
-export class RComponents extends RuleBase implements IRule {
-  public name = 'components';
+export class RComponent extends RuleBase implements IRule {
+  public name = 'component';
   file: OFile;
 
   async check() {

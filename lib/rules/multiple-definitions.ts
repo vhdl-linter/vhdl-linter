@@ -2,8 +2,8 @@ import { RuleBase, IRule } from "./rules-base";
 import { DiagnosticSeverity } from "vscode-languageserver";
 import { implementsIHasConstants, implementsIHasGenerics, implementsIHasInstantiations, implementsIHasLexerToken, implementsIHasPorts, implementsIHasSignals, implementsIHasTypes, implementsIHasVariables, OArchitecture, ObjectBase, OFile, OPackageBody } from "../parser/objects";
 
-export class RMultipleDefinitions extends RuleBase implements IRule {
-  public name = 'multiple-definitions';
+export class RMultipleDefinition extends RuleBase implements IRule {
+  public name = 'multiple-definition';
   file: OFile;
   checkMultipleDefinitions(objList: ObjectBase[]) {
     for (const obj of objList) {
