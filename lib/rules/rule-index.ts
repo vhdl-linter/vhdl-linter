@@ -6,7 +6,6 @@ import { RMultipleDefinition } from "./multiple-definitions";
 import { RNotDeclared } from "./not-declared";
 import { RPortDeclaration } from "./port-declaration";
 import { RPortType } from "./port-type";
-import { RReset } from "./resets";
 import { RUnused } from "./unused";
 
 export const rules = [
@@ -18,6 +17,5 @@ export const rules = [
   RNotDeclared,
   RPortDeclaration,
   RPortType,
-  RReset,
   RUnused
 ];
