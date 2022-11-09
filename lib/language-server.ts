@@ -86,7 +86,7 @@ export class CancelationError extends Error {
 let globalSettings: ISettings = defaultSettings;
 let hasConfigurationCapability = false;
 // Cache the settings of all open documents
-const documentSettings: Map<string, Thenable<ISettings>> = new Map();
+const documentSettings: Map<string, ISettings> = new Map();
 connection.onDidChangeConfiguration(change => {
 
   if (hasConfigurationCapability) {
@@ -101,18 +101,21 @@ connection.onDidChangeConfiguration(change => {
   // Revalidate all open text documents
   documents.all().forEach((textDocument) => validateTextDocument(textDocument));
 });
-export function getDocumentSettings(resource: string): Thenable<ISettings> {
+export async function getDocumentSettings(resource: string): Promise<ISettings> {
   if (!hasConfigurationCapability) {
     return Promise.resolve(globalSettings);
   }
   let result = documentSettings.get(resource);
   if (!result) {
-    result = connection.workspace.getConfiguration({
+    result = await connection.workspace.getConfiguration({
       scopeUri: resource,
       section: 'VhdlLinter'
     });
-    documentSettings.set(resource, result);
   }
+  if (!result) {
+    return defaultSettings;
+  }
+  documentSettings.set(resource, result);
   return result;
 }
 connection.onInitialize((params: InitializeParams) => {
