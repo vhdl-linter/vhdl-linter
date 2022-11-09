@@ -204,12 +204,11 @@ export class ParserBase {
   advanceClosingParenthese() {
     const tokens = [];
     let parentheseLevel = 0;
-    const quote = false; // TODO: is unused -> remove
     const savedI = this.pos;
     while (this.pos.num < this.pos.lexerTokens.length) {
-      if (this.getToken().getLText() === '(' && !quote) {
+      if (this.getToken().getLText() === '(') {
         parentheseLevel++;
-      } else if (this.getToken().getLText() === ')' && !quote) {
+      } else if (this.getToken().getLText() === ')') {
         if (parentheseLevel > 0) {
           parentheseLevel--;
         } else {
