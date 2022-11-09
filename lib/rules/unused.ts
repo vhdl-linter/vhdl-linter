@@ -9,6 +9,10 @@ export class RUnused extends RuleBase implements IRule {
   file: OFile;
   private checkUnusedPorts(ports: OPort[]) {
     for (const port of ports) {
+      // For procedure/function declarations (without implementation) the ports can not be used
+      if (port.parent instanceof OSubprogram && port.parent.hasBody === false) {
+        continue;
+      }
       if ((port.direction === 'in' || port.direction === 'inout') && port.references.filter(token => token instanceof ORead).length === 0) {
         this.addMessage({
           range: port.range,

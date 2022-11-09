@@ -812,6 +812,12 @@ export class VhdlLinter {
         addTypes(iterator.types, 500);
       }
     }
+    // in entities
+    // subprograms.push(...this.projectParser.entities.flatMap(ent => ent.subprograms));
+    // Direct call via library.package.function
+    if (instantiation.library !== undefined && instantiation.package !== undefined) {
+      subprograms.push(...this.projectParser.packages.filter(pkg => pkg.lexerToken.getLText() === instantiation.package?.text.toLowerCase()).map(pkg => pkg.subprograms).flat());
+    }
     return subprograms.filter(e => e.lexerToken.getLText() === instantiation.componentName.getLText());
   }
 
