@@ -81,11 +81,11 @@ export class Lexer {
   ) { }
   lex() {
     const tokens: OLexerToken[] = [];
-    let foundToken;
+    let foundToken = true;
     let offset = 0;
     let lastOffset = -1;
     let text = this.text;
-    loop: do {
+    loop: while (text.length > 0 && foundToken) {
       // if (iterationCount++ > 10000) {
       //   throw new ParserError('Lexer infinite loop2!', new OIRange(this.file, offset, offset));
       // }
@@ -124,7 +124,7 @@ export class Lexer {
       if (!foundToken) {
         throw new ParserError('Lexer stuck!', new OIRange(this.file, offset, offset));
       }
-    } while (text.length > 0 && foundToken);
+    };
     // console.log(tokens);
     return tokens;
   }
