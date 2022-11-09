@@ -1,13 +1,9 @@
 from pathlib import Path
 from vunit import VUnit
-print(Path(__file__).parent.joinpath('test_files', 'test_no_error'));
 
-vu = VUnit.from_argv()
-
+vu = VUnit.from_argv(compile_builtins=False)
 for dir in Path(__file__).parent.joinpath('test_files', 'test_no_error').iterdir():
-  if (dir.name == 'ieee2008'):
-    continue;
-  print(dir.absolute)
+  print("\n\nentering folder: %s"%(dir.absolute()))
   # Create VUnit instance by parsing command line arguments
 
   vu.add_library(f'test_{dir.name}')
