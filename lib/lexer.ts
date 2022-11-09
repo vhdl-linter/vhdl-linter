@@ -124,7 +124,7 @@ export class Lexer {
       if (!foundToken) {
         throw new ParserError('Lexer stuck!', new OIRange(this.file, offset, offset));
       }
-    };
+    }
     // console.log(tokens);
     return tokens;
   }
