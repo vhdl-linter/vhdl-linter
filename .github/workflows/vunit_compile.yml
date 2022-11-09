@@ -11,7 +11,9 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v3\
+        with:
+          submodules: recursive
       - uses: VUnit/vunit_action@v0.1.0
         with:
           run_file: test/vunit_compile_test_no_error.py
