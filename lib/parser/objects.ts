@@ -135,7 +135,6 @@ export class OIRange implements Range {
 
 export class ObjectBase {
   lexerToken?: OLexerToken;
-  hasBody = false;
   readonly rootFile: OFile;
   constructor(public parent: ObjectBase | OFile, public range: OIRange) {
     let maximumIterationCounter = 5000;
@@ -1011,6 +1010,8 @@ export class OMagicCommentDisable extends OMagicComment {
 }
 export class OSubprogram extends OHasSequentialStatements implements IReferenceable, IHasSubprograms, IHasInstantiations, IHasPorts,
   IHasVariables, IHasTypes, IHasSubprogramAlias, IHasFileVariables, IHasUseClauses, IHasLexerToken, IHasPackageInstantiations, IHasConstants {
+  hasBody = false;
+
   useClauses: OUseClause[] = [];
   packageDefinitions: OPackage[] = [];
   parent: OPackage;
@@ -1062,11 +1063,6 @@ export function* scope(startObject: ObjectBase): Generator<[ObjectBase, boolean]
     if (implementsIHasUseClause(current)) {
       for (const packages of current.packageDefinitions) {
         directlyVisible = false;
-        yield [packages, directlyVisible];
-      }
-    }
-    if (implementsIHasUseClause(current)) {
-      for (const packages of current.packageDefinitions) {
         yield [packages, directlyVisible];
       }
     }

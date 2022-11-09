@@ -275,7 +275,7 @@ export class VhdlLinter {
           pkg.correspondingPackage = pkgHeader;
         } else {
           this.addMessage({
-            range: pkg.range,
+            range: pkg.lexerToken.range,
             severity: DiagnosticSeverity.Warning,
             message: `Can not find package for package body.`
           })
@@ -812,8 +812,6 @@ export class VhdlLinter {
         addTypes(iterator.types, 500);
       }
     }
-    // in entities
-    // subprograms.push(...this.projectParser.entities.flatMap(ent => ent.subprograms));
     // Direct call via library.package.function
     if (instantiation.library !== undefined && instantiation.package !== undefined) {
       subprograms.push(...this.projectParser.packages.filter(pkg => pkg.lexerToken.getLText() === instantiation.package?.text.toLowerCase()).map(pkg => pkg.subprograms).flat());
