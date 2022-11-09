@@ -21,7 +21,8 @@ import { existsSync } from 'fs';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
-export const connection = createConnection(ProposedFeatures.all, new IPCMessageReader(process), new IPCMessageWriter(process));
+export const connection = createConnection(ProposedFeatures.all, process.stdin, process.stdout);
+// export const connection = createConnection(ProposedFeatures.all, new IPCMessageReader(process), new IPCMessageWriter(process));
 
 
 // Create a simple text document manager. The text document manager
@@ -167,14 +168,15 @@ export const initialization = new Promise<void>(resolve => {
     const configuration = (await connection.workspace.getConfiguration({
       section: 'VhdlLinter'
     })) as ISettings;
+    console.log(configuration)
 
     if (hasWorkspaceFolderCapability) {
       const parseWorkspaces = async () => {
         const workspaceFolders = await connection.workspace.getWorkspaceFolders();
         const folders = (workspaceFolders ?? []).map(workspaceFolder => URI.parse(workspaceFolder.uri).fsPath);
         // console.log(configuration, 'configuration');
-        folders.push(...configuration.paths.additional.filter(existsSync));
-        projectParser = await ProjectParser.create(folders, configuration.paths.ignoreRegex);
+        folders.push(...configuration?.paths?.additional?.filter(existsSync) ?? []);
+        projectParser = await ProjectParser.create(folders, configuration?.paths?.ignoreRegex ?? '');
       };
       await parseWorkspaces();
       connection.workspace.onDidChangeWorkspaceFolders(async event => {
