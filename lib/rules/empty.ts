@@ -10,7 +10,8 @@ export class REmpty extends RuleBase implements IRule {
     if (this.file.entities.length === 0 &&
       this.file.architectures.length === 0 &&
       this.file.packages.length === 0 &&
-      this.file.contexts.length === 0) {
+      this.file.contexts.length === 0 &&
+      this.file.packageInstantiations.length === 0) {
       this.addMessage({
         range: new OI(this.file, 0).getRangeToEndLine(),
         severity: DiagnosticSeverity.Warning,
