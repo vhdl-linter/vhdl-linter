@@ -292,7 +292,9 @@ export class ParserBase {
     const text = (typeof expected === 'string') ? expected.toLowerCase() : expected.getLText();
     if (this.getToken().getLText() === text) {
       this.consumeToken();
+      return true;
     }
+    return false;
   }
   getType(parent: ObjectBase, advanceSemicolon = true, endWithParenthese = false) {
     let type;

@@ -103,7 +103,12 @@ export class TypeParser extends ParserBase {
           const [token] = this.advanceParentheseAware([';'], true, false);
           type.reads.push(...this.extractReads(type, token));
         } else if (nextToken.getLText() === 'protected') {
-          this.maybe('body');
+          const protectedBody = this.maybe('body');
+          if (protectedBody) {
+            type.protectedBody = true;
+          } else {
+            type.protected = true;
+          }
           new DeclarativePartParser(this.pos, this.filePath, type).parse(false, 'end');
           this.expect('end');
           this.expect('protected');

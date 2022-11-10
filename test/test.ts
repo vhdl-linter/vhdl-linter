@@ -40,13 +40,24 @@ function prettyPrintMessages(messages: MessageWrapper[]) {
     }).join('\n');
   }).join('\n');
 }
-// Do a recursive walk on the folders. Each folder is a library and shares a project parser.
-async function run_test(path: string, error_expected: boolean): Promise<MessageWrapper[]> {
+// Take each directory in path as a project run test on every file
+async function run_test_folder(path: string, error_expected: boolean): Promise<MessageWrapper[]> {
   const messageWrappers: MessageWrapper[] = [];
-  const projectParser = await ProjectParser.create([path], '');
+
+  for (const subPath of readDirPath(path)) {
+    messageWrappers.push(...await run_test(subPath, error_expected));
+  }
+  return messageWrappers;
+}
+// Take path as a project run test on every file
+async function run_test(path: string, error_expected: boolean, projectParser?: ProjectParser): Promise<MessageWrapper[]> {
+  const messageWrappers: MessageWrapper[] = [];
+  if (!projectParser) {
+    projectParser = await ProjectParser.create([path], '');
+  }
   for (const subPath of readDirPath(path)) {
     if (lstatSync(subPath).isDirectory()) {
-      messageWrappers.push(...await run_test(subPath, error_expected));
+      messageWrappers.push(...await run_test(subPath, error_expected, projectParser));
     } else if (subPath.match(/\.vhdl?$/i)) {
       const text = readFileSync(subPath, { encoding: 'utf8' });
       const vhdlLinter = new VhdlLinter(subPath, text, projectParser);
@@ -76,8 +87,8 @@ async function run_test(path: string, error_expected: boolean): Promise<MessageW
 (async () => {
   const start = new Date().getTime();
   const messages = [];
-  messages.push(... await run_test(join(cwd(), 'test', 'test_files', 'test_error_expected'), true));
-  messages.push(... await run_test(join(cwd(), 'test', 'test_files', 'test_no_error'), false));
+  messages.push(... await run_test_folder(join(cwd(), 'test', 'test_files', 'test_error_expected'), true));
+  messages.push(... await run_test_folder(join(cwd(), 'test', 'test_files', 'test_no_error'), false));
   messages.push(... await run_test(join(cwd(), 'ieee2008'), false));
   const timeTaken = new Date().getTime() - start;
   if (messages.length > 0) {
@@ -85,12 +96,16 @@ async function run_test(path: string, error_expected: boolean): Promise<MessageW
     console.log(prettyPrintMessages(messages));
   }
   let timeOutError = 0;
-  const TIMEOUT_TIME = 40;
+  const TIMEOUT_TIME = 130;
   if (timeTaken > TIMEOUT_TIME * 1000) {
     console.error(`Time toke more than ${TIMEOUT_TIME}s (${timeTaken / 1000} s)`);
     timeOutError++;
   } else {
     console.log(`Test took ${timeTaken / 1000} s`);
+  }
+  console.log("---- Summary of files with error: ");
+  for (const message of messages) {
+    console.log(message.file);
   }
   process.exit(messages.length + timeOutError);
 })();

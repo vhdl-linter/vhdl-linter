@@ -1,13 +1,23 @@
 import { RuleBase, IRule } from "./rules-base";
 import { DiagnosticSeverity } from "vscode-languageserver";
-import { implementsIHasConstants, implementsIHasGenerics, implementsIHasInstantiations, implementsIHasLexerToken, implementsIHasPorts, implementsIHasSignals, implementsIHasTypes, implementsIHasVariables, OArchitecture, ObjectBase, OFile, OPackageBody } from "../parser/objects";
+import { implementsIHasConstants, implementsIHasGenerics, implementsIHasInstantiations, implementsIHasLexerToken, implementsIHasPorts, implementsIHasSignals, implementsIHasTypes, implementsIHasVariables, OArchitecture, ObjectBase, OFile, OPackageBody, OType } from "../parser/objects";
 
 export class RMultipleDefinition extends RuleBase implements IRule {
   public name = 'multiple-definition';
   file: OFile;
   checkMultipleDefinitions(objList: ObjectBase[]) {
     for (const obj of objList) {
-      if (implementsIHasLexerToken(obj) && objList.find(o => obj !== o && obj.lexerTokenEquals(o))) {
+      if (implementsIHasLexerToken(obj) && objList.find(o => {
+        if (obj !== o && obj.lexerTokenEquals(o)) { // Object has same token but is not itself
+          if (obj instanceof OType && o instanceof OType) { // Special handling for protected type and protected type body
+            if (obj.protected && o.protectedBody || obj.protectedBody && o.protected) {
+              return false;
+            }
+          }
+          return true;
+        }
+        return false;
+      })) {
         this.addMessage({
           range: obj.range,
           severity: DiagnosticSeverity.Error,
