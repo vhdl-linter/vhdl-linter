@@ -124,7 +124,6 @@ export const initialization = new Promise<void>(resolve => {
     const configuration = (await connection.workspace.getConfiguration({
       section: 'VhdlLinter'
     })) as ISettings;
-    console.log(configuration)
 
     if (hasWorkspaceFolderCapability) {
       const parseWorkspaces = async () => {
