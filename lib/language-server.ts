@@ -21,8 +21,10 @@ import { existsSync } from 'fs';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
-export const connection = createConnection(ProposedFeatures.all, process.stdin, process.stdout);
-// export const connection = createConnection(ProposedFeatures.all, new IPCMessageReader(process), new IPCMessageWriter(process));
+const nodeIpc = process.argv.slice(2).find(a => a === '--node-ipc') !== undefined;
+export const connection = nodeIpc
+  ? createConnection(ProposedFeatures.all, new IPCMessageReader(process), new IPCMessageWriter(process))
+  : createConnection(ProposedFeatures.all, process.stdin, process.stdout);
 
 
 // Create a simple text document manager. The text document manager
