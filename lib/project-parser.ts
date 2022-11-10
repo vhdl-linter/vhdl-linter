@@ -3,7 +3,7 @@ import { EventEmitter } from 'events';
 import { promises } from 'fs';
 import { join, sep } from 'path';
 import { OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
-import { VhdlLinter } from './vhdl-linter';
+import { SettingsGetter, VhdlLinter } from './vhdl-linter';
 
 export class ProjectParser {
 
@@ -15,12 +15,12 @@ export class ProjectParser {
   events = new EventEmitter();
 
   // Constructor can not be async. So constructor is private and use factory to create
-  public static async create(workspaces: string[], fileIgnoreRegex: string) {
-    const projectParser = new ProjectParser(workspaces, fileIgnoreRegex);
+  public static async create(workspaces: string[], fileIgnoreRegex: string, settingsGetter: SettingsGetter) {
+    const projectParser = new ProjectParser(workspaces, fileIgnoreRegex, settingsGetter);
     await projectParser.init();
     return projectParser;
   }
-  private constructor(public workspaces: string[], public fileIgnoreRegex: string) { }
+  private constructor(public workspaces: string[], public fileIgnoreRegex: string, public settingsGetter: SettingsGetter) { }
   async init() {
     const files = new Set<string>();
     await Promise.all(this.workspaces.map(async (directory) => {
@@ -136,7 +136,7 @@ export class FileCache {
   }
   async parse() {
     this.text = await promises.readFile(this.path, { encoding: 'utf8' });
-    this.linter = new VhdlLinter(this.path, this.text, this.projectParser);
+    this.linter = new VhdlLinter(this.path, this.text, this.projectParser, this.projectParser.settingsGetter);
     this.packages = this.linter.file.packages.filter((p): p is OPackage => p instanceof OPackage);
     this.packageInstantiations = this.linter.file.packageInstantiations;
     this.entities = this.linter.file.entities;

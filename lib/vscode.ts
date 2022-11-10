@@ -5,9 +5,11 @@ import {
   ServerOptions,
   TransportKind
 } from 'vscode-languageclient/node';
-import { ProjectParser } from './project-parser';
+import { URI } from 'vscode-uri';
+import { Parser } from './parser/parser';
+import { ISettings } from './settings';
 import { copy, CopyTypes } from './vhdl-entity-converter';
-import { IAddSignalCommandArguments, IIgnoreLineCommandArguments, VhdlLinter } from './vhdl-linter';
+import { IAddSignalCommandArguments, IIgnoreLineCommandArguments } from './vhdl-linter';
 
 
 let client: LanguageClient;
@@ -92,9 +94,11 @@ export function activate(context: ExtensionContext) {
     if (!editor) {
       return;
     }
-    const vhdlLinter = new VhdlLinter(editor.document.uri.path, editor.document.getText(), await ProjectParser.create([], ''));
-    if (vhdlLinter.file) {
-      env.clipboard.writeText(vhdlLinter.file.getJSON());
+    this.parser = new Parser(editor.document.getText(), this.editorPath, false, { canceled: false });
+    const file = this.parser.parse();
+
+    if (file) {
+      env.clipboard.writeText(file.getJSON());
       window.showInformationMessage(`VHDL file as JSON copied to clipboard`);
 
     }
@@ -121,4 +125,7 @@ export function deactivate(): Thenable<void> | undefined {
     return undefined;
   }
   return client.stop();
+}
+export function clientConfigurationGetter(resource: string) {
+  return workspace.getConfiguration('VhdlLinter', URI.parse(resource)) as unknown as ISettings;
 }

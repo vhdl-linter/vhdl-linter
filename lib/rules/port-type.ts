@@ -1,7 +1,6 @@
 import { RuleBase, IRule } from "./rules-base";
 import { CodeAction, CodeActionKind, DiagnosticSeverity, TextEdit } from "vscode-languageserver";
 import { OFile } from "../parser/objects";
-import { getDocumentSettings } from "../language-server";
 import { URI } from "vscode-uri";
 
 export class RPortType extends RuleBase implements IRule {
@@ -11,7 +10,7 @@ export class RPortType extends RuleBase implements IRule {
   async check() {
     for (const entity of this.file.entities) {
 
-      const settings = (await getDocumentSettings(URI.file(this.vhdlLinter.editorPath).toString()));
+      const settings = (await this.vhdlLinter.settingsGetter(URI.file(this.vhdlLinter.editorPath).toString()));
       if (settings.rules.warnLogicType) {
         for (const port of entity.ports) {
           if ((settings.style.preferedLogicType === 'std_logic' && port.type[0]?.lexerToken?.text?.match(/^std_ulogic/i))

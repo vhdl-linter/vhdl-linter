@@ -1,8 +1,6 @@
 import {
   CodeAction, CodeActionKind, CodeLens, Command, Diagnostic, DiagnosticSeverity, Position, Range, TextEdit
 } from 'vscode-languageserver';
-import { CancelationError, CancelationObject } from './language-server';
-
 import {
   IHasContextReference, IHasUseClauses, implementsIHasContextReference,
   implementsIHasSubprograms,
@@ -15,6 +13,8 @@ import {
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 import { rules } from './rules/rule-index';
+import { CancelationObject, CancelationError } from './server-objects';
+import { ISettings } from './settings';
 
 export interface IAddSignalCommandArguments {
   textDocumentUri: string;
@@ -28,6 +28,7 @@ export interface IIgnoreLineCommandArguments {
   textDocumentUri: string;
   range: Range;
 }
+export type SettingsGetter = (resource: string) => Promise<ISettings> | ISettings;
 export type diagnosticCodeActionCallback = (textDocumentUri: string) => CodeAction[];
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type commandCallback = (textDocumentUri: string, ...args: any[]) => TextEdit[];
@@ -37,6 +38,7 @@ export class VhdlLinter {
   parser: Parser;
   parsedSuccessfully = false;
   constructor(public editorPath: string, public text: string, public projectParser: ProjectParser,
+    public settingsGetter: SettingsGetter,
     public onlyEntity: boolean = false, public cancelationObject: CancelationObject = { canceled: false }) {
     try {
       this.parser = new Parser(text, this.editorPath, onlyEntity, cancelationObject);

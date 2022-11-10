@@ -1,7 +1,6 @@
 import { RuleBase, IRule } from "./rules-base";
 import { DiagnosticSeverity } from "vscode-languageserver";
 import { OFile, OI, OIRange } from "../parser/objects";
-import { getDocumentSettings } from "../language-server";
 import { URI } from "vscode-uri";
 
 export class RLibrary extends RuleBase implements IRule {
@@ -9,7 +8,7 @@ export class RLibrary extends RuleBase implements IRule {
   file: OFile;
 
   async check() {
-    const settings = await getDocumentSettings(URI.file(this.vhdlLinter.editorPath).toString());
+    const settings = await this.vhdlLinter.settingsGetter(URI.file(this.vhdlLinter.editorPath).toString());
     for (const entity of this.file.entities) {
       if (settings.rules.warnLibrary && entity !== undefined && typeof entity.targetLibrary === 'undefined') {
         this.addMessage({
