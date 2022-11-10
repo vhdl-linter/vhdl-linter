@@ -2,6 +2,7 @@ import {
   CodeAction, CodeActionKind, CodeLens, Command, Diagnostic, DiagnosticSeverity, Position, Range, TextEdit
 } from 'vscode-languageserver';
 import { CancelationError, CancelationObject } from './language-server';
+
 import {
   IHasContextReference, IHasUseClauses, implementsIHasContextReference,
   implementsIHasSubprograms,
@@ -9,7 +10,7 @@ import {
   OFile, OGeneric, OGenericAssociationList, OI, OInstantiation, OIRange, OPackage,
   OPackageBody, OPort, OPortAssociationList, ORead, OSubprogram, OReference, OType,
   ParserError, implementsIHasLibraries, OSelectedNameRead,
-  implementsIHasPorts, implementsIHasPackageInstantiations, scope, OTypeMark, implementsIHasSubprogramAlias, OSubprogramAlias, implementsIHasComponents
+  implementsIHasPorts, implementsIHasPackageInstantiations, scope, OTypeMark, implementsIHasSubprogramAlias, OSubprogramAlias, implementsIHasComponents, implementsIHasVariables
 } from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
@@ -272,7 +273,14 @@ export class VhdlLinter {
         }
         if (pkgHeader) {
           pkg.correspondingPackage = pkgHeader;
+        } else {
+          this.addMessage({
+            range: pkg.lexerToken.range,
+            severity: DiagnosticSeverity.Warning,
+            message: `Can not find package for package body.`
+          })
         }
+
       }
     }
     //     console.log(packages);
@@ -306,6 +314,9 @@ export class VhdlLinter {
           }
           for (const subprogram of pkg.subprograms) {
             innerMap.set(subprogram.lexerToken.getLText(), subprogram);
+          }
+          for (const subprogramAlias of pkg.subprogramAliases) {
+            innerMap.set(subprogramAlias.lexerToken.getLText(), subprogramAlias);
           }
           for (const type of pkg.types) {
             type.addReadsToMap(innerMap);
@@ -349,35 +360,48 @@ export class VhdlLinter {
       }
       if (read instanceof OSelectedNameRead) {
         if (read.prefixTokens.length === 2) {
-          const [, pkgToken] = read.prefixTokens;
-          for (const pkg of this.projectParser.packages) {
-            if (pkg.lexerToken.getLText() === pkgToken.getLText()) {
-              for (const constant of pkg.constants) {
-                if (constant.lexerToken.getLText() === read.lexerToken.getLText()) {
-                  read.definitions.push(constant);
+          const [libraryToken, pkgToken] = read.prefixTokens;
+          let library;
+          for (const [obj] of scope(read)) {
+            if (implementsIHasLibraries(obj)) {
+              for (const findLibrary of obj.libraries) {
+                if (findLibrary.lexerToken.getLText() == libraryToken.getLText()) {
+                  library = findLibrary;
                 }
               }
-              for (const subprogram of pkg.subprograms) {
-                if (subprogram.lexerToken.getLText() === read.lexerToken.getLText()) {
-                  read.definitions.push(subprogram);
-                }
-              }
-              for (const generic of pkg.generics) {
-                if (generic.lexerToken.getLText() === read.lexerToken.getLText()) {
-                  read.definitions.push(generic);
-                }
-              }
-              for (const type of pkg.types) {
-                const map = new Map();
-                type.addReadsToMap(map);
-                const definition = map.get(read.lexerToken.getLText());
-                if (definition) {
-                  read.definitions.push(definition)
-                }
-              }
-
             }
           }
+          if (library) {
+            for (const pkg of this.projectParser.packages) {
+              if (pkg.lexerToken.getLText() === pkgToken.getLText()) {
+                for (const constant of pkg.constants) {
+                  if (constant.lexerToken.getLText() === read.lexerToken.getLText()) {
+                    read.definitions.push(constant);
+                  }
+                }
+                for (const subprogram of pkg.subprograms) {
+                  if (subprogram.lexerToken.getLText() === read.lexerToken.getLText()) {
+                    read.definitions.push(subprogram);
+                  }
+                }
+                for (const generic of pkg.generics) {
+                  if (generic.lexerToken.getLText() === read.lexerToken.getLText()) {
+                    read.definitions.push(generic);
+                  }
+                }
+                for (const type of pkg.types) {
+                  const map = new Map();
+                  type.addReadsToMap(map);
+                  const definition = map.get(read.lexerToken.getLText());
+                  if (definition) {
+                    read.definitions.push(definition)
+                  }
+                }
+
+              }
+            }
+          }
+
         } else if (read.prefixTokens.length === 1) {
           // If first token is library this is referencing a package
           // Otherwise object from package
@@ -439,7 +463,17 @@ export class VhdlLinter {
                 }
               }
             }
-
+            for (const [obj] of scope(read)) {
+              if (implementsIHasVariables(obj)) {
+                for (const variable of obj.variables) {
+                  // TODO: Find out way to check for proteced
+                  if (variable.lexerToken.getLText() === read.prefixTokens[0].getLText()) {
+                    // TODO: Link the actual subprogramm
+                    read.definitions.push(variable);
+                  }
+                }
+              }
+            }
           }
         } else {
           this.addMessage({
@@ -778,7 +812,11 @@ export class VhdlLinter {
         addTypes(iterator.types, 500);
       }
     }
-    return subprograms.filter(e => e.lexerToken.getLText() === instantiation.componentName.text.toLowerCase());
+    // Direct call via library.package.function
+    if (instantiation.library !== undefined && instantiation.package !== undefined) {
+      subprograms.push(...this.projectParser.packages.filter(pkg => pkg.lexerToken.getLText() === instantiation.package?.text.toLowerCase()).map(pkg => pkg.subprograms).flat());
+    }
+    return subprograms.filter(e => e.lexerToken.getLText() === instantiation.componentName.getLText());
   }
 
 

@@ -1,4 +1,5 @@
 import { RComponent } from "./components";
+import { REmpty } from "./empty";
 import { RInstantiation } from "./instantions";
 import { RLibrary } from "./library";
 import { RLibraryReference } from "./library-references";
@@ -17,5 +18,6 @@ export const rules = [
   RNotDeclared,
   RPortDeclaration,
   RPortType,
-  RUnused
+  RUnused,
+  REmpty
 ];
