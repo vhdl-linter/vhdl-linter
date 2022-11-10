@@ -1,5 +1,5 @@
 import {
-  CodeAction, createConnection, DidChangeConfigurationNotification, ErrorCodes, Hover, InitializeParams, IPCMessageReader, IPCMessageWriter, Position, ProposedFeatures, TextDocuments, TextDocumentSyncKind
+  CodeAction, createConnection, DidChangeConfigurationNotification, ErrorCodes, Hover, InitializeParams, Position, ProposedFeatures, TextDocuments, TextDocumentSyncKind
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
@@ -18,13 +18,12 @@ import { ProjectParser } from './project-parser';
 import { VhdlLinter } from './vhdl-linter';
 import { handleSemanticTokens, semanticTokensLegend } from './languageFeatures/semanticTokens';
 import { existsSync } from 'fs';
+import { ISettings, defaultSettings } from './settings';
+import { CancelationError, CancelationObject } from './server-objects';
 
-// Create a connection for the server. The connection uses Node's IPC as a transport.
+// Create a connection for the server. The connection auto detected protocol
 // Also include all preview / proposed LSP features.
-const nodeIpc = process.argv.slice(2).find(a => a === '--node-ipc') !== undefined;
-export const connection = nodeIpc
-  ? createConnection(ProposedFeatures.all, new IPCMessageReader(process), new IPCMessageWriter(process))
-  : createConnection(ProposedFeatures.all, process.stdin, process.stdout);
+export const connection = createConnection(ProposedFeatures.all);
 
 
 // Create a simple text document manager. The text document manager
@@ -35,54 +34,8 @@ let hasWorkspaceFolderCapability = false;
 // let hasDiagnosticRelatedInformationCapability: boolean = false;
 export let projectParser: ProjectParser;
 let rootUri: string | undefined;
-export interface ISettings {
-  ports: {
-    outRegex: string;
-    inRegex: string;
-    enablePortStyle: boolean;
-  };
-  paths: {
-    additional: string[];
-    ignoreRegex: string;
-  };
-  style: {
-    preferedLogicType: 'std_logic' | 'std_ulogic';
-    unusedSignalRegex: string;
-  };
-  rules: {
-    warnLibrary: boolean;
-    warnLogicType: boolean;
-    warnMultipleDriver: boolean;
-  };
-  semanticTokens: boolean;
-}
-const defaultSettings: ISettings = {
-  ports: {
-    outRegex: '^o_',
-    inRegex: '^i_',
-    enablePortStyle: true,
-  },
-  paths: {
-    additional: [],
-    ignoreRegex: ''
-  },
-  style: {
-    preferedLogicType: 'std_ulogic',
-    unusedSignalRegex: '_unused$'
-  },
-  rules: {
-    warnLogicType: true,
-    warnLibrary: false,
-    warnMultipleDriver: false
-  },
-  semanticTokens: false
-};
-export interface CancelationObject {
-  canceled: boolean;
-}
-export class CancelationError extends Error {
 
-}
+
 
 
 let globalSettings: ISettings = defaultSettings;
@@ -123,13 +76,11 @@ export async function getDocumentSettings(resource: string): Promise<ISettings> 
 connection.onInitialize((params: InitializeParams) => {
   const capabilities = params.capabilities;
   hasWorkspaceFolderCapability =
-    capabilities.workspace && !!capabilities.workspace.workspaceFolders || false;
+    capabilities.workspace?.workspaceFolders ?? false;
   if (params.rootUri) {
     rootUri = params.rootUri;
   }
-  hasConfigurationCapability = !!(
-    capabilities.workspace && !!capabilities.workspace.configuration
-  );
+  hasConfigurationCapability = capabilities.workspace?.configuration ?? false;
   return {
     capabilities: {
       textDocumentSync: TextDocumentSyncKind.Full,
@@ -181,7 +132,7 @@ export const initialization = new Promise<void>(resolve => {
         const folders = (workspaceFolders ?? []).map(workspaceFolder => URI.parse(workspaceFolder.uri).fsPath);
         // console.log(configuration, 'configuration');
         folders.push(...configuration?.paths?.additional?.filter(existsSync) ?? []);
-        projectParser = await ProjectParser.create(folders, configuration?.paths?.ignoreRegex ?? '');
+        projectParser = await ProjectParser.create(folders, configuration?.paths?.ignoreRegex ?? '', getDocumentSettings);
       };
       await parseWorkspaces();
       connection.workspace.onDidChangeWorkspaceFolders(async event => {
@@ -194,7 +145,7 @@ export const initialization = new Promise<void>(resolve => {
         folders.push(URI.parse(rootUri).fsPath);
       }
       // console.log('folders', folders);
-      projectParser = await ProjectParser.create(folders, configuration.paths.ignoreRegex);
+      projectParser = await ProjectParser.create(folders, configuration.paths.ignoreRegex, getDocumentSettings);
     }
     for (const textDocument of documents.all()) {
       await validateTextDocument(textDocument);
@@ -245,7 +196,7 @@ async function validateTextDocument(textDocument: TextDocument, cancelationObjec
   // console.log(textDocument.uri);
   // console.profile('a');
   // let start = Date.now();
-  const vhdlLinter = new VhdlLinter(URI.parse(textDocument.uri).fsPath, textDocument.getText(), projectParser, false, cancelationObject);
+  const vhdlLinter = new VhdlLinter(URI.parse(textDocument.uri).fsPath, textDocument.getText(), projectParser, getDocumentSettings, false, cancelationObject);
   if (vhdlLinter.parsedSuccessfully || typeof linters.get(textDocument.uri) === 'undefined') {
     linters.set(textDocument.uri, vhdlLinter);
     lintersValid.set(textDocument.uri, true);
@@ -445,7 +396,7 @@ connection.onRequest('vhdl-linter/listing', async (params: any) => {
       }
 
       if (found) {
-        const vhdlLinter = new VhdlLinter(found.file, found.originalText, projectParser);
+        const vhdlLinter = new VhdlLinter(found.file, found.originalText, projectParser, getDocumentSettings);
         await vhdlLinter.checkAll();
         await parseTree(vhdlLinter.file);
       }

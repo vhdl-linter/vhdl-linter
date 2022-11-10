@@ -1,7 +1,6 @@
 import { RuleBase, IRule } from "./rules-base";
 import { CodeAction, CodeActionKind, Command, DiagnosticSeverity } from "vscode-languageserver";
 import { OArchitecture, ObjectBase, OConstant, OFile, OInstantiation, OPort, OProcess, ORead, OSignal, OSubprogram, OType, OVariable, OWrite } from "../parser/objects";
-import { getDocumentSettings } from "../language-server";
 import { URI } from "vscode-uri";
 
 export class RUnused extends RuleBase implements IRule {
@@ -33,7 +32,7 @@ export class RUnused extends RuleBase implements IRule {
   async check() {
     for (const architecture of this.file.architectures) {
       const entity = architecture.correspondingEntity;
-      const settings = (await getDocumentSettings(URI.file(this.vhdlLinter.editorPath).toString()));
+      const settings = (await this.vhdlLinter.settingsGetter(URI.file(this.vhdlLinter.editorPath).toString()));
       if (!architecture) {
         return;
       }

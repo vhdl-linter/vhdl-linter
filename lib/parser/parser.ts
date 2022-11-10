@@ -7,9 +7,9 @@ import { MagicCommentType, OFile, OI, OIRange, OMagicCommentDisable, ParserError
 import { PackageParser } from './package-parser';
 import { ParserBase } from './parser-base';
 import { UseClauseParser } from './use-clause-parser';
-import { CancelationObject } from '../language-server';
 import { Lexer, OLexerToken, TokenType } from '../lexer';
 import { PackageInstantiationParser } from './package-instantiation-parser';
+import { CancelationObject } from '../server-objects';
 
 export class ParserPosition {
   public lexerTokens: OLexerToken[];

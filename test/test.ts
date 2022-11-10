@@ -3,16 +3,16 @@ import { cwd } from 'process';
 import { readdirSync, readFileSync, lstatSync } from 'fs';
 import { join } from 'path';
 import { ProjectParser } from '../lib/project-parser';
-import { } from 'vscode';
 import { OIRange } from '../lib/parser/objects';
 import { DiagnosticSeverity } from 'vscode-languageserver';
+import { defaultSettingsGetter } from '../lib/settings';
 function readDirPath(path: string) {
   return readdirSync(path).map(file => join(path, file));
 }
 interface MessageWrapper {
   file: string,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  messages:( OIDiagnostic | { message: string})[]
+  messages: (OIDiagnostic | { message: string })[]
 }
 function isOIDiagnostic(obj: unknown): obj is OIDiagnostic {
   if ((obj as OIDiagnostic)?.range instanceof OIRange) {
@@ -20,7 +20,7 @@ function isOIDiagnostic(obj: unknown): obj is OIDiagnostic {
   }
   return false;
 }
-function getMessageColor(message: OIDiagnostic | { message: string}) {
+function getMessageColor(message: OIDiagnostic | { message: string }) {
   if (isOIDiagnostic(message) && message.severity === DiagnosticSeverity.Error) {
     return '\u001b[31m';
   } else if (isOIDiagnostic(message) && message.severity === DiagnosticSeverity.Warning) {
@@ -53,14 +53,14 @@ async function run_test_folder(path: string, error_expected: boolean): Promise<M
 async function run_test(path: string, error_expected: boolean, projectParser?: ProjectParser): Promise<MessageWrapper[]> {
   const messageWrappers: MessageWrapper[] = [];
   if (!projectParser) {
-    projectParser = await ProjectParser.create([path], '');
+    projectParser = await ProjectParser.create([path], '', defaultSettingsGetter);
   }
   for (const subPath of readDirPath(path)) {
     if (lstatSync(subPath).isDirectory()) {
       messageWrappers.push(...await run_test(subPath, error_expected, projectParser));
     } else if (subPath.match(/\.vhdl?$/i)) {
       const text = readFileSync(subPath, { encoding: 'utf8' });
-      const vhdlLinter = new VhdlLinter(subPath, text, projectParser);
+      const vhdlLinter = new VhdlLinter(subPath, text, projectParser, defaultSettingsGetter);
       await vhdlLinter.checkAll();
       if (error_expected === false) {
         if (vhdlLinter.messages.length > 0) {
@@ -73,7 +73,7 @@ async function run_test(path: string, error_expected: boolean, projectParser?: P
         if (vhdlLinter.messages.length !== 1) {
           messageWrappers.push({
             file: subPath,
-            messages: [...vhdlLinter.messages, {message: `One message expected found ${vhdlLinter.messages.length}`}]
+            messages: [...vhdlLinter.messages, { message: `One message expected found ${vhdlLinter.messages.length}` }]
           });
         }
       }
