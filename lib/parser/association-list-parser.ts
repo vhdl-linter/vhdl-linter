@@ -42,7 +42,7 @@ export class AssociationListParser extends ParserBase {
           association.formalPart = this.extractReads(association, formalTokens, true);
           associationTokens = actualTokens;
         }
-        if (associationTokens[0].getLText() !== 'open') {
+        if (associationTokens[0]?.getLText() !== 'open') {
           association.actualIfInput = this.extractReads(association, associationTokens);
           if (type === 'port') {
             association.actualIfOutput = this.extractReadsOrWrite(association, associationTokens);
