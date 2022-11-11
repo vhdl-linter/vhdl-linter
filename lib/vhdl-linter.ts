@@ -706,7 +706,6 @@ export class VhdlLinter {
   }
 
   async checkAll(profiling = false) {
-    console.profile();
     let start;
     let i = 0;
     if (this.file) {
@@ -743,7 +742,6 @@ export class VhdlLinter {
 
       // this.parser.debugObject(this.tree);
     }
-    console.profileEnd();
     return this.messages;
   }
 
