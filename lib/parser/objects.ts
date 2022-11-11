@@ -104,7 +104,7 @@ export class OIRange implements Range {
   }
   getLimitedRange(limit = 5) {
     const newEnd = this.end.line - this.start.line > limit ?
-      new OI(this.parent, this.start.line + limit, Number.POSITIVE_INFINITY)
+      new OI(this.parent, this.start.line + limit, 10000)
       : this.end;
     return new OIRange(this.parent, this.start, newEnd);
   }
