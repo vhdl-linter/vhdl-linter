@@ -2,6 +2,7 @@ import { FSWatcher, watch } from 'chokidar';
 import { EventEmitter } from 'events';
 import { promises } from 'fs';
 import { join, sep } from 'path';
+import { cwd } from 'process';
 import { OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
 import { SettingsGetter, VhdlLinter } from './vhdl-linter';
 
@@ -28,10 +29,7 @@ export class ProjectParser {
       return (await Promise.all(directories.map(file => promises.realpath(file)))).forEach(file => files.add(file));
     }));
 
-    const pkg = __dirname;
-    if (pkg) {
-      (await this.parseDirectory(join(pkg, '..', '..', 'ieee2008'))).forEach(file => files.add(file));
-    }
+    (await this.parseDirectory(join(cwd(), 'ieee2008'))).forEach(file => files.add(file));
 
     for (const file of files) {
       const cachedFile = await FileCache.create(file, this);
