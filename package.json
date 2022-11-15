@@ -211,7 +211,7 @@
 		"compile": "tsc --project .",
 		"watch": "tsc -w  --project  .",
 		"lint": "eslint --ext .ts .",
-		"test": "npm run compile && node dist/test/test.js"
+		"test": "jest && npm run compile && node dist/test/test.js"
 	},
 	"dependencies": {
 		"chokidar": "^3.5.3",
@@ -228,6 +228,7 @@
 	"providedServices": {},
 	"consumedServices": {},
 	"devDependencies": {
+		"@jest/globals": "^29.3.1",
 		"@types/node": "^10.12.0",
 		"@types/string-similarity": "^3.0.0",
 		"@types/vscode": "^1.42.0",

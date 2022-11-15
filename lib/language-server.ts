@@ -7,7 +7,6 @@ import { handleCodeLens } from './languageFeatures/codeLens';
 import { attachOnCompletion } from './languageFeatures/completion';
 import { handleDocumentFormatting } from './languageFeatures/documentFormatting';
 import { documentHighlightHandler } from './languageFeatures/documentHightlightHandler';
-import { handleOnDocumentSymbol } from './languageFeatures/documentSymbol';
 import { handleExecuteCommand } from './languageFeatures/executeCommand';
 import { findReferencesHandler, prepareRenameHandler, renameHandler } from './languageFeatures/findReferencesHandler';
 import { foldingHandler } from './languageFeatures/folding';
@@ -20,6 +19,7 @@ import { handleSemanticTokens, semanticTokensLegend } from './languageFeatures/s
 import { existsSync } from 'fs';
 import { ISettings, defaultSettings } from './settings';
 import { CancelationError, CancelationObject } from './server-objects';
+import { getDocumentSymbol } from './languageFeatures/documentSymbol';
 
 // Create a connection for the server. The connection auto detected protocol
 // Also include all preview / proposed LSP features.
@@ -252,7 +252,14 @@ connection.onCodeAction(async (params): Promise<CodeAction[]> => {
   }
   return actions;
 });
-connection.onDocumentSymbol(handleOnDocumentSymbol);
+connection.onDocumentSymbol(async (params) => {
+  await initialization;
+  const linter = linters.get(params.textDocument.uri);
+  if (!linter) {
+    return [];
+  }
+  return getDocumentSymbol(linter);
+});
 interface IFindDefinitionParams {
   textDocument: {
     uri: string

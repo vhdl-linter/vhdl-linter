@@ -1,5 +1,4 @@
-import { DocumentSymbol, DocumentSymbolParams, SymbolKind } from 'vscode-languageserver';
-import { initialization, linters } from '../language-server';
+import { DocumentSymbol, SymbolKind } from 'vscode-languageserver';
 import { OArchitecture, OCase, OForLoop, OIf, OSequentialStatement } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
 
@@ -83,12 +82,7 @@ function parseStatements(statement: OSequentialStatement): DocumentSymbol[] {
   }
   return [];
 }
-export async function handleOnDocumentSymbol(params: DocumentSymbolParams): Promise<DocumentSymbol[]> {
-  await initialization;
-  const linter = linters.get(params.textDocument.uri);
-  if (!linter) {
-    return [];
-  }
+export function getDocumentSymbol(linter: VhdlLinter) {
   const returnValue: DocumentSymbol[] = [];
 
   returnValue.push(...linter.file.packages.map(pkg => pkg.types).flat().map(type => DocumentSymbol.create(type.lexerToken.text, undefined, SymbolKind.Enum, type.range, type.range)));

@@ -1,0 +1,133 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`testing document symbol snapshot 1`] = `
+[
+  {
+    "children": [
+      {
+        "children": [],
+        "detail": "process",
+        "kind": 12,
+        "name": "p_reg",
+        "range": {
+          "end": {
+            "character": 15,
+            "line": 19,
+          },
+          "start": {
+            "character": 4,
+            "line": 14,
+          },
+        },
+        "selectionRange": {
+          "end": {
+            "character": 15,
+            "line": 19,
+          },
+          "start": {
+            "character": 4,
+            "line": 14,
+          },
+        },
+      },
+    ],
+    "kind": 10,
+    "name": "p_gen : if true generate",
+    "range": {
+      "end": {
+        "character": 2,
+        "line": 23,
+      },
+      "start": {
+        "character": 2,
+        "line": 13,
+      },
+    },
+    "selectionRange": {
+      "end": {
+        "character": 2,
+        "line": 23,
+      },
+      "start": {
+        "character": 2,
+        "line": 13,
+      },
+    },
+  },
+  {
+    "children": [],
+    "kind": 10,
+    "name": "else generate",
+    "range": {
+      "end": {
+        "character": 2,
+        "line": 23,
+      },
+      "start": {
+        "character": 2,
+        "line": 20,
+      },
+    },
+    "selectionRange": {
+      "end": {
+        "character": 2,
+        "line": 23,
+      },
+      "start": {
+        "character": 2,
+        "line": 20,
+      },
+    },
+  },
+  {
+    "children": [],
+    "kind": 10,
+    "name": "elsif false generate",
+    "range": {
+      "end": {
+        "character": 22,
+        "line": 26,
+      },
+      "start": {
+        "character": 2,
+        "line": 24,
+      },
+    },
+    "selectionRange": {
+      "end": {
+        "character": 22,
+        "line": 26,
+      },
+      "start": {
+        "character": 2,
+        "line": 24,
+      },
+    },
+  },
+  {
+    "children": [],
+    "kind": 10,
+    "name": "p_gen2 : if true generate",
+    "range": {
+      "end": {
+        "character": 0,
+        "line": 27,
+      },
+      "start": {
+        "character": 2,
+        "line": 23,
+      },
+    },
+    "selectionRange": {
+      "end": {
+        "character": 0,
+        "line": 27,
+      },
+      "start": {
+        "character": 2,
+        "line": 23,
+      },
+    },
+  },
+]
+`;
