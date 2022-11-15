@@ -41,8 +41,11 @@ export class AssociationListParser extends ParserBase {
           const actualTokens = associationTokens.slice(index + 1);
           association.formalPart = this.extractReads(association, formalTokens, true);
           associationTokens = actualTokens;
+          if (associationTokens.length === 0) {
+            throw new ParserError("The actual part cannot be empty.", association.range.copyWithNewEnd(lastChar.range.end));
+          }
         }
-        if (associationTokens[0]?.getLText() !== 'open') {
+        if (associationTokens[0].getLText() !== 'open') {
           association.actualIfInput = this.extractReads(association, associationTokens);
           if (type === 'port') {
             association.actualIfOutput = this.extractReadsOrWrite(association, associationTokens);
