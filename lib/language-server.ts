@@ -324,10 +324,7 @@ connection.onHover(async (params, token): Promise<Hover | null> => {
     }
   };
 });
-connection.onDefinition(async (p) => {
-  const result = await findDefinitions(p);
-  return result;
-});
+connection.onDefinition(findDefinitions);
 // This handler provides the initial list of the completion items.
 attachOnCompletion();
 connection.onReferences(handleReferences);
