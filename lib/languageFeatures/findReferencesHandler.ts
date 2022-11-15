@@ -62,12 +62,13 @@ export async function prepareRenameHandler(params: TextDocumentPositionParams) {
   return candidate.range;
 }
 export async function renameHandler(params: RenameParams) {
-  const references = (await findReferences(params)).map(reference => {
+  // array and set to make sure that only unique references are used
+  const references = Array.from(new Set((await findReferences(params)).map(reference => {
     if (implementsIHasLexerToken(reference)) {
       return reference.lexerToken;
     }
     return reference;
-  }).filter((r, i, s) => s.indexOf(r) === i);
+  })));
   return {
     changes: {
       [params.textDocument.uri]: references.map(reference => TextEdit.replace(reference.range, params.newName))
