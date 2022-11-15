@@ -1,5 +1,5 @@
 import {
-  CodeAction, createConnection, DidChangeConfigurationNotification, ErrorCodes, Hover, InitializeParams, Position, ProposedFeatures, TextDocuments, TextDocumentSyncKind
+  CodeAction, createConnection, Definition, DefinitionLink, DidChangeConfigurationNotification, ErrorCodes, Hover, InitializeParams, Position, ProposedFeatures, TextDocuments, TextDocumentSyncKind
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
@@ -259,7 +259,7 @@ interface IFindDefinitionParams {
   };
   position: Position;
 }
-const findDefinitions = async (params: IFindDefinitionParams) => {
+const findDefinitions = async (params: IFindDefinitionParams): Promise<(DefinitionLink & {text: string})[]> => {
   await initialization;
   const linter = linters.get(params.textDocument.uri);
   if (!linter) {
@@ -281,11 +281,10 @@ const findDefinitions = async (params: IFindDefinitionParams) => {
     if (implementsIHasDefinitions(candidate) && candidate.definitions) {
       return candidate.definitions.map(definition => {
         return {
-          // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
-          range: definition.range.copyExtendBeginningOfLine().getLimitedRange(10),
+          targetRange: definition.range.copyExtendBeginningOfLine().getLimitedRange(10),
+          targetSelectionRange: definition.lexerToken?.range ?? definition.range.copyExtendBeginningOfLine().getLimitedRange(1),
           text: definition.rootFile.originalText,
-          // targetSelectionRange:  Range.create(Position.create(0, 0), Position.create(0, 0)),
-          uri: URI.file(definition.rootFile.file).toString()
+          targetUri: URI.file(definition.rootFile.file).toString()
         };
       });
     } else {
@@ -311,12 +310,12 @@ connection.onHover(async (params, token): Promise<Hover | null> => {
   if (definition === null) {
     return null;
   }
-  const lines = definition.text.split('\n').slice(definition.range.start.line, definition.range.end.line + 1);
-  if (definition.range.start.line === definition.range.end.line) {
-    lines[0] = lines[0].substring(definition.range.start.character, definition.range.end.character);
+  const lines = definition.text.split('\n').slice(definition.targetRange.start.line, definition.targetRange.end.line + 1);
+  if (definition.targetRange.start.line === definition.targetRange.end.line) {
+    lines[0] = lines[0].substring(definition.targetRange.start.character, definition.targetRange.end.character);
   } else {
-    lines[0] = lines[0].substring(definition.range.start.character);
-    lines[lines.length - 1] = lines[lines.length - 1].substring(0, definition.range.end.character);
+    lines[0] = lines[0].substring(definition.targetRange.start.character);
+    lines[lines.length - 1] = lines[lines.length - 1].substring(0, definition.targetRange.end.character);
   }
   return {
     contents: {
