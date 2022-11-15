@@ -7,8 +7,9 @@ import { VhdlLinter } from '../../lib/vhdl-linter';
 
 test('E2E test of linter with instantiation', async () => {
   const filename = join(__dirname, 'test_inst.vhd');
+  const projectParser = await ProjectParser.create([__dirname], '', defaultSettingsGetter, true);
   const linter = new VhdlLinter(filename, readFileSync(filename, { encoding: 'utf8' }),
-    await ProjectParser.create([__dirname], '', defaultSettingsGetter), defaultSettingsGetter)
+    projectParser, defaultSettingsGetter);
   const diagnostic = await linter.checkAll();
   expect(diagnostic.length).toBe(1);
   expect(diagnostic[0].message).toContain('(instantiation)');

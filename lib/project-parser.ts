@@ -14,32 +14,17 @@ export class ProjectParser {
   public contexts: OContext[] = [];
   public entities: OEntity[] = [];
   events = new EventEmitter();
-
+  private watchers: FSWatcher[] = [];
   // Constructor can not be async. So constructor is private and use factory to create
-  public static async create(workspaces: string[], fileIgnoreRegex: string, settingsGetter: SettingsGetter) {
+  public static async create(workspaces: string[], fileIgnoreRegex: string, settingsGetter: SettingsGetter, disableWatching = false) {
     const projectParser = new ProjectParser(workspaces, fileIgnoreRegex, settingsGetter);
-    await projectParser.init();
+    await projectParser.init(disableWatching);
     return projectParser;
   }
   private constructor(public workspaces: string[], public fileIgnoreRegex: string, public settingsGetter: SettingsGetter) { }
-  async init() {
-    const files = new Set<string>();
-    await Promise.all(this.workspaces.map(async (directory) => {
-      const directories = await this.parseDirectory(directory);
-      return (await Promise.all(directories.map(file => promises.realpath(file)))).forEach(file => files.add(file));
-    }));
-
-    (await this.parseDirectory(join(cwd(), 'ieee2008'))).forEach(file => files.add(file));
-
-    for (const file of files) {
-      const cachedFile = await FileCache.create(file, this);
-      this.cachedFiles.push(cachedFile);
-    }
-    this.cachedFiles.sort((a, b) => b.lintingTime - a.lintingTime);
-    // console.log('Times: \n' + this.cachedFiles.slice(0, 10).map(file => `${file.path}: ${file.lintingTime}ms`).join('\n'));
-    this.flattenProject();
-    for (const workspace of this.workspaces) {
-      const watcher = watch(workspace.replace(sep, '/') + '/**/*.vhd?(l)', { ignoreInitial: true });
+  public addFolders(pathes: string[]) {
+    for (const path of pathes) {
+      const watcher = watch(path.replace(sep, '/') + '/**/*.vhd?(l)', { ignoreInitial: true });
       watcher.on('add', async (path) => {
         const cachedFile = await (FileCache.create(path, this));
         this.cachedFiles.push(cachedFile);
@@ -67,7 +52,32 @@ export class ProjectParser {
           this.events.emit('change', 'unlink', path);
         }
       });
+      this.watchers.push(watcher);
+    }
+  }
+  private async init(disableWatching: boolean) {
+    const files = new Set<string>();
+    await Promise.all(this.workspaces.map(async (directory) => {
+      const directories = await this.parseDirectory(directory);
+      return (await Promise.all(directories.map(file => promises.realpath(file)))).forEach(file => files.add(file));
+    }));
 
+    (await this.parseDirectory(join(cwd(), 'ieee2008'))).forEach(file => files.add(file));
+
+    for (const file of files) {
+      const cachedFile = await FileCache.create(file, this);
+      this.cachedFiles.push(cachedFile);
+    }
+    this.cachedFiles.sort((a, b) => b.lintingTime - a.lintingTime);
+    // console.log('Times: \n' + this.cachedFiles.slice(0, 10).map(file => `${file.path}: ${file.lintingTime}ms`).join('\n'));
+    this.flattenProject();
+    if (!disableWatching) {
+      this.addFolders(this.workspaces);
+    }
+  }
+  async stop() {
+    for (const watcher of this.watchers) {
+      await watcher.close();
     }
   }
   private async parseDirectory(directory: string): Promise<string[]> {
@@ -110,10 +120,7 @@ export class ProjectParser {
       }
     }
   }
-  watcher: FSWatcher;
-  addFolders(folders: string[]) {
-    this.watcher.add(folders.map(folder => folder.replace(sep, '/') + '/**/*.vhd?(l)'));
-  }
+
 }
 
 export class FileCache {
