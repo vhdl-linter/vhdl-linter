@@ -6,6 +6,10 @@ export class OI implements Position {
   constructor(parent: ObjectBase | OFile, line: number, character: number)
   constructor(parent: ObjectBase | OFile, line: number, character: number, i: number)
   constructor(public parent: ObjectBase | OFile, i: number, j?: number, k?: number) {
+    if (j === Number.POSITIVE_INFINITY) {
+      const lines = (this.parent instanceof OFile ? this.parent : this.parent.rootFile).lines;
+      j = lines[i].length - 1;
+    }
     if (k !== undefined && j !== undefined) {
       this.i_ = k;
       this.position = {

@@ -56,16 +56,19 @@ export async function prepareRenameHandler(params: TextDocumentPositionParams) {
   if (!candidate) {
     throw new ResponseError(ErrorCodes.InvalidRequest, 'Can not rename this element', 'Can not rename this element');
   }
+  if (implementsIHasLexerToken(candidate)) {
+    return candidate.lexerToken.range;
+  }
   return candidate.range;
 }
 export async function renameHandler(params: RenameParams) {
-  const references = (await findReferences(params)).map(reference => {
-    if (implementsIReferencable(reference) && implementsIHasLexerToken(reference)) {
+  // array and set to make sure that only unique references are used
+  const references = Array.from(new Set((await findReferences(params)).map(reference => {
+    if (implementsIHasLexerToken(reference)) {
       return reference.lexerToken;
     }
     return reference;
-  });
-  // console.log(references.map(reference => `${reference.range.start.line} ${reference.range.start.character}`));
+  })));
   return {
     changes: {
       [params.textDocument.uri]: references.map(reference => TextEdit.replace(reference.range, params.newName))
