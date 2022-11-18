@@ -1,16 +1,15 @@
 import { RuleBase, IRule } from "./rules-base";
 import { DiagnosticSeverity } from "vscode-languageserver";
-import { OFile } from "../parser/objects";
+import { OFile, OPackage } from "../parser/objects";
 
 export class RComponent extends RuleBase implements IRule {
   public name = 'component';
   file: OFile;
 
   async check() {
-  for (const architecture of this.file.architectures) {
-
+    for (const architecture of [...this.file.architectures, ...this.file.packages.filter(p => p instanceof OPackage) as OPackage[]]) {
       for (const component of architecture.components) {
-        const entities = this.vhdlLinter.getEntities(component);
+        const entities = component.definitions;
         if (entities.length === 0) {
           this.addMessage({
             range: component.lexerToken.range,
