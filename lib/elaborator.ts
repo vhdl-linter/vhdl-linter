@@ -279,7 +279,7 @@ export class Elaborator {
     // start = Date.now();
     await this.vhdlLinter.handleCanceled();
 
-    for (const architecture of this.file.architectures) {
+    for (const architecture of [...this.file.architectures, ...this.file.packages.filter(p => p instanceof OPackage) as OPackage[]]) {
       for (const component of architecture.components) {
         component.definitions.push(...this.getEntities(component));
         const entityPorts = component.definitions.flatMap(ent => ent.ports);
