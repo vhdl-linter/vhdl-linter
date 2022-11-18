@@ -1,6 +1,6 @@
 import { RuleBase, IRule } from "./rules-base";
 import { CodeAction, CodeActionKind, DiagnosticSeverity, Range, TextEdit } from "vscode-languageserver";
-import { IHasLexerToken, implementsIHasInstantiations, implementsIHasLexerToken, implementsIHasPorts, implementsIHasSubprograms, OArchitecture, OAssociationList, ObjectBase, OCase, OComponent, OEntity, OFile, OGeneric, OHasSequentialStatements, OIf, OIRange, OPort, OSubprogram, OSubprogramAlias, OTypeMark } from "../parser/objects";
+import { IHasLexerToken, implementsIHasInstantiations, implementsIHasLexerToken, implementsIHasPorts, implementsIHasSubprograms, OArchitecture, OAssociationList, ObjectBase, OCase, OComponent, OEntity, OFile, OGeneric, OHasSequentialStatements, OIf, OIRange, OPort, OSubprogramAlias, OTypeMark } from "../parser/objects";
 import { findBestMatch } from "string-similarity";
 
 export class RInstantiation extends RuleBase implements IRule {
@@ -124,19 +124,7 @@ export class RInstantiation extends RuleBase implements IRule {
     }
     if (implementsIHasInstantiations(object)) {
       for (const instantiation of object.instantiations) {
-        let definitions: (OComponent | OEntity | OSubprogram | OSubprogramAlias)[] = [];
-        switch (instantiation.type) {
-          case 'component':
-            definitions = this.vhdlLinter.getComponents(instantiation);
-            break;
-          case 'entity':
-            definitions = this.vhdlLinter.getEntities(instantiation);
-            break;
-          case 'subprogram':
-            definitions = this.vhdlLinter.getSubprograms(instantiation);
-            break;
-        }
-        if (definitions.length === 0) {
+        if (instantiation.definitions.length === 0) {
           this.addMessage({
             range: instantiation.range.start.getRangeToEndLine(),
             severity: DiagnosticSeverity.Warning,
@@ -144,7 +132,7 @@ export class RInstantiation extends RuleBase implements IRule {
           });
         } else {
           const range = instantiation.range.start.getRangeToEndLine();
-          const availablePorts = definitions.map(e => {
+          const availablePorts = instantiation.definitions.map(e => {
             if (implementsIHasPorts(e)) {
               return e.ports
             }
@@ -154,7 +142,7 @@ export class RInstantiation extends RuleBase implements IRule {
             return [];
           });
           this.checkAssociations(availablePorts, instantiation.portAssociationList, instantiation.type, range, 'port');
-          const availableGenerics = definitions.map(d => (d instanceof OComponent || d instanceof OEntity) ? d.generics : []);
+          const availableGenerics = instantiation.definitions.map(d => (d instanceof OComponent || d instanceof OEntity) ? d.generics : []);
           this.checkAssociations(availableGenerics, instantiation.genericAssociationList, instantiation.type, range, 'generic');
         }
       }

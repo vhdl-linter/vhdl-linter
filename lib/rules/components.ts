@@ -10,7 +10,7 @@ export class RComponent extends RuleBase implements IRule {
   for (const architecture of this.file.architectures) {
 
       for (const component of architecture.components) {
-        const entities = this.vhdlLinter.getEntities(component);
+        const entities = component.definitions;
         if (entities.length === 0) {
           this.addMessage({
             range: component.lexerToken.range,
