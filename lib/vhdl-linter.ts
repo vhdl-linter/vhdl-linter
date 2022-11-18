@@ -1,7 +1,7 @@
 import {
   CodeAction, CodeActionKind, CodeLens, Command, Diagnostic, DiagnosticSeverity, Position, Range, TextEdit
 } from 'vscode-languageserver';
-import { Elaborator } from './elaborator';
+import { Elaborate } from './elaborate/elaborate';
 import {
   implementsIReferencable, OAssociation, OFile, OI, OIRange, ParserError} from './parser/objects';
 import { Parser } from './parser/parser';
@@ -176,7 +176,7 @@ export class VhdlLinter {
     if (this.file) {
       start = Date.now();
       try {
-        await Elaborator.elaborate(this);
+        await Elaborate.elaborate(this);
         if (profiling) {
           console.log(`check ${i++}: ${Date.now() - start}ms`);
           start = Date.now();
