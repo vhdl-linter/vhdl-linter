@@ -1,10 +1,10 @@
 import {
-  CodeAction, createConnection, Definition, DefinitionLink, DidChangeConfigurationNotification, ErrorCodes, Hover, InitializeParams, Position, ProposedFeatures, TextDocuments, TextDocumentSyncKind
+  CodeAction, createConnection, DefinitionLink, DidChangeConfigurationNotification, ErrorCodes, Hover, InitializeParams, Position, ProposedFeatures, TextDocuments, TextDocumentSyncKind
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
 import { handleCodeLens } from './languageFeatures/codeLens';
-import { attachOnCompletion } from './languageFeatures/completion';
+import { getCompletions } from './languageFeatures/completion';
 import { handleDocumentFormatting } from './languageFeatures/documentFormatting';
 import { documentHighlightHandler } from './languageFeatures/documentHightlightHandler';
 import { handleExecuteCommand } from './languageFeatures/executeCommand';
@@ -332,8 +332,14 @@ connection.onHover(async (params, token): Promise<Hover | null> => {
   };
 });
 connection.onDefinition(findDefinitions);
-// This handler provides the initial list of the completion items.
-attachOnCompletion();
+connection.onCompletion(async (params, cancelationToken) => {
+  await initialization;
+  const linter = linters.get(params.textDocument.uri);
+  if (!linter) {
+    return [];
+  }
+  return getCompletions(linter, params, cancelationToken);
+});
 connection.onReferences(handleReferences);
 connection.onPrepareRename(prepareRenameHandler);
 connection.onRenameRequest(renameHandler);

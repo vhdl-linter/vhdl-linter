@@ -11,6 +11,7 @@ export interface ISettings {
   style: {
     preferedLogicType: 'std_logic' | 'std_ulogic';
     unusedSignalRegex: string;
+    ieeeCasing: 'lowercase' | 'UPPERCASE';
   };
   rules: {
     warnLibrary: boolean;
@@ -31,7 +32,8 @@ export const defaultSettings: ISettings = {
   },
   style: {
     preferedLogicType: 'std_ulogic',
-    unusedSignalRegex: '_unused$'
+    unusedSignalRegex: '_unused$',
+    ieeeCasing: 'lowercase'
   },
   rules: {
     warnLogicType: true,

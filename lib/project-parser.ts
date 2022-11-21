@@ -61,7 +61,6 @@ export class ProjectParser {
       const directories = await this.parseDirectory(directory);
       return (await Promise.all(directories.map(file => promises.realpath(file)))).forEach(file => files.add(file));
     }));
-
     (await this.parseDirectory(join(cwd(), 'ieee2008'))).forEach(file => files.add(file));
 
     for (const file of files) {
