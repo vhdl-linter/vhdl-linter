@@ -591,6 +591,9 @@ export class OElseGenerateClause extends OArchitecture {
 interface IHasType {
   type: ORead[];
 }
+export function implementsIHasType(obj: ObjectBase): obj is ObjectBase & IHasType {
+  return (obj as ObjectBase & IHasType).type !== undefined;
+}
 interface IHasDefaultValue {
   defaultValue?: ORead[];
 }

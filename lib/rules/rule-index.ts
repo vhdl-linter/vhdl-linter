@@ -7,7 +7,7 @@ import { RLibraryReference } from "./library-references";
 import { RMultipleDefinition } from "./multiple-definitions";
 import { RNotDeclared } from "./not-declared";
 import { RPortDeclaration } from "./port-declaration";
-import { RPortType } from "./port-type";
+import { RDefaultType } from "./default-type";
 import { RUnused } from "./unused";
 
 export const rules = [
@@ -18,7 +18,7 @@ export const rules = [
   RMultipleDefinition,
   RNotDeclared,
   RPortDeclaration,
-  RPortType,
+  RDefaultType,
   RUnused,
   REmpty,
   RConstantWrite
