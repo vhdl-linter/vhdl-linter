@@ -1,8 +1,7 @@
 import { FSWatcher, watch } from 'chokidar';
 import { EventEmitter } from 'events';
 import { promises } from 'fs';
-import { join, sep } from 'path';
-import { cwd } from 'process';
+import { join, normalize, sep } from 'path';
 import { OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
 import { SettingsGetter, VhdlLinter } from './vhdl-linter';
 
@@ -61,8 +60,11 @@ export class ProjectParser {
       const directories = await this.parseDirectory(directory);
       return (await Promise.all(directories.map(file => promises.realpath(file)))).forEach(file => files.add(file));
     }));
-
-    (await this.parseDirectory(join(cwd(), 'ieee2008'))).forEach(file => files.add(file));
+    let workingDirectory = __dirname;
+    while (!workingDirectory.endsWith('vhdl-linter')) {
+      workingDirectory = normalize(join(workingDirectory, '..'));
+    }
+    (await this.parseDirectory(join(workingDirectory, 'ieee2008'))).forEach(file => files.add(file));
 
     for (const file of files) {
       const cachedFile = await FileCache.create(file, this);
