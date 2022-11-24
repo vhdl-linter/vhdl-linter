@@ -20,7 +20,7 @@ export async function getCompletions(linter: VhdlLinter, params: CompletionParam
     completions.push({
       label: 'Block comment',
       commitCharacters: ['-'],
-      insertText: '-'.repeat(80 - match[1].length) + '\n-- ' + match[2] + '${1}\n' + '-'.repeat(80 - match[1].length),
+      insertText: '-'.repeat(80 - match[1].length) + '\n-- ' + match[2] + '${1}\n' + '-'.repeat(80 - match[1].length) + '\n',
       insertTextFormat: InsertTextFormat.Snippet,
       preselect: true,
       kind: CompletionItemKind.Snippet
