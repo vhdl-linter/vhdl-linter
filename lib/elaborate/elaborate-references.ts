@@ -107,7 +107,6 @@ export function elaborateReferences(reference: OReference) {
       }
     }
     // Handling for Attributes e.g. 'INSTANCE_name or 'PATH_NAME
-    // TODO: check better if actual Attribute is following
     // Possible entities (objects where attributes are valid):
     /*
       entity ✓

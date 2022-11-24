@@ -35,7 +35,6 @@ function getComponents(instantiation: OInstantiation): OComponent[] {
   const name = instantiation.componentName;
   return components.filter(e => e.lexerToken.getLText() === name.text.toLowerCase());
 }
-// TODO: To fit with the style of packages and architectures I think this should be linked during elaboration
 export function getEntities(instantiation: OInstantiation | OComponent, projectParser: ProjectParser): OEntity[] {
   const entities: OEntity[] = [];
   if (instantiation instanceof OInstantiation && instantiation.type === 'component') {
