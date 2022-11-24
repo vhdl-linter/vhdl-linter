@@ -1,8 +1,7 @@
 import { FSWatcher, watch } from 'chokidar';
 import { EventEmitter } from 'events';
-import { promises } from 'fs';
-import { join, sep } from 'path';
-import { cwd } from 'process';
+import { existsSync, promises } from 'fs';
+import { join, normalize, sep } from 'path';
 import { OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
 import { SettingsGetter, VhdlLinter } from './vhdl-linter';
 
@@ -55,13 +54,25 @@ export class ProjectParser {
       this.watchers.push(watcher);
     }
   }
+  private getRootDirectory() {
+    let currentDir = __dirname;
+    let iterations = 10;
+    while (!existsSync(join(currentDir, 'package.json'))) {
+      currentDir = join(currentDir, '..')
+      if (iterations-- === 0) {
+        throw new Error('Could not find root directory');
+      }
+    }
+    return currentDir
+  }
   private async init(disableWatching: boolean) {
     const files = new Set<string>();
     await Promise.all(this.workspaces.map(async (directory) => {
       const directories = await this.parseDirectory(directory);
       return (await Promise.all(directories.map(file => promises.realpath(file)))).forEach(file => files.add(file));
     }));
-    (await this.parseDirectory(join(cwd(), 'ieee2008'))).forEach(file => files.add(file));
+    const rootDirectory = this.getRootDirectory();
+    (await this.parseDirectory(join(rootDirectory, 'ieee2008'))).forEach(file => files.add(file));
 
     for (const file of files) {
       const cachedFile = await FileCache.create(file, this);
