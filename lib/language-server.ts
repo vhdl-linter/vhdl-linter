@@ -338,7 +338,10 @@ connection.onCompletion(async (params, cancelationToken) => {
   if (!linter) {
     return [];
   }
-  return getCompletions(linter, params, cancelationToken);
+  if (cancelationToken.isCancellationRequested) {
+    return [];
+  }
+  return getCompletions(linter, params);
 });
 connection.onReferences(handleReferences);
 connection.onPrepareRename(prepareRenameHandler);
