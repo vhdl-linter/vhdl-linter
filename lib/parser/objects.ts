@@ -424,7 +424,8 @@ export class OHasConcurrentStatements extends ObjectBase {
 
 export class OArchitecture extends ObjectBase implements IHasSubprograms, IHasComponents, IHasInstantiations,
   IHasSignals, IHasConstants, IHasVariables, IHasTypes, IHasSubprogramAlias, IHasFileVariables, IHasUseClauses, IHasContextReference,
-  IHasPackageInstantiations, IHasLexerToken, IHasLibraries {
+  IHasPackageInstantiations, IHasLexerToken, IHasLibraries, IReferenceable {
+  references: OReference[] = [];
   lexerToken: OLexerToken;
   useClauses: OUseClause[] = [];
   subprogramAliases: OSubprogramAlias[] = [];

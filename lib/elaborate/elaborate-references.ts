@@ -145,9 +145,7 @@ export function elaborateReferences(reference: OReference) {
       if (object instanceof relevantType) {
         if (object.lexerToken && object.lexerToken.getLText() === text.toLowerCase()) {
           reference.definitions.push(object);
-          if (implementsIReferencable(object)) {
-            object.references.push(reference);
-          }
+          object.references.push(reference);
         }
       }
 
