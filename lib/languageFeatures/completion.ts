@@ -1,4 +1,4 @@
-import { CompletionItem, CompletionItemKind, CompletionParams, InsertTextFormat } from 'vscode-languageserver';
+import { CompletionItem, CompletionItemKind, CompletionParams } from 'vscode-languageserver';
 import { implementsIHasConstants, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables, ORecord, OEnum, OEntity, scope, ObjectBase, IHasLexerToken, OI } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
 
@@ -15,17 +15,6 @@ export async function getCompletions(linter: VhdlLinter, params: CompletionParam
 
   const lines = linter.text.split('\n');
   const line = lines[params.position.line];
-  const match = line.match(/^(\s*)-*\s*(.*)/);
-  if (match) {
-    completions.push({
-      label: 'Block comment',
-      commitCharacters: ['-'],
-      insertText: '-'.repeat(80 - match[1].length) + '\n-- ' + match[2] + '${1}\n' + '-'.repeat(80 - match[1].length) + '\n',
-      insertTextFormat: InsertTextFormat.Snippet,
-      preselect: true,
-      kind: CompletionItemKind.Snippet
-    });
-  }
 
   const matchUse = line.match(/^\s*use\s+/i);
   if (matchUse) {
