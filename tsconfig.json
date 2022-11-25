@@ -9,7 +9,7 @@
         "alwaysStrict": true,
         "outDir": "./dist",
         "jsx": "react",
-        "lib": ["ES2020"]
+        "lib": ["ES2021"]
     },
     "include": ["lib/**/*", "test/**/*"]
 }
