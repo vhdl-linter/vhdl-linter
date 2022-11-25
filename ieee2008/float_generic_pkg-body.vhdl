@@ -286,8 +286,8 @@ package body float_generic_pkg is
     arg                  : in  UNRESOLVED_float;    -- floating point input
     variable sign        : out STD_ULOGIC;          -- sign of output
     variable frac        : out UNSIGNED;            -- unsigned biased output
-    constant denormalize : in  BOOLEAN;             -- turn on denormalization
-    constant bias        : in  NATURAL;             -- bias for fixed point
+    constant denormalize : in  BOOLEAN;             -- turn on denormalization -- vhdl-linter-disable-line unused
+    constant bias        : in  NATURAL;             -- bias for fixed point -- vhdl-linter-disable-line unused
     constant round_style : in  round_type) is       -- rounding method
     constant fraction_width : INTEGER := -mine(arg'low, arg'low);  -- length of FP output fraction
     constant exponent_width : INTEGER := arg'high;  -- length of FP output exponent
@@ -635,7 +635,7 @@ package body float_generic_pkg is
     fract       : out UNRESOLVED_UNSIGNED;
     expon       : out UNRESOLVED_SIGNED;
     sign        : out STD_ULOGIC) is
-    constant fraction_width : NATURAL := -mine(arg'low, arg'low);  -- length of FP output fraction
+    constant fraction_width : NATURAL := -mine(arg'low, arg'low);  -- length of FP output fraction -- vhdl-linter-disable-line unused
     variable fptyp          : valid_fpstate;
   begin
     fptyp := Classfp (arg, check_error);
@@ -1261,7 +1261,7 @@ package body float_generic_pkg is
   function dividebyp2 (
     l, r                 : UNRESOLVED_float;      -- floating point input
     constant round_style : round_type := float_round_style;  -- rounding option
-    constant guard       : NATURAL    := float_guard_bits;  -- number of guard bits
+    constant guard       : NATURAL    := float_guard_bits;  -- number of guard bits -- vhdl-linter-disable-line unused
     constant check_error : BOOLEAN    := float_check_error;  -- check for errors
     constant denormalize : BOOLEAN    := float_denormalize)  -- Use IEEE extended FP
     return UNRESOLVED_float
@@ -1401,7 +1401,8 @@ package body float_generic_pkg is
     variable fractx                    : UNSIGNED (fraction_width+guard downto 0);
     variable fractc, fracts            : UNSIGNED (fraction_width+1+guard downto 0);
     variable rfract                    : UNSIGNED ((2*(fraction_width))+1 downto 0);  -- result fraction
-    variable sfract, ufract            : UNSIGNED (fraction_width+1+guard downto 0);  -- result fraction
+    variable sfract -- vhdl-linter-disable-line unused
+    , ufract            : UNSIGNED (fraction_width+1+guard downto 0);  -- result fraction
     variable exponl, exponr, exponc    : SIGNED (exponent_width-1 downto 0);  -- exponents
     variable rexpon, rexpon2           : SIGNED (exponent_width+1 downto 0);  -- result exponent
     variable shifty                    : INTEGER;      -- denormal shift
@@ -1785,7 +1786,7 @@ package body float_generic_pkg is
         expon := shift_right (expon, 1);            -- exponent/2
         -- Newton's iteration - root := (1 + arg) / 2
         resb  := (fact + 1) sra 1;
-        for j in 0 to fraction_width/4 loop
+        for j in 0 to fraction_width/4 loop -- vhdl-linter-disable-line unused
           --   root := (root + (arg/root))/2
           resb := resize (arg            => (resb + (fact/resb)) sra 1,
                           left_index     => resb'high,
@@ -2382,10 +2383,10 @@ package body float_generic_pkg is
     variable fptype            : valid_fpstate;
     variable expon_in          : SIGNED (in_exponent_width-1 downto 0);
     variable fract_in          : UNSIGNED (in_fraction_width downto 0);
-    variable round             : BOOLEAN;
+    variable round             : BOOLEAN; -- vhdl-linter-disable-line unused
     variable expon_out         : SIGNED (exponent_width-1 downto 0);  -- output fract
     variable fract_out         : UNSIGNED (fraction_width downto 0);  -- output fract
-    variable passguard         : NATURAL;
+    variable passguard         : NATURAL; -- vhdl-linter-disable-line unused
   begin
     fptype := classfp(arg, check_error);
     if ((fptype = pos_denormal or fptype = neg_denormal) and denormalize_in

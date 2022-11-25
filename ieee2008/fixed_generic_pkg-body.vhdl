@@ -83,9 +83,9 @@ package body fixed_generic_pkg is
     arg : UNRESOLVED_sfixed)            -- input
     return UNRESOLVED_sfixed
   is
-    constant left_index  : INTEGER := maximum(arg'left, arg'right);
-    constant right_index : INTEGER := mins(arg'left, arg'right);
-    variable result      : UNRESOLVED_sfixed (arg'range);
+    constant left_index  : INTEGER := maximum(arg'left, arg'right); -- vhdl-linter-disable-line unused
+    constant right_index : INTEGER := mins(arg'left, arg'right); -- vhdl-linter-disable-line unused
+    variable result      : UNRESOLVED_sfixed (arg'range); -- vhdl-linter-disable-line unused
   begin  -- function cleanvec
     assert not (arg'ascending and (arg'low /= INTEGER'low))
       report fixed_generic_pkg'instance_name
@@ -99,9 +99,9 @@ package body fixed_generic_pkg is
     arg : UNRESOLVED_ufixed)            -- input
     return UNRESOLVED_ufixed
   is
-    constant left_index  : INTEGER := maximum(arg'left, arg'right);
-    constant right_index : INTEGER := mins(arg'left, arg'right);
-    variable result      : UNRESOLVED_ufixed (arg'range);
+    constant left_index  : INTEGER := maximum(arg'left, arg'right); -- vhdl-linter-disable-line unused
+    constant right_index : INTEGER := mins(arg'left, arg'right); -- vhdl-linter-disable-line unused
+    variable result      : UNRESOLVED_ufixed (arg'range); -- vhdl-linter-disable-line unused
   begin  -- function cleanvec
     assert not (arg'ascending and (arg'low /= INTEGER'low))
       report fixed_generic_pkg'instance_name
@@ -781,7 +781,7 @@ package body fixed_generic_pkg is
   function remainder (
     l, r                 : UNRESOLVED_sfixed;  -- fixed point input
     constant round_style : fixed_round_style_type := fixed_round_style;
-    constant guard_bits  : NATURAL                := fixed_guard_bits)
+    constant guard_bits  : NATURAL                := fixed_guard_bits) -- vhdl-linter-disable-line unused
     return UNRESOLVED_sfixed
   is
     variable l_abs      : UNRESOLVED_ufixed (l'range);
@@ -848,7 +848,7 @@ package body fixed_generic_pkg is
     l, r                    : UNRESOLVED_sfixed;  -- fixed point input
     constant overflow_style : fixed_overflow_style_type := fixed_overflow_style;
     constant round_style    : fixed_round_style_type    := fixed_round_style;
-    constant guard_bits     : NATURAL                   := fixed_guard_bits)
+    constant guard_bits     : NATURAL                   := fixed_guard_bits) -- vhdl-linter-disable-line unused
     return UNRESOLVED_sfixed
   is
     variable l_abs : UNRESOLVED_ufixed (l'range);
@@ -3202,7 +3202,7 @@ package body fixed_generic_pkg is
     return INTEGER
   is
     constant left_index  : INTEGER := arg'high;
-    constant right_index : INTEGER := arg'low;
+    constant right_index : INTEGER := arg'low; -- vhdl-linter-disable-line unused
     variable arg_s       : UNRESOLVED_SIGNED (left_index+1 downto 0);
   begin
     if (arg'length < 1) then
@@ -3231,7 +3231,7 @@ package body fixed_generic_pkg is
     constant XMAP : STD_ULOGIC := '0')              -- Map x to
     return UNRESOLVED_ufixed
   is
-    variable result : UNRESOLVED_ufixed (s'range);  -- result
+    variable result : UNRESOLVED_ufixed (s'range);  -- result -- vhdl-linter-disable-line unused
   begin
     if (s'length < 1) then
       assert NO_WARNING
@@ -3248,7 +3248,7 @@ package body fixed_generic_pkg is
     constant XMAP : STD_ULOGIC := '0')  -- Map x to
     return UNRESOLVED_sfixed
   is
-    variable result : UNRESOLVED_sfixed (s'range);
+    variable result : UNRESOLVED_sfixed (s'range); -- vhdl-linter-disable-line unused
   begin
     if (s'length < 1) then
       assert NO_WARNING
@@ -5016,7 +5016,7 @@ package body fixed_generic_pkg is
   -- purpose: Skips white space
   procedure skip_whitespace (
     L : inout LINE) is
-    variable readOk : BOOLEAN;
+    variable readOk : BOOLEAN; -- vhdl-linter-disable-line unused
     variable c : CHARACTER;
   begin
     while L /= null and L.all'length /= 0 loop
