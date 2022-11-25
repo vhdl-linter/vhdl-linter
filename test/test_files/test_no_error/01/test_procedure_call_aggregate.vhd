@@ -9,14 +9,13 @@ end entity;
 
 architecture rtl of test_procedure_call is
   constant LENGTH : integer := 32;
-begin
+begin 
   process
     procedure spi_write (
-      constant data : in std_ulogic_vector(LENGTH - 1 downto 0) --vhdl-linter-disable-this-line
+      constant data : in std_ulogic_vector(LENGTH - 1 downto 0) --vhdl-linter-disable-this-line unused
       )
     is
     begin
-
     end procedure;
   begin
     spi_write((LENGTH - 1 downto 0 => '1')); -- This is fine

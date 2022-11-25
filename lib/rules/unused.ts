@@ -1,200 +1,190 @@
 import { RuleBase, IRule } from "./rules-base";
 import { CodeAction, CodeActionKind, Command, DiagnosticSeverity } from "vscode-languageserver";
-import { OArchitecture, ObjectBase, OConstant, OFile, OInstantiation, OPort, OProcess, ORead, OSignal, OSubprogram, OType, OVariable, OWrite } from "../parser/objects";
+import { IHasLexerToken, IHasPorts, implementsIHasComponents, implementsIHasConstants, implementsIHasGenerics, implementsIHasPorts, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables, OArchitecture, ObjectBase, OComponent, OEntity, OFile, OInstantiation, OPackage, OPackageBody, OProcess, ORead, OSignal, OSubprogram, OType, OWrite } from "../parser/objects";
 import { URI } from "vscode-uri";
 
 export class RUnused extends RuleBase implements IRule {
   public name = 'unused';
   file: OFile;
-  private checkUnusedPorts(ports: OPort[]) {
-    for (const port of ports) {
-      // For procedure/function declarations (without implementation) the ports can not be used
-      if (port.parent instanceof OSubprogram && port.parent.hasBody === false) {
-        continue;
-      }
+  private unusedSignalRegex: RegExp;
+
+  private addUnusedMessage(obj: ObjectBase & IHasLexerToken, msg: string) {
+    // ignore unused warnings in packages (they are globally visible)
+    if (obj.parent instanceof OPackage || obj.parent instanceof OPackageBody) {
+      return;
+    }
+    // ignore entities that don't have the architecture in the same file
+    if (obj.parent instanceof OEntity && obj.rootFile.architectures.find(a => a.entityName?.getLText() === (obj.parent as OEntity).lexerToken.getLText()) === undefined) {
+      return;
+    }
+    if (this.unusedSignalRegex.exec(obj.lexerToken.text) === null) {
+      this.addMessage({
+        range: obj.lexerToken.range,
+        severity: DiagnosticSeverity.Warning,
+        message: msg
+      });
+    }
+  }
+
+  private checkUnusedPorts(obj: ObjectBase & IHasPorts) {
+    // ignore procedure/function declarations (without implementation)
+    if (obj instanceof OSubprogram && obj.hasBody === false) {
+      return;
+    }
+    // ignore component ports
+    if (obj instanceof OComponent) {
+      return;
+    }
+    for (const port of obj.ports) {
       if ((port.direction === 'in' || port.direction === 'inout') && port.references.filter(token => token instanceof ORead).length === 0) {
-        this.addMessage({
-          range: port.range,
-          severity: DiagnosticSeverity.Warning,
-          message: `Not reading input port '${port.lexerToken}'`
-        });
+        this.addUnusedMessage(port, `Not reading input port '${port.lexerToken}'`);
       }
       const writes = port.references.filter(token => token instanceof OWrite);
       if ((port.direction === 'out' || port.direction === 'inout') && writes.length === 0) {
+        this.addUnusedMessage(port, `Not writing output port '${port.lexerToken}'`);
+      }
+    }
+  }
+  private checkMultipleDriver(signal: OSignal) {
+    const writes = signal.references.filter(token => token instanceof OWrite);
+    // check for multiple drivers
+    const writeScopes = writes.map(write => {
+      // checked scopes are: OArchitecture, OProcess, OInstatiation (only component and entity)
+      let scope: ObjectBase | OFile = write.parent;
+      while (!(scope instanceof OArchitecture
+        || scope instanceof OFile
+        || scope instanceof OProcess)) {
+        if (scope instanceof OInstantiation && (scope.type === 'component' || scope.type === 'entity')) {
+          break;
+        }
+        scope = scope.parent;
+      }
+      return { scope, write };
+    });
+    const filteredScopes = writeScopes.filter((v, i, a) => a.findIndex(x => x.scope === v.scope) === i);
+
+    const ignoreAction = this.vhdlLinter.addCodeActionCallback((textDocumentUri: string) => {
+      return [
+        CodeAction.create(
+          `Ignore multiple drivers of ${signal.lexerToken}`,
+          Command.create(
+            `Ignore multiple drivers of ${signal.lexerToken}`,
+            'vhdl-linter:ignore-line',
+            { textDocumentUri, range: signal.lexerToken.range }
+          ),
+          CodeActionKind.QuickFix
+        )
+      ];
+    });
+    if (filteredScopes.length > 1 && this.checkMagicComments(signal.lexerToken.range)) {
+      this.addMessage({
+        code: ignoreAction,
+        range: signal.lexerToken.range,
+        severity: DiagnosticSeverity.Warning,
+        message: `'${signal.lexerToken}' has multiple drivers (e.g. lines ${filteredScopes.map(s => `${s.write.range.start.line}`).join(', ')}).`
+      });
+      for (const write of writeScopes) {
         this.addMessage({
-          range: port.range,
+          code: ignoreAction,
+          range: write.write.range,
           severity: DiagnosticSeverity.Warning,
-          message: `Not writing output port '${port.lexerToken}'`
+          message: `Driver of multiple driven signal '${signal.lexerToken}'.`
+        });
+      }
+    } else if (filteredScopes.length === 1 && writes.length > 1 && !(filteredScopes[0].scope instanceof OProcess) && this.checkMagicComments(signal.lexerToken.range)) {
+      // if multiple writes in the architecture or one instantiation
+      this.addMessage({
+        code: ignoreAction,
+        range: signal.lexerToken.range,
+        severity: DiagnosticSeverity.Warning,
+        message: `'${signal.lexerToken}' has ${writes.length} drivers (lines ${writeScopes.map(s => `${s.write.range.start.line}`).join(', ')}).`
+      });
+      for (const write of writeScopes) {
+        this.addMessage({
+          code: ignoreAction,
+          range: write.write.range,
+          severity: DiagnosticSeverity.Warning,
+          message: `Driver of multiple driven signal '${signal.lexerToken}'.`
         });
       }
     }
   }
   async check() {
-    for (const architecture of this.file.architectures) {
-      const entity = architecture.correspondingEntity;
-      const settings = (await this.vhdlLinter.settingsGetter(URI.file(this.vhdlLinter.editorPath).toString()));
-      if (!architecture) {
-        return;
-      }
+    const settings = (await this.vhdlLinter.settingsGetter(URI.file(this.vhdlLinter.editorPath).toString()));
+    this.unusedSignalRegex = new RegExp(settings.style.unusedSignalRegex);
 
-      const unusedSignalRegex = new RegExp(settings.style.unusedSignalRegex);
-      if (entity) {
-        this.checkUnusedPorts(entity.ports);
-        for (const generic of entity.generics) {
-          if (unusedSignalRegex.exec(generic.lexerToken.text) === null && generic.references.filter(token => token instanceof ORead).length === 0) {
-            this.addMessage({
-              range: generic.range,
-              severity: DiagnosticSeverity.Warning,
-              message: `Not reading generic '${generic.lexerToken}'`
-            });
+    for (const obj of this.file.objectList) {
+      if (implementsIHasPorts(obj)) {
+        this.checkUnusedPorts(obj);
+      }
+      // ignrore generics of components
+      if (implementsIHasGenerics(obj) && !(obj instanceof OComponent)) {
+        for (const generic of obj.generics) {
+          if (generic.references.filter(token => token instanceof ORead).length === 0) {
+            this.addUnusedMessage(generic, `Not reading generic ${generic.lexerToken}`);
           }
           for (const write of generic.references.filter(token => token instanceof OWrite)) {
-            this.addMessage({
-              range: write.range,
-              severity: DiagnosticSeverity.Error,
-              message: `Generic ${generic.lexerToken} cannot be written`
-            });
+            this.addUnusedMessage(write, `Generic ${generic.lexerToken} cannot be written`);
           }
         }
       }
-      for (const type of architecture.types) {
-        if (unusedSignalRegex.exec(type.lexerToken.text) === null && type.references.length === 0) {
-          this.addMessage({
-            range: type.lexerToken.range,
-            severity: DiagnosticSeverity.Warning,
-            message: `Not using type ${type.lexerToken.text}`
-          });
+      if (implementsIHasTypes(obj)) {
+        for (const type of obj.types) {
+          if (type.references.length === 0) {
+            this.addUnusedMessage(type, `Not using type ${type.lexerToken}`);
+          }
         }
       }
-      for (const component of architecture.components) {
-        if (unusedSignalRegex.exec(component.lexerToken.text) === null && component.references.length === 0) {
-          this.addMessage({
-            range: component.lexerToken.range,
-            severity: DiagnosticSeverity.Warning,
-            message: `Not using component ${component.lexerToken.text}`
-          });
+      if (implementsIHasComponents(obj)) {
+        for (const comp of obj.components) {
+          if (comp.references.length === 0) {
+            this.addUnusedMessage(comp, `Not using component ${comp.lexerToken}`);
+          }
         }
       }
-      for (const signal of architecture.rootFile.objectList.filter(object => object instanceof OSignal) as OSignal[]) {
-        if (unusedSignalRegex.exec(signal.lexerToken.text) === null && signal.references.filter(token => token instanceof ORead).length === 0) {
-          this.addMessage({
-            range: signal.lexerToken.range,
-            severity: DiagnosticSeverity.Warning,
-            message: `Not reading signal '${signal.lexerToken}'`
-          });
+      if (implementsIHasSignals(obj)) {
+        for (const signal of obj.signals) {
+          if (signal.references.filter(token => token instanceof ORead).length === 0) {
+            this.addUnusedMessage(signal, `Not reading signal ${signal.lexerToken}`);
+          }
+          if (signal.references.filter(token => token instanceof OWrite).length === 0) {
+            this.addUnusedMessage(signal, `Not writing signal ${signal.lexerToken}`);
+          } else if (settings.rules.warnMultipleDriver) {
+            this.checkMultipleDriver(signal);
+          }
         }
-        const writes = signal.references.filter(token => token instanceof OWrite);
-        if (unusedSignalRegex.exec(signal.lexerToken.text) === null && writes.length === 0) {
-          this.addMessage({
-            range: signal.lexerToken.range,
-            severity: DiagnosticSeverity.Warning,
-            message: `Not writing signal '${signal.lexerToken}'`
-          });
-        } else if (settings.rules.warnMultipleDriver && writes.length > 1) {
-          // TODO: remove this (buggy) functionality?
-          // check for multiple drivers
-          const writeScopes = writes.map(write => {
-            // checked scopes are: OArchitecture, OProcess, OInstatiation (only component and entity)
-            let scope: ObjectBase | OFile = write.parent;
-            while (!(scope instanceof OArchitecture
-              || scope instanceof OFile
-              || scope instanceof OProcess)) {
-              if (scope instanceof OInstantiation && (scope.type === 'component' || scope.type === 'entity')) {
-                break;
-              }
-              scope = scope.parent;
-            }
-            return { scope, write };
-          });
-          const filteredScopes = writeScopes.filter((v, i, a) => a.findIndex(x => x.scope === v.scope) === i);
-
-          const ignoreAction = this.vhdlLinter.addCodeActionCallback((textDocumentUri: string) => {
-            return [
-              CodeAction.create(
-                `Ignore multiple drivers of ${signal.lexerToken.text}`,
-                Command.create(
-                  `Ignore multiple drivers of ${signal.lexerToken.text}`,
-                  'vhdl-linter:ignore-line',
-                  { textDocumentUri, range: signal.lexerToken.range }
-                ),
-                CodeActionKind.QuickFix
-              )
-            ];
-          });
-          if (filteredScopes.length > 1 && this.checkMagicComments(signal.lexerToken.range)) {
-            this.addMessage({
-              code: ignoreAction,
-              range: signal.lexerToken.range,
-              severity: DiagnosticSeverity.Warning,
-              message: `'${signal.lexerToken}' has multiple drivers (e.g. lines ${filteredScopes.map(s => `${s.write.range.start.line}`).join(', ')}).`
-            });
-            for (const write of writeScopes) {
-              this.addMessage({
-                code: ignoreAction,
-                range: write.write.range,
-                severity: DiagnosticSeverity.Warning,
-                message: `Driver of multiple driven signal '${signal.lexerToken}'.`
-              });
-            }
-          } else if (filteredScopes.length === 1 && writes.length > 1 && !(filteredScopes[0].scope instanceof OProcess) && this.checkMagicComments(signal.lexerToken.range)) {
-            // if multiple writes in the architecture or one instantiation
-            this.addMessage({
-              code: ignoreAction,
-              range: signal.lexerToken.range,
-              severity: DiagnosticSeverity.Warning,
-              message: `'${signal.lexerToken}' has ${writes.length} drivers (lines ${writeScopes.map(s => `${s.write.range.start.line}`).join(', ')}).`
-            });
-            for (const write of writeScopes) {
-              this.addMessage({
-                code: ignoreAction,
-                range: write.write.range,
-                severity: DiagnosticSeverity.Warning,
-                message: `Driver of multiple driven signal '${signal.lexerToken}'.`
-              });
+      }
+      if (implementsIHasVariables(obj)) {
+        for (const variable of obj.variables) {
+          if (variable.references.filter(token => token instanceof ORead).length === 0) {
+            this.addUnusedMessage(variable, `Not reading variable ${variable.lexerToken}`);
+          }
+          if (variable.references.filter(token => token instanceof OWrite).length === 0) {
+            // Assume protected type has side-effect and does not net writting to.
+            const type = variable.type[0]?.definitions?.[0];
+            if (!(type instanceof OType && type.protected)) {
+              this.addUnusedMessage(variable, `Not writing variable '${variable.lexerToken}'`);
             }
           }
         }
       }
-      for (const variable of architecture.rootFile.objectList.filter(object => object instanceof OVariable) as OVariable[]) {
-        if (unusedSignalRegex.exec(variable.lexerToken.text) === null && variable.references.filter(token => token instanceof ORead).length === 0) {
-          this.addMessage({
-            range: variable.lexerToken.range,
-            severity: DiagnosticSeverity.Warning,
-            message: `Not reading variable '${variable.lexerToken}'`
-          });
-        }
-        const writes = variable.references.filter(token => token instanceof OWrite);
-        if (unusedSignalRegex.exec(variable.lexerToken.text) === null && writes.length === 0) {
-          if (variable.type[0]?.definitions?.[0] instanceof OType) {
-            // This is protected type. Assume protected type has side-effect and does not net writting to.
-          } else {
-            this.addMessage({
-              range: variable.lexerToken.range,
-              severity: DiagnosticSeverity.Warning,
-              message: `Not writing variable '${variable.lexerToken}'`
-            });
-
+      if (implementsIHasConstants(obj)) {
+        for (const constant of obj.constants) {
+          if (constant.references.filter(token => token instanceof ORead).length === 0) {
+            this.addUnusedMessage(constant, `Not reading constant ${constant.lexerToken}`);
+          }
+          for (const write of constant.references.filter(token => token instanceof OWrite)) {
+            this.addUnusedMessage(write, `Constant '${constant.lexerToken}' cannot be written`);
           }
         }
       }
-      for (const constant of architecture.rootFile.objectList.filter(object => object instanceof OConstant) as OConstant[]) {
-        if (unusedSignalRegex.exec(constant.lexerToken.text) === null && constant.references.filter(token => token instanceof ORead).length === 0) {
-          this.addMessage({
-            range: constant.lexerToken.range,
-            severity: DiagnosticSeverity.Warning,
-            message: `Not reading constant '${constant.lexerToken}'`
-          });
+      if (implementsIHasSubprograms(obj)) {
+        for (const subprogram of obj.subprograms) {
+          this.checkUnusedPorts(subprogram);
+          if (subprogram.references.length === 0) {
+            this.addUnusedMessage(subprogram, `Not using subprogram ${subprogram.lexerToken}`);
+          }
         }
-        for (const write of constant.references.filter(token => token instanceof OWrite)) {
-          this.addMessage({
-            range: write.range,
-            severity: DiagnosticSeverity.Error,
-            message: `Constant ${constant.lexerToken} cannot be written`
-          });
-        }
-      }
-      for (const subprogram of architecture.rootFile.objectList.filter(object => object instanceof OSubprogram) as OSubprogram[]) {
-        this.checkUnusedPorts(subprogram.ports);
       }
     }
   }

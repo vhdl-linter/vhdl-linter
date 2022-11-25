@@ -291,7 +291,7 @@ interface IHasGenerics {
 export function implementsIHasGenerics(obj: ObjectBase): obj is ObjectBase & IHasGenerics {
   return (obj as ObjectBase & IHasGenerics).generics !== undefined;
 }
-interface IHasPorts {
+export interface IHasPorts {
   ports: OPort[];
   portRange?: OIRange;
 }
@@ -639,9 +639,16 @@ export class OPortAssociationList extends OAssociationList {
     super(parent, range);
   }
 }
-export class OInstantiation extends ObjectBase implements IHasDefinitions, IHasLibraryReference {
-  constructor(public parent: OArchitecture | OEntity | OProcess | OLoop | OIf, range: OIRange, public type: 'entity' | 'component' | 'configuration' | 'subprogram' | 'unknown' = 'unknown') {
-    super(parent, range);
+export class OReference extends ObjectBase implements IHasDefinitions, IHasLexerToken {
+  definitions: ObjectBase[] = [];
+
+  constructor(public parent: ObjectBase, public lexerToken: OLexerToken) {
+    super(parent, lexerToken.range);
+  }
+}
+export class OInstantiation extends OReference implements IHasDefinitions, IHasLibraryReference {
+  constructor(public parent: OArchitecture | OEntity | OProcess | OLoop | OIf, lexerToken: OLexerToken, public type: 'entity' | 'component' | 'configuration' | 'subprogram' | 'unknown' = 'unknown') {
+    super(parent, lexerToken);
   }
   label?: OLexerToken;
   definitions: (OEntity | OSubprogram | OComponent | OSubprogramAlias)[] = [];
@@ -663,10 +670,11 @@ export class OAssociation extends ObjectBase implements IHasDefinitions {
   actualIfInoutput: [ORead[], OWrite[]] = [[], []];
 }
 export class OEntity extends ObjectBase implements IHasDefinitions, IHasSubprograms, IHasSignals, IHasConstants, IHasVariables,
-  IHasTypes, IHasSubprogramAlias, IHasFileVariables, IHasUseClauses, IHasContextReference, IHasLexerToken, IHasPackageInstantiations, IHasLibraries, IHasGenerics, IHasPorts {
+  IHasTypes, IHasSubprogramAlias, IHasFileVariables, IHasUseClauses, IHasContextReference, IHasLexerToken, IHasPackageInstantiations, IHasLibraries, IHasGenerics, IHasPorts, IReferenceable {
   constructor(public parent: OFile, range: OIRange, public targetLibrary?: string) {
     super(parent, range);
   }
+  references: OReference[] = [];
   libraries: OLibrary[] = [];
   subprogramAliases: OSubprogramAlias[] = [];
 
@@ -699,7 +707,7 @@ export class OComponent extends ObjectBase implements IHasDefinitions, IHasSubpr
   genericRange?: OIRange;
   ports: OPort[] = [];
   generics: OGeneric[] = [];
-  references: OInstantiation[] = [];
+  references: OReference[] = [];
   definitions: OEntity[] = [];
 }
 export class OPort extends ObjectBase implements IVariableBase, IHasDefinitions, IHasLexerToken {
@@ -811,15 +819,6 @@ export class OAssertion extends ObjectBase {
   reads: ORead[] = [];
 }
 
-export class OReference extends ObjectBase implements IHasDefinitions, IHasLexerToken {
-  definitions: ObjectBase[] = [];
-
-  constructor(public parent: ObjectBase, public lexerToken: OLexerToken) {
-    super(parent, lexerToken.range);
-  }
-
-
-}
 export class OWrite extends OReference {
 }
 export class ORead extends OReference {

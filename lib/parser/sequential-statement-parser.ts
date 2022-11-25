@@ -95,7 +95,7 @@ export class SequentialStatementParser extends ParserBase {
   }
 
   parseSubprogramCall(parent: OHasSequentialStatements | OIf, label: OLexerToken|undefined) {
-    const subprogramCall = new OInstantiation(parent, this.getToken().range.copyExtendEndOfLine(), 'subprogram');
+    const subprogramCall = new OInstantiation(parent, this.getToken(), 'subprogram');
     subprogramCall.label = label;
     subprogramCall.componentName = this.consumeToken();
     while (this.getToken().getLText() === '.') {

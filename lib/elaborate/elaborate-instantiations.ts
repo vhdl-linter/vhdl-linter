@@ -4,20 +4,18 @@ import { ProjectParser } from "../project-parser";
 export function elaborateInstantiations(file: OFile, projectParser: ProjectParser) {
   for (const instantiation of file.objectList.filter(object => object instanceof OInstantiation) as OInstantiation[]) {
     switch (instantiation.type) {
-      case 'component': {
-        const components = getComponents(instantiation);
-        instantiation.definitions.push(...components);
-        for (const component of components) {
-          component.references.push(instantiation);
-        }
+      case 'component': 
+        instantiation.definitions.push(...getComponents(instantiation));
         break;
-      }
       case 'entity':
         instantiation.definitions.push(...getEntities(instantiation, projectParser));
         break;
-      case 'subprogram':
+      case 'subprogram': 
         instantiation.definitions.push(...getSubprograms(instantiation, projectParser));
         break;
+    }
+    for (const subprogram of instantiation.definitions) {
+      subprogram.references.push(instantiation);
     }
   }
 }

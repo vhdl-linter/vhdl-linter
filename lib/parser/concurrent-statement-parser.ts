@@ -229,7 +229,7 @@ export class ConcurrentStatementParser extends ParserBase {
 
       } else {
         const instantiationParser = new InstantiationParser(this.pos, this.filePath, this.parent);
-        (this.parent as OArchitecture).statements.push(instantiationParser.parse(nextToken, label, savedI));
+        (this.parent as OArchitecture).statements.push(instantiationParser.parse(nextToken, label));
       }
     }
     return false;
