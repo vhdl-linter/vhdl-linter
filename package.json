@@ -162,6 +162,16 @@
 					"default": "_unused$",
 					"description": "Signal names matching this regular expression do not trigger a warning when not write or read to them is found. (Also applies to variables and types)"
 				},
+				"VhdlLinter.style.ieeeCasing": {
+					"scope": "window",
+					"type": "string",
+					"enum": [
+						"lowercase",
+						"UPPERCASE"
+					],
+					"default": "lowercase",
+					"description": "Default casing for the completion of items of the ieee and standard libraries."
+				},
 				"VhdlLinter.ports.enablePortStyle": {
 					"scope": "window",
 					"type": "boolean",
@@ -238,6 +248,7 @@
 		"jest": "^29.3.1",
 		"ts-jest": "^29.0.3",
 		"typescript": "^4.8.4",
+		"utility-types": "^3.10.0",
 		"vsce": "^2.11.0"
 	},
 	"__metadata": {
