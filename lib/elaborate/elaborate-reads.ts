@@ -33,12 +33,12 @@ export function elaborateReads(file: OFile, projectParser: ProjectParser, vhdlLi
 
   for (const read of file.objectList.filter(object => object instanceof ORead) as ORead[]) {
     for (const [object] of scope(read)) {
-      const match = readObjectMap.get(object)?.get(read.lexerToken.getLText());
+      const match = readObjectMap.get(object)?.get(read.referenceToken.getLText());
       if (match) {
         read.definitions.push(match);
       }
       if (implementsIHasLibraries(object)) {
-        const match = object.libraries.find(library => library.lexerToken.getLText() === read.lexerToken.getLText())
+        const match = object.libraries.find(library => library.lexerToken.getLText() === read.referenceToken.getLText())
         if (match) {
           read.definitions.push(match);
         }
@@ -47,14 +47,14 @@ export function elaborateReads(file: OFile, projectParser: ProjectParser, vhdlLi
     const rootElement = read.getRootElement();
     if (implementsIHasPorts(rootElement)) {
       for (const port of rootElement.ports) {
-        if (port.lexerToken.getLText() === read.lexerToken.getLText()) {
+        if (port.lexerToken.getLText() === read.referenceToken.getLText()) {
           read.definitions.push(port);
           port.references.push(read);
         }
       }
     } else if (rootElement instanceof OArchitecture) {
       for (const port of rootElement.correspondingEntity?.ports ?? []) {
-        if (port.lexerToken.getLText() === read.lexerToken.getLText()) {
+        if (port.lexerToken.getLText() === read.referenceToken.getLText()) {
           read.definitions.push(port);
           port.references.push(read);
         }

@@ -185,12 +185,18 @@ export interface IHasUseClauses {
 export interface IHasLexerToken {
   lexerToken: OLexerToken;
 }
+export interface IHasReferenceToken {
+  referenceToken: OLexerToken;
+}
 
 export function implementsIHasUseClause(obj: ObjectBase): obj is ObjectBase & IHasUseClauses {
   return (obj as ObjectBase & IHasUseClauses).useClauses !== undefined;
 }
 export function implementsIHasLexerToken(obj: ObjectBase): obj is ObjectBase & IHasLexerToken {
   return (obj as ObjectBase & IHasLexerToken).lexerToken !== undefined;
+}
+export function implementsIHasReferenceToken(obj: ObjectBase): obj is ObjectBase & IHasReferenceToken {
+  return (obj as ObjectBase & IHasReferenceToken).referenceToken !== undefined;
 }
 export interface IHasContextReference {
   contextReferences: OContextReference[];
@@ -640,11 +646,10 @@ export class OPortAssociationList extends OAssociationList {
     super(parent, range);
   }
 }
-export class OReference extends ObjectBase implements IHasDefinitions, IHasLexerToken {
+export class OReference extends ObjectBase implements IHasDefinitions, IHasReferenceToken {
   definitions: ObjectBase[] = [];
-
-  constructor(public parent: ObjectBase, public lexerToken: OLexerToken) {
-    super(parent, lexerToken.range);
+  constructor(public parent: ObjectBase, public referenceToken: OLexerToken) {
+    super(parent, referenceToken.range);
   }
 }
 export class OInstantiation extends OReference implements IHasDefinitions, IHasLibraryReference {
@@ -790,7 +795,7 @@ export class OProcess extends OHasSequentialStatements implements IHasSubprogram
       return this.resets;
     }
     for (const assignments of this.resetClause?.assignments ?? []) {
-      this.resets.push(...assignments.writes.map(write => write.lexerToken.text));
+      this.resets.push(...assignments.writes.map(write => write.referenceToken.text));
     }
     return this.resets;
   }
