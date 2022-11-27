@@ -1,6 +1,6 @@
 import { RuleBase, IRule } from "./rules-base";
 import { CodeAction, CodeActionKind, Command, DiagnosticSeverity } from "vscode-languageserver";
-import { IHasLexerToken, IHasPorts, implementsIHasComponents, implementsIHasConstants, implementsIHasGenerics, implementsIHasPorts, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables, OArchitecture, ObjectBase, OComponent, OEntity, OFile, OInstantiation, OPackage, OPackageBody, OProcess, ORead, OSignal, OSubprogram, OType, OWrite } from "../parser/objects";
+import { IHasLexerToken, IHasPorts, implementsIHasComponents, implementsIHasConstants, implementsIHasGenerics, implementsIHasPorts, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables, OArchitecture, ObjectBase, OComponent, OEntity, OFile, OInstantiation, OPackage, OPackageBody, OProcess, ORead, OSignal, OSubprogram, OType, OVariable, OWrite } from "../parser/objects";
 import { URI } from "vscode-uri";
 
 export class RUnused extends RuleBase implements IRule {
@@ -13,7 +13,11 @@ export class RUnused extends RuleBase implements IRule {
     if (obj.parent instanceof OPackage || obj.parent instanceof OPackageBody) {
       return;
     }
-    // ignore entities that don't have the architecture in the same file
+    // ignore unused warnings in protected types (they are globally visible)
+    if (obj.parent instanceof OType && (obj.parent.protected || obj.parent.protectedBody)) {
+      return;
+    }
+    // ignore entities that do not have the architecture in the same file
     if (obj.parent instanceof OEntity && obj.rootFile.architectures.find(a => a.entityName?.getLText() === (obj.parent as OEntity).lexerToken.getLText()) === undefined) {
       return;
     }
@@ -117,15 +121,13 @@ export class RUnused extends RuleBase implements IRule {
       if (implementsIHasPorts(obj)) {
         this.checkUnusedPorts(obj);
       }
-      // ignrore generics of components
+      // ignore generics of components
       if (implementsIHasGenerics(obj) && !(obj instanceof OComponent)) {
         for (const generic of obj.generics) {
           if (generic.references.filter(token => token instanceof ORead).length === 0) {
             this.addUnusedMessage(generic, `Not reading generic ${generic.lexerToken}`);
           }
-          for (const write of generic.references.filter(token => token instanceof OWrite)) {
-            this.addUnusedMessage(write, `Generic ${generic.lexerToken} cannot be written`);
-          }
+
         }
       }
       if (implementsIHasTypes(obj)) {
@@ -172,9 +174,6 @@ export class RUnused extends RuleBase implements IRule {
         for (const constant of obj.constants) {
           if (constant.references.filter(token => token instanceof ORead).length === 0) {
             this.addUnusedMessage(constant, `Not reading constant ${constant.lexerToken}`);
-          }
-          for (const write of constant.references.filter(token => token instanceof OWrite)) {
-            this.addUnusedMessage(write, `Constant '${constant.lexerToken}' cannot be written`);
           }
         }
       }

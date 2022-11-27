@@ -1,4 +1,4 @@
-import { OAssociation, OGenericAssociationList, OPortAssociationList, OInstantiation, OPort, OGeneric, OTypeMark, OSubprogramAlias, OComponent, OEntity, implementsIReferencable, OFile } from "../parser/objects";
+import { OAssociation, OGenericAssociationList, OPortAssociationList, OInstantiation, OPort, OGeneric, OTypeMark, OSubprogramAlias, OComponent, OEntity, implementsIReferencable, OFile, OVariable } from "../parser/objects";
 
 export function elaborateAssociations(file: OFile) {
   for (const association of file.objectList.filter(obj => obj instanceof OAssociation) as OAssociation[]) {
@@ -11,7 +11,9 @@ export function elaborateAssociations(file: OFile) {
       const possibleFormals: (OPort | OGeneric | OTypeMark)[] = [];
       possibleFormals.push(...definitions.flatMap(definition => {
         let elements: (OPort | OGeneric | OTypeMark)[] = [];
-        if (association.parent instanceof OPortAssociationList) {
+        if (definition instanceof OVariable) {
+          // Protected Type
+        } else if (association.parent instanceof OPortAssociationList) {
           elements = definition instanceof OSubprogramAlias ? definition.typeMarks : definition.ports;
         } else if (definition instanceof OComponent || definition instanceof OEntity) {
           elements = definition.generics;
