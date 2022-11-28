@@ -52,6 +52,7 @@ export class RUnused extends RuleBase implements IRule {
     }
     for (const port of obj.ports) {
       const type = port.type[0]?.definitions?.[0];
+      // Ignore ports of protected types as they are assumed to have side-effects so will not be read/written
       if ((type instanceof OType && (type.protected || type.protectedBody))) {
         continue;
       }

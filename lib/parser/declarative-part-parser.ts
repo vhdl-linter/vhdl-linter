@@ -1,6 +1,6 @@
 import { ComponentParser } from './component-parser';
 import { ObjectDeclarationParser } from './object-declaration-parser';
-import { implementsIHasComponents,  OAlias,  OArchitecture, OEntity, OPackage, OPackageBody, OProcess, OSubprogram, OType, ParserError } from './objects';
+import { implementsIHasComponents,  OArchitecture, OEntity, OPackage, OPackageBody, OProcess, OSubprogram, OType, ParserError } from './objects';
 import { ParserBase } from './parser-base';
 import { SubprogramParser } from './subprogram-parser';
 import { SubtypeParser } from './subtype-parser';
@@ -36,35 +36,10 @@ export class DeclarativePartParser extends ParserBase {
         const subtypeParser = new SubtypeParser(this.pos, this.filePath, this.parent);
         this.parent.types.push(subtypeParser.parse());
       } else if (nextToken.getLText() === 'alias') {
-        this.consumeToken();
-        let i = 0;
-        let foundSignature = false;
-        while (this.getToken(i).getLText() !== ';') {
-          if (this.getToken(i).getLText() === '[') {
-            foundSignature = true;
-            break;
-          }
-          i++;
-        }
-        if (foundSignature) {
-          const subprogramAlias = new AliasParser(this.pos, this.filePath, this.parent).parse();
-          this.parent.aliases.push(subprogramAlias);
-        } else {
-          const alias = new OAlias(this.parent, this.getToken().range.copyExtendEndOfLine());
+        const alias = new AliasParser(this.pos, this.filePath, this.parent).parse();
+        this.parent.aliases.push(alias);
 
-          alias.lexerToken = this.consumeToken();
-          if (this.getToken().getLText() === ':') {
-            this.consumeToken();
-            this.advanceWhitespace();
-            this.consumeToken();
-            alias.reads.push(...this.getType(alias, false).typeReads);
-          }
-          this.expect('is');
-          const [tokens] = this.advanceParentheseAware([';'], true, false);
-          alias.name.push(...this.extractReads(alias, tokens));
-          this.parent.aliases.push(alias);
-          this.advanceSemicolon(true);
-        }
+
 
       } else if (nextToken.getLText() === 'component' && implementsIHasComponents(this.parent)) {
         this.consumeToken();

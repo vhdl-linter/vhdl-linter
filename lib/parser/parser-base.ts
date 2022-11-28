@@ -443,7 +443,7 @@ export class ParserBase {
           if (readAndWrite) {
             reads.push(new ORead(parent, token));
           }
-          if (tokens[i - 1]?.type === TokenType.decimalLiteral) {
+          if (tokens[i - 1]?.type === TokenType.decimalLiteral) { //  Skip units for writing
             continue;
           }
           const write = new OWrite(parent, token);
