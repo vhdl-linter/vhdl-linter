@@ -17,7 +17,7 @@ export function elaborateGlobalReads(file: OFile, projectParser: ProjectParser, 
         for (const subprogram of pkg.subprograms) {
           innerMap.set(subprogram.lexerToken.getLText(), subprogram);
         }
-        for (const subprogramAlias of pkg.subprogramAliases) {
+        for (const subprogramAlias of pkg.aliases) {
           innerMap.set(subprogramAlias.lexerToken.getLText(), subprogramAlias);
         }
         for (const type of pkg.types) {

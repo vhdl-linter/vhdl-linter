@@ -1,4 +1,4 @@
-import { OArchitecture, OEntity, OPackage, OPackageBody, OProcess, OSubprogram, OSubprogramAlias, OType, OTypeMark } from "./objects";
+import { OArchitecture, OEntity, OPackage, OPackageBody, OProcess, OSubprogram, OAliasWithSignature, OType, OTypeMark } from "./objects";
 import { ParserPosition } from "./parser";
 import { ParserBase } from "./parser-base";
 // TODO: Use for all kinds of aliases
@@ -8,7 +8,7 @@ export class AliasParser extends ParserBase {
         this.debug('start');
     }
     parse() {
-        const subprogramAlias = new OSubprogramAlias(this.parent, this.getToken().range.copyExtendEndOfLine());
+        const subprogramAlias = new OAliasWithSignature(this.parent, this.getToken().range.copyExtendEndOfLine());
         subprogramAlias.lexerToken = this.consumeToken();
         if (this.getToken().getLText() === ':') {
             this.consumeToken();
@@ -17,7 +17,7 @@ export class AliasParser extends ParserBase {
             subprogramAlias.subtypeReads.push(...this.getType(subprogramAlias, false).typeReads);
         }
         this.expect('is');
-        subprogramAlias.reads = this.consumeNameRead(subprogramAlias);
+        subprogramAlias.name = this.consumeNameRead(subprogramAlias);
         this.expect('[');
         // eslint-disable-next-line no-constant-condition
         while (true) {

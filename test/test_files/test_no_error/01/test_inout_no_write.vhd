@@ -12,7 +12,7 @@ package body test_inout_no_write is
   end procedure;
 
   procedure dummy (
-    foo : inout boolean
+    foo : inout integer
     ) is
   begin
     foo := foo;
@@ -25,7 +25,7 @@ package body test_inout_no_write is
   end procedure write;
 
   procedure test  is
-    constant a : boolean;
+    variable a : boolean := true;
   begin
     dummy(a);
   end procedure test;

@@ -1,6 +1,6 @@
 import { ComponentParser } from './component-parser';
 import { ObjectDeclarationParser } from './object-declaration-parser';
-import { implementsIHasComponents,  OArchitecture, OEntity, OPackage, OPackageBody, OProcess, OSubprogram, OType, ParserError } from './objects';
+import { implementsIHasComponents,  OAlias,  OArchitecture, OEntity, OPackage, OPackageBody, OProcess, ORead, OSubprogram, OType, ParserError } from './objects';
 import { ParserBase } from './parser-base';
 import { SubprogramParser } from './subprogram-parser';
 import { SubtypeParser } from './subtype-parser';
@@ -48,20 +48,21 @@ export class DeclarativePartParser extends ParserBase {
         }
         if (foundSignature) {
           const subprogramAlias = new AliasParser(this.pos, this.filePath, this.parent).parse();
-          this.parent.subprogramAliases.push(subprogramAlias);
+          this.parent.aliases.push(subprogramAlias);
         } else {
-          const type = new OType(this.parent, this.getToken().range.copyExtendEndOfLine());
+          const alias = new OAlias(this.parent, this.getToken().range.copyExtendEndOfLine());
 
-          type.lexerToken = this.consumeToken();
-          type.alias = true;
+          alias.lexerToken = this.consumeToken();
           if (this.getToken().getLText() === ':') {
             this.consumeToken();
             this.advanceWhitespace();
             this.consumeToken();
-            type.reads.push(...this.getType(type, false).typeReads);
+            alias.reads.push(...this.getType(alias, false).typeReads);
           }
           this.expect('is');
-          this.parent.types.push(type);
+          const [tokens] = this.advanceParentheseAware([';'], true, false);
+          alias.name.push(...this.extractReads(alias, tokens));
+          this.parent.aliases.push(alias);
           this.advanceSemicolon(true);
         }
 

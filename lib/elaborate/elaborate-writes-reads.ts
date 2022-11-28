@@ -1,4 +1,4 @@
-import { scope, implementsIHasSignals, implementsIHasConstants, implementsIHasSubprograms, implementsIHasSubprogramAlias, implementsIHasTypes, OEnum, ORecord, implementsIHasVariables, implementsIHasFileVariables, implementsIHasPorts, implementsIHasGenerics, implementsIHasPackageInstantiations, OPackage, OPackageBody, OEntity, OArchitecture, OSubprogram, OType, OSubType, OConstant, OSignal, OVariable, OComponent, OWrite, ORead } from "../parser/objects";
+import { scope, implementsIHasSignals, implementsIHasConstants, implementsIHasSubprograms, implementsIHasAliases, implementsIHasTypes, OEnum, ORecord, implementsIHasVariables, implementsIHasFileVariables, implementsIHasPorts, implementsIHasGenerics, implementsIHasPackageInstantiations, OPackage, OPackageBody, OEntity, OArchitecture, OSubprogram, OType, OSubType, OConstant, OSignal, OVariable, OComponent, OWrite, ORead } from "../parser/objects";
 
 export function elaborateWritesReads(reference: OWrite | ORead) {
   const text = reference.referenceToken.text;
@@ -27,8 +27,8 @@ export function elaborateWritesReads(reference: OWrite | ORead) {
         }
       }
     }
-    if (implementsIHasSubprogramAlias(object)) {
-      for (const subprogramAlias of object.subprogramAliases) {
+    if (implementsIHasAliases(object)) {
+      for (const subprogramAlias of object.aliases) {
         if (subprogramAlias.lexerToken.getLText() === text.toLowerCase()) {
           reference.definitions.push(subprogramAlias);
           subprogramAlias.references.push(reference);

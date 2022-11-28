@@ -1,6 +1,6 @@
 import { TextEdit } from 'vscode-languageserver';
 import { config } from './config';
-import { OAssociation, OAssociationFormal, ObjectBase, OSelectedNameRead, OGeneric, OIRange, OPort, ORead, OWrite, ParserError, OAssociationFormalSelectedName } from './objects';
+import { OAssociation, OAssociationFormal, ObjectBase, OSelectedNameRead, OGeneric, OIRange, OPort, ORead, OWrite, ParserError, OAssociationFormalSelectedName, OAliasReference, OSelectedNameAliasReference } from './objects';
 import { ParserPosition } from './parser';
 import { OLexerToken, TokenType } from '../lexer';
 
@@ -328,6 +328,20 @@ export class ParserBase {
       defaultValueReads
     };
   }
+  consumeAliasReference(parent: ObjectBase): OAliasReference[] {
+    const prefixTokens = [];
+    const reads = [];
+    do {
+      const token = this.consumeToken();
+      if (prefixTokens.length > 0) {
+        reads.push(new OSelectedNameAliasReference(parent, token, prefixTokens.slice(0)));
+      } else {
+        reads.push(new OAliasReference(parent, token));
+      }
+      prefixTokens.push(token);
+    } while (this.getToken().text === '.' && this.consumeToken());
+    return reads;
+  }
   consumeNameRead(parent: ObjectBase): ORead[] {
     const prefixTokens = [];
     const reads = [];
@@ -374,9 +388,9 @@ export class ParserBase {
         }
         if (tokens[i + 1]?.text === '.' && tokens[i + 2]?.isIdentifier()) {
           prefixTokens.push(token);
-
           continue;
         }
+
         // Detection if in possible function
 
         // If in possible function check if possible named function call, then ignore.
@@ -432,15 +446,23 @@ export class ParserBase {
           slice = false;
         }
       } else if (token.isIdentifier()) {
+        // If in possible function check if possible named function call, then ignore.
+        if (slice && tokens[i].isIdentifier() && tokens[i + 1]?.text === '=>') {
+          continue;
+        }
         if (slice === false && recordToken === false) {
           if (tokens[i - 1]?.text === '\'') { // Attribute skipped for now
             continue;
           }
-          const write = new OWrite(parent, token);
-          writes.push(write);
           if (readAndWrite) {
             reads.push(new ORead(parent, token));
           }
+          if (tokens[i - 1]?.type === TokenType.decimalLiteral) {
+            continue;
+          }
+          const write = new OWrite(parent, token);
+          writes.push(write);
+
         } else {
 
           if (recordToken) {

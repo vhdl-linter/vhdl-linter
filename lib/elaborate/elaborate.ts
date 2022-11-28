@@ -7,6 +7,7 @@ import { elaborateInstantiations } from "./elaborate-instantiations";
 import { elaborateGlobalReads } from "./elaborate-global-reads";
 import { elaborateWritesReads } from "./elaborate-writes-reads";
 import { elaborateUseClauses } from "./elaborate-use-clauses";
+import { elaborateAliases } from "./elaborate-aliases";
 
 export class Elaborate {
   file: OFile;
@@ -95,6 +96,8 @@ export class Elaborate {
     elaborateGlobalReads(this.file, this.vhdlLinter.projectParser, this.vhdlLinter);
     await this.vhdlLinter.handleCanceled();
     elaborateAssociations(this.file);
+    await this.vhdlLinter.handleCanceled();
+    elaborateAliases(this.file);
     // console.log(`elab: associations for: ${Date.now() - start} ms.`);
     // start = Date.now();
     await this.vhdlLinter.handleCanceled();
