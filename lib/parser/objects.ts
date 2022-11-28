@@ -598,7 +598,7 @@ interface IVariableBase extends IReferenceable, IHasLexerToken, IHasType, IHasDe
   lexerToken: OLexerToken;
 }
 
-export class OFileVariable extends ObjectBase implements IVariableBase, IReferenceable {
+export class OFileVariable extends ObjectBase implements IVariableBase {
   aliasReferences: OAlias[] = [];
 
   references: OReference[] = [];
@@ -611,7 +611,7 @@ export class OFileVariable extends ObjectBase implements IVariableBase, IReferen
     super((parent as unknown) as ObjectBase, range);
   }
 }
-export class OVariable extends ObjectBase implements IVariableBase, IReferenceable {
+export class OVariable extends ObjectBase implements IVariableBase {
   references: OReference[] = [];
   type: ORead[] = [];
   defaultValue?: ORead[] = [];
