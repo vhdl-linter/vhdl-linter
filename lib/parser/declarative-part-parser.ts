@@ -36,34 +36,10 @@ export class DeclarativePartParser extends ParserBase {
         const subtypeParser = new SubtypeParser(this.pos, this.filePath, this.parent);
         this.parent.types.push(subtypeParser.parse());
       } else if (nextToken.getLText() === 'alias') {
-        this.consumeToken();
-        let i = 0;
-        let foundSignature = false;
-        while (this.getToken(i).getLText() !== ';') {
-          if (this.getToken(i).getLText() === '[') {
-            foundSignature = true;
-            break;
-          }
-          i++;
-        }
-        if (foundSignature) {
-          const subprogramAlias = new AliasParser(this.pos, this.filePath, this.parent).parse();
-          this.parent.subprogramAliases.push(subprogramAlias);
-        } else {
-          const type = new OType(this.parent, this.getToken().range.copyExtendEndOfLine());
+        const alias = new AliasParser(this.pos, this.filePath, this.parent).parse();
+        this.parent.aliases.push(alias);
 
-          type.lexerToken = this.consumeToken();
-          type.alias = true;
-          if (this.getToken().getLText() === ':') {
-            this.consumeToken();
-            this.advanceWhitespace();
-            this.consumeToken();
-            type.reads.push(...this.getType(type, false).typeReads);
-          }
-          this.expect('is');
-          this.parent.types.push(type);
-          this.advanceSemicolon(true);
-        }
+
 
       } else if (nextToken.getLText() === 'component' && implementsIHasComponents(this.parent)) {
         this.consumeToken();

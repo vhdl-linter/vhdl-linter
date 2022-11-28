@@ -288,7 +288,7 @@ export class ParserBase {
       throw new ParserError(`expected '${expected.join(', ')}' found '${this.getToken().text}' line: ${this.getLine()}`, this.pos.getRangeToEndLine());
     }
   }
-  maybe(expected: string|OLexerToken) {
+  maybe(expected: string | OLexerToken) {
     const text = (typeof expected === 'string') ? expected.toLowerCase() : expected.getLText();
     if (this.getToken().getLText() === text) {
       this.consumeToken();
@@ -374,9 +374,9 @@ export class ParserBase {
         }
         if (tokens[i + 1]?.text === '.' && tokens[i + 2]?.isIdentifier()) {
           prefixTokens.push(token);
-
           continue;
         }
+
         // Detection if in possible function
 
         // If in possible function check if possible named function call, then ignore.
@@ -432,13 +432,25 @@ export class ParserBase {
           slice = false;
         }
       } else if (token.isIdentifier()) {
+        // If in possible function check if possible named function call, then ignore.
+        if (slice &&  tokens[i + 1]?.text === '=>') {
+          continue;
+        }
         if (slice === false && recordToken === false) {
-          const write = new OWrite(parent, token);
-          writes.push(write);
+          if (tokens[i - 1]?.text === '\'') { // Attribute skipped for now
+            continue;
+          }
           if (readAndWrite) {
             reads.push(new ORead(parent, token));
           }
+          if (tokens[i - 1]?.type === TokenType.decimalLiteral) { //  Skip units for writing
+            continue;
+          }
+          const write = new OWrite(parent, token);
+          writes.push(write);
+
         } else {
+
           if (recordToken) {
             const prefixTokens = [];
             let x = i - 1;

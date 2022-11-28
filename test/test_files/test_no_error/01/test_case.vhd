@@ -5,7 +5,8 @@ entity test_case is
 end entity;
 
 architecture arch of test_case is
-  function xyz(x : std_ulogic) return integer is
+  function xyz -- vhdl-linter-disable-line unused
+  (x : std_ulogic) return integer is
   begin
     case x is
       when '0'    => return 0;
