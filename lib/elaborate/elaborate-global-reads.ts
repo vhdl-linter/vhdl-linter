@@ -3,7 +3,7 @@ import { ObjectBase, implementsIHasUseClause, ORead, scope, implementsIHasLibrar
 import { ProjectParser } from "../project-parser";
 import { VhdlLinter } from "../vhdl-linter";
 
-export function elaborateReads(file: OFile, projectParser: ProjectParser, vhdlLinter: VhdlLinter) {
+export function elaborateGlobalReads(file: OFile, projectParser: ProjectParser, vhdlLinter: VhdlLinter) {
   // This is caching all visible reads from packets for every object that can reference packages/have use clauses
   const readObjectMap = new Map<ObjectBase, Map<string, ObjectBase>>();
   for (const object of file.objectList) {
@@ -17,7 +17,7 @@ export function elaborateReads(file: OFile, projectParser: ProjectParser, vhdlLi
         for (const subprogram of pkg.subprograms) {
           innerMap.set(subprogram.lexerToken.getLText(), subprogram);
         }
-        for (const subprogramAlias of pkg.subprogramAliases) {
+        for (const subprogramAlias of pkg.aliases) {
           innerMap.set(subprogramAlias.lexerToken.getLText(), subprogramAlias);
         }
         for (const type of pkg.types) {
@@ -33,12 +33,12 @@ export function elaborateReads(file: OFile, projectParser: ProjectParser, vhdlLi
 
   for (const read of file.objectList.filter(object => object instanceof ORead) as ORead[]) {
     for (const [object] of scope(read)) {
-      const match = readObjectMap.get(object)?.get(read.lexerToken.getLText());
+      const match = readObjectMap.get(object)?.get(read.referenceToken.getLText());
       if (match) {
         read.definitions.push(match);
       }
       if (implementsIHasLibraries(object)) {
-        const match = object.libraries.find(library => library.lexerToken.getLText() === read.lexerToken.getLText())
+        const match = object.libraries.find(library => library.lexerToken.getLText() === read.referenceToken.getLText())
         if (match) {
           read.definitions.push(match);
         }
@@ -47,14 +47,14 @@ export function elaborateReads(file: OFile, projectParser: ProjectParser, vhdlLi
     const rootElement = read.getRootElement();
     if (implementsIHasPorts(rootElement)) {
       for (const port of rootElement.ports) {
-        if (port.lexerToken.getLText() === read.lexerToken.getLText()) {
+        if (port.lexerToken.getLText() === read.referenceToken.getLText()) {
           read.definitions.push(port);
           port.references.push(read);
         }
       }
     } else if (rootElement instanceof OArchitecture) {
       for (const port of rootElement.correspondingEntity?.ports ?? []) {
-        if (port.lexerToken.getLText() === read.lexerToken.getLText()) {
+        if (port.lexerToken.getLText() === read.referenceToken.getLText()) {
           read.definitions.push(port);
           port.references.push(read);
         }

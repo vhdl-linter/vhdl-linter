@@ -12,8 +12,8 @@ export class RNotDeclared extends RuleBase implements IRule {
       for (const o of this.file.objectList) {
         if (implementsIHasUseClause(o)) {
           for (const pkg of o.packageDefinitions) {
-            const thing = pkg.constants.find(constant => constant.lexerToken.getLText() === token.lexerToken.getLText()) || pkg.types.find(type => type.lexerToken.getLText() === token.lexerToken.getLText())
-              || pkg.subprograms.find(subprogram => subprogram.lexerToken.getLText() === token.lexerToken.getLText());
+            const thing = pkg.constants.find(constant => constant.lexerToken.getLText() === token.referenceToken.getLText()) || pkg.types.find(type => type.lexerToken.getLText() === token.referenceToken.getLText())
+              || pkg.subprograms.find(subprogram => subprogram.lexerToken.getLText() === token.referenceToken.getLText());
             if (thing) {
               const architecture = token.getRootElement();
               const pos = Position.create(0, 0);
@@ -34,7 +34,7 @@ export class RNotDeclared extends RuleBase implements IRule {
         }
       }
       for (const architecture of this.file.architectures) {
-        const args: IAddSignalCommandArguments = { textDocumentUri, signalName: token.lexerToken.text, position: architecture.endOfDeclarativePart ?? architecture.range.start };
+        const args: IAddSignalCommandArguments = { textDocumentUri, signalName: token.referenceToken.text, position: architecture.endOfDeclarativePart ?? architecture.range.start };
         actions.push(CodeAction.create(
           'add signal to architecture',
           Command.create('add signal to architecture', 'vhdl-linter:add-signal', args),
@@ -43,7 +43,7 @@ export class RNotDeclared extends RuleBase implements IRule {
       const possibleMatches = this.file.objectList
         .filter(obj => typeof obj !== 'undefined' && implementsIHasLexerToken(obj))
         .map(obj => (obj as IHasLexerToken).lexerToken.text);
-      const bestMatch = findBestMatch(token.lexerToken.text, possibleMatches);
+      const bestMatch = findBestMatch(token.referenceToken.text, possibleMatches);
       if (bestMatch.bestMatch.rating > 0.5) {
         actions.push(CodeAction.create(
           `Replace with ${bestMatch.bestMatch.target} (score: ${bestMatch.bestMatch.rating})`,
@@ -60,7 +60,7 @@ export class RNotDeclared extends RuleBase implements IRule {
       code,
       range: token.range,
       severity: DiagnosticSeverity.Error,
-      message: `signal '${token.lexerToken.text}' is ${token instanceof ORead ? 'read' : 'written'} but not declared`
+      message: `signal '${token.referenceToken.text}' is ${token instanceof ORead ? 'read' : 'written'} but not declared`
     });
   }
   private pushAssociationError(read: OAssociationFormal) {

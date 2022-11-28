@@ -50,6 +50,9 @@ export class AssociationListParser extends ParserBase {
           if (type === 'port') {
             association.actualIfOutput = this.extractReadsOrWrite(association, associationTokens);
             association.actualIfInoutput = this.extractReadsOrWrite(association, associationTokens, true);
+            for (const write of [...association.actualIfInoutput[1], ...association.actualIfOutput[1]]) {
+              write.inAssociation = true;
+            }
           }
         } else {
           association.actualIfInput = [];

@@ -1,23 +1,21 @@
-import { implementsIHasComponents, implementsIHasSubprogramAlias, implementsIHasSubprograms, implementsIHasTypes, OComponent, OEntity, OFile, OInstantiation, OSubprogram, OSubprogramAlias, OType, ParserError, scope } from "../parser/objects";
+import { implementsIHasComponents, implementsIHasAliases, implementsIHasSubprograms, implementsIHasTypes, OComponent, OEntity, OFile, OInstantiation, OSubprogram, OAliasWithSignature, OType, ParserError, scope } from "../parser/objects";
 import { ProjectParser } from "../project-parser";
 
 export function elaborateInstantiations(file: OFile, projectParser: ProjectParser) {
   for (const instantiation of file.objectList.filter(object => object instanceof OInstantiation) as OInstantiation[]) {
     switch (instantiation.type) {
-      case 'component': {
-        const components = getComponents(instantiation);
-        instantiation.definitions.push(...components);
-        for (const component of components) {
-          component.references.push(instantiation);
-        }
+      case 'component':
+        instantiation.definitions.push(...getComponents(instantiation));
         break;
-      }
       case 'entity':
         instantiation.definitions.push(...getEntities(instantiation, projectParser));
         break;
       case 'subprogram':
         instantiation.definitions.push(...getSubprograms(instantiation, projectParser));
         break;
+    }
+    for (const subprogram of instantiation.definitions) {
+      subprogram.references.push(instantiation);
     }
   }
 }
@@ -57,8 +55,8 @@ export function getEntities(instantiation: OInstantiation | OComponent, projectP
   const name = (instantiation instanceof OInstantiation) ? instantiation.componentName : instantiation.lexerToken;
   return entities.filter(e => e.lexerToken.getLText() === name.text.toLowerCase());
 }
-function getSubprograms(instantiation: OInstantiation, projectParser: ProjectParser): (OSubprogram | OSubprogramAlias)[] {
-  const subprograms: (OSubprogram | OSubprogramAlias)[] = [];
+function getSubprograms(instantiation: OInstantiation, projectParser: ProjectParser): (OSubprogram | OAliasWithSignature)[] {
+  const subprograms: (OSubprogram | OAliasWithSignature)[] = [];
   const addTypes = (types: OType[], recursionCounter: number) => {
     subprograms.push(...types.flatMap(t => t.subprograms));
     if (recursionCounter > 0) {
@@ -75,8 +73,8 @@ function getSubprograms(instantiation: OInstantiation, projectParser: ProjectPar
     if (implementsIHasSubprograms(iterator)) {
       subprograms.push(...iterator.subprograms);
     }
-    if (implementsIHasSubprogramAlias(iterator)) {
-      subprograms.push(...iterator.subprogramAliases);
+    if (implementsIHasAliases(iterator)) {
+      subprograms.push(...iterator.aliases.filter(a => a instanceof OAliasWithSignature) as OAliasWithSignature[]);
     }
     if (implementsIHasTypes(iterator)) {
       addTypes(iterator.types, 500);
