@@ -24,4 +24,10 @@ package body test_inout_no_write is
     dummy(foo);
   end procedure write;
 
+  procedure test  is
+    constant a : boolean;
+  begin
+    dummy(a);
+  end procedure test;
+
 end package body;
