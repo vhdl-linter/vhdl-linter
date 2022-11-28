@@ -220,7 +220,7 @@
 		"vscode:postpublish": "git push",
 		"compile": "tsc --project .",
 		"watch": "tsc -w  --project  .",
-		"lint": "eslint --ext .ts .",
+		"lint": "eslint --ext .ts --max-warnings=0 .",
 		"test": "jest && npm run compile && node dist/test/test.js"
 	},
 	"dependencies": {
