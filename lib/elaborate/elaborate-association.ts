@@ -36,8 +36,10 @@ export function elaborateAssociations(file: OFile) {
       for (const formalPart of association.formalPart) {
         formalPart.definitions.push(...possibleFormals);
       }
-      for (const possibleFormal of possibleFormals) {
-        // elaborateAssociationMentionables(possibleFormal, association, file);
+      if (definitions.length === 1) {
+        for (const possibleFormal of possibleFormals) {
+          elaborateAssociationMentionables(possibleFormal, association, file);
+        }
       }
     }
   }

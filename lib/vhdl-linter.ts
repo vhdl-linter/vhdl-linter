@@ -3,7 +3,7 @@ import {
 } from 'vscode-languageserver';
 import { Elaborate } from './elaborate/elaborate';
 import {
-  implementsIReferencable, OAssociation, OFile, OI, OIRange, ParserError} from './parser/objects';
+  OFile, OI, OIRange, ParserError} from './parser/objects';
 import { Parser } from './parser/parser';
 import { ProjectParser } from './project-parser';
 import { rules } from './rules/rule-index';
@@ -132,6 +132,13 @@ export class VhdlLinter {
   // When the definition of an association can not be found avoid errors because actuals can not be cleanly mapped then
   // async removeBrokenActuals() {
   //   for (const association of this.file.objectList.filter(object => object instanceof OAssociation) as OAssociation[]) {
+  //     const owner = association.parent.parent;
+  //     if (owner instanceof OPackageInstantiation || owner instanceof OPackage) { // Only OInstantiation can have outputs
+  //       continue;
+  //     }
+  //     if (owner.definitions.length > 1) { // If multiple definitions found
+  //       continue;
+  //     }
   //     if (association.actualIfInput.length > 0
   //       && (association.actualIfOutput[0].length > 0 || association.actualIfOutput[1].length > 0)
   //       && (association.actualIfInoutput[0].length > 0 || association.actualIfInoutput[1].length > 0)) {

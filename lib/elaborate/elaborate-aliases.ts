@@ -1,6 +1,4 @@
-import { implementsIReferencable, OAlias, OFile, OPackage } from "../parser/objects";
-import { ProjectParser } from "../project-parser";
-import { getEntities } from "./elaborate-instantiations";
+import { implementsIReferencable, OAlias, OFile } from "../parser/objects";
 
 export function elaborateAliases(file: OFile) {
   for (const alias of file.objectList) {

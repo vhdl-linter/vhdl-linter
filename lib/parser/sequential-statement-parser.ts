@@ -56,12 +56,7 @@ export class SequentialStatementParser extends ParserBase {
       } else if (nextToken.getLText() === 'wait') {
         statements.push(this.parseWait(parent));
       } else if (nextToken.getLText() === 'exit') {
-        // this.advancePast(';');
-        const start = this.pos.num;
         statements.push(this.parseExit(parent));
-        const end = this.pos.num;
-        const tokens = this.pos.lexerTokens.slice(start, end);
-
       } else if (nextToken.getLText() === 'return') {
         statements.push(this.parseReturn(parent));
       } else if (nextToken.getLText() === 'null') {
