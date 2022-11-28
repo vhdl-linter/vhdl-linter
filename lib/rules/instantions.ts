@@ -1,6 +1,6 @@
 import { RuleBase, IRule } from "./rules-base";
 import { CodeAction, CodeActionKind, DiagnosticSeverity, Range, TextEdit } from "vscode-languageserver";
-import { IHasLexerToken, implementsIHasInstantiations, implementsIHasLexerToken, implementsIHasPorts, implementsIHasSubprograms, OArchitecture, OAssociationList, ObjectBase, OCase, OComponent, OEntity, OFile, OGeneric, OHasSequentialStatements, OIf, OIRange, OPort, OSubprogramAlias, OTypeMark } from "../parser/objects";
+import { IHasLexerToken, implementsIHasInstantiations, implementsIHasLexerToken, implementsIHasPorts, implementsIHasSubprograms, OArchitecture, OAssociationList, ObjectBase, OCase, OComponent, OEntity, OFile, OGeneric, OHasSequentialStatements, OIf, OIRange, OPort, OAliasWithSignature, OTypeMark } from "../parser/objects";
 import { findBestMatch } from "string-similarity";
 
 export class RInstantiation extends RuleBase implements IRule {
@@ -136,7 +136,7 @@ export class RInstantiation extends RuleBase implements IRule {
             if (implementsIHasPorts(e)) {
               return e.ports
             }
-            if (e instanceof OSubprogramAlias) {
+            if (e instanceof OAliasWithSignature) {
               return e.typeMarks;
             }
             return [];

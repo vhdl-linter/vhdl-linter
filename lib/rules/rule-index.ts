@@ -1,4 +1,5 @@
 import { RComponent } from "./components";
+import { RConstantWrite } from "./constant-write";
 import { REmpty } from "./empty";
 import { RInstantiation } from "./instantions";
 import { RLibrary } from "./library";
@@ -19,5 +20,6 @@ export const rules = [
   RPortDeclaration,
   RPortType,
   RUnused,
-  REmpty
+  REmpty,
+  RConstantWrite
 ];

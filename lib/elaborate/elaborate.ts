@@ -1,12 +1,13 @@
 import { DiagnosticSeverity } from "vscode-languageserver/node";
-import { OFile, OPackage, OPackageBody, OReference } from "../parser/objects";
+import { OFile, OPackage, OPackageBody, ORead, OWrite } from "../parser/objects";
 import { VhdlLinter } from "../vhdl-linter";
 import { elaborateAssociations } from "./elaborate-association";
 import { elaborateComponents } from "./elaborate-components";
 import { elaborateInstantiations } from "./elaborate-instantiations";
-import { elaborateReads } from "./elaborate-reads";
-import { elaborateReferences } from "./elaborate-references";
+import { elaborateGlobalReads } from "./elaborate-global-reads";
+import { elaborateWritesReads } from "./elaborate-writes-reads";
 import { elaborateUseClauses } from "./elaborate-use-clauses";
+import { elaborateAliases } from "./elaborate-aliases";
 
 export class Elaborate {
   file: OFile;
@@ -62,8 +63,8 @@ export class Elaborate {
     await this.vhdlLinter.handleCanceled();
     //     console.log(packages);
     for (const obj of this.file.objectList) {
-      if (obj instanceof OReference) {
-        elaborateReferences(obj);
+      if (obj instanceof OWrite || obj instanceof ORead) {
+        elaborateWritesReads(obj);
       }
     }
 
@@ -76,7 +77,7 @@ export class Elaborate {
     // console.log(`elab: otherFileEntity for: ${Date.now() - start} ms.`);
     // start = Date.now();
 
-    elaborateReads(this.file, this.vhdlLinter.projectParser, this.vhdlLinter);
+    elaborateGlobalReads(this.file, this.vhdlLinter.projectParser, this.vhdlLinter);
 
     // console.log(`elab: reads for: ${Date.now() - start} ms.`);
     // start = Date.now();
@@ -92,9 +93,11 @@ export class Elaborate {
     // console.log(`elab: components for: ${Date.now() - start} ms.`);
     // start = Date.now();
     await this.vhdlLinter.handleCanceled();
-    elaborateReads(this.file, this.vhdlLinter.projectParser, this.vhdlLinter);
+    elaborateGlobalReads(this.file, this.vhdlLinter.projectParser, this.vhdlLinter);
     await this.vhdlLinter.handleCanceled();
     elaborateAssociations(this.file);
+    await this.vhdlLinter.handleCanceled();
+    elaborateAliases(this.file);
     // console.log(`elab: associations for: ${Date.now() - start} ms.`);
     // start = Date.now();
     await this.vhdlLinter.handleCanceled();

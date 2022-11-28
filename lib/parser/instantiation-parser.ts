@@ -1,5 +1,5 @@
 import { AssociationListParser } from './association-list-parser';
-import { OArchitecture, OEntity, OInstantiation, OIRange, ParserError } from './objects';
+import { OArchitecture, OEntity, OInstantiation, ParserError } from './objects';
 import { ParserBase } from './parser-base';
 import { ParserPosition } from './parser';
 import { OLexerToken } from '../lexer';
@@ -10,8 +10,8 @@ export class InstantiationParser extends ParserBase {
     this.debug(`start`);
 
   }
-  parse(nextToken: OLexerToken, label: OLexerToken | undefined, startI: number): OInstantiation {
-    const instantiation = new OInstantiation(this.parent, new OIRange(this.parent, startI, this.getEndOfLineI()));
+  parse(nextToken: OLexerToken, label: OLexerToken | undefined): OInstantiation {
+    const instantiation = new OInstantiation(this.parent, nextToken);
     instantiation.label = label;
     if (nextToken.getLText() === 'entity') {
       this.consumeToken();
@@ -29,6 +29,7 @@ export class InstantiationParser extends ParserBase {
       nextToken = this.consumeToken();
     }
     instantiation.componentName = nextToken;
+    instantiation.lexerToken = nextToken;
 
     if (instantiation.type === 'entity' && this.getToken().getLText() === '(') {
       this.expect('(');

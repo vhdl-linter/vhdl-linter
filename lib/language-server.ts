@@ -266,7 +266,7 @@ interface IFindDefinitionParams {
   };
   position: Position;
 }
-const findDefinitions = async (params: IFindDefinitionParams): Promise<(DefinitionLink & {text: string})[]> => {
+const findDefinitions = async (params: IFindDefinitionParams): Promise<(DefinitionLink & { text: string })[]> => {
   await initialization;
   const linter = linters.get(params.textDocument.uri);
   if (!linter) {

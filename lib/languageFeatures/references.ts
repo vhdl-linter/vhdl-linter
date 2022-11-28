@@ -19,7 +19,7 @@ export async function handleReferences (params: ReferenceParams): Promise<Locati
     return [];
   }
   if (candidate instanceof OReference) {
-    return linter.file.objectList.filter(obj => obj instanceof OReference && obj.lexerToken.getLText() === candidate.lexerToken.getLText() && obj !== candidate).map(obj => Location.create(params.textDocument.uri, obj.range));
+    return linter.file.objectList.filter(obj => obj instanceof OReference && obj.referenceToken.getLText() === candidate.referenceToken.getLText() && obj !== candidate).map(obj => Location.create(params.textDocument.uri, obj.range));
   }
   return [];
 }

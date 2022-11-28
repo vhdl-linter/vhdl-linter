@@ -11,7 +11,6 @@ function readDirPath(path: string) {
 }
 interface MessageWrapper {
   file: string,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   messages: (OIDiagnostic | { message: string })[]
 }
 function isOIDiagnostic(obj: unknown): obj is OIDiagnostic {
@@ -66,17 +65,22 @@ async function run_test(path: string, error_expected: boolean, projectParser?: P
       }
       if (error_expected === false) {
         if (vhdlLinter.messages.length > 0) {
-          messageWrappers.push({
+          const newMessage = {
             file: subPath,
             messages: vhdlLinter.messages
-          });
+          };
+          messageWrappers.push(newMessage);
+          console.log(prettyPrintMessages([newMessage]));
         }
       } else {
         if (vhdlLinter.messages.length !== 1) {
-          messageWrappers.push({
+          const newMessage = {
             file: subPath,
             messages: [...vhdlLinter.messages, { message: `One message expected found ${vhdlLinter.messages.length}` }]
-          });
+          };
+          messageWrappers.push(newMessage);
+          console.log(prettyPrintMessages([newMessage]));
+
         }
       }
 
@@ -93,10 +97,6 @@ async function run_test(path: string, error_expected: boolean, projectParser?: P
   messages.push(... await run_test_folder(join(cwd(), 'test', 'test_files', 'test_no_error'), false));
   messages.push(... await run_test(join(cwd(), 'ieee2008'), false));
   const timeTaken = new Date().getTime() - start;
-  if (messages.length > 0) {
-    // console.log(messages.map(file => file.file));
-    console.log(prettyPrintMessages(messages));
-  }
   let timeOutError = 0;
   const TIMEOUT_TIME = 130;
   if (timeTaken > TIMEOUT_TIME * 1000) {

@@ -1,7 +1,7 @@
-import { OReference, scope, implementsIHasSignals, implementsIHasConstants, implementsIHasSubprograms, implementsIHasSubprogramAlias, implementsIHasTypes, OEnum, ORecord, implementsIHasVariables, implementsIHasFileVariables, implementsIHasPorts, implementsIHasGenerics, implementsIHasPackageInstantiations, OPackage, OPackageBody, OEntity, OArchitecture, OSubprogram, OType, OSubType, OConstant, OSignal, OVariable, OComponent } from "../parser/objects";
+import { scope, implementsIHasSignals, implementsIHasConstants, implementsIHasSubprograms, implementsIHasAliases, implementsIHasTypes, OEnum, ORecord, implementsIHasVariables, implementsIHasFileVariables, implementsIHasPorts, implementsIHasGenerics, implementsIHasPackageInstantiations, OPackage, OPackageBody, OEntity, OArchitecture, OSubprogram, OType, OSubType, OConstant, OSignal, OVariable, OComponent, OWrite, ORead } from "../parser/objects";
 
-export function elaborateReferences(reference: OReference) {
-  const text = reference.lexerToken.text;
+export function elaborateWritesReads(reference: OWrite | ORead) {
+  const text = reference.referenceToken.text;
   for (const [object, directlyVisible] of scope(reference)) {
     if (implementsIHasSignals(object)) {
       for (const signal of object.signals) {
@@ -27,8 +27,8 @@ export function elaborateReferences(reference: OReference) {
         }
       }
     }
-    if (implementsIHasSubprogramAlias(object)) {
-      for (const subprogramAlias of object.subprogramAliases) {
+    if (implementsIHasAliases(object)) {
+      for (const subprogramAlias of object.aliases) {
         if (subprogramAlias.lexerToken.getLText() === text.toLowerCase()) {
           reference.definitions.push(subprogramAlias);
           subprogramAlias.references.push(reference);
@@ -145,6 +145,7 @@ export function elaborateReferences(reference: OReference) {
       if (object instanceof relevantType) {
         if (object.lexerToken && object.lexerToken.getLText() === text.toLowerCase()) {
           reference.definitions.push(object);
+          object.references.push(reference);
         }
       }
 

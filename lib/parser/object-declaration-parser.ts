@@ -53,9 +53,17 @@ export class ObjectDeclarationParser extends ParserBase {
     this.expect(':');
     if (file) {
       const typeToken = this.consumeToken();
-      for (const file of objects) {
+      for (const file of objects as OFileVariable[]) {
         const typeRead = new ORead(file, typeToken);
         file.type = [typeRead];
+        if (this.maybe('open')) {
+          const [tokens] = this.advanceParentheseAware(['is', ';'], true, false);
+          file.openKind = this.extractReads(file, tokens);
+        }
+        if (this.maybe('is')) {
+          const [tokens] = this.advanceParentheseAware([';'], true, false);
+          file.logicalName = this.extractReads(file, tokens);
+        }
         // TODO: Parse optional parts of file definition
         file.range = file.range.copyWithNewEnd(this.pos.i);
       }
