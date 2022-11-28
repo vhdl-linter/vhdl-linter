@@ -27,7 +27,7 @@ export class RUnused extends RuleBase implements IRule {
         severity: DiagnosticSeverity.Warning,
         message: msg,
         code: this.vhdlLinter.addCodeActionCallback((textDocumentUri: string) =>
-          [CodeAction.create(
+          this.unusedSignalRegex.exec(obj.lexerToken.text + '_unused') !== null ? [CodeAction.create(
             `Add '_unused' to the name.`,
             {
               changes: {
@@ -35,7 +35,7 @@ export class RUnused extends RuleBase implements IRule {
                   TextEdit.insert(obj.lexerToken.range.end, `_unused`)]
               }
             },
-            CodeActionKind.QuickFix)]
+            CodeActionKind.QuickFix)] : []
         )
       });
     }
