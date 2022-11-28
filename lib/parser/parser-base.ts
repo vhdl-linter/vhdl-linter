@@ -1,6 +1,6 @@
 import { TextEdit } from 'vscode-languageserver';
 import { config } from './config';
-import { OAssociation, OAssociationFormal, ObjectBase, OSelectedNameRead, OGeneric, OIRange, OPort, ORead, OWrite, ParserError, OAssociationFormalSelectedName, OAliasReference, OSelectedNameAliasReference } from './objects';
+import { OAssociation, OAssociationFormal, ObjectBase, OSelectedNameRead, OGeneric, OIRange, OPort, ORead, OWrite, ParserError, OAssociationFormalSelectedName } from './objects';
 import { ParserPosition } from './parser';
 import { OLexerToken, TokenType } from '../lexer';
 
@@ -327,20 +327,6 @@ export class ParserBase {
       typeReads,
       defaultValueReads
     };
-  }
-  consumeAliasReference(parent: ObjectBase): OAliasReference[] {
-    const prefixTokens = [];
-    const reads = [];
-    do {
-      const token = this.consumeToken();
-      if (prefixTokens.length > 0) {
-        reads.push(new OSelectedNameAliasReference(parent, token, prefixTokens.slice(0)));
-      } else {
-        reads.push(new OAliasReference(parent, token));
-      }
-      prefixTokens.push(token);
-    } while (this.getToken().text === '.' && this.consumeToken());
-    return reads;
   }
   consumeNameRead(parent: ObjectBase): ORead[] {
     const prefixTokens = [];

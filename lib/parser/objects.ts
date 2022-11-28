@@ -923,14 +923,6 @@ export class OTypeMark extends ObjectBase {
     super(parent, reads[0].range);
   }
 }
-export class OAliasReference extends OReference {
-  private type = 'alias-reference';
-}
-export class OSelectedNameAliasReference extends OAliasReference {
-  constructor(public parent: ObjectBase, public lexerToken: OLexerToken, public prefixTokens: OLexerToken[]) {
-    super(parent, lexerToken);
-  }
-}
 export class OAlias extends ObjectBase implements IHasLexerToken {
   name: ORead[] = []; // The thing being aliased
   references: OReference[] = [];
