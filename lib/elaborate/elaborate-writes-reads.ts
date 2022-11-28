@@ -1,6 +1,6 @@
-import { OReference, scope, implementsIHasSignals, implementsIHasConstants, implementsIHasSubprograms, implementsIHasSubprogramAlias, implementsIHasTypes, OEnum, ORecord, implementsIHasVariables, implementsIHasFileVariables, implementsIHasPorts, implementsIHasGenerics, implementsIHasPackageInstantiations, OPackage, OPackageBody, OEntity, OArchitecture, OSubprogram, OType, OSubType, OConstant, OSignal, OVariable, OComponent } from "../parser/objects";
+import { scope, implementsIHasSignals, implementsIHasConstants, implementsIHasSubprograms, implementsIHasSubprogramAlias, implementsIHasTypes, OEnum, ORecord, implementsIHasVariables, implementsIHasFileVariables, implementsIHasPorts, implementsIHasGenerics, implementsIHasPackageInstantiations, OPackage, OPackageBody, OEntity, OArchitecture, OSubprogram, OType, OSubType, OConstant, OSignal, OVariable, OComponent, OWrite, ORead } from "../parser/objects";
 
-export function elaborateReferences(reference: OReference) {
+export function elaborateWritesReads(reference: OWrite | ORead) {
   const text = reference.referenceToken.text;
   for (const [object, directlyVisible] of scope(reference)) {
     if (implementsIHasSignals(object)) {

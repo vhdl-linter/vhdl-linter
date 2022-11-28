@@ -3,7 +3,7 @@ import { ObjectBase, implementsIHasUseClause, ORead, scope, implementsIHasLibrar
 import { ProjectParser } from "../project-parser";
 import { VhdlLinter } from "../vhdl-linter";
 
-export function elaborateReads(file: OFile, projectParser: ProjectParser, vhdlLinter: VhdlLinter) {
+export function elaborateGlobalReads(file: OFile, projectParser: ProjectParser, vhdlLinter: VhdlLinter) {
   // This is caching all visible reads from packets for every object that can reference packages/have use clauses
   const readObjectMap = new Map<ObjectBase, Map<string, ObjectBase>>();
   for (const object of file.objectList) {
