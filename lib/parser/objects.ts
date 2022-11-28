@@ -826,12 +826,20 @@ export class OAssertion extends ObjectBase {
 }
 
 export class OWrite extends OReference {
+  public inAssociation = false;
+  private type = 'OWrite';
 }
 export class ORead extends OReference {
+  private type = 'ORead';
 
 }
 export class OSelectedNameRead extends ORead {
   constructor(public parent: ObjectBase, public lexerToken: OLexerToken, public prefixTokens: OLexerToken[]) {
+    super(parent, lexerToken);
+  }
+}
+export class OAttributeRead extends ORead {
+  constructor(public parent: ObjectBase, public lexerToken: OLexerToken, public prefixToken: OLexerToken) {
     super(parent, lexerToken);
   }
 }

@@ -179,7 +179,6 @@ export class RUnused extends RuleBase implements IRule {
       }
       if (implementsIHasSubprograms(obj)) {
         for (const subprogram of obj.subprograms) {
-          this.checkUnusedPorts(subprogram);
           if (subprogram.references.length === 0) {
             this.addUnusedMessage(subprogram, `Not using subprogram ${subprogram.lexerToken}`);
           }

@@ -288,7 +288,7 @@ export class ParserBase {
       throw new ParserError(`expected '${expected.join(', ')}' found '${this.getToken().text}' line: ${this.getLine()}`, this.pos.getRangeToEndLine());
     }
   }
-  maybe(expected: string|OLexerToken) {
+  maybe(expected: string | OLexerToken) {
     const text = (typeof expected === 'string') ? expected.toLowerCase() : expected.getLText();
     if (this.getToken().getLText() === text) {
       this.consumeToken();
@@ -433,12 +433,16 @@ export class ParserBase {
         }
       } else if (token.isIdentifier()) {
         if (slice === false && recordToken === false) {
+          if (tokens[i - 1]?.text === '\'') { // Attribute skipped for now
+            continue;
+          }
           const write = new OWrite(parent, token);
           writes.push(write);
           if (readAndWrite) {
             reads.push(new ORead(parent, token));
           }
         } else {
+
           if (recordToken) {
             const prefixTokens = [];
             let x = i - 1;

@@ -1,5 +1,5 @@
 import { DiagnosticSeverity } from "vscode-languageserver/node";
-import { OFile, OPackage, OPackageBody, ORead, OReference, OWrite } from "../parser/objects";
+import { OFile, OPackage, OPackageBody, ORead, OWrite } from "../parser/objects";
 import { VhdlLinter } from "../vhdl-linter";
 import { elaborateAssociations } from "./elaborate-association";
 import { elaborateComponents } from "./elaborate-components";
