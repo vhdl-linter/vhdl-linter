@@ -433,7 +433,7 @@ export class ParserBase {
         }
       } else if (token.isIdentifier()) {
         // If in possible function check if possible named function call, then ignore.
-        if (slice && tokens[i].isIdentifier() && tokens[i + 1]?.text === '=>') {
+        if (slice &&  tokens[i + 1]?.text === '=>') {
           continue;
         }
         if (slice === false && recordToken === false) {

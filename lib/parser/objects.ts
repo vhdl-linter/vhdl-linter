@@ -622,7 +622,7 @@ export class OVariable extends ObjectBase implements IVariableBase, IReferenceab
     super((parent as unknown) as ObjectBase, range);
   }
 }
-export class OSignal extends ObjectBase implements IVariableBase, IReferenceable {
+export class OSignal extends ObjectBase implements IVariableBase {
   references: OReference[] = [];
   type: ORead[] = [];
   defaultValue?: ORead[] = [];
@@ -633,7 +633,7 @@ export class OSignal extends ObjectBase implements IVariableBase, IReferenceable
     super((parent as unknown) as ObjectBase, range);
   }
 }
-export class OConstant extends ObjectBase implements IVariableBase, IReferenceable {
+export class OConstant extends ObjectBase implements IVariableBase {
   references: OReference[] = [];
   type: ORead[] = [];
   defaultValue?: ORead[] = [];
