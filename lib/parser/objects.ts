@@ -671,7 +671,6 @@ export class OInstantiation extends OReference implements IHasDefinitions, IHasL
   constructor(public parent: OArchitecture | OEntity | OProcess | OLoop | OIf, lexerToken: OLexerToken, public type: 'entity' | 'component' | 'configuration' | 'subprogram' | 'unknown' = 'unknown') {
     super(parent, lexerToken);
   }
-  label?: OLexerToken;
   definitions: (OEntity | OSubprogram | OComponent | OAliasWithSignature)[] = [];
   componentName: OLexerToken;
   package?: OLexerToken;

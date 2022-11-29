@@ -12,7 +12,6 @@ export class InstantiationParser extends ParserBase {
   }
   parse(nextToken: OLexerToken, label: OLexerToken | undefined): OInstantiation {
     const instantiation = new OInstantiation(this.parent, nextToken);
-    instantiation.label = label;
     if (nextToken.getLText() === 'entity') {
       this.consumeToken();
       instantiation.type = 'entity';

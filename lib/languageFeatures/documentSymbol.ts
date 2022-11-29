@@ -5,7 +5,7 @@ import { VhdlLinter } from '../vhdl-linter';
 function parseArchitecture(architecture: OArchitecture, linter: VhdlLinter): DocumentSymbol[] {
   const symbols: DocumentSymbol[] = [];
   symbols.push(...architecture.instantiations.map(instantiation => ({
-    name: (instantiation.label !== undefined ? (instantiation.label + ': ') : '') + instantiation.componentName,
+    name: (instantiation.lexerToken !== undefined ? (instantiation.lexerToken + ': ') : '') + instantiation.componentName,
     detail: 'instantiation',
     kind: SymbolKind.Module,
     range: instantiation.range,
