@@ -3,11 +3,11 @@ import { promises } from 'fs';
 import { tmpdir } from 'os';
 import { join, sep } from 'path';
 import { promisify } from 'util';
-import { DocumentFormattingParams, Range, TextEdit } from 'vscode-languageserver';
+import { CancellationToken, DocumentFormattingParams, LSPErrorCodes, Range, ResponseError, TextEdit } from 'vscode-languageserver';
 import { connection, documents } from '../language-server';
 import { getRootDirectory } from '../project-parser';
 
-export async function handleDocumentFormatting(params: DocumentFormattingParams): Promise<TextEdit[] | null> {
+export async function handleDocumentFormatting(params: DocumentFormattingParams, token: CancellationToken): Promise<TextEdit[] | null | ResponseError> {
   const document = documents.get(params.textDocument.uri);
   if (typeof document === 'undefined') {
     return null;
@@ -25,7 +25,21 @@ export async function handleDocumentFormatting(params: DocumentFormattingParams)
   } catch (e) {
     connection.window.showErrorMessage('vhdl-linter is using emacs for formatting. Install emacs for formatting to work.');
   }
-  await promisify(exec)(`emacs --batch --eval "(setq-default vhdl-basic-offset ${numSpaces})" --eval "(setq load-path (cons (expand-file-name \\"${emacsLoadPath}\\") load-path))" -l ${emacsScripts} -f vhdl-batch-indent-region ${tmpFile}`);
+  const controller = new AbortController();
+  const { signal } = controller;
+  token.onCancellationRequested(() => {
+    controller.abort();
+  })
+  try {
+    await promisify(exec)(`emacs --batch --eval "(setq-default vhdl-basic-offset ${numSpaces})" ` +
+      `--eval "(setq load-path (cons (expand-file-name \\"${emacsLoadPath}\\") load-path))" ` +
+      ` -l ${emacsScripts} -f vhdl-batch-indent-region ${tmpFile}`, { signal });
+  } catch (e) {
+    if (e.name === "AbortError") {
+      return new ResponseError(LSPErrorCodes.RequestCancelled, 'canceled');
+    }
+    throw e;
+  }
   // Emacs VHDL mode hard tabs seem to be broken.
   // Replace spaces in beginning with tabs
   let newText = await promises.readFile(tmpFile, { encoding: 'utf8' });
