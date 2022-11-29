@@ -29,11 +29,8 @@ export class InstantiationParser extends ParserBase {
       nextToken = this.consumeToken();
     }
     instantiation.componentName = nextToken;
-    if (label !== undefined) {
-      instantiation.lexerToken = label;
-    } else {
-      instantiation.lexerToken = nextToken;
-    }
+    // if there is no label, there is no lexerToken -> rule/multiple-definition does not check for it
+    instantiation.lexerToken = label;
 
     if (instantiation.type === 'entity' && this.getToken().getLText() === '(') {
       this.expect('(');
@@ -73,6 +70,9 @@ export class InstantiationParser extends ParserBase {
       lastI = this.pos.i;
     }
     instantiation.range = instantiation.range.copyWithNewEnd(this.getToken(-1, true).range.end);
+    if ((instantiation.type === 'component' || instantiation.type === 'entity') && label === undefined) {
+      throw new ParserError(`${instantiation.type} instantiations require a label.`, instantiation.range);
+    }
     this.expect(';');
     return instantiation;
   }
