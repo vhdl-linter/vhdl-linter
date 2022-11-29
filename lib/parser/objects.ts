@@ -256,6 +256,18 @@ export interface IHasInstantiations {
 export function implementsIHasInstantiations(obj: ObjectBase): obj is ObjectBase & IHasInstantiations {
   return (obj as ObjectBase & IHasInstantiations).instantiations !== undefined;
 }
+export interface IHasIfGenerates {
+  ifGenerates: OIfGenerate[];
+}
+export function implementsIHasIfGenerates(obj: ObjectBase): obj is ObjectBase & IHasIfGenerates {
+  return (obj as ObjectBase & IHasIfGenerates).ifGenerates !== undefined;
+}
+export interface IHasForGenerates {
+  forGenerates: OForGenerate[];
+}
+export function implementsIHasForGenerates(obj: ObjectBase): obj is ObjectBase & IHasForGenerates {
+  return (obj as ObjectBase & IHasForGenerates).forGenerates !== undefined;
+}
 export interface IHasSignals {
   signals: OSignal[];
 }
@@ -428,12 +440,10 @@ export class OContext extends ObjectBase implements IHasUseClauses, IHasContextR
   libraries: OLibrary[] = [];
 }
 export type OConcurrentStatements = OProcess | OInstantiation | OIfGenerate | OForGenerate | OBlock | OAssignment;
-export class OHasConcurrentStatements extends ObjectBase {
-}
 
 export class OArchitecture extends ObjectBase implements IHasSubprograms, IHasComponents, IHasInstantiations,
   IHasSignals, IHasConstants, IHasVariables, IHasTypes, IHasAliases, IHasFileVariables, IHasUseClauses, IHasContextReference,
-  IHasPackageInstantiations, IHasLexerToken, IHasLibraries, IReferenceable {
+  IHasPackageInstantiations, IHasLexerToken, IHasLibraries, IReferenceable, IHasIfGenerates, IHasForGenerates {
   references: OReference[] = [];
   lexerToken: OLexerToken;
   useClauses: OUseClause[] = [];
@@ -486,8 +496,7 @@ export class OArchitecture extends ObjectBase implements IHasSubprograms, IHasCo
     return generates;
   }
 }
-export class OBlock extends OArchitecture {
-  label: OLexerToken;
+export class OBlock extends OArchitecture implements IHasLexerToken {
   guardCondition?: ORead[];
 }
 export class OType extends ObjectBase implements IReferenceable, IHasSubprograms, IHasSignals, IHasConstants, IHasVariables,
@@ -572,7 +581,7 @@ export class OWhenGenerateClause extends OArchitecture {
   public parent: OCaseGenerate;
 }
 export class OIfGenerate extends ObjectBase {
-  constructor(public parent: ObjectBase | OFile, public range: OIRange, public label: OLexerToken) {
+  constructor(public parent: ObjectBase | OFile, public range: OIRange, public lexerToken: OLexerToken) {
     super(parent, range);
   }
   ifGenerates: OIfGenerateClause[] = [];
@@ -671,7 +680,6 @@ export class OInstantiation extends OReference implements IHasDefinitions, IHasL
   constructor(public parent: OArchitecture | OEntity | OProcess | OLoop | OIf, lexerToken: OLexerToken, public type: 'entity' | 'component' | 'configuration' | 'subprogram' | 'unknown' = 'unknown') {
     super(parent, lexerToken);
   }
-  label?: OLexerToken;
   definitions: (OEntity | OSubprogram | OComponent | OAliasWithSignature)[] = [];
   componentName: OLexerToken;
   package?: OLexerToken;
@@ -795,7 +803,6 @@ export class OProcess extends OHasSequentialStatements implements IHasSubprogram
   useClauses: OUseClause[] = [];
   packageDefinitions: OPackage[] = [];
   sensitivityList: ORead[] = [];
-  label?: OLexerToken;
   types: OType[] = [];
   subprograms: OSubprogram[] = [];
   variables: OVariable[] = [];

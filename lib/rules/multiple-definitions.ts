@@ -1,6 +1,6 @@
 import { RuleBase, IRule } from "./rules-base";
 import { DiagnosticSeverity } from "vscode-languageserver";
-import { implementsIHasConstants, implementsIHasGenerics, implementsIHasInstantiations, implementsIHasLexerToken, implementsIHasPorts, implementsIHasSignals, implementsIHasTypes, implementsIHasVariables, OArchitecture, ObjectBase, OFile, OPackageBody, OType } from "../parser/objects";
+import { implementsIHasConstants, implementsIHasGenerics, implementsIHasIfGenerates, implementsIHasInstantiations, implementsIHasLexerToken, implementsIHasPorts, implementsIHasSignals, implementsIHasTypes, implementsIHasVariables, OArchitecture, ObjectBase, OFile, OPackageBody, OType } from "../parser/objects";
 
 export class RMultipleDefinition extends RuleBase implements IRule {
   public name = 'multiple-definition';
@@ -28,7 +28,7 @@ export class RMultipleDefinition extends RuleBase implements IRule {
   }
   async check() {
     const extractObjects = (obj: ObjectBase) => {
-      const objList = [];
+      const objList: ObjectBase[] = [];
       if (implementsIHasSignals(obj)) {
         objList.push(...obj.signals);
       }
@@ -38,6 +38,7 @@ export class RMultipleDefinition extends RuleBase implements IRule {
       if (implementsIHasConstants(obj)) {
         objList.push(...obj.constants);
       }
+      // if ()
       // subprograms can be overloaded
       if (implementsIHasTypes(obj)) {
         for (const type of obj.types) {
@@ -52,6 +53,9 @@ export class RMultipleDefinition extends RuleBase implements IRule {
       }
       if (implementsIHasInstantiations(obj)) {
         objList.push(...obj.instantiations);
+      }
+      if (implementsIHasIfGenerates(obj)) {
+        objList.push(...obj.ifGenerates);
       }
       if (implementsIHasPorts(obj)) {
         objList.push(...obj.ports);

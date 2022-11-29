@@ -175,6 +175,9 @@ export class VhdlLinter {
   // }
 
   async checkAll(profiling = false) {
+    if (this.parsedSuccessfully === false) {
+      return this.messages;
+    }
     if (profiling) {
       console.profile();
     }
