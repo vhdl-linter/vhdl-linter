@@ -1,5 +1,5 @@
 import {
-  CodeAction, createConnection, DefinitionLink, DidChangeConfigurationNotification, ErrorCodes, Hover, InitializeParams, Position, ProposedFeatures, TextDocuments, TextDocumentSyncKind
+  CodeAction, createConnection, DefinitionLink, DidChangeConfigurationNotification, InitializeParams, LSPErrorCodes, Position, ProposedFeatures, ResponseError, TextDocuments, TextDocumentSyncKind
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
@@ -189,7 +189,6 @@ documents.onDidClose(change => {
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
 export const linters = new Map<string, VhdlLinter>();
-export const lintersPromise = new Map<string, Promise<VhdlLinter>>();
 export const lintersValid = new Map<string, boolean>();
 async function validateTextDocument(textDocument: TextDocument, cancelationObject: CancelationObject = { canceled: false }): Promise<void> {
   // console.log(textDocument.uri);
@@ -214,6 +213,7 @@ async function validateTextDocument(textDocument: TextDocument, cancelationObjec
     // console.log(`send for: ${Date.now() - start} ms.`);
 
   } catch (err) {
+    // Ignore cancelled
     if (!(err instanceof CancelationError)) {
       throw err;
     }
@@ -307,11 +307,11 @@ const findBestDefinition = async (params: IFindDefinitionParams) => {
   return definitions[0];
 };
 
-connection.onHover(async (params, token): Promise<Hover | null> => {
+connection.onHover(async (params, token) => {
   await initialization;
   if (token.isCancellationRequested) {
     console.log('hover canceled');
-    throw ErrorCodes.PendingResponseRejected;
+    return new ResponseError(LSPErrorCodes.RequestCancelled, 'canceled');
   }
   const definition = await findBestDefinition(params);
   if (definition === null) {
