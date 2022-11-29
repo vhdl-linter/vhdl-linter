@@ -168,9 +168,7 @@ export function elaborateGlobalReads(file: OFile, projectParser: ProjectParser, 
           for (const [obj] of scope(read)) {
             if (implementsIHasVariables(obj)) {
               for (const variable of obj.variables) {
-                // TODO: Find out way to check for proteced
                 if (variable.lexerToken.getLText() === read.prefixTokens[0].getLText()) {
-                  // TODO: Link the actual subprogramm
                   read.definitions.push(variable);
                 }
               }
