@@ -1,5 +1,5 @@
 import { DiagnosticSeverity } from "vscode-languageserver/node";
-import { ObjectBase, implementsIHasUseClause, ORead, scope, implementsIHasLibraries, implementsIHasPorts, OArchitecture, OSelectedNameRead, OPackage, implementsIHasPackageInstantiations, implementsIHasVariables, OFile } from "../parser/objects";
+import { ObjectBase, implementsIHasUseClause, ORead, scope, implementsIHasLibraries, implementsIHasPorts, OArchitecture, OSelectedNameRead, OPackage, implementsIHasVariables, OFile, implementsIHasGenerics, OPackageInstantiation, implementsIHasPackageInstantiations, OInterfacePackage } from "../parser/objects";
 import { ProjectParser } from "../project-parser";
 import { VhdlLinter } from "../vhdl-linter";
 
@@ -133,7 +133,15 @@ export function elaborateGlobalReads(file: OFile, projectParser: ProjectParser, 
           for (const [obj] of scope(read)) {
             if (implementsIHasPackageInstantiations(obj)) {
               for (const pkgInst of obj.packageInstantiations) {
-                if (pkgInst.lexerToken?.getLText() === read.prefixTokens[0].getLText()) {
+                if (pkgInst instanceof OPackageInstantiation && pkgInst.lexerToken?.getLText() === read.prefixTokens[0].getLText()) {
+                  const pkg = projectParser.packages.filter(pkg => pkg.lexerToken.getLText() === pkgInst.uninstantiatedPackageToken.getLText());
+                  packages.push(...pkg);
+                }
+              }
+            }
+            if (implementsIHasGenerics(obj)) {
+              for (const pkgInst of obj.generics) {
+                if (pkgInst instanceof OInterfacePackage && pkgInst.lexerToken?.getLText() === read.prefixTokens[0].getLText()) {
                   const pkg = projectParser.packages.filter(pkg => pkg.lexerToken.getLText() === pkgInst.uninstantiatedPackageToken.getLText());
                   packages.push(...pkg);
                 }

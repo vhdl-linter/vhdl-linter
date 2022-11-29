@@ -1,6 +1,6 @@
 entity test_entity_generic_no_use is
 generic (
-  package test_pkg is new work.generic_pkg generic map (<>)
+  package test_pkg is new work.generic_pkg generic map (<>) -- vhdl-linter-disable-line unused
   );
 end entity;
 architecture arch of test_entity_generic_no_use is

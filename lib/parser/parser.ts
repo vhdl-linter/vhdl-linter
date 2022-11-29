@@ -6,7 +6,6 @@ import { EntityParser } from './entity-parser';
 import { MagicCommentType, OFile, OI, OIRange, OMagicCommentDisable, ParserError, OConfiguration, OUseClause, OLibrary, OPackageInstantiation, ObjectBase } from './objects';
 import { PackageParser } from './package-parser';
 import { ParserBase } from './parser-base';
-import { UseClauseParser } from './use-clause-parser';
 import { Lexer, OLexerToken, TokenType } from '../lexer';
 import { PackageInstantiationParser } from './package-instantiation-parser';
 import { CancelationObject } from '../server-objects';
@@ -132,16 +131,17 @@ export class Parser extends ParserBase {
       new OLexerToken('std', new OIRange(this.file, 0, 0), TokenType.keyword),
       new OLexerToken('work', new OIRange(this.file, 0, 0), TokenType.keyword),
     ];
-    const getDefaultUseClause = (parent: ObjectBase) => {
+    let useClausesPrepare: [OLexerToken, OLexerToken, OLexerToken][] = [];
+    const getUseClauses = (parent: ObjectBase) => {
       return [
-        new OUseClause(parent, new OIRange(this.file, 0, 0), new OLexerToken('std', new OIRange(this.file, 0, 0), TokenType.keyword),
+        new OUseClause(parent, new OLexerToken('std', new OIRange(this.file, 0, 0), TokenType.keyword),
           new OLexerToken('standard', new OIRange(this.file, 0, 0), TokenType.keyword),
-          new OLexerToken('all', new OIRange(this.file, 0, 0), TokenType.keyword))
+          new OLexerToken('all', new OIRange(this.file, 0, 0), TokenType.keyword)),
+        ...useClausesPrepare.map(([library, packageName, suffix]) => new OUseClause(parent, library, packageName, suffix))
       ];
     }
     // TODO: Add library STD, WORK; use STD.STANDARD.all;
     let libraries = defaultLibrary.slice(0);
-    let useClauses = [];
     this.advanceWhitespace();
 
     while (this.pos.isValid()) {
@@ -151,17 +151,15 @@ export class Parser extends ParserBase {
           const contextParser = new ContextParser(this.pos, this.filePath, this.file);
           const context = contextParser.parse();
           context.libraries.push(...libraries.map(library => new OLibrary(context, library)));
-          context.useClauses.push(...getDefaultUseClause(context), ...useClauses);
+          context.useClauses.push(...getUseClauses(context));
           context.contextReferences.push(...contextReferences);
           for (const contextReference of contextReferences) {
             contextReference.parent = context;
           }
-          for (const useClause of useClauses) {
-            useClause.parent = context;
-          }
+
 
           libraries = defaultLibrary.slice(0);
-          useClauses = [];
+          useClausesPrepare = [];
           contextReferences = [];
           this.file.contexts.push(context);
         } else {
@@ -174,8 +172,15 @@ export class Parser extends ParserBase {
         libraries.push(this.consumeToken());
         this.expect(';');
       } else if (nextToken.getLText() === 'use') {
-        const useClauseParser = new UseClauseParser(this.pos, this.filePath, this.file);
-        useClauses.push(useClauseParser.parse());
+
+        useClausesPrepare.push
+        const library = this.consumeToken();
+        this.expect('.');
+        const packageName = this.consumeToken();
+        this.expect('.');
+        const suffix = this.consumeToken();
+        this.expect(';');
+        useClausesPrepare.push([library, packageName, suffix]);
       } else if (nextToken.getLText() === 'entity') {
         const entityParser = new EntityParser(this.pos, this.filePath, this.file);
         const entity = entityParser.parse();
@@ -184,14 +189,11 @@ export class Parser extends ParserBase {
         for (const contextReference of contextReferences) {
           contextReference.parent = entity;
         }
-        for (const useClause of useClauses) {
-          useClause.parent = entity;
-        }
         contextReferences = [];
-        entity.useClauses.push(...getDefaultUseClause(entity), ...useClauses);
+        entity.useClauses.push(...getUseClauses(entity));
         entity.libraries.push(...libraries.map(library => new OLibrary(entity, library)));
         libraries = defaultLibrary.slice(0);
-        useClauses = [];
+        useClausesPrepare = [];
         if (this.onlyEntity) {
           break;
         }
@@ -204,28 +206,24 @@ export class Parser extends ParserBase {
         for (const contextReference of contextReferences) {
           contextReference.parent = architecture;
         }
-        for (const useClause of useClauses) {
-          useClause.parent = architecture;
-        }
+
         contextReferences = [];
-        architecture.useClauses.push(...getDefaultUseClause(architecture), ...useClauses);
+        architecture.useClauses.push(...getUseClauses(architecture));
         architecture.libraries.push(...libraries.map(library => new OLibrary(architecture, library)));
 
         libraries = defaultLibrary.slice(0);
-        useClauses = [];
+        useClausesPrepare = [];
       } else if (nextToken.getLText() === 'package') {
         const pkg = (this.getToken(2, true).getLText() === 'new')
           ? new PackageInstantiationParser(this.pos, this.filePath, this.file).parse()
           : new PackageParser(this.pos, this.filePath).parse(this.file);
-        pkg.useClauses.push(...getDefaultUseClause(pkg), ...useClauses);
+        pkg.useClauses.push(...getUseClauses(pkg));
         pkg.libraries.push(...libraries.map(library => new OLibrary(pkg, library)));
         pkg.contextReferences = contextReferences;
         for (const contextReference of contextReferences) {
           contextReference.parent = pkg;
         }
-        for (const useClause of useClauses) {
-          useClause.parent = pkg;
-        }
+
         if (pkg instanceof OPackageInstantiation) {
           this.file.packageInstantiations.push(pkg);
           this.expect(';'); // package instantiations do not parse ';'
@@ -234,7 +232,7 @@ export class Parser extends ParserBase {
         }
         contextReferences = [];
         libraries = defaultLibrary.slice(0);
-        useClauses = [];
+        useClausesPrepare = [];
       } else if (nextToken.getLText() === 'configuration') {
         const configuration = new OConfiguration(this.file, this.getToken().range.copyExtendEndOfLine());
         configuration.identifier = this.consumeToken();
