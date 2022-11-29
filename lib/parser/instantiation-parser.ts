@@ -29,7 +29,11 @@ export class InstantiationParser extends ParserBase {
       nextToken = this.consumeToken();
     }
     instantiation.componentName = nextToken;
-    instantiation.lexerToken = nextToken;
+    if (label !== undefined) {
+      instantiation.lexerToken = label;
+    } else {
+      instantiation.lexerToken = nextToken;
+    }
 
     if (instantiation.type === 'entity' && this.getToken().getLText() === '(') {
       this.expect('(');
