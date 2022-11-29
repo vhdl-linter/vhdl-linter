@@ -1,6 +1,6 @@
 import { RuleBase, IRule } from "./rules-base";
 import { DiagnosticSeverity } from "vscode-languageserver";
-import { implementsIHasConstants, implementsIHasForGenerates, implementsIHasGenerics, implementsIHasIfGenerates, implementsIHasInstantiations, implementsIHasLexerToken, implementsIHasPorts, implementsIHasSignals, implementsIHasTypes, implementsIHasVariables, OArchitecture, ObjectBase, OFile, OPackageBody, OType } from "../parser/objects";
+import { implementsIHasConstants, implementsIHasGenerics, implementsIHasIfGenerates, implementsIHasInstantiations, implementsIHasLexerToken, implementsIHasPorts, implementsIHasSignals, implementsIHasTypes, implementsIHasVariables, OArchitecture, ObjectBase, OFile, OPackageBody, OType } from "../parser/objects";
 
 export class RMultipleDefinition extends RuleBase implements IRule {
   public name = 'multiple-definition';
