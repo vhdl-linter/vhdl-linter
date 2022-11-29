@@ -1,0 +1,2 @@
+## Acknowledgements
+This emacs major mode has been developed by [Reto Zimmermann](https://guest.iis.ee.ethz.ch/~zimmi/) (maintainer) and [Rod Whitby](http://www.rwhitby.net/) and published on their [website](https://guest.iis.ee.ethz.ch/~zimmi/emacs/vhdl-mode.html).

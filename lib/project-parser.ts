@@ -5,6 +5,18 @@ import { join, sep } from 'path';
 import { OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
 import { SettingsGetter, VhdlLinter } from './vhdl-linter';
 
+
+export function getRootDirectory() {
+  let currentDir = __dirname;
+  let iterations = 10;
+  while (!existsSync(join(currentDir, 'package.json'))) {
+    currentDir = join(currentDir, '..')
+    if (iterations-- === 0) {
+      throw new Error('Could not find root directory');
+    }
+  }
+  return currentDir
+}
 export class ProjectParser {
 
   public cachedFiles: FileCache[] = [];
@@ -54,24 +66,13 @@ export class ProjectParser {
       this.watchers.push(watcher);
     }
   }
-  private getRootDirectory() {
-    let currentDir = __dirname;
-    let iterations = 10;
-    while (!existsSync(join(currentDir, 'package.json'))) {
-      currentDir = join(currentDir, '..')
-      if (iterations-- === 0) {
-        throw new Error('Could not find root directory');
-      }
-    }
-    return currentDir
-  }
   private async init(disableWatching: boolean) {
     const files = new Set<string>();
     await Promise.all(this.workspaces.map(async (directory) => {
       const directories = await this.parseDirectory(directory);
       return (await Promise.all(directories.map(file => promises.realpath(file)))).forEach(file => files.add(file));
     }));
-    const rootDirectory = this.getRootDirectory();
+    const rootDirectory = getRootDirectory();
     (await this.parseDirectory(join(rootDirectory, 'ieee2008'))).forEach(file => files.add(file));
 
     for (const file of files) {
