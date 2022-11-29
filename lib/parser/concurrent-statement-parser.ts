@@ -49,7 +49,7 @@ export class ConcurrentStatementParser extends ParserBase {
       if (typeof label === 'undefined') {
         throw new ParserError('A block needs a label.', block.range);
       }
-      block.label = label;
+      block.lexerToken = label;
       this.advanceWhitespace();
       //        console.log(generate, generate.constructor.name);
       (this.parent as OArchitecture).statements.push(block);
@@ -140,7 +140,7 @@ export class ConcurrentStatementParser extends ParserBase {
 
       const condition = this.advancePast('generate');
       this.debug('parse elsif generate ' + label);
-      const subarchitecture = new ArchitectureParser(this.pos, this.filePath, this.parent.parent, this.parent.parent.label);
+      const subarchitecture = new ArchitectureParser(this.pos, this.filePath, this.parent.parent, this.parent.parent.lexerToken);
       const ifGenerateObject = subarchitecture.parse(true, 'generate');
       ifGenerateObject.range = ifGenerateObject.range.copyWithNewStart(savedI);
 
@@ -163,7 +163,7 @@ export class ConcurrentStatementParser extends ParserBase {
       previousArchitecture.range = previousArchitecture.range.copyWithNewEnd(this.getToken(-1, true).range.copyExtendEndOfLine().end);
       this.advancePast('generate');
       this.debug('parse else generate ' + label);
-      const subarchitecture = new ArchitectureParser(this.pos, this.filePath, this.parent.parent, this.parent.parent.label);
+      const subarchitecture = new ArchitectureParser(this.pos, this.filePath, this.parent.parent, this.parent.parent.lexerToken);
 
       const elseGenerateObject = subarchitecture.parse(true, 'generate');
       elseGenerateObject.range = elseGenerateObject.range.copyWithNewStart(savedI);

@@ -38,6 +38,7 @@ export class RMultipleDefinition extends RuleBase implements IRule {
       if (implementsIHasConstants(obj)) {
         objList.push(...obj.constants);
       }
+      // if ()
       // subprograms can be overloaded
       if (implementsIHasTypes(obj)) {
         for (const type of obj.types) {

@@ -486,8 +486,7 @@ export class OArchitecture extends ObjectBase implements IHasSubprograms, IHasCo
     return generates;
   }
 }
-export class OBlock extends OArchitecture {
-  label: OLexerToken;
+export class OBlock extends OArchitecture implements IHasLexerToken {
   guardCondition?: ORead[];
 }
 export class OType extends ObjectBase implements IReferenceable, IHasSubprograms, IHasSignals, IHasConstants, IHasVariables,
@@ -572,7 +571,7 @@ export class OWhenGenerateClause extends OArchitecture {
   public parent: OCaseGenerate;
 }
 export class OIfGenerate extends ObjectBase {
-  constructor(public parent: ObjectBase | OFile, public range: OIRange, public label: OLexerToken) {
+  constructor(public parent: ObjectBase | OFile, public range: OIRange, public lexerToken: OLexerToken) {
     super(parent, range);
   }
   ifGenerates: OIfGenerateClause[] = [];
@@ -794,7 +793,6 @@ export class OProcess extends OHasSequentialStatements implements IHasSubprogram
   useClauses: OUseClause[] = [];
   packageDefinitions: OPackage[] = [];
   sensitivityList: ORead[] = [];
-  label?: OLexerToken;
   types: OType[] = [];
   subprograms: OSubprogram[] = [];
   variables: OVariable[] = [];

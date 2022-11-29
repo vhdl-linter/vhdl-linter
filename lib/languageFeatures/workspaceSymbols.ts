@@ -12,7 +12,7 @@ export async function handleOnWorkspaceSymbol(params: WorkspaceSymbolParams): Pr
         symbols.push(SymbolInformation.create(object.lexerToken?.text + ': ' + object.componentName, SymbolKind.Object, object.range, URI.file(cachedFile.path).toString()));
       }
       if (object instanceof OProcess) {
-        symbols.push(SymbolInformation.create(object.label?.text ?? '', SymbolKind.Object, object.range, URI.file(cachedFile.path).toString()));
+        symbols.push(SymbolInformation.create(object.lexerToken?.text ?? '', SymbolKind.Object, object.range, URI.file(cachedFile.path).toString()));
       }
       if (object instanceof OSubprogram) {
         symbols.push(SymbolInformation.create(object.lexerToken.text ?? '', SymbolKind.Object, object.range, URI.file(cachedFile.path).toString()));

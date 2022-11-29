@@ -12,7 +12,7 @@ function parseArchitecture(architecture: OArchitecture, linter: VhdlLinter): Doc
     selectionRange: instantiation.range
   })));
   symbols.push(...architecture.blocks.map(block => ({
-    name: block.label?.text,
+    name: block.lexerToken.text,
     detail: 'block',
     kind: SymbolKind.Object,
     range: block.range,
@@ -20,7 +20,7 @@ function parseArchitecture(architecture: OArchitecture, linter: VhdlLinter): Doc
     children: parseArchitecture(block, linter)
   })));
   symbols.push(...architecture.processes.map(process => ({
-    name: process.label?.text || 'no label',
+    name: process.lexerToken?.text || 'no label',
     detail: 'process',
     kind: SymbolKind.Function,
     range: process.range,
