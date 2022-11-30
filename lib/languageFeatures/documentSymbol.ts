@@ -5,14 +5,14 @@ import { VhdlLinter } from '../vhdl-linter';
 function parseArchitecture(architecture: OArchitecture, linter: VhdlLinter): DocumentSymbol[] {
   const symbols: DocumentSymbol[] = [];
   symbols.push(...architecture.instantiations.map(instantiation => ({
-    name: (instantiation.label !== undefined ? (instantiation.label + ': ') : '') + instantiation.componentName,
+    name: (instantiation.lexerToken !== undefined ? (instantiation.lexerToken + ': ') : '') + instantiation.componentName,
     detail: 'instantiation',
     kind: SymbolKind.Module,
     range: instantiation.range,
     selectionRange: instantiation.range
   })));
   symbols.push(...architecture.blocks.map(block => ({
-    name: block.label?.text,
+    name: block.lexerToken.text,
     detail: 'block',
     kind: SymbolKind.Object,
     range: block.range,
@@ -20,7 +20,7 @@ function parseArchitecture(architecture: OArchitecture, linter: VhdlLinter): Doc
     children: parseArchitecture(block, linter)
   })));
   symbols.push(...architecture.processes.map(process => ({
-    name: process.label?.text || 'no label',
+    name: process.lexerToken?.text || 'no label',
     detail: 'process',
     kind: SymbolKind.Function,
     range: process.range,
