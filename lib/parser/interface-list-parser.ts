@@ -10,7 +10,9 @@ export class InterfaceListParser extends ParserBase {
     super(pos, file);
     this.debug('start');
   }
-
+  // TODO: Interface list parser does not correctly recognize parameter
+  // Currently only port and generics exists. parameter interface list gets handles as port which is wrong and leads to problems with more restrictive testing.
+  // Checkers can be commented back in then.
   parse(generics: boolean) {
     this.debug('parse');
     this.expect('(');
@@ -38,9 +40,9 @@ export class InterfaceListParser extends ParserBase {
       const nextToken = this.getToken();
 
       if (nextToken.getLText() === 'package') {
-        if (generics === false) {
-          throw new ParserError('Port list may only contain signal interface declarations', nextToken.range);
-        }
+        // if (generics === false) {
+        //   throw new ParserError('Port list may only contain signal interface declarations', nextToken.range);
+        // }
         this.consumeToken(); // consume 'package'
         ports.push(new InterfacePackageParser(this.pos, this.filePath, this.parent).parse());
         this.maybe(';');
@@ -57,18 +59,18 @@ export class InterfaceListParser extends ParserBase {
           new OPort(this.parent, this.getToken().range.copyExtendEndOfLine());
 
         if (nextToken.getLText() === 'type') {
-          if (generics === false) {
-            throw new ParserError('Port list may only contain signal interface declarations', nextToken.range);
-          }
+          // if (generics === false) {
+          //   throw new ParserError('Port list may only contain signal interface declarations', nextToken.range);
+          // }
           this.consumeToken();
           port.lexerToken = this.consumeToken();
           ports.push(port);
           this.maybe(';');
 
         } else {
-          if (generics === false && (nextToken.getLText() === 'variable' || nextToken.getLText() === 'constant' || nextToken.getLText() === 'file')) {
-            throw new ParserError('Port list may only contain signal interface declarations', nextToken.range);
-          }
+          // if (generics === false && (nextToken.getLText() === 'variable' || nextToken.getLText() === 'constant' || nextToken.getLText() === 'file')) {
+          //   throw new ParserError('Port list may only contain signal interface declarations', nextToken.range);
+          // }
           if (nextToken.getLText() === 'signal' || nextToken.getLText() === 'variable' || nextToken.getLText() === 'constant' || nextToken.getLText() === 'file') {
             this.consumeToken();
           }
