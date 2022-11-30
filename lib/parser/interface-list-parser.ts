@@ -1,4 +1,4 @@
-import { OComponent, OEntity, OGeneric, OIRange, OPackage, OPort, OSubprogram, OGenericConstant } from './objects';
+import { OComponent, OEntity, OGeneric, OIRange, OPackage, OPort, OSubprogram, OGenericConstant, ParserError } from './objects';
 import { ParserBase } from './parser-base';
 import { SubprogramParser } from './subprogram-parser';
 import { ParserPosition } from './parser';
@@ -17,12 +17,12 @@ export class InterfaceListParser extends ParserBase {
     const ports: (OPort | OGeneric)[] = [];
     if (generics) {
       if (this.parent instanceof OSubprogram) {
-        throw new Error('Subprogram cannot have generics');
+        throw new ParserError('Subprogram cannot have generics', this.parent.range);
       }
       this.parent.generics = ports as OGeneric[];
     } else {
       if (this.parent instanceof OPackage) {
-        throw new Error('Package instantiations can only have generics and no ports');
+        throw new ParserError('Package instantiations can only have generics and no ports', this.parent.range);
       }
       this.parent.ports = ports as OPort[];
     }
@@ -35,13 +35,19 @@ export class InterfaceListParser extends ParserBase {
         this.consumeToken();
         break;
       }
-      const nextWord = this.getToken();
+      const nextToken = this.getToken();
 
-      if (nextWord.getLText() === 'package') {
+      if (nextToken.getLText() === 'package') {
+        if (generics === false) {
+          throw new ParserError('Port list may only contain signal interface declarations', nextToken.range);
+        }
         this.consumeToken(); // consume 'package'
         ports.push(new InterfacePackageParser(this.pos, this.filePath, this.parent).parse());
         this.maybe(';');
-      } else if (nextWord.getLText() === 'procedure' || nextWord.getLText() === 'impure' || nextWord.getLText() === 'pure' || nextWord.getLText() === 'function') {
+      } else if (nextToken.getLText() === 'procedure' || nextToken.getLText() === 'impure' || nextToken.getLText() === 'pure' || nextToken.getLText() === 'function') {
+        if (generics === false) {
+          throw new ParserError('Port list may only contain signal interface declarations', nextToken.range);
+        }
         const subprogramParser = new SubprogramParser(this.pos, this.filePath, this.parent);
         this.parent.subprograms.push(subprogramParser.parse());
         this.maybe(';');
@@ -50,15 +56,20 @@ export class InterfaceListParser extends ParserBase {
           new OGenericConstant(this.parent, this.getToken().range.copyExtendEndOfLine()) :
           new OPort(this.parent, this.getToken().range.copyExtendEndOfLine());
 
-
-        if (nextWord.getLText() === 'type') {
+        if (nextToken.getLText() === 'type') {
+          if (generics === false) {
+            throw new ParserError('Port list may only contain signal interface declarations', nextToken.range);
+          }
           this.consumeToken();
           port.lexerToken = this.consumeToken();
           ports.push(port);
           this.maybe(';');
 
         } else {
-          if (nextWord.getLText() === 'signal' || nextWord.getLText() === 'variable' || nextWord.getLText() === 'constant' || nextWord.getLText() === 'file') {
+          if (generics === false && (nextToken.getLText() === 'variable' || nextToken.getLText() === 'constant' || nextToken.getLText() === 'file')) {
+            throw new ParserError('Port list may only contain signal interface declarations', nextToken.range);
+          }
+          if (nextToken.getLText() === 'signal' || nextToken.getLText() === 'variable' || nextToken.getLText() === 'constant' || nextToken.getLText() === 'file') {
             this.consumeToken();
           }
           port.lexerToken = this.consumeToken();

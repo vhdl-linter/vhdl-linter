@@ -293,7 +293,7 @@ interface IHasLibraryReference {
 export function implementsIHasLibraryReference(obj: ObjectBase): obj is ObjectBase & IHasLibraryReference {
   return (obj as ObjectBase & IHasLibraryReference).library !== undefined;
 }
-export class OGeneric extends ObjectBase implements IHasDefinitions {
+export abstract class OGeneric extends ObjectBase implements IHasDefinitions {
   reads: ORead[] = [];
   definitions: (OGeneric | OPackage)[] = [];
   references: OReference[] = [];

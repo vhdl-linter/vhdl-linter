@@ -131,6 +131,7 @@ export class Parser extends ParserBase {
       new OLexerToken('std', new OIRange(this.file, 0, 0), TokenType.keyword),
       new OLexerToken('work', new OIRange(this.file, 0, 0), TokenType.keyword),
     ];
+    // store useclauses to be attached to the next design unit
     let useClausesPrepare: [OLexerToken, OLexerToken, OLexerToken][] = [];
     const getUseClauses = (parent: ObjectBase) => {
       return [
@@ -140,7 +141,6 @@ export class Parser extends ParserBase {
         ...useClausesPrepare.map(([library, packageName, suffix]) => new OUseClause(parent, library, packageName, suffix))
       ];
     }
-    // TODO: Add library STD, WORK; use STD.STANDARD.all;
     let libraries = defaultLibrary.slice(0);
     this.advanceWhitespace();
 
@@ -197,7 +197,6 @@ export class Parser extends ParserBase {
         if (this.onlyEntity) {
           break;
         }
-        //         // console.log(this.file, typeof this.file.entity, 'typeof');
       } else if (nextToken.getLText() === 'architecture') {
         const architectureParser = new ArchitectureParser(this.pos, this.filePath, this.file);
         const architecture = architectureParser.parse();

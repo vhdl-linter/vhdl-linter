@@ -33,7 +33,6 @@ export async function handleDocumentFormatting(params: DocumentFormattingParams,
   try {
     await promisify(exec)(`emacs --batch --eval "(setq-default vhdl-basic-offset ${numSpaces})" ` +
       `--eval "(setq load-path (cons (expand-file-name \\"${emacsLoadPath}\\") load-path))" ` +
-      `--eval "(setq-default vhdl-standard '(08 nil))"` +
       ` -l ${emacsScripts} -f vhdl-batch-indent-region ${tmpFile}`, { signal });
   } catch (e) {
     if (e.name === "AbortError") {
