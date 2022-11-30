@@ -64,7 +64,7 @@ export class RInstantiation extends RuleBase implements IRule {
         const totalLength = elements.length;
         // TODO: Implement alias function loopkup for optional parameters
         // This assumes all SubprogramAlias Parameters are optional. This actually depends on the function definition
-        const withDefault = elements.filter(p => (p instanceof OTypeMark) || p.defaultValue !== undefined).length;
+        const withDefault = elements.filter(p => (p instanceof OTypeMark) || (p as OPort).defaultValue !== undefined).length;
         const result = [];
         for (let i = totalLength; i >= totalLength - withDefault; i--) {
           result.push(i);
@@ -99,7 +99,7 @@ export class RInstantiation extends RuleBase implements IRule {
           const missing: (OPort | OGeneric)[] = [];
           for (const element of _interface) {
             if (((element instanceof OPort && element.direction === 'in') || element instanceof OGeneric)
-              && typeof element.defaultValue === 'undefined'
+              && typeof (element as OPort).defaultValue === 'undefined'
               && typeof foundElements.find(search => search.lexerTokenEquals(element)) === 'undefined') {
               missing.push(element);
             }

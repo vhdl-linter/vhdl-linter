@@ -1,5 +1,5 @@
 import { DiagnosticSeverity } from "vscode-languageserver/node";
-import { implementsIHasUseClause, implementsIHasContextReference, scope, implementsIHasPackageInstantiations, OPackage, IHasContextReference, IHasUseClauses, OArchitecture, ObjectBase, OFile, OPackageBody } from "../parser/objects";
+import { implementsIHasUseClause, implementsIHasContextReference, scope, OPackage, IHasContextReference, IHasUseClauses, OArchitecture, ObjectBase, OFile, OPackageBody, implementsIHasGenerics, implementsIHasPackageInstantiations, OInterfacePackage } from "../parser/objects";
 import { ProjectParser } from "../project-parser";
 import { VhdlLinter } from "../vhdl-linter";
 
@@ -18,6 +18,7 @@ export function elaborateUseClauses(file: OFile, projectParser: ProjectParser, v
           for (const foundPkg of packages) {
             if (foundPkg.lexerToken.getLText() === useClause.packageName.getLText()) {
               obj.packageDefinitions.push(foundPkg);
+              useClause.definitions.push(foundPkg);
               found = true;
             }
           }
@@ -28,6 +29,8 @@ export function elaborateUseClauses(file: OFile, projectParser: ProjectParser, v
               const uninstantiatedPackage = packages.find(p => p.lexerToken.getLText() === foundPkg.uninstantiatedPackageToken.getLText());
               if (uninstantiatedPackage) {
                 obj.packageDefinitions.push(uninstantiatedPackage);
+                useClause.definitions.push(uninstantiatedPackage);
+
               } else {
                 vhdlLinter.addMessage({
                   range: useClause.range,
@@ -44,6 +47,14 @@ export function elaborateUseClauses(file: OFile, projectParser: ProjectParser, v
           for (const [iterator] of scope(obj)) {
             if (implementsIHasPackageInstantiations(iterator)) {
               pkgInstantations.push(...iterator.packageInstantiations);
+            }
+            if (implementsIHasGenerics(iterator)) {
+              for (const generic of iterator.generics) {
+                if (generic instanceof OInterfacePackage) {
+                  pkgInstantations.push(generic);
+                }
+              }
+
             }
           }
 
@@ -65,9 +76,12 @@ export function elaborateUseClauses(file: OFile, projectParser: ProjectParser, v
             }
             continue;
           }
+          packageInstantiation.references.push(useClause);
           const uninstantiatedPackage = (packages.filter(p => p instanceof OPackage) as OPackage[]).find(p => p.lexerToken.getLText() === packageInstantiation.uninstantiatedPackageToken.text.toLowerCase());
           if (uninstantiatedPackage) {
             obj.packageDefinitions.push(uninstantiatedPackage);
+            useClause.definitions.push(uninstantiatedPackage);
+
             found = true;
 
           } else {
