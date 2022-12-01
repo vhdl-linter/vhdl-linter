@@ -1,0 +1,32 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`testing document highlight snapshop write 1`] = `
+[
+  {
+    "kind": 2,
+    "range": {
+      "end": {
+        "character": 12,
+        "line": 8,
+      },
+      "start": {
+        "character": 9,
+        "line": 8,
+      },
+    },
+  },
+  {
+    "kind": 3,
+    "range": {
+      "end": {
+        "character": 3,
+        "line": 13,
+      },
+      "start": {
+        "character": 0,
+        "line": 13,
+      },
+    },
+  },
+]
+`;
