@@ -20,6 +20,7 @@ import { existsSync } from 'fs';
 import { ISettings, defaultSettings } from './settings';
 import { CancelationError, CancelationObject } from './server-objects';
 import { getDocumentSymbol } from './languageFeatures/documentSymbol';
+import { findObjectFromPosition } from './languageFeatures/findObjectFromPosition';
 
 // Create a connection for the server. The connection auto detected protocol
 // Also include all preview / proposed LSP features.
@@ -273,17 +274,7 @@ const findDefinitions = async (params: IFindDefinitionParams): Promise<(Definiti
     return [];
   }
 
-  const startI = linter.getIFromPosition(params.position);
-  let candidates = linter.file?.objectList.filter(object => object.range.start.i <= startI && startI <= object.range.end.i) ?? [];
-  for (const architecture of linter.file.architectures) {
-    candidates.push(...architecture.components.filter(object => object.range.start.i <= startI && startI <= object.range.end.i));
-  }
-  candidates.sort((a, b) => (a.range.end.i - a.range.start.i) - (b.range.end.i - b.range.start.i));
-  if (candidates.length === 0) {
-    return [];
-  }
-  const firstRange = candidates[0].range.end.i - candidates[0].range.start.i;
-  candidates = candidates.filter(c => (c.range.end.i - c.range.start.i) === firstRange);
+  const candidates = findObjectFromPosition(linter, params.position);
   return candidates.flatMap(candidate => {
     if (implementsIHasDefinitions(candidate) && candidate.definitions) {
       return candidate.definitions.map(definition => {
@@ -348,7 +339,18 @@ connection.onPrepareRename(prepareRenameHandler);
 connection.onRenameRequest(renameHandler);
 connection.onDocumentFormatting(handleDocumentFormatting);
 connection.onFoldingRanges(foldingHandler);
-connection.onDocumentHighlight(documentHighlightHandler);
+connection.onDocumentHighlight(async (params, cancelationToken) => {
+  await initialization;
+  const linter = linters.get(params.textDocument.uri);
+  if (!linter) {
+    return [];
+  }
+  if (cancelationToken.isCancellationRequested) {
+    return [];
+  }
+  return documentHighlightHandler(linter, params);
+
+});
 connection.onCodeLens(handleCodeLens);
 connection.onReferences(findReferencesHandler);
 connection.onExecuteCommand(handleExecuteCommand);
