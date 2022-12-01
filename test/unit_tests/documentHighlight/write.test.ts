@@ -1,10 +1,8 @@
 import { expect, test } from '@jest/globals';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { DocumentHighlightKind } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { Elaborate } from '../../../lib/elaborate/elaborate';
-import { getCompletions } from '../../../lib/languageFeatures/completion';
 import { documentHighlightHandler } from '../../../lib/languageFeatures/documentHightlightHandler';
 import { ProjectParser } from '../../../lib/project-parser';
 import { defaultSettingsGetter } from '../../../lib/settings';
