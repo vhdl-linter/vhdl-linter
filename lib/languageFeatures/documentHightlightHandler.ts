@@ -1,9 +1,10 @@
 import { DocumentHighlight, DocumentHighlightKind, TextDocumentPositionParams } from 'vscode-languageserver';
+import { OLexerToken } from '../lexer';
 import { IHasLexerToken, IHasReferenceToken, implementsIHasLexerToken, implementsIHasReferenceToken, ObjectBase, OWrite } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
 import { findObjectFromPosition } from './findObjectFromPosition';
 
-export function documentHighlightHandler(linter: VhdlLinter, params: TextDocumentPositionParams): DocumentHighlight[]  {
+export function documentHighlightHandler(linter: VhdlLinter, params: TextDocumentPositionParams): DocumentHighlight[] {
     const startI = linter.getIFromPosition(params.position);
 
     const candidates = findObjectFromPosition(linter, params.position)
@@ -21,15 +22,16 @@ export function documentHighlightHandler(linter: VhdlLinter, params: TextDocumen
             }
             return false;
 
-        }) as (ObjectBase & (IHasLexerToken | IHasReferenceToken))[]
+        }) as (ObjectBase & (IHasLexerToken | IHasReferenceToken))[];
 
-    const candidate = candidates[0];
-    if (candidate === undefined) {
+    if (candidates.length === 0) {
         return [];
     }
+    const candidate = candidates[0];
     const highlights: DocumentHighlight[] = [];
-    if (implementsIHasLexerToken(candidate)) {
-        const name = candidate.lexerToken.getLText();
+
+    const searchForToken = (token: OLexerToken) => {
+        const name = token.getLText();
         for (const object of linter.file.objectList) {
             if (implementsIHasLexerToken(object) && object.lexerToken.getLText() === name) {
                 highlights.push({
@@ -43,24 +45,12 @@ export function documentHighlightHandler(linter: VhdlLinter, params: TextDocumen
                 });
             }
         }
-
+    }
+    if (implementsIHasLexerToken(candidate)) {
+        searchForToken(candidate.lexerToken);
     }
     if (implementsIHasReferenceToken(candidate)) {
-        const name = candidate.referenceToken.getLText();
-        for (const object of linter.file.objectList) {
-            if (implementsIHasLexerToken(object) && object.lexerToken.getLText() === name) {
-                highlights.push({
-                    range: object.lexerToken.range,
-                    kind: object instanceof OWrite ? DocumentHighlightKind.Write : DocumentHighlightKind.Read
-                });
-            } else if (implementsIHasReferenceToken(object) && object.referenceToken.getLText() === name) {
-                highlights.push({
-                    range: object.referenceToken.range,
-                    kind: object instanceof OWrite ? DocumentHighlightKind.Write : DocumentHighlightKind.Read
-                });
-            }
-        }
-
+        searchForToken(candidate.referenceToken);
     }
     return highlights;
 
