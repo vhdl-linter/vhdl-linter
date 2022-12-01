@@ -4,7 +4,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 entity test_generic_function is
   generic (
-    function size return integer;
+    function size return integer
     );
   port(
     o_dummy : out integer

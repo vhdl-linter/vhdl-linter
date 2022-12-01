@@ -6,8 +6,6 @@ entity test_generic_procedure is
   generic (
     procedure test_procedure
     );
-  port(
-    );
 
 end test_generic_procedure;
 
