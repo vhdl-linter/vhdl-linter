@@ -133,8 +133,8 @@ export class InterfaceListParser extends ParserBase {
       }
 
       if (this.getToken(startOffset - 1, true).getLText() === 'port'
-      || this.getToken(startOffset - 1, true).getLText() === 'generic'
-      || this.getToken(startOffset - 1, true).getLText() === 'parameter') {
+        || this.getToken(startOffset - 1, true).getLText() === 'generic'
+        || this.getToken(startOffset - 1, true).getLText() === 'parameter') {
         startOffset--;
       }
       const closingBracket = this.getToken(-1, true);
@@ -142,15 +142,16 @@ export class InterfaceListParser extends ParserBase {
       if (this.getToken().getLText() === ';') {
         endDel = this.getToken();
       }
-      throw new ParserError(`Empty interface list is not allowed`,
-        startToken.range.copyWithNewEnd(closingBracket.range),
-        {
+      this.state.messages.push({
+        message: `Empty interface list is not allowed`,
+        range: startToken.range.copyWithNewEnd(closingBracket.range),
+        solution: {
           message: 'remove interface list',
           edits: [
             TextEdit.del(this.getToken(startOffset, true).range.copyWithNewEnd(endDel.range))
           ]
         }
-      );
+      });
     }
     this.debug('parseEnd');
 
@@ -170,9 +171,13 @@ export class InterfaceListParser extends ParserBase {
       this.consumeToken();
       if (this.getToken().text === ')') {
         const range = new OIRange(parent, startI, startI + 1).copyExtendBeginningOfLine();
-        throw new ParserError(`Unexpected ';' at end of interface list`, range, {
-          message: `Remove ';'`,
-          edits: [TextEdit.del(new OIRange(parent, startI, startI + 1))]
+        this.state.messages.push({
+          message: `Unexpected ';' at end of interface list`,
+          range,
+          solution: {
+            message: `Remove ';'`,
+            edits: [TextEdit.del(new OIRange(parent, startI, startI + 1))]
+          }
         });
       }
     }

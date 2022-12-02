@@ -1,7 +1,7 @@
 import { config } from './config';
 import { OLexerToken, TokenType } from '../lexer';
 import { OIDiagnostic } from '../vhdl-linter';
-import { OFile, ParserError, ObjectBase, ORead, OSelectedNameRead, OAssociation, OAssociationFormal, OAssociationFormalSelectedName, OWrite } from './objects';
+import { OFile, ParserError, ObjectBase, ORead, OSelectedNameRead, OAssociation, OAssociationFormal, OAssociationFormalSelectedName, OWrite, OIDiagnosticWithSolution } from './objects';
 
 
 export class ParserPosition {
@@ -26,7 +26,7 @@ export class ParserPosition {
 }
 
 export class ParserState {
-  public messages: OIDiagnostic[] = [];
+  public messages: OIDiagnosticWithSolution[] = [];
   constructor(public pos: ParserPosition, public filePath: string) { }
 }
 

@@ -340,8 +340,11 @@ export interface IHasPorts {
 export function implementsIHasPorts(obj: ObjectBase): obj is ObjectBase & IHasPorts {
   return (obj as ObjectBase & IHasPorts).ports !== undefined;
 }
+export interface OIDiagnosticWithSolution extends OIDiagnostic {
+  solution?: { message: string, edits: TextEdit[] };
+}
 export class OFile {
-  parserMessages: OIDiagnostic[] = [];
+  parserMessages: OIDiagnosticWithSolution[] = [];
   public lines: string[];
   constructor(public text: string, public file: string, public originalText: string) {
     this.lines = originalText.split('\n');
