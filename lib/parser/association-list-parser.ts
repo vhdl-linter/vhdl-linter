@@ -1,6 +1,7 @@
 import { OInstantiation, OAssociation, OGenericAssociationList as OGenericAssociationList, OIRange, OPortAssociationList as OPortAssotiationList, ParserError, OPackage, OPackageInstantiation } from './objects';
 import { ParserBase, ParserState } from './parser-base';
 import { OLexerToken } from '../lexer';
+import { DiagnosticSeverity } from 'vscode-languageserver';
 
 
 export class AssociationListParser extends ParserBase {
@@ -64,7 +65,8 @@ export class AssociationListParser extends ParserBase {
         if (this.getToken().getLText() === ')') {
           this.state.messages.push({
             message: `Unexpected ',' at end of association list`,
-            range: this.getToken().range.copyExtendBeginningOfLine()
+            range: this.getToken().range.copyExtendBeginningOfLine(),
+            severity: DiagnosticSeverity.Error
           });
         }
       } else if (lastChar.text === ')') {

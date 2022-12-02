@@ -153,13 +153,6 @@ export class ParserBase {
     while (this.state.pos.isValid() && this.getToken().isWhitespace()) {
       this.state.pos.num++;
     }
-    // const match = this.text.substring(this.state.pos.i).match(/^\s+/);
-    // if (match) {
-    //   this.state.pos.i += match[0].length;
-    // }
-    // while (this.text[this.state.pos.i] && this.text[this.state.pos.i].match(/\s/)) {
-    //   this.state.pos.i++;
-    // }
   }
   reverseWhitespace() {
     while (this.getToken().isWhitespace()) {
@@ -305,10 +298,6 @@ export class ParserBase {
     } else {
       [type] = this.advanceParentheseAware([';', 'is'], true, false);
     }
-    // while (this.text[this.state.pos.i].match(/[^;]/)) {
-    //   type += this.text[this.state.pos.i];
-    //   this.state.pos.i++;
-    // }
     let defaultValueReads;
     let typeReads;
     const index = type.findIndex(token => token.getLText() === ':=');
