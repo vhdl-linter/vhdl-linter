@@ -1,13 +1,12 @@
 import { DeclarativePartParser } from './declarative-part-parser';
 import { InterfaceListParser } from './interface-list-parser';
 import { ObjectBase, OSubprogram, ParserError } from './objects';
-import { ParserBase } from './parser-base';
+import { ParserBase, ParserState } from './parser-base';
 import { SequentialStatementParser } from './sequential-statement-parser';
-import { ParserPosition } from './parser';
 
 export class SubprogramParser extends ParserBase {
-  constructor(pos: ParserPosition, file: string, private parent: ObjectBase) {
-    super(pos, file);
+  constructor(state: ParserState, private parent: ObjectBase) {
+    super(state);
     this.debug(`start`);
 
   }
@@ -22,8 +21,7 @@ export class SubprogramParser extends ParserBase {
     subprogram.lexerToken = token;
     const parameter = this.maybe('parameter');
     if (this.getToken().getLText() === '(') {
-
-      const interfaceListParser = new InterfaceListParser(this.pos, this.filePath, subprogram);
+      const interfaceListParser = new InterfaceListParser(this.state, subprogram);
       interfaceListParser.parse(false);
     } else {
       if (parameter) {
@@ -37,13 +35,13 @@ export class SubprogramParser extends ParserBase {
     if (this.getToken().getLText() === 'is') {
       subprogram.hasBody = true;
       this.expect('is');
-      new DeclarativePartParser(this.pos, this.filePath, subprogram).parse();
+      new DeclarativePartParser(this.state, subprogram).parse();
       this.expect('begin');
-      subprogram.statements = new SequentialStatementParser(this.pos, this.filePath).parse(subprogram, ['end']);
+      subprogram.statements = new SequentialStatementParser(this.state).parse(subprogram, ['end']);
       this.expect('end');
       this.maybe(isFunction ? 'function' : 'procedure');
       this.maybe(token.text);
-      subprogram.range = subprogram.range.copyWithNewEnd(this.pos.i);
+      subprogram.range = subprogram.range.copyWithNewEnd(this.state.pos.i);
 
     }
 

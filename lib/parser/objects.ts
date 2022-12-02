@@ -1,5 +1,6 @@
 import { Position, Range, TextEdit } from 'vscode-languageserver';
 import { OLexerToken } from '../lexer';
+import { OIDiagnostic } from '../vhdl-linter';
 export class OI implements Position {
   protected i_?: number;
   constructor(parent: ObjectBase | OFile, i: number)
@@ -340,6 +341,7 @@ export function implementsIHasPorts(obj: ObjectBase): obj is ObjectBase & IHasPo
   return (obj as ObjectBase & IHasPorts).ports !== undefined;
 }
 export class OFile {
+  parserMessages: OIDiagnostic[] = [];
   public lines: string[];
   constructor(public text: string, public file: string, public originalText: string) {
     this.lines = originalText.split('\n');

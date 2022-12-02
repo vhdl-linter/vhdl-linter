@@ -1,16 +1,15 @@
 import { ObjectBase, OFile, OInterfacePackage } from './objects';
-import { ParserBase } from './parser-base';
-import { ParserPosition } from './parser';
+import { ParserBase, ParserState } from './parser-base';
 import { AssociationListParser } from './association-list-parser';
 
 export class InterfacePackageParser extends ParserBase {
-  constructor(pos: ParserPosition, file: string, private parent: ObjectBase | OFile) {
-    super(pos, file);
+  constructor(state: ParserState, private parent: ObjectBase | OFile) {
+    super(state);
     this.debug(`start`);
 
   }
   parse(): OInterfacePackage {
-    const inst = new OInterfacePackage(this.parent, this.pos.getRangeToEndLine());
+    const inst = new OInterfacePackage(this.parent, this.state.pos.getRangeToEndLine());
     inst.lexerToken = this.consumeToken();
     this.expect('is');
     this.expect('new');
@@ -20,7 +19,7 @@ export class InterfacePackageParser extends ParserBase {
     if (this.getToken().getLText() === 'generic') {
       this.consumeToken();
       this.expect('map');
-      inst.genericAssociationList = new AssociationListParser(this.pos, this.filePath, inst).parse('generic');
+      inst.genericAssociationList = new AssociationListParser(this.state, inst).parse('generic');
     }
 
     return inst;

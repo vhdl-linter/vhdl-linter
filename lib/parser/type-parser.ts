@@ -1,20 +1,18 @@
 import { OLexerToken } from '../lexer';
 import { DeclarativePartParser } from './declarative-part-parser';
 import { OArchitecture, OEntity, OEnum, OEnumLiteral, OIRange, OPackage, OPackageBody, OPort, OProcess, ORecord, ORecordChild, OSubprogram, OType, ParserError } from './objects';
-import { ParserPosition } from './parser';
-import { ParserBase } from './parser-base';
+import { ParserBase, ParserState } from './parser-base';
 
 
 export class TypeParser extends ParserBase {
-
-  constructor(pos: ParserPosition, file: string, private parent: OArchitecture | OEntity | OPackage | OPackageBody | OProcess | OSubprogram | OType) {
-    super(pos, file);
+  constructor(state: ParserState, private parent: OArchitecture | OEntity | OPackage | OPackageBody | OProcess | OSubprogram | OType) {
+    super(state);
     this.debug('start');
   }
   // Can this be generalizes somehow?
   isUnits(): boolean {
     let i = 0;
-    while (this.pos.num + i < this.pos.lexerTokens.length) {
+    while (this.state.pos.num + i < this.state.pos.lexerTokens.length) {
       if (this.getToken(i).getLText() === ';') {
         return false;
       } else if (this.getToken(i).getLText() === 'units') {
@@ -39,7 +37,7 @@ export class TypeParser extends ParserBase {
         this.expect('(');
         Object.setPrototypeOf(type, OEnum.prototype);
         const enumItems: OLexerToken[] = [];
-        while (this.pos.isValid()) {
+        while (this.state.pos.isValid()) {
           if (this.getToken().getLText() === '\'') {
             this.consumeToken();
           }
@@ -59,7 +57,7 @@ export class TypeParser extends ParserBase {
           enumLiteral.lexerToken = item;
           return enumLiteral;
         });
-        type.range = type.range.copyWithNewEnd(this.pos.i);
+        type.range = type.range.copyWithNewEnd(this.state.pos.i);
         this.advanceWhitespace();
         this.expect(';');
       } else if (this.isUnits()) {
@@ -73,7 +71,7 @@ export class TypeParser extends ParserBase {
         }
         this.expect('end');
         this.expect('units');
-        type.range = type.range.copyWithNewEnd(this.pos.i);
+        type.range = type.range.copyWithNewEnd(this.state.pos.i);
         this.expect(';');
       } else {
         const nextToken = this.consumeToken();
@@ -93,7 +91,7 @@ export class TypeParser extends ParserBase {
             const typeTokens = this.advanceSemicolon();
             for (const child of children) {
               child.reads = this.extractReads(child, typeTokens);
-              child.range = child.range.copyWithNewEnd(this.pos.i);
+              child.range = child.range.copyWithNewEnd(this.state.pos.i);
             }
             (type as ORecord).children.push(...children);
           }
@@ -109,7 +107,7 @@ export class TypeParser extends ParserBase {
           } else {
             type.protected = true;
           }
-          new DeclarativePartParser(this.pos, this.filePath, type).parse(false, 'end');
+          new DeclarativePartParser(this.state, type).parse(false, 'end');
           this.expect('end');
           this.expect('protected');
           this.maybe(type.lexerToken.text);
@@ -125,11 +123,11 @@ export class TypeParser extends ParserBase {
           port.direction = 'inout';
           deallocateProcedure.ports = [port];
         }
-        type.range = type.range.copyWithNewEnd(this.pos.i);
+        type.range = type.range.copyWithNewEnd(this.state.pos.i);
         this.advancePast(';');
       }
     } else {
-      type.range = type.range.copyWithNewEnd(this.pos.i);
+      type.range = type.range.copyWithNewEnd(this.state.pos.i);
       this.advancePast(';');
     }
     return type;

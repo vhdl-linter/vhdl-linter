@@ -4,6 +4,7 @@ import { join } from 'path';
 import { ProjectParser } from '../../../lib/project-parser';
 import { defaultSettingsGetter } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdl-linter';
+// Check the proposed solution/changes
 test.each([
   'empty_interface_list_generic.vhd',
   'empty_interface_list_parameter.vhd',
