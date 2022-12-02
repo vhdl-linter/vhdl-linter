@@ -8,5 +8,5 @@ entity semicolon_parameter_list is
     report integer'image(i_dummy);
   end procedure;
 begin
-dummy;
+dummy(5);
 end entity;
