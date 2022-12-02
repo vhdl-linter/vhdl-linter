@@ -1,6 +1,5 @@
-import { TextEdit } from 'vscode-languageserver';
 import { config } from './config';
-import { OAssociation, OAssociationFormal, ObjectBase, OSelectedNameRead, OGeneric, OIRange, OPort, ORead, OWrite, ParserError, OAssociationFormalSelectedName } from './objects';
+import { OAssociation, OAssociationFormal, ObjectBase, OSelectedNameRead, ORead, OWrite, ParserError, OAssociationFormalSelectedName } from './objects';
 import { ParserPosition } from './parser';
 import { OLexerToken, TokenType } from '../lexer';
 
@@ -39,39 +38,7 @@ export class ParserBase {
   // target = filter(object);
   //     console.log(`${this.constructor.name}: ${JSON.stringify(target, null, 2)} in line: ${this.getLine()}, (${this.file})`);
   // }
-  getTypeDefintion(parent: OGeneric | OPort) {
-    this.debug('getTypeDefintion');
-    const [type, last] = this.advanceParentheseAware([')', ';', ':='], true, false);
-    let defaultValue: OLexerToken[] = [];
-    if (last.getLText() === ':=') {
-      this.consumeToken();
-      [defaultValue] = this.advanceParentheseAware([')', ';'], true, false);
-    }
-    this.reverseWhitespace();
-    this.advanceWhitespace();
-    if (this.getToken().text === ';') {
-      const startI = this.pos.i;
-      this.consumeToken();
-      if (this.getToken().text === ')') {
-        const range = new OIRange(parent, startI, startI + 1).copyExtendBeginningOfLine();
-        throw new ParserError(`Unexpected ';' at end of port list`, range, {
-          message: `Remove ';'`,
-          edits: [TextEdit.del(new OIRange(parent, startI, startI + 1))]
-        });
-      }
-    }
-    if (defaultValue.length === 0) {
-      return {
-        type: type,
 
-      };
-
-    }
-    return {
-      type: type,
-      defaultValue: this.extractReads(parent, defaultValue),
-    };
-  }
   message(message: string, severity = 'error') {
     if (severity === 'error') {
       throw new ParserError(message + ` in line: ${this.getLine()}`, this.pos.getRangeToEndLine());
@@ -288,11 +255,11 @@ export class ParserBase {
       throw new ParserError(`expected '${expected.join(', ')}' found '${this.getToken().text}' line: ${this.getLine()}`, this.pos.getRangeToEndLine());
     }
   }
-  maybe(expected: string | OLexerToken) {
+  maybe(expected: string | OLexerToken): OLexerToken | false {
     const text = (typeof expected === 'string') ? expected.toLowerCase() : expected.getLText();
     if (this.getToken().getLText() === text) {
-      this.consumeToken();
-      return true;
+      const token = this.consumeToken();
+      return token;
     }
     return false;
   }

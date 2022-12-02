@@ -1,6 +1,6 @@
 import { DeclarativePartParser } from './declarative-part-parser';
 import { InterfaceListParser } from './interface-list-parser';
-import { ObjectBase, OSubprogram } from './objects';
+import { ObjectBase, OSubprogram, ParserError } from './objects';
 import { ParserBase } from './parser-base';
 import { SequentialStatementParser } from './sequential-statement-parser';
 import { ParserPosition } from './parser';
@@ -20,10 +20,15 @@ export class SubprogramParser extends ParserBase {
     const token = this.consumeToken();
     const subprogram = new OSubprogram(this.parent, nextWord.range.copyExtendEndOfLine());
     subprogram.lexerToken = token;
-
+    const parameter = this.maybe('parameter');
     if (this.getToken().getLText() === '(') {
+
       const interfaceListParser = new InterfaceListParser(this.pos, this.filePath, subprogram);
       interfaceListParser.parse(false);
+    } else {
+      if (parameter) {
+        throw new ParserError('After Parameter keyword parameter interface list is mandatory', parameter.range);
+      }
     }
     if (isFunction) {
       this.expect('return');
