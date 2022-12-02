@@ -42,11 +42,6 @@ export class ParserBase {
   }
 
 
-  message(message: string, severity = 'error') {
-    if (severity === 'error') {
-      throw new ParserError(message + ` in line: ${this.getLine()}`, this.state.pos.getRangeToEndLine());
-    }
-  }
   // Offset gives an offset to the current parser position. If offsetIgnoresWhitespaces is set whitespace (and comment) is not counted.
   // Meaning offset = 2 counts only the next two non-whitespaces tokens
   getToken(offset = 0, offsetIgnoresWhitespaces = false) {
