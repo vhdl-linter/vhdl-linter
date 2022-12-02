@@ -1,6 +1,5 @@
 import { config } from './config';
 import { OLexerToken, TokenType } from '../lexer';
-import { OIDiagnostic } from '../vhdl-linter';
 import { OFile, ParserError, ObjectBase, ORead, OSelectedNameRead, OAssociation, OAssociationFormal, OAssociationFormalSelectedName, OWrite, OIDiagnosticWithSolution } from './objects';
 
 
