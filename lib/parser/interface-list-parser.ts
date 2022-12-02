@@ -139,12 +139,16 @@ export class InterfaceListParser extends ParserBase {
         startOffset--;
       }
       const closingBracket = this.getToken(-1, true);
+      let endDel = closingBracket;
+      if (this.getToken().getLText() === ';') {
+        endDel = this.getToken();
+      }
       throw new ParserError(`Empty interface list is not allowed`,
         startToken.range.copyWithNewEnd(closingBracket.range),
         {
           message: 'remove interface list',
           edits: [
-            TextEdit.del(this.getToken(startOffset, true).range.copyWithNewEnd(closingBracket.range))
+            TextEdit.del(this.getToken(startOffset, true).range.copyWithNewEnd(endDel.range))
           ]
         }
       );

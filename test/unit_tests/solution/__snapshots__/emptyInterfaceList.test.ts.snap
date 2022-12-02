@@ -1,0 +1,55 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`testing solutions for file empty_interface_list.vhd 1`] = `
+[
+  {
+    "newText": "",
+    "range": {
+      "end": {
+        "character": 4,
+        "line": 2,
+      },
+      "start": {
+        "character": 2,
+        "line": 1,
+      },
+    },
+  },
+]
+`;
+
+exports[`testing solutions for file empty_interface_list_generic.vhd 1`] = `
+[
+  {
+    "newText": "",
+    "range": {
+      "end": {
+        "character": 4,
+        "line": 2,
+      },
+      "start": {
+        "character": 2,
+        "line": 1,
+      },
+    },
+  },
+]
+`;
+
+exports[`testing solutions for file empty_interface_list_parameter.vhd 1`] = `
+[
+  {
+    "newText": "",
+    "range": {
+      "end": {
+        "character": 20,
+        "line": 1,
+      },
+      "start": {
+        "character": 18,
+        "line": 1,
+      },
+    },
+  },
+]
+`;
