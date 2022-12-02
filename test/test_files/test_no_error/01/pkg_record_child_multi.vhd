@@ -7,7 +7,6 @@ package pkg_record_child_multi is
     element, this_also_exists : integer;
   end record t_testData;
 
-  constant x : t_testData;
   constant x : t_testData := (element => 1, this_also_exists => 1);
   constant y : integer := x.this_also_exists;
 end package;
