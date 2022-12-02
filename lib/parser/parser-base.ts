@@ -1,7 +1,8 @@
-import { Diagnostic, TextEdit } from 'vscode-languageserver';
+import { TextEdit } from 'vscode-languageserver';
 import { config } from './config';
 import { OAssociation, OAssociationFormal, ObjectBase, OSelectedNameRead, OGeneric, OIRange, OPort, ORead, OWrite, ParserError, OAssociationFormalSelectedName, OFile } from './objects';
 import { OLexerToken, TokenType } from '../lexer';
+import { OIDiagnostic } from '../vhdl-linter';
 
 
 export class ParserPosition {
@@ -26,7 +27,7 @@ export class ParserPosition {
 }
 
 export class ParserState {
-  messages: Diagnostic[] = [];
+  public messages: OIDiagnostic[] = [];
   constructor(public pos: ParserPosition, public filePath: string) { }
 }
 

@@ -62,7 +62,10 @@ export class AssociationListParser extends ParserBase {
       }
       if (lastChar.text === ',') {
         if (this.getToken().getLText() === ')') {
-          throw new ParserError(`Unexpected ',' at end of association list`, this.getToken().range.copyExtendBeginningOfLine());
+          this.state.messages.push({
+            message: `Unexpected ',' at end of association list`,
+            range: this.getToken().range.copyExtendBeginningOfLine()
+          });
         }
       } else if (lastChar.text === ')') {
         list.range = list.range.copyWithNewEnd(this.state.pos.i);

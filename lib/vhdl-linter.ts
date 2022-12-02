@@ -9,6 +9,7 @@ import { ProjectParser } from './project-parser';
 import { rules } from './rules/rule-index';
 import { CancelationObject, CancelationError } from './server-objects';
 import { ISettings } from './settings';
+import { addIgnoreAction, checkMagicComments } from './rules/rules-base';
 
 export interface IAddSignalCommandArguments {
   textDocumentUri: string;
@@ -38,6 +39,13 @@ export class VhdlLinter {
       this.parser = new FileParser(text, this.editorPath, onlyEntity, cancelationObject);
       this.file = this.parser.parse();
       this.parsedSuccessfully = true;
+      for (const message of this.parser.state.messages) {
+        const ruleName = 'parser';
+        if (checkMagicComments(this.file.magicComments, message.range, ruleName)) {
+          addIgnoreAction(message, ruleName, this);
+          this.messages.push(message);
+        }
+      }
     } catch (e) {
       if (e instanceof ParserError) {
         let code;
