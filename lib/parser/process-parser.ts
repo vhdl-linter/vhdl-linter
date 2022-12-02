@@ -1,13 +1,12 @@
 import { OLexerToken } from '../lexer';
 import { DeclarativePartParser } from './declarative-part-parser';
 import { ObjectBase, OIf, OIRange, OProcess } from './objects';
-import { ParserPosition } from './parser';
-import { ParserBase } from './parser-base';
+import { ParserBase, ParserState } from './parser-base';
 import { SequentialStatementParser } from './sequential-statement-parser';
 
 export class ProcessParser extends ParserBase {
-  constructor(pos: ParserPosition, file: string, private parent: ObjectBase) {
-    super(pos, file);
+  constructor(state: ParserState, private parent: ObjectBase) {
+    super(state);
     this.debug(`start`);
 
   }
@@ -20,15 +19,15 @@ export class ProcessParser extends ParserBase {
       process.sensitivityList.push(...this.extractReads(process, sensitivityListTokens));
     }
     this.maybe('is');
-    new DeclarativePartParser(this.pos, this.filePath, process).parse();
+    new DeclarativePartParser(this.state, process).parse();
     this.expect('begin');
-    process.statements = new SequentialStatementParser(this.pos, this.filePath).parse(process, ['end']);
+    process.statements = new SequentialStatementParser(this.state).parse(process, ['end']);
     this.expect('end');
     this.expect('process');
     if (label) {
       this.maybe(label);
     }
-    process.range = process.range.copyWithNewEnd(this.pos.i);
+    process.range = process.range.copyWithNewEnd(this.state.pos.i);
     this.expect(';');
 
     // [\s\S] for . but with newlines

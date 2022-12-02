@@ -13,7 +13,7 @@ export class PackageParser extends ParserBase {
 
       pkg.lexerToken = this.consumeToken();
       this.expect('is');
-      const declarativePartParser = new DeclarativePartParser(this.pos, this.filePath, pkg);
+      const declarativePartParser = new DeclarativePartParser(this.state, pkg);
       declarativePartParser.parse(false, 'end');
       this.expect('end');
       this.maybe('package');
@@ -48,13 +48,13 @@ export class PackageParser extends ParserBase {
       // }
       if (nextToken.getLText() === 'generic') {
         this.consumeToken();
-        const savedI = this.pos.i;
-        const interfaceListParser = new InterfaceListParser(this.pos, this.filePath, pkg);
+        const savedI = this.state.pos.i;
+        const interfaceListParser = new InterfaceListParser(this.state, pkg);
         interfaceListParser.parse(true);
-        pkg.genericRange = new OIRange(pkg, savedI, this.pos.i);
+        pkg.genericRange = new OIRange(pkg, savedI, this.state.pos.i);
         this.expect(';');
       }
-      const declarativePartParser = new DeclarativePartParser(this.pos, this.filePath, pkg);
+      const declarativePartParser = new DeclarativePartParser(this.state, pkg);
       declarativePartParser.parse(false, 'end');
       this.maybe('package');
       this.maybe(pkg.lexerToken.text);

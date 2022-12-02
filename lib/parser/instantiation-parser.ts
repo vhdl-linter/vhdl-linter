@@ -1,12 +1,11 @@
 import { AssociationListParser } from './association-list-parser';
 import { OArchitecture, OEntity, OInstantiation, ParserError } from './objects';
-import { ParserBase } from './parser-base';
-import { ParserPosition } from './parser';
+import { ParserBase, ParserState } from './parser-base';
 import { OLexerToken } from '../lexer';
 
 export class InstantiationParser extends ParserBase {
-  constructor(pos: ParserPosition, file: string, private parent: OArchitecture | OEntity) {
-    super(pos, file);
+  constructor(state: ParserState, private parent: OArchitecture | OEntity) {
+    super(state);
     this.debug(`start`);
 
   }
@@ -49,7 +48,7 @@ export class InstantiationParser extends ParserBase {
         hasPortMap = true;
         this.consumeToken();
         this.expect('map');
-        instantiation.portAssociationList = new AssociationListParser(this.pos, this.filePath, instantiation).parse();
+        instantiation.portAssociationList = new AssociationListParser(this.state, instantiation).parse();
 
       } else if (nextToken.getLText() === 'generic' && instantiation.type !== 'subprogram') {
         if (instantiation.type === 'unknown') {
@@ -58,15 +57,15 @@ export class InstantiationParser extends ParserBase {
         hasGenericMap = true;
         this.consumeToken();
         this.expect('map');
-        instantiation.genericAssociationList = new AssociationListParser(this.pos, this.filePath, instantiation).parse('generic');
+        instantiation.genericAssociationList = new AssociationListParser(this.state, instantiation).parse('generic');
       } else if (nextToken.getLText() === '(' && !hasGenericMap && !hasPortMap) { // is subprogram call
         instantiation.type = 'subprogram';
-        instantiation.portAssociationList = new AssociationListParser(this.pos, this.filePath, instantiation).parse();
+        instantiation.portAssociationList = new AssociationListParser(this.state, instantiation).parse();
       }
-      if (lastI === this.pos.i) {
-        throw new ParserError(`Parser stuck on line ${this.getLine} in module ${this.constructor.name}`, this.pos.getRangeToEndLine());
+      if (lastI === this.state.pos.i) {
+        throw new ParserError(`Parser stuck on line ${this.getLine} in module ${this.constructor.name}`, this.state.pos.getRangeToEndLine());
       }
-      lastI = this.pos.i;
+      lastI = this.state.pos.i;
     }
     instantiation.range = instantiation.range.copyWithNewEnd(this.getToken(-1, true).range.end);
     if ((instantiation.type === 'component' || instantiation.type === 'entity') && label === undefined) {

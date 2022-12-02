@@ -1,12 +1,11 @@
 import { IHasConstants, IHasSignals, IHasVariables, implementsIHasConstants, implementsIHasSignals, implementsIHasVariables, OConstant, OSignal, OVariable, ParserError, IHasFileVariables, OFileVariable, implementsIHasFileVariables, ORead, ObjectBase } from './objects';
-import { ParserBase } from './parser-base';
-import { ParserPosition } from './parser';
+import { ParserBase, ParserState } from './parser-base';
 import { OLexerToken } from '../lexer';
 
 export class ObjectDeclarationParser extends ParserBase {
 
-  constructor(pos: ParserPosition, file: string, private parent: ObjectBase & (IHasSignals | IHasConstants | IHasVariables | IHasFileVariables)) {
-    super(pos, file);
+  constructor(state: ParserState, private parent: ObjectBase & (IHasSignals | IHasConstants | IHasVariables | IHasFileVariables)) {
+    super(state);
     this.debug('start');
   }
   parse(nextToken: OLexerToken) {
@@ -21,16 +20,16 @@ export class ObjectDeclarationParser extends ParserBase {
     const variable = nextToken.getLText() === 'variable';
     const file = nextToken.getLText() === 'file';
     if ((variable) && !implementsIHasVariables(this.parent)) {
-      throw new ParserError(`No variables allowed here.`, this.pos.getRangeToEndLine());
+      throw new ParserError(`No variables allowed here.`, this.state.pos.getRangeToEndLine());
     }
     if ((file) && !implementsIHasFileVariables(this.parent)) {
-      throw new ParserError(`No files allowed here.`, this.pos.getRangeToEndLine());
+      throw new ParserError(`No files allowed here.`, this.state.pos.getRangeToEndLine());
     }
     if (constant && !implementsIHasConstants(this.parent)) {
-      throw new ParserError(`No constants allowed here.`, this.pos.getRangeToEndLine());
+      throw new ParserError(`No constants allowed here.`, this.state.pos.getRangeToEndLine());
     }
     if (!variable && !constant && !file && !implementsIHasSignals(this.parent)) {
-      throw new ParserError(`No signals allowed here`, this.pos.getRangeToEndLine());
+      throw new ParserError(`No signals allowed here`, this.state.pos.getRangeToEndLine());
     }
     this.consumeToken();
     do {
@@ -65,14 +64,14 @@ export class ObjectDeclarationParser extends ParserBase {
           file.logicalName = this.extractReads(file, tokens);
         }
         // TODO: Parse optional parts of file definition
-        file.range = file.range.copyWithNewEnd(this.pos.i);
+        file.range = file.range.copyWithNewEnd(this.state.pos.i);
       }
     } else {
       for (const signal of objects) {
         const { typeReads, defaultValueReads } = this.getType(signal, false);
         signal.type = typeReads;
         signal.defaultValue = defaultValueReads;
-        signal.range = signal.range.copyWithNewEnd(this.pos.i);
+        signal.range = signal.range.copyWithNewEnd(this.state.pos.i);
       }
 
     }

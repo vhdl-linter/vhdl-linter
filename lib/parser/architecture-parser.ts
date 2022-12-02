@@ -2,13 +2,12 @@ import { OLexerToken, TokenType } from '../lexer';
 import { ConcurrentStatementParser, ConcurrentStatementTypes } from './concurrent-statement-parser';
 import { DeclarativePartParser } from './declarative-part-parser';
 import { OArchitecture, OBlock, OCaseGenerate, OConstant, OFile, OForGenerate, OI, OIfGenerate, OIfGenerateClause, ORead, OWhenGenerateClause, ParserError } from './objects';
-import { ParserPosition } from './parser';
-import { ParserBase } from './parser-base';
+import { ParserBase, ParserState } from './parser-base';
 
 export class ArchitectureParser extends ParserBase {
   entityName: OLexerToken;
-  constructor(pos: ParserPosition, file: string, private parent: OArchitecture | OFile | OIfGenerate | OCaseGenerate, name?: OLexerToken) {
-    super(pos, file);
+  constructor(state: ParserState, private parent: OArchitecture | OFile | OIfGenerate | OCaseGenerate, name?: OLexerToken) {
+    super(state);
     this.debug('start');
     if (name) {
       this.entityName = name;
@@ -46,7 +45,7 @@ export class ArchitectureParser extends ParserBase {
       this.architecture = new OIfGenerateClause(this.parent, this.getToken().range.copyExtendEndOfLine());
     } else {
       if (this.parent instanceof OFile) {
-        throw new ParserError(`For Generate can not be top level architecture!`, this.pos.getRangeToEndLine());
+        throw new ParserError(`For Generate can not be top level architecture!`, this.state.pos.getRangeToEndLine());
       }
       const { constantName, constantRange } = forConstant;
       this.architecture = new OForGenerate(this.parent as OArchitecture, this.getToken().range.copyExtendEndOfLine(), constantRange);
@@ -63,11 +62,11 @@ export class ArchitectureParser extends ParserBase {
       this.expect('is');
     }
 
-    new DeclarativePartParser(this.pos, this.filePath, this.architecture).parse(structureName !== 'architecture');
-    this.architecture.endOfDeclarativePart = new OI(this.architecture, this.pos.i);
+    new DeclarativePartParser(this.state, this.architecture).parse(structureName !== 'architecture');
+    this.architecture.endOfDeclarativePart = new OI(this.architecture, this.state.pos.i);
     this.maybe('begin');
 
-    while (this.pos.isValid()) {
+    while (this.state.pos.isValid()) {
       this.advanceWhitespace();
       const nextToken = this.getToken();
       if (nextToken.getLText() === 'end') {
@@ -90,7 +89,7 @@ export class ArchitectureParser extends ParserBase {
         this.expect(';');
         break;
       }
-      const statementParser = new ConcurrentStatementParser(this.pos, this.filePath, this.architecture);
+      const statementParser = new ConcurrentStatementParser(this.state, this.architecture);
       if (statementParser.parse([
         ConcurrentStatementTypes.Assert,
         ConcurrentStatementTypes.Assignment,

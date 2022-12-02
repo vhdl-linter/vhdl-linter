@@ -2,13 +2,12 @@ import { ConcurrentStatementParser, ConcurrentStatementTypes } from './concurren
 import { DeclarativePartParser } from './declarative-part-parser';
 import { InterfaceListParser } from './interface-list-parser';
 import { OArchitecture, OEntity, OIRange, ParserError, OFile } from './objects';
-import { ParserBase } from './parser-base';
-import { ParserPosition } from './parser';
+import { ParserBase, ParserState } from './parser-base';
 
 export class EntityParser extends ParserBase {
   public entity: OEntity;
-  constructor(pos: ParserPosition, file: string, private parent: OFile) {
-    super(pos, file);
+  constructor(state: ParserState, private parent: OFile) {
+    super(state);
     let library: string | undefined = undefined;
     const match = this.parent.originalText.match(/!\s*@library\s+(\S+)/i);
     library = match ? match[1] : undefined;
@@ -24,21 +23,21 @@ export class EntityParser extends ParserBase {
     }
 
     let lastI;
-    while (this.pos.isValid()) {
+    while (this.state.pos.isValid()) {
       this.advanceWhitespace();
       const nextToken = this.getToken();
-      const savedI = this.pos.i;
+      const savedI = this.state.pos.i;
       if (nextToken.getLText() === 'port') {
         this.consumeToken();
-        const interfaceListParser = new InterfaceListParser(this.pos, this.filePath, this.entity);
+        const interfaceListParser = new InterfaceListParser(this.state, this.entity);
         interfaceListParser.parse(false);
-        this.entity.portRange = new OIRange(this.entity, savedI, this.pos.i);
+        this.entity.portRange = new OIRange(this.entity, savedI, this.state.pos.i);
         this.expect(';');
       } else if (nextToken.getLText() === 'generic') {
         this.consumeToken();
-        const interfaceListParser = new InterfaceListParser(this.pos, this.filePath, this.entity);
+        const interfaceListParser = new InterfaceListParser(this.state, this.entity);
         interfaceListParser.parse(true);
-        this.entity.genericRange = new OIRange(this.entity, savedI, this.pos.i);
+        this.entity.genericRange = new OIRange(this.entity, savedI, this.state.pos.i);
         this.expect(';');
       } else if (nextToken.getLText() === 'end') {
         this.consumeToken();
@@ -50,7 +49,7 @@ export class EntityParser extends ParserBase {
       } else if (nextToken.getLText() === 'begin') {
         this.consumeToken();
         while (this.getToken().getLText() !== 'end') {
-          new ConcurrentStatementParser(this.pos, this.filePath, this.entity).parse([
+          new ConcurrentStatementParser(this.state, this.entity).parse([
             ConcurrentStatementTypes.Assert,
             ConcurrentStatementTypes.ProcedureInstantiation,
             ConcurrentStatementTypes.Process
@@ -64,12 +63,12 @@ export class EntityParser extends ParserBase {
         break;
 
       } else {
-        new DeclarativePartParser(this.pos, this.filePath, this.entity).parse(true);
+        new DeclarativePartParser(this.state, this.entity).parse(true);
       }
-      if (lastI === this.pos.i) {
-        throw new ParserError(`Parser stuck on line ${this.getLine} in module ${this.constructor.name}`, this.pos.getRangeToEndLine());
+      if (lastI === this.state.pos.i) {
+        throw new ParserError(`Parser stuck on line ${this.getLine} in module ${this.constructor.name}`, this.state.pos.getRangeToEndLine());
       }
-      lastI = this.pos.i;
+      lastI = this.state.pos.i;
     }
 
     return this.entity;
