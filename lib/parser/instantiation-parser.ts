@@ -59,14 +59,15 @@ export class InstantiationParser extends ParserBase {
         this.expect('map');
         instantiation.genericAssociationList = new AssociationListParser(this.state, instantiation).parse('generic');
       } else if (nextToken.getLText() === '(' && !hasGenericMap && !hasPortMap) { // is subprogram call
-        instantiation.type = 'subprogram';
         instantiation.portAssociationList = new AssociationListParser(this.state, instantiation).parse();
       }
+
       if (lastI === this.state.pos.i) {
         throw new ParserError(`Parser stuck on line ${this.getLine} in module ${this.constructor.name}`, this.state.pos.getRangeToEndLine());
       }
       lastI = this.state.pos.i;
     }
+
     instantiation.range = instantiation.range.copyWithNewEnd(this.getToken(-1, true).range.end);
     if ((instantiation.type === 'component' || instantiation.type === 'entity') && label === undefined) {
       throw new ParserError(`${instantiation.type} instantiations require a label.`, instantiation.range);

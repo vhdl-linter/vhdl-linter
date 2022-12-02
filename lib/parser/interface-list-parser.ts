@@ -13,8 +13,9 @@ export class InterfaceListParser extends ParserBase {
   // Currently only port and generics exists. parameter interface list gets handles as port which is wrong and leads to problems with more restrictive testing.
   // Checkers can be commented back in then.
   parse(generics: boolean) {
+    let foundElements = 0;
     this.debug('parse');
-    this.expect('(');
+    const startToken = this.expect('(');
     const ports: (OPort | OGeneric)[] = [];
     if (generics) {
       if (this.parent instanceof OSubprogram) {
@@ -45,6 +46,7 @@ export class InterfaceListParser extends ParserBase {
         this.consumeToken(); // consume 'package'
         ports.push(new InterfacePackageParser(this.state, this.parent).parse());
         this.maybe(';');
+        foundElements++;
       } else if (nextToken.getLText() === 'procedure' || nextToken.getLText() === 'impure' || nextToken.getLText() === 'pure' || nextToken.getLText() === 'function') {
         if (generics === false) {
           throw new ParserError('Port list may only contain signal interface declarations', nextToken.range);
@@ -52,6 +54,7 @@ export class InterfaceListParser extends ParserBase {
         const subprogramParser = new SubprogramParser(this.state, this.parent);
         this.parent.subprograms.push(subprogramParser.parse());
         this.maybe(';');
+        foundElements++;
       } else {
         const port = generics ?
           new OGenericConstant(this.parent, this.getToken().range.copyExtendEndOfLine()) :
@@ -65,6 +68,7 @@ export class InterfaceListParser extends ParserBase {
           port.lexerToken = this.consumeToken();
           ports.push(port);
           this.maybe(';');
+          foundElements++;
 
         } else {
           // if (generics === false && (nextToken.getLText() === 'variable' || nextToken.getLText() === 'constant' || nextToken.getLText() === 'file')) {
@@ -78,6 +82,7 @@ export class InterfaceListParser extends ParserBase {
             this.expect(',');
             multiInterface.push(port);
             continue;
+
           }
           this.expect(':');
           let directionString;
@@ -107,13 +112,20 @@ export class InterfaceListParser extends ParserBase {
             (interface_ as OGenericConstant).type = (port as OGenericConstant).type;
             (interface_ as OGenericConstant).defaultValue = (port as OGenericConstant).defaultValue;
             ports.push(interface_);
+            foundElements++;
+
           }
           ports.push(port);
+          foundElements++;
+
           // clear multiInterface list to avoid duplicates
           multiInterface.splice(0, multiInterface.length);
         }
       }
 
+    }
+    if (foundElements === 0) {
+      throw new ParserError(`Empty interface list is not allowed`, startToken.range.copyWithNewEnd(this.getToken().range));
     }
     this.debug('parseEnd');
 
