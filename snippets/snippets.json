@@ -71,6 +71,12 @@
 		"description": "process",
 		"scope": "source.vhdl"
 	},
+	"proc": {
+		"prefix": "proc",
+		"body": "procedure $1 (\n\t${2:parameter}\n)\nis\nbegin\n\t${3}\nend procedure;",
+		"description": "procedure",
+		"scope": "source.vhdl"
+	},
 	"s": {
 		"prefix": "s",
 		"body": "signed(${1:x} downto ${2:0}) ;$0",

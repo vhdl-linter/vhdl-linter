@@ -1,6 +1,6 @@
 import { DeclarativePartParser } from './declarative-part-parser';
 import { InterfaceListParser } from './interface-list-parser';
-import { ObjectBase, OSubprogram } from './objects';
+import { ObjectBase, OSubprogram, ParserError } from './objects';
 import { ParserBase, ParserState } from './parser-base';
 import { SequentialStatementParser } from './sequential-statement-parser';
 
@@ -19,10 +19,14 @@ export class SubprogramParser extends ParserBase {
     const token = this.consumeToken();
     const subprogram = new OSubprogram(this.parent, nextWord.range.copyExtendEndOfLine());
     subprogram.lexerToken = token;
-
+    const parameter = this.maybe('parameter');
     if (this.getToken().getLText() === '(') {
       const interfaceListParser = new InterfaceListParser(this.state, subprogram);
       interfaceListParser.parse(false);
+    } else {
+      if (parameter) {
+        throw new ParserError('After Parameter keyword parameter interface list is mandatory', parameter.range);
+      }
     }
     if (isFunction) {
       this.expect('return');
@@ -38,7 +42,7 @@ export class SubprogramParser extends ParserBase {
       this.maybe(isFunction ? 'function' : 'procedure');
       this.maybe(token.text);
       subprogram.range = subprogram.range.copyWithNewEnd(this.state.pos.i);
-      
+
     }
 
     return subprogram;

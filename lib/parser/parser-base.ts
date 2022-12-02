@@ -1,8 +1,6 @@
-import { TextEdit } from 'vscode-languageserver';
 import { config } from './config';
-import { OAssociation, OAssociationFormal, ObjectBase, OSelectedNameRead, OGeneric, OIRange, OPort, ORead, OWrite, ParserError, OAssociationFormalSelectedName, OFile } from './objects';
 import { OLexerToken, TokenType } from '../lexer';
-import { OIDiagnostic } from '../vhdl-linter';
+import { OFile, ParserError, ObjectBase, ORead, OSelectedNameRead, OAssociation, OAssociationFormal, OAssociationFormalSelectedName, OWrite, OIDiagnosticWithSolution } from './objects';
 
 
 export class ParserPosition {
@@ -27,7 +25,7 @@ export class ParserPosition {
 }
 
 export class ParserState {
-  public messages: OIDiagnostic[] = [];
+  public messages: OIDiagnosticWithSolution[] = [];
   constructor(public pos: ParserPosition, public filePath: string) { }
 }
 
@@ -41,44 +39,8 @@ export class ParserBase {
       console.log(`${this.constructor.name}: ${_message} at ${pos.line}:${pos.col}, (${this.state.filePath})`);
     }
   }
-  getTypeDefintion(parent: OGeneric | OPort) {
-    this.debug('getTypeDefintion');
-    const [type, last] = this.advanceParentheseAware([')', ';', ':='], true, false);
-    let defaultValue: OLexerToken[] = [];
-    if (last.getLText() === ':=') {
-      this.consumeToken();
-      [defaultValue] = this.advanceParentheseAware([')', ';'], true, false);
-    }
-    this.reverseWhitespace();
-    this.advanceWhitespace();
-    if (this.getToken().text === ';') {
-      const startI = this.state.pos.i;
-      this.consumeToken();
-      if (this.getToken().text === ')') {
-        const range = new OIRange(parent, startI, startI + 1).copyExtendBeginningOfLine();
-        throw new ParserError(`Unexpected ';' at end of port list`, range, {
-          message: `Remove ';'`,
-          edits: [TextEdit.del(new OIRange(parent, startI, startI + 1))]
-        });
-      }
-    }
-    if (defaultValue.length === 0) {
-      return {
-        type: type,
 
-      };
 
-    }
-    return {
-      type: type,
-      defaultValue: this.extractReads(parent, defaultValue),
-    };
-  }
-  message(message: string, severity = 'error') {
-    if (severity === 'error') {
-      throw new ParserError(message + ` in line: ${this.getLine()}`, this.state.pos.getRangeToEndLine());
-    }
-  }
   // Offset gives an offset to the current parser position. If offsetIgnoresWhitespaces is set whitespace (and comment) is not counted.
   // Meaning offset = 2 counts only the next two non-whitespaces tokens
   getToken(offset = 0, offsetIgnoresWhitespaces = false) {
@@ -283,11 +245,11 @@ export class ParserBase {
       throw new ParserError(`expected '${expected.join(', ')}' found '${this.getToken().text}' line: ${this.getLine()}`, this.state.pos.getRangeToEndLine());
     }
   }
-  maybe(expected: string | OLexerToken) {
+  maybe(expected: string | OLexerToken): OLexerToken | false {
     const text = (typeof expected === 'string') ? expected.toLowerCase() : expected.getLText();
     if (this.getToken().getLText() === text) {
-      this.consumeToken();
-      return true;
+      const token = this.consumeToken();
+      return token;
     }
     return false;
   }

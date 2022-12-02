@@ -2,6 +2,8 @@ import { OComponent, OEntity, OGeneric, OIRange, OPackage, OPort, OSubprogram, O
 import { ParserBase, ParserState } from './parser-base';
 import { SubprogramParser } from './subprogram-parser';
 import { InterfacePackageParser } from './interface-package-parser';
+import { OLexerToken } from '../lexer';
+import { TextEdit } from 'vscode-languageserver';
 
 
 export class InterfaceListParser extends ParserBase {
@@ -125,9 +127,70 @@ export class InterfaceListParser extends ParserBase {
 
     }
     if (foundElements === 0) {
-      throw new ParserError(`Empty interface list is not allowed`, startToken.range.copyWithNewEnd(this.getToken().range));
+      let startOffset = 0;
+      while (this.getToken(startOffset, true) !== startToken) {
+        startOffset--;
+      }
+
+      if (this.getToken(startOffset - 1, true).getLText() === 'port'
+        || this.getToken(startOffset - 1, true).getLText() === 'generic'
+        || this.getToken(startOffset - 1, true).getLText() === 'parameter') {
+        startOffset--;
+      }
+      const closingBracket = this.getToken(-1, true);
+      let endDel = closingBracket;
+      if (this.getToken().getLText() === ';') {
+        endDel = this.getToken();
+      }
+      this.state.messages.push({
+        message: `Empty interface list is not allowed`,
+        range: startToken.range.copyWithNewEnd(closingBracket.range),
+        solution: {
+          message: 'remove interface list',
+          edits: [
+            TextEdit.del(this.getToken(startOffset, true).range.copyWithNewEnd(endDel.range))
+          ]
+        }
+      });
     }
     this.debug('parseEnd');
 
+  }
+  getTypeDefintion(parent: OGeneric | OPort) {
+    this.debug('getTypeDefintion');
+    const [type, last] = this.advanceParentheseAware([')', ';', ':='], true, false);
+    let defaultValue: OLexerToken[] = [];
+    if (last.getLText() === ':=') {
+      this.consumeToken();
+      [defaultValue] = this.advanceParentheseAware([')', ';'], true, false);
+    }
+    this.reverseWhitespace();
+    this.advanceWhitespace();
+    if (this.getToken().text === ';') {
+      const startI = this.state.pos.i;
+      this.consumeToken();
+      if (this.getToken().text === ')') {
+        const range = new OIRange(parent, startI, startI + 1).copyExtendBeginningOfLine();
+        this.state.messages.push({
+          message: `Unexpected ';' at end of interface list`,
+          range,
+          solution: {
+            message: `Remove ';'`,
+            edits: [TextEdit.del(new OIRange(parent, startI, startI + 1))]
+          }
+        });
+      }
+    }
+    if (defaultValue.length === 0) {
+      return {
+        type: type,
+
+      };
+
+    }
+    return {
+      type: type,
+      defaultValue: this.extractReads(parent, defaultValue),
+    };
   }
 }
