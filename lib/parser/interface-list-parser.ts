@@ -1,13 +1,12 @@
 import { OComponent, OEntity, OGeneric, OIRange, OPackage, OPort, OSubprogram, OGenericConstant, ParserError } from './objects';
-import { ParserBase } from './parser-base';
+import { ParserBase, ParserState } from './parser-base';
 import { SubprogramParser } from './subprogram-parser';
-import { ParserPosition } from './parser';
 import { InterfacePackageParser } from './interface-package-parser';
 
 
 export class InterfaceListParser extends ParserBase {
-  constructor(pos: ParserPosition, file: string, private parent: OEntity | OSubprogram | OPackage | OComponent) {
-    super(pos, file);
+  constructor(state: ParserState, private parent: OEntity | OSubprogram | OPackage | OComponent) {
+    super(state);
     this.debug('start');
   }
   // TODO: Interface list parser does not correctly recognize parameter
@@ -30,8 +29,8 @@ export class InterfaceListParser extends ParserBase {
       this.parent.ports = ports as OPort[];
     }
     const multiInterface = [];
-    while (this.pos.isValid()) {
-      this.debug('parse i ' + this.pos.i);
+    while (this.state.pos.isValid()) {
+      this.debug('parse i ' + this.state.pos.i);
 
       this.advanceWhitespace();
       if (this.getToken().text === ')') {
@@ -45,14 +44,14 @@ export class InterfaceListParser extends ParserBase {
         //   throw new ParserError('Port list may only contain signal interface declarations', nextToken.range);
         // }
         this.consumeToken(); // consume 'package'
-        ports.push(new InterfacePackageParser(this.pos, this.filePath, this.parent).parse());
+        ports.push(new InterfacePackageParser(this.state, this.parent).parse());
         this.maybe(';');
         foundElements++;
       } else if (nextToken.getLText() === 'procedure' || nextToken.getLText() === 'impure' || nextToken.getLText() === 'pure' || nextToken.getLText() === 'function') {
         if (generics === false) {
           throw new ParserError('Port list may only contain signal interface declarations', nextToken.range);
         }
-        const subprogramParser = new SubprogramParser(this.pos, this.filePath, this.parent);
+        const subprogramParser = new SubprogramParser(this.state, this.parent);
         this.parent.subprograms.push(subprogramParser.parse());
         this.maybe(';');
         foundElements++;
@@ -91,10 +90,10 @@ export class InterfaceListParser extends ParserBase {
             directionString = this.getToken().getLText();
             if (directionString !== 'in' && directionString !== 'out' && directionString !== 'inout') {
               port.direction = 'in';
-              port.directionRange = new OIRange(port, this.pos.i, this.pos.i);
+              port.directionRange = new OIRange(port, this.state.pos.i, this.state.pos.i);
             } else {
               port.direction = directionString;
-              port.directionRange = new OIRange(port, this.pos.i, this.pos.i + directionString.length);
+              port.directionRange = new OIRange(port, this.state.pos.i, this.state.pos.i + directionString.length);
               this.consumeToken(); // consume direction
             }
           }

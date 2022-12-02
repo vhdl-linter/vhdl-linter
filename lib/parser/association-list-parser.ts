@@ -1,12 +1,12 @@
 import { OInstantiation, OAssociation, OGenericAssociationList as OGenericAssociationList, OIRange, OPortAssociationList as OPortAssotiationList, ParserError, OPackage, OPackageInstantiation } from './objects';
-import { ParserBase } from './parser-base';
-import { ParserPosition } from './parser';
+import { ParserBase, ParserState } from './parser-base';
 import { OLexerToken } from '../lexer';
+import { DiagnosticSeverity } from 'vscode-languageserver';
 
 
 export class AssociationListParser extends ParserBase {
-  constructor(pos: ParserPosition, file: string, private parent: OInstantiation | OPackage | OPackageInstantiation) {
-    super(pos, file);
+  constructor(state: ParserState, private parent: OInstantiation | OPackage | OPackageInstantiation) {
+    super(state);
     this.debug(`start`);
   }
   findFormal(associationTokens: OLexerToken[]) {
@@ -28,8 +28,8 @@ export class AssociationListParser extends ParserBase {
 
     const list = type === 'generic' ? new OGenericAssociationList(this.parent, braceToken.range) : new OPortAssotiationList(this.parent, braceToken.range);
 
-    while (this.pos.isValid()) {
-      const savedI = this.pos.i;
+    while (this.state.pos.isValid()) {
+      const savedI = this.state.pos.i;
       // let associationString = this.advancePast(/[,)]/, {returnMatch: true});
       // eslint-disable-next-line prefer-const
       let [associationTokens, lastChar] = this.advanceParentheseAware([',', ')']);
@@ -63,10 +63,14 @@ export class AssociationListParser extends ParserBase {
       }
       if (lastChar.text === ',') {
         if (this.getToken().getLText() === ')') {
-          throw new ParserError(`Unexpected ',' at end of association list`, this.getToken().range.copyExtendBeginningOfLine());
+          this.state.messages.push({
+            message: `Unexpected ',' at end of association list`,
+            range: this.getToken().range.copyExtendBeginningOfLine(),
+            severity: DiagnosticSeverity.Error
+          });
         }
       } else if (lastChar.text === ')') {
-        list.range = list.range.copyWithNewEnd(this.pos.i);
+        list.range = list.range.copyWithNewEnd(this.state.pos.i);
         break;
       }
     }

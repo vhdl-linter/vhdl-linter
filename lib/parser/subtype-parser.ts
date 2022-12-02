@@ -1,13 +1,12 @@
 import { ObjectBase, ORead, OSubType, OIRange } from './objects';
-import { ParserBase } from './parser-base';
-import { ParserPosition } from './parser';
+import { ParserBase, ParserState } from './parser-base';
 
 export class SubtypeParser extends ParserBase {
   subtype: OSubType;
-  constructor(pos: ParserPosition, file: string, private parent: ObjectBase) {
-    super(pos, file);
+  constructor(state: ParserState, private parent: ObjectBase) {
+    super(state);
     this.debug(`start`);
-    this.subtype = new OSubType(parent, new OIRange(parent, this.pos.i, this.pos.i));
+    this.subtype = new OSubType(parent, new OIRange(parent, this.state.pos.i, this.state.pos.i));
   }
   parse() {
     this.expect('subtype');
@@ -17,7 +16,7 @@ export class SubtypeParser extends ParserBase {
       this.advancePast(')');
     }
     const superType = this.consumeToken();
-    this.subtype.range = this.subtype.range.copyWithNewEnd(this.pos.i);
+    this.subtype.range = this.subtype.range.copyWithNewEnd(this.state.pos.i);
     const tokens = this.advanceSemicolon(true);
     if (tokens.length > 0) {
       this.subtype.range = this.subtype.range.copyWithNewEnd(tokens[tokens.length - 1].range.end.i);

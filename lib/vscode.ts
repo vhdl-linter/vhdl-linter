@@ -6,7 +6,7 @@ import {
   TransportKind
 } from 'vscode-languageclient/node';
 import { URI } from 'vscode-uri';
-import { Parser } from './parser/parser';
+import { FileParser } from './parser/file-parser';
 import { ISettings } from './settings';
 import { copy, CopyTypes } from './vhdl-entity-converter';
 import { IAddSignalCommandArguments, IIgnoreLineCommandArguments } from './vhdl-linter';
@@ -94,7 +94,7 @@ export function activate(context: ExtensionContext) {
     if (!editor) {
       return;
     }
-    this.parser = new Parser(editor.document.getText(), this.editorPath, false, { canceled: false });
+    this.parser = new FileParser(editor.document.getText(), this.editorPath, false, { canceled: false });
     const file = this.parser.parse();
 
     if (file) {

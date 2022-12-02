@@ -1,11 +1,10 @@
 import { InterfaceListParser } from './interface-list-parser';
 import { IHasComponents, OComponent, OIRange, ParserError } from './objects';
-import { ParserPosition } from './parser';
-import { ParserBase } from './parser-base';
+import { ParserBase, ParserState } from './parser-base';
 
 export class ComponentParser extends ParserBase {
-  constructor(pos: ParserPosition, file: string, private parent: IHasComponents) {
-    super(pos, file);
+  constructor(state: ParserState, private parent: IHasComponents) {
+    super(state);
     this.debug(`start`);
   }
   parse() {
@@ -14,21 +13,21 @@ export class ComponentParser extends ParserBase {
     this.maybe('is');
 
     let lastI;
-    while (this.pos.isValid()) {
+    while (this.state.pos.isValid()) {
       this.advanceWhitespace();
       const nextToken = this.getToken();
-      const savedI = this.pos.i;
+      const savedI = this.state.pos.i;
       if (nextToken.getLText() === 'port') {
         this.consumeToken();
-        const interfaceListParser = new InterfaceListParser(this.pos, this.filePath, component);
+        const interfaceListParser = new InterfaceListParser(this.state, component);
         interfaceListParser.parse(false);
-        component.portRange = new OIRange(component, savedI, this.pos.i);
+        component.portRange = new OIRange(component, savedI, this.state.pos.i);
         this.expect(';');
       } else if (nextToken.getLText() === 'generic') {
         this.consumeToken();
-        const interfaceListParser = new InterfaceListParser(this.pos, this.filePath, component);
+        const interfaceListParser = new InterfaceListParser(this.state, component);
         interfaceListParser.parse(true);
-        component.genericRange = new OIRange(component, savedI, this.pos.i);
+        component.genericRange = new OIRange(component, savedI, this.state.pos.i);
         this.expect(';');
       } else if (nextToken.getLText() === 'end') {
         this.consumeToken();
@@ -37,10 +36,10 @@ export class ComponentParser extends ParserBase {
         component.range = component.range.copyWithNewEnd(this.getToken(-1, true).range.end);
         break;
       }
-      if (lastI === this.pos.i) {
-        throw new ParserError(`Parser stuck on line ${this.getLine} in module ${this.constructor.name}`, this.pos.getRangeToEndLine());
+      if (lastI === this.state.pos.i) {
+        throw new ParserError(`Parser stuck on line ${this.getLine} in module ${this.constructor.name}`, this.state.pos.getRangeToEndLine());
       }
-      lastI = this.pos.i;
+      lastI = this.state.pos.i;
     }
 
     return component;

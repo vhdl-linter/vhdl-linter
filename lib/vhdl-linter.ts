@@ -4,7 +4,7 @@ import {
 import { Elaborate } from './elaborate/elaborate';
 import {
   OFile, OI, OIRange, ParserError} from './parser/objects';
-import { Parser } from './parser/parser';
+import { FileParser } from './parser/file-parser';
 import { ProjectParser } from './project-parser';
 import { rules } from './rules/rule-index';
 import { CancelationObject, CancelationError } from './server-objects';
@@ -29,15 +29,16 @@ export type commandCallback = (textDocumentUri: string, ...args: any[]) => TextE
 export class VhdlLinter {
   messages: Diagnostic[] = [];
   file: OFile;
-  parser: Parser;
+  parser: FileParser;
   parsedSuccessfully = false;
   constructor(public editorPath: string, public text: string, public projectParser: ProjectParser,
     public settingsGetter: SettingsGetter,
     public onlyEntity: boolean = false, public cancelationObject: CancelationObject = { canceled: false }) {
     try {
-      this.parser = new Parser(text, this.editorPath, onlyEntity, cancelationObject);
+      this.parser = new FileParser(text, this.editorPath, onlyEntity, cancelationObject);
       this.file = this.parser.parse();
       this.parsedSuccessfully = true;
+      this.file.parserMessages = this.parser.state.messages;
     } catch (e) {
       if (e instanceof ParserError) {
         let code;

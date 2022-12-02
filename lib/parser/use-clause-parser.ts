@@ -1,10 +1,9 @@
 import { OUseClause, ObjectBase } from './objects';
-import { ParserPosition } from './parser';
-import { ParserBase } from './parser-base';
+import { ParserBase, ParserState } from './parser-base';
 
 export class UseClauseParser extends ParserBase {
-  constructor(pos: ParserPosition, file: string, private parent: ObjectBase) {
-    super(pos, file);
+  constructor(state: ParserState, private parent: ObjectBase) {
+    super(state);
     this.debug(`start`);
   }
 

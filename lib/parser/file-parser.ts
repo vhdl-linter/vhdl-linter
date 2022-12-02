@@ -5,48 +5,28 @@ import { ContextReferenceParser } from './context-reference-parser';
 import { EntityParser } from './entity-parser';
 import { MagicCommentType, OFile, OI, OIRange, OMagicCommentDisable, ParserError, OConfiguration, OUseClause, OLibrary, OPackageInstantiation, ObjectBase } from './objects';
 import { PackageParser } from './package-parser';
-import { ParserBase } from './parser-base';
+import { ParserBase, ParserPosition, ParserState } from './parser-base';
 import { Lexer, OLexerToken, TokenType } from '../lexer';
 import { PackageInstantiationParser } from './package-instantiation-parser';
 import { CancelationObject } from '../server-objects';
 
-export class ParserPosition {
-  public lexerTokens: OLexerToken[];
-  public file: OFile;
-  public num = 0;
-  public get i() {
-    if (this.num >= this.lexerTokens.length) {
-      throw new ParserError(`I out of range`, this.lexerTokens[this.lexerTokens.length - 1].range);
-    }
-    return this.lexerTokens[this.num].range.start.i;
-  }
-  public isLast() {
-    return this.num === this.lexerTokens.length - 1;
-  }
-  public isValid() {
-    return this.num >= 0 && this.num < this.lexerTokens.length;
-  }
-  public getRangeToEndLine() {
-    return this.lexerTokens[this.num].range.copyExtendEndOfLine();
-  }
-
-}
-export class Parser extends ParserBase {
-  pos: ParserPosition;
+export class FileParser extends ParserBase {
+  state: ParserState;
   private originalText: string;
   public lexerTokens: OLexerToken[] = [];
   text: string;
   file: OFile;
   constructor(text: string, filePath: string, public onlyEntity: boolean = false, public cancelationObject: CancelationObject) {
-    super(new ParserPosition(), filePath);
+    
+    super(new ParserState(new ParserPosition(), filePath));
     this.originalText = text;
     this.text = text;
-    this.file = new OFile(this.text, this.filePath, this.originalText);
+    this.file = new OFile(this.text, this.state.filePath, this.originalText);
 
     const lexer = new Lexer(this.originalText, this.file);
     this.lexerTokens = lexer.lex();
-    this.pos.lexerTokens = this.lexerTokens;
-    this.pos.file = this.file;
+    this.state.pos.lexerTokens = this.lexerTokens;
+    this.state.pos.file = this.file;
   }
   getNextLineRange(lineNumber: number) {
     while (this.originalText.split('\n')[lineNumber + 1].match(/^\s*(?:--.*)?$/)) {
@@ -122,9 +102,9 @@ export class Parser extends ParserBase {
       this.file.magicComments.push(new OMagicCommentDisable(
         this.file, MagicCommentType.Disable, disabledRange, rule));
     }
-    // this.pos = new OI(this.file, 0);
+    // this.state.pos = new OI(this.file, 0);
     if (this.text.length > 500 * 1024) {
-      throw new ParserError('this.file too large', this.pos.getRangeToEndLine());
+      throw new ParserError('this.file too large', this.state.pos.getRangeToEndLine());
     }
     let contextReferences = [];
     const defaultLibrary = [
@@ -144,11 +124,11 @@ export class Parser extends ParserBase {
     let libraries = defaultLibrary.slice(0);
     this.advanceWhitespace();
 
-    while (this.pos.isValid()) {
+    while (this.state.pos.isValid()) {
       const nextToken = this.consumeToken();
       if (nextToken.getLText() === 'context') {
         if (this.advanceSemicolon(true, { consume: false }).find(token => token.getLText() === 'is')) {
-          const contextParser = new ContextParser(this.pos, this.filePath, this.file);
+          const contextParser = new ContextParser(this.state, this.file);
           const context = contextParser.parse();
           context.libraries.push(...libraries.map(library => new OLibrary(context, library)));
           context.useClauses.push(...getUseClauses(context));
@@ -165,7 +145,7 @@ export class Parser extends ParserBase {
         } else {
           // The Parent gets overwritten when attaching the reference to the correct object
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const contextReferenceParser = new ContextReferenceParser(this.pos, this.filePath, (this.file as any));
+          const contextReferenceParser = new ContextReferenceParser(this.state, (this.file as any));
           contextReferences.push(contextReferenceParser.parse());
         }
       } else if (nextToken.getLText() === 'library') {
@@ -182,7 +162,7 @@ export class Parser extends ParserBase {
         this.expect(';');
         useClausesPrepare.push([library, packageName, suffix]);
       } else if (nextToken.getLText() === 'entity') {
-        const entityParser = new EntityParser(this.pos, this.filePath, this.file);
+        const entityParser = new EntityParser(this.state, this.file);
         const entity = entityParser.parse();
         this.file.entities.push(entity);
         entity.contextReferences = contextReferences;
@@ -198,7 +178,7 @@ export class Parser extends ParserBase {
           break;
         }
       } else if (nextToken.getLText() === 'architecture') {
-        const architectureParser = new ArchitectureParser(this.pos, this.filePath, this.file);
+        const architectureParser = new ArchitectureParser(this.state, this.file);
         const architecture = architectureParser.parse();
         this.file.architectures.push(architecture);
         architecture.contextReferences = contextReferences;
@@ -214,8 +194,8 @@ export class Parser extends ParserBase {
         useClausesPrepare = [];
       } else if (nextToken.getLText() === 'package') {
         const pkg = (this.getToken(2, true).getLText() === 'new')
-          ? new PackageInstantiationParser(this.pos, this.filePath, this.file).parse()
-          : new PackageParser(this.pos, this.filePath).parse(this.file);
+          ? new PackageInstantiationParser(this.state, this.file).parse()
+          : new PackageParser(this.state).parse(this.file);
         pkg.useClauses.push(...getUseClauses(pkg));
         pkg.libraries.push(...libraries.map(library => new OLibrary(pkg, library)));
         pkg.contextReferences = contextReferences;
