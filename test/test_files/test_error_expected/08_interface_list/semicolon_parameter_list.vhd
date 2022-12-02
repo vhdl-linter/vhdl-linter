@@ -1,6 +1,6 @@
 entity semicolon_parameter_list is
   procedure dummy (
-    dummy : in integer;
+    dummy : in integer; -- expect error about semicolon at end of interface listr
     )
   is
   begin
