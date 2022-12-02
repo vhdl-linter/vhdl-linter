@@ -13,6 +13,15 @@ export function elaborateInstantiations(file: OFile, projectParser: ProjectParse
       case 'subprogram':
         instantiation.definitions.push(...getSubprograms(instantiation, projectParser));
         break;
+      // Instantiations syntax does not have to give hints for the types if it has neither parameters nor ports nor generics
+      // In that case it may be component or subprogram instantiation
+      case 'unknown':
+        instantiation.definitions.push(...getComponents(instantiation));
+        instantiation.definitions.push(...getSubprograms(instantiation, projectParser));
+        break;
+
+
+
     }
     for (const subprogram of instantiation.definitions) {
       subprogram.references.push(instantiation);
