@@ -1,26 +1,26 @@
 import { DocumentSymbol, SymbolKind } from 'vscode-languageserver';
-import { OArchitecture, OCase, OForLoop, OIf, OSequentialStatement } from '../parser/objects';
+import { OArchitecture, OCase, OForLoop, OIf, OSequentialStatement, OStatementBody } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
 
-function parseArchitecture(architecture: OArchitecture, linter: VhdlLinter): DocumentSymbol[] {
+function parseArchitecture(statementBody: OStatementBody, linter: VhdlLinter): DocumentSymbol[] {
   const symbols: DocumentSymbol[] = [];
-  symbols.push(...architecture.instantiations.map(instantiation => ({
+  symbols.push(...statementBody.instantiations.map(instantiation => ({
     name: (instantiation.lexerToken !== undefined ? (instantiation.lexerToken + ': ') : '') + instantiation.componentName,
     detail: 'instantiation',
     kind: SymbolKind.Module,
     range: instantiation.range,
     selectionRange: instantiation.range
   })));
-  symbols.push(...architecture.blocks.map(block => ({
-    name: block.lexerToken.text,
+  symbols.push(...statementBody.blocks.map(block => ({
+    name: block.label.text,
     detail: 'block',
     kind: SymbolKind.Object,
     range: block.range,
     selectionRange: block.range,
     children: parseArchitecture(block, linter)
   })));
-  symbols.push(...architecture.processes.map(process => ({
-    name: process.lexerToken?.text || 'no label',
+  symbols.push(...statementBody.processes.map(process => ({
+    name: process.label?.text || 'no label',
     detail: 'process',
     kind: SymbolKind.Function,
     range: process.range,
@@ -34,7 +34,7 @@ function parseArchitecture(architecture: OArchitecture, linter: VhdlLinter): Doc
         selectionRange: procedure.range,
       }))).sort((a, b) => a.range.start.line - b.range.start.line)
   })));
-  for (const generate of architecture.generates) {
+  for (const generate of statementBody.generates) {
     symbols.push({
       name: linter.text.split('\n')[generate.range.start.line].trim(),
       kind: SymbolKind.Enum,
@@ -49,7 +49,7 @@ function parseStatements(statement: OSequentialStatement): DocumentSymbol[] {
   // OCase | OAssignment | OIf | OForLoop
   if (statement instanceof OCase) {
     const result = [{
-      name: statement.variable.map(read => read.referenceToken.text).join(' '),
+      name: statement.expression.map(read => read.referenceToken.text).join(' '),
       kind: SymbolKind.Enum,
       range: statement.range,
       selectionRange: statement.range,

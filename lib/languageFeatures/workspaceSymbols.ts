@@ -1,15 +1,15 @@
 import { SymbolInformation, SymbolKind, WorkspaceSymbolParams } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
-import { projectParser } from '../language-server';
 import { OEntity, OInstantiation, OPackage, OProcess, OSubprogram } from '../parser/objects';
+import { ProjectParser } from '../project-parser';
 
-export async function handleOnWorkspaceSymbol(params: WorkspaceSymbolParams): Promise<SymbolInformation[] | null> {
+export async function handleOnWorkspaceSymbol(params: WorkspaceSymbolParams, projectParser: ProjectParser): Promise<SymbolInformation[] | null> {
 
   const symbols: SymbolInformation[] = [];
   for (const cachedFile of projectParser.cachedFiles) {
     for (const object of cachedFile.linter.file?.objectList ?? []) {
       if (object instanceof OInstantiation) {
-        symbols.push(SymbolInformation.create(object.lexerToken?.text + ': ' + object.componentName, SymbolKind.Object, object.range, URI.file(cachedFile.path).toString()));
+        symbols.push(SymbolInformation.create(object.label?.text + ': ' + object.componentName, SymbolKind.Object, object.range, URI.file(cachedFile.path).toString()));
       }
       if (object instanceof OProcess) {
         symbols.push(SymbolInformation.create(object.lexerToken?.text ?? '', SymbolKind.Object, object.range, URI.file(cachedFile.path).toString()));

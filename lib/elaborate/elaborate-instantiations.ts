@@ -1,4 +1,5 @@
-import { implementsIHasComponents, implementsIHasAliases, implementsIHasSubprograms, implementsIHasTypes, OComponent, OEntity, OFile, OInstantiation, OSubprogram, OAliasWithSignature, OType, ParserError, scope } from "../parser/objects";
+import { implementsIHasComponents, implementsIHasSubprograms, implementsIHasAliases, implementsIHasTypes } from "../parser/interfaces";
+import { OFile, OInstantiation, OComponent, scope, OEntity, OSubprogram, OAliasWithSignature, OType, ParserError } from "../parser/objects";
 import { ProjectParser } from "../project-parser";
 
 export function elaborateInstantiations(file: OFile, projectParser: ProjectParser) {

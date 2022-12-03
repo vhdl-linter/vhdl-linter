@@ -99,10 +99,10 @@ export class InterfaceListParser extends ParserBase {
               this.consumeToken(); // consume direction
             }
           }
-          const { type, defaultValue } = this.getTypeDefintion(port);
+          const { type, defaultValue } = this.getTypeDefinition(port);
           const end = defaultValue?.[defaultValue?.length - 1]?.range.end ?? type[type.length - 1]?.range?.end ?? port.range.end;
           port.range = port.range.copyWithNewEnd(end);
-          (port as OGenericConstant).type = this.extractReads(port, type);
+          (port as OGenericConstant).typeReference = this.parseExpression(port, type);
 
           (port as OGenericConstant).defaultValue = defaultValue;
           for (const interface_ of multiInterface) {
@@ -111,7 +111,7 @@ export class InterfaceListParser extends ParserBase {
               interface_.directionRange = (port as OPort).directionRange;
             }
             interface_.range = interface_.range.copyWithNewEnd(end);
-            (interface_ as OGenericConstant).type = (port as OGenericConstant).type;
+            (interface_ as OGenericConstant).typeReference = (port as OGenericConstant).typeReference;
             (interface_ as OGenericConstant).defaultValue = (port as OGenericConstant).defaultValue;
             ports.push(interface_);
             foundElements++;
@@ -156,13 +156,13 @@ export class InterfaceListParser extends ParserBase {
     this.debug('parseEnd');
 
   }
-  getTypeDefintion(parent: OGeneric | OPort) {
-    this.debug('getTypeDefintion');
-    const [type, last] = this.advanceParentheseAware([')', ';', ':='], true, false);
+  getTypeDefinition(parent: OGeneric | OPort) {
+    this.debug('getTypeDefinition');
+    const [type, last] = this.advanceParenthesisAware([')', ';', ':='], true, false);
     let defaultValue: OLexerToken[] = [];
     if (last.getLText() === ':=') {
       this.consumeToken();
-      [defaultValue] = this.advanceParentheseAware([')', ';'], true, false);
+      [defaultValue] = this.advanceParenthesisAware([')', ';'], true, false);
     }
     this.reverseWhitespace();
     this.advanceWhitespace();
@@ -190,7 +190,7 @@ export class InterfaceListParser extends ParserBase {
     }
     return {
       type: type,
-      defaultValue: this.extractReads(parent, defaultValue),
+      defaultValue: this.parseExpression(parent, defaultValue),
     };
   }
 }

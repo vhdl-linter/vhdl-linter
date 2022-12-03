@@ -1,6 +1,7 @@
 import { DocumentHighlight, DocumentHighlightKind, TextDocumentPositionParams } from 'vscode-languageserver';
 import { OLexerToken } from '../lexer';
-import { IHasLexerToken, IHasReferenceToken, implementsIHasLexerToken, implementsIHasReferenceToken, ObjectBase, OWrite } from '../parser/objects';
+import { implementsIHasLexerToken, implementsIHasReferenceToken, IHasLexerToken, IHasReferenceToken } from '../parser/interfaces';
+import { ObjectBase, OWrite } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
 import { findObjectFromPosition } from './findObjectFromPosition';
 

@@ -49,7 +49,7 @@ test.each([
   const changes = linter.diagnosticCodeActionRegistry
     .map(callback => callback(path)).flat()
     .map(actions => {
-      return Object.values(actions.edit?.changes ?? {})
+      return Object.values(actions.edit?.changes ?? {});
     }).flat(2)
     .map(message => ({ // Remove Parent from OIRanges so jest does not explode
       ...message,
@@ -57,7 +57,7 @@ test.each([
         start: Position.create(message.range.start.line, message.range.start.character),
         end: Position.create(message.range.end.line, message.range.end.character)
       },
-    }))
+    }));
   expect(changes).toEqual(
     expect.arrayContaining([
       expect.objectContaining({

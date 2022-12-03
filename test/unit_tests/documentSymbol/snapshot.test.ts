@@ -8,7 +8,7 @@ import { VhdlLinter } from '../../../lib/vhdl-linter';
 test('testing document symbol snapshot', async () => {
   const filename = join(__dirname, 'test_generate.vhd');
   const linter = new VhdlLinter(filename, readFileSync(filename, { encoding: 'utf8' }),
-    await ProjectParser.create([], '', defaultSettingsGetter), defaultSettingsGetter)
+    await ProjectParser.create([], '', defaultSettingsGetter), defaultSettingsGetter);
   const symbols = getDocumentSymbol(linter);
   expect(symbols).toMatchSnapshot();
 });

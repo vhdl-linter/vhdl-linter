@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ArchitectureParser } from './architecture-parser';
+import { StatementBodyParser } from './statement-body-parser';
 import { ContextParser } from './context-parser';
 import { ContextReferenceParser } from './context-reference-parser';
 import { EntityParser } from './entity-parser';
@@ -17,7 +17,7 @@ export class FileParser extends ParserBase {
   text: string;
   file: OFile;
   constructor(text: string, filePath: string, public onlyEntity: boolean = false, public cancelationObject: CancelationObject) {
-    
+
     super(new ParserState(new ParserPosition(), filePath));
     this.originalText = text;
     this.text = text;
@@ -178,7 +178,7 @@ export class FileParser extends ParserBase {
           break;
         }
       } else if (nextToken.getLText() === 'architecture') {
-        const architectureParser = new ArchitectureParser(this.state, this.file);
+        const architectureParser = new StatementBodyParser(this.state, this.file);
         const architecture = architectureParser.parse();
         this.file.architectures.push(architecture);
         architecture.contextReferences = contextReferences;

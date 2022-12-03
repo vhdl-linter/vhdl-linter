@@ -1,5 +1,6 @@
 import { CompletionItem, CompletionItemKind, CompletionParams } from 'vscode-languageserver';
-import { implementsIHasConstants, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables, ORecord, OEnum, OEntity, scope, ObjectBase, IHasLexerToken, OI } from '../parser/objects';
+import { IHasLexerToken, implementsIHasSignals, implementsIHasConstants, implementsIHasVariables, implementsIHasSubprograms, implementsIHasTypes } from '../parser/interfaces';
+import { ObjectBase, OI, scope, OEnum, ORecord, OEntity } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
 
 export async function getCompletions(linter: VhdlLinter, params: CompletionParams): Promise<CompletionItem[]> {

@@ -1,4 +1,5 @@
-import { OAssociation, OGenericAssociationList, OPortAssociationList, OInstantiation, OPort, OGeneric, OTypeMark, OAliasWithSignature, OComponent, OEntity, implementsIReferencable, OFile, OVariable } from "../parser/objects";
+import { implementsIHasReference } from "../parser/interfaces";
+import { OAssociation, OGenericAssociationList, OPortAssociationList, OInstantiation, OPort, OGeneric, OTypeMark, OAliasWithSignature, OComponent, OEntity, OFile, OVariable } from "../parser/objects";
 
 export function elaborateAssociations(file: OFile) {
   for (const association of file.objectList.filter(obj => obj instanceof OAssociation) as OAssociation[]) {
@@ -20,7 +21,7 @@ export function elaborateAssociations(file: OFile) {
         }
         return elements.filter((port, portNumber) => {
           if (!(port instanceof OTypeMark)) {
-            const formalMatch = association.formalPart.find(name => name.lexerToken.getLText() === port.lexerToken.getLText());
+            const formalMatch = association.formalPart.find(name => name.referenceToken.getLText() === port.lexerToken.getLText());
             if (formalMatch) {
               return true;
             }
@@ -51,7 +52,7 @@ function elaborateAssociationMentionables(possibleFormal: OPort | OGeneric | OTy
         const index = file.objectList.indexOf(mapping);
         file.objectList.splice(index, 1);
         for (const mentionable of file.objectList) {
-          if (implementsIReferencable(mentionable)) {
+          if (implementsIHasReference(mentionable)) {
             for (const [index, mention] of mentionable.references.entries()) {
               if (mention === mapping) {
                 mentionable.references.splice(index, 1);
@@ -65,7 +66,7 @@ function elaborateAssociationMentionables(possibleFormal: OPort | OGeneric | OTy
         const index = file.objectList.indexOf(mapping);
         file.objectList.splice(index, 1);
         for (const mentionable of file.objectList) {
-          if (implementsIReferencable(mentionable)) {
+          if (implementsIHasReference(mentionable)) {
             for (const [index, mention] of mentionable.references.entries()) {
               if (mention === mapping) {
                 mentionable.references.splice(index, 1);
@@ -80,7 +81,7 @@ function elaborateAssociationMentionables(possibleFormal: OPort | OGeneric | OTy
         const index = file.objectList.indexOf(mapping);
         file.objectList.splice(index, 1);
         for (const mentionable of file.objectList) {
-          if (implementsIReferencable(mentionable)) {
+          if (implementsIHasReference(mentionable)) {
             for (const [index, mention] of mentionable.references.entries()) {
               if (mention === mapping) {
                 mentionable.references.splice(index, 1);
@@ -94,7 +95,7 @@ function elaborateAssociationMentionables(possibleFormal: OPort | OGeneric | OTy
         const index = file.objectList.indexOf(mapping);
         file.objectList.splice(index, 1);
         for (const mentionable of file.objectList) {
-          if (implementsIReferencable(mentionable)) {
+          if (implementsIHasReference(mentionable)) {
             for (const [index, mention] of mentionable.references.entries()) {
               if (mention === mapping) {
                 mentionable.references.splice(index, 1);
@@ -109,7 +110,7 @@ function elaborateAssociationMentionables(possibleFormal: OPort | OGeneric | OTy
         const index = file.objectList.indexOf(mapping);
         file.objectList.splice(index, 1);
         for (const mentionable of file.objectList) {
-          if (implementsIReferencable(mentionable)) {
+          if (implementsIHasReference(mentionable)) {
             for (const [index, mention] of mentionable.references.entries()) {
               if (mention === mapping) {
                 mentionable.references.splice(index, 1);
@@ -123,7 +124,7 @@ function elaborateAssociationMentionables(possibleFormal: OPort | OGeneric | OTy
         const index = file.objectList.indexOf(mapping);
         file.objectList.splice(index, 1);
         for (const mentionable of file.objectList) {
-          if (implementsIReferencable(mentionable)) {
+          if (implementsIHasReference(mentionable)) {
             for (const [index, mention] of mentionable.references.entries()) {
               if (mention === mapping) {
                 mentionable.references.splice(index, 1);

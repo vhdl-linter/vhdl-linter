@@ -1,6 +1,7 @@
 import { config } from './config';
 import { OLexerToken, TokenType } from '../lexer';
-import { OFile, ParserError, ObjectBase, ORead, OSelectedNameRead, OAssociation, OAssociationFormal, OAssociationFormalSelectedName, OWrite, OIDiagnosticWithSolution } from './objects';
+import { OIDiagnosticWithSolution } from './interfaces';
+import { OFile, ParserError, ObjectBase, OReference, OSelectedName, SelectedNamePrefix, OAssociation, OWrite } from './objects';
 
 
 export class ParserPosition {
@@ -85,7 +86,7 @@ export class ParserBase {
   consumeToken(advanceWhitespace = true) {
     const token = this.state.pos.lexerTokens[this.state.pos.num];
     this.state.pos.num++;
-    if (advanceWhitespace) { // This should not be neccesary anymore, if everything is correctly using tokens
+    if (advanceWhitespace) { // This should not be necessary anymore, if everything is correctly using tokens
       this.advanceWhitespace();
     }
     return token;
@@ -158,16 +159,16 @@ export class ParserBase {
     }
     return tokens;
   }
-  advanceClosingParenthese() {
+  advanceClosingParenthesis() {
     const tokens = [];
-    let parentheseLevel = 0;
+    let parenthesisLevel = 0;
     const savedI = this.state.pos;
     while (this.state.pos.num < this.state.pos.lexerTokens.length) {
       if (this.getToken().getLText() === '(') {
-        parentheseLevel++;
+        parenthesisLevel++;
       } else if (this.getToken().getLText() === ')') {
-        if (parentheseLevel > 0) {
-          parentheseLevel--;
+        if (parenthesisLevel > 0) {
+          parenthesisLevel--;
         } else {
           this.consumeToken();
           return tokens;
@@ -175,16 +176,16 @@ export class ParserBase {
       }
       tokens.push(this.consumeToken(false));
     }
-    throw new ParserError(`could not find closing parenthese`, savedI.getRangeToEndLine());
+    throw new ParserError(`could not find closing parenthesis`, savedI.getRangeToEndLine());
   }
-  advanceParentheseAware(searchStrings: (string)[], consume = true, consumeLastToken = true): [OLexerToken[], OLexerToken] {
+  advanceParenthesisAware(searchStrings: (string)[], consume = true, consumeLastToken = true): [OLexerToken[], OLexerToken] {
     searchStrings = searchStrings.map(str => str.toLowerCase());
     const savedI = this.state.pos;
-    let parentheseLevel = 0;
+    let parenthesisLevel = 0;
     const tokens = [];
     let offset = 0;
     while (this.state.pos.isValid()) {
-      if (parentheseLevel === 0) {
+      if (parenthesisLevel === 0) {
         let found;
         for (const searchString of searchStrings) {
           if (searchString.toLowerCase() === this.getToken(offset).getLText()) {
@@ -204,21 +205,21 @@ export class ParserBase {
         }
       }
       if (this.getToken(offset).getLText() === '(') {
-        parentheseLevel++;
+        parenthesisLevel++;
       } else if (this.getToken(offset).getLText() === ')') {
-        parentheseLevel--;
+        parenthesisLevel--;
       }
       tokens.push(this.getToken(offset));
       offset++;
     }
     throw new ParserError(`could not find ${searchStrings}`, savedI.getRangeToEndLine());
   }
-  advanceSemicolon(parentheseAware = false, { consume } = { consume: true }) {
+  advanceSemicolon(parenthesisAware = false, { consume } = { consume: true }) {
     if (consume !== false) {
       consume = true;
     }
-    if (parentheseAware) {
-      return this.advanceParentheseAware([';'], consume)[0];
+    if (parenthesisAware) {
+      return this.advanceParenthesisAware([';'], consume)[0];
     }
     return this.advancePast(';', { consume });
   }
@@ -253,12 +254,12 @@ export class ParserBase {
     }
     return false;
   }
-  getType(parent: ObjectBase, advanceSemicolon = true, endWithParenthese = false) {
+  getType(parent: ObjectBase, advanceSemicolon = true, endWithParenthesis = false) {
     let type;
-    if (endWithParenthese) {
-      [type] = this.advanceParentheseAware([';', 'is', ')'], true, false);
+    if (endWithParenthesis) {
+      [type] = this.advanceParenthesisAware([';', 'is', ')'], true, false);
     } else {
-      [type] = this.advanceParentheseAware([';', 'is'], true, false);
+      [type] = this.advanceParenthesisAware([';', 'is'], true, false);
     }
     let defaultValueReads;
     let typeReads;
@@ -266,10 +267,10 @@ export class ParserBase {
     if (index > -1) {
       const tokensDefaultValue = type.slice(index + 1);
       const typeTokens = type.slice(0, index);
-      defaultValueReads = this.extractReads(parent, tokensDefaultValue);
-      typeReads = this.extractReads(parent, typeTokens);
+      defaultValueReads = this.parseExpression(parent, tokensDefaultValue);
+      typeReads = this.parseExpression(parent, typeTokens);
     } else {
-      typeReads = this.extractReads(parent, type);
+      typeReads = this.parseExpression(parent, type);
 
     }
     if (advanceSemicolon) {
@@ -281,44 +282,42 @@ export class ParserBase {
       defaultValueReads
     };
   }
-  consumeNameRead(parent: ObjectBase): ORead[] {
+  consumeNameReference(parent: ObjectBase): OReference[] {
     const prefixTokens = [];
-    const reads = [];
+    const references: OReference[] = [];
     do {
       const token = this.consumeToken();
       if (prefixTokens.length > 0) {
-        reads.push(new OSelectedNameRead(parent, token, prefixTokens.slice(0)));
+        references.push(new OSelectedName(parent, token, prefixTokens.slice(0) as SelectedNamePrefix));
       } else {
-        reads.push(new ORead(parent, token));
+        references.push(new OReference(parent, token));
       }
       prefixTokens.push(token);
     } while (this.getToken().text === '.' && this.consumeToken());
-    return reads;
+    return references;
   }
-  extractReads(parent: ObjectBase | OAssociation, tokens: OLexerToken[], asMappingName?: false): ORead[];
-  extractReads(parent: ObjectBase | OAssociation, tokens: OLexerToken[], asMappingName: true): OAssociationFormal[];
-  extractReads(parent: ObjectBase | OAssociation, tokens: OLexerToken[], asMappingName = false): (ORead | OAssociationFormal)[] {
+  parseExpression(parent: ObjectBase | OAssociation, tokens: OLexerToken[]): OReference[] {
     tokens = tokens.filter(token => !token.isWhitespace() && token.type !== TokenType.keyword);
-    const reads = [];
+    const references: OReference[] = [];
     let functionOrArraySlice = false;
-    let parentheseLevel = 0;
+    let parenthesisLevel = 0;
     let prefixTokens: OLexerToken[] = [];
     for (let i = 0; i < tokens.length; i++) {
       const token = tokens[i];
       if (tokens[i].text === '(') {
         if (functionOrArraySlice) {
-          parentheseLevel++;
+          parenthesisLevel++;
         } else if (tokens[i - 1]?.isIdentifier()) {
           functionOrArraySlice = true;
-          parentheseLevel++;
+          parenthesisLevel++;
         }
       }
       if (tokens[i].text === ')') {
-        if (parentheseLevel > 1) {
-          parentheseLevel--;
+        if (parenthesisLevel > 1) {
+          parenthesisLevel--;
         } else {
           functionOrArraySlice = false;
-          parentheseLevel = 0;
+          parenthesisLevel = 0;
         }
       }
       if (token.isIdentifier()) {
@@ -337,36 +336,20 @@ export class ParserBase {
           continue;
         }
         if (prefixTokens.length > 0) {
-          for (const [index, token] of prefixTokens.entries()) {
-            if (index > 0) {
-              reads.push(asMappingName ? new OAssociationFormalSelectedName((parent as OAssociation), token, prefixTokens.slice(0, index))
-                : new OSelectedNameRead(parent, token, prefixTokens.slice(0, index)));
-            } else {
-              reads.push(asMappingName
-                ? new OAssociationFormal((parent as OAssociation), token)
-                : new ORead(parent, token))
-            }
-          }
-          reads.push(asMappingName ? new OAssociationFormalSelectedName((parent as OAssociation), token, prefixTokens)
-            : new OSelectedNameRead(parent, token, prefixTokens));
+          references.push(new OSelectedName(parent, token, prefixTokens as SelectedNamePrefix));
           prefixTokens = [];
         } else {
-          if (asMappingName && !(parent instanceof OAssociation)) {
-            throw new Error();
-          }
-          reads.push(asMappingName
-            ? new OAssociationFormal((parent as OAssociation), token)
-            : new ORead(parent, token));
+          references.push(new OReference(parent, token));
           prefixTokens = [];
         }
       }
     }
-    return reads;
+    return references;
   }
-  extractReadsOrWrite(parent: ObjectBase, tokens: OLexerToken[], readAndWrite = false): [ORead[], OWrite[]] {
-    const reads: ORead[] = [];
+  extractReadsOrWrite(parent: ObjectBase, tokens: OLexerToken[], readAndWrite = false): [OReference[], OWrite[]] {
+    const references: OReference[] = [];
     const writes: OWrite[] = [];
-    let parentheseLevel = 0;
+    let parenthesisLevel = 0;
     tokens = tokens.filter(token => token.isWhitespace() === false && token.type !== TokenType.keyword);
 
     let slice = false;
@@ -378,10 +361,10 @@ export class ParserBase {
         if (i > 0) {
           slice = true;
         }
-        parentheseLevel++;
+        parenthesisLevel++;
       } else if (token.text === ')') {
-        parentheseLevel--;
-        if (parentheseLevel === 0) {
+        parenthesisLevel--;
+        if (parenthesisLevel === 0) {
           slice = false;
         }
       } else if (token.isIdentifier()) {
@@ -394,7 +377,7 @@ export class ParserBase {
             continue;
           }
           if (readAndWrite) {
-            reads.push(new ORead(parent, token));
+            references.push(new OReference(parent, token));
           }
           if (tokens[i - 1]?.type === TokenType.decimalLiteral) { //  Skip units for writing
             continue;
@@ -403,7 +386,6 @@ export class ParserBase {
           writes.push(write);
 
         } else {
-
           if (recordToken) {
             const prefixTokens = [];
             let x = i - 1;
@@ -411,14 +393,14 @@ export class ParserBase {
               prefixTokens.unshift(tokens[x - 1]);
               x = x - 2;
             }
-            reads.push(new OSelectedNameRead(parent, token, prefixTokens));
+            references.push(new OSelectedName(parent, token, prefixTokens as SelectedNamePrefix));
           } else if (tokens[i - 1]?.text !== '\'') { // skip attributes
-            reads.push(new ORead(parent, token));
+            references.push(new OReference(parent, token));
           }
         }
       }
     }
-    return [reads, writes];
+    return [references, writes];
   }
   getTextDebug(lines = 3) { // This gets the current Text (for Debugger)
     let text = '';

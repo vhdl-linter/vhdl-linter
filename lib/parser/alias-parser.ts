@@ -1,8 +1,8 @@
-import { OArchitecture, OEntity, OPackage, OPackageBody, OProcess, OSubprogram, OAliasWithSignature, OType, OTypeMark, OAlias } from "./objects";
+import { OArchitecture, OEntity, OPackage, OPackageBody, OProcess, OSubprogram, OAliasWithSignature, OType, OTypeMark, OAlias, OStatementBody } from "./objects";
 import { ParserBase, ParserState } from "./parser-base";
 // TODO: Use for all kinds of aliases
 export class AliasParser extends ParserBase {
-    constructor(state: ParserState, private parent: OArchitecture | OEntity | OPackage | OPackageBody | OProcess | OSubprogram | OType) {
+    constructor(state: ParserState, private parent: OStatementBody | OEntity | OPackage | OPackageBody | OProcess | OSubprogram | OType) {
         super(state);
         this.debug('start');
     }
@@ -30,24 +30,24 @@ export class AliasParser extends ParserBase {
             this.consumeToken();
             this.advanceWhitespace();
             this.consumeToken();
-            aliasWithSignature.subtypeReads.push(...this.getType(aliasWithSignature, false).typeReads);
+            aliasWithSignature.subtypeIndication.push(...this.getType(aliasWithSignature, false).typeReads);
         }
         this.expect('is');
-        aliasWithSignature.name = this.consumeNameRead(aliasWithSignature);
+        aliasWithSignature.name = this.consumeNameReference(aliasWithSignature);
         this.expect('[');
         // eslint-disable-next-line no-constant-condition
         while (true) {
             if (this.getToken().getLText() !== 'return') {
-                aliasWithSignature.typeMarks.push(new OTypeMark(aliasWithSignature, this.consumeNameRead(aliasWithSignature)));
+                aliasWithSignature.typeMarks.push(new OTypeMark(aliasWithSignature, this.consumeNameReference(aliasWithSignature)));
             } else {
                 this.expect('return');
-                aliasWithSignature.return = this.consumeNameRead(aliasWithSignature);
+                aliasWithSignature.return = this.consumeNameReference(aliasWithSignature);
             }
             if (this.getToken().getLText() === ',') {
                 this.expect(',');
             } else if (this.getToken().getLText() === 'return') {
                 this.expect('return');
-                aliasWithSignature.typeMarks.push(new OTypeMark(aliasWithSignature, this.consumeNameRead(aliasWithSignature)));
+                aliasWithSignature.typeMarks.push(new OTypeMark(aliasWithSignature, this.consumeNameReference(aliasWithSignature)));
                 this.expect(']');
                 break;
             } else {
@@ -66,11 +66,11 @@ export class AliasParser extends ParserBase {
             this.consumeToken();
             this.advanceWhitespace();
             this.consumeToken();
-            alias.reads.push(...this.getType(alias, false).typeReads);
+            alias.subtypeIndication.push(...this.getType(alias, false).typeReads);
         }
         this.expect('is');
-        const [tokens] = this.advanceParentheseAware([';'], true, false);
-        alias.name.push(...this.extractReads(alias, tokens));
+        const [tokens] = this.advanceParenthesisAware([';'], true, false);
+        alias.name.push(...this.parseExpression(alias, tokens));
         this.advanceSemicolon(true);
         return alias;
     }

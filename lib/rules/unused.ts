@@ -1,7 +1,8 @@
 import { RuleBase, IRule } from "./rules-base";
 import { CodeAction, CodeActionKind, Command, DiagnosticSeverity, TextEdit } from "vscode-languageserver";
-import { IHasLexerToken, IHasPorts, implementsIHasComponents, implementsIHasConstants, implementsIHasGenerics, implementsIHasPorts, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables, OArchitecture, ObjectBase, OComponent, OEntity, OFile, OInstantiation, OPackage, OPackageBody, OProcess, ORead, OSignal, OSubprogram, OType, OWrite } from "../parser/objects";
 import { URI } from "vscode-uri";
+import { IHasLexerToken, IHasPorts, implementsIHasPorts, implementsIHasGenerics, implementsIHasTypes, implementsIHasComponents, implementsIHasSignals, implementsIHasVariables, implementsIHasConstants, implementsIHasSubprograms } from "../parser/interfaces";
+import { OFile, ObjectBase, OPackage, OPackageBody, OType, OEntity, OSubprogram, OComponent, ORead, OWrite, OSignal, OArchitecture, OProcess, OInstantiation } from "../parser/objects";
 
 export class RUnused extends RuleBase implements IRule {
   public name = 'unused';
@@ -51,7 +52,7 @@ export class RUnused extends RuleBase implements IRule {
       return;
     }
     for (const port of obj.ports) {
-      const type = port.type[0]?.definitions?.[0];
+      const type = port.typeReference[0]?.definitions?.[0];
       // Ignore ports of protected types as they are assumed to have side-effects so will not be read/written
       if ((type instanceof OType && (type.protected || type.protectedBody))) {
         continue;
@@ -72,7 +73,7 @@ export class RUnused extends RuleBase implements IRule {
     const writes = signal.references.filter(token => token instanceof OWrite);
     // check for multiple drivers
     const writeScopes = writes.map(write => {
-      // checked scopes are: OArchitecture, OProcess, OInstatiation (only component and entity)
+      // checked scopes are: OArchitecture, OProcess, OInstantiation (only component and entity)
       let scope: ObjectBase | OFile = write.parent;
       while (!(scope instanceof OArchitecture
         || scope instanceof OFile
@@ -187,8 +188,8 @@ export class RUnused extends RuleBase implements IRule {
             this.addUnusedMessage(variable, `Not reading variable ${variable.lexerToken}`);
           }
           if (references.filter(token => token instanceof OWrite).length === 0) {
-            // Assume protected type has side-effect and does not net writting to.
-            const type = variable.type[0]?.definitions?.[0];
+            // Assume protected type has side-effect and does not net writing to.
+            const type = variable.typeReference[0]?.definitions?.[0];
             if ((type instanceof OType && (type.protected || type.protectedBody)) === false) {
               this.addUnusedMessage(variable, `Not writing variable '${variable.lexerToken}'`);
             }

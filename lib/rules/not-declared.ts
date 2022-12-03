@@ -1,12 +1,13 @@
 import { findBestMatch } from "string-similarity";
 import { CodeAction, CodeActionKind, Command, DiagnosticSeverity, Position, Range, TextEdit } from "vscode-languageserver";
-import { ORead, OWrite, OAssociationFormal, OInstantiation, implementsIHasUseClause, implementsIHasLexerToken, IHasLexerToken } from "../parser/objects";
+import { IHasLexerToken, implementsIHasLexerToken, implementsIHasUseClause } from "../parser/interfaces";
+import { OAssociation, OInstantiation, OReference, OWrite } from "../parser/objects";
 import { IAddSignalCommandArguments } from "../vhdl-linter";
-import { RuleBase, IRule } from "./rules-base";
+import { IRule, RuleBase } from "./rules-base";
 export class RNotDeclared extends RuleBase implements IRule {
   public name = 'not-declared';
 
-  private pushNotDeclaredError(token: ORead | OWrite) {
+  private pushNotDeclaredError(token: OReference) {
     const code = this.vhdlLinter.addCodeActionCallback((textDocumentUri: string) => {
       const actions = [];
       for (const o of this.file.objectList) {
@@ -60,19 +61,19 @@ export class RNotDeclared extends RuleBase implements IRule {
       code,
       range: token.range,
       severity: DiagnosticSeverity.Error,
-      message: `signal '${token.referenceToken.text}' is ${token instanceof ORead ? 'read' : 'written'} but not declared`
+      message: `signal '${token.referenceToken.text}' is ${token instanceof OWrite ? 'written' : 'referenced'} but not declared`
     });
   }
-  private pushAssociationError(read: OAssociationFormal) {
+  private pushAssociationError(reference: OReference) {
     const code = this.vhdlLinter.addCodeActionCallback((textDocumentUri: string) => {
-    const actions = [];
+      const actions = [];
       for (const o of this.file.objectList) {
         if (implementsIHasUseClause(o)) {
           for (const pkg of o.packageDefinitions) {
-            const thing = pkg.constants.find(constant => constant.lexerToken.getLText() === read.lexerToken.getLText()) || pkg.types.find(type => type.lexerToken.getLText() === read.lexerToken.getLText())
-              || pkg.subprograms.find(subprogram => subprogram.lexerToken.getLText() === read.lexerToken.getLText());
+            const thing = pkg.constants.find(constant => constant.lexerToken.getLText() === reference.referenceToken.getLText()) || pkg.types.find(type => type.lexerToken.getLText() === reference.referenceToken.getLText())
+              || pkg.subprograms.find(subprogram => subprogram.lexerToken.getLText() === reference.referenceToken.getLText());
             if (thing) {
-              const architecture = read.getRootElement();
+              const architecture = reference.getRootElement();
               const pos = Position.create(0, 0);
               if (architecture && architecture.useClauses.length > 0) {
                 pos.line = architecture.useClauses[architecture.useClauses.length - 1].range.end.line + 1;
@@ -94,24 +95,27 @@ export class RNotDeclared extends RuleBase implements IRule {
       return actions;
     });
     this.addMessage({
-      range: read.range,
+      range: reference.range,
       code: code,
       severity: DiagnosticSeverity.Error,
-      message: `port '${read.lexerToken.text}' does not exist`
+      message: `port '${reference.referenceToken.text}' does not exist`
     });
   }
   async check() {
-   for (const obj of this.file.objectList) {
-        if ((obj instanceof ORead || obj instanceof OWrite) && obj.definitions.length === 0) {
-          this.pushNotDeclaredError(obj);
-        } else if (obj instanceof OAssociationFormal && obj.definitions.length === 0) {
-          const instOrPackage = obj.parent.parent.parent;
-          // if instantiations entity/component/subprogram is not found, don't report read errors
-          if (instOrPackage instanceof OInstantiation && instOrPackage.definitions.length > 0) {
-            this.pushAssociationError(obj);
-          }
-        }
+    for (const obj of this.file.objectList) {
+      if (obj instanceof OInstantiation) {
+        continue;
       }
+      if (obj instanceof OReference && obj.parent instanceof OAssociation && obj.definitions.length === 0) {
+        const instOrPackage = obj.parent.parent.parent;
+        // if instantiations entity/component/subprogram is not found, don't report read errors
+        if (instOrPackage instanceof OInstantiation && instOrPackage.definitions.length > 0) {
+          this.pushAssociationError(obj);
+        }
+      } else if ((obj instanceof OReference) && obj.definitions.length === 0) {
+        this.pushNotDeclaredError(obj);
+      }
+    }
   }
 
-  }
+}

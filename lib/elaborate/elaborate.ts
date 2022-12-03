@@ -1,13 +1,12 @@
 import { DiagnosticSeverity } from "vscode-languageserver/node";
-import { OFile, OPackage, OPackageBody, ORead, OWrite } from "../parser/objects";
+import { OFile, OPackage, OPackageBody } from "../parser/objects";
 import { VhdlLinter } from "../vhdl-linter";
+import { elaborateAliases } from "./elaborate-aliases";
 import { elaborateAssociations } from "./elaborate-association";
 import { elaborateComponents } from "./elaborate-components";
 import { elaborateInstantiations } from "./elaborate-instantiations";
-import { elaborateGlobalReads } from "./elaborate-global-reads";
-import { elaborateWritesReads } from "./elaborate-writes-reads";
+import { ElaborateReferences } from "./elaborate-references";
 import { elaborateUseClauses } from "./elaborate-use-clauses";
-import { elaborateAliases } from "./elaborate-aliases";
 
 export class Elaborate {
   file: OFile;
@@ -53,7 +52,7 @@ export class Elaborate {
             range: pkg.lexerToken.range,
             severity: DiagnosticSeverity.Warning,
             message: `Can not find package for package body.`
-          })
+          });
         }
 
       }
@@ -62,43 +61,29 @@ export class Elaborate {
     elaborateUseClauses(this.file, this.vhdlLinter.projectParser, this.vhdlLinter);
     await this.vhdlLinter.handleCanceled();
     //     console.log(packages);
-    for (const obj of this.file.objectList) {
-      if (obj instanceof OWrite || obj instanceof ORead) {
-        elaborateWritesReads(obj);
-      }
-    }
-
-    // console.log(`elab: useClauses for: ${Date.now() - start} ms.`);
-    // start = Date.now();
-    await this.vhdlLinter.handleCanceled();
+    // elaborateReferences(this.file);
 
 
-
-    // console.log(`elab: otherFileEntity for: ${Date.now() - start} ms.`);
-    // start = Date.now();
-
-    elaborateGlobalReads(this.file, this.vhdlLinter.projectParser, this.vhdlLinter);
-
-    // console.log(`elab: reads for: ${Date.now() - start} ms.`);
+    // console.log(`elaboration: reads for: ${Date.now() - start} ms.`);
     // start = Date.now();
     await this.vhdlLinter.handleCanceled();
     elaborateComponents(this.file, this.vhdlLinter.projectParser);
     await this.vhdlLinter.handleCanceled();
-    elaborateInstantiations(this.file, this.vhdlLinter.projectParser)
+    elaborateInstantiations(this.file, this.vhdlLinter.projectParser);
 
-    // console.log(`elab: instantiations for: ${Date.now() - start} ms.`);
+    // console.log(`elaboration: instantiations for: ${Date.now() - start} ms.`);
     // start = Date.now();
     await this.vhdlLinter.handleCanceled();
 
-    // console.log(`elab: components for: ${Date.now() - start} ms.`);
+    // console.log(`elaboration: components for: ${Date.now() - start} ms.`);
     // start = Date.now();
     await this.vhdlLinter.handleCanceled();
-    elaborateGlobalReads(this.file, this.vhdlLinter.projectParser, this.vhdlLinter);
+    ElaborateReferences.elaborate(this.vhdlLinter);
     await this.vhdlLinter.handleCanceled();
     elaborateAssociations(this.file);
     await this.vhdlLinter.handleCanceled();
     elaborateAliases(this.file);
-    // console.log(`elab: associations for: ${Date.now() - start} ms.`);
+    // console.log(`elaboration: associations for: ${Date.now() - start} ms.`);
     // start = Date.now();
     await this.vhdlLinter.handleCanceled();
 

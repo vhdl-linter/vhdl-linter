@@ -2,5 +2,15 @@
   "typescript.tsdk": "node_modules/typescript/lib",
   "eslint.lintTask.enable": true,
   "eslint.lintTask.options": "--ext .ts .",
-  "eslint.format.enable": true
+  "eslint.format.enable": true,
+  "cSpell.words": [
+    "clientrc",
+    "downto",
+    "Inoutput",
+    "Mentionables",
+    "subarchitecture",
+    "uninstantiated",
+    "Vhdl",
+    "Whitespaces"
+  ]
 }

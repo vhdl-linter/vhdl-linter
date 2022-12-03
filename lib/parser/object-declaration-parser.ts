@@ -1,6 +1,7 @@
-import { IHasConstants, IHasSignals, IHasVariables, implementsIHasConstants, implementsIHasSignals, implementsIHasVariables, OConstant, OSignal, OVariable, ParserError, IHasFileVariables, OFileVariable, implementsIHasFileVariables, ORead, ObjectBase } from './objects';
 import { ParserBase, ParserState } from './parser-base';
 import { OLexerToken } from '../lexer';
+import { IHasConstants, IHasFileVariables, IHasSignals, IHasVariables, implementsIHasConstants, implementsIHasFileVariables, implementsIHasSignals, implementsIHasVariables } from './interfaces';
+import { ObjectBase, ParserError, OVariable, OConstant, OFileVariable, OSignal, ORead } from './objects';
 
 export class ObjectDeclarationParser extends ParserBase {
 
@@ -54,14 +55,14 @@ export class ObjectDeclarationParser extends ParserBase {
       const typeToken = this.consumeToken();
       for (const file of objects as OFileVariable[]) {
         const typeRead = new ORead(file, typeToken);
-        file.type = [typeRead];
+        file.typeReference = [typeRead];
         if (this.maybe('open')) {
-          const [tokens] = this.advanceParentheseAware(['is', ';'], true, false);
-          file.openKind = this.extractReads(file, tokens);
+          const [tokens] = this.advanceParenthesisAware(['is', ';'], true, false);
+          file.openKind = this.parseExpression(file, tokens);
         }
         if (this.maybe('is')) {
-          const [tokens] = this.advanceParentheseAware([';'], true, false);
-          file.logicalName = this.extractReads(file, tokens);
+          const [tokens] = this.advanceParenthesisAware([';'], true, false);
+          file.logicalName = this.parseExpression(file, tokens);
         }
         // TODO: Parse optional parts of file definition
         file.range = file.range.copyWithNewEnd(this.state.pos.i);
@@ -69,7 +70,7 @@ export class ObjectDeclarationParser extends ParserBase {
     } else {
       for (const signal of objects) {
         const { typeReads, defaultValueReads } = this.getType(signal, false);
-        signal.type = typeReads;
+        signal.typeReference = typeReads;
         signal.defaultValue = defaultValueReads;
         signal.range = signal.range.copyWithNewEnd(this.state.pos.i);
       }

@@ -6,13 +6,13 @@ import { URI } from 'vscode-uri';
 import { handleCodeLens } from './languageFeatures/codeLens';
 import { getCompletions } from './languageFeatures/completion';
 import { handleDocumentFormatting } from './languageFeatures/documentFormatting';
-import { documentHighlightHandler } from './languageFeatures/documentHightlightHandler';
+import { documentHighlightHandler } from './languageFeatures/documentHighlightHandler';
 import { handleExecuteCommand } from './languageFeatures/executeCommand';
 import { findReferencesHandler, prepareRenameHandler, renameHandler } from './languageFeatures/findReferencesHandler';
 import { foldingHandler } from './languageFeatures/folding';
 import { handleReferences } from './languageFeatures/references';
 import { handleOnWorkspaceSymbol } from './languageFeatures/workspaceSymbols';
-import { implementsIHasDefinitions, OComponent, OFile, OInstantiation, OUseClause } from './parser/objects';
+import { OComponent, OFile, OInstantiation, OUseClause } from './parser/objects';
 import { ProjectParser } from './project-parser';
 import { VhdlLinter } from './vhdl-linter';
 import { handleSemanticTokens, semanticTokensLegend } from './languageFeatures/semanticTokens';
@@ -21,6 +21,7 @@ import { ISettings, defaultSettings } from './settings';
 import { CancelationError, CancelationObject } from './server-objects';
 import { getDocumentSymbol } from './languageFeatures/documentSymbol';
 import { findObjectFromPosition } from './languageFeatures/findObjectFromPosition';
+import { implementsIHasDefinitions } from './parser/interfaces';
 
 // Create a connection for the server. The connection auto detected protocol
 // Also include all preview / proposed LSP features.
@@ -33,7 +34,7 @@ export const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocu
 
 let hasWorkspaceFolderCapability = false;
 // let hasDiagnosticRelatedInformationCapability: boolean = false;
-export let projectParser: ProjectParser;
+let projectParser: ProjectParser;
 let rootUri: string | undefined;
 
 
@@ -172,7 +173,7 @@ export const initialization = new Promise<void>(resolve => {
         validateTextDocument(change.document, newCancelationObject);
         cancelationMap.set(change.document.uri, newCancelationObject);
       }
-      if (change.document.version === 1) { // Document was initally opened. Dont delay.
+      if (change.document.version === 1) { // Document was initially opened. Do not delay.
         handleChange();
       } else {
         timeoutMap.set(change.document.uri, setTimeout(handleChange, 100));
@@ -354,7 +355,7 @@ connection.onDocumentHighlight(async (params, cancelationToken) => {
 connection.onCodeLens(handleCodeLens);
 connection.onReferences(findReferencesHandler);
 connection.onExecuteCommand(handleExecuteCommand);
-connection.onWorkspaceSymbol(handleOnWorkspaceSymbol);
+connection.onWorkspaceSymbol(params => handleOnWorkspaceSymbol(params, projectParser));
 // connection.on
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 connection.onRequest('vhdl-linter/listing', async (params: any) => {

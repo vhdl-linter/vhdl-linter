@@ -112,7 +112,7 @@ function signalsTemplate(entity: OEntity) {
         const longest = longestinArray(entity.ports);
         for (const port of entity.ports) {
             const name = port.lexerToken.text.padEnd(longest, ' ');
-            text += `signal s_${name} : ${port.type};\n`;
+            text += `signal s_${name} : ${port.typeReference};\n`;
         }
     }
     return text;
