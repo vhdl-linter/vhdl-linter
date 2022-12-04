@@ -174,7 +174,7 @@ export class ConcurrentStatementParser extends ParserBase {
       const assignmentParser = new AssignmentParser(this.state, this.parent);
       const assignment = assignmentParser.parse();
       const read = new ORead(assignment, readToken);
-      assignment.references.push(read);
+      assignment.labelReferences.push(read);
       this.parent.statements.push(assignment);
     } else if (nextToken.getLText() === 'assert' && allowedStatements.includes(ConcurrentStatementTypes.Assert)) {
       this.consumeToken();

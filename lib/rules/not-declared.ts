@@ -1,7 +1,7 @@
 import { findBestMatch } from "string-similarity";
 import { CodeAction, CodeActionKind, Command, DiagnosticSeverity, Position, Range, TextEdit } from "vscode-languageserver";
 import { IHasLexerToken, implementsIHasLexerToken, implementsIHasUseClause } from "../parser/interfaces";
-import { OAssociation, OInstantiation, OReference, OWrite } from "../parser/objects";
+import { OAssociation, OInstantiation, OLabelReference, OReference, OWrite } from "../parser/objects";
 import { IAddSignalCommandArguments } from "../vhdl-linter";
 import { IRule, RuleBase } from "./rules-base";
 export class RNotDeclared extends RuleBase implements IRule {
@@ -113,6 +113,8 @@ export class RNotDeclared extends RuleBase implements IRule {
           this.pushAssociationError(obj);
         }
       } else if ((obj instanceof OReference) && obj.definitions.length === 0) {
+        this.pushNotDeclaredError(obj);
+      } else if ((obj instanceof OLabelReference) && obj.definitions.length === 0) {
         this.pushNotDeclaredError(obj);
       }
     }

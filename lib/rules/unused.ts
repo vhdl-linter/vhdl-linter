@@ -207,7 +207,7 @@ export class RUnused extends RuleBase implements IRule {
       }
       if (implementsIHasSubprograms(obj)) {
         for (const subprogram of obj.subprograms) {
-          const references = subprogram.references.slice(0);
+          const references = subprogram.labelReferences.slice(0);
           references.push(...subprogram.aliasReferences.flatMap(alias => alias.references));
           if (references.length === 0) {
             this.addUnusedMessage(subprogram, `Not using subprogram ${subprogram.lexerToken}`);
