@@ -10,7 +10,7 @@ export class RMultipleDefinition extends RuleBase implements IRule {
   checkMultipleDefinitions(objList: objListType[]) {
     for (const obj of objList) {
       if (implementsIHasLexerToken(obj as ObjectBase) && objList.find(o => {
-        if (obj !== o && obj.lexerToken?.getLText() === o.lexerToken?.getLText()) { // Object has same token but is not itself
+        if (obj.lexerToken !== o.lexerToken && obj.lexerToken?.getLText() === o.lexerToken?.getLText()) { // Object has same token but is not itself
           if (obj instanceof OType && o instanceof OType) { // Special handling for protected type and protected type body
             if (obj.protected && o.protectedBody || obj.protectedBody && o.protected) {
               return false;
@@ -28,65 +28,60 @@ export class RMultipleDefinition extends RuleBase implements IRule {
       }
     }
   }
-  async check() {
-    const extractObjects = (obj: ObjectBase) => {
-      const objList: ObjectBase[] = [];
-      if (implementsIHasSignals(obj)) {
-        objList.push(...obj.signals);
-      }
-      if (implementsIHasVariables(obj)) {
-        objList.push(...obj.variables);
-      }
-      if (implementsIHasConstants(obj)) {
-        objList.push(...obj.constants);
-      }
+  extractObjects (obj: ObjectBase) {
+    const objList: ObjectBase[] = [];
+    if (implementsIHasSignals(obj)) {
+      objList.push(...obj.signals);
+    }
+    if (implementsIHasVariables(obj)) {
+      objList.push(...obj.variables);
+    }
+    if (implementsIHasConstants(obj)) {
+      objList.push(...obj.constants);
+    }
 
 
-      // if ()
-      // subprograms can be overloaded
-      if (implementsIHasTypes(obj)) {
-        for (const type of obj.types) {
-          if (type.alias) { // Aliases can be overloaded like subprograms.
-            continue;
-          }
-          if (type.incomplete) { // Incomplete types can be overloaded
-            continue;
-          }
-          objList.push(type);
+    // if ()
+    // subprograms can be overloaded
+    if (implementsIHasTypes(obj)) {
+      for (const type of obj.types) {
+        if (type.alias) { // Aliases can be overloaded like subprograms.
+          continue;
         }
+        if (type.incomplete) { // Incomplete types can be overloaded
+          continue;
+        }
+        objList.push(type);
       }
-      if (implementsIHasInstantiations(obj)) {
-        objList.push(...obj.instantiations);
-
-
-      }
-      if (implementsIHasIfGenerates(obj)) {
-        objList.push(...obj.ifGenerates);
-      }
-      if (implementsIHasPorts(obj)) {
-        objList.push(...obj.ports);
-      }
-      if (implementsIHasGenerics(obj)) {
-        objList.push(...obj.generics);
-      }
-      if (obj instanceof OArchitecture) {
-        objList.push(...obj.blocks);
-        objList.push(...obj.generates);
-        objList.push(...obj.processes);
-      }
-      return objList;
-    };
+    }
+    if (implementsIHasInstantiations(obj)) {
+      objList.push(...obj.instantiations);
+    }
+    if (implementsIHasIfGenerates(obj)) {
+      objList.push(...obj.ifGenerates);
+    }
+    if (implementsIHasPorts(obj)) {
+      objList.push(...obj.ports);
+    }
+    if (implementsIHasGenerics(obj)) {
+      objList.push(...obj.generics);
+    }
+    if (obj instanceof OArchitecture) {
+      objList.push(...obj.statements);
+    }
+    return objList;
+  }
+  async check() {
     for (const obj of this.file.objectList) {
-      const objList: ObjectBase[] = [];
-      objList.push(...extractObjects(obj));
+      const objList = new Set<ObjectBase>();
+      this.extractObjects(obj).forEach(obj => objList.add(obj));
       if (obj instanceof OArchitecture && obj.correspondingEntity) {
-        objList.push(...extractObjects(obj.correspondingEntity));
+        this.extractObjects(obj.correspondingEntity).forEach(obj => objList.add(obj));
       }
       if (obj instanceof OPackageBody && obj.correspondingPackage) {
-        objList.push(...obj.correspondingPackage.generics);
+        obj.correspondingPackage.generics.forEach(obj => objList.add(obj));
       }
-
-      this.checkMultipleDefinitions(objList.map(obj => {
+      this.checkMultipleDefinitions([...objList.values()].map(obj => {
         if (implementsIHasLabel(obj)) {
           return { lexerToken: obj.label };
         }

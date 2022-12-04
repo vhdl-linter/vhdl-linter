@@ -26,11 +26,11 @@ export async function findReferences(params: { textDocument: TextDocumentIdentif
   // debugger;
   if (candidate instanceof OReference && candidate.definitions) {
     return candidate.definitions.concat(candidate.definitions.flatMap(c => {
-      return implementsIHasReference(c) ? c.references : [];
+      return implementsIHasReference(c) ? c.referenceLinks : [];
     }));
   }
   if (implementsIHasReference(candidate)) {
-    return ([candidate] as ObjectBase[]).concat(candidate.references ?? []);
+    return ([candidate] as ObjectBase[]).concat(candidate.referenceLinks ?? []);
   }
   return [];
 }

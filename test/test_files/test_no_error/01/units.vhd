@@ -1,12 +1,12 @@
 entity units is
-end units ;
+             end units;
 
-architecture arch of units is
+             architecture arch of units is
 
-begin
-  a_p: process
-  begin
-        wait for 6 ns ;
-end process;
+                                        begin
+                                          a_p : process
+                                          begin
+                                            wait for 6 ns;
+                                          end process;
 
-end architecture ;
+                                        end architecture;

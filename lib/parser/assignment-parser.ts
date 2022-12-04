@@ -18,10 +18,10 @@ export class AssignmentParser extends ParserBase {
       leftHandSideTokens.push(this.state.pos.lexerTokens[leftHandSideNum]);
       leftHandSideNum++;
     }
-    [assignment.labelReferences, assignment.writes] = this.extractReadsOrWrite(assignment, leftHandSideTokens);
+    [assignment.labelLinks, assignment.writes] = this.extractReadsOrWrite(assignment, leftHandSideTokens);
     this.consumeToken();
     const rightHandSide = this.advanceSemicolon();
-    assignment.labelReferences.push(...this.parseExpression(assignment, rightHandSide));
+    assignment.labelLinks.push(...this.parseExpression(assignment, rightHandSide));
     assignment.range = assignment.range.copyWithNewEnd(this.state.pos.i);
     this.debug('parse end');
     return assignment;

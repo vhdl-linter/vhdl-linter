@@ -1,5 +1,5 @@
 import { DiagnosticSeverity } from "vscode-languageserver";
-import { IHasLexerToken, IHasReferences, implementsIHasAliases, implementsIHasConstants, implementsIHasFileVariables, implementsIHasGenerics, implementsIHasLabel, implementsIHasLibraries, implementsIHasPackageInstantiations, implementsIHasPorts, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables } from "../parser/interfaces";
+import { IHasLexerToken, IHasReferenceLinks, implementsIHasAliases, implementsIHasConstants, implementsIHasFileVariables, implementsIHasGenerics, implementsIHasLabel, implementsIHasLibraries, implementsIHasPackageInstantiations, implementsIHasPorts, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables } from "../parser/interfaces";
 import { OArchitecture, OAttributeReference, ObjectBase, OEntity, OEnum, OFile, OHasSequentialStatements, OInstantiation, OInterfacePackage, OLabelReference, OLibrary, OPackage, OPackageBody, OPackageInstantiation, ORead, ORecord, OReference, OSelectedName, OSelectedNameRead, OWrite, scope } from "../parser/objects";
 import { VhdlLinter } from "../vhdl-linter";
 export class ElaborateReferences {
@@ -30,7 +30,7 @@ export class ElaborateReferences {
       if (object instanceof OHasSequentialStatements) {
         if (implementsIHasLabel(object)) {
           if (object.label.getLText() === reference.referenceToken.getLText()) {
-            object.labelReferences.push(reference);
+            object.labelLinks.push(reference);
             reference.definitions.push(object);
           }
         }
@@ -46,7 +46,7 @@ export class ElaborateReferences {
       }
     }
   }
-  evaluateDefinition(reference: OReference, definition: (ObjectBase & IHasReferences & IHasLexerToken) | (ObjectBase & IHasReferences & IHasLexerToken)[], enableCastToRead: boolean) {
+  evaluateDefinition(reference: OReference, definition: (ObjectBase & IHasReferenceLinks & IHasLexerToken) | (ObjectBase & IHasReferenceLinks & IHasLexerToken)[], enableCastToRead: boolean) {
     if (Array.isArray(definition)) {
       for (const def of definition) {
         this.evaluateDefinition(reference, def, enableCastToRead);
@@ -55,7 +55,7 @@ export class ElaborateReferences {
       if (reference instanceof OSelectedName) {
         if (definition.lexerToken.getLText() === reference.prefixTokens[0].getLText()) {
           reference.definitions.push(definition);
-          definition.references.push(reference);
+          definition.referenceLinks.push(reference);
           if (enableCastToRead) {
             this.castToRead(reference);
           }
@@ -63,7 +63,7 @@ export class ElaborateReferences {
       }
       if (definition.lexerToken.getLText() === reference.referenceToken.getLText()) {
         reference.definitions.push(definition);
-        definition.references.push(reference);
+        definition.referenceLinks.push(reference);
         if (enableCastToRead) {
           this.castToRead(reference);
         }
@@ -149,6 +149,9 @@ export class ElaborateReferences {
           }
           if (type instanceof ORecord) {
             this.evaluateDefinition(reference, type.children, false);
+          }
+          if (type.units !== undefined) {
+            this.evaluateDefinition(reference, type.units, false);
           }
 
         }

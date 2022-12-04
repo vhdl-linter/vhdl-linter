@@ -57,8 +57,8 @@ export class RUnused extends RuleBase implements IRule {
       if ((type instanceof OType && (type.protected || type.protectedBody))) {
         continue;
       }
-      const references = port.references.slice(0);
-      references.push(...port.aliasReferences.flatMap(alias => alias.references));
+      const references = port.referenceLinks.slice(0);
+      references.push(...port.aliasReferences.flatMap(alias => alias.referenceLinks));
       if ((port.direction === 'in' || port.direction === 'inout') && references.filter(token => token instanceof ORead).length === 0) {
 
         this.addUnusedMessage(port, `Not reading input port '${port.lexerToken}'`);
@@ -70,7 +70,7 @@ export class RUnused extends RuleBase implements IRule {
     }
   }
   private checkMultipleDriver(signal: OSignal) {
-    const writes = signal.references.filter(token => token instanceof OWrite);
+    const writes = signal.referenceLinks.filter(token => token instanceof OWrite);
     // check for multiple drivers
     const writeScopes = writes.map(write => {
       // checked scopes are: OArchitecture, OProcess, OInstantiation (only component and entity)
@@ -144,7 +144,7 @@ export class RUnused extends RuleBase implements IRule {
       // ignore generics of components
       if (implementsIHasGenerics(obj) && !(obj instanceof OComponent)) {
         for (const generic of obj.generics) {
-          if (generic.references.filter(token => token instanceof ORead).length === 0) {
+          if (generic.referenceLinks.filter(token => token instanceof ORead).length === 0) {
             this.addUnusedMessage(generic, `Not reading generic ${generic.lexerToken}`);
           }
 
@@ -152,8 +152,8 @@ export class RUnused extends RuleBase implements IRule {
       }
       if (implementsIHasTypes(obj)) {
         for (const type of obj.types) {
-          const references = type.references.slice(0);
-          references.push(...type.aliasReferences.flatMap(alias => alias.references));
+          const references = type.referenceLinks.slice(0);
+          references.push(...type.aliasReferences.flatMap(alias => alias.referenceLinks));
           if (references.length === 0) {
             this.addUnusedMessage(type, `Not using type ${type.lexerToken}`);
           }
@@ -161,15 +161,15 @@ export class RUnused extends RuleBase implements IRule {
       }
       if (implementsIHasComponents(obj)) {
         for (const comp of obj.components) {
-          if (comp.references.length === 0) {
+          if (comp.referenceLinks.length === 0) {
             this.addUnusedMessage(comp, `Not using component ${comp.lexerToken}`);
           }
         }
       }
       if (implementsIHasSignals(obj)) {
         for (const signal of obj.signals) {
-          const references = signal.references.slice(0);
-          references.push(...signal.aliasReferences.flatMap(alias => alias.references));
+          const references = signal.referenceLinks.slice(0);
+          references.push(...signal.aliasReferences.flatMap(alias => alias.referenceLinks));
           if (references.filter(token => token instanceof ORead).length === 0) {
             this.addUnusedMessage(signal, `Not reading signal ${signal.lexerToken}`);
           }
@@ -182,8 +182,8 @@ export class RUnused extends RuleBase implements IRule {
       }
       if (implementsIHasVariables(obj)) {
         for (const variable of obj.variables) {
-          const references = variable.references.slice(0);
-          references.push(...variable.aliasReferences.flatMap(alias => alias.references));
+          const references = variable.referenceLinks.slice(0);
+          references.push(...variable.aliasReferences.flatMap(alias => alias.referenceLinks));
           if (references.filter(token => token instanceof ORead).length === 0) {
             this.addUnusedMessage(variable, `Not reading variable ${variable.lexerToken}`);
           }
@@ -198,8 +198,8 @@ export class RUnused extends RuleBase implements IRule {
       }
       if (implementsIHasConstants(obj)) {
         for (const constant of obj.constants) {
-          const references = constant.references.slice(0);
-          references.push(...constant.aliasReferences.flatMap(alias => alias.references));
+          const references = constant.referenceLinks.slice(0);
+          references.push(...constant.aliasReferences.flatMap(alias => alias.referenceLinks));
           if (references.filter(token => token instanceof ORead).length === 0) {
             this.addUnusedMessage(constant, `Not reading constant ${constant.lexerToken}`);
           }
@@ -207,8 +207,8 @@ export class RUnused extends RuleBase implements IRule {
       }
       if (implementsIHasSubprograms(obj)) {
         for (const subprogram of obj.subprograms) {
-          const references = subprogram.labelReferences.slice(0);
-          references.push(...subprogram.aliasReferences.flatMap(alias => alias.references));
+          const references = subprogram.referenceLinks.slice(0);
+          references.push(...subprogram.aliasReferences.flatMap(alias => alias.referenceLinks));
           if (references.length === 0) {
             this.addUnusedMessage(subprogram, `Not using subprogram ${subprogram.lexerToken}`);
           }

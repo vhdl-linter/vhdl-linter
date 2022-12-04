@@ -33,7 +33,8 @@ export class AliasParser extends ParserBase {
             aliasWithSignature.subtypeIndication.push(...this.getType(aliasWithSignature, false).typeReads);
         }
         this.expect('is');
-        aliasWithSignature.name = this.consumeNameReference(aliasWithSignature);
+        const [tokens] = this.advanceParenthesisAware(['['], true, false);
+        aliasWithSignature.name.push(...this.parseExpression(aliasWithSignature, tokens));
         this.expect('[');
         // eslint-disable-next-line no-constant-condition
         while (true) {

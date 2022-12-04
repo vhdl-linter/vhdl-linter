@@ -77,7 +77,7 @@ export function elaborateUseClauses(file: OFile, projectParser: ProjectParser, v
             }
             continue;
           }
-          packageInstantiation.references.push(useClause);
+          packageInstantiation.referenceLinks.push(useClause);
           const uninstantiatedPackage = (packages.filter(p => p instanceof OPackage) as OPackage[]).find(p => p.lexerToken.getLText() === packageInstantiation.uninstantiatedPackageToken.text.toLowerCase());
           if (uninstantiatedPackage) {
             obj.packageDefinitions.push(uninstantiatedPackage);

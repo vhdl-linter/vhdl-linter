@@ -1,7 +1,7 @@
-import { config } from './config';
 import { OLexerToken, TokenType } from '../lexer';
+import { config } from './config';
 import { OIDiagnosticWithSolution } from './interfaces';
-import { OFile, ParserError, ObjectBase, OReference, OSelectedName, SelectedNamePrefix, OAssociation, OWrite } from './objects';
+import { OAssociation, ObjectBase, OFile, OReference, OSelectedName, OWrite, ParserError, SelectedNamePrefix } from './objects';
 
 
 export class ParserPosition {
@@ -282,19 +282,15 @@ export class ParserBase {
       defaultValueReads
     };
   }
-  consumeNameReference(parent: ObjectBase): OReference[] {
-    const prefixTokens = [];
-    const references: OReference[] = [];
+  consumeNameReference(parent: ObjectBase): OReference {
+    const tokens = [];
     do {
-      const token = this.consumeToken();
-      if (prefixTokens.length > 0) {
-        references.push(new OSelectedName(parent, token, prefixTokens.slice(0) as SelectedNamePrefix));
-      } else {
-        references.push(new OReference(parent, token));
-      }
-      prefixTokens.push(token);
+      tokens.push(this.consumeToken());
     } while (this.getToken().text === '.' && this.consumeToken());
-    return references;
+    if (tokens.length > 1) {
+      return new OSelectedName(parent, tokens[tokens.length - 1], tokens.slice(0, tokens.length - 1) as SelectedNamePrefix);
+    }
+    return new OReference(parent, tokens[0]);
   }
   parseExpression(parent: ObjectBase | OAssociation, tokens: OLexerToken[]): OReference[] {
     tokens = tokens.filter(token => !token.isWhitespace() && token.type !== TokenType.keyword);

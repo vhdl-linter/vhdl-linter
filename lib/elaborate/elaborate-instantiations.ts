@@ -25,7 +25,7 @@ export function elaborateInstantiations(file: OFile, projectParser: ProjectParse
 
     }
     for (const subprogram of instantiation.definitions) {
-      subprogram.references.push(instantiation);
+      subprogram.referenceLinks.push(instantiation);
     }
   }
 }

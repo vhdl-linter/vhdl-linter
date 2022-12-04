@@ -1,6 +1,6 @@
 import { OLexerToken } from '../lexer';
 import { DeclarativePartParser } from './declarative-part-parser';
-import { OArchitecture, OEntity, OEnum, OEnumLiteral, OIRange, OPackage, OPackageBody, OPort, OProcess, ORecord, ORecordChild, OStatementBody, OSubprogram, OType, ParserError } from './objects';
+import { OArchitecture, OEntity, OEnum, OEnumLiteral, OIRange, OPackage, OPackageBody, OPort, OProcess, ORecord, ORecordChild, OStatementBody, OSubprogram, OType, OUnit, ParserError } from './objects';
 import { ParserBase, ParserState } from './parser-base';
 
 
@@ -63,10 +63,10 @@ export class TypeParser extends ParserBase {
       } else if (this.isUnits()) {
         this.advancePast('units');
         type.units = [];
-        type.units.push(this.consumeToken().getLText());
+        type.units.push(new OUnit(type, this.consumeToken()) );
         this.advanceSemicolon();
         while (this.getToken().getLText() !== 'end' || this.getToken(1, true).getLText() !== 'units') {
-          type.units.push(this.consumeToken().getLText());
+          type.units.push(new OUnit(type, this.consumeToken()));
           this.advanceSemicolon();
         }
         this.expect('end');
@@ -90,7 +90,7 @@ export class TypeParser extends ParserBase {
             this.expect(':');
             const typeTokens = this.advanceSemicolon();
             for (const child of children) {
-              child.references = this.parseExpression(child, typeTokens);
+              child.referenceLinks = this.parseExpression(child, typeTokens);
               child.range = child.range.copyWithNewEnd(this.state.pos.i);
             }
             (type as ORecord).children.push(...children);
@@ -99,7 +99,7 @@ export class TypeParser extends ParserBase {
           this.maybe(type.lexerToken.text);
         } else if (nextToken.getLText() === 'array') {
           const [token] = this.advanceParenthesisAware([';'], true, false);
-          type.references.push(...this.parseExpression(type, token));
+          type.referenceLinks.push(...this.parseExpression(type, token));
         } else if (nextToken.getLText() === 'protected') {
           const protectedBody = this.maybe('body');
           if (protectedBody) {

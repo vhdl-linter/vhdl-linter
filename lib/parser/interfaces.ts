@@ -5,14 +5,14 @@ import { OReference, OUseClause, OPackage, OContextReference, ObjectBase, OAlias
 
 export interface IHasLabel {
   label: OLexerToken;
-  labelReferences: OLabelReference[];
+  labelLinks: OLabelReference[];
 }
 export interface IMayHaveLabel {
   label?: OLexerToken;
-  labelReferences: OLabelReference[];
+  labelLinks: OLabelReference[];
 }
 export function implementsIHasLabel(obj: ObjectBase): obj is ObjectBase & IHasLabel {
-  return (obj as ObjectBase & IHasLabel).label !== undefined;
+  return (obj as ObjectBase & IHasLabel).label !== undefined && Array.isArray((obj as ObjectBase & IHasLabel).labelLinks);
 }
 export interface IHasTypeReference {
   typeReference: OReference[];
@@ -20,7 +20,7 @@ export interface IHasTypeReference {
 export interface IHasDefaultValue {
   defaultValue?: OReference[];
 }
-export interface IVariableBase extends IHasReferences, IHasLexerToken, IHasTypeReference, IHasDefaultValue {
+export interface IVariableBase extends IHasReferenceLinks, IHasLexerToken, IHasTypeReference, IHasDefaultValue {
   lexerToken: OLexerToken;
 }
 export interface IHasUseClauses {
@@ -52,13 +52,13 @@ export function implementsIHasReferenceToken(obj: ObjectBase): obj is ObjectBase
 export function implementsIHasContextReference(obj: ObjectBase): obj is ObjectBase & IHasContextReference {
   return (obj as ObjectBase & IHasContextReference).contextReferences !== undefined;
 }
-export interface IHasReferences {
-  references: OReference[];
+export interface IHasReferenceLinks {
+  referenceLinks: OReference[];
   aliasReferences: OAlias[];
 }
-export function implementsIHasReference(obj: ObjectBase): obj is ObjectBase & IHasReferences {
-  return (obj as ObjectBase & IHasReferences).references !== undefined
-    && (obj as ObjectBase & IHasReferences).aliasReferences !== undefined;
+export function implementsIHasReference(obj: ObjectBase): obj is ObjectBase & IHasReferenceLinks {
+  return (obj as ObjectBase & IHasReferenceLinks).referenceLinks !== undefined
+    && (obj as ObjectBase & IHasReferenceLinks).aliasReferences !== undefined;
 }
 export interface IHasDefinitions {
   definitions: ObjectBase[];

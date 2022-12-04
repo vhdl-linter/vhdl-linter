@@ -160,20 +160,20 @@ export class SequentialStatementParser extends ParserBase {
     if (this.getToken().getLText() === 'on') { // Sensitivity Clause
       this.expect('on');
       const [rightHandSide] = this.advanceParenthesisAware(['until', 'for', ';'], true, false);
-      assignment.labelReferences.push(...this.parseExpression(assignment, rightHandSide));
+      assignment.labelLinks.push(...this.parseExpression(assignment, rightHandSide));
     }
 
     if (this.getToken().getLText() === 'until') {
       this.expect('until');
       const [rightHandSide] = this.advanceParenthesisAware(['for', ';'], true, false);
-      assignment.labelReferences.push(...this.parseExpression(assignment, rightHandSide));
+      assignment.labelLinks.push(...this.parseExpression(assignment, rightHandSide));
 
     }
 
     if (this.getToken().getLText() === 'for') {
       this.expect('for');
       const [rightHandSide] = this.advanceParenthesisAware([';'], true, false);
-      assignment.labelReferences.push(...this.parseExpression(assignment, rightHandSide));
+      assignment.labelLinks.push(...this.parseExpression(assignment, rightHandSide));
     }
 
     assignment.range = assignment.range.copyWithNewEnd(this.state.pos.i);
