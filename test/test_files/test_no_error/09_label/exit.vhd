@@ -1,7 +1,7 @@
-entity exit is
-end exit;
+entity test_exit is
+end test_exit;
 
-architecture arch of exit is
+architecture arch of test_exit is
 
 begin
   a_p : process

@@ -15,7 +15,7 @@ export class EntityParser extends ParserBase {
     this.debug(`start`);
   }
   parse(): OEntity {
-    this.entity.lexerToken = this.consumeToken();
+    this.entity.lexerToken = this.consumeIdentifier();
     if (this.parent instanceof OArchitecture) {
       this.maybe('is');
     } else {

@@ -63,8 +63,8 @@ export async function getCompletions(linter: VhdlLinter, params: CompletionParam
             addCompletion(literal, CompletionItemKind.EnumMember);
           }
         } else if (type instanceof ORecord) {
-          for (const chield of type.children) {
-            addCompletion(chield, CompletionItemKind.Field);
+          for (const child of type.children) {
+            addCompletion(child, CompletionItemKind.Field);
           }
         }
       }

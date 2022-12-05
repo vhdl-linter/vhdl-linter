@@ -1,7 +1,6 @@
-entity test_units is
-             end test_units;
 
-             architecture arch of test_units is
+
+             architecture arch of units is -- units is reserved
 
                                         begin
                                           a_p : process

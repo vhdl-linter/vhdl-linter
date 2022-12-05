@@ -91,6 +91,13 @@ export class ParserBase {
     }
     return token;
   }
+  consumeIdentifier(advanceWhitespace = true) {
+    const token = this.consumeToken(advanceWhitespace);
+    if (token.isIdentifier() === false) {
+      throw new ParserError(`Expected valid identifier got ${token.text} (type: ${TokenType[token.type]})`, token.range);
+    }
+    return token;
+  }
   findToken(options: string | string[]) {
     const start = this.state.pos.num;
     if (!Array.isArray(options)) {

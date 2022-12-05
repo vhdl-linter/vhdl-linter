@@ -55,9 +55,9 @@ export class StatementBodyParser extends ParserBase {
       architecture.constants.push(iterateConstant);
     }
     if (skipStart !== true) {
-      architecture.lexerToken = this.consumeToken();
+      architecture.lexerToken = this.consumeIdentifier();
       this.expect('of');
-      this.entityName = this.consumeToken();
+      this.entityName = this.consumeIdentifier();
       architecture.entityName = this.entityName;
       this.expect('is');
     }

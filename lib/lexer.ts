@@ -35,12 +35,13 @@ export class OLexerToken {
 }
 export const GRAPHIC_CHARACTER = String.raw`[a-z0-9 "#&'()*+,-./:;<£¤¥¦§ ̈©ª«¬- ® ̄°±=>_|!$%?@\[\\\]\^\`{}~¡¢²³ ́μ¶· ̧¹º»¼½¾¿×÷]`;
 export class Lexer {
+  // TODO: Enter correct list of keywords from IEEE 2008 page 236
   readonly keywords = [
     'abs', 'not', 'mod', 'sll', 'srl', 'sla', 'sra', 'rol', 'ror',
     'and', 'or', 'nand', 'nor', 'xor', 'xnor', 'downto', 'to', 'others', 'rem',
     'when', 'else', 'range', 'elsif', 'after', 'transport', 'reject',
     'inertial', 'all', 'of', 'new', 'force', 'release', 'severity', 'open',
-    'null', 'guarded', 'postponed'
+    'null', 'guarded', 'postponed', 'exit', 'units'
   ].map(keyword => new RegExp('^' + keyword + '\\b', 'i'));
 
   tokenTypes: { regex: RegExp, tokenType: TokenType }[] = [
@@ -58,22 +59,7 @@ export class Lexer {
       regex: /^=>|\*\*|:=|\/=>=|<=|<>|\?\?|\?=|\?\/=|\?<|\?<=|\?>|\?>=|<<|>>|&|'|\(|\)|\*|\+|,|-|.|\/|:|;|<|=|>|`|\||\[|\]|\?|@/,
       tokenType: TokenType.delimiter
     },
-    // { regex: /^()([a-z]\w*)\s*(?=\=>)/i, tokenType: 'RECORD_ELEMENT' },
-    // { regex: /^(\.)([a-z]\w*)(?!\s*[(]|\w)/i, tokenType: 'RECORD_ELEMENT' },
-    // { regex: /^;/, tokenType: 'SEMICOLON' },
-    // { regex: /^(["])(([^"\\\n]|\\.|\\\n)*)["]/i, tokenType: 'STRING_LITERAL' },
-    // { regex: /^[*\/&\-?=<>+]+/i, tokenType: 'OPERATION' },
-    // { regex: /^[()]/i, tokenType: 'BRACE' },
-    // { regex: /^,/i, tokenType: 'COMMA' },
-    // { regex: /^\btrue|false\b/i, tokenType: 'BOOLEAN_LITERAL' },
-    // { regex: /^\bnull\b/i, tokenType: 'NULL_LITERAL' },
-    // { regex: /^"[0-9ZWLH-UX]+"/i, tokenType: 'LOGIC_LITERAL' },
-    // { regex: /^\d*[su]?[box]"[0-9A-F_ZWLH-UX]+"/i, tokenType: 'LOGIC_LITERAL' },
-    // { regex: /^'[0-9ZWLH-UX]+'/i, tokenType: 'LOGIC_LITERAL' },
-    // { regex: /^\w+'\w+(?=\s*\()/i, tokenType: 'ATTRIBUTE_FUNCTION' },
-    // { regex: /^[a-z]\w*(?!\s*[(]|\w)/i, tokenType: 'VARIABLE' },
-    // { regex: /^\w+(?=\s*\()/i, tokenType: 'FUNCTION' },
-    // { regex: /^(\.)(\w+)(?=\s*\()/i, tokenType: 'FUNCTION_RECORD_ELEMENT' },
+
   ];
   constructor(
     public text: string,
