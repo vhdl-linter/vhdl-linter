@@ -35,6 +35,7 @@ export class Elaborate {
       if (entity) {
         architecture.correspondingEntity = entity;
       }
+
     }
     // Map package body to package
     for (const pkg of this.file.packages) {

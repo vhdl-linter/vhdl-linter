@@ -1,7 +1,7 @@
 import { OLexerToken, TokenType } from '../lexer';
 import { config } from './config';
 import { OIDiagnosticWithSolution } from './interfaces';
-import { OAssociation, ObjectBase, OFile, OReference, OSelectedName, OWrite, ParserError, SelectedNamePrefix } from './objects';
+import { OAssociation, ObjectBase, OFile, OReference, OSelectedName, OSelectedNameWrite, OWrite, ParserError, SelectedNamePrefix } from './objects';
 
 
 export class ParserPosition {
@@ -354,12 +354,12 @@ export class ParserBase {
     const writes: OWrite[] = [];
     let parenthesisLevel = 0;
     tokens = tokens.filter(token => token.isWhitespace() === false && token.type !== TokenType.keyword);
+    let prefixTokens: OLexerToken[] = [];
 
     let slice = false;
     for (let i = 0; i < tokens.length; i++) {
       const token = tokens[i];
       // console.log(index, token);
-      const recordToken = tokens[i - 1]?.text === '.';
       if (token.text === '(') {
         if (i > 0) {
           slice = true;
@@ -375,29 +375,33 @@ export class ParserBase {
         if (slice && tokens[i + 1]?.text === '=>') {
           continue;
         }
-        if (slice === false && recordToken === false) {
+        if (slice === false) {
           if (tokens[i - 1]?.text === '\'') { // Attribute skipped for now
             continue;
           }
+          if (tokens[i + 1]?.text === '.' && tokens[i + 2]?.isIdentifier()) {
+            prefixTokens.push(token);
+            continue;
+          }
           if (readAndWrite) {
-            references.push(new OReference(parent, token));
+            if (prefixTokens.length > 0) {
+              references.push(new OSelectedName(parent, token, prefixTokens as SelectedNamePrefix));
+            } else {
+              references.push(new OReference(parent, token));
+            }
           }
           if (tokens[i - 1]?.type === TokenType.decimalLiteral) { //  Skip units for writing
             continue;
           }
-          const write = new OWrite(parent, token);
-          writes.push(write);
+          if (prefixTokens.length > 0) {
+            writes.push(new OSelectedNameWrite(parent, token, prefixTokens as SelectedNamePrefix));
+          } else {
+            writes.push(new OWrite(parent, token));
+          }
+          prefixTokens = [];
 
-        } else {
-          if (recordToken) {
-            const prefixTokens = [];
-            let x = i - 1;
-            while (tokens[x]?.text === '.') {
-              prefixTokens.unshift(tokens[x - 1]);
-              x = x - 2;
-            }
-            references.push(new OSelectedName(parent, token, prefixTokens as SelectedNamePrefix));
-          } else if (tokens[i - 1]?.text !== '\'') { // skip attributes
+        } else { //in slice
+         if (tokens[i - 1]?.text !== '\'') { // skip attributes
             references.push(new OReference(parent, token));
           }
         }

@@ -58,11 +58,14 @@ export class StatementBodyParser extends ParserBase {
       architecture.lexerToken = this.consumeIdentifier();
       this.expect('of');
       this.entityName = this.consumeIdentifier();
-      architecture.entityName = this.entityName;
+      if (architecture instanceof OArchitecture === false) {
+        throw new ParserError(`unexpected architecture header`, architecture.lexerToken.range.copyExtendEndOfLine());
+      }
+      (architecture as OArchitecture).entityName = this.entityName;
       this.expect('is');
     }
 
-    new DeclarativePartParser(this.state, architecture).parse(structureName !== 'architecture');
+    new DeclarativePartParser(this.state, (architecture as OArchitecture)).parse(structureName !== 'architecture');
     architecture.endOfDeclarativePart = new OI(architecture, this.state.pos.i);
     this.maybe('begin');
 

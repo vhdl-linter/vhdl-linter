@@ -364,7 +364,6 @@ export abstract class OStatementBody extends ObjectBase implements I.IHasSubprog
   subprograms: OSubprogram[] = [];
   components: OComponent[] = [];
   statements: OConcurrentStatements[] = [];
-  entityName?: OLexerToken;
   correspondingEntity?: OEntity;
   endOfDeclarativePart?: OI;
   get processes() {
@@ -399,6 +398,7 @@ export abstract class OStatementBody extends ObjectBase implements I.IHasSubprog
 }
 export class OArchitecture extends OStatementBody implements I.IHasLexerToken {
   lexerToken: OLexerToken;
+  entityName: OLexerToken;
 
 }
 export class OBlock extends OStatementBody implements I.IHasLabel {
@@ -784,6 +784,11 @@ export class OWrite extends OReference {
   // This avoid false positives
   public inAssociation = false;
   private type = 'OWrite'; // Make sure typescript type checking does not accept OReference as OWrite
+}
+export class OSelectedNameWrite extends OWrite {
+  constructor(public parent: ObjectBase, public referenceToken: OLexerToken, public prefixTokens: SelectedNamePrefix) {
+    super(parent, referenceToken, referenceToken.range.copyWithNewStart(prefixTokens[0].range));
+  }
 }
 export class ORead extends OReference {
   private type = 'ORead'; // Make sure typescript type checking does not accept OReference as ORead

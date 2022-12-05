@@ -67,7 +67,6 @@ export class ConcurrentStatementParser extends ParserBase {
       const subarchitecture = new StatementBodyParser(this.state, (this.parent as OArchitecture), label);
       const generate: OForGenerate = subarchitecture.parse(true, 'generate', { constantName, constantRange, startPosI: startI });
       generate.label = label;
-      generate.entityName = undefined;
       generate.range = generate.range.copyWithNewStart(savedI);
 
       this.reverseWhitespace();

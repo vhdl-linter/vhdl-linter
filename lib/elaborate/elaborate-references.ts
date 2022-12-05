@@ -1,6 +1,6 @@
 import { DiagnosticSeverity } from "vscode-languageserver";
 import { IHasLexerToken, IHasReferenceLinks, implementsIHasAliases, implementsIHasConstants, implementsIHasFileVariables, implementsIHasGenerics, implementsIHasLabel, implementsIHasLibraries, implementsIHasPackageInstantiations, implementsIHasPorts, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables } from "../parser/interfaces";
-import { OArchitecture, OAttributeReference, ObjectBase, OEntity, OEnum, OFile, OHasSequentialStatements, OInstantiation, OInterfacePackage, OLabelReference, OLibrary, OPackage, OPackageBody, OPackageInstantiation, ORead, ORecord, OReference, OSelectedName, OSelectedNameRead, OWrite, scope } from "../parser/objects";
+import { OArchitecture, OAttributeReference, ObjectBase, OEntity, OEnum, OFile, OHasSequentialStatements, OInstantiation, OInterfacePackage, OLabelReference, OLibrary, OPackage, OPackageBody, OPackageInstantiation, ORead, ORecord, OReference, OSelectedName, OSelectedNameRead, OSelectedNameWrite, OWrite, scope } from "../parser/objects";
 import { VhdlLinter } from "../vhdl-linter";
 export class ElaborateReferences {
   file: OFile;
@@ -15,7 +15,7 @@ export class ElaborateReferences {
         elaborator.elaborateLabelReference(obj);
       }
       if (obj instanceof OReference && obj instanceof OInstantiation === false) {
-        if (obj instanceof OSelectedName) {
+        if (obj instanceof OSelectedName || obj instanceof OSelectedNameWrite) {
           elaborator.elaborateSelectedNames(obj);
         } else if (obj instanceof OAttributeReference) {
           // elaborateAttributeReferences(obj);
@@ -52,7 +52,7 @@ export class ElaborateReferences {
         this.evaluateDefinition(reference, def, enableCastToRead);
       }
     } else {
-      if (reference instanceof OSelectedName) {
+      if (reference instanceof OSelectedName || reference instanceof OSelectedNameWrite) {
         if (definition.lexerToken.getLText() === reference.prefixTokens[0].getLText()) {
           reference.definitions.push(definition);
           definition.referenceLinks.push(reference);
@@ -177,7 +177,7 @@ export class ElaborateReferences {
     }
   }
 
-  elaborateSelectedNames(reference: OSelectedName) {
+  elaborateSelectedNames(reference: OSelectedName | OSelectedNameWrite) {
     if (reference.prefixTokens.length === 2) {
       const [libraryToken, pkgToken] = reference.prefixTokens;
       let library: OLibrary | undefined;

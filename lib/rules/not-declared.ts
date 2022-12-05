@@ -1,7 +1,7 @@
 import { findBestMatch } from "string-similarity";
 import { CodeAction, CodeActionKind, Command, DiagnosticSeverity, Position, Range, TextEdit } from "vscode-languageserver";
 import { IHasLexerToken, implementsIHasLexerToken, implementsIHasUseClause } from "../parser/interfaces";
-import { OAssociation, OInstantiation, OLabelReference, OReference, OUseClause, OWrite } from "../parser/objects";
+import { OArchitecture, OAssociation, OInstantiation, OLabelReference, OReference, OUseClause, OWrite } from "../parser/objects";
 import { IAddSignalCommandArguments } from "../vhdl-linter";
 import { IRule, RuleBase } from "./rules-base";
 export class RNotDeclared extends RuleBase implements IRule {
@@ -109,6 +109,13 @@ export class RNotDeclared extends RuleBase implements IRule {
       if (obj instanceof OUseClause) {
         // Do nothing in case of use clause
         // This is already handled
+      } else if (obj instanceof OArchitecture && obj.correspondingEntity === undefined) {
+        this.addMessage({
+          range: obj.entityName?.range ?? obj.range,
+          severity: DiagnosticSeverity.Error,
+          message: `Did not find entity for this architecture`
+        });
+
       } else if (obj instanceof OReference && obj.parent instanceof OAssociation && obj.definitions.length === 0) {
         const instOrPackage = obj.parent.parent.parent;
         // if instantiations entity/component/subprogram is not found, don't report read errors
