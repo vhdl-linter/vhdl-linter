@@ -1,7 +1,7 @@
-import { ParserBase, ParserState } from './parser-base';
 import { OLexerToken } from '../lexer';
 import { IHasConstants, IHasFileVariables, IHasSignals, IHasVariables, implementsIHasConstants, implementsIHasFileVariables, implementsIHasSignals, implementsIHasVariables } from './interfaces';
-import { ObjectBase, ParserError, OVariable, OConstant, OFileVariable, OSignal, ORead } from './objects';
+import { ObjectBase, OConstant, OFileVariable, ORead, OSignal, OVariable, ParserError } from './objects';
+import { ParserBase, ParserState } from './parser-base';
 
 export class ObjectDeclarationParser extends ParserBase {
 
@@ -10,7 +10,7 @@ export class ObjectDeclarationParser extends ParserBase {
     this.debug('start');
   }
   parse(nextToken: OLexerToken) {
-    let shared = false
+    let shared = false;
     if (nextToken.getLText() === 'shared') {
       shared = true;
       this.consumeToken();

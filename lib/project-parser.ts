@@ -10,12 +10,12 @@ export function getRootDirectory() {
   let currentDir = __dirname;
   let iterations = 10;
   while (!existsSync(join(currentDir, 'package.json'))) {
-    currentDir = join(currentDir, '..')
+    currentDir = join(currentDir, '..');
     if (iterations-- === 0) {
       throw new Error('Could not find root directory');
     }
   }
-  return currentDir
+  return currentDir;
 }
 export class ProjectParser {
 

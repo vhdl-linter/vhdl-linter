@@ -1,6 +1,6 @@
 import { CompletionItem, CompletionItemKind, CompletionParams } from 'vscode-languageserver';
-import { IHasLexerToken, implementsIHasSignals, implementsIHasConstants, implementsIHasVariables, implementsIHasSubprograms, implementsIHasTypes } from '../parser/interfaces';
-import { ObjectBase, OI, scope, OEnum, ORecord, OEntity } from '../parser/objects';
+import { IHasLexerToken, implementsIHasConstants, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables } from '../parser/interfaces';
+import { ObjectBase, OEntity, OEnum, OI, ORecord, scope } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
 
 export async function getCompletions(linter: VhdlLinter, params: CompletionParams): Promise<CompletionItem[]> {
@@ -11,7 +11,7 @@ export async function getCompletions(linter: VhdlLinter, params: CompletionParam
   const addCompletion = async (item: ObjectBase & IHasLexerToken, kind?: CompletionItemKind) => {
     const lowercase = item.rootFile.file.match(/ieee2008/) && ieeeCasingLowercase;
     completions.push({ label: lowercase ? item.lexerToken.getLText() : item.lexerToken.text, kind });
-  }
+  };
 
 
   const lines = linter.text.split('\n');

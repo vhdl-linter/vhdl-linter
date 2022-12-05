@@ -29,7 +29,7 @@ export async function handleDocumentFormatting(params: DocumentFormattingParams,
   const { signal } = controller;
   token.onCancellationRequested(() => {
     controller.abort();
-  })
+  });
   try {
     await promisify(exec)(`emacs --batch --eval "(setq-default vhdl-basic-offset ${numSpaces})" ` +
       `--eval "(setq load-path (cons (expand-file-name \\"${emacsLoadPath}\\") load-path))" ` +

@@ -1,6 +1,5 @@
-import { OArchitecture, OEntity, OPackage, OPackageBody, OProcess, OSubprogram, OAliasWithSignature, OType, OTypeMark, OAlias, OStatementBody } from "./objects";
+import { OEntity, OPackage, OPackageBody, OProcess, OSubprogram, OAliasWithSignature, OType, OTypeMark, OAlias, OStatementBody } from "./objects";
 import { ParserBase, ParserState } from "./parser-base";
-// TODO: Use for all kinds of aliases
 export class AliasParser extends ParserBase {
     constructor(state: ParserState, private parent: OStatementBody | OEntity | OPackage | OPackageBody | OProcess | OSubprogram | OType) {
         super(state);

@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { StatementBodyParser } from './statement-body-parser';
+import { Lexer, OLexerToken, TokenType } from '../lexer';
+import { CancelationObject } from '../server-objects';
 import { ContextParser } from './context-parser';
 import { ContextReferenceParser } from './context-reference-parser';
 import { EntityParser } from './entity-parser';
-import { MagicCommentType, OFile, OI, OIRange, OMagicCommentDisable, ParserError, OConfiguration, OUseClause, OLibrary, OPackageInstantiation, ObjectBase } from './objects';
+import { MagicCommentType, ObjectBase, OConfiguration, OFile, OI, OIRange, OLibrary, OMagicCommentDisable, OPackageInstantiation, OUseClause, ParserError } from './objects';
+import { PackageInstantiationParser } from './package-instantiation-parser';
 import { PackageParser } from './package-parser';
 import { ParserBase, ParserPosition, ParserState } from './parser-base';
-import { Lexer, OLexerToken, TokenType } from '../lexer';
-import { PackageInstantiationParser } from './package-instantiation-parser';
-import { CancelationObject } from '../server-objects';
+import { StatementBodyParser } from './statement-body-parser';
 
 export class FileParser extends ParserBase {
   state: ParserState;
@@ -42,7 +42,7 @@ export class FileParser extends ParserBase {
 
       if (match) {
         let innerMatch: RegExpMatchArray | null;
-        const nextLineRange = this.getNextLineRange(lineNumber)
+        const nextLineRange = this.getNextLineRange(lineNumber);
         if ((innerMatch = match[2].match(/-disable(?:-this)?-line(?:\s|$)(.+)?/i)) !== null) {
           for (const rule of innerMatch[1]?.split(' ') ?? [undefined]) {
             this.file.magicComments.push(new OMagicCommentDisable(
@@ -120,7 +120,7 @@ export class FileParser extends ParserBase {
           new OLexerToken('all', new OIRange(this.file, 0, 0), TokenType.keyword)),
         ...useClausesPrepare.map(([library, packageName, suffix]) => new OUseClause(parent, library, packageName, suffix))
       ];
-    }
+    };
     let libraries = defaultLibrary.slice(0);
     this.advanceWhitespace();
 
@@ -153,7 +153,7 @@ export class FileParser extends ParserBase {
         this.expect(';');
       } else if (nextToken.getLText() === 'use') {
 
-        useClausesPrepare.push
+        useClausesPrepare.push;
         const library = this.consumeToken();
         this.expect('.');
         const packageName = this.consumeToken();

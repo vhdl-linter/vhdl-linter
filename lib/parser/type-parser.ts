@@ -1,6 +1,6 @@
 import { OLexerToken } from '../lexer';
 import { DeclarativePartParser } from './declarative-part-parser';
-import { OArchitecture, OEntity, OEnum, OEnumLiteral, OIRange, OPackage, OPackageBody, OPort, OProcess, ORecord, ORecordChild, OStatementBody, OSubprogram, OType, OUnit, ParserError } from './objects';
+import { OEntity, OEnum, OEnumLiteral, OIRange, OPackage, OPackageBody, OPort, OProcess, ORecord, ORecordChild, OStatementBody, OSubprogram, OType, OUnit, ParserError } from './objects';
 import { ParserBase, ParserState } from './parser-base';
 
 
@@ -9,7 +9,7 @@ export class TypeParser extends ParserBase {
     super(state);
     this.debug('start');
   }
-  // Can this be generalizes somehow?
+  // Can this be generalized somehow?
   isUnits(): boolean {
     let i = 0;
     while (this.state.pos.num + i < this.state.pos.lexerTokens.length) {
@@ -20,7 +20,7 @@ export class TypeParser extends ParserBase {
       }
       i++;
     }
-    throw new ParserError(`is Units failes in `, this.getToken(0).range);
+    throw new ParserError(`is Units failed in `, this.getToken(0).range);
   }
   parse(): OType {
     const type = new OType(this.parent, this.getToken().range.copyExtendEndOfLine());

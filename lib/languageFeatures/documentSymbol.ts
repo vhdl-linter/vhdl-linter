@@ -1,5 +1,5 @@
 import { DocumentSymbol, SymbolKind } from 'vscode-languageserver';
-import { OArchitecture, OCase, OForLoop, OIf, OSequentialStatement, OStatementBody } from '../parser/objects';
+import { OCase, OForLoop, OIf, OSequentialStatement, OStatementBody } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
 
 function parseArchitecture(statementBody: OStatementBody, linter: VhdlLinter): DocumentSymbol[] {

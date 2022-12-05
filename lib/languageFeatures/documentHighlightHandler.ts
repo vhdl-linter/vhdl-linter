@@ -1,6 +1,6 @@
 import { DocumentHighlight, DocumentHighlightKind, TextDocumentPositionParams } from 'vscode-languageserver';
 import { OLexerToken } from '../lexer';
-import { implementsIHasLexerToken, implementsIHasReferenceToken, IHasLexerToken, IHasReferenceToken } from '../parser/interfaces';
+import { IHasLexerToken, IHasReferenceToken, implementsIHasLexerToken, implementsIHasReferenceToken } from '../parser/interfaces';
 import { ObjectBase, OWrite } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
 import { findObjectFromPosition } from './findObjectFromPosition';
@@ -46,7 +46,7 @@ export function documentHighlightHandler(linter: VhdlLinter, params: TextDocumen
                 });
             }
         }
-    }
+    };
     if (implementsIHasLexerToken(candidate)) {
         searchForToken(candidate.lexerToken);
     }

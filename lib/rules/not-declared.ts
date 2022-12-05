@@ -1,7 +1,7 @@
 import { findBestMatch } from "string-similarity";
 import { CodeAction, CodeActionKind, Command, DiagnosticSeverity, Position, Range, TextEdit } from "vscode-languageserver";
 import { IHasLexerToken, implementsIHasLexerToken, implementsIHasUseClause } from "../parser/interfaces";
-import { OAssociation, OInstantiation, OLabelReference, OReference, OSelectedName, OUseClause, OWrite } from "../parser/objects";
+import { OAssociation, OInstantiation, OLabelReference, OReference, OUseClause, OWrite } from "../parser/objects";
 import { IAddSignalCommandArguments } from "../vhdl-linter";
 import { IRule, RuleBase } from "./rules-base";
 export class RNotDeclared extends RuleBase implements IRule {

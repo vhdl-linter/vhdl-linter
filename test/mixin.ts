@@ -1,4 +1,5 @@
 // Needed for all mixins
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/ban-types
 type Constructor<T = {}> = new (...args: any[]) => T;
 
 ////////////////////

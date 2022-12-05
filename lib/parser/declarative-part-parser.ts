@@ -1,6 +1,6 @@
 import { ComponentParser } from './component-parser';
 import { ObjectDeclarationParser } from './object-declaration-parser';
-import { OArchitecture, OEntity, OPackage, OPackageBody, OProcess, OStatementBody, OSubprogram, OType, ParserError } from './objects';
+import { OEntity, OPackage, OPackageBody, OProcess, OStatementBody, OSubprogram, OType, ParserError } from './objects';
 import { ParserBase, ParserState } from './parser-base';
 import { SubprogramParser } from './subprogram-parser';
 import { SubtypeParser } from './subtype-parser';

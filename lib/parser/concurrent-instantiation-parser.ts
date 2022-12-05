@@ -1,5 +1,5 @@
 import { AssociationListParser } from './association-list-parser';
-import { OArchitecture, OEntity, OInstantiation, OStatementBody, ParserError } from './objects';
+import { OEntity, OInstantiation, OStatementBody, ParserError } from './objects';
 import { ParserBase, ParserState } from './parser-base';
 import { OLexerToken } from '../lexer';
 
