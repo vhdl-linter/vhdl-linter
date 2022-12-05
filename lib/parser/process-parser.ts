@@ -12,7 +12,7 @@ export class ProcessParser extends ParserBase {
   }
   parse(startI: number, label?: OLexerToken): OProcess {
     const process = new OProcess(this.parent, new OIRange(this.parent, startI, this.getEndOfLineI()));
-    process.lexerToken = label;
+    process.label = label;
     if (this.getToken().getLText() === '(') {
       this.expect('(');
       const sensitivityListTokens = this.advanceClosingParenthesis();
