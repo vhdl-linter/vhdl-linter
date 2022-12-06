@@ -305,8 +305,9 @@ export class ParserBase {
     let functionOrArraySlice = false;
     let parenthesisLevel = 0;
     let prefixTokens: OLexerToken[] = [];
+    let token;
     for (let i = 0; i < tokens.length; i++) {
-      const token = tokens[i];
+      token = tokens[i];
       if (tokens[i].text === '(') {
         if (functionOrArraySlice) {
           parenthesisLevel++;
@@ -323,11 +324,25 @@ export class ParserBase {
           parenthesisLevel = 0;
         }
       }
-      if (token.isIdentifier()) {
+      if (token.isDesignator() ) {
         if (tokens[i - 1]?.text === '\'') { // Attribute skipped for now
           continue;
         }
-        if (tokens[i + 1]?.text === '.' && tokens[i + 2]?.isIdentifier()) {
+        if (tokens[i + 1]?.text === '(') {
+
+          const sliceTokens = [];
+          let offset = 2;
+          for (offset = 2; i + offset < tokens.length; offset++) {
+            if (tokens[i + offset]?.getLText() !== ')') {
+              sliceTokens.push(tokens[i + offset]);
+            } else {
+              break;
+            }
+          }
+          i += offset + 1;
+          references.push(...this.parseExpression(parent, sliceTokens));
+        }
+        if (tokens[i + 1]?.text === '.' && tokens[i + 2]?.isDesignator()) {
           prefixTokens.push(token);
           continue;
         }
@@ -335,16 +350,31 @@ export class ParserBase {
         // Detection if in possible function
 
         // If in possible function check if possible named function call, then ignore.
-        if (functionOrArraySlice && tokens[i].isIdentifier() && tokens[i + 1]?.text === '=>') {
+        if (functionOrArraySlice && tokens[i]?.isDesignator() && tokens[i + 1]?.text === '=>') {
           continue;
         }
-        if (prefixTokens.length > 0) {
-          references.push(new OSelectedName(parent, token, prefixTokens as SelectedNamePrefix));
-          prefixTokens = [];
-        } else {
-          references.push(new OReference(parent, token));
-          prefixTokens = [];
+
+      } else if {
+        const token = prefixTokens[prefixTokens.length - 1];
+        prefixTokens = prefixTokens.slice(0, -1);
+        if (token) {
+          if (prefixTokens.length > 0) {
+            references.push(new OSelectedName(parent, token, prefixTokens as SelectedNamePrefix));
+            prefixTokens = [];
+          } else {
+            references.push(new OReference(parent, token));
+            prefixTokens = [];
+          }
         }
+      }
+    }
+    if (token) {
+      if (prefixTokens.length > 0) {
+        references.push(new OSelectedName(parent, token, prefixTokens as SelectedNamePrefix));
+        prefixTokens = [];
+      } else {
+        references.push(new OReference(parent, token));
+        prefixTokens = [];
       }
     }
     return references;
@@ -357,8 +387,9 @@ export class ParserBase {
     let prefixTokens: OLexerToken[] = [];
 
     let slice = false;
+    let token;
     for (let i = 0; i < tokens.length; i++) {
-      const token = tokens[i];
+      token = tokens[i];
       // console.log(index, token);
       if (token.text === '(') {
         if (i > 0) {
@@ -370,7 +401,7 @@ export class ParserBase {
         if (parenthesisLevel === 0) {
           slice = false;
         }
-      } else if (token.isIdentifier()) {
+      } else if (token.isDesignator()) {
         // If in possible function check if possible named function call, then ignore.
         if (slice && tokens[i + 1]?.text === '=>') {
           continue;
@@ -379,32 +410,46 @@ export class ParserBase {
           if (tokens[i - 1]?.text === '\'') { // Attribute skipped for now
             continue;
           }
-          if (tokens[i + 1]?.text === '.' && tokens[i + 2]?.isIdentifier()) {
+          if (tokens[i + 1]?.text === '(') {
+
+            const sliceTokens = [];
+            let offset = 2;
+            while (tokens[i + offset]?.getLText() !== ')') {
+              sliceTokens.push(tokens[i + offset]);
+              offset++;
+            }
+            i += offset + 1;
+            references.push(...this.parseExpression(parent, sliceTokens));
+          }
+          if (tokens[i + 1]?.text === '.' && tokens[i + 2]?.isDesignator()) {
             prefixTokens.push(token);
             continue;
           }
-          if (readAndWrite) {
-            if (prefixTokens.length > 0) {
-              references.push(new OSelectedName(parent, token, prefixTokens as SelectedNamePrefix));
-            } else {
-              references.push(new OReference(parent, token));
-            }
-          }
+
           if (tokens[i - 1]?.type === TokenType.decimalLiteral) { //  Skip units for writing
             continue;
-          }
-          if (prefixTokens.length > 0) {
-            writes.push(new OSelectedNameWrite(parent, token, prefixTokens as SelectedNamePrefix));
-          } else {
-            writes.push(new OWrite(parent, token));
           }
           prefixTokens = [];
 
         } else { //in slice
-         if (tokens[i - 1]?.text !== '\'') { // skip attributes
+          if (tokens[i - 1]?.text !== '\'') { // skip attributes
             references.push(new OReference(parent, token));
           }
         }
+      }
+    }
+    if (token) {
+      if (readAndWrite) {
+        if (prefixTokens.length > 0) {
+          references.push(new OSelectedName(parent, token, prefixTokens as SelectedNamePrefix));
+        } else {
+          references.push(new OReference(parent, token));
+        }
+      }
+      if (prefixTokens.length > 0) {
+        writes.push(new OSelectedNameWrite(parent, token, prefixTokens as SelectedNamePrefix));
+      } else {
+        writes.push(new OWrite(parent, token));
       }
     }
     return [references, writes];

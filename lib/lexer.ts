@@ -23,6 +23,11 @@ export class OLexerToken {
   isIdentifier() {
     return this.type === TokenType.basicIdentifier || this.type === TokenType.extendedIdentifier;
   }
+  isDesignator() {
+    return this.type === TokenType.basicIdentifier || this.type === TokenType.extendedIdentifier
+    || this.type === TokenType.stringLiteral || this.type === TokenType.characterLiteral;
+
+  }
   isWhitespace() {
     return this.type === TokenType.whitespace || this.type === TokenType.comment;
   }

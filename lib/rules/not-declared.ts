@@ -115,7 +115,8 @@ export class RNotDeclared extends RuleBase implements IRule {
           severity: DiagnosticSeverity.Error,
           message: `Did not find entity for this architecture`
         });
-
+      } else if (obj instanceof OReference && obj.referenceToken.isIdentifier() === false) {
+        // Do nothing is probably string literal
       } else if (obj instanceof OReference && obj.parent instanceof OAssociation && obj.definitions.length === 0) {
         const instOrPackage = obj.parent.parent.parent;
         // if instantiations entity/component/subprogram is not found, don't report read errors
