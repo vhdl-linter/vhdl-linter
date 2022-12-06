@@ -1,13 +1,30 @@
-import { exec } from 'child_process';
+import { exec, spawn } from 'child_process';
 import { promises } from 'fs';
 import { tmpdir } from 'os';
 import { join, sep } from 'path';
 import { promisify } from 'util';
-import { CancellationToken, DocumentFormattingParams, LSPErrorCodes, Range, ResponseError, TextEdit } from 'vscode-languageserver';
+import { CancellationToken, DocumentFormattingParams, LSPErrorCodes, Range, ResponseError, TextEdit, WorkDoneProgressReporter } from 'vscode-languageserver';
+import { attachWorkDone } from 'vscode-languageserver/lib/common/progress';
 import { connection, documents } from '../language-server';
 import { getRootDirectory } from '../project-parser';
+const nullProgressReporter = attachWorkDone(undefined as any, /* params */ undefined);
+async function _getProgressReporter(reporter: WorkDoneProgressReporter, title: string) {
+  // This is a bit ugly, but we need to determine whether the provided reporter
+  // is an actual client-side progress reporter or a dummy (null) progress reporter
+  // created by the LSP library. If it's the latter, we'll create a server-initiated
+  // progress reporter.
+  if (reporter.constructor !== nullProgressReporter.constructor) {
+    return reporter;
+  }
 
-export async function handleDocumentFormatting(params: DocumentFormattingParams, token: CancellationToken): Promise<TextEdit[] | null | ResponseError> {
+  const serverInitiatedReporter = await connection.window.createWorkDoneProgress();
+  serverInitiatedReporter.begin(
+    title
+  );
+
+  return serverInitiatedReporter;
+}
+export async function handleDocumentFormatting(params: DocumentFormattingParams, token: CancellationToken, workDoneProgress: WorkDoneProgressReporter): Promise<TextEdit[] | null | ResponseError> {
   const document = documents.get(params.textDocument.uri);
   if (typeof document === 'undefined') {
     return null;
@@ -30,11 +47,38 @@ export async function handleDocumentFormatting(params: DocumentFormattingParams,
   token.onCancellationRequested(() => {
     controller.abort();
   })
+  const progress = await _getProgressReporter(workDoneProgress, 'Emacs Formatter running');
+
   try {
-    await promisify(exec)(`emacs --batch --eval "(setq-default vhdl-basic-offset ${numSpaces})" ` +
-      `--eval "(setq load-path (cons (expand-file-name \\"${emacsLoadPath}\\") load-path))" ` +
-      ` -l ${emacsScripts} -f vhdl-batch-indent-region ${tmpFile}`, { signal });
+    await new Promise<void>((resolve, reject) => {
+      const args = ['-c', `emacs --batch --eval "(setq-default vhdl-basic-offset ${numSpaces})" ` +
+        `--eval "(setq load-path (cons (expand-file-name \\"${emacsLoadPath}\\") load-path))" ` +
+        ` -l ${emacsScripts} -f vhdl-batch-indent-region ${tmpFile}`];
+      const emacs = spawn('sh', args, { signal });
+      emacs.stdout.on('data', data => {
+        // console.log(`stdout: ${data}`);
+      })
+
+      progress.begin('Emacs Formatter running', 0, '');
+
+      emacs.stderr.on('data', (data) => {
+        const match = data.toString().match(/(\d+)%/);
+        if (match) {
+          progress.report(parseInt(match[1]), data.toString());
+        }
+      });
+      emacs.on('error', err => reject(err));
+      emacs.on('close', code => {
+        if (code === 0) {
+          resolve();
+        }
+        reject(code);
+      })
+    });
+    progress.done();
   } catch (e) {
+    progress.done();
+
     if (e.name === "AbortError") {
       return new ResponseError(LSPErrorCodes.RequestCancelled, 'canceled');
     }

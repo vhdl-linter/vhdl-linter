@@ -101,7 +101,9 @@ connection.onInitialize((params: InitializeParams) => {
       documentSymbolProvider: true,
       definitionProvider: true,
       hoverProvider: true,
-      documentFormattingProvider: true,
+      documentFormattingProvider: {
+        workDoneProgress: true
+      },
       referencesProvider: true,
       foldingRangeProvider: true,
       documentHighlightProvider: true,
@@ -112,7 +114,7 @@ connection.onInitialize((params: InitializeParams) => {
       renameProvider: {
         prepareProvider: true
       },
-      workspaceSymbolProvider: true
+      workspaceSymbolProvider: true,
     }
   };
 });
