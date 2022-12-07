@@ -56,7 +56,6 @@ export async function handleDocumentFormatting(params: DocumentFormattingParams,
         `--eval "(setq load-path (cons (expand-file-name \\"${emacsLoadPath}\\") load-path))" ` +
         ` -l ${emacsScripts} -f vhdl-batch-indent-region ${tmpFile}`];
       const emacs = spawn('sh', args, { signal });
-      progress.begin('Emacs Formatter running', 0, '');
 
       emacs.stderr.on('data', (data) => {
         const match = data.toString().match(/(\d+)%/);
