@@ -7,6 +7,7 @@ import { CancellationToken, DocumentFormattingParams, LSPErrorCodes, Range, Resp
 import { attachWorkDone } from 'vscode-languageserver/lib/common/progress';
 import { connection, documents } from '../language-server';
 import { getRootDirectory } from '../project-parser';
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const nullProgressReporter = attachWorkDone(undefined as any, /* params */ undefined);
 async function _getProgressReporter(reporter: WorkDoneProgressReporter, title: string) {
   // This is a bit ugly, but we need to determine whether the provided reporter
@@ -34,7 +35,7 @@ export async function handleDocumentFormatting(params: DocumentFormattingParams,
   const tmpFile = path + sep + 'beautify';
   await promises.writeFile(tmpFile, text);
   const rootDir = getRootDirectory();
-  const emacsScripts = join(rootDir, 'emacs', 'emacs-vhdl-formating-script.lisp');
+  const emacsScripts = join(rootDir, 'emacs', 'emacs-vhdl-formatting-script.lisp');
   const emacsLoadPath = join(rootDir, 'emacs');
   const numSpaces = typeof params.options.tabSize === 'number' ? params.options.tabSize : 2;
   try {
@@ -55,10 +56,6 @@ export async function handleDocumentFormatting(params: DocumentFormattingParams,
         `--eval "(setq load-path (cons (expand-file-name \\"${emacsLoadPath}\\") load-path))" ` +
         ` -l ${emacsScripts} -f vhdl-batch-indent-region ${tmpFile}`];
       const emacs = spawn('sh', args, { signal });
-      emacs.stdout.on('data', data => {
-        // console.log(`stdout: ${data}`);
-      })
-
       progress.begin('Emacs Formatter running', 0, '');
 
       emacs.stderr.on('data', (data) => {
