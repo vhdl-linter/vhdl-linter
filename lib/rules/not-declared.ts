@@ -1,7 +1,7 @@
 import { findBestMatch } from "string-similarity";
 import { CodeAction, CodeActionKind, Command, DiagnosticSeverity, Position, Range, TextEdit } from "vscode-languageserver";
 import { IHasLexerToken, implementsIHasLexerToken, implementsIHasUseClause } from "../parser/interfaces";
-import { OArchitecture, OAssociation, OInstantiation, OLabelReference, OReference, OUseClause, OWrite } from "../parser/objects";
+import { OArchitecture, OAssociation, OAttributeReference, OFormalReference, OInstantiation, OLabelReference, OReference, OUseClause, OWrite } from "../parser/objects";
 import { IAddSignalCommandArguments } from "../vhdl-linter";
 import { IRule, RuleBase } from "./rules-base";
 export class RNotDeclared extends RuleBase implements IRule {
@@ -103,7 +103,15 @@ export class RNotDeclared extends RuleBase implements IRule {
   }
   async check() {
     for (const obj of this.file.objectList) {
-      if (obj instanceof OInstantiation) {
+      if (obj instanceof OInstantiation) { // Instantation handled somewhere else, where?
+        continue;
+      }
+      if (obj instanceof OFormalReference) { // Formal references handled else where
+        // TODO handle Formal references for function calls in assignments
+        continue;
+      }
+      if (obj instanceof OAttributeReference) {
+        // TODO handle Attribute References
         continue;
       }
       if (obj instanceof OUseClause) {

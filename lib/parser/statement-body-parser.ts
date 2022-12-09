@@ -29,7 +29,7 @@ export class StatementBodyParser extends ParserBase {
       if (this.getToken().getLText() === '(') {
         const startRange = this.getToken().range;
         this.consumeToken(); // consume '('
-        (architecture as OBlock).guardCondition = this.parseExpression(architecture, this.advanceClosingParenthesis());
+        (architecture as OBlock).guardCondition = this.parseExpressionOld(architecture, this.advanceClosingParenthesis());
         const guardRange = startRange.copyWithNewEnd(this.getToken().range.end);
         // implicit declare constant GUARD
         const constant = new OConstant(architecture, guardRange);

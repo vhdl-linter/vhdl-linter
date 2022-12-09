@@ -1,16 +1,16 @@
 import { OIRange, OFile, ParserError } from './parser/objects';
 
 export enum TokenType {
-  basicIdentifier,
-  extendedIdentifier,
-  decimalLiteral,
-  characterLiteral,
-  stringLiteral,
-  bitStringLiteral,
-  whitespace,
-  comment,
-  delimiter,
-  keyword,
+  basicIdentifier = 'basicIdentifier',
+  extendedIdentifier = 'extendedIdentifier',
+  decimalLiteral = 'decimalLiteral',
+  characterLiteral = 'characterLiteral',
+  stringLiteral = 'stringLiteral',
+  bitStringLiteral = 'bitStringLiteral',
+  whitespace = 'whitespace',
+  comment = 'comment',
+  delimiter = 'delimiter',
+  keyword = 'keyword',
 }
 
 export class OLexerToken {
@@ -25,6 +25,10 @@ export class OLexerToken {
   }
   isDesignator() {
     return this.type === TokenType.basicIdentifier || this.type === TokenType.extendedIdentifier
+    || this.type === TokenType.stringLiteral || this.type === TokenType.characterLiteral;
+  }
+  isLiteral() {
+    return this.type === TokenType.decimalLiteral || this.type === TokenType.bitStringLiteral
     || this.type === TokenType.stringLiteral || this.type === TokenType.characterLiteral;
 
   }
@@ -61,7 +65,7 @@ export class Lexer {
     { regex: /^'.'/, tokenType: TokenType.characterLiteral },
     { regex: /^"(?:[^"]|(?:""))*"(?!")/i, tokenType: TokenType.stringLiteral },
     {
-      regex: /^=>|\*\*|:=|\/=>=|<=|<>|\?\?|\?=|\?\/=|\?<|\?<=|\?>|\?>=|<<|>>|&|'|\(|\)|\*|\+|,|-|.|\/|:|;|<|=|>|`|\||\[|\]|\?|@/,
+      regex: /^=>|\*\*|:=|\/=>=|<=|<>|\?\?|\?=|\?\/=|\/=|\?<|\?<=|\?>|\?>=|<<|>>|&|'|\(|\)|\*|\+|,|-|.|\/|:|;|<|=|>|`|\||\[|\]|\?|@/,
       tokenType: TokenType.delimiter
     },
 

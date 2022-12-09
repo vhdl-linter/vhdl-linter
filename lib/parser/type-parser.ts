@@ -90,7 +90,7 @@ export class TypeParser extends ParserBase {
             this.expect(':');
             const typeTokens = this.advanceSemicolon();
             for (const child of children) {
-              child.referenceLinks = this.parseExpression(child, typeTokens);
+              child.referenceLinks = this.parseExpressionOld(child, typeTokens);
               child.range = child.range.copyWithNewEnd(this.state.pos.i);
             }
             (type as ORecord).children.push(...children);
@@ -99,7 +99,7 @@ export class TypeParser extends ParserBase {
           this.maybe(type.lexerToken.text);
         } else if (nextToken.getLText() === 'array') {
           const [token] = this.advanceParenthesisAware([';'], true, false);
-          type.referenceLinks.push(...this.parseExpression(type, token));
+          type.referenceLinks.push(...this.parseExpressionOld(type, token));
         } else if (nextToken.getLText() === 'protected') {
           const protectedBody = this.maybe('body');
           if (protectedBody) {

@@ -39,14 +39,14 @@ export class AssociationListParser extends ParserBase {
         if (index > -1) {
           const formalTokens = associationTokens.slice(0, index);
           const actualTokens = associationTokens.slice(index + 1);
-          association.formalPart = this.parseExpression(association, formalTokens);
+          association.formalPart = this.parseExpressionOld(association, formalTokens);
           associationTokens = actualTokens;
           if (associationTokens.length === 0) {
             throw new ParserError("The actual part cannot be empty.", association.range.copyWithNewEnd(lastChar.range.end));
           }
         }
         if (associationTokens[0].getLText() !== 'open') {
-          association.actualIfInput = this.parseExpression(association, associationTokens);
+          association.actualIfInput = this.parseExpressionOld(association, associationTokens);
           if (type === 'port') {
             association.actualIfOutput = this.extractReadsOrWrite(association, associationTokens);
             association.actualIfInoutput = this.extractReadsOrWrite(association, associationTokens, true);

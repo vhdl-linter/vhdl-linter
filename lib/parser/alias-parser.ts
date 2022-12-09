@@ -33,7 +33,7 @@ export class AliasParser extends ParserBase {
         }
         this.expect('is');
         const [tokens] = this.advanceParenthesisAware(['['], true, false);
-        aliasWithSignature.name.push(...this.parseExpression(aliasWithSignature, tokens));
+        aliasWithSignature.name.push(...this.parseExpressionOld(aliasWithSignature, tokens));
         this.expect('[');
         // eslint-disable-next-line no-constant-condition
         while (true) {
@@ -70,7 +70,7 @@ export class AliasParser extends ParserBase {
         }
         this.expect('is');
         const [tokens] = this.advanceParenthesisAware([';'], true, false);
-        alias.name.push(...this.parseExpression(alias, tokens));
+        alias.name.push(...this.parseExpressionOld(alias, tokens));
         this.advanceSemicolon(true);
         return alias;
     }

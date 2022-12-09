@@ -1,0 +1,190 @@
+expression ::= condition_operator primary
+             | logical_expression
+
+logical_expression ::= relation { "and" relation }
+                     | relation { "or" relation }
+                     | relation { "xor" relation }
+                     | relation [ "nand" relation ]
+                     | relation [ "nor" relation ]
+                     | relation { "xnor" relation }
+
+relation ::= shift_expression [ relational_operator shift_expression ]
+
+shift_expression ::= simple_expression [ shift_operator simple_expression ]
+
+simple_expression ::= [ sign ] term { adding_operator term }
+
+term ::= factor { multiplying_operator factor }
+
+factor ::= primary [ "**" primary ]
+         | "abs" primary
+         | "not" primary
+         | logical_operator primary
+
+primary ::= name
+          | literal # is a token
+          | aggregate
+          | function_call
+          | qualified_expression
+          | allocator
+          | "(" expression ")"
+
+condition_operator ::= "??"
+logical_operator ::= "and" | "or" | "nand" | "nor" | "xor" | "xnor"
+relational_operator ::= "=" | "/=" | "<" | "<=" | ">" | ">=" | "?=" | "?/=" | "?<" | "?<=" | "?>" | "?>="
+shift_operator ::= "sll" | "srl" | "sla" | "sra" | "rol" | "ror"
+adding_operator ::= "+" | "-" | "&"
+sign ::= "+" | "-"
+multiplying_operator ::= "*" | "/" | "mod" | "rem"
+
+aggregate ::= "(" element_association { "," element_association } ")"
+
+element_association ::= [ choice "=>" ] expression
+
+choice ::= simple_expression
+         | discrete_range
+         | simple_name
+         | "others"
+
+function_call ::= name [ "(" association_list ")" ]
+
+association_list ::= association_element { "," association_element }
+
+association_element ::= [ formal_part "=>" ] actual_part
+
+actual_part ::= name
+              | name "(" name ")"
+              | "open"
+
+formal_part ::= name
+              | name "(" name ")"
+
+discrete_range ::= subtype_indication # ignore subtype indication for now?
+                 | range
+
+range ::= attribute_name
+        | simple_expression direction simple_expression
+
+direction ::= "to" | "downto"
+
+allocator ::= "new" subtype_indication # flipped order
+            | "new" qualified_expression
+
+# tbc
+name ::= simple_name # identifier
+       | operator_symbol # (string) literal
+       | character_literal # literal
+       | selected_name
+       | indexed_name
+       | slice_name
+       | attribute_name
+       | external_name # ignore?
+
+subtype_indication ::=
+       [ resolution_indication ] type_mark [ constraint ]
+resolution_indication ::=
+       resolution_function_name | ( element_resolution )
+type_mark ::=
+       type_name #name
+       | subtype_name #name
+
+constraint ::=
+       range_constraint
+       | array_constraint
+       | record_constraint
+
+array_constraint ::=
+       index_constraint [ array_element_constraint ]
+       | ( open ) [ array_element_constraint ]
+array_element_constraint ::= element_constraint
+index_constraint ::= ( discrete_range { , discrete_range } )
+
+range_constraint ::= range range
+
+selected_name ::= prefix "." suffix
+
+suffix ::= simple_name # identifier
+        | character_literal # literal
+        | operator_symbol # (string) literal
+        | "all"
+
+attribute_name ::= prefix "'" simple_name [ "(" expression ")" ]
+
+qualified_expression ::= name "'" "(" expression ")"
+                       | name "'" aggregate
+
+slice_name ::= prefix "(" discrete_range ")"
+
+indexed_name ::= prefix "(" expression { "," expression } ")"
+
+prefix ::= name
+         | function_call
+
+simple_name ::= identifier
+
+
+
+############
+
+
+prefix ::= name
+         | function_call
+
+name ::= simple_name # identifier
+       | operator_symbol # (string) literal
+       | character_literal # literal
+       | selected_name
+       | indexed_name
+       | slice_name
+       | attribute_name
+       | external_name # ignore?
+
+selected_name ::= prefix "." suffix
+
+####
+name ::= simple_name # identifier
+       | operator_symbol # (string) literal
+       | character_literal # literal
+       | (name | function_call) "." suffix
+       | indexed_name
+       | slice_name
+       | attribute_name
+       | external_name # ignore?
+
+name ::= simple_name # identifier
+       | operator_symbol # (string) literal
+       | character_literal # literal
+       | (name) "." suffix
+       | indexed_name
+       | slice_name
+       | attribute_name
+       | external_name # ignore?
+
+name ::= (simple_name # identifier
+       | operator_symbol # (string) literal
+       | character_literal # literal
+       # | indexed_name
+       # | slice_name
+       | attribute_name
+       | external_name # ignore?)
+       {
+              ("." suffix)
+       | ("(" association_list ")")
+       | ("(" discrete_range ")")
+       | ("(" expression { "," expression } ")")
+       | ("'" simple_name [ "(" expression ")" ])
+       }
+
+
+indexed_name ::= name
+######
+association_element ::= [ formal_part "=>" ] actual_part
+
+actual_part ::= name
+              | name "(" name ")"
+              | "open"
+
+actual_part ::= name ["(" name ")"]
+              | "open"
+
+formal_part ::= name ["(" name ")"]

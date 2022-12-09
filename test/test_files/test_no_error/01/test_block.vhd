@@ -42,4 +42,22 @@ begin
     s <= '1' when GUARD else s;
   end block p_block4;
 
+  p_block5 : block(rising_edge(i_clk))
+    signal s : std_ulogic;
+  begin
+    s <= guarded transport s;
+  end block p_block5;
+
+  p_block6 : block(rising_edge(i_clk))
+    signal s : std_ulogic;
+  begin
+    s <= reject 5 ms inertial s;
+  end block p_block6;
+
+  p_block7 : block(rising_edge(i_clk))
+    signal s : std_ulogic;
+  begin
+    s <= guarded reject inertial s;
+  end block p_block7;
+
 end arch;

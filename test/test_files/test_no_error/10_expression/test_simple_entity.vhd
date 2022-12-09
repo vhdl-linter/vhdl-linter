@@ -24,8 +24,8 @@ begin
   a(0) <= '1' when a_i /= a_i else '0';
   a(0) <= '1' when ?? a(0)    else '0';
   a    <= ('0', '1');
-  a    <= (0 => '0', others => '1');
   a    <= (0 => '0', 1 => '1');
+  a    <= (0 => '0', others => '1');
   a    <= ("10");
   a_i  <= + ((((((a_i + 2))))));
   a    <= a sll 2 + 3 * 32;
@@ -34,4 +34,5 @@ begin
   a    <= unsigned(std_ulogic_vector(a));
   a(0) <= xnor a;
   a    <= unsigned'(1 => '0');
+  a_i <= a'length;
 end arch;

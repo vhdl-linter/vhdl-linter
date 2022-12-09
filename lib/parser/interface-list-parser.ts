@@ -102,7 +102,7 @@ export class InterfaceListParser extends ParserBase {
           const { type, defaultValue } = this.getTypeDefinition(port);
           const end = defaultValue?.[defaultValue?.length - 1]?.range.end ?? type[type.length - 1]?.range?.end ?? port.range.end;
           port.range = port.range.copyWithNewEnd(end);
-          (port as OGenericConstant).typeReference = this.parseExpression(port, type);
+          (port as OGenericConstant).typeReference = this.parseExpressionOld(port, type);
 
           (port as OGenericConstant).defaultValue = defaultValue;
           for (const interface_ of multiInterface) {
@@ -190,7 +190,7 @@ export class InterfaceListParser extends ParserBase {
     }
     return {
       type: type,
-      defaultValue: this.parseExpression(parent, defaultValue),
+      defaultValue: this.parseExpressionOld(parent, defaultValue),
     };
   }
 }

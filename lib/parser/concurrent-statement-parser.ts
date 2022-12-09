@@ -63,7 +63,7 @@ export class ConcurrentStatementParser extends ParserBase {
       const [constantName] = this.advancePast('in');
 
       const rangeToken = this.advancePast('generate');
-      const constantRange = this.parseExpression(this.parent, rangeToken);
+      const constantRange = this.parseExpressionOld(this.parent, rangeToken);
       const subarchitecture = new StatementBodyParser(this.state, (this.parent as OArchitecture), label);
       const generate: OForGenerate = subarchitecture.parse(true, 'generate', { constantName, constantRange, startPosI: startI });
       generate.label = label;
@@ -83,7 +83,7 @@ export class ConcurrentStatementParser extends ParserBase {
       const caseGenerate = new OCaseGenerate(this.parent, new OIRange(this.parent, this.state.pos.i, this.state.pos.i));
       this.consumeToken();
       const caseConditionToken = this.advancePast('generate');
-      caseGenerate.expression.push(...this.parseExpression(caseGenerate, caseConditionToken));
+      caseGenerate.expression.push(...this.parseExpressionOld(caseGenerate, caseConditionToken));
       let nextToken = this.getToken();
       while (nextToken.getLText() === 'when') {
         this.expect('when');
@@ -91,7 +91,7 @@ export class ConcurrentStatementParser extends ParserBase {
         const whenConditionToken = this.advancePast('=>');
         const subarchitecture = new StatementBodyParser(this.state, caseGenerate, label);
         const whenGenerateClause = subarchitecture.parse(true, 'when-generate');
-        whenGenerateClause.condition.push(...this.parseExpression(whenGenerateClause, whenConditionToken));
+        whenGenerateClause.condition.push(...this.parseExpressionOld(whenGenerateClause, whenConditionToken));
         whenGenerateClause.range = whenGenerateClause.range.copyWithNewStart(whenI);
         nextToken = this.getToken();
       }
@@ -116,7 +116,7 @@ export class ConcurrentStatementParser extends ParserBase {
       const ifGenerateClause = subarchitecture.parse(true, 'generate');
       ifGenerateClause.range = ifGenerateClause.range.copyWithNewStart(savedI);
 
-      ifGenerateClause.condition = this.parseExpression(ifGenerateClause, conditionTokens);
+      ifGenerateClause.condition = this.parseExpressionOld(ifGenerateClause, conditionTokens);
       ifGenerate.ifGenerates.push(ifGenerateClause);
       (this.parent as OArchitecture).statements.push(ifGenerate);
       this.reverseWhitespace();
@@ -139,7 +139,7 @@ export class ConcurrentStatementParser extends ParserBase {
       ifGenerateObject.range = ifGenerateObject.range.copyWithNewStart(savedI);
 
       // TODO: Build test case for nested elsif generate
-      ifGenerateObject.condition = this.parseExpression(ifGenerateObject, condition);
+      ifGenerateObject.condition = this.parseExpressionOld(ifGenerateObject, condition);
       this.parent.parent.ifGenerates.push(ifGenerateObject);
       return true;
     } else if (nextToken.getLText() === 'else' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {

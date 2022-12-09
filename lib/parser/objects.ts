@@ -206,7 +206,9 @@ export class OReference extends ObjectBase implements I.IHasDefinitions, I.IHasR
     super(parent, range ?? referenceToken.range);
   }
 }
+export class OFormalReference extends OReference {
 
+}
 export class OFile {
   parserMessages: I.OIDiagnosticWithSolution[] = [];
   public lines: string[];
@@ -748,6 +750,9 @@ export class OAssignment extends ObjectBase implements I.IMayHaveLabel {
   writes: OWrite[] = [];
   label?: OLexerToken;
   labelLinks: OLabelReference[] = [];
+  references: OReference[] = [];
+  postponed = false;
+  guarded = false;
 }
 export class OLabelReference extends ObjectBase {
   definitions: ObjectBase[] = [];
@@ -783,7 +788,7 @@ export class OWrite extends OReference {
   // Workaround for checking of OWrites in associations. Because of overloading they can not be correctly checked.
   // This avoid false positives
   public inAssociation = false;
-  private type = 'OWrite'; // Make sure typescript type checking does not accept OReference as OWrite
+  type = 'OWrite'; // Make sure typescript type checking does not accept OReference as OWrite
 }
 export class OSelectedNameWrite extends OWrite {
   constructor(public parent: ObjectBase, public referenceToken: OLexerToken, public prefixTokens: SelectedNamePrefix) {
