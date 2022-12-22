@@ -1,4 +1,5 @@
 import { OLexerToken } from '../lexer';
+import { ExpressionParser } from './expression-parser';
 import { IHasConstants, IHasFileVariables, IHasSignals, IHasVariables, implementsIHasConstants, implementsIHasFileVariables, implementsIHasSignals, implementsIHasVariables } from './interfaces';
 import { ObjectBase, OConstant, OFileVariable, ORead, OSignal, OVariable, ParserError } from './objects';
 import { ParserBase, ParserState } from './parser-base';
@@ -68,7 +69,8 @@ export class ObjectDeclarationParser extends ParserBase {
         file.range = file.range.copyWithNewEnd(this.state.pos.i);
       }
     } else {
-      for (const signal of objects) {
+      // If multiple types have the same type reference (variable a,b : integer) only the last has the text.
+      for (const signal of objects.slice(objects.length - 1)) {
         const { typeReads, defaultValueReads } = this.getType(signal, false);
         signal.typeReference = typeReads;
         signal.defaultValue = defaultValueReads;
@@ -89,5 +91,34 @@ export class ObjectDeclarationParser extends ParserBase {
     } else {
       (this.parent as IHasSignals).signals.push(...objects as OSignal[]);
     }
+  }
+  getType(parent: ObjectBase, advanceSemicolon = true, endWithParenthesis = false) {
+    let type;
+    if (endWithParenthesis) {
+      [type] = this.advanceParenthesisAware([';', 'is', ')'], true, false);
+    } else {
+      [type] = this.advanceParenthesisAware([';', 'is'], true, false);
+    }
+    let defaultValueReads;
+    let typeReads;
+    const index = type.findIndex(token => token.getLText() === ':=');
+    if (index > -1) {
+      const tokensDefaultValue = type.slice(index + 1);
+      const typeTokens = type.slice(0, index);
+
+      defaultValueReads = new ExpressionParser(this.state, parent, tokensDefaultValue).parse();
+      typeReads = new ExpressionParser(this.state, parent, typeTokens).parse();
+    } else {
+      typeReads = new ExpressionParser(this.state, parent, type).parse();
+
+    }
+    if (advanceSemicolon) {
+      this.expect(';');
+      this.advanceWhitespace();
+    }
+    return {
+      typeReads,
+      defaultValueReads
+    };
   }
 }

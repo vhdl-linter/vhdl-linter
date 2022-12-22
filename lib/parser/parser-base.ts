@@ -261,34 +261,7 @@ export class ParserBase {
     }
     return false;
   }
-  getType(parent: ObjectBase, advanceSemicolon = true, endWithParenthesis = false) {
-    let type;
-    if (endWithParenthesis) {
-      [type] = this.advanceParenthesisAware([';', 'is', ')'], true, false);
-    } else {
-      [type] = this.advanceParenthesisAware([';', 'is'], true, false);
-    }
-    let defaultValueReads;
-    let typeReads;
-    const index = type.findIndex(token => token.getLText() === ':=');
-    if (index > -1) {
-      const tokensDefaultValue = type.slice(index + 1);
-      const typeTokens = type.slice(0, index);
-      defaultValueReads = this.parseExpressionOld(parent, tokensDefaultValue);
-      typeReads = this.parseExpressionOld(parent, typeTokens);
-    } else {
-      typeReads = this.parseExpressionOld(parent, type);
 
-    }
-    if (advanceSemicolon) {
-      this.expect(';');
-      this.advanceWhitespace();
-    }
-    return {
-      typeReads,
-      defaultValueReads
-    };
-  }
   consumeNameReference(parent: ObjectBase): OReference {
     const tokens = [];
     do {

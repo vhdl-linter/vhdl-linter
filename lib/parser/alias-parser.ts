@@ -1,3 +1,4 @@
+import { ExpressionParser } from "./expression-parser";
 import { OEntity, OPackage, OPackageBody, OProcess, OSubprogram, OAliasWithSignature, OType, OTypeMark, OAlias, OStatementBody } from "./objects";
 import { ParserBase, ParserState } from "./parser-base";
 export class AliasParser extends ParserBase {
@@ -28,12 +29,14 @@ export class AliasParser extends ParserBase {
         if (this.getToken().getLText() === ':') {
             this.consumeToken();
             this.advanceWhitespace();
-            this.consumeToken();
-            aliasWithSignature.subtypeIndication.push(...this.getType(aliasWithSignature, false).typeReads);
+            const [tokens] = this.advanceParenthesisAware([';', 'is'], true, false);
+
+            aliasWithSignature.subtypeIndication.push(...new ExpressionParser(this.state, aliasWithSignature, tokens).parse());
         }
         this.expect('is');
         const [tokens] = this.advanceParenthesisAware(['['], true, false);
-        aliasWithSignature.name.push(...this.parseExpressionOld(aliasWithSignature, tokens));
+        aliasWithSignature.name.push(...new ExpressionParser(this.state, aliasWithSignature, tokens).parse());
+
         this.expect('[');
         // eslint-disable-next-line no-constant-condition
         while (true) {
@@ -65,12 +68,13 @@ export class AliasParser extends ParserBase {
         if (this.getToken().getLText() === ':') {
             this.consumeToken();
             this.advanceWhitespace();
-            this.consumeToken();
-            alias.subtypeIndication.push(...this.getType(alias, false).typeReads);
+            const [tokens] = this.advanceParenthesisAware([';', 'is'], true, false);
+
+            alias.subtypeIndication.push(...new ExpressionParser(this.state, alias, tokens).parse());
         }
         this.expect('is');
         const [tokens] = this.advanceParenthesisAware([';'], true, false);
-        alias.name.push(...this.parseExpressionOld(alias, tokens));
+        alias.name.push(...new ExpressionParser(this.state, alias, tokens).parse());
         this.advanceSemicolon(true);
         return alias;
     }

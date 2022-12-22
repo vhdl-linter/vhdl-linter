@@ -21,7 +21,7 @@ export class AssignmentParser extends ParserBase {
       leftHandSideTokens.push(this.state.pos.lexerTokens[leftHandSideNum]);
       leftHandSideNum++;
     }
-    const expressionParser = new ExpressionParser(assignment, leftHandSideTokens);
+    const expressionParser = new ExpressionParser(this.state, assignment, leftHandSideTokens);
     let leftHandSideReferences: OReference[] = [];
     try {
       leftHandSideReferences = expressionParser.parseTarget();
@@ -32,12 +32,7 @@ export class AssignmentParser extends ParserBase {
         throw err;
       }
     }
-    assignment.references = leftHandSideReferences.slice(1);
-    assignment.writes = leftHandSideReferences.slice(0, 1).map(a => {
-      Object.setPrototypeOf(a, OWrite.prototype);
-      (a as OWrite).type = 'OWrite';
-      return a as OWrite;
-    });
+
 
     this.consumeToken();
     assignment.guarded = this.maybe('guarded') !== false;
@@ -53,7 +48,7 @@ export class AssignmentParser extends ParserBase {
     do {
       [rightHandSide, endToken] = this.advanceParenthesisAware([';', 'when', 'else', 'after', ','], true, true);
 
-      const expressionParser = new ExpressionParser(assignment, rightHandSide);
+      const expressionParser = new ExpressionParser(this.state, assignment, rightHandSide);
       try {
         assignment.references.push(...expressionParser.parse());
       } catch (err) {

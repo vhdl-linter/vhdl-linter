@@ -151,7 +151,7 @@ export class SequentialStatementParser extends ParserBase {
     _return.label = label;
     const tokens = this.advanceSemicolon();
     if (tokens.length > 0) {
-      const expressionParser = new ExpressionParser(_return, tokens);
+      const expressionParser = new ExpressionParser(this.state, _return, tokens);
       try {
         _return.references.push(...expressionParser.parse());
       } catch (err) {
@@ -209,6 +209,7 @@ export class SequentialStatementParser extends ParserBase {
   parseWhile(parent: OHasSequentialStatements | OIf, label?: OLexerToken): OWhileLoop {
     const whileLoop = new OWhileLoop(parent, this.getToken().range.copyExtendEndOfLine());
     this.expect('while');
+    whileLoop.label = label;
     const condition = this.advancePast('loop');
     whileLoop.condition = this.parseExpressionOld(whileLoop, condition);
     whileLoop.statements = this.parse(whileLoop, ['end']);

@@ -38,39 +38,40 @@ export class AssociationListParser extends ParserBase {
       if (associationTokens.length > 0) {
         const association = new OAssociation(list, new OIRange(list, savedI, associationTokens[0]?.range?.end?.i ?? savedI));
         {
-          const expressionParser = new ExpressionParser(association, associationTokens);
+          const expressionParser = new ExpressionParser(this.state, association, associationTokens);
           const references = expressionParser.parseAssociationElement();
           association.formalPart = references.filter(reference => reference instanceof OFormalReference);
           const actualPart = references.filter(reference => reference instanceof OFormalReference === false);
           association.actualIfInput = actualPart;
         }
         {
-          const expressionParser = new ExpressionParser(association, associationTokens);
+          const expressionParser = new ExpressionParser(this.state, association, associationTokens);
           const references = expressionParser.parseAssociationElement();
           association.formalPart = references.filter(reference => reference instanceof OFormalReference);
           const actualPart = references.filter(reference => reference instanceof OFormalReference === false);
           const writes = actualPart.slice(0, 1).map(a => {
             Object.setPrototypeOf(a, OWrite.prototype);
             (a as OWrite).type = 'OWrite';
+            (a as OWrite).inAssociation = true;
             return a as OWrite;
           });
           association.actualIfOutput = [actualPart.slice(1), writes];
 
         }
         {
-          const expressionParser = new ExpressionParser(association, associationTokens);
+          const expressionParser = new ExpressionParser(this.state, association, associationTokens);
           const references = expressionParser.parseAssociationElement();
           association.formalPart = references.filter(reference => reference instanceof OFormalReference);
           const actualPart = references.filter(reference => reference instanceof OFormalReference === false);
           const writes = actualPart.slice(0, 1).map(a => {
             const write = new OWrite(a.parent, a.referenceToken);
+            write.inAssociation = true;
+
             return write;
           });
           association.actualIfInoutput = [actualPart, writes];
         }
-        // if (associationTokens.length === 0) {
-        //   throw new ParserError("The actual part cannot be empty.", association.range.copyWithNewEnd(lastChar.range.end));
-        // }
+
 
         list.children.push(association);
       }

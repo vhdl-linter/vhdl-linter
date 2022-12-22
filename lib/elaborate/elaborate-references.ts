@@ -240,7 +240,6 @@ export class ElaborateReferences {
       for (const [obj] of scope(reference)) {
         if (implementsIHasVariables(obj)) {
           this.evaluateDefinition(reference, obj.variables, true);
-
         }
         if (implementsIHasSignals(obj)) {
           this.evaluateDefinition(reference, obj.signals, true);
@@ -338,11 +337,12 @@ export class ElaborateReferences {
         }
       }
     } else {
-      this.vhdlLinter.addMessage({
-        range: reference.range,
-        severity: DiagnosticSeverity.Warning,
-        message: `selected name found with ${reference.prefixTokens.length} prefixes. This is unexpected.`
-      });
+      // This seems expected if record in record for example...
+      // this.vhdlLinter.addMessage({
+      //   range: reference.range,
+      //   severity: DiagnosticSeverity.Warning,
+      //   message: `selected name found with ${reference.prefixTokens.length} prefixes. This is unexpected.`
+      // });
     }
   }
 }
