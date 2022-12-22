@@ -29,7 +29,7 @@ export class OLexerToken {
   }
   isLiteral() {
     return this.type === TokenType.decimalLiteral || this.type === TokenType.bitStringLiteral
-    || this.type === TokenType.stringLiteral || this.type === TokenType.characterLiteral;
+    || this.type === TokenType.stringLiteral || this.type === TokenType.characterLiteral || this.getLText() === 'null';
 
   }
   isWhitespace() {
@@ -48,7 +48,7 @@ export class Lexer {
   readonly keywords = [
     'abs', 'not', 'mod', 'sll', 'srl', 'sla', 'sra', 'rol', 'ror',
     'and', 'or', 'nand', 'nor', 'xor', 'xnor', 'downto', 'to', 'others', 'rem',
-    'when', 'else', 'range', 'elsif', 'after', 'transport', 'reject',
+    'when', 'else', 'elsif', 'after', 'transport', 'reject',
     'inertial', 'all', 'of', 'new', 'force', 'release', 'severity', 'open',
     'null', 'guarded', 'postponed', 'exit', 'units'
   ].map(keyword => new RegExp('^' + keyword + '\\b', 'i'));

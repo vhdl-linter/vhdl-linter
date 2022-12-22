@@ -49,8 +49,9 @@ export class AssignmentParser extends ParserBase {
       }
     }
     let rightHandSide, endToken;
+    // TODO: Include unaffected
     do {
-      [rightHandSide, endToken] = this.advanceParenthesisAware([';', 'when', 'else'], true, true);
+      [rightHandSide, endToken] = this.advanceParenthesisAware([';', 'when', 'else', 'after', ','], true, true);
 
       const expressionParser = new ExpressionParser(assignment, rightHandSide);
       try {

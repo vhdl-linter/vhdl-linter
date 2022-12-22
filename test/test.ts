@@ -1,5 +1,5 @@
 import { OIDiagnostic, VhdlLinter } from '../lib/vhdl-linter';
-import { cwd } from 'process';
+import { argv, cwd } from 'process';
 import { readdirSync, readFileSync, lstatSync } from 'fs';
 import { join } from 'path';
 import { ProjectParser } from '../lib/project-parser';
@@ -36,7 +36,7 @@ function prettyPrintMessages(messages: MessageWrapper[]) {
         return `${filename}:${innerMessage.range.start.line + 1} (r: ${innerMessage.range.start.line}:${innerMessage.range.start.character} - ${innerMessage.range.end.line}:${innerMessage.range.end.character})\n  ${messageText}`; // lines are 0 based in OI
       }
       return `${filename}\n  ${messageText}`;
-    }).join('\n') + (message.messages.length > 5 ? `\n\u001b[31m ... and ${message.messages.length - 5} more\u001b[0m` : '')
+    }).join('\n') + (message.messages.length > 5 ? `\n\u001b[31m ... and ${message.messages.length - 5} more\u001b[0m` : '');
   }).join('\n');
 }
 // Take each directory in path as a project run test on every file
@@ -55,6 +55,9 @@ async function run_test(path: string, error_expected: boolean, projectParser?: P
     projectParser = await ProjectParser.create([path], '', defaultSettingsGetter);
   }
   for (const subPath of readDirPath(path)) {
+    if (argv.indexOf('--no-osvvm') > -1 && subPath.match(/OSVVM/i)) {
+      continue;
+    }
     if (lstatSync(subPath).isDirectory()) {
       messageWrappers.push(...await run_test(subPath, error_expected, projectParser));
     } else if (subPath.match(/\.vhdl?$/i)) {

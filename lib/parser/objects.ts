@@ -321,10 +321,12 @@ export class OPackageBody extends ObjectBase implements I.IHasSubprograms, I.IHa
 }
 
 
-export class OLibrary extends ObjectBase implements I.IHasLexerToken {
+export class OLibrary extends ObjectBase implements I.IHasLexerToken, I.IHasReferenceLinks {
   constructor(public parent: ObjectBase | OFile, public lexerToken: OLexerToken) {
     super(parent, lexerToken.range);
   }
+  referenceLinks: OReference[] = [];
+  aliasReferences: OAlias[] = [];
 }
 
 export class OContextReference extends ObjectBase implements I.IHasLibraryReference {
@@ -618,7 +620,7 @@ export class OAssociation extends ObjectBase implements I.IHasDefinitions {
     super(parent, range);
   }
   definitions: (OPort | OGeneric | OTypeMark)[] = [];
-  formalPart: OReference[] = [];
+  formalPart: OFormalReference[] = [];
   actualIfInput: OReference[] = [];
   actualIfOutput: [OReference[], OWrite[]] = [[], []];
   actualIfInoutput: [OReference[], OWrite[]] = [[], []];

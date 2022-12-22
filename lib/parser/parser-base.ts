@@ -323,7 +323,7 @@ export class ParserBase {
           parenthesisLevel = 0;
         }
       }
-      if (token.isIdentifier()) {
+      if (token.isIdentifier() && token.getLText() !== 'range') {
         if (tokens[i - 1]?.text === '\'') { // Attribute skipped for now
           continue;
         }

@@ -1,156 +1,363 @@
 import { OLexerToken, TokenType } from "../lexer";
-import { OAttributeReference, ObjectBase, OFormalReference, OReference, ParserError } from "./objects";
-type resultType = false | [OReference[], ParserState];
+import { OAttributeReference, ObjectBase, OFormalReference, OReference, OSelectedName, ParserError, SelectedNamePrefix } from "./objects";
+type resultType = false | [ParserState[], ParserState];
 type ParserState = {
-  reference?: OReference;
-  type: 'expression' | 'root' | 'simpleName' | 'name'
   num: number;
-  parent? : ParserState;
+  token?: OLexerToken;
+  type: 'expression' | 'root' | 'simpleName' | 'name' | 'logicalExpression'
+  | 'relation' | 'shiftExpression' | 'simpleExpression' | 'term' | 'factor'
+  | 'keyword' | 'primary' | 'allocator' | 'subtypeIndication' | 'formalPart'
+  | 'actualPart' | 'associationElement'
+  | 'attributeName' | 'selectedName';
+  parent?: ParserState;
+  children?: ParserState[];
+  stackLength: number;
 };
+function* stateGenerator(startObject: ParserState): Generator<ParserState> {
+  let current = startObject;
+  while (true) {
+    if (current.parent === undefined) {
+      break;
+    }
+    current = current.parent;
+    yield (current);
+  }
+}
+function* stateGeneratorFiltered(startObject: ParserState): Generator<ParserState> {
+  let braceLevel = 0;
+  for (const stateIt of stateGenerator(startObject)) {
+    if (stateIt.token?.getLText() === ')') {
+      braceLevel++;
+      continue;
+    }
+    if (stateIt.token?.getLText() === '(') {
+      if (braceLevel > 0) {
+        braceLevel--;
+      } else {
+        break;
+      }
+      continue;
+    }
+    if (braceLevel === 0) {
+      const breakTypes: ParserState['type'][] = [
+        'term',
+        'logicalExpression',
+        'relation',
+        'shiftExpression',
+        'simpleExpression',
+        'factor'
+      ];
+      if (breakTypes.indexOf(stateIt.type) > -1  // Break prefix chain when operator comes
+        || stateIt.token?.getLText() === ',' // Break prefix chain in association list
+        || stateIt.token?.getLText() === '|' // Break prefix chain in choices
+        || stateIt.token?.getLText() === '=>' // Break prefix chain in choices
+      ) {
+        break;
+      }
+      yield stateIt;
+
+    }
+  }
+}
+
+
 export class ExpressionParser {
 
   constructor(private parent: ObjectBase, private tokens: OLexerToken[]) {
 
+  }
+  private getTokenMergedRange() {
+    return this.tokens[0].range.copyWithNewEnd(this.tokens[this.tokens.length - 1].range);
+  }
+  private debugState(state: ParserState) {
+    let stateIt: ParserState | undefined = state;
+    const nodes: string[] = [];
+    do {
+      nodes.push(`${stateIt.type} (${stateIt.token?.text})`);
+      stateIt = stateIt.parent;
+    } while (stateIt);
+    return nodes.join(' -> ');
+  }
+  private isFormal(state: ParserState) {
+    for (const stateIt of stateGeneratorFiltered(state)) {
+      if (stateIt.type === 'formalPart') {
+        return true;
+      }
+    }
+    return false;
+  }
+  private isAttribute(state: ParserState) {
+    for (const stateIt of stateGeneratorFiltered(state)) {
+      if (stateIt.type === 'attributeName') {
+        return true;
+      }
+    }
+    return false;
+  }
+  private getPrefix(state: ParserState) {
+    const prefix = [];
+    let stateIt: ParserState | undefined = state;
+    do {
+      if (state.token) {
+        prefix.push(state.token);
+      }
+      stateIt = stateIt.parent;
+    } while (stateIt);
+    return prefix;
+  }
+  private convertStateToReference(state: ParserState, previousReferences: OReference[]) {
+    if (state.token && state.type === 'simpleName') {
+      const prefix = [];
+      for (const stateIt of stateGeneratorFiltered(state)) {
+        if (stateIt.token && stateIt.type === 'simpleName') {
+          prefix.push(stateIt.token);
+        }
+      }
+      if (this.isFormal(state)) {
+        return new OFormalReference(this.parent, state.token);
+      } else if (this.isAttribute(state)) {
+        let token: OLexerToken;
+        for (const stateIt of stateGenerator(state)) {
+          if (stateIt.type === 'simpleName') {
+            token = (stateIt.token as OLexerToken);
+            break;
+          }
+        }
+        const ref = previousReferences.find(ref => ref.referenceToken === token);
+        if (ref === undefined) {
+          throw new ParserError('Could not find reference for attribute', state.token.range);
+        }
+        // const ref = references.find(ref => ref.lexerToken === )
+        return new OAttributeReference(this.parent, state.token, ref);
+      } else if (prefix.length > 0) {
+        return new OSelectedName(this.parent, state.token, (prefix.reverse() as SelectedNamePrefix));
+      } else {
+        return new OReference(this.parent, state.token);
+
+      }
+    }
   }
   parse(): OReference[] {
     if (this.tokens.length === 0) {
       throw new ParserError('expression empty', this.parent.range);
 
     }
-    const result = this.parseExpression({ num: 0, type: 'root'});
+    const result = this.expression({ num: 0, type: 'root', stackLength: 0 });
     if (result) {
       if (result[1].num !== this.tokens.length) {
-        throw new ParserError('expression parser not successful (remainder left)', this.tokens[0].range.copyWithNewEnd(this.tokens[this.tokens.length - 1].range));
+        throw new ParserError('expression parser not successful (remainder left)', this.getTokenMergedRange());
       }
-      return result[0];
+      const references: OReference[] = [];
+      for (const state of result[0]) {
+        const ref = this.convertStateToReference(state, references);
+        if (ref) {
+          references.push(ref);
+        }
+      }
+      return references;
     }
-    throw new ParserError('expression parser not successful (no match)', this.tokens[0].range.copyWithNewEnd(this.tokens[this.tokens.length - 1].range));
+    throw new ParserError('expression parser not successful (no match)', this.getTokenMergedRange());
 
   }
   parseTarget(): OReference[] {
     if (this.tokens.length === 0) {
       throw new ParserError('expression empty', this.parent.range);
     }
-    const result = this.parseName({ num: 0, type: 'root' }) || this.parseAggregate({ num: 0, type: 'root' });
+    const result = this.parseName({ num: 0, type: 'root', stackLength: 0 }) || this.aggregate({ num: 0, type: 'root', stackLength: 0 });
     if (result) {
       if (result[1].num !== this.tokens.length) {
-        throw new ParserError('expression parseTarget not successful (remainder left)', this.tokens[0].range.copyWithNewEnd(this.tokens[this.tokens.length - 1].range));
+        throw new ParserError('expression parseTarget not successful (remainder left)', this.getTokenMergedRange());
       }
-      return result[0];
+      const references: OReference[] = [];
+      for (const state of result[0]) {
+        const ref = this.convertStateToReference(state, references);
+        if (ref) {
+          references.push(ref);
+        }
+      }
+      return references;
     }
-    throw new ParserError('expression parseTarget not successful (no match)', this.tokens[0].range.copyWithNewEnd(this.tokens[this.tokens.length - 1].range));
+    throw new ParserError('expression parseTarget not successful (no match)', this.getTokenMergedRange());
   }
-  parseExpression(state: ParserState): resultType {
-    state = {
+  parseAssociationElement() {
+    if (this.tokens.length === 0) {
+      throw new ParserError('expression empty', this.parent.range);
+    }
+    const result = this.associationElement({ num: 0, type: 'root', stackLength: 0 });
+    if (result) {
+      if (result[1].num !== this.tokens.length) {
+        throw new ParserError('expression parseAssociationElement not successful (remainder left)', this.getTokenMergedRange());
+      }
+      const references: OReference[] = [];
+      for (const state of result[0]) {
+        const ref = this.convertStateToReference(state, references);
+        if (ref) {
+          references.push(ref);
+        }
+      }
+      return references;
+    }
+    throw new ParserError('expression parseAssociationElement not successful (no match)', this.getTokenMergedRange());
+  }
+  private pushState(state: ParserState, type: ParserState['type']) {
+    const newState: ParserState = {
       num: state.num,
-      type: 'expression',
-      parent: state
+      type,
+      stackLength: state.stackLength + 1
     };
+    if (newState.stackLength > 300) {
+      throw new ParserError(`Parser stack overflow ${this.debugState(state)}`, this.getTokenMergedRange());
+    }
+    newState.parent = {
+      ...state,
+      children: [...state.children ?? [], newState]
+    };
+    return newState;
+  }
+  private expression(state: ParserState): resultType {
+    state = this.pushState(state, 'expression');
     return this.alternatives(state,
       state => this.chain(state,
-        state => this.parseKeyword(state, '??'),
-        state => this.parsePrimary(state)),
-      state => this.parseLogicalExpression(state)
+        state => this.keyword(state, '??'),
+        state => this.primary(state)),
+      state => this.logicalExpression(state)
     );
   }
-  getTextDebug(state: ParserState) { // This gets the current Text (for Debugger)
-    return this.tokens.slice(state.num, 5).join(' ');
+  // This gets the current Text (for Debugger)
+  private getTextDebug(state: ParserState) {
+    return this.tokens.slice(state.num, state.num + 5).join(' ');
 
   }
-  parseLogicalExpression(state: ParserState) {
+
+  private logicalExpression(state: ParserState) {
+    state = this.pushState(state, 'logicalExpression');
     return this.alternatives(state,
       state => this.chain(state,
-        state => this.parseRelation(state),
+        state => this.relation(state),
         state => this.multiple(state, true,
           state => this.chain(state,
-            state => this.parseKeyword(state, 'and', 'or', 'xor', 'xnor'),
-            state => this.parseRelation(state)
+            state => this.keyword(state, 'and'),
+            state => this.relation(state)
           )
         )
       ),
       state => this.chain(state,
-        state => this.parseRelation(state),
+        state => this.relation(state),
+        state => this.multiple(state, true,
+          state => this.chain(state,
+            state => this.keyword(state, 'or'),
+            state => this.relation(state)
+          )
+        )
+      ),
+      state => this.chain(state,
+        state => this.relation(state),
+        state => this.multiple(state, true,
+          state => this.chain(state,
+            state => this.keyword(state, 'xor'),
+            state => this.relation(state)
+          )
+        )
+      ),
+      state => this.chain(state,
+        state => this.relation(state),
+        state => this.multiple(state, true,
+          state => this.chain(state,
+            state => this.keyword(state, 'xnor'),
+            state => this.relation(state)
+          )
+        )
+      ),
+      state => this.chain(state,
+        state => this.relation(state),
         state => this.optional(state,
           state => this.chain(state,
-            state => this.parseKeyword(state, 'nand', 'nor'),
-            state => this.parseRelation(state)
+            state => this.keyword(state, 'nand', 'nor'),
+            state => this.relation(state)
           )
         )
-      ),
+      )
     );
   }
-  parseRelation(state: ParserState) {
+  private relation(state: ParserState) {
+    state = this.pushState(state, 'relation');
     return this.chain(state,
-      state => this.parseShiftExpression(state),
+      state => this.shiftExpression(state),
       state => this.optionalChain(state,
-        state => this.parseKeyword(state, '=', '/=', '<', '<=', '>', '>=', '?=', '?/=', '? ', '?<=', '?>', '?>='),
-        state => this.parseShiftExpression(state)
+        state => this.keyword(state, '=', '/=', '<', '<=', '>', '>=', '?=', '?/=', '? ', '?<=', '?>', '?>='),
+        state => this.shiftExpression(state)
       )
     );
 
   }
-  parseShiftExpression(state: ParserState) {
+  private shiftExpression(state: ParserState) {
+    state = this.pushState(state, 'shiftExpression');
 
     return this.chain(state,
-      state => this.parseSimpleExpression(state),
+      state => this.simpleExpression(state),
       state => this.optionalChain(state,
-        state => this.parseKeyword(state, 'sll', 'srl', 'sla', 'sra', 'rol', 'ror'),
-        state => this.parseSimpleExpression(state)
+        state => this.keyword(state, 'sll', 'srl', 'sla', 'sra', 'rol', 'ror'),
+        state => this.simpleExpression(state)
       )
     );
   }
-  parseSimpleExpression(state: ParserState): resultType {
+  private simpleExpression(state: ParserState): resultType {
+    state = this.pushState(state, 'simpleExpression');
+
     return this.chain(state,
       state => this.optional(state,
-        state => this.parseKeyword(state, '+', '-')
+        state => this.keyword(state, '+', '-')
       ),
-      state => this.parseTerm(state),
+      state => this.term(state),
       state => this.multiple(state, false,
         state => this.chain(state,
-          state => this.parseKeyword(state, '+', '-', '&'),
-          state => this.parseTerm(state)
+          state => this.keyword(state, '+', '-', '&'),
+          state => this.term(state)
         )
       )
     );
   }
-  parseTerm(state: ParserState): resultType {
+  private term(state: ParserState): resultType {
+    state = this.pushState(state, 'term');
+
     return this.chain(state,
-      state => this.parseFactor(state),
+      state => this.factor(state),
       state => this.multiple(state, false,
         state => this.chain(state,
-          state => this.parseKeyword(state, '*', '/', 'mod', 'rem'),
-          state => this.parseFactor(state)
+          state => this.keyword(state, '*', '/', 'mod', 'rem'),
+          state => this.factor(state)
         )
       )
     );
 
   }
-  parseFactor(state: ParserState): resultType {
+  private factor(state: ParserState): resultType {
+    state = this.pushState(state, 'factor');
+
     return this.alternatives(state,
       state => this.chain(state,
-        state => this.parsePrimary(state),
-        state => this.optional(state,
-          state => {
-            if (this.getNumToken(state)?.getLText() !== '**') {
-              return false;
-            }
-            state = this.increaseToken(state);
-            return this.parsePrimary(state);
-          })
+        state => this.primary(state),
+        state => this.optionalChain(state,
+          state => this.keyword(state, '**'),
+          state => this.primary(state)
+
+        )
       ),
       state => this.chain(state,
-        state => this.parseKeyword(state, 'abs', 'not', 'and', 'or', 'nand', 'nor', 'xor', 'xnor'),
-        state => this.parsePrimary(state))
+        state => this.keyword(state, 'abs', 'not', 'and', 'or', 'nand', 'nor', 'xor', 'xnor'),
+        state => this.primary(state))
     );
   }
-  parseKeyword(state: ParserState, ...keywords: string[]): resultType {
+  private keyword(state: ParserState, ...keywords: string[]): resultType {
+    state = this.pushState(state, 'keyword');
     if (keywords.indexOf(this.getNumToken(state)?.getLText() ?? '') === -1) {
       return false;
     }
+    state.token = this.getNumToken(state);
     state = this.increaseToken(state);
     return [[], state];
   }
-  chain(state: ParserState, ...links: ((state: ParserState) => resultType)[]): resultType {
+  private chain(state: ParserState, ...links: ((state: ParserState) => resultType)[]): resultType {
     let result;
     const references = [];
     for (const link of links) {
@@ -163,66 +370,73 @@ export class ExpressionParser {
     }
     return [references, state];
   }
-  optional(state: ParserState, inner: (state: ParserState) => resultType): resultType {
+  private optional(state: ParserState, inner: (state: ParserState) => resultType): resultType {
     const result = inner(state);
     if (result) {
       return result;
     }
     return [[], state];
   }
-  optionalChain(state: ParserState, ...links: ((state: ParserState) => resultType)[]): resultType {
+  private optionalChain(state: ParserState, ...links: ((state: ParserState) => resultType)[]): resultType {
     return this.optional(state,
       state => this.chain(state,
         ...links
       )
     );
   }
-  parsePrimary(state: ParserState) {
-    return this.parseQualifiedExpression(state)
-      || this.parseAllocator(state)
+  private primary(state: ParserState) {
+    state = this.pushState(state, 'primary');
+
+    return this.qualifiedExpression(state)
+      || this.allocator(state)
       || this.parseName(state)
       || this.parseLiteral(state)
-      || this.parseAggregate(state)
+      || this.aggregate(state)
       //function call
 
       ;
   }
-  parseAllocator(state: ParserState): resultType {
-    return this.chain(state,
-      state => this.parseKeyword(state, 'new'),
-      state => this.alternatives(state,
-        state => this.parseQualifiedExpression(state),
-        state => this.parseSubtypeIndication(state),
-        )
-      );
-  }
-  parseSubtypeIndication(state: ParserState): resultType {
-      return this.chain(state,
-        state => this.parseName(state),
-        state => this.optional(state,
-          state => this.parseConstraint(state)
-        )
-      );
+  private allocator(state: ParserState): resultType {
+    state = this.pushState(state, 'allocator');
 
-  }
-  parseConstraint(state: ParserState): resultType {
-    return this.parseRangeConstraint(state);
-    // | array_constraint
-      //  | record_constraint
-  }
-  parseRangeConstraint(state: ParserState): resultType {
     return this.chain(state,
-      state => this.parseKeyword(state, 'range'),
-      state => this.parseRange(state));
-  }
-  parseQualifiedExpression(state: ParserState): resultType {
-    return this.chain(state,
-      state => this.parseName(state),
-      state => this.parseKeyword(state, '\''),
-      state => this.parseAggregate(state)
+      state => this.keyword(state, 'new'),
+      state => this.alternatives(state,
+        state => this.qualifiedExpression(state),
+        state => this.subtypeIndication(state),
+      )
     );
   }
-  alternatives(state: ParserState, ...alternatives: ((state: ParserState) => resultType)[]) {
+  private subtypeIndication(state: ParserState): resultType {
+    state = this.pushState(state, 'subtypeIndication');
+
+    return this.chain(state,
+      //resolution_indication
+      state => this.parseName(state),
+      state => this.optional(state,
+        state => this.constraint(state)
+      )
+    );
+
+  }
+  private constraint(state: ParserState): resultType {
+    return this.rangeConstraint(state);
+    // | array_constraint
+    //  | record_constraint
+  }
+  private rangeConstraint(state: ParserState): resultType {
+    return this.chain(state,
+      state => this.keyword(state, 'range'),
+      state => this.parseRange(state));
+  }
+  private qualifiedExpression(state: ParserState): resultType {
+    return this.chain(state,
+      state => this.parseName(state),
+      state => this.keyword(state, '\''),
+      state => this.aggregate(state)
+    );
+  }
+  private alternatives(state: ParserState, ...alternatives: ((state: ParserState) => resultType)[]) {
     let result;
     for (const alternative of alternatives) {
       result = alternative(state);
@@ -232,7 +446,7 @@ export class ExpressionParser {
     }
     return false;
   }
-  multiple(state: ParserState, minimumOne: boolean, inner: (state: ParserState) => resultType): resultType {
+  private multiple(state: ParserState, minimumOne: boolean, inner: (state: ParserState) => resultType): resultType {
     const references = [];
     let result = inner(state);
     if (minimumOne === true && result === false) {
@@ -245,7 +459,7 @@ export class ExpressionParser {
     }
     return [references, state];
   }
-  multipleChain(state: ParserState, minimumOne: boolean, ...links: ((state: ParserState) => resultType)[]): resultType {
+  private multipleChain(state: ParserState, minimumOne: boolean, ...links: ((state: ParserState) => resultType)[]): resultType {
     return this.multiple(state, minimumOne,
       state => this.chain(state,
         ...links
@@ -254,46 +468,52 @@ export class ExpressionParser {
   }
 
 
-  parseAggregate(state: ParserState): resultType {
+  private aggregate(state: ParserState): resultType {
     return this.chain(state,
-      state => this.parseKeyword(state, '('),
-      state => this.parseElementAssociation(state),
+      state => this.keyword(state, '('),
+      state => this.elementAssociation(state),
       state => this.multiple(state, false,
         state => this.chain(state,
-          state => this.parseKeyword(state, ','),
-          state => this.parseElementAssociation(state))),
-      state => this.parseKeyword(state, ')')
+          state => this.keyword(state, ','),
+          state => this.elementAssociation(state))),
+      state => this.keyword(state, ')')
     );
   }
-  parseElementAssociation(state: ParserState): resultType {
+  private elementAssociation(state: ParserState): resultType {
     return this.chain(state,
       state => this.optional(state,
         state => this.chain(state,
-          state => this.parseChoice(state),
-          state => this.parseKeyword(state, '=>')
+          state => this.parseChoices(state),
+          state => this.keyword(state, '=>')
         ),
       ),
-      state => this.parseExpression(state)
+      state => this.expression(state)
     );
   }
-  parseChoice(state: ParserState): resultType {
+  private parseChoices(state: ParserState): resultType {
+    return this.chain(state,
+      state => this.parseChoice(state),
+      state => this.multipleChain(state, false,
+        state => this.keyword(state, '|'),
+        state => this.parseChoice(state)
+      )
+    );
+  }
+  private parseChoice(state: ParserState): resultType {
     return this.alternatives(state,
-      state => this.parseSimpleExpression(state),
-      // discrete range
-      // element simple name
-      state => this.parseKeyword(state, 'others')
+      state => this.parseDiscreteRange(state),
+      state => this.simpleExpression(state),
+      // element simple name // Should be part of simple expression
+      state => this.keyword(state, 'others')
     );
   }
-  parseName(state: ParserState, as: 'reference' | 'formalReference' | 'attributeReference' = 'reference'): resultType {
-    state = {
-      num: state.num,
-      type: 'name',
-      parent: state
-    };
+  private parseName(state: ParserState): resultType {
+    state = this.pushState(state, 'name');
+
     return this.chain(state,
       state => this.alternatives(state,
-        state => this.parseSimpleName(state, as),
-        state => this.parseOperatorSymbol(state),
+        state => this.simpleName(state),
+        state => this.operatorSymbol(state),
         state => this.parseCharacterLiteral(state),
         // state => this.parseIndexedName(state),
         // state => this.parseAttributeName(state),
@@ -302,35 +522,35 @@ export class ExpressionParser {
       state => this.multiple(state, false,
         state => this.alternatives(state,
           state => this.chain(state,
-            state => this.parseKeyword(state, '.'),
-            state => this.parseSuffix(state)
+            state => this.keyword(state, '.'),
+            state => this.suffix(state)
           ),
           state => this.chain(state,
-            state => this.parseKeyword(state, '('),
-            state => this.parseAssociationList(state),
-            state => this.parseKeyword(state, ')'),
+            state => this.keyword(state, '('),
+            state => this.associationList(state),
+            state => this.keyword(state, ')'),
           ),
           state => this.chain(state,
-            state => this.parseKeyword(state, '('),
+            state => this.keyword(state, '('),
             state => this.parseDiscreteRange(state),
-            state => this.parseKeyword(state, ')'),
+            state => this.keyword(state, ')'),
           ),
           state => this.chain(state,
-            state => this.parseKeyword(state, '('),
-            state => this.parseExpression(state),
+            state => this.keyword(state, '('),
+            state => this.expression(state),
             state => this.multipleChain(state, false,
-              state => this.parseKeyword(state, ','),
-              state => this.parseExpression(state)
+              state => this.keyword(state, ','),
+              state => this.expression(state)
             ),
-            state => this.parseKeyword(state, ')')
+            state => this.keyword(state, ')')
           ),
           state => this.chain(state,
-            state => this.parseKeyword(state, '\''),
-            state => this.parseSimpleName(state, 'attributeReference'),
+            state => this.keyword(state, '\''),
+            state => this.simpleName(this.pushState(state, 'attributeName')),
             state => this.optionalChain(state,
-              state => this.parseKeyword(state, '('),
-              state => this.parseExpression(state),
-              state => this.parseKeyword(state, ')'),
+              state => this.keyword(state, '('),
+              state => this.expression(state),
+              state => this.keyword(state, ')'),
             )
           )
         ),
@@ -339,101 +559,95 @@ export class ExpressionParser {
 
 
   }
-  parseDiscreteRange(state: ParserState): resultType {
-    // this.parseSubtypeIndication(state) ||
-    return this.parseRange(state);
+  private parseDiscreteRange(state: ParserState): resultType {
+    return this.alternatives(state,
+      state => this.parseRange(state),
+      state => this.subtypeIndication(state)
+    );
   }
-  parseRange(state: ParserState): resultType {
+  private parseRange(state: ParserState): resultType {
     // attribute_name
     return this.chain(state,
-      state => this.parseSimpleExpression(state),
-      state => this.parseKeyword(state, 'to', 'downto'),
-      state => this.parseSimpleExpression(state),
+      state => this.simpleExpression(state),
+      state => this.keyword(state, 'to', 'downto'),
+      state => this.simpleExpression(state),
 
     );
 
   }
 
-  parseAssociationList(state: ParserState): resultType {
+  private associationList(state: ParserState): resultType {
     return this.chain(state,
-      state => this.parseAssociationElement(state),
+      state => this.associationElement(state),
       state => this.multipleChain(state, false,
-        state => this.parseKeyword(state, ','),
-        state => this.parseAssociationElement(state)
+        state => this.keyword(state, ','),
+        state => this.associationElement(state)
       )
     );
   }
-  parseAssociationElement(state: ParserState): resultType {
+  private associationElement(state: ParserState): resultType {
+    state = this.pushState(state, 'associationElement');
+
     return this.chain(state,
       state => this.optionalChain(state,
-        state => this.parseFormalPart(state),
-        state => this.parseKeyword(state, '=>')),
-      state => this.parseActualPart(state));
+        state => this.formalPart(state),
+        state => this.keyword(state, '=>')),
+      state => this.actualPart(state));
   }
-  parseActualPart(state: ParserState): resultType {
+  private actualPart(state: ParserState): resultType {
+    state = this.pushState(state, 'actualPart');
+
+    return this.expression(state) || this.chain(state,
+      state => this.parseName(state),
+      state => this.optionalChain(state,
+        state => this.keyword(state, '('),
+        state => this.parseName(state),
+        state => this.keyword(state, ')')
+      )) || this.keyword(state, 'open');
+  }
+  private formalPart(state: ParserState): resultType {
+    state = this.pushState(state, 'formalPart');
+
     return this.chain(state,
       state => this.parseName(state),
       state => this.optionalChain(state,
-        state => this.parseKeyword(state, '('),
+        state => this.keyword(state, '('),
         state => this.parseName(state),
-        state => this.parseKeyword(state, ')')
-      )) || this.parseKeyword(state, 'open');
-  }
-  parseFormalPart(state: ParserState): resultType {
-    return this.chain(state,
-      state => this.parseName(state, 'formalReference'),
-      state => this.optionalChain(state,
-        state => this.parseKeyword(state, '('),
-        state => this.parseName(state),
-        state => this.parseKeyword(state, ')')
+        state => this.keyword(state, ')')
       ));
   }
-  parseSelectedName(state: ParserState): resultType {
-    return this.chain(state,
-      state => this.multiple(state, true,
-        state => this.chain(state,
-          state => this.parseName(state),
-          state => this.parseKeyword(state, '.')
-        )
-      ),
-      state => this.parseSuffix(state));
-  }
-  parseSuffix(state: ParserState): resultType {
-    return this.parseSimpleName(state)
+  private suffix(state: ParserState): resultType {
+    return this.simpleName(state)
       || this.parseCharacterLiteral(state)
-      || this.parseOperatorSymbol(state)
-      || this.parseKeyword(state, 'all');
+      || this.operatorSymbol(state)
+      || this.keyword(state, 'all');
   }
-  parseSimpleName(state: ParserState, as: 'reference' | 'formalReference' | 'attributeReference' = 'reference'): resultType {
-    state = {
-      num: state.num,
-      type: 'simpleName',
-      parent: state
-    };
+  private simpleName(state: ParserState): resultType {
+    state = this.pushState(state, 'simpleName');
     const token = this.getNumToken(state);
 
     if (token?.isIdentifier()) {
       const name = token;
       state = this.increaseToken(state);
-      let ref: OReference;
-      if (as === 'reference') {
-        ref = new OReference(this.parent, name);
-      } else if (as === 'formalReference') {
-        ref = new OFormalReference(this.parent, name);
-      } else if (as === 'attributeReference') {
-        if (state.parent?.reference === undefined) {
-          throw new ParserError(`Attribute without referred name`, token.range);
-        }
-        ref = new OAttributeReference(this.parent, name, state.parent?.reference);
-      } else {
-        throw new ParserError(`internal error unexpected as '${as}'`, token.range);
-      }
-      state.reference = ref;
-      return [[ref], state];
+      // let ref: OReference;
+      // if (as === 'reference') {
+      //   ref = new OReference(this.parent, name);
+      // } else if (as === 'formalReference') {
+      //   ref = new OFormalReference(this.parent, name);
+      // } else if (as === 'attributeReference') {
+      //   if (state.parent?.reference === undefined) {
+      //     throw new ParserError(`Attribute without referred name`, token.range);
+      //   }
+      //   ref = new OAttributeReference(this.parent, name, state.parent?.reference);
+      // } else {
+      //   throw new ParserError(`internal error unexpected as '${as}'`, token.range);
+      // }
+      state.token = name;
+      return [[state], state];
     }
     return false;
   }
-  parseOperatorSymbol(state: ParserState): resultType {
+  private operatorSymbol(state: ParserState): resultType {
     const token = this.getNumToken(state);
 
     if (token?.type === TokenType.stringLiteral) {
@@ -444,7 +658,7 @@ export class ExpressionParser {
     }
     return false;
   }
-  parseCharacterLiteral(state: ParserState): resultType {
+  private parseCharacterLiteral(state: ParserState): resultType {
     const token = this.getNumToken(state);
 
     if (token?.type === TokenType.characterLiteral) {
@@ -455,34 +669,43 @@ export class ExpressionParser {
     }
     return false;
   }
-  parseIndexedName(state: ParserState) {
+  private parseIndexedName(state: ParserState) {
     return this.chain(state,
       state => this.parsePrefix(state),
-      state => this.parseKeyword(state, '('),
-      state => this.parseExpression(state),
+      state => this.keyword(state, '('),
+      state => this.expression(state),
       state => this.multiple(state, false,
         state => this.chain(state,
-          state => this.parseKeyword(state, '('),
-          state => this.parseExpression(state)
+          state => this.keyword(state, '('),
+          state => this.expression(state)
         )
       ),
-      state => this.parseKeyword(state, ')')
+      state => this.keyword(state, ')')
     );
   }
-  parsePrefix(state: ParserState): resultType {
+  private parsePrefix(state: ParserState): resultType {
     return this.parseName(state);
   }
-  parseLiteral(state: ParserState): resultType {
+  private parseAbstractLiteral(state: ParserState): resultType {
     if (this.getNumToken(state)?.isLiteral()) {
       state = this.increaseToken(state);
       return [[], state];
     }
     return false;
+
   }
-  getNumToken(state: ParserState): OLexerToken | undefined {
+  private parseLiteral(state: ParserState): resultType {
+    return this.chain(state,
+      state => this.parseAbstractLiteral(state),
+      state => this.optional(state,
+        state => this.parseName(state)
+      )
+    );
+  }
+  private getNumToken(state: ParserState): OLexerToken | undefined {
     return this.tokens[state.num];
   }
-  increaseToken(state: ParserState): ParserState {
+  private increaseToken(state: ParserState): ParserState {
     const newState = {
       ...state,
       num: state.num

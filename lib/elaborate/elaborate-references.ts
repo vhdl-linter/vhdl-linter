@@ -140,6 +140,9 @@ export class ElaborateReferences {
       if (implementsIHasSubprograms(object)) {
         this.evaluateDefinition(reference, object.subprograms, false);
       }
+      if (implementsIHasLibraries(object)) {
+        this.evaluateDefinition(reference, object.libraries, false);
+      }
 
       if (implementsIHasTypes(object)) {
         for (const type of object.types) {

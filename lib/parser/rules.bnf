@@ -38,8 +38,8 @@ sign ::= "+" | "-"
 multiplying_operator ::= "*" | "/" | "mod" | "rem"
 
 aggregate ::= "(" element_association { "," element_association } ")"
-
-element_association ::= [ choice "=>" ] expression
+choices ::= choice { | choice }
+element_association ::= [ choices "=>" ] expression
 
 choice ::= simple_expression
          | discrete_range

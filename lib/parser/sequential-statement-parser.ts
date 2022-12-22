@@ -1,6 +1,7 @@
 import { OLexerToken } from '../lexer';
 import { AssignmentParser } from './assignment-parser';
 import { AssociationListParser } from './association-list-parser';
+import { ExpressionParser } from './expression-parser';
 import { OAssertion, OAssignment, ObjectBase, OCase, OConstant, OElseClause, OExit, OForLoop, OHasSequentialStatements, OIf, OIfClause, OInstantiation, OIRange, OLabelReference, OLoop, OReport, OReturn, OSequentialStatement, OWhenClause, OWhileLoop, ParserError } from './objects';
 import { ParserBase, ParserState } from './parser-base';
 
@@ -65,7 +66,7 @@ export class SequentialStatementParser extends ParserBase {
         this.advancePast(';');
       } else if (nextToken.getLText() === 'while') {
         statements.push(this.parseWhile(parent, label));
-      } else if (this.checkIfIsAssigment(statementText)) {
+      } else if (this.checkIfIsAssignment(statementText)) {
         const assignmentParser = new AssignmentParser(this.state, parent);
         statements.push(assignmentParser.parse(label));
       } else {
@@ -76,7 +77,7 @@ export class SequentialStatementParser extends ParserBase {
     return statements;
   }
   // Assignments are detected by := or <= But as <= is comparison also can be part of e.g. procedure call
-  checkIfIsAssigment(statementTokens: OLexerToken[]) {
+  checkIfIsAssignment(statementTokens: OLexerToken[]) {
     let braceLevel = 0;
     for (const token of statementTokens) {
       if (token.getLText() === '(') {
@@ -148,8 +149,19 @@ export class SequentialStatementParser extends ParserBase {
     this.expect('return');
     const _return = new OReturn(parent, this.getToken().range.copyExtendEndOfLine());
     _return.label = label;
-    const text = this.advanceSemicolon();
-    _return.references = this.parseExpressionOld(_return, text);
+    const tokens = this.advanceSemicolon();
+    if (tokens.length > 0) {
+      const expressionParser = new ExpressionParser(_return, tokens);
+      try {
+        _return.references.push(...expressionParser.parse());
+      } catch (err) {
+        if (err instanceof ParserError) {
+          this.state.messages.push(err);
+        } else {
+          throw err;
+        }
+      }
+    }
     _return.range = _return.range.copyWithNewEnd(this.state.pos.i);
     return _return;
   }
@@ -267,7 +279,6 @@ export class SequentialStatementParser extends ParserBase {
     this.debug(`parseCase ${label}`);
     const case_ = new OCase(parent, this.getToken().range.copyExtendEndOfLine());
     case_.expression = this.parseExpressionOld(case_, this.advancePast('is'));
-    // this.debug(`Apfel`);
 
     while (this.getToken().getLText() === 'when') {
       this.debug(`parseWhen`);

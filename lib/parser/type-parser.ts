@@ -99,7 +99,7 @@ export class TypeParser extends ParserBase {
           this.maybe(type.lexerToken.text);
         } else if (nextToken.getLText() === 'array') {
           const [token] = this.advanceParenthesisAware([';'], true, false);
-          type.referenceLinks.push(...this.parseExpressionOld(type, token));
+          type.referenceLinks.push(...this.parseExpressionOld(type, token)); // TODO: Replace with new expression parser
         } else if (nextToken.getLText() === 'protected') {
           const protectedBody = this.maybe('body');
           if (protectedBody) {

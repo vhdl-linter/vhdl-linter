@@ -207,6 +207,10 @@ export class RUnused extends RuleBase implements IRule {
       }
       if (implementsIHasSubprograms(obj)) {
         for (const subprogram of obj.subprograms) {
+          // Skip implicitly declared deallocate
+          if (subprogram.lexerToken.getLText() === 'deallocate') {
+            continue;
+          }
           const references = subprogram.referenceLinks.slice(0);
           references.push(...subprogram.aliasReferences.flatMap(alias => alias.referenceLinks));
           if (references.length === 0) {

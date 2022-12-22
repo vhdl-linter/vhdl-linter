@@ -19,7 +19,13 @@ export class InterfacePackageParser extends ParserBase {
     if (this.getToken().getLText() === 'generic') {
       this.consumeToken();
       this.expect('map');
-      inst.genericAssociationList = new AssociationListParser(this.state, inst).parse('generic');
+      if (this.getToken(1, true).getLText() === '<>') {
+        this.expect('(');
+        this.expect('<>');
+        this.expect(')');
+      } else {
+        inst.genericAssociationList = new AssociationListParser(this.state, inst).parse('generic');
+      }
     }
 
     return inst;
