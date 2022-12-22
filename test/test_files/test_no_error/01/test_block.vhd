@@ -57,7 +57,7 @@ begin
   p_block7 : block(rising_edge(i_clk))
     signal s : std_ulogic;
   begin
-    s <= guarded reject inertial s;
+    s <= guarded reject 5 ms inertial s;
   end block p_block7;
 
 end arch;

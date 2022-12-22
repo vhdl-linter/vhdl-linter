@@ -10,8 +10,8 @@ function foo return integer is
   variable      AlertPrintCount     : AlertCountType ; -- vhdl-linter-disable-line unused
 
 begin
-      AlertPrintCount     := ( WARNING => integer'right) ;
-      AlertPrintCount     := (ERROR | WARNING => integer'right) ; -- testing this choices thing
+      AlertPrintCount     := ( WARNING => integer'right, others => 0) ;
+      AlertPrintCount     := (ERROR | WARNING => integer'right, others => 0) ; -- testing this choices thing
 
 
       AlertPrintCount     := (FAILURE | ERROR | WARNING => integer'right) ;

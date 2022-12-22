@@ -1,15 +1,15 @@
 package protected_Type_definition is
   type testPType is protected
-    impure function Get (DefaultName : string := "") return string;
+    impure function Get return string;
   end protected testPType;
 end package;
 package body protected_Type_definition is
   type testPType is protected body
     impure function Get return string is
-  begin
-    return "a";
-  end function;
-end protected testPType;
+    begin
+      return "a";
+    end function;
+  end protected body testPType;
 end package body;
 
 
@@ -20,7 +20,7 @@ entity ptype_user is
 end entity;
 
 architecture arch of ptype_user is
-  function a (input: string) return text is
+  function a (input: string) return string is
   begin
   return input;
   end function;

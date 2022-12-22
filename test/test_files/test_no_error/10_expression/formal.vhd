@@ -2,7 +2,7 @@
 package formal is
 end package;
 package body formal is
-  function bar(a : integer) return integer is
+  function bar(a : integer; b : integer) return integer is
   begin
     return 5;
   end function;
