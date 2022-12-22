@@ -79,6 +79,13 @@ export class DeclarativePartParser extends ParserBase {
         this.consumeToken();
         const useClauseParser = new UseClauseParser(this.state, this.parent);
         this.parent.useClauses.push(useClauseParser.parse());
+      } else if (nextToken.getLText() === 'for') {
+        // skip simple configurations for now (§ 7.3.1)
+        this.advanceSemicolon(true);
+        // optional `end for;`
+        if (this.getToken(0, true).getLText() == 'end' && this.getToken(1, true).getLText() == 'for') {
+          this.advanceSemicolon();
+        }
       } else {
         throw new ParserError(`Unknown Ding: '${nextToken.text}' on line ${this.getLine()}`, this.state.pos.getRangeToEndLine());
       }
