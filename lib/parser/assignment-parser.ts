@@ -1,6 +1,6 @@
 import { OLexerToken } from '../lexer';
 import { ExpressionParser } from './expression-parser';
-import { OAssignment, ObjectBase, ParserError } from './objects';
+import { OAssignment, ObjectBase } from './objects';
 import { ParserBase, ParserState } from './parser-base';
 
 export class AssignmentParser extends ParserBase {
@@ -40,15 +40,7 @@ export class AssignmentParser extends ParserBase {
       [rightHandSide, endToken] = this.advanceParenthesisAware([';', 'when', 'else', 'after', ','], true, true);
 
       const expressionParser = new ExpressionParser(this.state, assignment, rightHandSide);
-      try {
-        assignment.references.push(...expressionParser.parse());
-      } catch (err) {
-        if (err instanceof ParserError) {
-          this.state.messages.push(err);
-        } else {
-          throw err;
-        }
-      }
+      assignment.references.push(...expressionParser.parse());
 
     } while (endToken.getLText() !== ';');
     assignment.range = assignment.range.copyWithNewEnd(this.state.pos.i);
