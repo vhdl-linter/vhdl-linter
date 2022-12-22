@@ -1,5 +1,6 @@
 import { OLexerToken } from '../lexer';
 import { DeclarativePartParser } from './declarative-part-parser';
+import { ExpressionParser } from './expression-parser';
 import { ObjectBase, OIRange, OProcess } from './objects';
 import { ParserBase, ParserState } from './parser-base';
 import { SequentialStatementParser } from './sequential-statement-parser';
@@ -16,7 +17,7 @@ export class ProcessParser extends ParserBase {
     if (this.getToken().getLText() === '(') {
       this.expect('(');
       const sensitivityListTokens = this.advanceClosingParenthesis();
-      process.sensitivityList.push(...this.parseExpressionOld(process, sensitivityListTokens));
+      process.sensitivityList.push(...new ExpressionParser(this.state, process, sensitivityListTokens).parse());
     }
     this.maybe('is');
     new DeclarativePartParser(this.state, process).parse();

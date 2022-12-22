@@ -4,6 +4,7 @@ import { SubprogramParser } from './subprogram-parser';
 import { InterfacePackageParser } from './interface-package-parser';
 import { OLexerToken } from '../lexer';
 import { TextEdit } from 'vscode-languageserver';
+import { ExpressionParser } from './expression-parser';
 
 
 export class InterfaceListParser extends ParserBase {
@@ -102,7 +103,7 @@ export class InterfaceListParser extends ParserBase {
           const { type, defaultValue } = this.getTypeDefinition(port);
           const end = defaultValue?.[defaultValue?.length - 1]?.range.end ?? type[type.length - 1]?.range?.end ?? port.range.end;
           port.range = port.range.copyWithNewEnd(end);
-          (port as OGenericConstant).typeReference = this.parseExpressionOld(port, type);
+          (port as OGenericConstant).typeReference = new ExpressionParser(this.state, port, type).parse();
 
           (port as OGenericConstant).defaultValue = defaultValue;
           for (const interface_ of multiInterface) {
@@ -190,7 +191,7 @@ export class InterfaceListParser extends ParserBase {
     }
     return {
       type: type,
-      defaultValue: this.parseExpressionOld(parent, defaultValue),
+      defaultValue: new ExpressionParser(this.state, parent, defaultValue).parse(),
     };
   }
 }

@@ -123,15 +123,15 @@ export class SequentialStatementParser extends ParserBase {
     assertion.range = assertion.range.copyWithNewEnd(this.state.pos.i);
     const reportIndex = assertionTokens.findIndex(token => token.getLText() === 'report');
     if (reportIndex > -1) {
-      assertion.references.push(...this.parseExpressionOld(assertion, assertionTokens.slice(0, reportIndex)));
+      assertion.references.push(...new ExpressionParser(this.state, assertion, assertionTokens.slice(0, reportIndex)).parse());
       assertionTokens = assertionTokens.slice(reportIndex + 1);
     }
     const severityIndex = assertionTokens.findIndex(token => token.getLText() === 'severity');
     if (severityIndex) {
-      assertion.references.push(...this.parseExpressionOld(assertion, assertionTokens.slice(0, severityIndex)));
+      assertion.references.push(...new ExpressionParser(this.state, assertion, assertionTokens.slice(0, severityIndex)).parse());
       assertionTokens = assertionTokens.slice(severityIndex + 1);
     }
-    assertion.references.push(...this.parseExpressionOld(assertion, assertionTokens));
+    assertion.references.push(...new ExpressionParser(this.state, assertion, assertionTokens).parse());
     return assertion;
   }
 
@@ -139,8 +139,14 @@ export class SequentialStatementParser extends ParserBase {
     this.expect('report');
     const report = new OReport(parent, this.getToken().range.copyExtendEndOfLine());
     report.label = label;
-    const text = this.advanceSemicolon();
-    report.references = this.parseExpressionOld(report, text);
+    const [tokens, lastToken] = this.advanceParenthesisAware(['severity', ';'], true, true);
+    report.references = new ExpressionParser(this.state, report, tokens).parse();
+    if (lastToken.getLText() === 'severity') {
+      const [tokens] = this.advanceParenthesisAware([';'], true, true);
+
+      report.references.push(...new ExpressionParser(this.state, report, tokens).parse());
+
+    }
     report.range = report.range.copyWithNewEnd(this.state.pos.i);
     return report;
   }
@@ -173,20 +179,20 @@ export class SequentialStatementParser extends ParserBase {
     if (this.getToken().getLText() === 'on') { // Sensitivity Clause
       this.expect('on');
       const [rightHandSide] = this.advanceParenthesisAware(['until', 'for', ';'], true, false);
-      assignment.labelLinks.push(...this.parseExpressionOld(assignment, rightHandSide));
+      assignment.labelLinks.push(...new ExpressionParser(this.state, assignment, rightHandSide).parse());
     }
 
     if (this.getToken().getLText() === 'until') {
       this.expect('until');
       const [rightHandSide] = this.advanceParenthesisAware(['for', ';'], true, false);
-      assignment.labelLinks.push(...this.parseExpressionOld(assignment, rightHandSide));
+      assignment.labelLinks.push(...new ExpressionParser(this.state, assignment, rightHandSide).parse());
 
     }
 
     if (this.getToken().getLText() === 'for') {
       this.expect('for');
       const [rightHandSide] = this.advanceParenthesisAware([';'], true, false);
-      assignment.labelLinks.push(...this.parseExpressionOld(assignment, rightHandSide));
+      assignment.labelLinks.push(...new ExpressionParser(this.state, assignment, rightHandSide).parse());
     }
 
     assignment.range = assignment.range.copyWithNewEnd(this.state.pos.i);
@@ -202,7 +208,11 @@ export class SequentialStatementParser extends ParserBase {
       exitStatement.labelReference = new OLabelReference(exitStatement, labelToken);
     }
     const [tokens] = this.advanceParenthesisAware([';'], true, false);
-    exitStatement.references.push(...this.parseExpressionOld(exitStatement, tokens));
+    if (tokens.length > 0) {
+      exitStatement.references.push(...new ExpressionParser(this.state, exitStatement, tokens).parse());
+    } else {
+      exitStatement.references = [];
+    }
     this.expect(';');
     return exitStatement;
   }
@@ -211,7 +221,7 @@ export class SequentialStatementParser extends ParserBase {
     this.expect('while');
     whileLoop.label = label;
     const condition = this.advancePast('loop');
-    whileLoop.condition = this.parseExpressionOld(whileLoop, condition);
+    whileLoop.condition = new ExpressionParser(this.state, whileLoop, condition).parse();
     whileLoop.statements = this.parse(whileLoop, ['end']);
     this.expect('end');
     this.expect('loop');
@@ -231,7 +241,7 @@ export class SequentialStatementParser extends ParserBase {
     forLoop.constants.push(constant);
     this.expect('in');
     const rangeToken = this.advancePast('loop');
-    forLoop.constantRange = this.parseExpressionOld(forLoop, rangeToken);
+    forLoop.constantRange = new ExpressionParser(this.state, forLoop, rangeToken).parse();
     forLoop.statements = this.parse(forLoop, ['end']);
     this.expect('end');
     this.expect('loop');
@@ -247,7 +257,7 @@ export class SequentialStatementParser extends ParserBase {
     const if_ = new OIf(parent, this.getToken().range.copyExtendEndOfLine());
     const clause = new OIfClause(if_, this.getToken().range.copyExtendEndOfLine());
     this.expect('if');
-    clause.condition = this.parseExpressionOld(clause, this.advancePast('then'));
+    clause.condition = new ExpressionParser(this.state, clause, this.advancePast('then')).parse();
     clause.statements = this.parse(clause, ['else', 'elsif', 'end']);
     clause.range = clause.range.copyWithNewEnd(this.getToken(-1, true).range.end);
     if_.clauses.push(clause);
@@ -255,7 +265,7 @@ export class SequentialStatementParser extends ParserBase {
       const clause = new OIfClause(if_, this.getToken().range.copyExtendEndOfLine());
 
       this.expect('elsif');
-      clause.condition = this.parseExpressionOld(clause, this.advancePast('then'));
+      clause.condition = new ExpressionParser(this.state, clause, this.advancePast('then')).parse();
       clause.statements = this.parse(clause, ['else', 'elsif', 'end']);
       clause.range = clause.range.copyWithNewEnd(this.getToken(-1, true).range.end);
       if_.clauses.push(clause);
@@ -279,12 +289,12 @@ export class SequentialStatementParser extends ParserBase {
   parseCase(parent: ObjectBase, label?: OLexerToken): OCase {
     this.debug(`parseCase ${label}`);
     const case_ = new OCase(parent, this.getToken().range.copyExtendEndOfLine());
-    case_.expression = this.parseExpressionOld(case_, this.advancePast('is'));
+    case_.expression = new ExpressionParser(this.state, case_, this.advancePast('is')).parse();
 
     while (this.getToken().getLText() === 'when') {
       this.debug(`parseWhen`);
       const whenClause = new OWhenClause(case_, this.getToken().range.copyExtendEndOfLine());
-      whenClause.condition = this.parseExpressionOld(whenClause, this.advancePast('=>'));
+      whenClause.condition = new ExpressionParser(this.state, whenClause, this.advancePast('=>')).parse();
       whenClause.statements = this.parse(whenClause, ['when', 'end']);
       whenClause.range = whenClause.range.copyWithNewEnd(this.getToken(-1, true).range.end);
       case_.whenClauses.push(whenClause);

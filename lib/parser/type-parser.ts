@@ -1,5 +1,6 @@
 import { OLexerToken } from '../lexer';
 import { DeclarativePartParser } from './declarative-part-parser';
+import { ExpressionParser } from './expression-parser';
 import { OEntity, OEnum, OEnumLiteral, OIRange, OPackage, OPackageBody, OPort, OProcess, ORecord, ORecordChild, OStatementBody, OSubprogram, OType, OUnit, ParserError } from './objects';
 import { ParserBase, ParserState } from './parser-base';
 
@@ -63,7 +64,7 @@ export class TypeParser extends ParserBase {
       } else if (this.isUnits()) {
         this.advancePast('units');
         type.units = [];
-        type.units.push(new OUnit(type, this.consumeToken()) );
+        type.units.push(new OUnit(type, this.consumeToken()));
         this.advanceSemicolon();
         while (this.getToken().getLText() !== 'end' || this.getToken(1, true).getLText() !== 'units') {
           type.units.push(new OUnit(type, this.consumeToken()));
@@ -90,7 +91,7 @@ export class TypeParser extends ParserBase {
             this.expect(':');
             const typeTokens = this.advanceSemicolon();
             for (const child of children) {
-              child.referenceLinks = this.parseExpressionOld(child, typeTokens);
+              child.referenceLinks = new ExpressionParser(this.state, child, typeTokens).parse();
               child.range = child.range.copyWithNewEnd(this.state.pos.i);
             }
             (type as ORecord).children.push(...children);
@@ -98,8 +99,22 @@ export class TypeParser extends ParserBase {
           this.maybe('record');
           this.maybe(type.lexerToken.text);
         } else if (nextToken.getLText() === 'array') {
-          const [token] = this.advanceParenthesisAware([';'], true, false);
-          type.referenceLinks.push(...this.parseExpressionOld(type, token)); // TODO: Replace with new expression parser
+          this.expect('(');
+          const [tokens] = this.advanceParenthesisAware([')'], false, false);
+          const unbounded = tokens.find(token => token.getLText() === '<>');
+          if (unbounded) {
+            do {
+              type.referenceLinks.push(...new ExpressionParser(this.state, type, this.advanceParenthesisAware(['range'], true, true)[0]).parse());
+              this.expect('<>');
+            } while (this.getToken().getLText() === ',');
+            this.expect(')');
+          } else {
+            type.referenceLinks.push(...new ExpressionParser(this.state, type, this.advanceParenthesisAware([')'], true, true)[0]).parse());
+
+          }
+          this.expect('of');
+          type.referenceLinks.push(...new ExpressionParser(this.state, type, this.advanceParenthesisAware([';'], true, false)[0]).parse());
+
         } else if (nextToken.getLText() === 'protected') {
           const protectedBody = this.maybe('body');
           if (protectedBody) {

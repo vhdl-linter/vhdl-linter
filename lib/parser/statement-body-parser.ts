@@ -1,6 +1,7 @@
 import { OLexerToken, TokenType } from '../lexer';
 import { ConcurrentStatementParser, ConcurrentStatementTypes } from './concurrent-statement-parser';
 import { DeclarativePartParser } from './declarative-part-parser';
+import { ExpressionParser } from './expression-parser';
 import { OArchitecture, OBlock, OCaseGenerate, OConstant, OFile, OForGenerate, OI, OIfGenerate, OIfGenerateClause, ORead, OReference, OWhenGenerateClause, ParserError } from './objects';
 import { ParserBase, ParserState } from './parser-base';
 
@@ -29,7 +30,7 @@ export class StatementBodyParser extends ParserBase {
       if (this.getToken().getLText() === '(') {
         const startRange = this.getToken().range;
         this.consumeToken(); // consume '('
-        (architecture as OBlock).guardCondition = this.parseExpressionOld(architecture, this.advanceClosingParenthesis());
+        (architecture as OBlock).guardCondition = new ExpressionParser(this.state, architecture, this.advanceClosingParenthesis()).parse();
         const guardRange = startRange.copyWithNewEnd(this.getToken().range.end);
         // implicit declare constant GUARD
         const constant = new OConstant(architecture, guardRange);

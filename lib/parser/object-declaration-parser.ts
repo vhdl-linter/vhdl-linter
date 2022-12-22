@@ -59,11 +59,11 @@ export class ObjectDeclarationParser extends ParserBase {
         file.typeReference = [typeRead];
         if (this.maybe('open')) {
           const [tokens] = this.advanceParenthesisAware(['is', ';'], true, false);
-          file.openKind = this.parseExpressionOld(file, tokens);
+          file.openKind = new ExpressionParser(this.state, file, tokens).parse();
         }
         if (this.maybe('is')) {
           const [tokens] = this.advanceParenthesisAware([';'], true, false);
-          file.logicalName = this.parseExpressionOld(file, tokens);
+          file.logicalName = new ExpressionParser(this.state, file, tokens).parse();
         }
         // TODO: Parse optional parts of file definition
         file.range = file.range.copyWithNewEnd(this.state.pos.i);

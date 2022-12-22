@@ -1,12 +1,11 @@
-entity
-  for is
-end for;
+entity for_test is
+end entity;
 
-architecture arch of
-  for is
+architecture arch of for_test is
 
 begin
-  a_p : process
+  a_p : process is
+
     type integer_array is array (positive range <>) of integer;
     variable foo : integer_array(1 to 5);
   begin
