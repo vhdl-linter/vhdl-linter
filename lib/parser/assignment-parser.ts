@@ -1,6 +1,6 @@
 import { OLexerToken } from '../lexer';
 import { ExpressionParser } from './expression-parser';
-import { OAssignment, ObjectBase, OReference, OWrite, ParserError } from './objects';
+import { OAssignment, ObjectBase, ParserError } from './objects';
 import { ParserBase, ParserState } from './parser-base';
 
 export class AssignmentParser extends ParserBase {
@@ -22,16 +22,7 @@ export class AssignmentParser extends ParserBase {
       leftHandSideNum++;
     }
     const expressionParser = new ExpressionParser(this.state, assignment, leftHandSideTokens);
-    let leftHandSideReferences: OReference[] = [];
-    try {
-      leftHandSideReferences = expressionParser.parseTarget();
-    } catch(err) {
-      if (err instanceof ParserError) {
-        this.state.messages.push(err);
-      } else {
-        throw err;
-      }
-    }
+    [assignment.references, assignment.writes] = expressionParser.parseTarget();
 
 
     this.consumeToken();

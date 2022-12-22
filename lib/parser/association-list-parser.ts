@@ -1,4 +1,4 @@
-import { OInstantiation, OAssociation, OGenericAssociationList, OIRange, OPortAssociationList, ParserError, OPackage, OPackageInstantiation, OFormalReference, OWrite } from './objects';
+import { OInstantiation, OAssociation, OGenericAssociationList, OIRange, OPortAssociationList, OPackage, OPackageInstantiation, OFormalReference, OWrite } from './objects';
 import { ParserBase, ParserState } from './parser-base';
 import { OLexerToken } from '../lexer';
 import { DiagnosticSeverity } from 'vscode-languageserver';

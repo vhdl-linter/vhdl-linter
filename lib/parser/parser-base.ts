@@ -1,7 +1,7 @@
 import { OLexerToken, TokenType } from '../lexer';
 import { config } from './config';
 import { OIDiagnosticWithSolution } from './interfaces';
-import { OAssociation, ObjectBase, OFile, OReference, OSelectedName, OSelectedNameWrite, OWrite, ParserError, SelectedNamePrefix } from './objects';
+import { OAssociation, ObjectBase, OFile, OReference, OSelectedName, ParserError, SelectedNamePrefix } from './objects';
 
 
 export class ParserPosition {
@@ -272,116 +272,8 @@ export class ParserBase {
     }
     return new OReference(parent, tokens[0]);
   }
-  parseExpressionOld(parent: ObjectBase | OAssociation, tokens: OLexerToken[]): OReference[] {
-    tokens = tokens.filter(token => !token.isWhitespace() && token.type !== TokenType.keyword);
-    const references: OReference[] = [];
-    let functionOrArraySlice = false;
-    let parenthesisLevel = 0;
-    let prefixTokens: OLexerToken[] = [];
-    for (let i = 0; i < tokens.length; i++) {
-      const token = tokens[i];
-      if (tokens[i].text === '(') {
-        if (functionOrArraySlice) {
-          parenthesisLevel++;
-        } else if (tokens[i - 1]?.isIdentifier()) {
-          functionOrArraySlice = true;
-          parenthesisLevel++;
-        }
-      }
-      if (tokens[i].text === ')') {
-        if (parenthesisLevel > 1) {
-          parenthesisLevel--;
-        } else {
-          functionOrArraySlice = false;
-          parenthesisLevel = 0;
-        }
-      }
-      if (token.isIdentifier() && token.getLText() !== 'range') {
-        if (tokens[i - 1]?.text === '\'') { // Attribute skipped for now
-          continue;
-        }
-        if (tokens[i + 1]?.text === '.' && tokens[i + 2]?.isIdentifier()) {
-          prefixTokens.push(token);
-          continue;
-        }
 
-        // Detection if in possible function
 
-        // If in possible function check if possible named function call, then ignore.
-        if (functionOrArraySlice && tokens[i].isIdentifier() && tokens[i + 1]?.text === '=>') {
-          continue;
-        }
-        if (prefixTokens.length > 0) {
-          references.push(new OSelectedName(parent, token, prefixTokens as SelectedNamePrefix));
-          prefixTokens = [];
-        } else {
-          references.push(new OReference(parent, token));
-          prefixTokens = [];
-        }
-      }
-    }
-    return references;
-  }
-  extractReadsOrWrite(parent: ObjectBase, tokens: OLexerToken[], readAndWrite = false): [OReference[], OWrite[]] {
-    const references: OReference[] = [];
-    const writes: OWrite[] = [];
-    let parenthesisLevel = 0;
-    tokens = tokens.filter(token => token.isWhitespace() === false && token.type !== TokenType.keyword);
-    let prefixTokens: OLexerToken[] = [];
-
-    let slice = false;
-    for (let i = 0; i < tokens.length; i++) {
-      const token = tokens[i];
-      // console.log(index, token);
-      if (token.text === '(') {
-        if (i > 0) {
-          slice = true;
-        }
-        parenthesisLevel++;
-      } else if (token.text === ')') {
-        parenthesisLevel--;
-        if (parenthesisLevel === 0) {
-          slice = false;
-        }
-      } else if (token.isIdentifier()) {
-        // If in possible function check if possible named function call, then ignore.
-        if (slice && tokens[i + 1]?.text === '=>') {
-          continue;
-        }
-        if (slice === false) {
-          if (tokens[i - 1]?.text === '\'') { // Attribute skipped for now
-            continue;
-          }
-          if (tokens[i + 1]?.text === '.' && tokens[i + 2]?.isIdentifier()) {
-            prefixTokens.push(token);
-            continue;
-          }
-          if (readAndWrite) {
-            if (prefixTokens.length > 0) {
-              references.push(new OSelectedName(parent, token, prefixTokens as SelectedNamePrefix));
-            } else {
-              references.push(new OReference(parent, token));
-            }
-          }
-          if (tokens[i - 1]?.type === TokenType.decimalLiteral) { //  Skip units for writing
-            continue;
-          }
-          if (prefixTokens.length > 0) {
-            writes.push(new OSelectedNameWrite(parent, token, prefixTokens as SelectedNamePrefix));
-          } else {
-            writes.push(new OWrite(parent, token));
-          }
-          prefixTokens = [];
-
-        } else { //in slice
-          if (tokens[i - 1]?.text !== '\'') { // skip attributes
-            references.push(new OReference(parent, token));
-          }
-        }
-      }
-    }
-    return [references, writes];
-  }
   getTextDebug(lines = 3) { // This gets the current Text (for Debugger)
     let text = '';
     let i = 0;

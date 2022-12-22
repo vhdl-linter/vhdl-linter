@@ -103,7 +103,7 @@ export class RNotDeclared extends RuleBase implements IRule {
   }
   async check() {
     for (const obj of this.file.objectList) {
-      if (obj instanceof OInstantiation) { // Instantation handled somewhere else, where?
+      if (obj instanceof OInstantiation) { // Instantiation handled somewhere else, where?
         continue;
       }
       if (obj instanceof OFormalReference) { // Formal references handled else where

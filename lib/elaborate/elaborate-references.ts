@@ -1,4 +1,3 @@
-import { DiagnosticSeverity } from "vscode-languageserver";
 import { IHasLexerToken, IHasReferenceLinks, implementsIHasAliases, implementsIHasConstants, implementsIHasFileVariables, implementsIHasGenerics, implementsIHasLabel, implementsIHasLibraries, implementsIHasPackageInstantiations, implementsIHasPorts, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables } from "../parser/interfaces";
 import { OArchitecture, OAttributeReference, ObjectBase, OEntity, OEnum, OFile, OHasSequentialStatements, OInstantiation, OInterfacePackage, OLabelReference, OLibrary, OPackage, OPackageBody, OPackageInstantiation, ORead, ORecord, OReference, OSelectedName, OSelectedNameRead, OSelectedNameWrite, OWrite, scope } from "../parser/objects";
 import { VhdlLinter } from "../vhdl-linter";
