@@ -69,7 +69,7 @@ export async function handleDocumentFormatting(params: DocumentFormattingParams,
           resolve();
         }
         reject(code);
-      })
+      });
     });
     progress.done();
   } catch (e) {
