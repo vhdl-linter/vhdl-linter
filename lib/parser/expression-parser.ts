@@ -87,12 +87,13 @@ export class ExpressionParser extends ParserBase {
 
       } else {
         const breakTokens = [',', '=>',
+          'range', 'to', // range constraints
           '*', '/', 'mod', 'rem', // term
           'and', 'or', 'xor', 'nand', 'nor', 'xnor', //logical expression
           "=", "/=", "<", "<=", ">", ">=", "?=", "?/=", "?<", "?<=", "?>", "?>=", //relation
           "sll", "srl", "sla", "sra", "rol", "ror", //shiftExpression
           "+", "-", "&", //adding_operator
-          "*", "/", "mod", "rem" //multiplying_operator
+          "*", "/", "mod", "rem", //multiplying_operator
         ];
 
 
