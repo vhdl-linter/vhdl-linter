@@ -50,7 +50,7 @@ export class Lexer {
     'and', 'or', 'nand', 'nor', 'xor', 'xnor', 'downto', 'to', 'others', 'rem',
     'when', 'else', 'elsif', 'after', 'transport', 'reject',
     'inertial', 'all', 'of', 'new', 'force', 'release', 'severity', 'open',
-    'null', 'guarded', 'postponed', 'exit', 'units'
+    'null', 'guarded', 'postponed', 'exit', 'units', 'range'
   ].map(keyword => new RegExp('^' + keyword + '\\b', 'i'));
 
   tokenTypes: { regex: RegExp, tokenType: TokenType }[] = [
