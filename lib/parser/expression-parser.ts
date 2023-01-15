@@ -75,16 +75,17 @@ export class ExpressionParser extends ParserBase {
     }
     return references;
   }
-  inner(maybeFormal = false, maybeWrite = false): OReference[] {
+  private inner(maybeFormal = false, maybeWrite = false): OReference[] {
     const references: OReference[] = [];
     let tokenBuffer: OLexerToken[] = [];
     let innerReferences: OReference[] | undefined;
+    let containedBraces = false;
     while (this.expState.num < this.tokens.length && this.getNumToken()?.getLText() !== ')') {
       if (this.getNumToken()?.getLText() === '(') {
         this.increaseToken();
         const maybeFormalNew = this.getNumToken(-2) !== undefined && this.getNumToken(-2)?.getLText() !== '(';
         innerReferences = this.inner(maybeFormalNew, false);
-
+        containedBraces = true;
       } else {
         const breakTokens = [',', '=>',
           'range', 'to', // range constraints
@@ -100,14 +101,23 @@ export class ExpressionParser extends ParserBase {
         const breakToken = breakTokens.find(token => token === this.getNumToken()?.getLText() ?? '');
         if (breakToken) {
           const formal = maybeFormal && breakToken === '=>';
-          references.push(...this.splitBuffer(tokenBuffer, formal, maybeWrite));
+          // If braces were contained. This token was a cast on the formal side (so a reference not formal)
+          references.push(...this.splitBuffer(tokenBuffer, formal && containedBraces === false, maybeWrite));
+
           if (breakToken !== ',') {
             maybeWrite = false;
           }
           if (innerReferences) {
+            // TODO: Properly fix the type of FormalReferences in type casting of formal part
+            // This is a workaround for one layer deep casting and a bit hacky.
+            // As most tooling only supports one layer deep nesting this seems ok for now.
+            if (formal) {
+              for (const innerRef of innerReferences) {
+                Object.setPrototypeOf(innerRef, OFormalReference);
+              }
+            }
             references.push(...innerReferences);
             innerReferences = undefined;
-
           }
           // if (this.expState.lastFormal.length > 0 && tokenBuffer.length === 0) {
           //   throw new ParserError("The actual part cannot be empty.", this.expState.lastFormal[0].range.copyWithNewEnd(this.expState.lastFormal[this.expState.lastFormal.length - 1].range));
