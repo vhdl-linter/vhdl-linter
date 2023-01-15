@@ -11,7 +11,7 @@ end test_block;
 architecture arch of test_block is
 begin
   p_block0 : block
-    signal s        : std_ulogic;
+    signal s : std_ulogic;
 
   begin
     s <= s;
