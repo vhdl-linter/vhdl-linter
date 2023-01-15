@@ -1,3 +1,6 @@
+-- Test syntax of for loop in process.
+-- Correct parsing of iteration constant.
+
 entity for_test is
 end entity;
 
