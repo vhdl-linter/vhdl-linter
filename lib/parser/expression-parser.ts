@@ -83,7 +83,7 @@ export class ExpressionParser extends ParserBase {
       if (this.getNumToken()?.getLText() === '(') {
         this.increaseToken();
         const maybeFormalNew = this.getNumToken(-2) !== undefined && this.getNumToken(-2)?.getLText() !== '(';
-        innerReferences = this.inner(maybeFormalNew, maybeFormalNew === false);
+        innerReferences = this.inner(maybeFormalNew, false);
 
       } else {
         const breakTokens = [',', '=>',
@@ -144,14 +144,13 @@ export class ExpressionParser extends ParserBase {
       return [[], []];
     }
     this.expState.leftHandSide = true;
-    const result = this.inner();
-    const references = result.slice(1);
-    const writes = result.slice(0, 1).map(a => { // TODO: Improve handling of left hand assignment
-      Object.setPrototypeOf(a, OWrite.prototype);
-      (a as OWrite).type = 'OWrite';
-      return a as OWrite;
-    });
-    return [references, writes];
+    const result = this.inner(false, true);
+
+
+    return [
+      result.filter(ref => ref instanceof OWrite === false),
+      result.filter(ref => ref instanceof OWrite) as OWrite[]
+    ];
   }
   parseAssociationElement() {
     if (this.tokens.length === 0) {

@@ -10,8 +10,9 @@ begin
   proc : process(all)
   begin
     for i in s'range loop
-        s((i + 0) * 1) <= s(0); -- i is read and not written
+      -- i in lhs is read and not written
+      s((i))         <= (others => '0');  -- simplified test case
+      s((i + 0) * 1) <= s(0);             -- original test case
     end loop;
   end process;
 end architecture;
-
