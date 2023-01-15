@@ -43,19 +43,34 @@ export class DeclarativePartParser extends ParserBase {
 
       } else if (nextToken.getLText() === 'component' && implementsIHasComponents(this.parent)) {
         if (this.parent instanceof OEntity) {
-          throw new ParserError(`Components are not allowed in entity`, this.getToken().range);
+          this.state.messages.push({
+            message: `Components are not allowed in entity`,
+            range: this.getToken().range
+          });
         }
         if (this.parent instanceof OPackageBody) {
-          throw new ParserError(`Components are not allowed in package body`, this.getToken().range);
+          this.state.messages.push({
+            message: `Components are not allowed in package body`,
+            range: this.getToken().range
+          });
         }
         if (this.parent instanceof OProcess) {
-          throw new ParserError(`Components are not allowed in process`, this.getToken().range);
+          this.state.messages.push({
+            message: `Components are not allowed in process`,
+            range: this.getToken().range
+          });
         }
         if (this.parent instanceof OSubprogram) {
-          throw new ParserError(`Components are not allowed in subprogram`, this.getToken().range);
+          this.state.messages.push({
+            message: `Components are not allowed in subprogram`,
+            range: this.getToken().range
+          });
         }
         if (this.parent instanceof OType) {
-          throw new ParserError(`Components are not allowed in type`, this.getToken().range);
+          this.state.messages.push({
+            message: `Components are not allowed in type`,
+            range: this.getToken().range
+          });
         }
         this.consumeToken();
         const componentParser = new ComponentParser(this.state, this.parent);
