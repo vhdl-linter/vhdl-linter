@@ -82,9 +82,10 @@ export class ExpressionParser extends ParserBase {
     let containedBraces = false;
     while (this.expState.num < this.tokens.length && this.getNumToken()?.getLText() !== ')') {
       if (this.getNumToken()?.getLText() === '(') {
+        const aggregate = this.getNumToken(-1) === undefined;
         this.increaseToken();
         const maybeFormalNew = this.getNumToken(-2) !== undefined && this.getNumToken(-2)?.getLText() !== '(';
-        innerReferences = this.inner(maybeFormalNew, false);
+        innerReferences = this.inner(maybeFormalNew, aggregate);
         containedBraces = true;
       } else {
         const breakTokens = [',', '=>',
@@ -126,6 +127,7 @@ export class ExpressionParser extends ParserBase {
             this.expState.lastFormal = tokenBuffer;
           }
           tokenBuffer = [];
+          containedBraces = false;
         } else {
           tokenBuffer.push(this.getNumToken() as OLexerToken);
         }
