@@ -1,8 +1,12 @@
+-- Test more complex record structures:
+-- 1. Nested records
+-- 2. Self referencing records (using incomplete record type)
+
 use std.textio.all ;
 package test_selected_name is
 end package;
 package body test_selected_name is
-  type MessageStructType ;
+  type MessageStructType ; -- test of incomplete record type
   type MessageStructPtrType is access MessageStructType ;
   type MessageStructType is record
     Name    : line ;

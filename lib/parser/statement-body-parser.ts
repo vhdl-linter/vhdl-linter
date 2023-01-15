@@ -21,53 +21,53 @@ export class StatementBodyParser extends ParserBase {
   parse(skipStart: boolean, structureName: 'generate', forConstant?: { constantName: OLexerToken, constantRange: OReference[], startPosI: number }): OForGenerate;
   parse(skipStart = false, structureName: 'architecture' | 'generate' | 'block' | 'when-generate' = 'architecture', forConstant?: { constantName: OLexerToken, constantRange: OReference[], startPosI: number }): OArchitecture | OForGenerate | OIfGenerateClause | OWhenGenerateClause | OBlock{
     this.debug(`parse`);
-    let architecture;
+    let statementBody;
     if (structureName === 'architecture') {
-      architecture = new OArchitecture(this.parent, this.getToken().range.copyExtendEndOfLine());
+      statementBody = new OArchitecture(this.parent, this.getToken().range.copyExtendEndOfLine());
     } else if (structureName === 'block') {
-      architecture = new OBlock(this.parent, this.getToken().range.copyExtendEndOfLine());
+      statementBody = new OBlock(this.parent, this.getToken().range.copyExtendEndOfLine());
       // guarded block
       if (this.getToken().getLText() === '(') {
         const startRange = this.getToken().range;
         this.consumeToken(); // consume '('
-        (architecture as OBlock).guardCondition = new ExpressionParser(this.state, architecture, this.advanceClosingParenthesis()).parse();
+        (statementBody as OBlock).guardCondition = new ExpressionParser(this.state, statementBody, this.advanceClosingParenthesis()).parse();
         const guardRange = startRange.copyWithNewEnd(this.getToken().range.end);
         // implicit declare constant GUARD
-        const constant = new OConstant(architecture, guardRange);
+        const constant = new OConstant(statementBody, guardRange);
         constant.lexerToken = new OLexerToken('GUARD', guardRange, TokenType.basicIdentifier);
         // read GUARD constant to avoid 'not read' warning
-        (architecture as OBlock).guardCondition?.push(new ORead(architecture, constant.lexerToken));
-        architecture.constants.push(constant);
+        (statementBody as OBlock).guardCondition?.push(new ORead(statementBody, constant.lexerToken));
+        statementBody.constants.push(constant);
       }
       this.maybe('is');
     } else if (structureName === 'when-generate') {
-      architecture = new OWhenGenerateClause(this.parent, this.getToken().range.copyExtendEndOfLine());
+      statementBody = new OWhenGenerateClause(this.parent, this.getToken().range.copyExtendEndOfLine());
     } else if (!forConstant) {
-      architecture = new OIfGenerateClause(this.parent, this.getToken().range.copyExtendEndOfLine());
+      statementBody = new OIfGenerateClause(this.parent, this.getToken().range.copyExtendEndOfLine());
     } else {
       if (this.parent instanceof OFile) {
         throw new ParserError(`For Generate can not be top level architecture!`, this.state.pos.getRangeToEndLine());
       }
       const { constantName, constantRange } = forConstant;
-      architecture = new OForGenerate(this.parent as OArchitecture, this.getToken().range.copyExtendEndOfLine(), constantRange);
-      const iterateConstant = new OConstant(architecture, constantName.range);
+      statementBody = new OForGenerate(this.parent as OArchitecture, this.getToken().range.copyExtendEndOfLine(), constantRange);
+      const iterateConstant = new OConstant(statementBody, constantName.range);
       iterateConstant.typeReference = [];
       iterateConstant.lexerToken = constantName;
-      architecture.constants.push(iterateConstant);
+      statementBody.constants.push(iterateConstant);
     }
     if (skipStart !== true) {
-      architecture.lexerToken = this.consumeIdentifier();
+      statementBody.lexerToken = this.consumeIdentifier();
       this.expect('of');
       this.entityName = this.consumeIdentifier();
-      if (architecture instanceof OArchitecture === false) {
-        throw new ParserError(`unexpected architecture header`, architecture.lexerToken.range.copyExtendEndOfLine());
+      if (statementBody instanceof OArchitecture === false) {
+        throw new ParserError(`unexpected architecture header`, statementBody.lexerToken.range.copyExtendEndOfLine());
       }
-      (architecture as OArchitecture).entityName = this.entityName;
+      (statementBody as OArchitecture).entityName = this.entityName;
       this.expect('is');
     }
 
-    new DeclarativePartParser(this.state, (architecture as OArchitecture)).parse(structureName !== 'architecture');
-    architecture.endOfDeclarativePart = new OI(architecture, this.state.pos.i);
+    new DeclarativePartParser(this.state, (statementBody as OArchitecture)).parse(structureName !== 'architecture');
+    statementBody.endOfDeclarativePart = new OI(statementBody, this.state.pos.i);
     this.maybe('begin');
 
     while (this.state.pos.isValid()) {
@@ -83,8 +83,8 @@ export class StatementBodyParser extends ParserBase {
         } else {
           this.maybe(structureName);
         }
-        if (architecture.lexerToken) {
-          this.maybe(architecture.lexerToken.text);
+        if (statementBody.lexerToken) {
+          this.maybe(statementBody.lexerToken.text);
         }
 
         if (this.entityName) {
@@ -93,19 +93,19 @@ export class StatementBodyParser extends ParserBase {
         this.expect(';');
         break;
       }
-      if (new ConcurrentStatementParser(this.state, architecture).parse([
+      if (new ConcurrentStatementParser(this.state, statementBody).parse([
         ConcurrentStatementTypes.Assert,
         ConcurrentStatementTypes.Assignment,
         ConcurrentStatementTypes.Generate,
         ConcurrentStatementTypes.Block,
         ConcurrentStatementTypes.ProcedureInstantiation,
         ConcurrentStatementTypes.Process
-      ], architecture, structureName === 'when-generate')) {
+      ], statementBody, structureName === 'when-generate')) {
         break;
       }
     }
     this.debug('finished parse');
-    return architecture;
+    return statementBody;
   }
 
 

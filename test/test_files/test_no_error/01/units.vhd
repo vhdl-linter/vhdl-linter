@@ -1,12 +1,12 @@
 entity test_units is
-             end test_units;
+end test_units;
 
-             architecture arch of test_units is
+architecture arch of test_units is
 
-                                        begin
-                                          a_p : process
-                                          begin
-                                            wait for 6 ns;
-                                          end process;
+begin
+  a_p : process
+  begin
+    wait for 6 ns;
+  end process;
 
-                                        end architecture;
+end architecture;
