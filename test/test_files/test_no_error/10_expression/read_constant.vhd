@@ -11,8 +11,8 @@ begin
   begin
     for i in s'range loop
       -- i in lhs is read and not written
-      s((i))         <= (others => '0');  -- simplified test case
-      s((i + 0) * 1) <= s(0);             -- original test case
+      s((i))         <= '0';            -- simplified test case
+      s((i + 0) * 1) <= s(0);           -- original test case
     end loop;
   end process;
 end architecture;
