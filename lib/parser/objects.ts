@@ -1,6 +1,6 @@
 import { Position, Range, TextEdit } from 'vscode-languageserver';
 import { OLexerToken } from '../lexer';
-import { OIDiagnostic } from '../vhdl-linter';
+import * as I from './interfaces';
 export class OI implements Position {
   protected i_?: number;
   constructor(parent: ObjectBase | OFile, i: number)
@@ -100,7 +100,10 @@ export class OIRange implements Range {
     }
     return new OIRange(this.parent, this.start, newEnd);
   }
-  copyWithNewStart(newStart: OI | number) {
+  copyWithNewStart(newStart: OI | number | OIRange) {
+    if (newStart instanceof OIRange) {
+      newStart = newStart.start;
+    }
     return new OIRange(this.parent, newStart, this.end);
   }
 
@@ -148,7 +151,7 @@ export class ObjectBase {
       p = p.parent;
       maximumIterationCounter--;
       if (maximumIterationCounter === 0) {
-        throw new ParserError('Maximum Iteraction Counter overrung', range);
+        throw new ParserError('Maximum Iteration Counter overrun', range);
       }
     }
     this.rootFile = p;
@@ -180,171 +183,34 @@ export class ObjectBase {
     return this.lexerToken?.text?.toLowerCase() === other?.lexerToken?.text?.toLowerCase();
   }
 }
-export interface IHasUseClauses {
-  useClauses: OUseClause[];
-  packageDefinitions: OPackage[];
-}
-export interface IHasLexerToken {
-  lexerToken: OLexerToken;
-}
-export interface IHasReferenceToken {
-  referenceToken: OLexerToken;
-}
 
-export function implementsIHasUseClause(obj: ObjectBase): obj is ObjectBase & IHasUseClauses {
-  return (obj as ObjectBase & IHasUseClauses).useClauses !== undefined;
-}
-export function implementsIHasLexerToken(obj: ObjectBase): obj is ObjectBase & IHasLexerToken {
-  return (obj as ObjectBase & IHasLexerToken).lexerToken !== undefined;
-}
-export function implementsIHasReferenceToken(obj: ObjectBase): obj is ObjectBase & IHasReferenceToken {
-  return (obj as ObjectBase & IHasReferenceToken).referenceToken !== undefined;
-}
-export interface IHasContextReference {
-  contextReferences: OContextReference[];
-  packageDefinitions: OPackage[];
 
-}
-export function implementsIHasContextReference(obj: ObjectBase): obj is ObjectBase & IHasContextReference {
-  return (obj as ObjectBase & IHasContextReference).contextReferences !== undefined;
-}
-export interface IReferenceable {
-  references: OReference[];
-  aliasReferences: OAlias[];
-}
-export function implementsIReferencable(obj: ObjectBase): obj is ObjectBase & IReferenceable {
-  return (obj as ObjectBase & IReferenceable).references !== undefined
-    && (obj as ObjectBase & IReferenceable).aliasReferences !== undefined;
-}
-export interface IHasDefinitions {
-  definitions: ObjectBase[];
-}
-export function implementsIHasDefinitions(obj: ObjectBase): obj is ObjectBase & IHasDefinitions {
-  return (obj as ObjectBase & IHasDefinitions).definitions !== undefined;
-}
-export function implementsIHasPackageInstantiations(obj: ObjectBase): obj is ObjectBase & IHasPackageInstantiations {
-  return (obj as ObjectBase & IHasPackageInstantiations).packageInstantiations !== undefined;
-}
-export interface IHasPackageInstantiations {
-  packageInstantiations: OPackageInstantiation[];
-}
-export interface IHasSubprograms {
-  subprograms: OSubprogram[];
-}
-export function implementsIHasSubprograms(obj: ObjectBase): obj is ObjectBase & IHasSubprograms {
-  return (obj as ObjectBase & IHasSubprograms).subprograms !== undefined;
-}
-export interface IHasTypes {
-  types: OType[];
-}
-export function implementsIHasTypes(obj: ObjectBase): obj is ObjectBase & IHasTypes {
-  return (obj as ObjectBase & IHasTypes).types !== undefined;
-}
-export interface IHasAliases {
-  aliases: OAlias[];
-}
-export function implementsIHasAliases(obj: ObjectBase): obj is ObjectBase & IHasAliases {
-  return (obj as ObjectBase & IHasAliases).aliases !== undefined;
-}
-export interface IHasComponents {
-  components: OComponent[];
-}
-export function implementsIHasComponents(obj: ObjectBase): obj is ObjectBase & IHasComponents {
-  return (obj as ObjectBase & IHasComponents).components !== undefined;
-}
-export interface IHasInstantiations {
-  instantiations: OInstantiation[];
-}
-export function implementsIHasInstantiations(obj: ObjectBase): obj is ObjectBase & IHasInstantiations {
-  return (obj as ObjectBase & IHasInstantiations).instantiations !== undefined;
-}
-export interface IHasIfGenerates {
-  ifGenerates: OIfGenerate[];
-}
-export function implementsIHasIfGenerates(obj: ObjectBase): obj is ObjectBase & IHasIfGenerates {
-  return (obj as ObjectBase & IHasIfGenerates).ifGenerates !== undefined;
-}
-export interface IHasForGenerates {
-  forGenerates: OForGenerate[];
-}
-export function implementsIHasForGenerates(obj: ObjectBase): obj is ObjectBase & IHasForGenerates {
-  return (obj as ObjectBase & IHasForGenerates).forGenerates !== undefined;
-}
-export interface IHasSignals {
-  signals: OSignal[];
-}
-export interface IHasFileVariables {
-  files: OFileVariable[];
-}
-export function implementsIHasFileVariables(obj: ObjectBase): obj is ObjectBase & IHasFileVariables {
-  return (obj as ObjectBase & IHasFileVariables).files !== undefined;
-}
-export function implementsIHasSignals(obj: ObjectBase): obj is ObjectBase & IHasSignals {
-  return (obj as ObjectBase & IHasSignals).signals !== undefined;
-}
-export interface IHasConstants {
-  constants: OConstant[];
-}
-export function implementsIHasConstants(obj: ObjectBase): obj is ObjectBase & IHasConstants {
-  return (obj as ObjectBase & IHasConstants).constants !== undefined;
-}
-export interface IHasVariables {
-  variables: OVariable[];
-}
-export function implementsIHasVariables(obj: ObjectBase): obj is ObjectBase & IHasVariables {
-  return (obj as ObjectBase & IHasVariables).variables !== undefined;
-}
-interface IHasLibraries {
-  libraries: OLibrary[];
-}
-export function implementsIHasLibraries(obj: ObjectBase): obj is ObjectBase & IHasLibraries {
-  return (obj as ObjectBase & IHasLibraries).libraries !== undefined;
-}
-interface IHasLibraryReference {
-  library?: OLexerToken;
-}
-export function implementsIHasLibraryReference(obj: ObjectBase): obj is ObjectBase & IHasLibraryReference {
-  return (obj as ObjectBase & IHasLibraryReference).library !== undefined;
-}
-export abstract class OGeneric extends ObjectBase implements IHasDefinitions {
-  reads: ORead[] = [];
+
+
+export abstract class OGeneric extends ObjectBase implements I.IHasDefinitions, I.IHasReferenceLinks {
   definitions: (OGeneric | OPackage)[] = [];
-  references: OReference[] = [];
+  referenceLinks: OReference[] = [];
   aliasReferences: OAlias[] = [];
   lexerToken: OLexerToken;
 }
-export class OGenericConstant extends OGeneric implements IVariableBase {
+export class OGenericConstant extends OGeneric implements I.IVariableBase, I.IHasTypeReference, I.IHasDefaultValue {
   definitions: OGenericConstant[] = [];
-  type: ORead[] = [];
-  defaultValue?: ORead[] = [];
-  reads: ORead[] = [];
+  typeReference: OReference[] = [];
+  defaultValue?: OReference[] = [];
 
 }
-export class OReference extends ObjectBase implements IHasDefinitions, IHasReferenceToken {
+export class OReference extends ObjectBase implements I.IHasDefinitions, I.IHasReferenceToken {
   definitions: ObjectBase[] = [];
-  constructor(public parent: ObjectBase, public referenceToken: OLexerToken) {
-    super(parent, referenceToken.range);
+  lexerToken: undefined;
+  constructor(public parent: ObjectBase, public referenceToken: OLexerToken, range?: OIRange) {
+    super(parent, range ?? referenceToken.range);
   }
 }
-interface IHasGenerics {
-  generics: OGeneric[];
-  genericRange?: OIRange;
-}
-export function implementsIHasGenerics(obj: ObjectBase): obj is ObjectBase & IHasGenerics {
-  return (obj as ObjectBase & IHasGenerics).generics !== undefined;
-}
-export interface IHasPorts {
-  ports: OPort[];
-  portRange?: OIRange;
-}
-export function implementsIHasPorts(obj: ObjectBase): obj is ObjectBase & IHasPorts {
-  return (obj as ObjectBase & IHasPorts).ports !== undefined;
-}
-export interface OIDiagnosticWithSolution extends OIDiagnostic {
-  solution?: { message: string, edits: TextEdit[] };
+export class OFormalReference extends OReference {
+
 }
 export class OFile {
-  parserMessages: OIDiagnosticWithSolution[] = [];
+  parserMessages: I.OIDiagnosticWithSolution[] = [];
   public lines: string[];
   constructor(public text: string, public file: string, public originalText: string) {
     this.lines = originalText.split('\n');
@@ -358,7 +224,7 @@ export class OFile {
   packages: (OPackage | OPackageBody)[] = [];
   packageInstantiations: OPackageInstantiation[] = [];
   configurations: OConfiguration[] = [];
-  readonly rootFile = this; // Provided as a convience to equalize to ObjectBase
+  readonly rootFile = this; // Provided as a convenience to equalize to ObjectBase
   getJSON() {
     const seen = new WeakSet();
 
@@ -382,34 +248,36 @@ export class OFile {
   }
 }
 
-export class OInterfacePackage extends OGeneric implements IReferenceable, IHasUseClauses, IHasContextReference, IHasLibraries, IHasLexerToken, IHasDefinitions {
+export class OInterfacePackage extends OGeneric implements I.IHasReferenceLinks, I.IHasUseClauses, I.IHasContextReference, I.IHasLibraries, I.IHasLexerToken, I.IHasDefinitions {
   aliasReferences: OAlias[] = [];
   lexerToken: OLexerToken;
   uninstantiatedPackageToken: OLexerToken;
   definitions: OPackage[] = [];
   genericAssociationList?: OGenericAssociationList;
-  references: OReference[] = [];
+  referenceLinks: OReference[] = [];
   libraries: OLibrary[] = [];
   useClauses: OUseClause[] = [];
   packageDefinitions: OPackage[] = [];
   contextReferences: OContextReference[] = [];
 }
-export class OPackageInstantiation extends ObjectBase implements IReferenceable, IHasUseClauses, IHasContextReference, IHasLibraries, IHasLexerToken, IHasDefinitions {
+export class OPackageInstantiation extends ObjectBase implements I.IHasReferenceLinks, I.IHasUseClauses, I.IHasContextReference, I.IHasLibraries, I.IHasLexerToken, I.IHasDefinitions {
   aliasReferences: OAlias[] = [];
   lexerToken: OLexerToken;
   uninstantiatedPackageToken: OLexerToken;
   definitions: OPackage[] = [];
   genericAssociationList?: OGenericAssociationList;
-  references: OReference[] = [];
+  referenceLinks: OReference[] = [];
   libraries: OLibrary[] = [];
   useClauses: OUseClause[] = [];
   packageDefinitions: OPackage[] = [];
   contextReferences: OContextReference[] = [];
 }
 
-export class OPackage extends ObjectBase implements IHasSubprograms, IHasComponents, IHasSignals, IHasConstants,
-  IHasVariables, IHasTypes, IHasAliases, IHasFileVariables, IHasUseClauses, IHasContextReference, IHasLexerToken,
-  IHasLibraries, IHasLibraryReference, IHasGenerics {
+export class OPackage extends ObjectBase implements I.IHasSubprograms, I.IHasComponents, I.IHasSignals, I.IHasConstants,
+  I.IHasVariables, I.IHasTypes, I.IHasAliases, I.IHasFileVariables, I.IHasUseClauses, I.IHasContextReference, I.IHasLexerToken,
+  I.IHasLibraries, I.IHasLibraryReference, I.IHasGenerics, I.IHasReferenceLinks {
+  referenceLinks: OReference[] = [];
+  aliasReferences: OAlias[] = [];
   parent: OFile;
   aliases: OAlias[] = [];
   libraries: OLibrary[] = [];
@@ -431,8 +299,10 @@ export class OPackage extends ObjectBase implements IHasSubprograms, IHasCompone
   targetLibrary?: string;
 }
 
-export class OPackageBody extends ObjectBase implements IHasSubprograms, IHasConstants, IHasVariables, IHasTypes,
-  IHasAliases, IHasFileVariables, IHasUseClauses, IHasContextReference, IHasLexerToken, IHasLibraries {
+export class OPackageBody extends ObjectBase implements I.IHasSubprograms, I.IHasConstants, I.IHasVariables, I.IHasTypes,
+  I.IHasAliases, I.IHasFileVariables, I.IHasUseClauses, I.IHasContextReference, I.IHasLexerToken, I.IHasLibraries, I.IHasReferenceLinks {
+  referenceLinks: OReference[] = [];
+  aliasReferences: OAlias[] = [];
   lexerToken: OLexerToken;
   libraries: OLibrary[] = [];
   aliases: OAlias[] = [];
@@ -451,13 +321,15 @@ export class OPackageBody extends ObjectBase implements IHasSubprograms, IHasCon
 }
 
 
-export class OLibrary extends ObjectBase implements IHasLexerToken {
+export class OLibrary extends ObjectBase implements I.IHasLexerToken, I.IHasReferenceLinks {
   constructor(public parent: ObjectBase | OFile, public lexerToken: OLexerToken) {
     super(parent, lexerToken.range);
   }
+  referenceLinks: OReference[] = [];
+  aliasReferences: OAlias[] = [];
 }
 
-export class OContextReference extends ObjectBase implements IHasLibraryReference {
+export class OContextReference extends ObjectBase implements I.IHasLibraryReference {
   constructor(public parent: OContext | ObjectBase, range: OIRange, public library: OLexerToken, public contextName: string) {
     super(parent, range);
   }
@@ -465,7 +337,7 @@ export class OContextReference extends ObjectBase implements IHasLibraryReferenc
 
 }
 
-export class OContext extends ObjectBase implements IHasUseClauses, IHasContextReference, IHasLexerToken, IHasLibraries {
+export class OContext extends ObjectBase implements I.IHasUseClauses, I.IHasContextReference, I.IHasLexerToken, I.IHasLibraries {
   parent: OFile;
   lexerToken: OLexerToken;
   useClauses: OUseClause[] = [];
@@ -475,11 +347,10 @@ export class OContext extends ObjectBase implements IHasUseClauses, IHasContextR
 }
 export type OConcurrentStatements = OProcess | OInstantiation | OIfGenerate | OForGenerate | OBlock | OAssignment;
 
-export class OArchitecture extends ObjectBase implements IHasSubprograms, IHasComponents, IHasInstantiations,
-  IHasSignals, IHasConstants, IHasVariables, IHasTypes, IHasAliases, IHasFileVariables, IHasUseClauses, IHasContextReference,
-  IHasPackageInstantiations, IHasLexerToken, IHasLibraries, IReferenceable, IHasIfGenerates, IHasForGenerates {
-  references: OReference[] = [];
-  lexerToken: OLexerToken;
+export abstract class OStatementBody extends ObjectBase implements I.IHasSubprograms, I.IHasComponents, I.IHasInstantiations,
+  I.IHasSignals, I.IHasConstants, I.IHasVariables, I.IHasTypes, I.IHasAliases, I.IHasFileVariables, I.IHasUseClauses, I.IHasContextReference,
+  I.IHasPackageInstantiations, I.IHasLibraries, I.IHasReferenceLinks, I.IHasIfGenerates, I.IHasForGenerates {
+  referenceLinks: OReference[] = [];
   useClauses: OUseClause[] = [];
   subprogramAliases: OAliasWithSignature[] = [];
   aliasReferences: OAlias[] = [];
@@ -497,7 +368,6 @@ export class OArchitecture extends ObjectBase implements IHasSubprograms, IHasCo
   subprograms: OSubprogram[] = [];
   components: OComponent[] = [];
   statements: OConcurrentStatements[] = [];
-  entityName?: OLexerToken;
   correspondingEntity?: OEntity;
   endOfDeclarativePart?: OI;
   get processes() {
@@ -520,7 +390,7 @@ export class OArchitecture extends ObjectBase implements IHasSubprograms, IHasCo
   }
 
   get generates() {
-    const generates: OArchitecture[] = this.forGenerates;
+    const generates: OStatementBody[] = this.forGenerates;
     for (const ifObj of this.ifGenerates) {
       generates.push(...ifObj.ifGenerates);
       if (ifObj.elseGenerate) {
@@ -530,11 +400,27 @@ export class OArchitecture extends ObjectBase implements IHasSubprograms, IHasCo
     return generates;
   }
 }
-export class OBlock extends OArchitecture implements IHasLexerToken {
-  guardCondition?: ORead[];
+export class OArchitecture extends OStatementBody implements I.IHasLexerToken {
+  lexerToken: OLexerToken;
+  entityName: OLexerToken;
+
 }
-export class OType extends ObjectBase implements IReferenceable, IHasSubprograms, IHasSignals, IHasConstants, IHasVariables,
-  IHasTypes, IHasAliases, IHasFileVariables, IHasUseClauses, IHasLexerToken, IHasPackageInstantiations {
+export class OBlock extends OStatementBody implements I.IHasLabel {
+  label: OLexerToken;
+  labelLinks: OLabelReference[] = [];
+  lexerToken: undefined;
+  guardCondition?: OReference[];
+}
+export class OUnit extends ObjectBase implements I.IHasReferenceLinks, I.IHasLexerToken{
+  constructor(parent: OType, public lexerToken: OLexerToken) {
+    super(parent, lexerToken.range);
+  }
+  referenceLinks: OReference[] = [];
+  aliasReferences: OAlias[] = [];
+
+}
+export class OType extends ObjectBase implements I.IHasReferenceLinks, I.IHasSubprograms, I.IHasSignals, I.IHasConstants, I.IHasVariables,
+  I.IHasTypes, I.IHasAliases, I.IHasFileVariables, I.IHasUseClauses, I.IHasLexerToken, I.IHasPackageInstantiations {
   useClauses: OUseClause[] = [];
   packageDefinitions: OPackage[] = [];
   incomplete = false;
@@ -548,9 +434,8 @@ export class OType extends ObjectBase implements IReferenceable, IHasSubprograms
   constants: OConstant[] = [];
   signals: OSignal[] = [];
   files: OFileVariable[] = [];
-  references: OReference[] = [];
-  units?: string[] = [];
-  reads: ORead[] = [];
+  referenceLinks: OReference[] = [];
+  units: OUnit[] = [];
   alias = false;
   lexerToken: OLexerToken;
   protected = false;
@@ -560,7 +445,7 @@ export class OType extends ObjectBase implements IReferenceable, IHasSubprograms
 
     if (this.units) {
       for (const unit of this.units) {
-        map.set(unit.toLowerCase(), this);
+        map.set(unit.lexerToken.getLText(), this);
 
       }
     }
@@ -579,8 +464,8 @@ export class OType extends ObjectBase implements IReferenceable, IHasSubprograms
   }
 }
 export class OSubType extends OType {
-  superType: ORead;
-  reads: ORead[] = [];
+  superType: OReference;
+  referenceLinks: OReference[] = [];
 }
 export class OEnum extends OType {
   literals: OEnumLiteral[] = [];
@@ -591,99 +476,110 @@ export class ORecord extends OType {
 export class ORecordChild extends OType {
   public parent: ORecord;
 }
-export class OEnumLiteral extends ObjectBase implements IReferenceable, IHasLexerToken {
-  references: OReference[] = [];
+export class OEnumLiteral extends ObjectBase implements I.IHasReferenceLinks, I.IHasLexerToken {
+  referenceLinks: OReference[] = [];
   public parent: OEnum;
   public lexerToken: OLexerToken;
   aliasReferences: OAlias[] = [];
 
 }
-export class OForGenerate extends OArchitecture {
+export class OForGenerate extends OStatementBody implements I.IHasLabel {
+  lexerToken: undefined;
+  label: OLexerToken;
+  labelLinks: OLabelReference[] = [];
   constructor(public parent: OArchitecture,
     range: OIRange,
-    public variableRange: ORead[],
+    public variableRange: OReference[],
   ) {
     super(parent, range);
   }
 }
-export class OCaseGenerate extends ObjectBase {
-  signal: ORead[] = [];
+export class OCaseGenerate extends ObjectBase implements I.IHasLabel {
+  expression: OReference[] = [];
   whenGenerates: OWhenGenerateClause[] = [];
+  label: OLexerToken;
+  labelLinks: OLabelReference[] = [];
+
 }
-export class OWhenGenerateClause extends OArchitecture {
-  condition: ORead[] = [];
+export class OWhenGenerateClause extends OStatementBody implements I.IMayHaveLabel {
+  lexerToken: undefined;
+  label?: OLexerToken;
+  labelLinks: OLabelReference[] = [];
+  condition: OReference[] = [];
   public parent: OCaseGenerate;
 }
-export class OIfGenerate extends ObjectBase {
+export class OIfGenerate extends ObjectBase implements I.IHasLabel {
   constructor(public parent: ObjectBase | OFile, public range: OIRange, public lexerToken: OLexerToken) {
     super(parent, range);
   }
   ifGenerates: OIfGenerateClause[] = [];
   elseGenerate: OElseGenerateClause;
+  label: OLexerToken;
+  labelLinks: OLabelReference[] = [];
+
 }
-export class OIfGenerateClause extends OArchitecture {
-  conditions: OLexerToken[] = [];
-  conditionReads: ORead[] = [];
+export class OIfGenerateClause extends OStatementBody implements I.IMayHaveLabel {
+  label?: OLexerToken;
+  labelLinks: OLabelReference[] = [];
+  lexerToken: undefined;
+  condition: OReference[] = [];
   public parent: OIfGenerate;
+
 }
-export class OElseGenerateClause extends OArchitecture {
+export class OElseGenerateClause extends OStatementBody implements I.IMayHaveLabel {
+  label?: OLexerToken;
+  labelLinks: OLabelReference[] = [];
+
+  lexerToken: undefined;
   public parent: OIfGenerate;
 
 }
 
-interface IHasType {
-  type: ORead[];
-}
-interface IHasDefaultValue {
-  defaultValue?: ORead[];
-}
-interface IVariableBase extends IReferenceable, IHasLexerToken, IHasType, IHasDefaultValue {
-  lexerToken: OLexerToken;
-}
 
-export class OFileVariable extends ObjectBase implements IVariableBase {
+
+export class OFileVariable extends ObjectBase implements I.IVariableBase {
   aliasReferences: OAlias[] = [];
 
-  references: OReference[] = [];
-  type: ORead[] = [];
-  defaultValue?: ORead[] = [];
+  referenceLinks: OReference[] = [];
+  typeReference: OReference[] = [];
+  defaultValue?: OReference[] = [];
   lexerToken: OLexerToken;
-  openKind?: ORead[];
-  logicalName?: ORead[];
-  constructor(parent: IHasFileVariables, range: OIRange) {
+  openKind?: OReference[];
+  logicalName?: OReference[];
+  constructor(parent: I.IHasFileVariables, range: OIRange) {
     super((parent as unknown) as ObjectBase, range);
   }
 }
-export class OVariable extends ObjectBase implements IVariableBase {
-  references: OReference[] = [];
-  type: ORead[] = [];
-  defaultValue?: ORead[] = [];
+export class OVariable extends ObjectBase implements I.IVariableBase {
+  referenceLinks: OReference[] = [];
+  typeReference: OReference[] = [];
+  defaultValue?: OReference[] = [];
   lexerToken: OLexerToken;
   aliasReferences: OAlias[] = [];
   shared = false;
-  constructor(parent: IHasVariables, range: OIRange) {
+  constructor(parent: I.IHasVariables, range: OIRange) {
     super((parent as unknown) as ObjectBase, range);
   }
 }
-export class OSignal extends ObjectBase implements IVariableBase {
-  references: OReference[] = [];
-  type: ORead[] = [];
-  defaultValue?: ORead[] = [];
+export class OSignal extends ObjectBase implements I.IVariableBase {
+  referenceLinks: OReference[] = [];
+  typeReference: OReference[] = [];
+  defaultValue?: OReference[] = [];
   lexerToken: OLexerToken;
   aliasReferences: OAlias[] = [];
   registerProcess?: OProcess;
-  constructor(parent: (ObjectBase & IHasSignals), range: OIRange) {
+  constructor(parent: (ObjectBase & I.IHasSignals), range: OIRange) {
     super((parent as unknown) as ObjectBase, range);
   }
 }
-export class OConstant extends ObjectBase implements IVariableBase {
-  references: OReference[] = [];
-  type: ORead[] = [];
-  defaultValue?: ORead[] = [];
+export class OConstant extends ObjectBase implements I.IVariableBase {
+  referenceLinks: OReference[] = [];
+  typeReference: OReference[] = [];
+  defaultValue?: OReference[] = [];
   lexerToken: OLexerToken;
   aliasReferences: OAlias[] = [];
 
-  constructor(parent: IHasConstants, range: OIRange) {
+  constructor(parent: I.IHasConstants, range: OIRange) {
     super((parent as unknown) as ObjectBase, range);
   }
 }
@@ -705,8 +601,8 @@ export class OPortAssociationList extends OAssociationList {
   }
 }
 
-export class OInstantiation extends OReference implements IHasDefinitions, IHasLibraryReference {
-  constructor(public parent: OArchitecture | OEntity | OProcess | OLoop | OIf, lexerToken: OLexerToken, public type: 'entity' | 'component' | 'configuration' | 'subprogram' | 'unknown' = 'unknown') {
+export class OInstantiation extends OReference implements I.IHasDefinitions, I.IHasLibraryReference, I.IMayHaveLabel {
+  constructor(public parent: OStatementBody | OEntity | OProcess | OLoop | OIf, lexerToken: OLexerToken, public type: 'entity' | 'component' | 'configuration' | 'subprogram' | 'unknown' = 'unknown') {
     super(parent, lexerToken);
   }
   definitions: (OEntity | OSubprogram | OComponent | OAliasWithSignature)[] = [];
@@ -716,23 +612,25 @@ export class OInstantiation extends OReference implements IHasDefinitions, IHasL
   genericAssociationList?: OGenericAssociationList;
   library?: OLexerToken;
   archIdentifier?: OLexerToken;
+  label?: OLexerToken;
+  labelLinks: OLabelReference[] = [];
 }
-export class OAssociation extends ObjectBase implements IHasDefinitions {
+export class OAssociation extends ObjectBase implements I.IHasDefinitions {
   constructor(public parent: OAssociationList, range: OIRange) {
     super(parent, range);
   }
   definitions: (OPort | OGeneric | OTypeMark)[] = [];
-  formalPart: OAssociationFormal[] = [];
-  actualIfInput: ORead[] = [];
-  actualIfOutput: [ORead[], OWrite[]] = [[], []];
-  actualIfInoutput: [ORead[], OWrite[]] = [[], []];
+  formalPart: OFormalReference[] = [];
+  actualIfInput: OReference[] = [];
+  actualIfOutput: [OReference[], OWrite[]] = [[], []];
+  actualIfInoutput: [OReference[], OWrite[]] = [[], []];
 }
-export class OEntity extends ObjectBase implements IHasDefinitions, IHasSubprograms, IHasSignals, IHasConstants, IHasVariables,
-  IHasTypes, IHasAliases, IHasFileVariables, IHasUseClauses, IHasContextReference, IHasLexerToken, IHasPackageInstantiations, IHasLibraries, IHasGenerics, IHasPorts, IReferenceable {
+export class OEntity extends ObjectBase implements I.IHasDefinitions, I.IHasSubprograms, I.IHasSignals, I.IHasConstants, I.IHasVariables,
+  I.IHasTypes, I.IHasAliases, I.IHasFileVariables, I.IHasUseClauses, I.IHasContextReference, I.IHasLexerToken, I.IHasPackageInstantiations, I.IHasLibraries, I.IHasGenerics, I.IHasPorts, I.IHasReferenceLinks {
   constructor(public parent: OFile, range: OIRange, public targetLibrary?: string) {
     super(parent, range);
   }
-  references: OReference[] = [];
+  referenceLinks: OReference[] = [];
   libraries: OLibrary[] = [];
   aliases: OAlias[] = [];
   aliasReferences: OAlias[] = [];
@@ -755,10 +653,13 @@ export class OEntity extends ObjectBase implements IHasDefinitions, IHasSubprogr
   definitions: OEntity[] = [];
   files: OFileVariable[] = [];
 }
-export class OComponent extends ObjectBase implements IHasDefinitions, IHasSubprograms, IHasLexerToken, IHasPackageInstantiations, IHasPorts, IHasGenerics {
-  constructor(parent: IHasComponents, range: OIRange) {
+export class OComponent extends ObjectBase implements I.IHasDefinitions, I.IHasSubprograms, I.IHasLexerToken,
+  I.IHasPackageInstantiations, I.IHasPorts, I.IHasGenerics, I.IHasReferenceLinks {
+  constructor(parent: I.IHasComponents, range: OIRange) {
     super((parent as unknown) as ObjectBase, range);
   }
+  referenceLinks: OReference[] = [];
+  aliasReferences: OAlias[] = [];
   lexerToken: OLexerToken;
   subprograms: OSubprogram[] = [];
   packageInstantiations: OPackageInstantiation[] = [];
@@ -766,28 +667,31 @@ export class OComponent extends ObjectBase implements IHasDefinitions, IHasSubpr
   genericRange?: OIRange;
   ports: OPort[] = [];
   generics: OGeneric[] = [];
-  references: OReference[] = [];
   definitions: OEntity[] = [];
 }
-export class OPort extends ObjectBase implements IVariableBase, IHasDefinitions, IHasLexerToken {
+export class OPort extends ObjectBase implements I.IVariableBase, I.IHasDefinitions, I.IHasLexerToken {
   direction: 'in' | 'out' | 'inout';
   directionRange: OIRange;
   definitions: OPort[] = [];
   lexerToken: OLexerToken;
-  references: OReference[] = [];
-  type: ORead[] = [];
-  defaultValue?: ORead[] = [];
+  referenceLinks: OReference[] = [];
+  typeReference: OReference[] = [];
+  defaultValue?: OReference[] = [];
   aliasReferences: OAlias[] = [];
   registerProcess?: OProcess;
 }
 
-export type OSequentialStatement = OCase | OAssignment | OIf | OLoop | OInstantiation | OReport | OAssertion | OExit;
-export class OIf extends ObjectBase {
+export type OSequentialStatement = (OCase | OAssignment | OIf | OLoop | OInstantiation | OReport | OAssertion | OExit) & I.IMayHaveLabel;
+export class OIf extends ObjectBase implements I.IMayHaveLabel {
   clauses: OIfClause[] = [];
   else?: OElseClause;
+  label?: OLexerToken;
+  labelLinks: OLabelReference[];
 }
-export class OHasSequentialStatements extends ObjectBase implements IHasInstantiations {
+export class OHasSequentialStatements extends ObjectBase implements I.IHasInstantiations, I.IMayHaveLabel {
   statements: OSequentialStatement[] = [];
+  labelLinks: OLabelReference[] = [];
+  label?: OLexerToken;
   get cases() {
     return this.statements.filter(s => s instanceof OCase) as OCase[];
   }
@@ -806,108 +710,117 @@ export class OHasSequentialStatements extends ObjectBase implements IHasInstanti
 }
 export class OElseClause extends OHasSequentialStatements {
 }
-export class OIfClause extends OHasSequentialStatements implements IHasInstantiations {
-  condition: OLexerToken[];
-  conditionReads: ORead[] = [];
+export class OIfClause extends OHasSequentialStatements implements I.IHasInstantiations {
+  condition: OReference[] = [];
 }
-export class OCase extends ObjectBase {
-  variable: ORead[] = [];
+export class OCase extends ObjectBase implements I.IMayHaveLabel {
+  expression: OReference[] = [];
   whenClauses: OWhenClause[] = [];
+  label?: OLexerToken;
+  labelLinks: OLabelReference[] = [];
 }
-export class OWhenClause extends OHasSequentialStatements implements IHasInstantiations {
-  condition: ORead[] = [];
+export class OWhenClause extends OHasSequentialStatements implements I.IHasInstantiations {
+  condition: OReference[] = [];
 }
-export class OProcess extends OHasSequentialStatements implements IHasSubprograms, IHasInstantiations, IHasConstants, IHasVariables,
-  IHasTypes, IHasAliases, IHasFileVariables, IHasUseClauses {
+export class OProcess extends OHasSequentialStatements implements I.IHasSubprograms, I.IHasInstantiations, I.IHasConstants, I.IHasVariables,
+  I.IHasTypes, I.IHasAliases, I.IHasFileVariables, I.IHasUseClauses {
+  label?: OLexerToken;
+
   aliases: OAlias[] = [];
   packageInstantiations: OPackageInstantiation[] = [];
   useClauses: OUseClause[] = [];
   packageDefinitions: OPackage[] = [];
-  sensitivityList: ORead[] = [];
+  sensitivityList: OReference[] = [];
   types: OType[] = [];
   subprograms: OSubprogram[] = [];
   variables: OVariable[] = [];
   files: OFileVariable[] = [];
   constants: OConstant[] = [];
-  resetClause?: OIfClause;
-  registerProcess = false;
-  private resets: string[] | null = null;
-  getResets(): string[] {
-    if (this.resets !== null) {
-      return this.resets;
-    }
-    this.resets = [];
-    if (!this.registerProcess) {
-      return this.resets;
-    }
-    for (const assignments of this.resetClause?.assignments ?? []) {
-      this.resets.push(...assignments.writes.map(write => write.referenceToken.text));
-    }
-    return this.resets;
-  }
 }
 
-export class OLoop extends OHasSequentialStatements implements IHasInstantiations {
+export class OLoop extends OHasSequentialStatements implements I.IHasInstantiations {
 }
-export class OForLoop extends OLoop implements IHasConstants {
+export class OForLoop extends OLoop implements I.IHasConstants {
   constants: OConstant[] = [];
-  constantRange: ORead[] = [];
+  constantRange: OReference[] = [];
 }
 export class OWhileLoop extends OLoop {
-  conditionReads: ORead[] = [];
+  condition: OReference[] = [];
 }
-export class OAssignment extends ObjectBase {
+export class OAssignment extends ObjectBase implements I.IMayHaveLabel {
   writes: OWrite[] = [];
-  reads: ORead[] = [];
+  label?: OLexerToken;
+  labelLinks: OLabelReference[] = [];
+  references: OReference[] = [];
+  postponed = false;
+  guarded = false;
 }
-export class OExit extends ObjectBase {
-  reads: ORead[] = [];
-  labelReference?: OReference;
+export class OLabelReference extends ObjectBase {
+  definitions: ObjectBase[] = [];
+  lexerToken: undefined;
+  constructor(public parent: ObjectBase, public referenceToken: OLexerToken, range?: OIRange) {
+    super(parent, range ?? referenceToken.range);
+  }
+}
+export class OExit extends ObjectBase implements I.IMayHaveLabel {
+  label?: OLexerToken;
+  labelLinks: OLabelReference[] = [];
+  references: OReference[] = [];
+  labelReference?: OLabelReference;
 }
 
-export class OReport extends ObjectBase {
-  reads: ORead[] = [];
+export class OReport extends ObjectBase implements I.IMayHaveLabel {
+  references: OReference[] = [];
+  label?: OLexerToken;
+  labelLinks: OLabelReference[] = [];
 }
-export class OReturn extends ObjectBase {
-  reads: ORead[] = [];
+export class OReturn extends ObjectBase implements I.IMayHaveLabel {
+  references: OReference[] = [];
+  label?: OLexerToken;
+  labelLinks: OLabelReference[] = [];
 }
-export class OAssertion extends ObjectBase {
-  reads: ORead[] = [];
+export class OAssertion extends ObjectBase implements I.IMayHaveLabel{
+  references: OReference[] = [];
+  label?: OLexerToken;
+  labelLinks: OLabelReference[] = [];
 }
 
 export class OWrite extends OReference {
   // Workaround for checking of OWrites in associations. Because of overloading they can not be correctly checked.
   // This avoid false positives
   public inAssociation = false;
-  private type = 'OWrite'; // Make sure typescript type checking does not accept OReference as OWrite
+  type = 'OWrite'; // Make sure typescript type checking does not accept OReference as OWrite
+}
+export class OSelectedNameWrite extends OWrite {
+  constructor(public parent: ObjectBase, public referenceToken: OLexerToken, public prefixTokens: SelectedNamePrefix) {
+    super(parent, referenceToken, referenceToken.range.copyWithNewStart(prefixTokens[0].range));
+  }
 }
 export class ORead extends OReference {
   private type = 'ORead'; // Make sure typescript type checking does not accept OReference as ORead
 }
-export class OUseClause extends ORead implements IHasLibraryReference {
+export class OSelectedName extends OReference {
+  constructor(public parent: ObjectBase, public referenceToken: OLexerToken, public prefixTokens: SelectedNamePrefix) {
+    super(parent, referenceToken, referenceToken.range.copyWithNewStart(prefixTokens[0].range));
+  }
+}
+export class OUseClause extends OSelectedName implements I.IHasLibraryReference {
   constructor(public parent: ObjectBase, public library: OLexerToken | undefined, public packageName: OLexerToken, public suffix: OLexerToken) {
-    super(parent, packageName);
+    super(parent, suffix, library ? [library, packageName] : [packageName]);
   }
 }
 export class OSelectedNameRead extends ORead {
-  constructor(public parent: ObjectBase, public lexerToken: OLexerToken, public prefixTokens: OLexerToken[]) {
-    super(parent, lexerToken);
+  constructor(public parent: ObjectBase, public referenceToken: OLexerToken, public prefixTokens: SelectedNamePrefix) {
+    super(parent, referenceToken, referenceToken.range.copyWithNewStart(prefixTokens[0].range));
   }
 }
-export class OAttributeRead extends ORead {
-  constructor(public parent: ObjectBase, public lexerToken: OLexerToken, public prefixToken: OLexerToken) {
-    super(parent, lexerToken);
-  }
-}
-export class OAssociationFormal extends ObjectBase implements IHasDefinitions, IHasLexerToken {
-  definitions: (OPort | OGeneric | OTypeMark)[] = [];
-  constructor(public parent: OAssociation, public lexerToken: OLexerToken) {
-    super(parent, lexerToken.range);
-  }
-}
-export class OAssociationFormalSelectedName extends OAssociationFormal {
-  constructor(public parent: OAssociation, public lexerToken: OLexerToken, public prefixTokens: OLexerToken[]) {
-    super(parent, lexerToken);
+export type SelectedNamePrefix = [
+  first: OLexerToken,
+  ...rest: OLexerToken[]
+];
+export class OAttributeReference extends OReference {
+  constructor(public parent: ObjectBase, public referenceToken: OLexerToken, public prefix: OReference) {
+    super(parent, referenceToken);
   }
 }
 export class ParserError extends Error {
@@ -931,16 +844,16 @@ export class OMagicCommentDisable extends OMagicComment {
     super(parent, commentType, range, rule);
   }
 }
-export class OSubprogram extends OHasSequentialStatements implements IReferenceable, IHasSubprograms, IHasInstantiations, IHasPorts,
-  IHasVariables, IHasTypes, IHasAliases, IHasFileVariables, IHasUseClauses, IHasLexerToken, IHasPackageInstantiations, IHasConstants {
+export class OSubprogram extends OHasSequentialStatements implements I.IHasReferenceLinks, I.IHasSubprograms, I.IHasInstantiations, I.IHasPorts,
+  I.IHasVariables, I.IHasTypes, I.IHasAliases, I.IHasFileVariables, I.IHasUseClauses, I.IHasLexerToken, I.IHasPackageInstantiations, I.IHasConstants {
   hasBody = false;
-
+  referenceLinks: OReference[] = [];
   aliasReferences: OAlias[] = [];
   useClauses: OUseClause[] = [];
   packageDefinitions: OPackage[] = [];
   parent: OPackage;
   packageInstantiations: OPackageInstantiation[] = [];
-  references: OReference[] = [];
+  labelLinks: OReference[] = [];
   aliases: OAlias[] = [];
   variables: OVariable[] = [];
   files: OFileVariable[] = [];
@@ -948,30 +861,31 @@ export class OSubprogram extends OHasSequentialStatements implements IReferencea
   ports: OPort[] = [];
   types: OType[] = [];
   subprograms: OSubprogram[] = [];
-  return: ORead[] = [];
+  return: OReference[] = [];
   lexerToken: OLexerToken;
 }
 export class OTypeMark extends ObjectBase {
-  constructor(public parent: ObjectBase, public reads: ORead[]) {
-    super(parent, reads[0].range);
+  constructor(public parent: ObjectBase, public reference: OReference) {
+    super(parent, reference.range);
   }
 }
-export class OAlias extends ObjectBase implements IHasLexerToken {
-  name: ORead[] = []; // The thing being aliased
-  references: OReference[] = [];
+export class OAlias extends ObjectBase implements I.IHasLexerToken, I.IHasReferenceLinks {
+  name: OReference[] = []; // The thing being aliased
+  referenceLinks: OReference[] = [];
+  aliasReferences: OAlias[]; // Not used. (Because recursive aliases are not allowed)
   aliasDefinitions: ObjectBase[] = [];
   lexerToken: OLexerToken;
-  reads: ORead[] = []; // subtype_indication
+  subtypeIndication: OReference[] = []; // subtype_indication
 }
-export class OAliasWithSignature extends OAlias implements IHasLexerToken {
+export class OAliasWithSignature extends OAlias implements I.IHasLexerToken {
   typeMarks: OTypeMark[] = [];
-  references: OReference[] = [];
+  referenceLinks: OReference[] = [];
   lexerToken: OLexerToken;
-  subtypeReads: ORead[] = [];
-  return: ORead[] = [];
+  subtypeIndication: OReference[] = [];
+  return: OReference;
 }
 
-export class OConfiguration extends ObjectBase implements IHasLibraries {
+export class OConfiguration extends ObjectBase implements I.IHasLibraries {
   identifier: OLexerToken;
   entityName: OLexerToken;
   libraries: OLibrary[] = [];
@@ -991,7 +905,7 @@ export function* scope(startObject: ObjectBase): Generator<[ObjectBase, boolean]
       directlyVisible = false;
       yield [current.correspondingPackage, directlyVisible];
     }
-    if (implementsIHasUseClause(current)) {
+    if (I.implementsIHasUseClause(current)) {
       for (const packages of current.packageDefinitions) {
         directlyVisible = false;
         yield [packages, directlyVisible];

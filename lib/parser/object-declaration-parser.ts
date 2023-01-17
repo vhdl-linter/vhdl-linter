@@ -1,6 +1,8 @@
-import { IHasConstants, IHasSignals, IHasVariables, implementsIHasConstants, implementsIHasSignals, implementsIHasVariables, OConstant, OSignal, OVariable, ParserError, IHasFileVariables, OFileVariable, implementsIHasFileVariables, ORead, ObjectBase } from './objects';
-import { ParserBase, ParserState } from './parser-base';
 import { OLexerToken } from '../lexer';
+import { ExpressionParser } from './expression-parser';
+import { IHasConstants, IHasFileVariables, IHasSignals, IHasVariables, implementsIHasConstants, implementsIHasFileVariables, implementsIHasSignals, implementsIHasVariables } from './interfaces';
+import { ObjectBase, OConstant, OFileVariable, ORead, OSignal, OVariable, ParserError } from './objects';
+import { ParserBase, ParserState } from './parser-base';
 
 export class ObjectDeclarationParser extends ParserBase {
 
@@ -9,7 +11,7 @@ export class ObjectDeclarationParser extends ParserBase {
     this.debug('start');
   }
   parse(nextToken: OLexerToken) {
-    let shared = false
+    let shared = false;
     if (nextToken.getLText() === 'shared') {
       shared = true;
       this.consumeToken();
@@ -54,22 +56,23 @@ export class ObjectDeclarationParser extends ParserBase {
       const typeToken = this.consumeToken();
       for (const file of objects as OFileVariable[]) {
         const typeRead = new ORead(file, typeToken);
-        file.type = [typeRead];
+        file.typeReference = [typeRead];
         if (this.maybe('open')) {
-          const [tokens] = this.advanceParentheseAware(['is', ';'], true, false);
-          file.openKind = this.extractReads(file, tokens);
+          const [tokens] = this.advanceParenthesisAware(['is', ';'], true, false);
+          file.openKind = new ExpressionParser(this.state, file, tokens).parse();
         }
         if (this.maybe('is')) {
-          const [tokens] = this.advanceParentheseAware([';'], true, false);
-          file.logicalName = this.extractReads(file, tokens);
+          const [tokens] = this.advanceParenthesisAware([';'], true, false);
+          file.logicalName = new ExpressionParser(this.state, file, tokens).parse();
         }
         // TODO: Parse optional parts of file definition
         file.range = file.range.copyWithNewEnd(this.state.pos.i);
       }
     } else {
-      for (const signal of objects) {
+      // If multiple types have the same type reference (variable a,b : integer) only the last has the text.
+      for (const signal of objects.slice(objects.length - 1)) {
         const { typeReads, defaultValueReads } = this.getType(signal, false);
-        signal.type = typeReads;
+        signal.typeReference = typeReads;
         signal.defaultValue = defaultValueReads;
         signal.range = signal.range.copyWithNewEnd(this.state.pos.i);
       }
@@ -88,5 +91,34 @@ export class ObjectDeclarationParser extends ParserBase {
     } else {
       (this.parent as IHasSignals).signals.push(...objects as OSignal[]);
     }
+  }
+  getType(parent: ObjectBase, advanceSemicolon = true, endWithParenthesis = false) {
+    let type;
+    if (endWithParenthesis) {
+      [type] = this.advanceParenthesisAware([';', 'is', ')'], true, false);
+    } else {
+      [type] = this.advanceParenthesisAware([';', 'is'], true, false);
+    }
+    let defaultValueReads;
+    let typeReads;
+    const index = type.findIndex(token => token.getLText() === ':=');
+    if (index > -1) {
+      const tokensDefaultValue = type.slice(index + 1);
+      const typeTokens = type.slice(0, index);
+
+      defaultValueReads = new ExpressionParser(this.state, parent, tokensDefaultValue).parse();
+      typeReads = new ExpressionParser(this.state, parent, typeTokens).parse();
+    } else {
+      typeReads = new ExpressionParser(this.state, parent, type).parse();
+
+    }
+    if (advanceSemicolon) {
+      this.expect(';');
+      this.advanceWhitespace();
+    }
+    return {
+      typeReads,
+      defaultValueReads
+    };
   }
 }

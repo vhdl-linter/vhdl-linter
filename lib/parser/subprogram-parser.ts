@@ -1,4 +1,5 @@
 import { DeclarativePartParser } from './declarative-part-parser';
+import { ExpressionParser } from './expression-parser';
 import { InterfaceListParser } from './interface-list-parser';
 import { ObjectBase, OSubprogram, ParserError } from './objects';
 import { ParserBase, ParserState } from './parser-base';
@@ -30,7 +31,9 @@ export class SubprogramParser extends ParserBase {
     }
     if (isFunction) {
       this.expect('return');
-      subprogram.return = this.getType(subprogram, false, true).typeReads;
+      const [tokens] = this.advanceParenthesisAware([';', 'is', ')'], true, false);
+
+      subprogram.return = new ExpressionParser(this.state, subprogram, tokens).parse();
     }
     if (this.getToken().getLText() === 'is') {
       subprogram.hasBody = true;

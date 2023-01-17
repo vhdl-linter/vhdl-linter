@@ -1,7 +1,8 @@
 import { ErrorCodes, Location, Position, ReferenceParams, RenameParams, ResponseError, TextDocumentIdentifier, TextDocumentPositionParams, TextEdit } from 'vscode-languageserver';
 import { initialization, linters, lintersValid } from '../language-server';
 import { OLexerToken } from '../lexer';
-import { implementsIReferencable, ObjectBase, OReference, implementsIHasLexerToken } from '../parser/objects';
+import { implementsIHasReference, implementsIHasLexerToken } from '../parser/interfaces';
+import { ObjectBase, OReference } from '../parser/objects';
 
 export async function findReferences(params: { textDocument: TextDocumentIdentifier, position: Position }) {
   await initialization;
@@ -25,11 +26,11 @@ export async function findReferences(params: { textDocument: TextDocumentIdentif
   // debugger;
   if (candidate instanceof OReference && candidate.definitions) {
     return candidate.definitions.concat(candidate.definitions.flatMap(c => {
-      return implementsIReferencable(c) ? c.references : [];
+      return implementsIHasReference(c) ? c.referenceLinks : [];
     }));
   }
-  if (implementsIReferencable(candidate)) {
-    return ([candidate] as ObjectBase[]).concat(candidate.references ?? []);
+  if (implementsIHasReference(candidate)) {
+    return ([candidate] as ObjectBase[]).concat(candidate.referenceLinks ?? []);
   }
   return [];
 }

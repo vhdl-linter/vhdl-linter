@@ -1,5 +1,6 @@
 import { InterfaceListParser } from './interface-list-parser';
-import { IHasComponents, OComponent, OIRange, ParserError } from './objects';
+import { IHasComponents } from './interfaces';
+import { OComponent, OIRange, ParserError } from './objects';
 import { ParserBase, ParserState } from './parser-base';
 
 export class ComponentParser extends ParserBase {

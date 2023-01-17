@@ -1,6 +1,7 @@
 import { SemanticTokenModifiers, SemanticTokens, SemanticTokensBuilder, SemanticTokensLegend, SemanticTokensParams, SemanticTokenTypes } from "vscode-languageserver";
 import { getDocumentSettings, initialization, linters } from "../language-server";
-import { implementsIHasLexerToken, OPort, implementsIHasDefinitions, ObjectBase, OIRange, OType, OEnumLiteral, OEnum, ORecord, OConstant, OGeneric, OWrite, OEntity, OSubprogram, ORecordChild, OInstantiation, OSignal, OVariable } from "../parser/objects";
+import { implementsIHasDefinitions, implementsIHasLexerToken } from "../parser/interfaces";
+import { OIRange, ObjectBase, OEnum, ORecord, ORecordChild, OType, OEnumLiteral, OPort, OConstant, OGeneric, OSignal, OVariable, OWrite, OEntity, OSubprogram, OInstantiation } from "../parser/objects";
 
 export const semanticTokensLegend: SemanticTokensLegend = {
   tokenTypes: Object.values(SemanticTokenTypes),

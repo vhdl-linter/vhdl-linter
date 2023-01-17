@@ -4,6 +4,18 @@
   "eslint.lintTask.options": "--ext .ts .",
   "eslint.format.enable": true,
   "cSpell.words": [
+    "clientrc",
+    "downto",
+    "Inoutput",
+    "Mentionables",
+    "nand",
+    "OSVVM",
+    "subarchitecture",
+    "ulogic",
+    "uninstantiated",
+    "Vhdl",
+    "Whitespaces",
+    "xnor",
     "setq",
     "vhdl"
   ]

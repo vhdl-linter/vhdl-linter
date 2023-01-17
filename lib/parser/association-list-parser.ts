@@ -1,7 +1,8 @@
-import { OInstantiation, OAssociation, OGenericAssociationList as OGenericAssociationList, OIRange, OPortAssociationList as OPortAssotiationList, ParserError, OPackage, OPackageInstantiation } from './objects';
-import { ParserBase, ParserState } from './parser-base';
-import { OLexerToken } from '../lexer';
 import { DiagnosticSeverity } from 'vscode-languageserver';
+import { OLexerToken } from '../lexer';
+import { ExpressionParser } from './expression-parser';
+import { OAssociation, OFormalReference, OGenericAssociationList, OInstantiation, OPackage, OPackageInstantiation, OPortAssociationList, OWrite } from './objects';
+import { ParserBase, ParserState } from './parser-base';
 
 
 export class AssociationListParser extends ParserBase {
@@ -26,39 +27,52 @@ export class AssociationListParser extends ParserBase {
   parse(type: 'port' | 'generic' = 'port') {
     const braceToken = this.expect('(');
 
-    const list = type === 'generic' ? new OGenericAssociationList(this.parent, braceToken.range) : new OPortAssotiationList(this.parent, braceToken.range);
+    const list = type === 'generic' ? new OGenericAssociationList(this.parent, braceToken.range) : new OPortAssociationList(this.parent, braceToken.range);
 
     while (this.state.pos.isValid()) {
-      const savedI = this.state.pos.i;
       // let associationString = this.advancePast(/[,)]/, {returnMatch: true});
       // eslint-disable-next-line prefer-const
-      let [associationTokens, lastChar] = this.advanceParentheseAware([',', ')']);
+      let [associationTokens, lastChar] = this.advanceParenthesisAware([',', ')']);
       if (associationTokens.length > 0) {
-        const association = new OAssociation(list, new OIRange(list, savedI, associationTokens[0]?.range?.end?.i ?? savedI));
-        const index = this.findFormal(associationTokens);
-        if (index > -1) {
-          const formalTokens = associationTokens.slice(0, index);
-          const actualTokens = associationTokens.slice(index + 1);
-          association.formalPart = this.extractReads(association, formalTokens, true);
-          associationTokens = actualTokens;
-          if (associationTokens.length === 0) {
-            throw new ParserError("The actual part cannot be empty.", association.range.copyWithNewEnd(lastChar.range.end));
-          }
+        const combinedRange = associationTokens[0].range.copyWithNewEnd(associationTokens[associationTokens.length - 1].range);
+        const association = new OAssociation(list, combinedRange);
+        // At this point we do not know the direction of the port.
+        // We for now parse all the possibilities and then handle the differences during elaboration
+        { // Parse assuming association is input
+          const expressionParser = new ExpressionParser(this.state, association, associationTokens);
+          const references = expressionParser.parseAssociationElement();
+          association.formalPart = references.filter(reference => reference instanceof OFormalReference);
+          const actualPart = references.filter(reference => reference instanceof OFormalReference === false);
+          association.actualIfInput = actualPart;
         }
-        if (associationTokens[0].getLText() !== 'open') {
-          association.actualIfInput = this.extractReads(association, associationTokens);
-          if (type === 'port') {
-            association.actualIfOutput = this.extractReadsOrWrite(association, associationTokens);
-            association.actualIfInoutput = this.extractReadsOrWrite(association, associationTokens, true);
-            for (const write of [...association.actualIfInoutput[1], ...association.actualIfOutput[1]]) {
-              write.inAssociation = true;
-            }
-          }
-        } else {
-          association.actualIfInput = [];
-          association.actualIfOutput = [[], []];
-          association.actualIfInoutput = [[], []];
+        { // Parse assuming association is output
+          const expressionParser = new ExpressionParser(this.state, association, associationTokens);
+          const references = expressionParser.parseAssociationElement();
+          association.formalPart = references.filter(reference => reference instanceof OFormalReference);
+          const actualPart = references.filter(reference => reference instanceof OFormalReference === false);
+          const writes = actualPart.slice(0, 1).map(a => {
+            Object.setPrototypeOf(a, OWrite.prototype);
+            (a as OWrite).type = 'OWrite';
+            (a as OWrite).inAssociation = true;
+            return a as OWrite;
+          });
+          association.actualIfOutput = [actualPart.slice(1), writes];
         }
+        { // Parse assuming association is inout
+          const expressionParser = new ExpressionParser(this.state, association, associationTokens);
+          const references = expressionParser.parseAssociationElement();
+          association.formalPart = references.filter(reference => reference instanceof OFormalReference);
+          const actualPart = references.filter(reference => reference instanceof OFormalReference === false);
+          const writes = actualPart.slice(0, 1).map(a => {
+            const write = new OWrite(a.parent, a.referenceToken);
+            write.inAssociation = true;
+
+            return write;
+          });
+          association.actualIfInoutput = [actualPart, writes];
+        }
+
+
         list.children.push(association);
       }
       if (lastChar.text === ',') {

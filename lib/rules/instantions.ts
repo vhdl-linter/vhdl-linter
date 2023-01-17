@@ -1,7 +1,8 @@
-import { RuleBase, IRule } from "./rules-base";
-import { CodeAction, CodeActionKind, DiagnosticSeverity, Range, TextEdit } from "vscode-languageserver";
-import { IHasLexerToken, implementsIHasInstantiations, implementsIHasLexerToken, implementsIHasPorts, implementsIHasSubprograms, OArchitecture, OAssociationList, ObjectBase, OCase, OComponent, OEntity, OFile, OGeneric, OHasSequentialStatements, OIf, OIRange, OPort, OAliasWithSignature, OTypeMark } from "../parser/objects";
 import { findBestMatch } from "string-similarity";
+import { CodeAction, CodeActionKind, DiagnosticSeverity, Range, TextEdit } from "vscode-languageserver";
+import { implementsIHasLexerToken, IHasLexerToken, implementsIHasInstantiations, implementsIHasPorts, implementsIHasSubprograms } from "../parser/interfaces";
+import { OAliasWithSignature, OArchitecture, OAssociationList, ObjectBase, OCase, OComponent, OEntity, OFile, OGeneric, OHasSequentialStatements, OIf, OIRange, OPort, OTypeMark } from "../parser/objects";
+import { IRule, RuleBase } from "./rules-base";
 
 export class RInstantiation extends RuleBase implements IRule {
   public name = 'instantiation';
@@ -17,13 +18,20 @@ export class RInstantiation extends RuleBase implements IRule {
           elementsWithoutFormal = true;
           continue;
         }
+        if (association.formalPart.length > 1) {
+          this.addMessage({
+            range: association.range,
+            severity: DiagnosticSeverity.Warning,
+            message: `Multiple formal references parsed (${association.formalPart.map(ref => ref.referenceToken.text).join(', ')}). Problem likely`
+          });
+        }
         allElementsWithoutFormal = false;
         const interfaceElement = availableInterfaceElementsFlat.find(port => {
           for (const part of association.formalPart) {
             if (port instanceof OTypeMark) {
               return false;
             }
-            if (part.lexerToken.getLText() === port.lexerToken.getLText()) {
+            if (part.referenceToken.getLText() === port.lexerToken.getLText()) {
               return true;
             }
           }
@@ -33,7 +41,7 @@ export class RInstantiation extends RuleBase implements IRule {
           let code: number | undefined = undefined;
           const possibleMatches = availableInterfaceElementsFlat.filter(implementsIHasLexerToken).map(element => (element as IHasLexerToken).lexerToken.text);
           if (possibleMatches.length > 0) {
-            const bestMatch = findBestMatch(association.formalPart[0].lexerToken.text, possibleMatches);
+            const bestMatch = findBestMatch(association.formalPart[0].referenceToken.text, possibleMatches);
             code = this.vhdlLinter.addCodeActionCallback((textDocumentUri: string) => {
               const actions = [];
               actions.push(CodeAction.create(
@@ -51,7 +59,7 @@ export class RInstantiation extends RuleBase implements IRule {
           this.addMessage({
             range: association.range,
             severity: DiagnosticSeverity.Error,
-            message: `no ${kind} ${association.formalPart.map(name => name.lexerToken.text).join(', ')} on ${typeName}`,
+            message: `no ${kind} ${association.formalPart.map(name => name.referenceToken.text).join(', ')} on ${typeName}`,
             code
           });
         } else {
@@ -62,7 +70,7 @@ export class RInstantiation extends RuleBase implements IRule {
     if (allElementsWithoutFormal) {
       const counts = [...new Set(availableInterfaceElements.flatMap(elements => {
         const totalLength = elements.length;
-        // TODO: Implement alias function loopkup for optional parameters
+        // TODO: Implement alias function lookup for optional parameters
         // This assumes all SubprogramAlias Parameters are optional. This actually depends on the function definition
         const withDefault = elements.filter(p => (p instanceof OTypeMark) || (p as OPort).defaultValue !== undefined).length;
         const result = [];
@@ -134,7 +142,7 @@ export class RInstantiation extends RuleBase implements IRule {
           const range = instantiation.range.start.getRangeToEndLine();
           const availablePorts = instantiation.definitions.map(e => {
             if (implementsIHasPorts(e)) {
-              return e.ports
+              return e.ports;
             }
             if (e instanceof OAliasWithSignature) {
               return e.typeMarks;

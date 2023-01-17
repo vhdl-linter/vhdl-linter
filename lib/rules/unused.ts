@@ -1,7 +1,8 @@
 import { RuleBase, IRule } from "./rules-base";
 import { CodeAction, CodeActionKind, Command, DiagnosticSeverity, TextEdit } from "vscode-languageserver";
-import { IHasLexerToken, IHasPorts, implementsIHasComponents, implementsIHasConstants, implementsIHasGenerics, implementsIHasPorts, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables, OArchitecture, ObjectBase, OComponent, OEntity, OFile, OInstantiation, OPackage, OPackageBody, OProcess, ORead, OSignal, OSubprogram, OType, OWrite } from "../parser/objects";
 import { URI } from "vscode-uri";
+import { IHasLexerToken, IHasPorts, implementsIHasPorts, implementsIHasGenerics, implementsIHasTypes, implementsIHasComponents, implementsIHasSignals, implementsIHasVariables, implementsIHasConstants, implementsIHasSubprograms } from "../parser/interfaces";
+import { OFile, ObjectBase, OPackage, OPackageBody, OType, OEntity, OSubprogram, OComponent, ORead, OWrite, OSignal, OArchitecture, OProcess, OInstantiation } from "../parser/objects";
 
 export class RUnused extends RuleBase implements IRule {
   public name = 'unused';
@@ -51,13 +52,13 @@ export class RUnused extends RuleBase implements IRule {
       return;
     }
     for (const port of obj.ports) {
-      const type = port.type[0]?.definitions?.[0];
+      const type = port.typeReference[0]?.definitions?.[0];
       // Ignore ports of protected types as they are assumed to have side-effects so will not be read/written
       if ((type instanceof OType && (type.protected || type.protectedBody))) {
         continue;
       }
-      const references = port.references.slice(0);
-      references.push(...port.aliasReferences.flatMap(alias => alias.references));
+      const references = port.referenceLinks.slice(0);
+      references.push(...port.aliasReferences.flatMap(alias => alias.referenceLinks));
       if ((port.direction === 'in' || port.direction === 'inout') && references.filter(token => token instanceof ORead).length === 0) {
 
         this.addUnusedMessage(port, `Not reading input port '${port.lexerToken}'`);
@@ -69,10 +70,10 @@ export class RUnused extends RuleBase implements IRule {
     }
   }
   private checkMultipleDriver(signal: OSignal) {
-    const writes = signal.references.filter(token => token instanceof OWrite);
+    const writes = signal.referenceLinks.filter(token => token instanceof OWrite);
     // check for multiple drivers
     const writeScopes = writes.map(write => {
-      // checked scopes are: OArchitecture, OProcess, OInstatiation (only component and entity)
+      // checked scopes are: OArchitecture, OProcess, OInstantiation (only component and entity)
       let scope: ObjectBase | OFile = write.parent;
       while (!(scope instanceof OArchitecture
         || scope instanceof OFile
@@ -143,7 +144,7 @@ export class RUnused extends RuleBase implements IRule {
       // ignore generics of components
       if (implementsIHasGenerics(obj) && !(obj instanceof OComponent)) {
         for (const generic of obj.generics) {
-          if (generic.references.filter(token => token instanceof ORead).length === 0) {
+          if (generic.referenceLinks.filter(token => token instanceof ORead).length === 0) {
             this.addUnusedMessage(generic, `Not reading generic ${generic.lexerToken}`);
           }
 
@@ -151,8 +152,8 @@ export class RUnused extends RuleBase implements IRule {
       }
       if (implementsIHasTypes(obj)) {
         for (const type of obj.types) {
-          const references = type.references.slice(0);
-          references.push(...type.aliasReferences.flatMap(alias => alias.references));
+          const references = type.referenceLinks.slice(0);
+          references.push(...type.aliasReferences.flatMap(alias => alias.referenceLinks));
           if (references.length === 0) {
             this.addUnusedMessage(type, `Not using type ${type.lexerToken}`);
           }
@@ -160,15 +161,15 @@ export class RUnused extends RuleBase implements IRule {
       }
       if (implementsIHasComponents(obj)) {
         for (const comp of obj.components) {
-          if (comp.references.length === 0) {
+          if (comp.referenceLinks.length === 0) {
             this.addUnusedMessage(comp, `Not using component ${comp.lexerToken}`);
           }
         }
       }
       if (implementsIHasSignals(obj)) {
         for (const signal of obj.signals) {
-          const references = signal.references.slice(0);
-          references.push(...signal.aliasReferences.flatMap(alias => alias.references));
+          const references = signal.referenceLinks.slice(0);
+          references.push(...signal.aliasReferences.flatMap(alias => alias.referenceLinks));
           if (references.filter(token => token instanceof ORead).length === 0) {
             this.addUnusedMessage(signal, `Not reading signal ${signal.lexerToken}`);
           }
@@ -181,14 +182,14 @@ export class RUnused extends RuleBase implements IRule {
       }
       if (implementsIHasVariables(obj)) {
         for (const variable of obj.variables) {
-          const references = variable.references.slice(0);
-          references.push(...variable.aliasReferences.flatMap(alias => alias.references));
+          const references = variable.referenceLinks.slice(0);
+          references.push(...variable.aliasReferences.flatMap(alias => alias.referenceLinks));
           if (references.filter(token => token instanceof ORead).length === 0) {
             this.addUnusedMessage(variable, `Not reading variable ${variable.lexerToken}`);
           }
           if (references.filter(token => token instanceof OWrite).length === 0) {
-            // Assume protected type has side-effect and does not net writting to.
-            const type = variable.type[0]?.definitions?.[0];
+            // Assume protected type has side-effect and does not net writing to.
+            const type = variable.typeReference[0]?.definitions?.[0];
             if ((type instanceof OType && (type.protected || type.protectedBody)) === false) {
               this.addUnusedMessage(variable, `Not writing variable '${variable.lexerToken}'`);
             }
@@ -197,8 +198,8 @@ export class RUnused extends RuleBase implements IRule {
       }
       if (implementsIHasConstants(obj)) {
         for (const constant of obj.constants) {
-          const references = constant.references.slice(0);
-          references.push(...constant.aliasReferences.flatMap(alias => alias.references));
+          const references = constant.referenceLinks.slice(0);
+          references.push(...constant.aliasReferences.flatMap(alias => alias.referenceLinks));
           if (references.filter(token => token instanceof ORead).length === 0) {
             this.addUnusedMessage(constant, `Not reading constant ${constant.lexerToken}`);
           }
@@ -206,8 +207,12 @@ export class RUnused extends RuleBase implements IRule {
       }
       if (implementsIHasSubprograms(obj)) {
         for (const subprogram of obj.subprograms) {
-          const references = subprogram.references.slice(0);
-          references.push(...subprogram.aliasReferences.flatMap(alias => alias.references));
+          // Skip implicitly declared deallocate
+          if (subprogram.lexerToken.getLText() === 'deallocate') {
+            continue;
+          }
+          const references = subprogram.referenceLinks.slice(0);
+          references.push(...subprogram.aliasReferences.flatMap(alias => alias.referenceLinks));
           if (references.length === 0) {
             this.addUnusedMessage(subprogram, `Not using subprogram ${subprogram.lexerToken}`);
           }

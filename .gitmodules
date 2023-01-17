@@ -1,4 +1,3 @@
-
-[submodule "test/test_files/test_no_error/OSVVM-test-case"]
+[submodule "test/test_files/test_no_error/OSVVM"]
 	path = test/test_files/test_no_error/OSVVM
 	url = git@github.com:vhdl-linter/OSVVM-test-case.git

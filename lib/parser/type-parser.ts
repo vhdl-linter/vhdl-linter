@@ -1,15 +1,16 @@
 import { OLexerToken } from '../lexer';
 import { DeclarativePartParser } from './declarative-part-parser';
-import { OArchitecture, OEntity, OEnum, OEnumLiteral, OIRange, OPackage, OPackageBody, OPort, OProcess, ORecord, ORecordChild, OSubprogram, OType, ParserError } from './objects';
+import { ExpressionParser } from './expression-parser';
+import { OEntity, OEnum, OEnumLiteral, OIRange, OPackage, OPackageBody, OPort, OProcess, ORecord, ORecordChild, OStatementBody, OSubprogram, OType, OUnit, ParserError } from './objects';
 import { ParserBase, ParserState } from './parser-base';
 
 
 export class TypeParser extends ParserBase {
-  constructor(state: ParserState, private parent: OArchitecture | OEntity | OPackage | OPackageBody | OProcess | OSubprogram | OType) {
+  constructor(state: ParserState, private parent: OStatementBody | OEntity | OPackage | OPackageBody | OProcess | OSubprogram | OType) {
     super(state);
     this.debug('start');
   }
-  // Can this be generalizes somehow?
+  // Can this be generalized somehow?
   isUnits(): boolean {
     let i = 0;
     while (this.state.pos.num + i < this.state.pos.lexerTokens.length) {
@@ -20,7 +21,7 @@ export class TypeParser extends ParserBase {
       }
       i++;
     }
-    throw new ParserError(`is Units failes in `, this.getToken(0).range);
+    throw new ParserError(`is Units failed in `, this.getToken(0).range);
   }
   parse(): OType {
     const type = new OType(this.parent, this.getToken().range.copyExtendEndOfLine());
@@ -63,10 +64,10 @@ export class TypeParser extends ParserBase {
       } else if (this.isUnits()) {
         this.advancePast('units');
         type.units = [];
-        type.units.push(this.consumeToken().getLText());
+        type.units.push(new OUnit(type, this.consumeToken()));
         this.advanceSemicolon();
         while (this.getToken().getLText() !== 'end' || this.getToken(1, true).getLText() !== 'units') {
-          type.units.push(this.consumeToken().getLText());
+          type.units.push(new OUnit(type, this.consumeToken()));
           this.advanceSemicolon();
         }
         this.expect('end');
@@ -90,7 +91,7 @@ export class TypeParser extends ParserBase {
             this.expect(':');
             const typeTokens = this.advanceSemicolon();
             for (const child of children) {
-              child.reads = this.extractReads(child, typeTokens);
+              child.referenceLinks = new ExpressionParser(this.state, child, typeTokens).parse();
               child.range = child.range.copyWithNewEnd(this.state.pos.i);
             }
             (type as ORecord).children.push(...children);
@@ -98,8 +99,22 @@ export class TypeParser extends ParserBase {
           this.maybe('record');
           this.maybe(type.lexerToken.text);
         } else if (nextToken.getLText() === 'array') {
-          const [token] = this.advanceParentheseAware([';'], true, false);
-          type.reads.push(...this.extractReads(type, token));
+          this.expect('(');
+          const [tokens] = this.advanceParenthesisAware([')'], false, false);
+          const unbounded = tokens.find(token => token.getLText() === '<>');
+          if (unbounded) {
+            do {
+              type.referenceLinks.push(...new ExpressionParser(this.state, type, this.advanceParenthesisAware(['range'], true, true)[0]).parse());
+              this.expect('<>');
+            } while (this.getToken().getLText() === ',');
+            this.expect(')');
+          } else {
+            type.referenceLinks.push(...new ExpressionParser(this.state, type, this.advanceParenthesisAware([')'], true, true)[0]).parse());
+
+          }
+          this.expect('of');
+          type.referenceLinks.push(...new ExpressionParser(this.state, type, this.advanceParenthesisAware([';'], true, false)[0]).parse());
+
         } else if (nextToken.getLText() === 'protected') {
           const protectedBody = this.maybe('body');
           if (protectedBody) {
@@ -115,7 +130,7 @@ export class TypeParser extends ParserBase {
           // TODO
         } else if (nextToken.getLText() === 'access') {
           // Is this a hack, or is it just fantasy/vhdl
-          const [typeTokens] = this.advanceParentheseAware([';'], true, false);
+          const [typeTokens] = this.advanceParenthesisAware([';'], true, false);
           const deallocateProcedure = new OSubprogram(this.parent, new OIRange(this.parent, typeTokens[0].range.start.i, typeTokens[typeTokens.length - 1].range.end.i));
           deallocateProcedure.lexerToken = new OLexerToken('deallocate', type.lexerToken.range, type.lexerToken.type);
           this.parent.subprograms.push(deallocateProcedure);

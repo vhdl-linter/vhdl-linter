@@ -1,4 +1,4 @@
-import {DeepPartial} from 'utility-types';
+import { DeepPartial } from 'utility-types';
 export interface ISettings {
   ports: {
     outRegex: string;
@@ -64,7 +64,7 @@ function recursiveObjectAssign<T extends Record<string, any>>(target: T, source:
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (target as any)[key] = t_val && s_val && typeof t_val === 'object' && typeof s_val === 'object'
       ? recursiveObjectAssign(t_val, s_val)
-      : s_val
-  })
-  return target
+      : s_val;
+  });
+  return target;
 }
