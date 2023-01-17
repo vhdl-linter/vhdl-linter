@@ -741,7 +741,6 @@ export class OProcess extends OHasSequentialStatements implements I.IHasSubprogr
 export class OLoop extends OHasSequentialStatements implements I.IHasInstantiations {
 }
 export class OForLoop extends OLoop implements I.IHasConstants {
-  // TODO: Change constants to constant without breaking stuff
   constants: OConstant[] = [];
   constantRange: OReference[] = [];
 }

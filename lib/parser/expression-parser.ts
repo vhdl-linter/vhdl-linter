@@ -98,13 +98,16 @@ export class ExpressionParser extends ParserBase {
           "*", "/", "mod", "rem", //multiplying_operator
         ];
 
-
+        // If the token is one of the break tokens a new name/selected name or combined identifier starts.
+        // The collected tokens up to this point are then split and converted into OReferences and other objects
         const breakToken = breakTokens.find(token => token === this.getNumToken()?.getLText() ?? '');
         if (breakToken) {
           const formal = maybeFormal && breakToken === '=>';
           // If braces were contained. This token was a cast on the formal side (so a reference not formal)
           references.push(...this.splitBuffer(tokenBuffer, formal && containedBraces === false, maybeWrite));
 
+          // Only the first token can be a write. For example signal.record_element only the signal is written.
+          // The exception is in an aggregate all aggregate elements are written. (aggregate elements are seperated by ',')
           if (breakToken !== ',') {
             maybeWrite = false;
           }
@@ -120,9 +123,6 @@ export class ExpressionParser extends ParserBase {
             references.push(...innerReferences);
             innerReferences = undefined;
           }
-          // if (this.expState.lastFormal.length > 0 && tokenBuffer.length === 0) {
-          //   throw new ParserError("The actual part cannot be empty.", this.expState.lastFormal[0].range.copyWithNewEnd(this.expState.lastFormal[this.expState.lastFormal.length - 1].range));
-          // }
           if (formal) {
             this.expState.lastFormal = tokenBuffer;
           }
