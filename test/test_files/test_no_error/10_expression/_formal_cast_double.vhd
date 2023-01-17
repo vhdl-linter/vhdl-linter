@@ -15,7 +15,7 @@ use ieee.numeric_std.all;
 entity formal_cast_double is
 end entity;
 architecture arch of formal_cast_double is
-  signal s : integer(1 downto 0);      -- vhdl-linter-disable-line unused
+  signal s : integer;                   -- vhdl-linter-disable-line unused
 begin
 
   inst_ent_b : entity work.ent_double
