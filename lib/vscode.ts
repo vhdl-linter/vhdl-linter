@@ -70,8 +70,8 @@ export function activate(context: ExtensionContext) {
       return;
     }
     editor.edit(editBuilder => {
-      const { preferedLogicType } = workspace.getConfiguration('VhdlLinter.style');
-      const type = parseInt(length, 10) === 1 ? preferedLogicType : `${preferedLogicType}_vector(${length} - 1 downto 0)`;
+      const { preferredLogicType } = workspace.getConfiguration('VhdlLinter.style');
+      const type = parseInt(length, 10) === 1 ? preferredLogicType : `${preferredLogicType}_vector(${length} - 1 downto 0)`;
       editBuilder.insert(new Position(args.position.line, 0), `  signal ${args.signalName} : ${type};\n`);
     });
 
@@ -87,15 +87,14 @@ export function activate(context: ExtensionContext) {
     });
   }));
   context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-as-instance', () => copy(CopyTypes.Instance)));
-  context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-as-sysverilog', () => copy(CopyTypes.Sysverilog)));
   context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-as-signals', () => copy(CopyTypes.Signals)));
   context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-tree', async () => {
     const editor = window.activeTextEditor;
     if (!editor) {
       return;
     }
-    this.parser = new FileParser(editor.document.getText(), this.editorPath, false, { canceled: false });
-    const file = this.parser.parse();
+    const parser = new FileParser(editor.document.getText(), editor.document.uri.toString(), false, { canceled: false });
+    const file = parser.parse();
 
     if (file) {
       env.clipboard.writeText(file.getJSON());

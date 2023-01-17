@@ -47,7 +47,7 @@ export async function handleDocumentFormatting(params: DocumentFormattingParams,
   const { signal } = controller;
   token.onCancellationRequested(() => {
     controller.abort();
-  })
+  });
   const progress = await _getProgressReporter(workDoneProgress, 'Emacs Formatter running');
 
   try {
@@ -69,7 +69,7 @@ export async function handleDocumentFormatting(params: DocumentFormattingParams,
           resolve();
         }
         reject(code);
-      })
+      });
     });
     progress.done();
   } catch (e) {

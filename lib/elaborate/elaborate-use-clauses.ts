@@ -1,5 +1,6 @@
 import { DiagnosticSeverity } from "vscode-languageserver/node";
-import { implementsIHasUseClause, implementsIHasContextReference, scope, OPackage, IHasContextReference, IHasUseClauses, OArchitecture, ObjectBase, OFile, OPackageBody, implementsIHasGenerics, implementsIHasPackageInstantiations, OInterfacePackage } from "../parser/objects";
+import { implementsIHasUseClause, implementsIHasContextReference, implementsIHasPackageInstantiations, implementsIHasGenerics, IHasUseClauses, IHasContextReference } from "../parser/interfaces";
+import { OFile, scope, OInterfacePackage, OPackage, ObjectBase, OPackageBody, OArchitecture } from "../parser/objects";
 import { ProjectParser } from "../project-parser";
 import { VhdlLinter } from "../vhdl-linter";
 
@@ -42,23 +43,23 @@ export function elaborateUseClauses(file: OFile, projectParser: ProjectParser, v
             }
           }
         } else { // if using package directly, it is an instantiated package
-          const pkgInstantations = [];
+          const pkgInstantiations = [];
           // go through scope to find all package instantiations
           for (const [iterator] of scope(obj)) {
             if (implementsIHasPackageInstantiations(iterator)) {
-              pkgInstantations.push(...iterator.packageInstantiations);
+              pkgInstantiations.push(...iterator.packageInstantiations);
             }
             if (implementsIHasGenerics(iterator)) {
               for (const generic of iterator.generics) {
                 if (generic instanceof OInterfacePackage) {
-                  pkgInstantations.push(generic);
+                  pkgInstantiations.push(generic);
                 }
               }
 
             }
           }
 
-          const packageInstantiation = pkgInstantations.find(inst => inst.lexerToken.getLText() === useClause.packageName.getLText());
+          const packageInstantiation = pkgInstantiations.find(inst => inst.lexerToken.getLText() === useClause.packageName.getLText());
           if (!packageInstantiation) {
             found = true;
             if (useClause.rootFile.file === file.file) {
@@ -76,7 +77,7 @@ export function elaborateUseClauses(file: OFile, projectParser: ProjectParser, v
             }
             continue;
           }
-          packageInstantiation.references.push(useClause);
+          packageInstantiation.referenceLinks.push(useClause);
           const uninstantiatedPackage = (packages.filter(p => p instanceof OPackage) as OPackage[]).find(p => p.lexerToken.getLText() === packageInstantiation.uninstantiatedPackageToken.text.toLowerCase());
           if (uninstantiatedPackage) {
             obj.packageDefinitions.push(uninstantiatedPackage);

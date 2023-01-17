@@ -1,6 +1,6 @@
 import { ComponentParser } from './component-parser';
 import { ObjectDeclarationParser } from './object-declaration-parser';
-import { implementsIHasComponents,  OArchitecture, OEntity, OPackage, OPackageBody, OProcess, OSubprogram, OType, ParserError } from './objects';
+import { OEntity, OPackage, OPackageBody, OProcess, OStatementBody, OSubprogram, OType, ParserError } from './objects';
 import { ParserBase, ParserState } from './parser-base';
 import { SubprogramParser } from './subprogram-parser';
 import { SubtypeParser } from './subtype-parser';
@@ -8,10 +8,11 @@ import { TypeParser } from './type-parser';
 import { UseClauseParser } from './use-clause-parser';
 import { PackageInstantiationParser } from './package-instantiation-parser';
 import { AliasParser } from './alias-parser';
+import { implementsIHasComponents } from './interfaces';
 
 export class DeclarativePartParser extends ParserBase {
   type: string;
-  constructor(state: ParserState, private parent: OArchitecture | OEntity | OPackage | OPackageBody | OProcess | OSubprogram | OType) {
+  constructor(state: ParserState, private parent: OStatementBody | OEntity | OPackage | OPackageBody | OProcess | OSubprogram | OType) {
     super(state);
     this.debug('start');
   }
@@ -41,6 +42,36 @@ export class DeclarativePartParser extends ParserBase {
 
 
       } else if (nextToken.getLText() === 'component' && implementsIHasComponents(this.parent)) {
+        if (this.parent instanceof OEntity) {
+          this.state.messages.push({
+            message: `Components are not allowed in entity`,
+            range: this.getToken().range
+          });
+        }
+        if (this.parent instanceof OPackageBody) {
+          this.state.messages.push({
+            message: `Components are not allowed in package body`,
+            range: this.getToken().range
+          });
+        }
+        if (this.parent instanceof OProcess) {
+          this.state.messages.push({
+            message: `Components are not allowed in process`,
+            range: this.getToken().range
+          });
+        }
+        if (this.parent instanceof OSubprogram) {
+          this.state.messages.push({
+            message: `Components are not allowed in subprogram`,
+            range: this.getToken().range
+          });
+        }
+        if (this.parent instanceof OType) {
+          this.state.messages.push({
+            message: `Components are not allowed in type`,
+            range: this.getToken().range
+          });
+        }
         this.consumeToken();
         const componentParser = new ComponentParser(this.state, this.parent);
         this.parent.components.push(componentParser.parse());

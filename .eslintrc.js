@@ -3,5 +3,9 @@ module.exports = {
   parser: '@typescript-eslint/parser',
   plugins: ['@typescript-eslint'],
   root: true,
-
+  rules: {
+    'no-useless-rename': 'error',
+    'no-invalid-this': 'error',
+    'semi': 'warn'
+  }
 };

@@ -13,18 +13,18 @@ export class RPortType extends RuleBase implements IRule {
       const settings = (await this.vhdlLinter.settingsGetter(URI.file(this.vhdlLinter.editorPath).toString()));
       if (settings.rules.warnLogicType) {
         for (const port of entity.ports) {
-          if ((settings.style.preferedLogicType === 'std_logic' && port.type[0]?.lexerToken?.text?.match(/^std_ulogic/i))
-            || (settings.style.preferedLogicType === 'std_ulogic' && port.type[0]?.lexerToken?.text?.match(/^std_logic/i))) {
-            const match = port.type[0].lexerToken.text.match(/^std_u?logic/i);
+          if ((settings.style.preferedLogicType === 'std_logic' && port.typeReference[0]?.referenceToken?.text?.match(/^std_ulogic/i))
+            || (settings.style.preferedLogicType === 'std_ulogic' && port.typeReference[0]?.referenceToken?.text?.match(/^std_logic/i))) {
+            const match = port.typeReference[0].referenceToken.text.match(/^std_u?logic/i);
             if (match) {
-              const replacement = port.type[0].lexerToken.text.replace(match[0], settings.style.preferedLogicType);
+              const replacement = port.typeReference[0].referenceToken.text.replace(match[0], settings.style.preferedLogicType);
               const code = this.vhdlLinter.addCodeActionCallback((textDocumentUri: string) => {
                 const actions = [];
                 actions.push(CodeAction.create(
                   `Replace with ${replacement}`,
                   {
                     changes: {
-                      [textDocumentUri]: [TextEdit.replace(port.type[0].range
+                      [textDocumentUri]: [TextEdit.replace(port.typeReference[0].range
                         , replacement)]
                     }
                   },
@@ -32,9 +32,9 @@ export class RPortType extends RuleBase implements IRule {
                 return actions;
               });
               this.addMessage({
-                range: port.type[0].range,
+                range: port.typeReference[0].range,
                 severity: DiagnosticSeverity.Information,
-                message: `Port should be ${replacement} but is ${port.type[0].lexerToken.text}`,
+                message: `Port should be ${replacement} but is ${port.typeReference[0].referenceToken.text}`,
                 code
               });
             }

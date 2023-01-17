@@ -9,6 +9,7 @@ entity test_entity_assert is
     );
 begin
   assert true report "Failure";
+  assert true report "Failure" severity failure;
 end test_entity_assert;
 
 architecture arch of test_entity_assert is

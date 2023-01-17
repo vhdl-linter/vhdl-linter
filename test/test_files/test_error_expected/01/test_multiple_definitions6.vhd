@@ -16,8 +16,8 @@ architecture arch of test_multiple_definitions6 is
   end procedure;
 begin
   -- label0 is used twice
-  label0: test(5); -- vhdl-linter-disable-line multiple-definition
+  label0 : test(5);  -- vhdl-linter-disable-line multiple-definition
   label0 : for i_unused in 0 to 0 generate
-    
+
   end generate;
 end architecture;

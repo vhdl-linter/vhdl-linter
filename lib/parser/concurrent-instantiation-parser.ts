@@ -1,10 +1,10 @@
 import { AssociationListParser } from './association-list-parser';
-import { OArchitecture, OEntity, OInstantiation, ParserError } from './objects';
+import { OEntity, OInstantiation, OStatementBody, ParserError } from './objects';
 import { ParserBase, ParserState } from './parser-base';
 import { OLexerToken } from '../lexer';
 
-export class InstantiationParser extends ParserBase {
-  constructor(state: ParserState, private parent: OArchitecture | OEntity) {
+export class ConcurrentInstantiationParser extends ParserBase {
+  constructor(state: ParserState, private parent: OStatementBody | OEntity) {
     super(state);
     this.debug(`start`);
 
@@ -27,8 +27,7 @@ export class InstantiationParser extends ParserBase {
       nextToken = this.consumeToken();
     }
     instantiation.componentName = nextToken;
-    // if there is no label, there is no lexerToken -> rule/multiple-definition does not check for it
-    instantiation.lexerToken = label;
+    instantiation.label = label;
 
     if (instantiation.type === 'entity' && this.getToken().getLText() === '(') {
       this.expect('(');
