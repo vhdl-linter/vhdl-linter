@@ -1,5 +1,5 @@
 import { IHasLexerToken, IHasReferenceLinks, implementsIHasAliases, implementsIHasConstants, implementsIHasFileVariables, implementsIHasGenerics, implementsIHasLabel, implementsIHasLibraries, implementsIHasPackageInstantiations, implementsIHasPorts, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables } from "../parser/interfaces";
-import { OArchitecture, OAttributeReference, ObjectBase, OEntity, OEnum, OFile, OHasSequentialStatements, OInstantiation, OInterfacePackage, OLabelReference, OLibrary, OPackage, OPackageBody, OPackageInstantiation, ORead, ORecord, OReference, OSelectedName, OSelectedNameRead, OSelectedNameWrite, OWrite, scope } from "../parser/objects";
+import { OArchitecture, OAttributeReference, ObjectBase, OEntity, OEnum, OFile, OFormalReference, OHasSequentialStatements, OInstantiation, OInterfacePackage, OLabelReference, OLibrary, OPackage, OPackageBody, OPackageInstantiation, ORead, ORecord, OReference, OSelectedName, OSelectedNameRead, OSelectedNameWrite, OWrite, scope } from "../parser/objects";
 import { VhdlLinter } from "../vhdl-linter";
 export class ElaborateReferences {
   file: OFile;
@@ -10,6 +10,9 @@ export class ElaborateReferences {
   public static elaborate(vhdlLinter: VhdlLinter) {
     const elaborator = new ElaborateReferences(vhdlLinter);
     for (const obj of vhdlLinter.file.objectList) {
+      if (obj instanceof OFormalReference) {
+        continue;
+      }
       if (obj instanceof OLabelReference) {
         elaborator.elaborateLabelReference(obj);
       }

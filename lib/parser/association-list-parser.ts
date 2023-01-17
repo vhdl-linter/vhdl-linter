@@ -1,7 +1,7 @@
 import { DiagnosticSeverity } from 'vscode-languageserver';
 import { OLexerToken } from '../lexer';
 import { ExpressionParser } from './expression-parser';
-import { OAssociation, OFormalReference, OGenericAssociationList, OInstantiation, OIRange, OPackage, OPackageInstantiation, OPortAssociationList, OWrite } from './objects';
+import { OAssociation, OFormalReference, OGenericAssociationList, OInstantiation, OPackage, OPackageInstantiation, OPortAssociationList, OWrite } from './objects';
 import { ParserBase, ParserState } from './parser-base';
 
 
@@ -30,13 +30,12 @@ export class AssociationListParser extends ParserBase {
     const list = type === 'generic' ? new OGenericAssociationList(this.parent, braceToken.range) : new OPortAssociationList(this.parent, braceToken.range);
 
     while (this.state.pos.isValid()) {
-      const savedI = this.state.pos.i;
       // let associationString = this.advancePast(/[,)]/, {returnMatch: true});
       // eslint-disable-next-line prefer-const
       let [associationTokens, lastChar] = this.advanceParenthesisAware([',', ')']);
-
       if (associationTokens.length > 0) {
-        const association = new OAssociation(list, new OIRange(list, savedI, associationTokens[0]?.range?.end?.i ?? savedI));
+        const combinedRange = associationTokens[0].range.copyWithNewEnd(associationTokens[associationTokens.length - 1].range);
+        const association = new OAssociation(list, combinedRange);
         // At this point we do not know the direction of the port.
         // We for now parse all the possibilities and then handle the differences during elaboration
         { // Parse assuming association is input

@@ -18,6 +18,13 @@ export class RInstantiation extends RuleBase implements IRule {
           elementsWithoutFormal = true;
           continue;
         }
+        if (association.formalPart.length > 1) {
+          this.addMessage({
+            range: association.range,
+            severity: DiagnosticSeverity.Warning,
+            message: `Multiple formal references parsed (${association.formalPart.map(ref => ref.referenceToken.text).join(', ')}). Problem likely`
+          });
+        }
         allElementsWithoutFormal = false;
         const interfaceElement = availableInterfaceElementsFlat.find(port => {
           for (const part of association.formalPart) {

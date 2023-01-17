@@ -107,18 +107,15 @@ export class ExpressionParser extends ParserBase {
           references.push(...this.splitBuffer(tokenBuffer, formal && containedBraces === false, maybeWrite));
 
           // Only the first token can be a write. For example signal.record_element only the signal is written.
-          // The exception is in an aggregate all aggregate elements are written. (aggregate elements are seperated by ',')
+          // The exception is in an aggregate all aggregate elements are written. (aggregate elements are separated by ',')
           if (breakToken !== ',') {
             maybeWrite = false;
           }
           if (innerReferences) {
-            // TODO: Properly fix the type of FormalReferences in type casting of formal part
-            // This is a workaround for one layer deep casting and a bit hacky.
-            // As most tooling only supports one layer deep nesting this seems ok for now.
-            if (formal) {
-              for (const innerRef of innerReferences) {
-                Object.setPrototypeOf(innerRef, OFormalReference);
-              }
+            // This is a bit hacky... When there is a cast in the formal reference side. Assume the last token is the actual formal reference
+            // Ie to_integer(unsigned(output)) output would be the actual formal part. ant to_integer and unsigned are normal references
+            if (formal && innerReferences.length > 0) {
+              Object.setPrototypeOf(innerReferences[innerReferences.length - 1], OFormalReference.prototype);
             }
             references.push(...innerReferences);
             innerReferences = undefined;
