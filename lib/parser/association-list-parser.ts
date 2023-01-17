@@ -1,8 +1,8 @@
-import { OInstantiation, OAssociation, OGenericAssociationList, OIRange, OPortAssociationList, OPackage, OPackageInstantiation, OFormalReference, OWrite } from './objects';
-import { ParserBase, ParserState } from './parser-base';
-import { OLexerToken } from '../lexer';
 import { DiagnosticSeverity } from 'vscode-languageserver';
+import { OLexerToken } from '../lexer';
 import { ExpressionParser } from './expression-parser';
+import { OAssociation, OFormalReference, OGenericAssociationList, OInstantiation, OIRange, OPackage, OPackageInstantiation, OPortAssociationList, OWrite } from './objects';
+import { ParserBase, ParserState } from './parser-base';
 
 
 export class AssociationListParser extends ParserBase {
@@ -37,14 +37,16 @@ export class AssociationListParser extends ParserBase {
 
       if (associationTokens.length > 0) {
         const association = new OAssociation(list, new OIRange(list, savedI, associationTokens[0]?.range?.end?.i ?? savedI));
-        {
+        // At this point we do not know the direction of the port.
+        // We for now parse all the possibilities and then handle the differences during elaboration
+        { // Parse assuming association is input
           const expressionParser = new ExpressionParser(this.state, association, associationTokens);
           const references = expressionParser.parseAssociationElement();
           association.formalPart = references.filter(reference => reference instanceof OFormalReference);
           const actualPart = references.filter(reference => reference instanceof OFormalReference === false);
           association.actualIfInput = actualPart;
         }
-        {
+        { // Parse assuming association is output
           const expressionParser = new ExpressionParser(this.state, association, associationTokens);
           const references = expressionParser.parseAssociationElement();
           association.formalPart = references.filter(reference => reference instanceof OFormalReference);
@@ -56,9 +58,8 @@ export class AssociationListParser extends ParserBase {
             return a as OWrite;
           });
           association.actualIfOutput = [actualPart.slice(1), writes];
-
         }
-        {
+        { // Parse assuming association is inout
           const expressionParser = new ExpressionParser(this.state, association, associationTokens);
           const references = expressionParser.parseAssociationElement();
           association.formalPart = references.filter(reference => reference instanceof OFormalReference);
