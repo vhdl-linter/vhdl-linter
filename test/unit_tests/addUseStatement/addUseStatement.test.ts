@@ -5,7 +5,6 @@ import { join } from 'path';
 import { ProjectParser } from '../../../lib/project-parser';
 import { defaultSettingsGetter } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdl-linter';
-import { URI } from 'vscode-uri';
 
 test.each([
   'arch.vhd',
