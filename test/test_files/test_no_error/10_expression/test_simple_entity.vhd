@@ -7,8 +7,8 @@ entity test_simple_entity is
 end entity;
 architecture arch of test_simple_entity is
 
-  signal a   : unsigned(1 downto 0);
-  signal b   : unsigned(2 downto 0); -- vhdl-linter-disable-line unused
+  signal a   : u_unsigned(1 downto 0);
+  signal b   : u_unsigned(2 downto 0); -- vhdl-linter-disable-line unused
   signal a_i : integer;
 begin
   p_test : process

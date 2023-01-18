@@ -1,17 +1,20 @@
 -- --------------------------------------------------------------------
 --
--- Copyright ï¿½ 2008 by IEEE. All rights reserved.
+-- Copyright © 2008 by IEEE.
 --
--- This source file is an essential part of IEEE Std 1076-2008,
--- IEEE Standard VHDL Language Reference Manual. This source file may not be
--- copied, sold, or included with software that is sold without written 
--- permission from the IEEE Standards Department. This source file may be 
--- copied for individual use between licensed users. This source file is
--- provided on an AS IS basis. The IEEE disclaims ANY WARRANTY EXPRESS OR
--- IMPLIED INCLUDING ANY WARRANTY OF MERCHANTABILITY AND FITNESS FOR USE
--- FOR A PARTICULAR PURPOSE. The user of the source file shall indemnify
--- and hold IEEE harmless from any damages or liability arising out of the
--- use thereof.
+-- This source file is an essential part of IEEE Std 1076-2008, 
+-- IEEE Standard VHDL Language Reference Manual. Verbatim copies of this 
+-- source file may be used and distributed without restriction. 
+-- Modifications to this source file as permitted in IEEE Std 1076-2008
+-- may also be made and distributed. All other uses require permission 
+-- from the IEEE Standards Department(stds-ipr@ieee.org). 
+-- All other rights reserved.
+--
+-- This source file is provided on an AS IS basis. The IEEE disclaims ANY 
+-- WARRANTY EXPRESS OR IMPLIED INCLUDING ANY WARRANTY OF MERCHANTABILITY 
+-- AND FITNESS FOR USE FOR A PARTICULAR PURPOSE. The user of the source file 
+-- shall indemnify and hold IEEE harmless from any damages or liability 
+-- arising out of the use thereof.
 --
 --   Title     :  Standard multivalue logic package
 --             :  (STD_LOGIC_1164 package declaration)
@@ -44,8 +47,8 @@
 --             :  the terms of Clause 16 of this standard.
 --             :
 -- --------------------------------------------------------------------
--- $Revision: 1220 $
--- $Date: 2008-04-10 17:16:09 +0930 (Thu, 10 Apr 2008) $
+-- $Revision: 1228 $
+-- $Date: 2008-04-30 10:04:53 +0930 (Wed, 30 Apr 2008) $
 -- --------------------------------------------------------------------
 
 use STD.TEXTIO.all;
@@ -105,7 +108,7 @@ package std_logic_1164 is
   function "or"   (l : STD_ULOGIC; r : STD_ULOGIC) return UX01;
   function "nor"  (l : STD_ULOGIC; r : STD_ULOGIC) return UX01;
   function "xor"  (l : STD_ULOGIC; r : STD_ULOGIC) return UX01;
-  function "xnor" (l : STD_ULOGIC; r : STD_ULOGIC) return ux01;
+  function "xnor" (l : STD_ULOGIC; r : STD_ULOGIC) return UX01;
   function "not"  (l : STD_ULOGIC) return UX01;
 
   -------------------------------------------------------------------    

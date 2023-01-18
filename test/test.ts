@@ -1,11 +1,11 @@
-import { OIDiagnostic, VhdlLinter } from '../lib/vhdl-linter';
-import { argv, cwd } from 'process';
-import { readdirSync, readFileSync, lstatSync } from 'fs';
+import { lstatSync, readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
-import { ProjectParser } from '../lib/project-parser';
-import { OIRange } from '../lib/parser/objects';
+import { argv, cwd } from 'process';
 import { DiagnosticSeverity } from 'vscode-languageserver';
-import { defaultSettingsGetter } from '../lib/settings';
+import { OIRange } from '../lib/parser/objects';
+import { ProjectParser } from '../lib/project-parser';
+import { defaultSettingsGetter, defaultSettingsWithOverwrite } from '../lib/settings';
+import { OIDiagnostic, VhdlLinter } from '../lib/vhdl-linter';
 function readDirPath(path: string) {
   return readdirSync(path).map(file => join(path, file));
 }
@@ -58,11 +58,15 @@ async function run_test(path: string, error_expected: boolean, projectParser?: P
     if (argv.indexOf('--no-osvvm') > -1 && subPath.match(/OSVVM/i)) {
       continue;
     }
+    // Exclude OSVVM from resolved/unresolved checker
+    const getter = subPath.match(/OSVVM/i)
+    ? defaultSettingsWithOverwrite({ style: { preferredLogicTypePort: 'ignore', preferredLogicTypeSignal: 'ignore' } })
+    : defaultSettingsGetter;
     if (lstatSync(subPath).isDirectory()) {
       messageWrappers.push(...await run_test(subPath, error_expected, projectParser));
     } else if (subPath.match(/\.vhdl?$/i)) {
       const text = readFileSync(subPath, { encoding: 'utf8' });
-      const vhdlLinter = new VhdlLinter(subPath, text, projectParser, defaultSettingsGetter);
+      const vhdlLinter = new VhdlLinter(subPath, text, projectParser, getter);
       if (vhdlLinter.parsedSuccessfully) {
         await vhdlLinter.checkAll();
       }

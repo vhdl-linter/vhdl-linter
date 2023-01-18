@@ -8,7 +8,7 @@ import { RMultipleDefinition } from "./multiple-definitions";
 import { RNotDeclared } from "./not-declared";
 import { RParser } from "./parser";
 import { RPortDeclaration } from "./port-declaration";
-import { RPortType } from "./port-type";
+import { RTypeResolved } from "./type-resolved";
 import { RUnused } from "./unused";
 
 export const rules = [
@@ -19,7 +19,7 @@ export const rules = [
   RMultipleDefinition,
   RNotDeclared,
   RPortDeclaration,
-  RPortType,
+  RTypeResolved,
   RUnused,
   REmpty,
   RConstantWrite,
