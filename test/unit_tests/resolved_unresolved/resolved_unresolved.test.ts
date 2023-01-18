@@ -2,7 +2,7 @@ import { expect, test } from '@jest/globals';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { ProjectParser } from '../../../lib/project-parser';
-import { defaultSettingsGetter, defaultSettingsWithOverwrite } from '../../../lib/settings';
+import { defaultSettingsWithOverwrite } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdl-linter';
 test.each([
   'test_port_std_logic_vector.vhd',

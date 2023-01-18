@@ -58,7 +58,7 @@ async function run_test(path: string, error_expected: boolean, projectParser?: P
     if (argv.indexOf('--no-osvvm') > -1 && subPath.match(/OSVVM/i)) {
       continue;
     }
-    // Exclude OSVVM from resolved/unresolved checkeer
+    // Exclude OSVVM from resolved/unresolved checker
     const getter = subPath.match(/OSVVM/i)
     ? defaultSettingsWithOverwrite({ style: { preferredLogicTypePort: 'ignore', preferredLogicTypeSignal: 'ignore' } })
     : defaultSettingsGetter;
@@ -66,7 +66,7 @@ async function run_test(path: string, error_expected: boolean, projectParser?: P
       messageWrappers.push(...await run_test(subPath, error_expected, projectParser));
     } else if (subPath.match(/\.vhdl?$/i)) {
       const text = readFileSync(subPath, { encoding: 'utf8' });
-      const vhdlLinter = new VhdlLinter(subPath, text, projectParser, defaultSettingsGetter);
+      const vhdlLinter = new VhdlLinter(subPath, text, projectParser, getter);
       if (vhdlLinter.parsedSuccessfully) {
         await vhdlLinter.checkAll();
       }
