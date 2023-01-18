@@ -1,17 +1,20 @@
 -- --------------------------------------------------------------------
 --
--- Copyright © 2008 by IEEE. All rights reserved.
+-- Copyright © 2008 by IEEE.
 --
--- This source file is an essential part of IEEE Std 1076-2008,
--- IEEE Standard VHDL Language Reference Manual. This source file may not be
--- copied, sold, or included with software that is sold without written 
--- permission from the IEEE Standards Department. This source file may be 
--- copied for individual use between licensed users. This source file is
--- provided on an AS IS basis. The IEEE disclaims ANY WARRANTY EXPRESS OR
--- IMPLIED INCLUDING ANY WARRANTY OF MERCHANTABILITY AND FITNESS FOR USE
--- FOR A PARTICULAR PURPOSE. The user of the source file shall indemnify
--- and hold IEEE harmless from any damages or liability arising out of the
--- use thereof.
+-- This source file is an essential part of IEEE Std 1076-2008, 
+-- IEEE Standard VHDL Language Reference Manual. Verbatim copies of this 
+-- source file may be used and distributed without restriction. 
+-- Modifications to this source file as permitted in IEEE Std 1076-2008
+-- may also be made and distributed. All other uses require permission 
+-- from the IEEE Standards Department(stds-ipr@ieee.org). 
+-- All other rights reserved.
+--
+-- This source file is provided on an AS IS basis. The IEEE disclaims ANY 
+-- WARRANTY EXPRESS OR IMPLIED INCLUDING ANY WARRANTY OF MERCHANTABILITY 
+-- AND FITNESS FOR USE FOR A PARTICULAR PURPOSE. The user of the source file 
+-- shall indemnify and hold IEEE harmless from any damages or liability 
+-- arising out of the use thereof.
 --
 --   Title     :  Standard VHDL Synthesis Packages
 --             :  (NUMERIC_STD package declaration)
@@ -75,9 +78,8 @@ package NUMERIC_STD is
   type UNRESOLVED_UNSIGNED is array (NATURAL range <>) of STD_ULOGIC;
   type UNRESOLVED_SIGNED is array (NATURAL range <>) of STD_ULOGIC;
 
-  --  FIXME: was alias
-  subtype U_UNSIGNED is UNRESOLVED_UNSIGNED;
-  subtype U_SIGNED is UNRESOLVED_SIGNED;
+  alias U_UNSIGNED is UNRESOLVED_UNSIGNED;
+  alias U_SIGNED is UNRESOLVED_SIGNED;
 
   subtype UNSIGNED is (resolved) UNRESOLVED_UNSIGNED;
   subtype SIGNED is (resolved) UNRESOLVED_SIGNED;
