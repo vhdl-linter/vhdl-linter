@@ -70,8 +70,12 @@ export function activate(context: ExtensionContext) {
       return;
     }
     editor.edit(editBuilder => {
-      const { preferredLogicType } = workspace.getConfiguration('VhdlLinter.style');
-      const type = parseInt(length, 10) === 1 ? preferredLogicType : `${preferredLogicType}_vector(${length} - 1 downto 0)`;
+      const { preferredLogicTypeSignal } = workspace.getConfiguration('VhdlLinter.style');
+      let typePart = 'std_ulogic';
+      if (preferredLogicTypeSignal === 'resolved') {
+        typePart = 'std_logic';
+      }
+      const type = parseInt(length, 10) === 1 ? typePart : `${typePart}_vector(${length} - 1 downto 0)`;
       editBuilder.insert(new Position(args.position.line, 0), `  signal ${args.signalName} : ${type};\n`);
     });
 

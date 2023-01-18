@@ -6,6 +6,7 @@ module.exports = {
   rules: {
     'no-useless-rename': 'error',
     'no-invalid-this': 'error',
-    'semi': 'warn'
+    'semi': 'warn',
+    'curly': 'warn'
   }
 };

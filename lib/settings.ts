@@ -10,7 +10,8 @@ export interface ISettings {
     ignoreRegex: string;
   };
   style: {
-    preferedLogicType: 'std_logic' | 'std_ulogic';
+    preferredLogicTypePort: "unresolved" |  "resolved" | "ignore";
+    preferredLogicTypeSignal: "unresolved" | "resolved" | "ignore";
     unusedSignalRegex: string;
     ieeeCasing: 'lowercase' | 'UPPERCASE';
   };
@@ -32,7 +33,8 @@ export const defaultSettings: ISettings = {
     ignoreRegex: ''
   },
   style: {
-    preferedLogicType: 'std_ulogic',
+    preferredLogicTypePort: 'unresolved',
+    preferredLogicTypeSignal: 'unresolved',
     unusedSignalRegex: '_unused$',
     ieeeCasing: 'lowercase'
   },

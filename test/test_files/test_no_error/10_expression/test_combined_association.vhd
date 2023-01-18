@@ -11,7 +11,7 @@ package body test_combined_association is
     return "a";
   end function;
 
-  function to_hxstring (A : signed) return string is
+  function to_hxstring (A : u_signed) return string is
 ------------------------------------------------------------
   begin
     -- Test combination of casting in assocation and named formal part

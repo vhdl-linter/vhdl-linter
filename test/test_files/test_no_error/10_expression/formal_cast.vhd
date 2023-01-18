@@ -14,7 +14,7 @@ use ieee.numeric_std.all;
 entity formal_cast is
 end entity;
 architecture arch of formal_cast is
-  signal s : unsigned(1 downto 0);      -- vhdl-linter-disable-line unused
+  signal s : u_unsigned(1 downto 0);      -- vhdl-linter-disable-line unused
 begin
 
   inst_ent_b : entity work.ent
