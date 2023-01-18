@@ -5,8 +5,8 @@ entity ent is
 end ent;
 architecture arch of ent is
 
-  signal test_unused : std_logic;
+  signal test_unused : std_ulogic;
 
 begin
 
-end arch ; -- arch
+end arch ;

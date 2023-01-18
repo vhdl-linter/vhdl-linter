@@ -13,29 +13,20 @@ test.each([
   'test_port_u_unsigned.vhd',
   'test_signal_std_logic.vhd',
   'test_signal_std_ulogic.vhd',
-])('testing messages for unresolved resolved with file %s', async (file: string) => {
+].flatMap(file => [[file, 'unresolved'], [file, 'resolved'], [file, 'ignore']]))('testing type_resolved messages for file %s with setting %s', async (file: string, setting: 'unresolved' | 'resolved' | 'ignore') => {
 
-  {
-    const path = join(__dirname, file);
-    const linter = new VhdlLinter(path, readFileSync(path, { encoding: 'utf8' }),
-      await ProjectParser.create([], '', defaultSettingsGetter), defaultSettingsGetter);
-    await linter.checkAll();
+  const getter = defaultSettingsWithOverwrite({
+    style: {
+      preferredLogicTypePort: setting,
+      preferredLogicTypeSignal: setting
+    }
+  });
+  const path = join(__dirname, file);
+  const linter = new VhdlLinter(path, readFileSync(path, { encoding: 'utf8' }),
+    await ProjectParser.create([], '', getter), getter);
+  await linter.checkAll();
 
-    expect(linter.messages).toMatchSnapshot();
-  }
-  {
-    const getter = defaultSettingsWithOverwrite({
-      style: {
-        preferredLogicTypePort: 'resolved',
-        preferredLogicTypeSignal: 'resolved'
-      }
-    });
-    const path = join(__dirname, file);
-    const linter = new VhdlLinter(path, readFileSync(path, { encoding: 'utf8' }),
-      await ProjectParser.create([], '', getter), getter);
-    await linter.checkAll();
+  expect(linter.messages).toMatchSnapshot();
 
-    expect(linter.messages).toMatchSnapshot();
-  }
 
 });

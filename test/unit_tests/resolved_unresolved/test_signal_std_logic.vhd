@@ -9,4 +9,4 @@ architecture arch of ent is
 
 begin
 
-end arch ; -- arch
+end arch ;
