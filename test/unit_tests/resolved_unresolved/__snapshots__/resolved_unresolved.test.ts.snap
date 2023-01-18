@@ -1,0 +1,51 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`testing messages for unresolved resolved with file test_port_std_logic.vhd 1`] = `[]`;
+
+exports[`testing messages for unresolved resolved with file test_port_std_logic.vhd 2`] = `[]`;
+
+exports[`testing messages for unresolved resolved with file test_port_std_logic_vector.vhd 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "Port is using resolved subtype (std_logic_vector) should use unresolved type std_ulogic_vector  (type-resolved)",
+    "range": {
+      "end": {
+        "character": 33,
+        "line": 5,
+      },
+      "start": {
+        "character": 17,
+        "line": 5,
+      },
+    },
+    "severity": 3,
+  },
+]
+`;
+
+exports[`testing messages for unresolved resolved with file test_port_std_logic_vector.vhd 2`] = `[]`;
+
+exports[`testing messages for unresolved resolved with file test_port_std_ulogic.vhd 1`] = `[]`;
+
+exports[`testing messages for unresolved resolved with file test_port_std_ulogic.vhd 2`] = `[]`;
+
+exports[`testing messages for unresolved resolved with file test_port_std_ulogic_vector.vhd 1`] = `[]`;
+
+exports[`testing messages for unresolved resolved with file test_port_std_ulogic_vector.vhd 2`] = `[]`;
+
+exports[`testing messages for unresolved resolved with file test_port_u_unsigned.vhd 1`] = `[]`;
+
+exports[`testing messages for unresolved resolved with file test_port_u_unsigned.vhd 2`] = `[]`;
+
+exports[`testing messages for unresolved resolved with file test_port_unsigned.vhd 1`] = `[]`;
+
+exports[`testing messages for unresolved resolved with file test_port_unsigned.vhd 2`] = `[]`;
+
+exports[`testing messages for unresolved resolved with file test_signal_std_logic.vhd 1`] = `[]`;
+
+exports[`testing messages for unresolved resolved with file test_signal_std_logic.vhd 2`] = `[]`;
+
+exports[`testing messages for unresolved resolved with file test_signal_std_ulogic.vhd 1`] = `[]`;
+
+exports[`testing messages for unresolved resolved with file test_signal_std_ulogic.vhd 2`] = `[]`;
