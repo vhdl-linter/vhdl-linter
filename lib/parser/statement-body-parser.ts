@@ -23,9 +23,9 @@ export class StatementBodyParser extends ParserBase {
     this.debug(`parse`);
     let statementBody;
     if (structureName === 'architecture') {
-      statementBody = new OArchitecture(this.parent, this.getToken().range.copyExtendEndOfLine());
+      statementBody = new OArchitecture(this.parent, this.getToken(-1, true).range.copyExtendEndOfLine());
     } else if (structureName === 'block') {
-      statementBody = new OBlock(this.parent, this.getToken().range.copyExtendEndOfLine());
+      statementBody = new OBlock(this.parent, this.getToken(-1, true).range.copyExtendEndOfLine());
       // guarded block
       if (this.getToken().getLText() === '(') {
         const startRange = this.getToken().range;

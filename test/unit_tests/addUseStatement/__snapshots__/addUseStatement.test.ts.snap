@@ -1,0 +1,306 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`testing add use statement actions for file arch.vhd 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "signal 'std_ulogic' is referenced but not declared (not-declared)",
+    "range": {
+      "end": {
+        "character": 30,
+        "line": 5,
+      },
+      "start": {
+        "character": 20,
+        "line": 5,
+      },
+    },
+    "severity": 1,
+  },
+]
+`;
+
+exports[`testing add use statement actions for file arch.vhd 2`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file:///home/anton/bastels/vhdl-linter/test/unit_tests/addUseStatement/arch.vhd": [
+          {
+            "newText": "library ieee;
+use ieee.std_logic_1164.all;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add use statement for ieee.std_logic_1164",
+  },
+]
+`;
+
+exports[`testing add use statement actions for file arch.vhd 3`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file:///home/anton/bastels/vhdl-linter/test/unit_tests/addUseStatement/arch.vhd": [
+          {
+            "newText": " -- vhdl-linter-disable-line not-declared",
+            "range": {
+              "end": {
+                "character": 1000,
+                "line": 5,
+              },
+              "start": {
+                "character": 1000,
+                "line": 5,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared on this line.",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file:///home/anton/bastels/vhdl-linter/test/unit_tests/addUseStatement/arch.vhd": [
+          {
+            "newText": "-- vhdl-linter-disable not-declared
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared for this file.",
+  },
+]
+`;
+
+exports[`testing add use statement actions for file entity.vhd 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "signal 'std_ulogic' is referenced but not declared (not-declared)",
+    "range": {
+      "end": {
+        "character": 22,
+        "line": 3,
+      },
+      "start": {
+        "character": 12,
+        "line": 3,
+      },
+    },
+    "severity": 1,
+  },
+]
+`;
+
+exports[`testing add use statement actions for file entity.vhd 2`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file:///home/anton/bastels/vhdl-linter/test/unit_tests/addUseStatement/entity.vhd": [
+          {
+            "newText": "use ieee.std_logic_1164.all;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 1,
+              },
+              "start": {
+                "character": 0,
+                "line": 1,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add use statement for ieee.std_logic_1164",
+  },
+]
+`;
+
+exports[`testing add use statement actions for file entity.vhd 3`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file:///home/anton/bastels/vhdl-linter/test/unit_tests/addUseStatement/entity.vhd": [
+          {
+            "newText": " -- vhdl-linter-disable-line not-declared",
+            "range": {
+              "end": {
+                "character": 1000,
+                "line": 3,
+              },
+              "start": {
+                "character": 1000,
+                "line": 3,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared on this line.",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file:///home/anton/bastels/vhdl-linter/test/unit_tests/addUseStatement/entity.vhd": [
+          {
+            "newText": "-- vhdl-linter-disable not-declared
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared for this file.",
+  },
+]
+`;
+
+exports[`testing add use statement actions for file entityWithLibrary.vhd 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "signal 'std_ulogic' is referenced but not declared (not-declared)",
+    "range": {
+      "end": {
+        "character": 22,
+        "line": 2,
+      },
+      "start": {
+        "character": 12,
+        "line": 2,
+      },
+    },
+    "severity": 1,
+  },
+]
+`;
+
+exports[`testing add use statement actions for file entityWithLibrary.vhd 2`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file:///home/anton/bastels/vhdl-linter/test/unit_tests/addUseStatement/entityWithLibrary.vhd": [
+          {
+            "newText": "library ieee;
+use ieee.std_logic_1164.all;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add use statement for ieee.std_logic_1164",
+  },
+]
+`;
+
+exports[`testing add use statement actions for file entityWithLibrary.vhd 3`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file:///home/anton/bastels/vhdl-linter/test/unit_tests/addUseStatement/entityWithLibrary.vhd": [
+          {
+            "newText": " -- vhdl-linter-disable-line not-declared",
+            "range": {
+              "end": {
+                "character": 1000,
+                "line": 2,
+              },
+              "start": {
+                "character": 1000,
+                "line": 2,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared on this line.",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file:///home/anton/bastels/vhdl-linter/test/unit_tests/addUseStatement/entityWithLibrary.vhd": [
+          {
+            "newText": "-- vhdl-linter-disable not-declared
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared for this file.",
+  },
+]
+`;
