@@ -25,7 +25,7 @@ exports[`testing add use statement actions for file arch.vhd 2`] = `
   {
     "edit": {
       "changes": {
-        "file:///home/anton/bastels/vhdl-linter/test/unit_tests/addUseStatement/arch.vhd": [
+        "file://dummy.vhd": [
           {
             "newText": "library ieee;
 use ieee.std_logic_1164.all;
@@ -55,7 +55,7 @@ exports[`testing add use statement actions for file arch.vhd 3`] = `
   {
     "edit": {
       "changes": {
-        "file:///home/anton/bastels/vhdl-linter/test/unit_tests/addUseStatement/arch.vhd": [
+        "file://dummy.vhd": [
           {
             "newText": " -- vhdl-linter-disable-line not-declared",
             "range": {
@@ -78,7 +78,7 @@ exports[`testing add use statement actions for file arch.vhd 3`] = `
   {
     "edit": {
       "changes": {
-        "file:///home/anton/bastels/vhdl-linter/test/unit_tests/addUseStatement/arch.vhd": [
+        "file://dummy.vhd": [
           {
             "newText": "-- vhdl-linter-disable not-declared
 ",
@@ -127,7 +127,7 @@ exports[`testing add use statement actions for file entity.vhd 2`] = `
   {
     "edit": {
       "changes": {
-        "file:///home/anton/bastels/vhdl-linter/test/unit_tests/addUseStatement/entity.vhd": [
+        "file://dummy.vhd": [
           {
             "newText": "use ieee.std_logic_1164.all;
 ",
@@ -156,7 +156,7 @@ exports[`testing add use statement actions for file entity.vhd 3`] = `
   {
     "edit": {
       "changes": {
-        "file:///home/anton/bastels/vhdl-linter/test/unit_tests/addUseStatement/entity.vhd": [
+        "file://dummy.vhd": [
           {
             "newText": " -- vhdl-linter-disable-line not-declared",
             "range": {
@@ -179,7 +179,7 @@ exports[`testing add use statement actions for file entity.vhd 3`] = `
   {
     "edit": {
       "changes": {
-        "file:///home/anton/bastels/vhdl-linter/test/unit_tests/addUseStatement/entity.vhd": [
+        "file://dummy.vhd": [
           {
             "newText": "-- vhdl-linter-disable not-declared
 ",
@@ -228,7 +228,7 @@ exports[`testing add use statement actions for file entityWithLibrary.vhd 2`] = 
   {
     "edit": {
       "changes": {
-        "file:///home/anton/bastels/vhdl-linter/test/unit_tests/addUseStatement/entityWithLibrary.vhd": [
+        "file://dummy.vhd": [
           {
             "newText": "library ieee;
 use ieee.std_logic_1164.all;
@@ -258,7 +258,7 @@ exports[`testing add use statement actions for file entityWithLibrary.vhd 3`] = 
   {
     "edit": {
       "changes": {
-        "file:///home/anton/bastels/vhdl-linter/test/unit_tests/addUseStatement/entityWithLibrary.vhd": [
+        "file://dummy.vhd": [
           {
             "newText": " -- vhdl-linter-disable-line not-declared",
             "range": {
@@ -281,7 +281,7 @@ exports[`testing add use statement actions for file entityWithLibrary.vhd 3`] = 
   {
     "edit": {
       "changes": {
-        "file:///home/anton/bastels/vhdl-linter/test/unit_tests/addUseStatement/entityWithLibrary.vhd": [
+        "file://dummy.vhd": [
           {
             "newText": "-- vhdl-linter-disable not-declared
 ",

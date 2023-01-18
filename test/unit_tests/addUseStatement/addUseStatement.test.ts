@@ -21,7 +21,8 @@ test.each([
   for (const message of linter.messages) {
     if (typeof message.code === 'string') {
       for (const action of message.code?.split(';') ?? []) {
-        expect(linter.diagnosticCodeActionRegistry[parseInt(action)](URI.file(linter.file.file).toString())).toMatchSnapshot();
+        const actions = linter.diagnosticCodeActionRegistry[parseInt(action)]('file://dummy.vhd');
+        expect(actions).toMatchSnapshot();
 
       }
     }
