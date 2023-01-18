@@ -146,15 +146,27 @@
 					"default": false,
 					"description": "Enables checking for multiple drivers."
 				},
-				"VhdlLinter.style.preferedLogicType": {
+				"VhdlLinter.style.preferredLogicTypePort": {
 					"scope": "window",
 					"type": "string",
 					"enum": [
-						"std_logic",
-						"std_ulogic"
+						"unresolved",
+						"resolved",
+						"ignore"
 					],
-					"default": "std_ulogic",
-					"description": "Preferred logic type (resolved/unresolved) to check for."
+					"default": "unresolved",
+					"description": "Preferred logic type (resolved/unresolved) to check for on ports."
+				},
+				"VhdlLinter.style.preferredLogicTypeSignal": {
+					"scope": "window",
+					"type": "string",
+					"enum": [
+						"unresolved",
+						"resolved",
+						"ignore"
+					],
+					"default": "unresolved",
+					"description": "Preferred logic type (resolved/unresolved) to check for on signals."
 				},
 				"VhdlLinter.style.unusedSignalRegex": {
 					"scope": "window",

@@ -465,6 +465,7 @@ export class OType extends ObjectBase implements I.IHasReferenceLinks, I.IHasSub
 }
 export class OSubType extends OType {
   superType: OReference;
+  resolved = false;
   referenceLinks: OReference[] = [];
 }
 export class OEnum extends OType {
