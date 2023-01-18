@@ -45,7 +45,7 @@ export class RTypeResolved extends RuleBase implements IRule {
         this.addMessage({
           range: object.typeReference[0].range,
           severity: DiagnosticSeverity.Information,
-          message: `Port is using resolved subtype (${object.typeReference.map(a => a.referenceToken.text).join()}) should use unresolved type ${unresolvedTypes.join(' or ')} `,
+          message: `Port is using resolved subtype (${object.typeReference[0].referenceToken.text}) should use unresolved type ${unresolvedTypes.join(' or ')} `,
           code
         });
       }
@@ -68,7 +68,6 @@ export class RTypeResolved extends RuleBase implements IRule {
             }
           }
         }
-        console.log('a');
       }
       let resolved = false;
       // The subtype of as resolved subtype is also resolved. This is not correctly checked here
@@ -80,8 +79,9 @@ export class RTypeResolved extends RuleBase implements IRule {
         const root = definition.getRootElement();
         let resolvedSubtype: string[] = [];
         for (const subtype of root.types) {
-          if (subtype instanceof OSubType && subtype.resolved && alias.indexOf(subtype.superType.referenceToken.getLText()) > -1)
+          if (subtype instanceof OSubType && subtype.resolved && alias.indexOf(subtype.superType.referenceToken.getLText()) > -1) {
             resolvedSubtype.push(subtype.lexerToken.text);
+          }
         }
         if (resolvedSubtype.length > 0) {
           // Handle casing for IEEE packages
@@ -108,7 +108,7 @@ export class RTypeResolved extends RuleBase implements IRule {
           this.addMessage({
             range: object.typeReference[0].range,
             severity: DiagnosticSeverity.Information,
-            message: `Port is using unresolved type (${object.typeReference.map(a => a.referenceToken.text).join()}) should use resolved subtype ${resolvedSubtype.join(' or ')} `,
+            message: `Port is using unresolved type (${object.typeReference[0].referenceToken.text}) should use resolved subtype ${resolvedSubtype.join(' or ')} `,
             code
           });
         }
