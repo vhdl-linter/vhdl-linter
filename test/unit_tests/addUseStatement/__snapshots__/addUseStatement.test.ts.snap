@@ -316,6 +316,24 @@ exports[`testing add use statement actions for file constant.vhd 2`] = `
     "kind": "quickfix",
     "title": "add use statement for ieee.numeric_std_unsigned",
   },
+  {
+    "command": {
+      "arguments": [
+        {
+          "position": {
+            "character": 0,
+            "line": 5,
+          },
+          "signalName": "CopyRightNotice",
+          "textDocumentUri": "file://dummy.vhd",
+        },
+      ],
+      "command": "vhdl-linter:add-signal",
+      "title": "add signal to architecture",
+    },
+    "kind": "quickfix",
+    "title": "add signal to architecture",
+  },
 ]
 `;
 
@@ -740,6 +758,24 @@ exports[`testing add use statement actions for file function.vhd 2`] = `
     "kind": "quickfix",
     "title": "add use statement for ieee.numeric_std_unsigned",
   },
+  {
+    "command": {
+      "arguments": [
+        {
+          "position": {
+            "character": 0,
+            "line": 7,
+          },
+          "signalName": "to_integer",
+          "textDocumentUri": "file://dummy.vhd",
+        },
+      ],
+      "command": "vhdl-linter:add-signal",
+      "title": "add signal to architecture",
+    },
+    "kind": "quickfix",
+    "title": "add signal to architecture",
+  },
 ]
 `;
 
@@ -841,6 +877,24 @@ use ieee.math_real.all;
     },
     "kind": "quickfix",
     "title": "add use statement for ieee.math_real",
+  },
+  {
+    "command": {
+      "arguments": [
+        {
+          "position": {
+            "character": 0,
+            "line": 14,
+          },
+          "signalName": "ceil",
+          "textDocumentUri": "file://dummy.vhd",
+        },
+      ],
+      "command": "vhdl-linter:add-signal",
+      "title": "add signal to architecture",
+    },
+    "kind": "quickfix",
+    "title": "add signal to architecture",
   },
 ]
 `;

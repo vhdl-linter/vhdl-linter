@@ -1,0 +1,420 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`testing add signal helper architecture.vhd 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "signal 'foo' is written but not declared (not-declared)",
+    "range": {
+      "end": {
+        "character": 5,
+        "line": 10,
+      },
+      "start": {
+        "character": 2,
+        "line": 10,
+      },
+    },
+    "severity": 1,
+  },
+]
+`;
+
+exports[`testing add signal helper architecture.vhd 2`] = `
+[
+  {
+    "command": {
+      "arguments": [
+        {
+          "position": {
+            "character": 0,
+            "line": 9,
+          },
+          "signalName": "foo",
+          "textDocumentUri": "file://dummy.vhd",
+        },
+      ],
+      "command": "vhdl-linter:add-signal",
+      "title": "add signal to architecture",
+    },
+    "kind": "quickfix",
+    "title": "add signal to architecture",
+  },
+]
+`;
+
+exports[`testing add signal helper architecture.vhd 3`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file://dummy.vhd": [
+          {
+            "newText": " -- vhdl-linter-disable-line not-declared",
+            "range": {
+              "end": {
+                "character": 1000,
+                "line": 10,
+              },
+              "start": {
+                "character": 1000,
+                "line": 10,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared on this line.",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file://dummy.vhd": [
+          {
+            "newText": "-- vhdl-linter-disable not-declared
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared for this file.",
+  },
+]
+`;
+
+exports[`testing add signal helper file.vhd 1`] = `
+[
+  {
+    "code": "0",
+    "message": "can not find entity foo (instantiation)",
+    "range": {
+      "end": {
+        "character": 28,
+        "line": 18,
+      },
+      "start": {
+        "character": 13,
+        "line": 18,
+      },
+    },
+    "severity": 2,
+  },
+  {
+    "code": "1;2",
+    "message": "signal 'test' is referenced but not declared (not-declared)",
+    "range": {
+      "end": {
+        "character": 17,
+        "line": 20,
+      },
+      "start": {
+        "character": 13,
+        "line": 20,
+      },
+    },
+    "severity": 1,
+  },
+]
+`;
+
+exports[`testing add signal helper file.vhd 2`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file://dummy.vhd": [
+          {
+            "newText": " -- vhdl-linter-disable-line instantiation",
+            "range": {
+              "end": {
+                "character": 1000,
+                "line": 18,
+              },
+              "start": {
+                "character": 1000,
+                "line": 18,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore instantiation on this line.",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file://dummy.vhd": [
+          {
+            "newText": "-- vhdl-linter-disable instantiation
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore instantiation for this file.",
+  },
+]
+`;
+
+exports[`testing add signal helper file.vhd 3`] = `
+[
+  {
+    "command": {
+      "arguments": [
+        {
+          "position": {
+            "character": 0,
+            "line": 17,
+          },
+          "signalName": "test",
+          "textDocumentUri": "file://dummy.vhd",
+        },
+      ],
+      "command": "vhdl-linter:add-signal",
+      "title": "add signal to architecture",
+    },
+    "kind": "quickfix",
+    "title": "add signal to architecture",
+  },
+]
+`;
+
+exports[`testing add signal helper file.vhd 4`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file://dummy.vhd": [
+          {
+            "newText": " -- vhdl-linter-disable-line not-declared",
+            "range": {
+              "end": {
+                "character": 1000,
+                "line": 20,
+              },
+              "start": {
+                "character": 1000,
+                "line": 20,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared on this line.",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file://dummy.vhd": [
+          {
+            "newText": "-- vhdl-linter-disable not-declared
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared for this file.",
+  },
+]
+`;
+
+exports[`testing add signal helper generic.vhd 1`] = `
+[
+  {
+    "code": "0",
+    "message": "can not find entity foo (instantiation)",
+    "range": {
+      "end": {
+        "character": 28,
+        "line": 18,
+      },
+      "start": {
+        "character": 13,
+        "line": 18,
+      },
+    },
+    "severity": 2,
+  },
+  {
+    "code": "1;2",
+    "message": "signal 'test' is referenced but not declared (not-declared)",
+    "range": {
+      "end": {
+        "character": 17,
+        "line": 20,
+      },
+      "start": {
+        "character": 13,
+        "line": 20,
+      },
+    },
+    "severity": 1,
+  },
+]
+`;
+
+exports[`testing add signal helper generic.vhd 2`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file://dummy.vhd": [
+          {
+            "newText": " -- vhdl-linter-disable-line instantiation",
+            "range": {
+              "end": {
+                "character": 1000,
+                "line": 18,
+              },
+              "start": {
+                "character": 1000,
+                "line": 18,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore instantiation on this line.",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file://dummy.vhd": [
+          {
+            "newText": "-- vhdl-linter-disable instantiation
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore instantiation for this file.",
+  },
+]
+`;
+
+exports[`testing add signal helper generic.vhd 3`] = `
+[
+  {
+    "command": {
+      "arguments": [
+        {
+          "position": {
+            "character": 0,
+            "line": 17,
+          },
+          "signalName": "test",
+          "textDocumentUri": "file://dummy.vhd",
+        },
+      ],
+      "command": "vhdl-linter:add-signal",
+      "title": "add signal to architecture",
+    },
+    "kind": "quickfix",
+    "title": "add signal to architecture",
+  },
+]
+`;
+
+exports[`testing add signal helper generic.vhd 4`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file://dummy.vhd": [
+          {
+            "newText": " -- vhdl-linter-disable-line not-declared",
+            "range": {
+              "end": {
+                "character": 1000,
+                "line": 20,
+              },
+              "start": {
+                "character": 1000,
+                "line": 20,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared on this line.",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file://dummy.vhd": [
+          {
+            "newText": "-- vhdl-linter-disable not-declared
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared for this file.",
+  },
+]
+`;
