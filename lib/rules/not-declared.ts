@@ -1,45 +1,75 @@
 import { findBestMatch } from "string-similarity";
 import { CodeAction, CodeActionKind, Command, DiagnosticSeverity, Position, Range, TextEdit } from "vscode-languageserver";
+import { URI } from "vscode-uri";
 import { IHasLexerToken, implementsIHasLexerToken, implementsIHasUseClause } from "../parser/interfaces";
-import { OArchitecture, OAssociation, OAttributeReference, OFormalReference, OInstantiation, OLabelReference, OReference, OUseClause, OWrite } from "../parser/objects";
+import { OArchitecture, OAssociation, OAttributeReference, OFormalReference, OInstantiation, OLabelReference, OPackageBody, OPort, OReference, OSignal, OUseClause, OVariable, OWrite } from "../parser/objects";
+import { ISettings } from "../settings";
 import { IAddSignalCommandArguments } from "../vhdl-linter";
 import { IRule, RuleBase } from "./rules-base";
 export class RNotDeclared extends RuleBase implements IRule {
   public name = 'not-declared';
-
-  private pushNotDeclaredError(token: OReference) {
-    const code = this.vhdlLinter.addCodeActionCallback((textDocumentUri: string) => {
-      const actions = [];
-      for (const o of this.file.objectList) {
-        if (implementsIHasUseClause(o)) {
-          for (const pkg of o.packageDefinitions) {
-            const thing = pkg.constants.find(constant => constant.lexerToken.getLText() === token.referenceToken.getLText()) || pkg.types.find(type => type.lexerToken.getLText() === token.referenceToken.getLText())
-              || pkg.subprograms.find(subprogram => subprogram.lexerToken.getLText() === token.referenceToken.getLText());
-            if (thing) {
-              const architecture = token.getRootElement();
-              const pos = Position.create(0, 0);
-              if (architecture && architecture.useClauses.length > 0) {
-                pos.line = architecture.useClauses[architecture.useClauses.length - 1].range.end.line + 1;
-              }
-              actions.push(CodeAction.create(
-                'add use statement for ' + pkg.lexerToken,
-                {
-                  changes: {
-                    [textDocumentUri]: [TextEdit.insert(pos, `use ${pkg.targetLibrary ? pkg.targetLibrary : 'work'}.${pkg.lexerToken}.all;\n`)]
-                  }
-                },
-                CodeActionKind.QuickFix
-              ));
+  private findUsePackageActions(ref: OReference, textDocumentUri: string): CodeAction[] {
+    const actions: CodeAction[] = [];
+    const proposals = new Set<string>();
+    let root = ref.getRootElement();
+    if (root instanceof OArchitecture && root.correspondingEntity) {
+      root = root.correspondingEntity;
+    } else if (root instanceof OPackageBody && root.correspondingPackage) {
+      root = root.correspondingPackage;
+    }
+    const pos = root.range.start;
+    for (const pkg of this.vhdlLinter.projectParser.packages) {
+      for (const type of [...pkg.constants, ...pkg.types, ...pkg.subprograms]) {
+        if (type.lexerToken.getLText() === ref.referenceToken.getLText()) {
+          let library = pkg.targetLibrary ? pkg.targetLibrary : 'work';
+          let pkgName = pkg.lexerToken.text;
+          if (library === 'work' && pkg.rootFile.file.match(/ieee/i)) {
+            if (this.settings.style.ieeeCasing === 'lowercase') {
+              pkgName = pkgName.toLowerCase();
+              library = 'ieee';
+            } else {
+              library = 'IEEE';
             }
           }
+
+          proposals.add(`${library}.${pkgName}`);
+
         }
       }
-      for (const architecture of this.file.architectures) {
-        const args: IAddSignalCommandArguments = { textDocumentUri, signalName: token.referenceToken.text, position: architecture.endOfDeclarativePart ?? architecture.range.start };
-        actions.push(CodeAction.create(
-          'add signal to architecture',
-          Command.create('add signal to architecture', 'vhdl-linter:add-signal', args),
-          CodeActionKind.QuickFix));
+    }
+
+    for (const proposal of [...proposals].sort()) {
+      const [library, pkgName] = proposal.split('.');
+      let newText = `use ${library}.${pkgName}.all;\n`;
+      if (root.libraries.find(libraryIt => libraryIt.lexerToken.getLText() === library.toLowerCase()) === undefined) {
+        newText = `library ${library};\n${newText}`;
+      }
+      actions.push(CodeAction.create(
+        `add use statement for ${library}.${pkgName}`,
+        {
+          changes: {
+            [textDocumentUri]: [TextEdit.insert(pos, newText)]
+          }
+        },
+        CodeActionKind.QuickFix
+      ));
+
+    }
+    return actions;
+  }
+  private pushNotDeclaredError(token: OReference) {
+    const code = this.vhdlLinter.addCodeActionCallback((textDocumentUri: string) => {
+      const actions: CodeAction[] = [];
+      actions.push(...this.findUsePackageActions(token, textDocumentUri));
+      // If parent is Signal, Port or Variable this reference is in the type reference. So adding signal makes no sense.
+      if (token.parent instanceof OSignal === false && token.parent instanceof OPort === false && token.parent instanceof OVariable) {
+        for (const architecture of this.file.architectures) {
+          const args: IAddSignalCommandArguments = { textDocumentUri, signalName: token.referenceToken.text, position: architecture.endOfDeclarativePart ?? architecture.range.start };
+          actions.push(CodeAction.create(
+            'add signal to architecture',
+            Command.create('add signal to architecture', 'vhdl-linter:add-signal', args),
+            CodeActionKind.QuickFix));
+        }
       }
       const possibleMatches = this.file.objectList
         .filter(obj => typeof obj !== 'undefined' && implementsIHasLexerToken(obj))
@@ -101,7 +131,11 @@ export class RNotDeclared extends RuleBase implements IRule {
       message: `port '${reference.referenceToken.text}' does not exist`
     });
   }
+  private settings: ISettings;
+
   async check() {
+    this.settings = (await this.vhdlLinter.settingsGetter(URI.file(this.vhdlLinter.editorPath).toString()));
+
     for (const obj of this.file.objectList) {
       if (obj instanceof OInstantiation) { // Instantiation handled somewhere else, where?
         continue;

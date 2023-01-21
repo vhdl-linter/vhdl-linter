@@ -11,7 +11,7 @@ export class EntityParser extends ParserBase {
     let library: string | undefined = undefined;
     const match = this.parent.originalText.match(/!\s*@library\s+(\S+)/i);
     library = match ? match[1] : undefined;
-    this.entity = new OEntity(this.parent, this.getToken().range.copyExtendEndOfLine(), library);
+    this.entity = new OEntity(this.parent, this.getToken(-1, true).range.copyExtendEndOfLine(), library);
     this.debug(`start`);
   }
   parse(): OEntity {
