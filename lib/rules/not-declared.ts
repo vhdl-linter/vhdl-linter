@@ -8,7 +8,7 @@ import { IAddSignalCommandArguments } from "../vhdl-linter";
 import { IRule, RuleBase } from "./rules-base";
 export class RNotDeclared extends RuleBase implements IRule {
   public name = 'not-declared';
-  private findPossiblePackage(ref: OReference, textDocumentUri: string): CodeAction[] {
+  private findUsePackageActions(ref: OReference, textDocumentUri: string): CodeAction[] {
     const actions: CodeAction[] = [];
     const proposals = new Set<string>();
     let root = ref.getRootElement();
@@ -22,7 +22,7 @@ export class RNotDeclared extends RuleBase implements IRule {
       for (const type of [...pkg.constants, ...pkg.types, ...pkg.subprograms]) {
         if (type.lexerToken.getLText() === ref.referenceToken.getLText()) {
           let library = pkg.targetLibrary ? pkg.targetLibrary : 'work';
-          let pkgName = pkg.lexerToken.text ;
+          let pkgName = pkg.lexerToken.text;
           if (library === 'work' && pkg.rootFile.file.match(/ieee/i)) {
             if (this.settings.style.ieeeCasing === 'lowercase') {
               pkgName = pkgName.toLowerCase();
@@ -60,7 +60,7 @@ export class RNotDeclared extends RuleBase implements IRule {
   private pushNotDeclaredError(token: OReference) {
     const code = this.vhdlLinter.addCodeActionCallback((textDocumentUri: string) => {
       const actions: CodeAction[] = [];
-      actions.push(...this.findPossiblePackage(token, textDocumentUri));
+      actions.push(...this.findUsePackageActions(token, textDocumentUri));
       // If parent is Signal, Port or Variable this reference is in the type reference. So adding signal makes no sense.
       if (token.parent instanceof OSignal === false && token.parent instanceof OPort === false && token.parent instanceof OVariable) {
         for (const architecture of this.file.architectures) {
