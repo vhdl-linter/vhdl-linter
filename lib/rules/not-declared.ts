@@ -37,7 +37,8 @@ export class RNotDeclared extends RuleBase implements IRule {
         }
       }
     }
-    for (const proposal of proposals) {
+
+    for (const proposal of [...proposals].sort()) {
       const [library, pkgName] = proposal.split('.');
       let newText = `use ${library}.${pkgName}.all;\n`;
       if (root.libraries.find(libraryIt => libraryIt.lexerToken.getLText() === library.toLowerCase()) === undefined) {

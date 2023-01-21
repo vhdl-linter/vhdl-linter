@@ -225,30 +225,6 @@ exports[`testing add use statement actions for file constant.vhd 2`] = `
       "changes": {
         "file://dummy.vhd": [
           {
-            "newText": "use ieee.numeric_bit_unsigned.all;
-",
-            "range": {
-              "end": {
-                "character": 0,
-                "line": 1,
-              },
-              "start": {
-                "character": 0,
-                "line": 1,
-              },
-            },
-          },
-        ],
-      },
-    },
-    "kind": "quickfix",
-    "title": "add use statement for ieee.numeric_bit_unsigned",
-  },
-  {
-    "edit": {
-      "changes": {
-        "file://dummy.vhd": [
-          {
             "newText": "use ieee.numeric_bit.all;
 ",
             "range": {
@@ -267,6 +243,30 @@ exports[`testing add use statement actions for file constant.vhd 2`] = `
     },
     "kind": "quickfix",
     "title": "add use statement for ieee.numeric_bit",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file://dummy.vhd": [
+          {
+            "newText": "use ieee.numeric_bit_unsigned.all;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 1,
+              },
+              "start": {
+                "character": 0,
+                "line": 1,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add use statement for ieee.numeric_bit_unsigned",
   },
   {
     "edit": {
