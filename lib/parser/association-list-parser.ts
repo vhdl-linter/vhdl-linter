@@ -45,7 +45,7 @@ export class AssociationListParser extends ParserBase {
           const actualPart = references.filter(reference => reference instanceof OFormalReference === false);
           association.actualIfInput = actualPart;
         }
-        { // Parse assuming association is output
+        if (type === 'port') { // Parse assuming association is output
           const expressionParser = new ExpressionParser(this.state, association, associationTokens);
           const references = expressionParser.parseAssociationElement();
           association.formalPart = references.filter(reference => reference instanceof OFormalReference);
@@ -58,7 +58,7 @@ export class AssociationListParser extends ParserBase {
           });
           association.actualIfOutput = [actualPart.slice(1), writes];
         }
-        { // Parse assuming association is inout
+        if (type === 'port') { // Parse assuming association is inout
           const expressionParser = new ExpressionParser(this.state, association, associationTokens);
           const references = expressionParser.parseAssociationElement();
           association.formalPart = references.filter(reference => reference instanceof OFormalReference);

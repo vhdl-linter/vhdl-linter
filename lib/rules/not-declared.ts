@@ -1,7 +1,7 @@
 import { findBestMatch } from "string-similarity";
-import { CodeAction, CodeActionKind, Command, DiagnosticSeverity, Position, Range, TextEdit } from "vscode-languageserver";
+import { CodeAction, CodeActionKind, Command, DiagnosticSeverity, Range, TextEdit } from "vscode-languageserver";
 import { URI } from "vscode-uri";
-import { IHasLexerToken, implementsIHasLexerToken, implementsIHasUseClause } from "../parser/interfaces";
+import { IHasLexerToken, implementsIHasLexerToken } from "../parser/interfaces";
 import { OArchitecture, OAssociation, OAttributeReference, OFormalReference, OInstantiation, OLabelReference, OPackageBody, OPort, OReference, OSignal, OUseClause, OVariable, OWrite } from "../parser/objects";
 import { ISettings } from "../settings";
 import { IAddSignalCommandArguments } from "../vhdl-linter";
@@ -95,38 +95,8 @@ export class RNotDeclared extends RuleBase implements IRule {
     });
   }
   private pushAssociationError(reference: OReference) {
-    const code = this.vhdlLinter.addCodeActionCallback((textDocumentUri: string) => {
-      const actions = [];
-      for (const o of this.file.objectList) {
-        if (implementsIHasUseClause(o)) {
-          for (const pkg of o.packageDefinitions) {
-            const thing = pkg.constants.find(constant => constant.lexerToken.getLText() === reference.referenceToken.getLText()) || pkg.types.find(type => type.lexerToken.getLText() === reference.referenceToken.getLText())
-              || pkg.subprograms.find(subprogram => subprogram.lexerToken.getLText() === reference.referenceToken.getLText());
-            if (thing) {
-              const architecture = reference.getRootElement();
-              const pos = Position.create(0, 0);
-              if (architecture && architecture.useClauses.length > 0) {
-                pos.line = architecture.useClauses[architecture.useClauses.length - 1].range.end.line + 1;
-              }
-              actions.push(CodeAction.create(
-                'add use statement for ' + pkg.lexerToken,
-                {
-                  changes: {
-                    [textDocumentUri]: [TextEdit.insert(pos, `use ${pkg.targetLibrary ? pkg.targetLibrary : 'work'}.${pkg.lexerToken}.all;\n`)]
-                  }
-                },
-                CodeActionKind.QuickFix
-              ));
-            }
-          }
-        }
-      }
-
-      return actions;
-    });
     this.addMessage({
       range: reference.range,
-      code: code,
       severity: DiagnosticSeverity.Error,
       message: `port '${reference.referenceToken.text}' does not exist`
     });
@@ -159,7 +129,9 @@ export class RNotDeclared extends RuleBase implements IRule {
         });
       } else if (obj instanceof OReference && obj.referenceToken.isIdentifier() === false) {
         // Do nothing is probably string literal
-      } else if (obj instanceof OReference && obj.parent instanceof OAssociation && obj.definitions.length === 0) {
+      } else if (obj instanceof OFormalReference
+        && obj.parent instanceof OAssociation && obj.definitions.length === 0) {
+        // Check for formal references (ie. port names).
         const instOrPackage = obj.parent.parent.parent;
         // if instantiations entity/component/subprogram is not found, don't report read errors
         if (instOrPackage instanceof OInstantiation && instOrPackage.definitions.length > 0) {
