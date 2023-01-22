@@ -85,7 +85,7 @@ export class ExpressionParser extends ParserBase {
         references.push(new OFormalReference(this.parent, token));
       } else if (index > 0) {
         if (write && (this.expState.leftHandSide || this.expState.maybeOutput || this.expState.maybeInOut) ) {
-          const write = new OSelectedNameWrite(this.parent, token, buffer.slice(0, index) as SelectedNamePrefix)
+          const write = new OSelectedNameWrite(this.parent, token, buffer.slice(0, index) as SelectedNamePrefix);
           references.push(write);
           write.inAssociation = this.expState.maybeOutput || this.expState.maybeInOut;
           if (this.expState.maybeInOut) {
