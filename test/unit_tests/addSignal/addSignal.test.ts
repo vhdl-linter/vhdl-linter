@@ -9,8 +9,10 @@ import { VhdlLinter } from '../../../lib/vhdl-linter';
 const files = readdirSync(__dirname).filter(file => file.endsWith('.vhd'));
 test.each(files)('testing add signal helper %s', async (file: string) => {
   const path = join(__dirname, file);
+  const projectParser = await ProjectParser.create([__dirname], '', defaultSettingsGetter);
+
   const linter = new VhdlLinter(path, readFileSync(path, { encoding: 'utf8' }),
-    await ProjectParser.create([__dirname], '', defaultSettingsGetter), defaultSettingsGetter);
+    projectParser, defaultSettingsGetter);
   await linter.checkAll();
 
   expect(linter.messages).toMatchSnapshot();
@@ -23,4 +25,5 @@ test.each(files)('testing add signal helper %s', async (file: string) => {
       }
     }
   }
+  await projectParser.stop();
 });
