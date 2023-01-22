@@ -67,7 +67,7 @@ export class VhdlLinter {
       } else {
         this.messages.push({
           range: Range.create(Position.create(0, 0), Position.create(10, 10)),
-          message: `Javascript error while parsing '${e.message}'`
+          message: `Javascript error while parsing '${e.message}' ${e.stack}`
         });
         console.error(e);
         this.file = new OFile(this.text, this.editorPath, this.text);

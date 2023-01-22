@@ -115,10 +115,14 @@ export class RNotDeclared extends RuleBase implements IRule {
         continue;
       }
       if (obj instanceof OAttributeReference) {
-        // TODO handle Attribute References
-        continue;
-      }
-      if (obj instanceof OUseClause) {
+        if (obj.definitions.length === 0) {
+          this.addMessage({
+            range: obj.range,
+            severity: DiagnosticSeverity.Error,
+            message: `attribute '${obj.referenceToken.text}' is referenced but not declared`
+          });
+        }
+      } else if (obj instanceof OUseClause) {
         // Do nothing in case of use clause
         // This is already handled
       } else if (obj instanceof OArchitecture && obj.correspondingEntity === undefined) {

@@ -2,6 +2,8 @@ import { OLexerToken } from "../lexer";
 import { OAttributeReference, ObjectBase, OFormalReference, OReference, OSelectedName, OSelectedNameWrite, OWrite, ParserError, SelectedNamePrefix } from "./objects";
 import { ParserBase, ParserState } from "./parser-base";
 type ExpParserState = {
+  maybeOutput: boolean;
+  maybeInOut: boolean;
   num: number;
   lastFormal: OLexerToken[]; // This is for checking if the actual is empty
   leftHandSide: boolean; // Is this the left hand of an assignment
@@ -12,7 +14,9 @@ export class ExpressionParser extends ParserBase {
   private expState: ExpParserState = {
     num: 0,
     lastFormal: [],
-    leftHandSide: false
+    leftHandSide: false,
+    maybeOutput: false,
+    maybeInOut: false
   };
   constructor(state: ParserState, private parent: ObjectBase, private tokens: OLexerToken[]) {
     super(state);
@@ -30,6 +34,15 @@ export class ExpressionParser extends ParserBase {
     const result = this.inner();
     return result;
   }
+  // Shim, until supported by ESNEXT
+  private findLastIndex<T>(array: T[], callback: (a: T) => boolean ) {
+    for (let i = array.length - 1; i >= 0; i--) {
+      if (callback(array[i])) {
+        return i;
+      }
+    }
+    return -1;
+  }
   splitBuffer(buffer: OLexerToken[], formal: boolean, write: boolean): OReference[] {
     const references = [];
     let alternativeIndex = buffer.findIndex(token => token.getLText() === '|');
@@ -40,16 +53,27 @@ export class ExpressionParser extends ParserBase {
       alternativeIndex = buffer.findIndex(token => token.getLText() === '|');
     }
 
-    const attributeIndex = buffer.findIndex(token => token.getLText() === '\'');
-    if (attributeIndex > -1) {
-      const attributeReferences = this.convertToReference(buffer.slice(0, attributeIndex), false, false);
-      references.push(...attributeReferences);
-      for (const token of buffer.slice(attributeIndex + 1)) {
-        references.push(new OAttributeReference(this.parent, token, attributeReferences[attributeReferences.length - 1]));
+    let attributeIndex = this.findLastIndex(buffer, token => token.getLText() === '\'');
+    let lastAttributeReference: OAttributeReference | undefined;
+    while (attributeIndex > -1) {
+      // If there is not a name after ' mark. This is a type designation
+      if (buffer[attributeIndex + 1] !== undefined) {
+        const attributeReference = new OAttributeReference(this.parent, buffer[attributeIndex + 1]);
+        references.push(attributeReference);
+        if (lastAttributeReference) {
+          attributeReference.prefix = attributeReference;
+        }
+        lastAttributeReference = attributeReference;
       }
-    } else {
-      references.push(...this.convertToReference(buffer, formal, write));
+      buffer = buffer.slice(0, attributeIndex);
+      attributeIndex = this.findLastIndex(buffer, token => token.getLText() === '\'');
 
+    }
+    if (attributeIndex === -1) {
+      references.push(...this.convertToReference(buffer, formal, write));
+      if (lastAttributeReference) {
+        lastAttributeReference.prefix = references[references.length - 1];
+      }
     }
     return references;
   }
@@ -60,14 +84,24 @@ export class ExpressionParser extends ParserBase {
       if (formal) {
         references.push(new OFormalReference(this.parent, token));
       } else if (index > 0) {
-        if (write && this.expState.leftHandSide) {
-          references.push(new OSelectedNameWrite(this.parent, token, buffer.slice(0, index) as SelectedNamePrefix));
+        if (write && (this.expState.leftHandSide || this.expState.maybeOutput || this.expState.maybeInOut) ) {
+          const write = new OSelectedNameWrite(this.parent, token, buffer.slice(0, index) as SelectedNamePrefix)
+          references.push(write);
+          write.inAssociation = this.expState.maybeOutput || this.expState.maybeInOut;
+          if (this.expState.maybeInOut) {
+            references.push(new OSelectedName(this.parent, token, buffer.slice(0, index) as SelectedNamePrefix));
+          }
         } else {
           references.push(new OSelectedName(this.parent, token, buffer.slice(0, index) as SelectedNamePrefix));
         }
       } else {
-        if (write && this.expState.leftHandSide) {
-          references.push(new OWrite(this.parent, token));
+        if (write && (this.expState.leftHandSide || this.expState.maybeOutput || this.expState.maybeInOut)) {
+          const write = new OWrite(this.parent, token);
+          write.inAssociation = this.expState.maybeOutput || this.expState.maybeInOut;
+          references.push(write);
+          if (this.expState.maybeInOut) {
+            references.push(new OReference(this.parent, token));
+          }
         } else {
           references.push(new OReference(this.parent, token));
         }
@@ -80,6 +114,7 @@ export class ExpressionParser extends ParserBase {
     let tokenBuffer: OLexerToken[] = [];
     let innerReferences: OReference[] | undefined;
     let containedBraces = false;
+    let lastToken: OLexerToken | undefined;
     while (this.expState.num < this.tokens.length && this.getNumToken()?.getLText() !== ')') {
       if (this.getNumToken()?.getLText() === '(') {
         const aggregate = this.getNumToken(-1) === undefined;
@@ -101,14 +136,15 @@ export class ExpressionParser extends ParserBase {
         // If the token is one of the break tokens a new name/selected name or combined identifier starts.
         // The collected tokens up to this point are then split and converted into OReferences and other objects
         const breakToken = breakTokens.find(token => token === this.getNumToken()?.getLText() ?? '');
-        if (breakToken) {
+        // Attributes are handled as one block, so check that the break token is not after a attribute ' mark.
+        if (breakToken && lastToken?.getLText() !== '\'') {
           const formal = maybeFormal && breakToken === '=>';
           // If braces were contained. This token was a cast on the formal side (so a reference not formal)
           references.push(...this.splitBuffer(tokenBuffer, formal && containedBraces === false, maybeWrite));
 
           // Only the first token can be a write. For example signal.record_element only the signal is written.
           // The exception is in an aggregate all aggregate elements are written. (aggregate elements are separated by ',')
-          if (breakToken !== ',') {
+          if (breakToken !== ',' && breakToken !== '=>') {
             maybeWrite = false;
           }
           if (innerReferences) {
@@ -129,7 +165,7 @@ export class ExpressionParser extends ParserBase {
           tokenBuffer.push(this.getNumToken() as OLexerToken);
         }
       }
-
+      lastToken = this.getNumToken();
       this.increaseToken();
     }
     references.push(...this.splitBuffer(tokenBuffer, false, maybeWrite));
@@ -161,7 +197,7 @@ export class ExpressionParser extends ParserBase {
       result.filter(ref => ref instanceof OWrite) as OWrite[]
     ];
   }
-  parseAssociationElement() {
+  parseAssociationElement(maybeOutput = false, maybeInOut = false): OReference[] {
     if (this.tokens.length === 0) {
       this.state.messages.push({
         message: 'expression empty',
@@ -169,7 +205,14 @@ export class ExpressionParser extends ParserBase {
       });
       return [];
     }
-    const result = this.inner(true);
+    if (maybeOutput) {
+      this.expState.maybeOutput = true;
+    }
+    if (maybeInOut) {
+      this.expState.maybeInOut = true;
+    }
+
+    const result = this.inner(true, maybeOutput || maybeInOut);
     return result;
   }
 

@@ -62,4 +62,49 @@ package standard is
   procedure FILE_OPEN (file F        :    FT;
                        External_Name : in string;
                        Open_Kind     : in file_open_kind := read_mode);
+
+-- This is a dummy declaration for predefined attributes according to LRM 16.2
+
+  -- 16.2.2 Predefined attributes of types and objects
+  attribute base          : t;
+  attribute left          : t;
+  attribute right         : t;
+  attribute high          : t;
+  attribute low           : t;
+  attribute ascending     : t;
+  attribute image         : t;
+  attribute value         : t;
+  attribute pos           : t;
+  attribute val           : t;
+  attribute succ          : t;
+  attribute pred          : t;
+  attribute leftof        : t;
+  attribute rightof       : t;
+  attribute subtype       : t;
+-- 16.2.3 Predefined attributes of arrays
+  attribute left          : t;
+  attribute right         : t;
+  attribute high          : t;
+  attribute low           : t;
+  attribute range         : t;
+  attribute reverse_range : t;
+  attribute length        : t;
+  attribute ascending     : t;
+  attribute element       : t;
+-- 16.2.4 Predefined attributes of signals
+  attribute delayed       : t;
+  attribute stable       : t;
+  attribute quiet       : t;
+  attribute transaction       : t;
+  attribute event       : t;
+  attribute active       : t;
+  attribute last_event       : t;
+  attribute last_active       : t;
+  attribute last_value       : t;
+  attribute driving       : t;
+  attribute driving_value       : t;
+  -- 16.2.5 Predefined attributes of named entities
+  attribute simple_name       : t;
+  attribute instance_name       : t;
+  attribute path_name       : t;
 end;
