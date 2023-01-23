@@ -15,6 +15,6 @@ architecture arch of basic_test is
 begin
   test : process
   begin
-    report integer'asd(foo'length);
+    report integer'asd(foo'length); -- 'asd does not exist on integer
   end process;
 end architecture;

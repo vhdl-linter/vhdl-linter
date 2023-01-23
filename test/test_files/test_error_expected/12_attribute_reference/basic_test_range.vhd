@@ -1,3 +1,4 @@
+-- all files basic_test_xxx.vhd are variations of test_files/test_no_error/12_attribute_reference/basic_test.vhd where an attribute is misspelled.
 -- vhdl-linter-disable unused
 library ieee;
 use ieee.std_logic_1164.all;
@@ -9,7 +10,7 @@ end basic_test;
 
 architecture arch of basic_test is
   signal foo : std_ulogic_vector(5 downto 0);
-  signal bar : std_ulogic_vector(foo'asd);
+  signal bar : std_ulogic_vector(foo'asd); -- 'asd does not exist on foo
   signal yoo : bar'subtype;
 begin
   test : process

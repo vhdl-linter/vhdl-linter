@@ -1,3 +1,4 @@
+-- all files basic_test_xxx.vhd are variations of test_files/test_no_error/12_attribute_reference/basic_test.vhd where an attribute is misspelled.
 -- vhdl-linter-disable unused
 library ieee;
 use ieee.std_logic_1164.all;
@@ -15,7 +16,7 @@ begin
   test : process
   begin
     report integer'image(foo'length);
-    report integer'image(bar'asd'length);
+    report integer'image(bar'asd'length); -- 'asd does not exist on bar
 
   end process;
 end architecture;
