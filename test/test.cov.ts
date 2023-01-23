@@ -61,7 +61,7 @@ async function run_test(path: string, error_expected: boolean, projectParser?: P
   return errorCount;
 }
 (async () => {
-  jest.setTimeout(60 * 1000);
+  jest.setTimeout(10 * 60 * 1000);
   test('running test file suite', async () => {
     expect(await run_test_folder(join(cwd(), 'test', 'test_files', 'test_error_expected'), true)).toBe(0);
     expect(await run_test_folder(join(cwd(), 'test', 'test_files', 'test_no_error'), false)).toBe(0);

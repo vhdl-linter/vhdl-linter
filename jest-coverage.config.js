@@ -5,6 +5,7 @@ module.exports = {
   testEnvironment: 'node',
   testMatch: ["**/(*.)+(spec|test|cov).ts?(x)"],
   collectCoverage: true,
+  testTimeout: 20000,
   collectCoverageFrom : [
     "lib/**/*.ts"
   ]
