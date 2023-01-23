@@ -1,4 +1,4 @@
-import { IHasLexerToken, IHasReferenceLinks, implementsIHasAliases, implementsIHasConstants, implementsIHasFileVariables, implementsIHasGenerics, implementsIHasLabel, implementsIHasLibraries, implementsIHasPackageInstantiations, implementsIHasPorts, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables } from "../parser/interfaces";
+import { IHasLexerToken, IHasReferenceLinks, implementsIHasAliases, implementsIHasAttributes, implementsIHasConstants, implementsIHasFileVariables, implementsIHasGenerics, implementsIHasLabel, implementsIHasLibraries, implementsIHasPackageInstantiations, implementsIHasPorts, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables } from "../parser/interfaces";
 import { OArchitecture, OAttributeReference, ObjectBase, OEntity, OEnum, OFile, OFormalReference, OHasSequentialStatements, OInstantiation, OInterfacePackage, OLabelReference, OLibrary, OPackage, OPackageBody, OPackageInstantiation, ORead, ORecord, OReference, OSelectedName, OSelectedNameRead, OSelectedNameWrite, OWrite, scope } from "../parser/objects";
 import { VhdlLinter } from "../vhdl-linter";
 export class ElaborateReferences {
@@ -20,7 +20,7 @@ export class ElaborateReferences {
         if (obj instanceof OSelectedName || obj instanceof OSelectedNameWrite) {
           elaborator.elaborateSelectedNames(obj);
         } else if (obj instanceof OAttributeReference) {
-          // elaborateAttributeReferences(obj);
+          elaborator.elaborateAttributeReferences(obj);
         } else {
           elaborator.elaborateReference(obj);
         }
@@ -72,56 +72,18 @@ export class ElaborateReferences {
       }
     }
   }
-  // function elaborateAttributeReferences(reference: OAttributeReference) {
-  //   for (const [object, directlyVisible] of scope(reference)) {
-  //     // Handling for Attributes e.g. 'INSTANCE_name or 'PATH_NAME
-  //     // TODO: check better if actual Attribute is following
-  //     // Possible entities (objects where attributes are valid):
-  //     /*
-  //       entity ✓
-  //       architecture ✓
-  //       configuration
-  //       procedure✓
-  //       function✓
-  //       package ✓
-  //       type ✓
-  //       subtype ✓
-  //       constant ✓
-  //       signal✓
-  //       variable✓
-  //       component✓
-  //       label
-  //       literal
-  //       units
-  //       group
-  //       file ✓
-  //       property
-  //       sequence
-  //       */
-  //     const relevantTypes = [
-  //       OEntity,
-  //       OArchitecture,
-  //       OSubprogram, // Procedure, Function
-  //       // OPackage, OPackageBody,
-  //       OType,
-  //       OSubType,
-  //       OConstant,
-  //       OSignal,
-  //       OVariable,
-  //       OComponent];
-  //     for (const relevantType of relevantTypes) {
-  //       if (object instanceof relevantType) {
-  //         this.evaluateDefinition(reference, object, Math.random() > 0.5);
-
-  //         if (object.lexerToken && object.lexerToken.getLText() === reference.referenceToken.getLText()) {
-  //           reference.definitions.push(object);
-  //           object.references.push(reference);
-  //         }
-  //       }
-
-  //     }
-  //   }
-  // }
+  elaborateAttributeReferences(reference: OAttributeReference) {
+    for (const [object] of scope(reference)) {
+      if (implementsIHasAttributes(object)) {
+        for (const attribute of object.attributes) {
+          if (attribute.lexerToken.getLText() === reference.referenceToken.getLText()) {
+            attribute.referenceLinks.push(reference);
+            reference.definitions.push(attribute);
+          }
+        }
+      }
+    }
+  }
   elaborateReference(reference: OReference) {
     for (const [object, directlyVisible] of scope(reference)) {
       if (implementsIHasSignals(object)) {

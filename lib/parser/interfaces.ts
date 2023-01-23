@@ -1,7 +1,7 @@
 import { TextEdit } from "vscode-languageserver";
 import { OLexerToken } from "../lexer";
 import { OIDiagnostic } from "../vhdl-linter";
-import { OReference, OUseClause, OPackage, OContextReference, ObjectBase, OAlias, OPackageInstantiation, OSubprogram, OType, OComponent, OInstantiation, OIfGenerate, OForGenerate, OSignal, OFileVariable, OConstant, OVariable, OLibrary, OGeneric, OIRange, OPort, OLabelReference } from "./objects";
+import { OReference, OUseClause, OPackage, OContextReference, ObjectBase, OAlias, OPackageInstantiation, OSubprogram, OType, OComponent, OInstantiation, OIfGenerate, OForGenerate, OSignal, OFileVariable, OConstant, OVariable, OLibrary, OGeneric, OIRange, OPort, OLabelReference, OAttribute } from "./objects";
 
 export interface IHasLabel {
   label: OLexerToken;
@@ -143,6 +143,12 @@ export interface IHasLibraries {
 }
 export function implementsIHasLibraries(obj: ObjectBase): obj is ObjectBase & IHasLibraries {
   return (obj as ObjectBase & IHasLibraries).libraries !== undefined;
+}
+export interface IHasAttributes {
+  attributes: OAttribute[];
+}
+export function implementsIHasAttributes(obj: ObjectBase): obj is ObjectBase & IHasAttributes {
+  return (obj as ObjectBase & IHasAttributes).attributes !== undefined;
 }
 export interface IHasLibraryReference {
   library?: OLexerToken;

@@ -1,7 +1,7 @@
 import { DiagnosticSeverity } from 'vscode-languageserver';
 import { OLexerToken } from '../lexer';
 import { ExpressionParser } from './expression-parser';
-import { OAssociation, OFormalReference, OGenericAssociationList, OInstantiation, OPackage, OPackageInstantiation, OPortAssociationList, OWrite } from './objects';
+import { OAssociation, OFormalReference, OGenericAssociationList, OInstantiation, OPackage, OPackageInstantiation, OPortAssociationList } from './objects';
 import { ParserBase, ParserState } from './parser-base';
 
 
@@ -47,29 +47,18 @@ export class AssociationListParser extends ParserBase {
         }
         if (type === 'port') { // Parse assuming association is output
           const expressionParser = new ExpressionParser(this.state, association, associationTokens);
-          const references = expressionParser.parseAssociationElement();
+          const references = expressionParser.parseAssociationElement(true);
           association.formalPart = references.filter(reference => reference instanceof OFormalReference);
           const actualPart = references.filter(reference => reference instanceof OFormalReference === false);
-          const writes = actualPart.slice(0, 1).map(a => {
-            Object.setPrototypeOf(a, OWrite.prototype);
-            (a as OWrite).type = 'OWrite';
-            (a as OWrite).inAssociation = true;
-            return a as OWrite;
-          });
-          association.actualIfOutput = [actualPart.slice(1), writes];
+          association.actualIfOutput = actualPart;
         }
         if (type === 'port') { // Parse assuming association is inout
           const expressionParser = new ExpressionParser(this.state, association, associationTokens);
-          const references = expressionParser.parseAssociationElement();
+          const references = expressionParser.parseAssociationElement(false, true);
           association.formalPart = references.filter(reference => reference instanceof OFormalReference);
           const actualPart = references.filter(reference => reference instanceof OFormalReference === false);
-          const writes = actualPart.slice(0, 1).map(a => {
-            const write = new OWrite(a.parent, a.referenceToken);
-            write.inAssociation = true;
 
-            return write;
-          });
-          association.actualIfInoutput = [actualPart, writes];
+          association.actualIfInoutput = actualPart;
         }
 
 

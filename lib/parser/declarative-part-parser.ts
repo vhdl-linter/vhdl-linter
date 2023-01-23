@@ -9,6 +9,7 @@ import { UseClauseParser } from './use-clause-parser';
 import { PackageInstantiationParser } from './package-instantiation-parser';
 import { AliasParser } from './alias-parser';
 import { implementsIHasComponents } from './interfaces';
+import { AttributeParser } from './attribute-parser';
 
 export class DeclarativePartParser extends ParserBase {
   type: string;
@@ -27,8 +28,7 @@ export class DeclarativePartParser extends ParserBase {
         const objectDeclarationParser = new ObjectDeclarationParser(this.state, this.parent);
         objectDeclarationParser.parse(nextToken);
       } else if (nextToken.getLText() === 'attribute') {
-        this.consumeToken();
-        this.advanceSemicolon(true);
+        this.parent.attributes.push(new AttributeParser(this.state, this.parent).parse());
       } else if (nextToken.getLText() === 'type') {
         const typeParser = new TypeParser(this.state, this.parent);
         this.parent.types.push(typeParser.parse());

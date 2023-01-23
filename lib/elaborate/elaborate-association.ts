@@ -61,7 +61,7 @@ function elaborateAssociationMentionables(possibleFormal: OPort | OGeneric | OTy
           }
         }
       }
-      association.actualIfOutput = [[], []];
+      association.actualIfOutput = [];
       for (const mapping of association.actualIfInoutput.flat()) {
         const index = file.objectList.indexOf(mapping);
         file.objectList.splice(index, 1);
@@ -75,7 +75,7 @@ function elaborateAssociationMentionables(possibleFormal: OPort | OGeneric | OTy
           }
         }
       }
-      association.actualIfInoutput = [[], []];
+      association.actualIfInoutput = [];
     } else if (possibleFormal.direction === 'out') {
       for (const mapping of association.actualIfInput) {
         const index = file.objectList.indexOf(mapping);
@@ -104,7 +104,7 @@ function elaborateAssociationMentionables(possibleFormal: OPort | OGeneric | OTy
           }
         }
       }
-      association.actualIfInoutput = [[], []];
+      association.actualIfInoutput = [];
     } else if (possibleFormal.direction === 'inout') {
       for (const mapping of association.actualIfInput) {
         const index = file.objectList.indexOf(mapping);
@@ -133,7 +133,7 @@ function elaborateAssociationMentionables(possibleFormal: OPort | OGeneric | OTy
           }
         }
       }
-      association.actualIfOutput = [[], []];
+      association.actualIfOutput = [];
     }
   }
 }
