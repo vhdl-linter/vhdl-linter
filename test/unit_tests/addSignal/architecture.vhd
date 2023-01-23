@@ -8,5 +8,5 @@ end entity;
 architecture arch of test_arch is
 
 begin
-  foo <= '01';
+  foo <= "01";
 end arch;
