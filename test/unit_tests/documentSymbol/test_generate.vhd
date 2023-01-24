@@ -4,12 +4,12 @@ use ieee.numeric_std.all;
 
 entity test_else_generate is
   port (
-      i_clk: in std_ulogic
+    i_clk : in std_ulogic
     );
 end test_else_generate;
 
 architecture arch of test_else_generate is
-  signal x: integer;
+  signal x : integer;
 begin
   p_gen : if true generate
     p_reg : process(i_clk)
