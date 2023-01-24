@@ -6,12 +6,12 @@ import { OArchitecture, OBlock, OCaseGenerate, OConstant, OElseGenerateClause, O
 import { ParserBase, ParserState } from './parser-base';
 
 export class StatementBodyParser extends ParserBase {
-  entityName: OLexerToken;
+  identifier: OLexerToken;
   constructor(state: ParserState, private parent: OArchitecture | OFile | OIfGenerate | OCaseGenerate, name?: OLexerToken) {
     super(state);
     this.debug('start');
     if (name) {
-      this.entityName = name;
+      this.identifier = name;
     }
   }
   parse(): OArchitecture;
@@ -28,6 +28,7 @@ export class StatementBodyParser extends ParserBase {
       statementBody = new OArchitecture(this.parent, this.getToken(-1, true).range.copyExtendEndOfLine());
     } else if (structureName === 'block') {
       statementBody = new OBlock(this.parent, this.getToken(-1, true).range.copyExtendEndOfLine());
+      statementBody.label = this.identifier;
       // guarded block
       if (this.getToken().getLText() === '(') {
         const startRange = this.getToken().range;
@@ -66,11 +67,11 @@ export class StatementBodyParser extends ParserBase {
     if (skipStart !== true) {
       statementBody.lexerToken = this.consumeIdentifier();
       this.expect('of');
-      this.entityName = this.consumeIdentifier();
+      this.identifier = this.consumeIdentifier();
       if (statementBody instanceof OArchitecture === false) {
         throw new ParserError(`unexpected architecture header`, statementBody.lexerToken.range.copyExtendEndOfLine());
       }
-      (statementBody as OArchitecture).entityName = this.entityName;
+      (statementBody as OArchitecture).entityName = this.identifier;
       this.expect('is');
     }
 
