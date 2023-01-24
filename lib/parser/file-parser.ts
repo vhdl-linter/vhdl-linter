@@ -150,6 +150,10 @@ export class FileParser extends ParserBase {
         }
       } else if (nextToken.getLText() === 'library') {
         libraries.push(this.consumeToken());
+        while (this.getToken().getLText() === ',') {
+          this.consumeToken(); // consume ','
+          libraries.push(this.consumeToken());
+        }
         this.expect(';');
       } else if (nextToken.getLText() === 'use') {
 
