@@ -53,7 +53,7 @@ export class Elaborate {
             range: pkg.lexerToken.range,
             severity: DiagnosticSeverity.Warning,
             message: `Can not find package for package body.`
-          });
+          }, 'elaborate');
         }
 
       }

@@ -2,12 +2,14 @@ import {
   CodeAction, CodeActionKind, CodeLens, Command, Diagnostic, DiagnosticSeverity, Position, Range, TextEdit
 } from 'vscode-languageserver';
 import { Elaborate } from './elaborate/elaborate';
-import {
-  OFile, OI, OIRange, ParserError} from './parser/objects';
 import { FileParser } from './parser/file-parser';
+import {
+  MagicCommentType,
+  OFile, OI, OIRange, ParserError
+} from './parser/objects';
 import { ProjectParser } from './project-parser';
 import { rules } from './rules/rule-index';
-import { CancelationObject, CancelationError } from './server-objects';
+import { CancelationError, CancelationObject } from './server-objects';
 import { ISettings } from './settings';
 
 export interface IAddSignalCommandArguments {
@@ -91,31 +93,64 @@ export class VhdlLinter {
       arguments: [textDocumentUri, counter]
     };
   }
-
-  addMessage(diagnostic: OIDiagnostic) {
-    const newCode = this.addCodeActionCallback((textDocumentUri: string) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const actions = [] as any[];
-      // [textDocumentUri]: [TextEdit.replace(Range.create(write.range.start, write.range.end), bestMatch.bestMatch.target)]
-      actions.push(CodeAction.create(
-        'Ignore messages on this line.',
-        {
-          changes: {
-            [textDocumentUri]: [
-              TextEdit.insert(Position.create(diagnostic.range.end.line, 1000), ' --vhdl-linter-disable-this-line')]
-          }
-        },
-        CodeActionKind.QuickFix));
-      return actions;
-    });
-    const codes = [];
-    if (typeof diagnostic.code !== 'undefined') {
-      codes.push(diagnostic.code);
+  addMessage(diagnostic: OIDiagnostic, name: string): void {
+    if (this.checkMagicComments(diagnostic.range, name)) {
+      const newCode = this.addCodeActionCallback((textDocumentUri: string) => {
+        const actions: CodeAction[] = [];
+        actions.push(CodeAction.create(
+          `Ignore ${name} on this line.`,
+          {
+            changes: {
+              [textDocumentUri]: [
+                TextEdit.insert(Position.create(diagnostic.range.end.line, 1000), ` -- vhdl-linter-disable-line ${name}`)]
+            }
+          },
+          CodeActionKind.QuickFix));
+        actions.push(CodeAction.create(
+          `Ignore ${name} for this file.`,
+          {
+            changes: {
+              [textDocumentUri]: [
+                TextEdit.insert(Position.create(0, 0), `-- vhdl-linter-disable ${name}\n`)]
+            }
+          },
+          CodeActionKind.QuickFix));
+        return actions;
+      });
+      const codes = [];
+      if (typeof diagnostic.code !== 'undefined') {
+        codes.push(diagnostic.code);
+      }
+      codes.push(newCode);
+      diagnostic.code = codes.join(';');
+      diagnostic.message = diagnostic.message + ` (${name})`;
+      this.messages.push(diagnostic);
     }
-    codes.push(newCode);
-    diagnostic.code = codes.join(';');
-    this.messages.push(diagnostic);
   }
+
+  private checkMagicComments(range: OIRange, name: string) {
+    const matchingMagiComments = this.file.magicComments.filter(magicComment => {
+      if (range.start.i < magicComment.range.start.i) {
+        return false;
+      }
+      if (range.end.i > magicComment.range.end.i) {
+        return false;
+      }
+      return true;
+    }).filter(magicComment => {
+      if (magicComment.commentType === MagicCommentType.Disable) {
+        if (magicComment.rule) {
+          return name === magicComment.rule;
+        }
+        return true;
+      }
+      return false;
+    });
+    return matchingMagiComments.length === 0;
+
+
+  }
+
 
 
   async handleCanceled() {
