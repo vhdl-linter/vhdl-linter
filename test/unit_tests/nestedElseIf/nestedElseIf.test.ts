@@ -19,7 +19,7 @@ test('Testing nested if generate structures', async () => {
   expect(topGenerate.ifGenerates).toHaveLength(2);
   expect(topGenerate.ifGenerates[0].range.start.line).toBe(6);
   expect(topGenerate.ifGenerates[0].label?.text).toBe('a_label');
-  expect(topGenerate.ifGenerates[1].range.start.line).toBe(8);
+  expect(topGenerate.ifGenerates[1].range.start.line).toBe(9);
   expect(topGenerate.ifGenerates[1].label?.text).toBe('b_label');
   expect(topGenerate.elseGenerate?.label?.text).toBe('c_label');
 
