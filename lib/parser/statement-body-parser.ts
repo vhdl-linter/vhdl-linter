@@ -2,7 +2,7 @@ import { OLexerToken, TokenType } from '../lexer';
 import { ConcurrentStatementParser, ConcurrentStatementTypes } from './concurrent-statement-parser';
 import { DeclarativePartParser } from './declarative-part-parser';
 import { ExpressionParser } from './expression-parser';
-import { OArchitecture, OBlock, OCaseGenerate, OConstant, OFile, OForGenerate, OI, OIfGenerate, OIfGenerateClause, ORead, OReference, OWhenGenerateClause, ParserError } from './objects';
+import { OArchitecture, OBlock, OCaseGenerate, OConstant, OElseGenerateClause, OFile, OForGenerate, OI, OIfGenerate, OIfGenerateClause, ORead, OReference, OWhenGenerateClause, ParserError } from './objects';
 import { ParserBase, ParserState } from './parser-base';
 
 export class StatementBodyParser extends ParserBase {
@@ -15,11 +15,13 @@ export class StatementBodyParser extends ParserBase {
     }
   }
   parse(): OArchitecture;
-  parse(skipStart: boolean, structureName: 'when-generate'): OWhenGenerateClause;
-  parse(skipStart: boolean, structureName: 'generate'): OIfGenerateClause;
+  parse(skipStart: boolean, structureName: 'when-generate', forConstant: undefined, alternativeLabel: OLexerToken | undefined): OWhenGenerateClause;
+  parse(skipStart: boolean, structureName: 'generate', forConstant: undefined, alternativeLabel: OLexerToken | undefined): OIfGenerateClause;
+  parse(skipStart: boolean, structureName: 'else-generate', forConstant: undefined, alternativeLabel: OLexerToken | undefined): OElseGenerateClause;
   parse(skipStart: boolean, structureName: 'block'): OBlock;
   parse(skipStart: boolean, structureName: 'generate', forConstant?: { constantName: OLexerToken, constantRange: OReference[], startPosI: number }): OForGenerate;
-  parse(skipStart = false, structureName: 'architecture' | 'generate' | 'block' | 'when-generate' = 'architecture', forConstant?: { constantName: OLexerToken, constantRange: OReference[], startPosI: number }): OArchitecture | OForGenerate | OIfGenerateClause | OWhenGenerateClause | OBlock{
+  parse(skipStart = false, structureName: 'architecture' | 'generate' | 'block' | 'when-generate' | 'else-generate' = 'architecture',
+    forConstant?: { constantName: OLexerToken, constantRange: OReference[], startPosI: number }, alternativeLabel?: OLexerToken): OArchitecture | OForGenerate | OIfGenerateClause | OWhenGenerateClause | OBlock | OElseGenerateClause{
     this.debug(`parse`);
     let statementBody;
     if (structureName === 'architecture') {
@@ -42,8 +44,14 @@ export class StatementBodyParser extends ParserBase {
       this.maybe('is');
     } else if (structureName === 'when-generate') {
       statementBody = new OWhenGenerateClause(this.parent, this.getToken().range.copyExtendEndOfLine());
+      statementBody.label = alternativeLabel;
+    } else if (structureName === 'else-generate') {
+      statementBody = new OElseGenerateClause(this.parent, this.getToken().range.copyExtendEndOfLine());
+      statementBody.label = alternativeLabel;
     } else if (!forConstant) {
       statementBody = new OIfGenerateClause(this.parent, this.getToken().range.copyExtendEndOfLine());
+      statementBody.label = alternativeLabel;
+
     } else {
       if (this.parent instanceof OFile) {
         throw new ParserError(`For Generate can not be top level architecture!`, this.state.pos.getRangeToEndLine());
@@ -74,21 +82,37 @@ export class StatementBodyParser extends ParserBase {
       this.advanceWhitespace();
       const nextToken = this.getToken();
       if (nextToken.getLText() === 'end') {
+        if (structureName === 'generate' || structureName === 'when-generate' || structureName === 'else-generate') {
+          // LRM 11.8 Generate statements list an optional end for the generate_statement_body
+          if (this.getToken(1, true).getLText() !== 'generate') {
+            this.expect('end');
+            if (alternativeLabel !== undefined) {
+              this.maybe(alternativeLabel.text);
+            }
+            this.expect(';');
+            continue;
+          }
+        }
         if (structureName === 'when-generate') {
           break;
         }
         this.consumeToken();
-        if (structureName === 'block') {
+        if (structureName === 'block' || structureName === 'generate') {
           this.expect(structureName);
+        } else if (structureName === 'else-generate') {
+          this.expect('generate');
         } else {
           this.maybe(structureName);
         }
-        if (statementBody.lexerToken) {
-          this.maybe(statementBody.lexerToken.text);
-        }
 
-        if (this.entityName) {
-          this.maybe(this.entityName.text);
+        if (structureName === 'architecture' ) {
+          this.maybe((statementBody as OArchitecture).lexerToken.text);
+        } else {
+          if (statementBody instanceof OIfGenerateClause || statementBody instanceof OElseGenerateClause) {
+            this.maybe(statementBody.parent.label);
+          } else {
+            this.maybe((statementBody as OBlock | OIfGenerate).label);
+          }
         }
         this.expect(';');
         break;
