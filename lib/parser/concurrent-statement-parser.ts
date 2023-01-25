@@ -19,7 +19,7 @@ export class ConcurrentStatementParser extends ParserBase {
     super(state);
     this.debug('start');
   }
-  parse(allowedStatements: ConcurrentStatementTypes[], previousArchitecture?: OStatementBody, returnOnWhen = false) {
+  parse(allowedStatements: ConcurrentStatementTypes[], previousStatementBody?: OStatementBody, returnOnWhen = false) {
     let nextToken = this.getToken();
 
     let label: OLexerToken | undefined;
@@ -88,10 +88,15 @@ export class ConcurrentStatementParser extends ParserBase {
       let nextToken = this.getToken();
       while (nextToken.getLText() === 'when') {
         this.expect('when');
+        let alternativeLabel;
+        if (this.getToken(1, true).getLText() === ':') {
+          alternativeLabel = this.consumeToken();
+          this.expect(':');
+        }
         const whenI = this.state.pos.i;
         const whenConditionToken = this.advancePast('=>');
         const subarchitecture = new StatementBodyParser(this.state, caseGenerate, label);
-        const whenGenerateClause = subarchitecture.parse(true, 'when-generate');
+        const whenGenerateClause = subarchitecture.parse(true, 'when-generate', undefined, alternativeLabel);
         whenGenerateClause.condition.push(...new ExpressionParser(this.state, whenGenerateClause, whenConditionToken).parse());
         whenGenerateClause.range = whenGenerateClause.range.copyWithNewStart(whenI);
         nextToken = this.getToken();
@@ -111,14 +116,20 @@ export class ConcurrentStatementParser extends ParserBase {
       }
       const ifGenerate = new OIfGenerate(this.parent, new OIRange(this.parent, this.state.pos.i, this.state.pos.i), label);
       this.consumeToken();
+      // There is an alternative label possible
+      let alternativeLabel;
+      if (this.getToken(1, true).getLText() === ':') {
+        alternativeLabel = this.consumeToken();
+        this.expect(':');
+      }
       const conditionTokens = this.advancePast('generate');
       this.debug('parse if generate ' + label);
       const subarchitecture = new StatementBodyParser(this.state, ifGenerate, label);
-      const ifGenerateClause = subarchitecture.parse(true, 'generate');
+      const ifGenerateClause = subarchitecture.parse(true, 'generate', undefined, alternativeLabel);
       ifGenerateClause.range = ifGenerateClause.range.copyWithNewStart(savedI);
-
+      ifGenerateClause.label = alternativeLabel;
       ifGenerateClause.condition = new ExpressionParser(this.state, ifGenerateClause, conditionTokens).parse();
-      ifGenerate.ifGenerates.push(ifGenerateClause);
+      ifGenerate.ifGenerates.unshift(ifGenerateClause);
       (this.parent as OArchitecture).statements.push(ifGenerate);
       this.reverseWhitespace();
       ifGenerate.range = ifGenerate.range.copyWithNewEnd(this.state.pos.i);
@@ -128,34 +139,46 @@ export class ConcurrentStatementParser extends ParserBase {
       if (!(this.parent instanceof OIfGenerateClause)) {
         throw new ParserError('elsif generate without if generate', this.state.pos.getRangeToEndLine());
       }
-      if (!previousArchitecture) {
-        throw new ParserError('WTF', this.state.pos.getRangeToEndLine());
+      if (!previousStatementBody) {
+        throw new ParserError('elsif without preceding statement body', this.state.pos.getRangeToEndLine());
       }
-      previousArchitecture.range = previousArchitecture.range.copyWithNewEnd(this.getToken(-1, true).range.end);
 
+      this.consumeToken();
+      previousStatementBody.range = previousStatementBody.range.copyWithNewEnd(this.getToken(-1, true).range.end);
+      // There is an alternative label possible
+      let alternativeLabel;
+      if (this.getToken(1, true).getLText() === ':') {
+        alternativeLabel = this.consumeToken();
+        this.expect(':');
+      }
       const condition = this.advancePast('generate');
       this.debug('parse elsif generate ' + label);
-      const subarchitecture = new StatementBodyParser(this.state, this.parent.parent, this.parent.parent.lexerToken);
-      const ifGenerateObject = subarchitecture.parse(true, 'generate');
+      const subarchitecture = new StatementBodyParser(this.state, this.parent.parent, this.parent.parent.label);
+      const ifGenerateObject = subarchitecture.parse(true, 'generate', undefined, alternativeLabel);
       ifGenerateObject.range = ifGenerateObject.range.copyWithNewStart(savedI);
 
-      // TODO: Build test case for nested elsif generate
       ifGenerateObject.condition = new ExpressionParser(this.state, ifGenerateObject, condition).parse();
-      this.parent.parent.ifGenerates.push(ifGenerateObject);
+      this.parent.parent.ifGenerates.unshift(ifGenerateObject);
       return true;
     } else if (nextToken.getLText() === 'else' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {
       if (!(this.parent instanceof OIfGenerateClause)) {
         throw new ParserError('else generate without if generate', this.state.pos.getRangeToEndLine());
       }
-      if (!previousArchitecture) {
+      if (!previousStatementBody) {
         throw new ParserError('WTF', this.state.pos.getRangeToEndLine());
       }
-      previousArchitecture.range = previousArchitecture.range.copyWithNewEnd(this.getToken(-1, true).range.copyExtendEndOfLine().end);
-      this.advancePast('generate');
+      previousStatementBody.range = previousStatementBody.range.copyWithNewEnd(this.getToken(-1, true).range.copyExtendEndOfLine().end);
+      this.consumeToken();
+      let alternativeLabel;
+      if (this.getToken(1, true).getLText() === ':') {
+        alternativeLabel = this.consumeToken();
+        this.expect(':');
+      }
+      this.expect('generate');
       this.debug('parse else generate ' + label);
-      const subarchitecture = new StatementBodyParser(this.state, this.parent.parent, this.parent.parent.lexerToken);
+      const subarchitecture = new StatementBodyParser(this.state, this.parent.parent, this.parent.parent.label);
 
-      const elseGenerateObject = subarchitecture.parse(true, 'generate');
+      const elseGenerateObject = subarchitecture.parse(true, 'else-generate', undefined, alternativeLabel);
       elseGenerateObject.range = elseGenerateObject.range.copyWithNewStart(savedI);
       this.reverseWhitespace();
       elseGenerateObject.range = elseGenerateObject.range.copyWithNewEnd(this.state.pos.i);

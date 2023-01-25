@@ -82,31 +82,6 @@ exports[`testing document symbol snapshot 1`] = `
   {
     "children": [],
     "kind": 10,
-    "name": "elsif false generate",
-    "range": {
-      "end": {
-        "character": 22,
-        "line": 26,
-      },
-      "start": {
-        "character": 2,
-        "line": 24,
-      },
-    },
-    "selectionRange": {
-      "end": {
-        "character": 22,
-        "line": 26,
-      },
-      "start": {
-        "character": 2,
-        "line": 24,
-      },
-    },
-  },
-  {
-    "children": [],
-    "kind": 10,
     "name": "p_gen2 : if true generate",
     "range": {
       "end": {
@@ -126,6 +101,31 @@ exports[`testing document symbol snapshot 1`] = `
       "start": {
         "character": 2,
         "line": 23,
+      },
+    },
+  },
+  {
+    "children": [],
+    "kind": 10,
+    "name": "elsif false generate",
+    "range": {
+      "end": {
+        "character": 22,
+        "line": 26,
+      },
+      "start": {
+        "character": 2,
+        "line": 24,
+      },
+    },
+    "selectionRange": {
+      "end": {
+        "character": 22,
+        "line": 26,
+      },
+      "start": {
+        "character": 2,
+        "line": 24,
       },
     },
   },

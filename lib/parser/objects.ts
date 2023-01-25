@@ -514,12 +514,11 @@ export class OWhenGenerateClause extends OStatementBody implements I.IMayHaveLab
   public parent: OCaseGenerate;
 }
 export class OIfGenerate extends ObjectBase implements I.IHasLabel {
-  constructor(public parent: ObjectBase | OFile, public range: OIRange, public lexerToken: OLexerToken) {
+  constructor(public parent: ObjectBase | OFile, public range: OIRange, public label: OLexerToken) {
     super(parent, range);
   }
   ifGenerates: OIfGenerateClause[] = [];
-  elseGenerate: OElseGenerateClause;
-  label: OLexerToken;
+  elseGenerate?: OElseGenerateClause;
   labelLinks: OLabelReference[] = [];
 
 }

@@ -254,6 +254,9 @@ export class ParserBase {
     }
   }
   maybe(expected: string | OLexerToken): OLexerToken | false {
+    if (expected === undefined) {
+      return false;
+    }
     const text = (typeof expected === 'string') ? expected.toLowerCase() : expected.getLText();
     if (this.getToken().getLText() === text) {
       const token = this.consumeToken();
