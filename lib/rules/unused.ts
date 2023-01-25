@@ -100,7 +100,7 @@ export class RUnused extends RuleBase implements IRule {
         )
       ];
     });
-    if (filteredScopes.length > 1 && this.checkMagicComments(signal.lexerToken.range)) {
+    if (filteredScopes.length > 1) {
       this.addMessage({
         code: ignoreAction,
         range: signal.lexerToken.range,
@@ -115,7 +115,7 @@ export class RUnused extends RuleBase implements IRule {
           message: `Driver of multiple driven signal '${signal.lexerToken}'.`
         });
       }
-    } else if (filteredScopes.length === 1 && writes.length > 1 && !(filteredScopes[0].scope instanceof OProcess) && this.checkMagicComments(signal.lexerToken.range)) {
+    } else if (filteredScopes.length === 1 && writes.length > 1 && !(filteredScopes[0].scope instanceof OProcess)) {
       // if multiple writes in the architecture or one instantiation
       this.addMessage({
         code: ignoreAction,
