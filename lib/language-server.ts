@@ -107,9 +107,6 @@ connection.onInitialize((params: InitializeParams) => {
       foldingRangeProvider: true,
       documentHighlightProvider: true,
       executeCommandProvider: { commands: ['vhdl-linter:lsp-command'] },
-      codeLensProvider: {
-        resolveProvider: true
-      },
       renameProvider: {
         prepareProvider: true
       },
