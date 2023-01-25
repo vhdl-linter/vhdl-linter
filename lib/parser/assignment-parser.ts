@@ -8,7 +8,7 @@ export class AssignmentParser extends ParserBase {
     super(state);
     this.debug(`start`);
   }
-  parse(label?: OLexerToken): OAssignment {
+  parse(mode: 'concurrent' | 'sequential', label?: OLexerToken): OAssignment {
     this.debug('parse');
 
     const assignment = new OAssignment(this.parent, this.getToken().range.copyExtendEndOfLine());
@@ -26,19 +26,63 @@ export class AssignmentParser extends ParserBase {
 
 
     this.consumeToken();
-    assignment.guarded = this.maybe('guarded') !== false;
-    if (this.maybe('transport') === false) {
+    const forceToken = this.maybe('force');
+    if (forceToken) { // 10.5.1
+      if (mode !== 'sequential') {
+        this.state.messages.push({
+          message: 'force only allowed in sequential statement',
+          range: forceToken.range
+        });
+      }
+      this.maybe(['in', 'out']);
+      const [rightHandSide] = this.advanceParenthesisAware([';'], true, true);
+      const expressionParser = new ExpressionParser(this.state, assignment, rightHandSide);
+      assignment.references.push(...expressionParser.parse());
+      assignment.range = assignment.range.copyWithNewEnd(this.state.pos.i);
+      this.debug('parse end');
+      return assignment;
+    }
+    const releaseToken = this.maybe('release');
+    if (releaseToken) { // 10.5.1
+      if (mode !== 'sequential') {
+        this.state.messages.push({
+          message: 'force only allowed in sequential statement',
+          range: releaseToken.range
+        });
+      }
+      this.maybe(['in', 'out']);
+      this.expect(';');
+      return assignment;
+    }
+    const guardedToken = this.maybe('guarded'); // 11.6
+    assignment.guarded = guardedToken !== false;
+    if (guardedToken && mode !== 'concurrent') {
+      this.state.messages.push({
+        message: 'guarded only allowed in concurrent statement',
+        range: guardedToken.range
+      });
+    }
+    if (this.getToken().getLText() === 'transport') { // 10.5.2.1 delay_mechanism
+      this.consumeToken();
+    } else {// 10.5.2.1 delay_mechanism inertial
       const [tokens] = this.advanceParenthesisAware([';'], false, false);
+      // Search for inertial
       const numInertial = tokens.findIndex(token => token.getLText() === 'inertial');
-      if (numInertial > -1) {
-        this.advanceParenthesisAware(['inertial'], true, true);
+      if (numInertial > -1) { // Found inertial now handle
+        if (this.maybe('reject')) {
+          const [tokens] = this.advanceParenthesisAware(['inertial'], true, false);
+          const expressionParser = new ExpressionParser(this.state, assignment, tokens);
+          assignment.references.push(...expressionParser.parse());
+        }
+        this.expect('inertial');
       }
     }
     let rightHandSide, endToken;
-    // TODO: Include unaffected
     do {
       [rightHandSide, endToken] = this.advanceParenthesisAware([';', 'when', 'else', 'after', ','], true, true);
-
+      if (rightHandSide.length === 1 && rightHandSide[0].getLText() == 'unaffected') {
+        continue;
+      }
       const expressionParser = new ExpressionParser(this.state, assignment, rightHandSide);
       assignment.references.push(...expressionParser.parse());
 

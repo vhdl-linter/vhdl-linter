@@ -253,16 +253,28 @@ export class ParserBase {
       throw new ParserError(`expected '${expected.join(', ')}' found '${this.getToken().text}' line: ${this.getLine()}`, this.state.pos.getRangeToEndLine());
     }
   }
-  maybe(expected: string | OLexerToken): OLexerToken | false {
+  maybe(expected: (string | OLexerToken)[] | string | OLexerToken): OLexerToken | false {
     if (expected === undefined) {
       return false;
     }
-    const text = (typeof expected === 'string') ? expected.toLowerCase() : expected.getLText();
-    if (this.getToken().getLText() === text) {
-      const token = this.consumeToken();
-      return token;
+    if (Array.isArray(expected)) {
+      for (const expectedElement of expected) {
+        const text = (typeof expectedElement === 'string') ? expectedElement.toLowerCase() : expectedElement.getLText();
+        if (this.getToken().getLText() === text) {
+          const token = this.consumeToken();
+          return token;
+        }
+      }
+      return false;
+    } else {
+
+      const text = (typeof expected === 'string') ? expected.toLowerCase() : expected.getLText();
+      if (this.getToken().getLText() === text) {
+        const token = this.consumeToken();
+        return token;
+      }
+      return false;
     }
-    return false;
   }
 
   consumeNameReference(parent: ObjectBase): OReference {

@@ -68,7 +68,7 @@ export class SequentialStatementParser extends ParserBase {
         statements.push(this.parseWhile(parent, label));
       } else if (this.checkIfIsAssignment(statementText)) {
         const assignmentParser = new AssignmentParser(this.state, parent);
-        statements.push(assignmentParser.parse(label));
+        statements.push(assignmentParser.parse('sequential', label));
       } else {
         statements.push(this.parseSubprogramCall(parent, label));
 

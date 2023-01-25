@@ -195,7 +195,7 @@ export class ConcurrentStatementParser extends ParserBase {
       }
       this.consumeToken();
       const assignmentParser = new AssignmentParser(this.state, this.parent);
-      const assignment = assignmentParser.parse();
+      const assignment = assignmentParser.parse('concurrent');
       const read = new ORead(assignment, readToken);
       assignment.labelLinks.push(read);
       this.parent.statements.push(assignment);
@@ -233,7 +233,7 @@ export class ConcurrentStatementParser extends ParserBase {
         }
 
         const assignmentParser = new AssignmentParser(this.state, this.parent);
-        const assignment = assignmentParser.parse();
+        const assignment = assignmentParser.parse('concurrent');
         try {
           this.parent.statements.push(assignment);
         } catch (err) {
