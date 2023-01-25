@@ -1,5 +1,5 @@
 import { DocumentSymbol, SymbolKind } from 'vscode-languageserver';
-import { OBlock, OCase, OCaseGenerate, OForGenerate, OForLoop, OIf, OIfGenerate, OIfGenerateClause, OInstantiation, OProcess, OSequentialStatement, OStatementBody, OWhenGenerateClause } from '../parser/objects';
+import { OBlock, OCase, OCaseGenerate, OElseGenerateClause, OForGenerate, OForLoop, OIf, OIfGenerate, OIfGenerateClause, OInstantiation, OProcess, OSequentialStatement, OStatementBody, OWhenGenerateClause } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
 
 function parseArchitecture(statementBody: OStatementBody, linter: VhdlLinter): DocumentSymbol[] {
@@ -42,27 +42,28 @@ function parseArchitecture(statementBody: OStatementBody, linter: VhdlLinter): D
       });
 
     }
-    if (statement instanceof OIfGenerate || statement instanceof OForGenerate
-      || statement instanceof OCaseGenerate) {
-      if (statement instanceof OIfGenerate) {
-        for (const clause of statement.ifGenerateClauses) {
-          symbols.push(formatGenerate(clause, linter));
-
-        }
+    if (statement instanceof OIfGenerate) {
+      for (const clause of statement.ifGenerateClauses) {
+        symbols.push(formatGenerate(clause, linter));
       }
-      if (statement instanceof OCaseGenerate) {
-        for (const clause of statement.whenGenerateClauses) {
-          symbols.push(formatGenerate(clause, linter));
-
-        }
+      if (statement.elseGenerateClause) {
+        symbols.push(formatGenerate(statement.elseGenerateClause, linter));
       }
+    }
+    if (statement instanceof OCaseGenerate) {
+      for (const clause of statement.whenGenerateClauses) {
+        symbols.push(formatGenerate(clause, linter));
+
+      }
+    }
+    if (statement instanceof OForGenerate) {
       symbols.push(formatGenerate(statement, linter));
     }
   }
   return symbols;
 }
 function formatGenerate(statement: OIfGenerate | OForGenerate | OWhenGenerateClause
-  | OCaseGenerate | OIfGenerateClause, linter: VhdlLinter) {
+  | OCaseGenerate | OIfGenerateClause | OElseGenerateClause, linter: VhdlLinter) {
   return {
     name: linter.text.split('\n')[statement.range.start.line].trim(),
     kind: SymbolKind.Enum,
