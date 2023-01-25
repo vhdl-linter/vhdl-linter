@@ -37,7 +37,7 @@ export function elaborateUseClauses(file: OFile, projectParser: ProjectParser, v
                   range: useClause.range,
                   severity: DiagnosticSeverity.Warning,
                   message: `could not find instantiated package from package ${useClause.library}.${useClause.packageName}`
-                });
+                }, 'elaborate');
                 break;
               }
             }
@@ -67,13 +67,13 @@ export function elaborateUseClauses(file: OFile, projectParser: ProjectParser, v
                 range: useClause.range,
                 severity: DiagnosticSeverity.Warning,
                 message: `could not find package instantiation for ${useClause.packageName}`
-              });
+              }, 'elaborate');
             } else {
               vhdlLinter.addMessage({
                 range: obj.getRootElement().range.getLimitedRange(1),
                 severity: DiagnosticSeverity.Warning,
                 message: `could not find package instantiation for ${useClause.packageName} (in ${useClause.rootFile.file})`
-              });
+              }, 'elaborate');
             }
             continue;
           }
@@ -90,7 +90,7 @@ export function elaborateUseClauses(file: OFile, projectParser: ProjectParser, v
               range: useClause.range,
               severity: DiagnosticSeverity.Warning,
               message: `could not find uninstantiated package of package instantiation ${packageInstantiation.lexerToken.text}.`
-            });
+            }, 'elaborate');
           }
         }
         if (!found) {
@@ -99,7 +99,7 @@ export function elaborateUseClauses(file: OFile, projectParser: ProjectParser, v
               range: useClause.range,
               severity: DiagnosticSeverity.Warning,
               message: `could not find package for ${useClause.library !== undefined ? `${useClause.library}.` : ''}${useClause.packageName}`
-            });
+            }, 'elaborate');
           }
         }
       }
@@ -125,7 +125,7 @@ function getUseClauses(parent: ObjectBase & (IHasUseClauses | IHasContextReferen
           range: reference.range,
           severity: DiagnosticSeverity.Warning,
           message: `could not find context for ${reference.library}.${reference.contextName}`
-        });
+        }, 'elaborate');
       } else {
         reference.definitions.push(context);
         useClauses.push(...getUseClauses(context, vhdlLinter, projectParser));
