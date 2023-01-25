@@ -58,7 +58,7 @@ export class AssignmentParser extends ParserBase {
     assignment.guarded = guardedToken !== false;
     if (guardedToken && mode !== 'concurrent') {
       this.state.messages.push({
-        message: 'guarded only allowed in sequential statement',
+        message: 'guarded only allowed in concurrent statement',
         range: guardedToken.range
       });
     }
