@@ -1,7 +1,7 @@
 import { TextEdit } from "vscode-languageserver";
 import { OLexerToken } from "../lexer";
 import { OIDiagnostic } from "../vhdl-linter";
-import { OReference, OUseClause, OPackage, OContextReference, ObjectBase, OAlias, OPackageInstantiation, OSubprogram, OType, OComponent, OInstantiation, OIfGenerate, OForGenerate, OSignal, OFileVariable, OConstant, OVariable, OLibrary, OGeneric, OIRange, OPort, OLabelReference, OAttribute } from "./objects";
+import { OReference, OUseClause, OPackage, OContextReference, ObjectBase, OAlias, OPackageInstantiation, OSubprogram, OType, OComponent, OInstantiation, OSignal, OFileVariable, OConstant, OVariable, OLibrary, OGeneric, OIRange, OPort, OLabelReference, OAttribute } from "./objects";
 
 export interface IHasLabel {
   label: OLexerToken;
@@ -102,18 +102,7 @@ export interface IHasInstantiations {
 export function implementsIHasInstantiations(obj: ObjectBase): obj is ObjectBase & IHasInstantiations {
   return (obj as ObjectBase & IHasInstantiations).instantiations !== undefined;
 }
-export interface IHasIfGenerates {
-  ifGenerates: OIfGenerate[];
-}
-export function implementsIHasIfGenerates(obj: ObjectBase): obj is ObjectBase & IHasIfGenerates {
-  return (obj as ObjectBase & IHasIfGenerates).ifGenerates !== undefined;
-}
-export interface IHasForGenerates {
-  forGenerates: OForGenerate[];
-}
-export function implementsIHasForGenerates(obj: ObjectBase): obj is ObjectBase & IHasForGenerates {
-  return (obj as ObjectBase & IHasForGenerates).forGenerates !== undefined;
-}
+
 export interface IHasSignals {
   signals: OSignal[];
 }

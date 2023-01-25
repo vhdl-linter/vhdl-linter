@@ -1,6 +1,6 @@
 import { DiagnosticSeverity } from "vscode-languageserver";
 import { OLexerToken } from "../lexer";
-import { IHasLexerToken, implementsIHasConstants, implementsIHasGenerics, implementsIHasIfGenerates, implementsIHasInstantiations, implementsIHasLabel, implementsIHasLexerToken, implementsIHasPorts, implementsIHasSignals, implementsIHasTypes, implementsIHasVariables } from "../parser/interfaces";
+import { IHasLexerToken, implementsIHasConstants, implementsIHasGenerics, implementsIHasInstantiations, implementsIHasLabel, implementsIHasLexerToken, implementsIHasPorts, implementsIHasSignals, implementsIHasTypes, implementsIHasVariables } from "../parser/interfaces";
 import { OArchitecture, ObjectBase, OFile, OPackageBody, OType } from "../parser/objects";
 import { IRule, RuleBase } from "./rules-base";
 type objListType = ObjectBase | { lexerToken: OLexerToken };
@@ -56,9 +56,6 @@ export class RMultipleDefinition extends RuleBase implements IRule {
     }
     if (implementsIHasInstantiations(obj)) {
       objList.push(...obj.instantiations);
-    }
-    if (implementsIHasIfGenerates(obj)) {
-      objList.push(...obj.ifGenerates);
     }
     if (implementsIHasPorts(obj)) {
       objList.push(...obj.ports);
