@@ -62,7 +62,8 @@ export class AssignmentParser extends ParserBase {
         range: guardedToken.range
       });
     }
-    if (this.maybe('transport')) { // 10.5.2.1 delay_mechanism
+    if (this.getToken().getLText() === 'transport') { // 10.5.2.1 delay_mechanism
+      this.consumeToken();
     } else {// 10.5.2.1 delay_mechanism inertial
       const [tokens] = this.advanceParenthesisAware([';'], false, false);
       // Search for inertial
