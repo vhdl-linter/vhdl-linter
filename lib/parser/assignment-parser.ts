@@ -54,11 +54,11 @@ export class AssignmentParser extends ParserBase {
       this.expect(';');
       return assignment;
     }
-    const guardedToken = this.maybe('guarded');
+    const guardedToken = this.maybe('guarded'); // 11.6
     assignment.guarded = guardedToken !== false;
     if (guardedToken && mode !== 'concurrent') {
       this.state.messages.push({
-        message: 'guarded only allowed in sequential statement',
+        message: 'guarded only allowed in concurrent statement',
         range: guardedToken.range
       });
     }
