@@ -1,5 +1,4 @@
 import { DiagnosticSeverity } from 'vscode-languageserver';
-import { OLexerToken } from '../lexer';
 import { ExpressionParser } from './expression-parser';
 import { OAssociation, OFormalReference, OGenericAssociationList, OInstantiation, OPackage, OPackageInstantiation, OPortAssociationList } from './objects';
 import { ParserBase, ParserState } from './parser-base';
@@ -10,20 +9,7 @@ export class AssociationListParser extends ParserBase {
     super(state);
     this.debug(`start`);
   }
-  findFormal(associationTokens: OLexerToken[]) {
-    // associationTokens.findIndex(token => token.text === '=>');
-    let braceLevel = 0;
-    for (const [index, token] of associationTokens.entries()) {
-      if (token.getLText() === '(') {
-        braceLevel++;
-      } else if (token.getLText() === ')') {
-        braceLevel--;
-      } else if (braceLevel === 0 && token.getLText() === '=>') {
-        return index;
-      }
-    }
-    return -1;
-  }
+
   parse(type: 'port' | 'generic' = 'port') {
     const braceToken = this.expect('(');
 

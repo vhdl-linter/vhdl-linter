@@ -42,7 +42,6 @@ export class OLexerToken {
     return this.text;
   }
 }
-export const GRAPHIC_CHARACTER = String.raw`[a-z0-9 "#&'()*+,-./:;<£¤¥¦§ ̈©ª«¬- ® ̄°±=>_|!$%?@\[\\\]\^\`{}~¡¢²³ ́μ¶· ̧¹º»¼½¾¿×÷]`;
 export class Lexer {
   // TODO: Enter correct list of keywords from IEEE 2008 page 236
   readonly keywords = [

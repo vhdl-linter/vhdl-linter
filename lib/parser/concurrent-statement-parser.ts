@@ -129,7 +129,7 @@ export class ConcurrentStatementParser extends ParserBase {
       ifGenerateClause.range = ifGenerateClause.range.copyWithNewStart(savedI);
       ifGenerateClause.label = alternativeLabel;
       ifGenerateClause.condition = new ExpressionParser(this.state, ifGenerateClause, conditionTokens).parse();
-      ifGenerate.ifGenerates.unshift(ifGenerateClause);
+      ifGenerate.ifGenerateClauses.unshift(ifGenerateClause);
       (this.parent as OArchitecture).statements.push(ifGenerate);
       this.reverseWhitespace();
       ifGenerate.range = ifGenerate.range.copyWithNewEnd(this.state.pos.i);
@@ -158,7 +158,7 @@ export class ConcurrentStatementParser extends ParserBase {
       ifGenerateObject.range = ifGenerateObject.range.copyWithNewStart(savedI);
 
       ifGenerateObject.condition = new ExpressionParser(this.state, ifGenerateObject, condition).parse();
-      this.parent.parent.ifGenerates.unshift(ifGenerateObject);
+      this.parent.parent.ifGenerateClauses.unshift(ifGenerateObject);
       return true;
     } else if (nextToken.getLText() === 'else' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {
       if (!(this.parent instanceof OIfGenerateClause)) {
@@ -183,7 +183,7 @@ export class ConcurrentStatementParser extends ParserBase {
       this.reverseWhitespace();
       elseGenerateObject.range = elseGenerateObject.range.copyWithNewEnd(this.state.pos.i);
       this.advanceWhitespace();
-      this.parent.parent.elseGenerate = elseGenerateObject;
+      this.parent.parent.elseGenerateClause = elseGenerateObject;
       return true;
 
     } else if (nextToken.getLText() === 'with' && allowedStatements.includes(ConcurrentStatementTypes.Assignment)) {

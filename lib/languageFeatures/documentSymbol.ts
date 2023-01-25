@@ -1,51 +1,78 @@
 import { DocumentSymbol, SymbolKind } from 'vscode-languageserver';
-import { OCase, OForLoop, OIf, OSequentialStatement, OStatementBody } from '../parser/objects';
+import { OBlock, OCase, OCaseGenerate, OElseGenerateClause, OForGenerate, OForLoop, OIf, OIfGenerate, OIfGenerateClause, OInstantiation, OProcess, OSequentialStatement, OStatementBody, OWhenGenerateClause } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
 
 function parseArchitecture(statementBody: OStatementBody, linter: VhdlLinter): DocumentSymbol[] {
   const symbols: DocumentSymbol[] = [];
-  symbols.push(...statementBody.instantiations.map(instantiation => ({
-    name: (instantiation.lexerToken !== undefined ? (instantiation.lexerToken + ': ') : '') + instantiation.componentName,
-    detail: 'instantiation',
-    kind: SymbolKind.Module,
-    range: instantiation.range,
-    selectionRange: instantiation.range
-  })));
-  symbols.push(...statementBody.blocks.map(block => ({
-    name: block.label.text,
-    detail: 'block',
-    kind: SymbolKind.Object,
-    range: block.range,
-    selectionRange: block.range,
-    children: parseArchitecture(block, linter)
-  })));
-  symbols.push(...statementBody.processes.map(process => ({
-    name: process.label?.text || 'no label',
-    detail: 'process',
-    kind: SymbolKind.Function,
-    range: process.range,
-    selectionRange: process.range,
-    children: process.statements.map(statement => parseStatements(statement)).flat()
-      .concat(process.subprograms.map(procedure => ({
-        name: procedure.lexerToken.text,
-        detail: 'procedure',
-        kind: SymbolKind.Method,
-        range: procedure.range,
-        selectionRange: procedure.range,
-      }))).sort((a, b) => a.range.start.line - b.range.start.line)
-  })));
-  for (const generate of statementBody.generates) {
-    symbols.push({
-      name: linter.text.split('\n')[generate.range.start.line].trim(),
-      kind: SymbolKind.Enum,
-      range: generate.range,
-      selectionRange: generate.range,
-      children: parseArchitecture(generate, linter)
-    });
+  for (const statement of statementBody.statements) {
+    if (statement instanceof OInstantiation) {
+      symbols.push({
+        name: (statement.label !== undefined ? (statement.label.text + ': ') : '') + statement.componentName,
+        detail: 'instantiation',
+        kind: SymbolKind.Module,
+        range: statement.range,
+        selectionRange: statement.range
+      });
+    }
+    if (statement instanceof OBlock) {
+      symbols.push({
+        name: statement.label.text,
+        detail: 'block',
+        kind: SymbolKind.Object,
+        range: statement.range,
+        selectionRange: statement.range,
+        children: parseArchitecture(statement, linter)
+      });
+    }
+    if (statement instanceof OProcess) {
+      symbols.push({
+        name: statement.label?.text || 'no label',
+        detail: 'process',
+        kind: SymbolKind.Function,
+        range: statement.range,
+        selectionRange: statement.range,
+        children: statement.statements.map(statement => parseSequentialStatements(statement)).flat()
+          .concat(statement.subprograms.map(procedure => ({
+            name: procedure.lexerToken.text,
+            detail: 'procedure',
+            kind: SymbolKind.Method,
+            range: procedure.range,
+            selectionRange: procedure.range,
+          }))).sort((a, b) => a.range.start.line - b.range.start.line)
+      });
+
+    }
+    if (statement instanceof OIfGenerate) {
+      for (const clause of statement.ifGenerateClauses) {
+        symbols.push(formatGenerate(clause, linter));
+      }
+      if (statement.elseGenerateClause) {
+        symbols.push(formatGenerate(statement.elseGenerateClause, linter));
+      }
+    }
+    if (statement instanceof OCaseGenerate) {
+      for (const clause of statement.whenGenerateClauses) {
+        symbols.push(formatGenerate(clause, linter));
+
+      }
+    }
+    if (statement instanceof OForGenerate) {
+      symbols.push(formatGenerate(statement, linter));
+    }
   }
   return symbols;
 }
-function parseStatements(statement: OSequentialStatement): DocumentSymbol[] {
+function formatGenerate(statement: OIfGenerate | OForGenerate | OWhenGenerateClause
+  | OCaseGenerate | OIfGenerateClause | OElseGenerateClause, linter: VhdlLinter) {
+  return {
+    name: linter.text.split('\n')[statement.range.start.line].trim(),
+    kind: SymbolKind.Enum,
+    range: statement.range,
+    selectionRange: statement.range,
+    children: statement instanceof OStatementBody ? parseArchitecture(statement, linter) : []
+  };
+}
+function parseSequentialStatements(statement: OSequentialStatement): DocumentSymbol[] {
   // OCase | OAssignment | OIf | OForLoop
   if (statement instanceof OCase) {
     const result = [{
@@ -63,22 +90,22 @@ function parseStatements(statement: OSequentialStatement): DocumentSymbol[] {
           kind: SymbolKind.EnumMember,
           range: whenClause.range,
           selectionRange: whenClause.range,
-          children: whenClause.statements.map(statement => parseStatements(statement)).flat()
+          children: whenClause.statements.map(statement => parseSequentialStatements(statement)).flat()
         };
       }).flat()
     }];
     return result;
   } else if (statement instanceof OIf) {
     const symbols: DocumentSymbol[] = [];
-    symbols.push(...statement.clauses.map(clause => clause.statements.map(parseStatements)).flat(2));
+    symbols.push(...statement.clauses.map(clause => clause.statements.map(parseSequentialStatements)).flat(2));
     if (statement.else) {
       for (const statement_ of statement.else.statements) {
-        symbols.push(...parseStatements(statement_));
+        symbols.push(...parseSequentialStatements(statement_));
       }
     }
     return symbols;
   } else if (statement instanceof OForLoop) {
-    return statement.statements.map(statement => parseStatements(statement)).flat();
+    return statement.statements.map(statement => parseSequentialStatements(statement)).flat();
   }
   return [];
 }

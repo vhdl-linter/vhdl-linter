@@ -3,11 +3,9 @@ import {
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
-import { handleCodeLens } from './languageFeatures/codeLens';
 import { getCompletions } from './languageFeatures/completion';
 import { handleDocumentFormatting } from './languageFeatures/documentFormatting';
 import { documentHighlightHandler } from './languageFeatures/documentHighlightHandler';
-import { handleExecuteCommand } from './languageFeatures/executeCommand';
 import { findReferencesHandler, prepareRenameHandler, renameHandler } from './languageFeatures/findReferencesHandler';
 import { foldingHandler } from './languageFeatures/folding';
 import { handleReferences } from './languageFeatures/references';
@@ -109,9 +107,6 @@ connection.onInitialize((params: InitializeParams) => {
       foldingRangeProvider: true,
       documentHighlightProvider: true,
       executeCommandProvider: { commands: ['vhdl-linter:lsp-command'] },
-      codeLensProvider: {
-        resolveProvider: true
-      },
       renameProvider: {
         prepareProvider: true
       },
@@ -354,9 +349,7 @@ connection.onDocumentHighlight(async (params, cancelationToken) => {
   return documentHighlightHandler(linter, params);
 
 });
-connection.onCodeLens(handleCodeLens);
 connection.onReferences(findReferencesHandler);
-connection.onExecuteCommand(handleExecuteCommand);
 connection.onWorkspaceSymbol(params => handleOnWorkspaceSymbol(params, projectParser));
 // connection.on
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

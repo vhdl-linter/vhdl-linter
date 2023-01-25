@@ -347,11 +347,11 @@ export class OContext extends ObjectBase implements I.IHasUseClauses, I.IHasCont
   contextReferences: OContextReference[] = [];
   libraries: OLibrary[] = [];
 }
-export type OConcurrentStatements = OProcess | OInstantiation | OIfGenerate | OForGenerate | OBlock | OAssignment;
+type OConcurrentStatements = OProcess | OInstantiation | OIfGenerate | OForGenerate | OCaseGenerate | OBlock | OAssignment;
 
 export abstract class OStatementBody extends ObjectBase implements I.IHasSubprograms, I.IHasComponents, I.IHasInstantiations,
   I.IHasSignals, I.IHasConstants, I.IHasVariables, I.IHasTypes, I.IHasAliases, I.IHasFileVariables, I.IHasUseClauses, I.IHasContextReference,
-  I.IHasPackageInstantiations, I.IHasLibraries, I.IHasReferenceLinks, I.IHasIfGenerates, I.IHasForGenerates, I.IHasAttributes {
+  I.IHasPackageInstantiations, I.IHasLibraries, I.IHasReferenceLinks, I.IHasAttributes {
   referenceLinks: OReference[] = [];
   useClauses: OUseClause[] = [];
   subprogramAliases: OAliasWithSignature[] = [];
@@ -379,12 +379,6 @@ export abstract class OStatementBody extends ObjectBase implements I.IHasSubprog
   get instantiations() {
     return this.statements.filter(s => s instanceof OInstantiation) as OInstantiation[];
   }
-  get ifGenerates() {
-    return this.statements.filter(s => s instanceof OIfGenerate) as OIfGenerate[];
-  }
-  get forGenerates() {
-    return this.statements.filter(s => s instanceof OForGenerate) as OForGenerate[];
-  }
   get blocks() {
     return this.statements.filter(s => s instanceof OBlock) as OBlock[];
   }
@@ -392,16 +386,7 @@ export abstract class OStatementBody extends ObjectBase implements I.IHasSubprog
     return this.statements.filter(s => s instanceof OAssignment) as OAssignment[];
   }
 
-  get generates() {
-    const generates: OStatementBody[] = this.forGenerates;
-    for (const ifObj of this.ifGenerates) {
-      generates.push(...ifObj.ifGenerates);
-      if (ifObj.elseGenerate) {
-        generates.push(ifObj.elseGenerate);
-      }
-    }
-    return generates;
-  }
+
 }
 export class OArchitecture extends OStatementBody implements I.IHasLexerToken {
   lexerToken: OLexerToken;
@@ -501,7 +486,7 @@ export class OForGenerate extends OStatementBody implements I.IHasLabel {
 }
 export class OCaseGenerate extends ObjectBase implements I.IHasLabel {
   expression: OReference[] = [];
-  whenGenerates: OWhenGenerateClause[] = [];
+  whenGenerateClauses: OWhenGenerateClause[] = [];
   label: OLexerToken;
   labelLinks: OLabelReference[] = [];
 
@@ -517,8 +502,8 @@ export class OIfGenerate extends ObjectBase implements I.IHasLabel {
   constructor(public parent: ObjectBase | OFile, public range: OIRange, public label: OLexerToken) {
     super(parent, range);
   }
-  ifGenerates: OIfGenerateClause[] = [];
-  elseGenerate?: OElseGenerateClause;
+  ifGenerateClauses: OIfGenerateClause[] = [];
+  elseGenerateClause?: OElseGenerateClause;
   labelLinks: OLabelReference[] = [];
 
 }
@@ -838,7 +823,7 @@ export class ParserError extends Error {
 export enum MagicCommentType {
   Disable
 }
-export class OMagicComment extends ObjectBase {
+abstract class OMagicComment extends ObjectBase {
   constructor(public parent: OFile, public commentType: MagicCommentType, range: OIRange,
     public rule?: string) {
     super(parent, range);

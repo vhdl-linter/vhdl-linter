@@ -4,7 +4,7 @@ import { OLexerToken } from '../lexer';
 import { implementsIHasReference, implementsIHasLexerToken } from '../parser/interfaces';
 import { ObjectBase, OReference } from '../parser/objects';
 
-export async function findReferences(params: { textDocument: TextDocumentIdentifier, position: Position }) {
+async function findReferences(params: { textDocument: TextDocumentIdentifier, position: Position }) {
   await initialization;
   const linter = linters.get(params.textDocument.uri);
   if (typeof linter === 'undefined') {
