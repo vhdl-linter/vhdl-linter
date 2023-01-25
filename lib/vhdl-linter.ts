@@ -1,5 +1,5 @@
 import {
-  CodeAction, CodeActionKind, CodeLens, Command, Diagnostic, DiagnosticSeverity, Position, Range, TextEdit
+  CodeAction, CodeActionKind, Diagnostic, DiagnosticSeverity, Position, Range, TextEdit
 } from 'vscode-languageserver';
 import { Elaborate } from './elaborate/elaborate';
 import { FileParser } from './parser/file-parser';
@@ -25,9 +25,8 @@ export interface IIgnoreLineCommandArguments {
   range: Range;
 }
 export type SettingsGetter = (resource: string) => Promise<ISettings> | ISettings;
-export type diagnosticCodeActionCallback = (textDocumentUri: string) => CodeAction[];
+type diagnosticCodeActionCallback = (textDocumentUri: string) => CodeAction[];
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type commandCallback = (textDocumentUri: string, ...args: any[]) => TextEdit[];
 export class VhdlLinter {
   messages: Diagnostic[] = [];
   file: OFile;
@@ -84,15 +83,7 @@ export class VhdlLinter {
   addCodeActionCallback(handler: diagnosticCodeActionCallback): number {
     return this.diagnosticCodeActionRegistry.push(handler) - 1;
   }
-  commandCallbackRegistry: commandCallback[] = [];
-  addCommandCallback(title: string, textDocumentUri: string, handler: commandCallback): Command {
-    const counter = this.commandCallbackRegistry.push(handler) - 1;
-    return {
-      title,
-      command: 'vhdl-linter:lsp-command',
-      arguments: [textDocumentUri, counter]
-    };
-  }
+
   addMessage(diagnostic: OIDiagnostic, name: string): void {
     if (this.checkMagicComments(diagnostic.range, name)) {
       const newCode = this.addCodeActionCallback((textDocumentUri: string) => {
@@ -161,55 +152,6 @@ export class VhdlLinter {
     }
   }
 
-
-
-
-
-  // When the definition of an association can not be found avoid errors because actuals can not be cleanly mapped then
-  // async removeBrokenActuals() {
-  //   for (const association of this.file.objectList.filter(object => object instanceof OAssociation) as OAssociation[]) {
-  //     const owner = association.parent.parent;
-  //     if (owner instanceof OPackageInstantiation || owner instanceof OPackage) { // Only OInstantiation can have outputs
-  //       continue;
-  //     }
-  //     if (owner.definitions.length > 1) { // If multiple definitions found
-  //       continue;
-  //     }
-  //     if (association.actualIfInput.length > 0
-  //       && (association.actualIfOutput[0].length > 0 || association.actualIfOutput[1].length > 0)
-  //       && (association.actualIfInoutput[0].length > 0 || association.actualIfInoutput[1].length > 0)) {
-  //       for (const mapping of association.actualIfOutput.flat()) {
-  //         const index = this.file.objectList.indexOf(mapping);
-  //         this.file.objectList.splice(index, 1);
-  //         for (const mentionable of this.file.objectList) {
-  //           if (implementsIReferencable(mentionable)) {
-  //             for (const [index, mention] of mentionable.references.entries()) {
-  //               if (mention === mapping) {
-  //                 mentionable.references.splice(index, 1);
-  //               }
-  //             }
-  //           }
-  //         }
-  //       }
-  //       association.actualIfOutput = [[], []];
-  //       for (const mapping of association.actualIfInoutput.flat()) {
-  //         const index = this.file.objectList.indexOf(mapping);
-  //         this.file.objectList.splice(index, 1);
-  //         for (const mentionable of this.file.objectList) {
-  //           if (implementsIReferencable(mentionable)) {
-  //             for (const [index, mention] of mentionable.references.entries()) {
-  //               if (mention === mapping) {
-  //                 mentionable.references.splice(index, 1);
-  //               }
-  //             }
-  //           }
-  //         }
-  //       }
-  //       association.actualIfInoutput = [[], []];
-  //     }
-  //   }
-  // }
-
   async checkAll(profiling = false) {
     if (this.parsedSuccessfully === false) {
       return this.messages;
@@ -258,16 +200,6 @@ export class VhdlLinter {
     }
     return this.messages;
   }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  getCodeLens(textDocumentUri: string): CodeLens[] {
-    const codeLenses: CodeLens[] = [];
-    return codeLenses;
-
-  }
-
-
-
 
   getIFromPosition(p: Position): number {
     const text = this.text.split('\n').slice(0, p.line);

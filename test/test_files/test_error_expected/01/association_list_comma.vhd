@@ -1,12 +1,12 @@
 entity association_list_comma is
-end entity; 
+end entity;
 
 architecture test of association_list_comma is
 begin
 
 inst_test_multiple_definitions : entity work.test_multiple_definitions
 port map (
-  i_test => '0',
+  test => '0',
 );
 
 

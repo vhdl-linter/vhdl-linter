@@ -1,7 +1,7 @@
 import { RComponent } from "./components";
 import { RConstantWrite } from "./constant-write";
 import { REmpty } from "./empty";
-import { RInstantiation } from "./instantions";
+import { RInstantiation } from "./instantiations";
 import { RLibrary } from "./library";
 import { RLibraryReference } from "./library-references";
 import { RMultipleDefinition } from "./multiple-definitions";

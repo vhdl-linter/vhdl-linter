@@ -46,7 +46,6 @@ export const defaultSettings: ISettings = {
   semanticTokens: false
 };
 export function defaultSettingsGetter() {
-
   return defaultSettings;
 }
 export function defaultSettingsWithOverwrite(overwrite?: DeepPartial<ISettings>) {

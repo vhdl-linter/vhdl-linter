@@ -33,8 +33,8 @@ export class ProjectParser {
     return projectParser;
   }
   private constructor(public workspaces: string[], public fileIgnoreRegex: string, public settingsGetter: SettingsGetter) { }
-  public addFolders(pathes: string[]) {
-    for (const path of pathes) {
+  public addFolders(paths: string[]) {
+    for (const path of paths) {
       const watcher = watch(path.replace(sep, '/') + '/**/*.vhd?(l)', { ignoreInitial: true });
       watcher.on('add', async (path) => {
         const cachedFile = await (FileCache.create(path, this));
@@ -134,7 +134,7 @@ export class ProjectParser {
 
 }
 
-export class FileCache {
+class FileCache {
   packages?: OPackage[];
   packageInstantiations?: OPackageInstantiation[];
   contexts: OContext[] = [];
