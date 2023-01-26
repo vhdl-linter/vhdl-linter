@@ -16,6 +16,6 @@ architecture rtl of test_selected_name is
   signal s : t2;
 begin
 
-  s.banana <=  s.banana.apple;
+  s.banana.apple <=  s.banana.apple;
 
 end architecture;
