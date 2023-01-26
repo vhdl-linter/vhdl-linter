@@ -21,6 +21,7 @@ export function elaborateSelectedNames(file: OFile) {
         }
       }
       // if no better definitions were found, restore the old
+      // TODO: improve this to also find recursive records or arrays of records, etc.
       if (selectedName.definitions.length === 0) {
         selectedName.definitions = oldDefinitions;
       }
