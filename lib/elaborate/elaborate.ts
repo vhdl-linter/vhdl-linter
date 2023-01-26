@@ -6,6 +6,7 @@ import { elaborateAssociations } from "./elaborate-association";
 import { elaborateComponents } from "./elaborate-components";
 import { elaborateInstantiations } from "./elaborate-instantiations";
 import { ElaborateReferences } from "./elaborate-references";
+import { elaborateSelectedNames } from "./elaborate-selected-names";
 import { elaborateUseClauses } from "./elaborate-use-clauses";
 
 export class Elaborate {
@@ -84,6 +85,8 @@ export class Elaborate {
     elaborateAssociations(this.file);
     await this.vhdlLinter.handleCanceled();
     elaborateAliases(this.file);
+    await this.vhdlLinter.handleCanceled();
+    elaborateSelectedNames(this.file);
     // console.log(`elaboration: associations for: ${Date.now() - start} ms.`);
     // start = Date.now();
     await this.vhdlLinter.handleCanceled();

@@ -5,7 +5,7 @@ export function elaborateAliases(file: OFile) {
   for (const alias of file.objectList) {
     if (alias instanceof OAlias) {
       if (alias.name.length === 0) {
-        throw new ParserError(`Alias without name`, alias.range);
+        throw new ParserError(`Alias without name`, alias.range); // TODO: why is this a parser error?
       }
       alias.aliasDefinitions = alias.name[0].definitions;
       for (const read of alias.name[0].definitions) {
