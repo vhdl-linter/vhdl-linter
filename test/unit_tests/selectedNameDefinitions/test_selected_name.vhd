@@ -6,8 +6,8 @@ end entity;
 
 architecture rtl of test_selected_name is
   type t is record
-    apple  : apple;
-    banana : banana;
+    apple  : std_ulogic;
+    banana : std_ulogic;
   end record;
 
   signal s : t;
