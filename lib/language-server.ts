@@ -18,8 +18,7 @@ import { existsSync } from 'fs';
 import { ISettings, defaultSettings } from './settings';
 import { CancelationError, CancelationObject } from './server-objects';
 import { getDocumentSymbol } from './languageFeatures/documentSymbol';
-import { findObjectFromPosition } from './languageFeatures/findObjectFromPosition';
-import { implementsIHasDefinitions } from './parser/interfaces';
+import { findDefinitions } from './languageFeatures/findDefinition';
 
 // Create a connection for the server. The connection auto detected protocol
 // Also include all preview / proposed LSP features.
@@ -265,31 +264,14 @@ interface IFindDefinitionParams {
   };
   position: Position;
 }
-const findDefinitions = async (params: IFindDefinitionParams): Promise<(DefinitionLink & { text: string })[]> => {
+
+const findBestDefinition = async (params: IFindDefinitionParams) => {
   await initialization;
   const linter = linters.get(params.textDocument.uri);
   if (!linter) {
-    return [];
+    return null;
   }
-
-  const candidates = findObjectFromPosition(linter, params.position);
-  return candidates.flatMap(candidate => {
-    if (implementsIHasDefinitions(candidate) && candidate.definitions) {
-      return candidate.definitions.map(definition => {
-        return {
-          targetRange: definition.range.copyExtendBeginningOfLine().getLimitedRange(10),
-          targetSelectionRange: definition.lexerToken?.range ?? definition.range.copyExtendBeginningOfLine().getLimitedRange(1),
-          text: definition.rootFile.originalText,
-          targetUri: URI.file(definition.rootFile.file).toString()
-        };
-      });
-    } else {
-      return [];
-    }
-  });
-};
-const findBestDefinition = async (params: IFindDefinitionParams) => {
-  const definitions = await findDefinitions(params);
+  const definitions = await findDefinitions(linter, params.position);
   if (definitions.length === 0) {
     return null;
   }
@@ -320,7 +302,22 @@ connection.onHover(async (params, token) => {
     }
   };
 });
-connection.onDefinition(findDefinitions);
+connection.onDefinition(async (params, token) => {
+  await initialization;
+  if (token.isCancellationRequested) {
+    console.log('hover canceled');
+    return new ResponseError(LSPErrorCodes.RequestCancelled, 'canceled');
+  }
+  const linter = linters.get(params.textDocument.uri);
+  if (!linter) {
+    return null;
+  }
+  const definitions = await findDefinitions(linter, params.position);
+  if (definitions.length === 0) {
+    return null;
+  }
+  return definitions;
+});
 connection.onCompletion(async (params, cancelationToken) => {
   await initialization;
   const linter = linters.get(params.textDocument.uri);

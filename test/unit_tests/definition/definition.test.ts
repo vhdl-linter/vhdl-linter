@@ -16,7 +16,7 @@ beforeAll(async () => {
   await projectParser.stop();
 });
 test(`Testing definitions`, async () => {
-  for (const character of [13, 14, 15]) {
+  for (const character of [13, 14, 15, 21, 22]) {
     const definition = await findDefinitions(linter, Position.create(12, character));
     expect(definition).toHaveLength(1);
     expect(definition[0].targetUri.replace(__dirname, '')).toBe('file:///definition.vhd');
