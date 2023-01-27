@@ -31,8 +31,8 @@ async function run_test(path: string, error_expected: boolean, projectParser?: P
     if (argv.indexOf('--no-osvvm') > -1 && subPath.match(/OSVVM/i)) {
       continue;
     }
-    // Exclude OSVVM from resolved/unresolved checker
-    const getter = subPath.match(/OSVVM/i)
+    // Exclude OSVVM and IEEE from resolved/unresolved checker
+    const getter = subPath.match(/OSVVM/i) || subPath.match(/ieee/i)
       ? defaultSettingsWithOverwrite({ style: { preferredLogicTypePort: 'ignore', preferredLogicTypeSignal: 'ignore' } })
       : defaultSettingsGetter;
     if (lstatSync(subPath).isDirectory()) {
