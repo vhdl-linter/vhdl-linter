@@ -25,8 +25,19 @@ test(`Testing definitions`, async () => {
   }
 });
 test(`Testing empty definitions`, async () => {
-  const definition = await findDefinitions(linter, Position.create(16, 0));
+  const definition = await findDefinitions(linter, Position.create(24, 0));
   expect(definition).toHaveLength(0);
   const definition2 = await findDefinitions(linter, Position.create(6, 0));
   expect(definition2).toHaveLength(0);
+});
+test(`Testing definition for actual without formal`, async () => {
+  const definition = await findDefinitions(linter, Position.create(16, 9));
+  expect(definition).toHaveLength(1);
+  expect(definition[0].targetUri.replace(__dirname, '')).toBe('file:///definition.vhd');
+  expect(definition[0].targetRange.start.line).toBe(7);
+  expect(definition[0].targetRange.end.line).toBe(7);
+});
+test(`Testing definition for literal actual without formal`, async () => {
+  const definition = await findDefinitions(linter, Position.create(20, 7));
+  expect(definition).toHaveLength(0);
 });

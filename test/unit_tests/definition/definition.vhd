@@ -12,5 +12,13 @@ begin
     port map(
       i_a => bcd_unused
       );
+  inst_foo2 : entity work.foo
+    port map(
+      bcd_unused
+      );
+  inst_foo3 : entity work.foo_int
+    port map(
+      5
+      );
 
 end arch;
