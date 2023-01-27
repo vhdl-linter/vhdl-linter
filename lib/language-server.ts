@@ -1,5 +1,5 @@
 import {
-  CodeAction, createConnection, DefinitionLink, DidChangeConfigurationNotification, InitializeParams, LSPErrorCodes, Position, ProposedFeatures, ResponseError, TextDocuments, TextDocumentSyncKind
+  CodeAction, createConnection, DidChangeConfigurationNotification, InitializeParams, LSPErrorCodes, Position, ProposedFeatures, ResponseError, TextDocuments, TextDocumentSyncKind
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
