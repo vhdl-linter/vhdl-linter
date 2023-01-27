@@ -9,3 +9,4 @@ test_results/test/private
 *.vsix
 vunit_out
 coverage
+.vscode-test

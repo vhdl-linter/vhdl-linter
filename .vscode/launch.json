@@ -1,43 +1,55 @@
 // A launch configuration that compiles the extension and then opens it inside a new window
 {
-	"version": "0.2.0",
-	"configurations": [
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "extensionHost",
+      "request": "launch",
+      "name": "Launch Client",
+      "runtimeExecutable": "${execPath}",
+      "args": ["--extensionDevelopmentPath=${workspaceRoot}"],
+      "outFiles": ["${workspaceRoot}/dist/lib/**/*.js"],
+      "preLaunchTask": {
+        "type": "npm",
+        "script": "watch"
+      }
+    },
+    {
+      "type": "node",
+      "request": "attach",
+      "name": "Attach to Server",
+      "port": 6011,
+      "restart": true,
+      "outFiles": ["${workspaceRoot}/dist/lib/**/*.js"]
+    },
+    {
+      "name": "Run test",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "test"]
+    },
+    {
+      "name": "Extension Tests",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}",
+        "--extensionTestsPath=${workspaceFolder}/dist/test/integration_tests/index.js",
+        "${workspaceFolder}/test/test_files/test_error_expected/01",
+        "${workspaceFolder}/test/test_files/test_error_expected/01/association_list_comma.vhd",
 
+      ],
 
-		{
-			"type": "extensionHost",
-			"request": "launch",
-			"name": "Launch Client",
-			"runtimeExecutable": "${execPath}",
-			"args": ["--extensionDevelopmentPath=${workspaceRoot}"],
-			"outFiles": ["${workspaceRoot}/dist/lib/**/*.js"],
-			"preLaunchTask": {
-				"type": "npm",
-				"script": "watch"
-			}
-		},
-		{
-			"type": "node",
-			"request": "attach",
-			"name": "Attach to Server",
-			"port": 6011,
-			"restart": true,
-			"outFiles": ["${workspaceRoot}/dist/lib/**/*.js"]
-		},
-		{
-			"name": "Run test",
-			"type": "node",
-			"request": "launch",
-			"cwd": "${workspaceFolder}",
-			"runtimeExecutable": "npm",
-			"runtimeArgs": ["run", "test"]
-		}
-
-	],
-	"compounds": [
-		{
-			"name": "Client + Server",
-			"configurations": ["Launch Client", "Attach to Server"]
-		}
-	]
+      "outFiles": ["${workspaceFolder}/dist/test/**/*.js"]
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Client + Server",
+      "configurations": ["Launch Client", "Attach to Server"]
+    }
+  ]
 }

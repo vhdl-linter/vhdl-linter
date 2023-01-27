@@ -12,7 +12,7 @@ import { copy, CopyTypes } from './vhdl-entity-converter';
 import { IAddSignalCommandArguments, IIgnoreLineCommandArguments } from './vhdl-linter';
 
 
-let client: LanguageClient;
+export let client: LanguageClient;
 
 export function activate(context: ExtensionContext) {
   // The server is implemented in node
