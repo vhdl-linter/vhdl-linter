@@ -5,12 +5,12 @@ entity bar is
 end entity;
 architecture arch of bar is
 
-  signal b : std_ulogic;
+  signal bcd_unused : std_ulogic;
 
 begin
   inst_foo : entity work.foo
     port map(
-      i_a => b
+      i_a => bcd_unused
       );
 
 end arch;

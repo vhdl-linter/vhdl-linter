@@ -1,4 +1,4 @@
-import { test } from '@jest/globals';
+import { expect, test } from '@jest/globals';
 import { readFileSync } from 'fs';
 import { Position } from 'vscode-languageserver';
 import { Elaborate } from '../../../lib/elaborate/elaborate';
@@ -12,8 +12,13 @@ test(`Testing definitions`, async () => {
   const linter = new VhdlLinter('definition.vhd', readFileSync(__dirname + '/definition.vhd', { encoding: 'utf8' }),
     projectParser, defaultSettingsGetter);
   await Elaborate.elaborate(linter);
-  const definition = await findDefinitions(linter, Position.create(12, 14));
-  console.log(definition)
-  console.log(definition[0].text.split('\n').slice(definition[0].targetRange.start.line, definition[0].targetRange.end.line + 1));
-  await projectParser.stop();
-})
+  for (const character of [13, 14, 15]) {
+    const definition = await findDefinitions(linter, Position.create(12, character));
+    expect(definition).toHaveLength(1);
+    expect(definition[0].targetUri.replace(__dirname, '')).toBe('file:///definition.vhd');
+    expect(definition[0].targetRange.start.line).toBe(7);
+    expect(definition[0].targetRange.end.line).toBe(7);
+    await projectParser.stop();
+
+  }
+});

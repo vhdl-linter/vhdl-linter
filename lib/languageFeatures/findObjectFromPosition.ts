@@ -4,7 +4,7 @@ import { VhdlLinter } from "../vhdl-linter";
 
 export function findObjectFromPosition(linter: VhdlLinter, position: Position): ObjectBase[] {
   const startI = linter.getIFromPosition(position);
-  let candidates = linter.file?.objectList.filter(object => object.range.start.i <= startI && startI <= object.range.end.i) ?? [];
+  let candidates = linter.file?.objectList.filter(object => object.range.start.i <= startI + 1 && startI <= object.range.end.i) ?? [];
   if (candidates.length === 0) {
     return [];
   }
