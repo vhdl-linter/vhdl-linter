@@ -41,3 +41,7 @@ test(`Testing definition for literal actual without formal`, async () => {
   const definition = await findDefinitions(linter, Position.create(20, 7));
   expect(definition).toHaveLength(0);
 });
+test(`Testing definition for actual in instantiation which can not be elaborated`, async () => {
+  const definition = await findDefinitions(linter, Position.create(20, 7));
+  expect(definition).toHaveLength(0);
+});

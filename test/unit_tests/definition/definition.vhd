@@ -20,5 +20,10 @@ begin
     port map(
       5
       );
+       -- does not exist on purpose
+  inst_foo4 : entity work.does_not_exist
+    port map(
+      bcd_unused
+      );
 
 end arch;
