@@ -1,7 +1,7 @@
 import { OLexerToken, TokenType } from '../lexer';
 import { config } from './config';
 import { OIDiagnosticWithSolution } from './interfaces';
-import { ObjectBase, OFile, OReference, OSelectedName, ParserError, SelectedNamePrefix } from './objects';
+import { OFile, ParserError } from './objects';
 
 
 export class ParserPosition {

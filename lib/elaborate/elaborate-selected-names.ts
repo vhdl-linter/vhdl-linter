@@ -1,16 +1,26 @@
+import { DiagnosticSeverity } from "vscode-languageserver";
 import { implementsIHasReference, implementsIHasTypeReference } from "../parser/interfaces";
-import { OArray, ObjectBase, OFile, ORecord, OSelectedName, OSelectedNameRead, OSelectedNameWrite } from "../parser/objects";
+import { OArray, ObjectBase, OFile, ORecord, ORecordChild, OSelectedName, OSelectedNameRead, OSelectedNameWrite } from "../parser/objects";
 
-function findRecordElement(selectedName: OSelectedName | OSelectedNameWrite | OSelectedNameRead, typeDefinition: ObjectBase) {
+function findRecordElement(file: OFile, selectedName: OSelectedName | OSelectedNameWrite | OSelectedNameRead, typeDefinition: ObjectBase) {
   if (typeDefinition instanceof ORecord) {
+    let found = false;
     for (const child of typeDefinition.children) {
       if (child.lexerToken.getLText() === selectedName.referenceToken.getLText()) {
         selectedName.definitions.push(child);
+        found = true;
       }
+    }
+    if (found === false) {
+      file.parserMessages.push({
+        message: `${selectedName.referenceToken} does not exist on record ${typeDefinition.lexerToken}`,
+        range: selectedName.referenceToken.range,
+        severity: DiagnosticSeverity.Error
+      });
     }
   } else if (typeDefinition instanceof OArray) {
     for (const def of typeDefinition.elementType.flatMap(r => r.definitions)) {
-      findRecordElement(selectedName, def);
+      findRecordElement(file, selectedName, def);
     }
   }
 }
@@ -20,22 +30,37 @@ export function elaborateSelectedNames(file: OFile) {
     if (selectedName instanceof OSelectedNameRead || selectedName instanceof OSelectedNameWrite || selectedName instanceof OSelectedName) {
       const oldDefinitions = selectedName.definitions;
       selectedName.definitions = [];
-      // search through the types to find a recordType to find children which match the referenceToken
-      for (const oldDef of oldDefinitions) {
-        if (implementsIHasReference(oldDef)) {
-          // remove the reference on this selectedName
-          oldDef.referenceLinks = oldDef.referenceLinks.filter(r => r !== selectedName);
+      // TODO: improve the handling of alias in eleaborate-selected-name (see OSVVM/CoveratePkg.vhd:2008)
+      const lastPrefix = selectedName.prefixTokens[selectedName.prefixTokens.length - 1];
+      // check for a record in a record -> if the last prefix was a selected name, search in its type defintion and not in the oldDefinitions
+      if (lastPrefix instanceof OSelectedName || lastPrefix instanceof OSelectedNameRead || lastPrefix instanceof OSelectedNameWrite) {
+        for (const childDefintion of lastPrefix.definitions) {
+          if (childDefintion instanceof ORecordChild) {
+            for (const typeDef of childDefintion.referenceLinks.flatMap(r => r.definitions)) {
+              findRecordElement(file, selectedName, typeDef);
+            }
+          }
         }
-        if (implementsIHasTypeReference(oldDef)) {
-          for (const typeDef of oldDef.typeReference.flatMap(r => r.definitions)) {
-            findRecordElement(selectedName, typeDef);
+      } else {
+        // search through the types to find a recordType to find children which match the referenceToken
+        for (const oldDef of oldDefinitions) {
+          if (implementsIHasTypeReference(oldDef)) {
+            for (const typeDef of oldDef.typeReference.flatMap(r => r.definitions)) {
+              findRecordElement(file, selectedName, typeDef);
+            }
           }
         }
       }
       // if no better definitions were found, restore the old
-      // TODO: improve this to also find recursive records or arrays of records, etc.
       if (selectedName.definitions.length === 0) {
         selectedName.definitions = oldDefinitions;
+      } else {
+        // remove the references on this selectedName
+        for (const oldDef of oldDefinitions) {
+          if (implementsIHasReference(oldDef)) {
+            oldDef.referenceLinks = oldDef.referenceLinks.filter(r => r !== selectedName);
+          }
+        }
       }
     }
   }
