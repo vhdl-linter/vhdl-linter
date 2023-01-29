@@ -1,4 +1,4 @@
-import { OContext, OContextReference, ObjectBase } from './objects';
+import { OContext, OContextReference, ObjectBase, OLibraryReference } from './objects';
 import { ParserBase, ParserState } from './parser-base';
 
 export class ContextReferenceParser extends ParserBase {
@@ -12,6 +12,6 @@ export class ContextReferenceParser extends ParserBase {
     this.expect('.');
     const suffix = this.consumeToken();
     this.expect(';');
-    return new OContextReference(this.parent, prefix.range.copyWithNewEnd(suffix.range), prefix, suffix.text);
+    return new OContextReference(this.parent, prefix.range.copyWithNewEnd(suffix.range), new OLibraryReference(this.parent, prefix), suffix.text);
   }
 }

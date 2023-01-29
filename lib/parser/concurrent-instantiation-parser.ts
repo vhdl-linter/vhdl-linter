@@ -1,5 +1,5 @@
 import { AssociationListParser } from './association-list-parser';
-import { OEntity, OInstantiation, OStatementBody, ParserError } from './objects';
+import { OEntity, OInstantiation, OLibraryReference, OStatementBody, ParserError } from './objects';
 import { ParserBase, ParserState } from './parser-base';
 import { OLexerToken } from '../lexer';
 
@@ -14,7 +14,7 @@ export class ConcurrentInstantiationParser extends ParserBase {
     if (nextToken.getLText() === 'entity') {
       this.consumeToken();
       instantiation.type = 'entity';
-      instantiation.library = this.consumeToken();
+      instantiation.library = new OLibraryReference(instantiation, this.consumeToken());
       this.expect('.');
     } else if (nextToken.getLText() === 'component') {
       this.consumeToken();

@@ -2,7 +2,7 @@ import { findBestMatch } from "string-similarity";
 import { CodeAction, CodeActionKind, Command, DiagnosticSeverity, Range, TextEdit } from "vscode-languageserver";
 import { URI } from "vscode-uri";
 import { IHasLexerToken, implementsIHasLexerToken } from "../parser/interfaces";
-import { OArchitecture, OAssociation, OAttributeReference, OFormalReference, OInstantiation, OLabelReference, OPackageBody, OPort, OReference, OSignal, OUseClause, OVariable, OWrite } from "../parser/objects";
+import { OArchitecture, OAssociation, OAttributeReference, OContext, OContextReference, OFormalReference, OInstantiation, OLabelReference, OLibraryReference, OPackageBody, OPort, OReference, OSignal, OUseClause, OVariable, OWrite } from "../parser/objects";
 import { ISettings } from "../settings";
 import { IAddSignalCommandArguments } from "../vhdl-linter";
 import { IRule, RuleBase } from "./rules-base";
@@ -110,6 +110,9 @@ export class RNotDeclared extends RuleBase implements IRule {
       if (obj instanceof OInstantiation) { // Instantiation handled somewhere else, where?
         continue;
       }
+      if (obj instanceof OLibraryReference) { // handled somewhere else
+        continue;
+      }
       if (obj instanceof OFormalReference) { // Formal references handled else where
         // TODO handle Formal references for function calls in assignments
         continue;
@@ -122,7 +125,7 @@ export class RNotDeclared extends RuleBase implements IRule {
             message: `attribute '${obj.referenceToken.text}' is referenced but not declared`
           });
         }
-      } else if (obj instanceof OUseClause) {
+      } else if (obj instanceof OUseClause || obj.parent instanceof OUseClause) {
         // Do nothing in case of use clause
         // This is already handled
       } else if (obj instanceof OArchitecture && obj.correspondingEntity === undefined) {

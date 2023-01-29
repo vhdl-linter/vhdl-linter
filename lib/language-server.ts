@@ -395,10 +395,10 @@ connection.onRequest('vhdl-linter/listing', async (params: any) => {
         }
       } else if (obj instanceof OUseClause) {
         // do not generate file listings for ieee files
-        if (obj.library?.getLText() === 'ieee' || obj.library?.getLText() === 'std') {
+        if (obj.library?.referenceToken.getLText() === 'ieee' || obj.library?.referenceToken.getLText() === 'std') {
           continue;
         }
-        const matchingPackages = projectParser.packages.filter(pkg => pkg.lexerToken.getLText() === obj.packageName.getLText());
+        const matchingPackages = projectParser.packages.filter(pkg => pkg.lexerToken.getLText() === obj.packageName.referenceToken.getLText());
         if (matchingPackages.length > 0) {
           found = matchingPackages[0].parent;
         }

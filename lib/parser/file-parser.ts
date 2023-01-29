@@ -4,7 +4,7 @@ import { CancelationObject } from '../server-objects';
 import { ContextParser } from './context-parser';
 import { ContextReferenceParser } from './context-reference-parser';
 import { EntityParser } from './entity-parser';
-import { MagicCommentType, ObjectBase, OConfiguration, OFile, OI, OIRange, OLibrary, OMagicCommentDisable, OPackageInstantiation, OUseClause, ParserError } from './objects';
+import { MagicCommentType, ObjectBase, OConfiguration, OFile, OI, OIRange, OLibrary, OLibraryReference, OMagicCommentDisable, OPackageInstantiation, OReference, OUseClause, ParserError } from './objects';
 import { PackageInstantiationParser } from './package-instantiation-parser';
 import { PackageParser } from './package-parser';
 import { ParserBase, ParserPosition, ParserState } from './parser-base';
@@ -115,10 +115,10 @@ export class FileParser extends ParserBase {
     let useClausesPrepare: [OLexerToken, OLexerToken, OLexerToken][] = [];
     const getUseClauses = (parent: ObjectBase) => {
       return [
-        new OUseClause(parent, new OLexerToken('std', new OIRange(this.file, 0, 0), TokenType.keyword),
-          new OLexerToken('standard', new OIRange(this.file, 0, 0), TokenType.keyword),
+        new OUseClause(parent, new OLibraryReference(parent, new OLexerToken('std', new OIRange(this.file, 0, 0), TokenType.keyword)),
+          new OReference(parent, new OLexerToken('standard', new OIRange(this.file, 0, 0), TokenType.keyword)),
           new OLexerToken('all', new OIRange(this.file, 0, 0), TokenType.keyword)),
-        ...useClausesPrepare.map(([library, packageName, suffix]) => new OUseClause(parent, library, packageName, suffix))
+        ...useClausesPrepare.map(([library, packageName, suffix]) => new OUseClause(parent, new OLibraryReference(parent, library), new OReference(parent, packageName), suffix))
       ];
     };
     let libraries = defaultLibrary.slice(0);
@@ -157,7 +157,6 @@ export class FileParser extends ParserBase {
         this.expect(';');
       } else if (nextToken.getLText() === 'use') {
 
-        useClausesPrepare.push;
         const library = this.consumeToken();
         this.expect('.');
         const packageName = this.consumeToken();

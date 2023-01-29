@@ -277,17 +277,6 @@ export class ParserBase {
     }
   }
 
-  consumeNameReference(parent: ObjectBase): OReference {
-    const tokens = [];
-    do {
-      tokens.push(this.consumeToken());
-    } while (this.getToken().text === '.' && this.consumeToken());
-    if (tokens.length > 1) {
-      return new OSelectedName(parent, tokens[tokens.length - 1], tokens.slice(0, tokens.length - 1) as SelectedNamePrefix);
-    }
-    return new OReference(parent, tokens[0]);
-  }
-
 
   getTextDebug(lines = 3) { // This gets the current Text (for Debugger)
     let text = '';

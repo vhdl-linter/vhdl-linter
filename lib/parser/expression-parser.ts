@@ -79,26 +79,27 @@ export class ExpressionParser extends ParserBase {
   }
   convertToReference(buffer: OLexerToken[], formal: boolean, write: boolean) {
     buffer = buffer.filter(token => token.isDesignator());
-    const references = [];
+    const references: OReference[] = [];
+    const writes: OReference[] = [];
     for (const [index, token] of buffer.entries()) {
       if (formal) {
         references.push(new OFormalReference(this.parent, token));
       } else if (index > 0) {
         if (write && (this.expState.leftHandSide || this.expState.maybeOutput || this.expState.maybeInOut) ) {
-          const write = new OSelectedNameWrite(this.parent, token, buffer.slice(0, index) as SelectedNamePrefix);
-          references.push(write);
+          const write = new OSelectedNameWrite(this.parent, token, writes.slice(0, index) as SelectedNamePrefix);
+          writes.push(write);
           write.inAssociation = this.expState.maybeOutput || this.expState.maybeInOut;
           if (this.expState.maybeInOut) {
-            references.push(new OSelectedName(this.parent, token, buffer.slice(0, index) as SelectedNamePrefix));
+            references.push(new OSelectedName(this.parent, token, references.slice(0, index) as SelectedNamePrefix));
           }
         } else {
-          references.push(new OSelectedName(this.parent, token, buffer.slice(0, index) as SelectedNamePrefix));
+          references.push(new OSelectedName(this.parent, token, references.slice(0, index) as SelectedNamePrefix));
         }
       } else {
         if (write && (this.expState.leftHandSide || this.expState.maybeOutput || this.expState.maybeInOut)) {
           const write = new OWrite(this.parent, token);
           write.inAssociation = this.expState.maybeOutput || this.expState.maybeInOut;
-          references.push(write);
+          writes.push(write);
           if (this.expState.maybeInOut) {
             references.push(new OReference(this.parent, token));
           }
@@ -107,7 +108,7 @@ export class ExpressionParser extends ParserBase {
         }
       }
     }
-    return references;
+    return references.concat(writes);
   }
   private inner(maybeFormal = false, maybeWrite = false): OReference[] {
     const references: OReference[] = [];

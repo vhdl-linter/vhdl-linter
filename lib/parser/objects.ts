@@ -209,6 +209,9 @@ export class OReference extends ObjectBase implements I.IHasDefinitions, I.IHasR
 export class OFormalReference extends OReference {
 
 }
+export class OLibraryReference extends OReference {
+  type = 'libary'; // for ts
+}
 export class OFile {
   parserMessages: I.OIDiagnosticWithSolution[] = [];
   public lines: string[];
@@ -289,7 +292,7 @@ export class OPackage extends ObjectBase implements I.IHasSubprograms, I.IHasCom
   packageDefinitions: OPackage[] = [];
   packageInstantiations: OPackageInstantiation[] = [];
   contextReferences: OContextReference[] = [];
-  library?: OLexerToken;
+  library?: OLibraryReference;
   subprograms: OSubprogram[] = [];
   components: OComponent[] = [];
   signals: OSignal[] = [];
@@ -332,8 +335,9 @@ export class OLibrary extends ObjectBase implements I.IHasLexerToken, I.IHasRefe
 }
 
 export class OContextReference extends ObjectBase implements I.IHasLibraryReference {
-  constructor(public parent: OContext | ObjectBase, range: OIRange, public library: OLexerToken, public contextName: string) {
+  constructor(public parent: OContext | ObjectBase, range: OIRange, public library: OLibraryReference, public contextName: string) {
     super(parent, range);
+    library.parent = this;
   }
   definitions: ObjectBase[] = [];
 
@@ -602,7 +606,7 @@ export class OInstantiation extends OReference implements I.IHasDefinitions, I.I
   package?: OLexerToken;
   portAssociationList?: OPortAssociationList;
   genericAssociationList?: OGenericAssociationList;
-  library?: OLexerToken;
+  library?: OLibraryReference;
   archIdentifier?: OLexerToken;
   label?: OLexerToken;
   labelLinks: OLabelReference[] = [];
@@ -694,7 +698,7 @@ export class OHasSequentialStatements extends ObjectBase implements I.IHasInstan
   get ifs() {
     return this.statements.filter(s => s instanceof OIf) as OIf[];
   }
-  get loops() {
+  get loops(): OLoop[] {
     return this.statements.filter(s => s instanceof OLoop) as OLoop[];
   }
   get instantiations() {
@@ -799,8 +803,12 @@ export class OSelectedName extends OReference {
   }
 }
 export class OUseClause extends OSelectedName implements I.IHasLibraryReference {
-  constructor(public parent: ObjectBase, public library: OLexerToken | undefined, public packageName: OLexerToken, public suffix: OLexerToken) {
+  constructor(public parent: ObjectBase, public library: OLibraryReference | undefined, public packageName: OReference, public suffix: OLexerToken) {
     super(parent, suffix, library ? [library, packageName] : [packageName]);
+    if (library) {
+      library.parent = this;
+    }
+    packageName.parent = this;
   }
 }
 export class OSelectedNameRead extends ORead {
@@ -809,8 +817,8 @@ export class OSelectedNameRead extends ORead {
   }
 }
 export type SelectedNamePrefix = [
-  first: OLexerToken,
-  ...rest: OLexerToken[]
+  first: OReference,
+  ...rest: OReference[]
 ];
 export class OAttributeReference extends OReference {
   public prefix: OReference;
