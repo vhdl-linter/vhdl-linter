@@ -1,5 +1,19 @@
 import { implementsIHasTypeReference } from "../parser/interfaces";
-import { OFile, ORecord, OSelectedName, OSelectedNameRead, OSelectedNameWrite } from "../parser/objects";
+import { OArray, ObjectBase, OFile, ORecord, OSelectedName, OSelectedNameRead, OSelectedNameWrite } from "../parser/objects";
+
+function findRecordElement(selectedName: OSelectedName | OSelectedNameWrite | OSelectedNameRead, typeDefinition: ObjectBase) {
+  if (typeDefinition instanceof ORecord) {
+    for (const child of typeDefinition.children) {
+      if (child.lexerToken.getLText() === selectedName.referenceToken.getLText()) {
+        selectedName.definitions.push(child);
+      }
+    }
+  } else if (typeDefinition instanceof OArray) {
+    for (const def of typeDefinition.elementType.flatMap(r => r.definitions)) {
+      findRecordElement(selectedName, def);
+    }
+  }
+}
 
 export function elaborateSelectedNames(file: OFile) {
   for (const selectedName of file.objectList) {
@@ -10,21 +24,15 @@ export function elaborateSelectedNames(file: OFile) {
       for (const oldDef of oldDefinitions) {
         if (implementsIHasTypeReference(oldDef)) {
           for (const typeDef of oldDef.typeReference.flatMap(r => r.definitions)) {
-            if (typeDef instanceof ORecord) {
-              for (const child of typeDef.children) {
-                if (child.lexerToken.getLText() === selectedName.referenceToken.getLText()) {
-                  selectedName.definitions.push(child);
-                }
-              }
-            }
+            findRecordElement(selectedName, typeDef);
           }
         }
       }
       // if no better definitions were found, restore the old
       // TODO: improve this to also find recursive records or arrays of records, etc.
-      if (selectedName.definitions.length === 0) {
-        selectedName.definitions = oldDefinitions;
-      }
+      // if (selectedName.definitions.length === 0) {
+      //   selectedName.definitions = oldDefinitions;
+      // }
     }
   }
 

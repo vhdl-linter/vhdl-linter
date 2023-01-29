@@ -463,6 +463,9 @@ export class OEnum extends OType {
 export class ORecord extends OType {
   children: ORecordChild[] = [];
 }
+export class OArray extends OType {
+  elementType: OReference[] = [];
+}
 export class ORecordChild extends OType {
   public parent: ORecord;
 }
