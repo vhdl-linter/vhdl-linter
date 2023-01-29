@@ -55,10 +55,15 @@ export function elaborateSelectedNames(file: OFile) {
       if (selectedName.definitions.length === 0) {
         selectedName.definitions = oldDefinitions;
       } else {
-        // remove the references on this selectedName
+        // update the references on this selectedName
         for (const oldDef of oldDefinitions) {
           if (implementsIHasReference(oldDef)) {
             oldDef.referenceLinks = oldDef.referenceLinks.filter(r => r !== selectedName);
+          }
+        }
+        for (const newDef of selectedName.definitions) {
+          if (implementsIHasReference(newDef)) {
+            newDef.referenceLinks.push(selectedName);
           }
         }
       }
