@@ -110,11 +110,18 @@ export class OIRange implements Range {
   toJSON() {
     return Range.create(this.start, this.end);
   }
-  getLimitedRange(limit = 5) {
-    const newEnd = this.end.line - this.start.line > limit ?
-      new OI(this.parent, this.start.line + limit, Number.POSITIVE_INFINITY)
-      : this.end;
-    return new OIRange(this.parent, this.start, newEnd);
+  getLimitedRange(limit = 5, fromEnd = false) {
+    if (fromEnd) {
+      const newStart = this.end.line - this.start.line > limit ?
+        new OI(this.parent, this.end.line - limit, 0)
+        : this.start;
+      return new OIRange(this.parent, newStart, this.end);
+    } else {
+      const newEnd = this.end.line - this.start.line > limit ?
+        new OI(this.parent, this.start.line + limit, Number.POSITIVE_INFINITY)
+        : this.end;
+      return new OIRange(this.parent, this.start, newEnd);
+    }
   }
   copyExtendBeginningOfLine() {
     const lines = (this.parent instanceof OFile ? this.parent : this.parent.rootFile).lines;
