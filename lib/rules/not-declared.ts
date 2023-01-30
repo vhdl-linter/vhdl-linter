@@ -110,7 +110,7 @@ export class RNotDeclared extends RuleBase implements IRule {
       if (obj instanceof OInstantiation) { // Instantiation handled somewhere else, where?
         continue;
       }
-      if (obj instanceof OLibraryReference) { // handled somewhere else
+      if (obj instanceof OLibraryReference) { // handled in rules/library-reference
         continue;
       }
       if (obj instanceof OFormalReference) { // Formal references handled else where
