@@ -4,7 +4,7 @@ entity test_selected_name_alias is
 end test_selected_name_alias;
 
 architecture arch of test_selected_name_alias is
-  signal bar_unused : work.test_selected_name_alias_pkg.foo;
+  signal bar_unused : work.test_selected_name_alias_pkg.foo(2 downto 0);
   alias test_alias is work.test_selected_name_alias_pkg.test_procedure [integer];
 
 begin
