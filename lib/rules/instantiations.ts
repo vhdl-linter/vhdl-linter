@@ -1,7 +1,7 @@
 import { findBestMatch } from "string-similarity";
 import { CodeAction, CodeActionKind, DiagnosticSeverity, Range, TextEdit } from "vscode-languageserver";
-import { implementsIHasLexerToken, IHasLexerToken, implementsIHasInstantiations, implementsIHasPorts, implementsIHasSubprograms } from "../parser/interfaces";
-import { OAliasWithSignature, OArchitecture, OAssociationList, ObjectBase, OCase, OComponent, OEntity, OFile, OGeneric, OHasSequentialStatements, OIf, OIRange, OPort, OTypeMark } from "../parser/objects";
+import { implementsIHasLexerToken, IHasLexerToken, implementsIHasPorts, implementsIHasSubprograms, implementsIHasStatements } from "../parser/interfaces";
+import { OAliasWithSignature, OArchitecture, OAssociationList, ObjectBase, OCase, OComponent, OEntity, OFile, OGeneric, OHasSequentialStatements, OIf, OInstantiation, OIRange, OPort, OTypeMark } from "../parser/objects";
 import { IRule, RuleBase } from "./rules-base";
 
 export class RInstantiation extends RuleBase implements IRule {
@@ -130,28 +130,30 @@ export class RInstantiation extends RuleBase implements IRule {
     if (!object) {
       return;
     }
-    if (implementsIHasInstantiations(object)) {
-      for (const instantiation of object.instantiations) {
-        if (instantiation.definitions.length === 0) {
-          this.addMessage({
-            range: instantiation.range.start.getRangeToEndLine(),
-            severity: DiagnosticSeverity.Warning,
-            message: `can not find ${instantiation.type} ${instantiation.componentName}`
-          });
-        } else {
-          const range = instantiation.range.start.getRangeToEndLine();
-          const availablePorts = instantiation.definitions.map(e => {
-            if (implementsIHasPorts(e)) {
-              return e.ports;
-            }
-            if (e instanceof OAliasWithSignature) {
-              return e.typeMarks;
-            }
-            return [];
-          });
-          this.checkAssociations(availablePorts, instantiation.portAssociationList, instantiation.type, range, 'port');
-          const availableGenerics = instantiation.definitions.map(d => (d instanceof OComponent || d instanceof OEntity) ? d.generics : []);
-          this.checkAssociations(availableGenerics, instantiation.genericAssociationList, instantiation.type, range, 'generic');
+    if (implementsIHasStatements(object)) {
+      for (const instantiation of object.statements) {
+        if (instantiation instanceof OInstantiation) {
+          if (instantiation.definitions.length === 0) {
+            this.addMessage({
+              range: instantiation.range.start.getRangeToEndLine(),
+              severity: DiagnosticSeverity.Warning,
+              message: `can not find ${instantiation.type} ${instantiation.componentName}`
+            });
+          } else {
+            const range = instantiation.range.start.getRangeToEndLine();
+            const availablePorts = instantiation.definitions.map(e => {
+              if (implementsIHasPorts(e)) {
+                return e.ports;
+              }
+              if (e instanceof OAliasWithSignature) {
+                return e.typeMarks;
+              }
+              return [];
+            });
+            this.checkAssociations(availablePorts, instantiation.portAssociationList, instantiation.type, range, 'port');
+            const availableGenerics = instantiation.definitions.map(d => (d instanceof OComponent || d instanceof OEntity) ? d.generics : []);
+            this.checkAssociations(availableGenerics, instantiation.genericAssociationList, instantiation.type, range, 'generic');
+          }
         }
       }
     }
@@ -179,20 +181,8 @@ export class RInstantiation extends RuleBase implements IRule {
       }
     }
     if (object instanceof OHasSequentialStatements) {
-      for (const cases of object.cases) {
-        this.checkInstantiations(cases);
-      }
-      for (const assignments of object.assignments) {
-        this.checkInstantiations(assignments);
-      }
-      for (const ifs of object.ifs) {
-        this.checkInstantiations(ifs);
-      }
-      for (const loops of object.loops) {
-        this.checkInstantiations(loops);
-      }
-      for (const instantiations of object.instantiations) {
-        this.checkInstantiations(instantiations);
+      for (const statement of object.statements) {
+        this.checkInstantiations(statement);
       }
     }
   }
