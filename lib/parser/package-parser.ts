@@ -23,7 +23,7 @@ export class PackageParser extends ParserBase {
       this.advanceSemicolon();
       return pkg;
     } else {
-      const pkg = new OPackage(parent, this.getToken().range);
+      const pkg = new OPackage(parent, this.getToken(-2, true).range);
       const match = parent.originalText.match(/!\s*@library\s+(\S+)/i);
       pkg.targetLibrary = match ? match[1] : undefined;
 

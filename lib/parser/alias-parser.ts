@@ -72,11 +72,17 @@ export class AliasParser extends ParserBase {
 
       alias.subtypeIndication.push(...new ExpressionParser(this.state, alias, tokens).parse());
     }
-    this.expect('is');
-    const [tokens] = this.advanceParenthesisAware([';'], true, false);
-    alias.name.push(...new ExpressionParser(this.state, alias, tokens).parse());
-    this.advanceSemicolon(true);
-    return alias;
+      const isToken = this.expect('is');
+      const [tokens, semicolon] = this.advanceParenthesisAware([';'], true, true);
+      if (tokens.length === 0) {
+          this.state.messages.push({
+              range: isToken.range.copyWithNewEnd(semicolon.range),
+              message: `Expected name for alias. None found.`
+          });
+      } else {
+          alias.name.push(...new ExpressionParser(this.state, alias, tokens).parse());
+      }
+      return alias;
   }
   consumeNameReference(parent: ObjectBase): OReference {
     const tokens = [];
