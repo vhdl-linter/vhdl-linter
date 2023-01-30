@@ -19,6 +19,10 @@ test.each([
   ['entity.vhd', createPrintableRange(11, 18, 11, 22), true],
   ['signal.vhd', createPrintableRange(10, 10, 10, 13), true], // two occurrences of the signal name foo
   ['signal.vhd', createPrintableRange(13, 3, 13, 6), true],
+  ['package.vhd', createPrintableRange(1, 9, 1, 17), true],
+  ['package.vhd', createPrintableRange(3, 13, 3, 21), true],
+  ['package.vhd', createPrintableRange(4, 14, 4, 22), true],
+  ['package.vhd', createPrintableRange(5, 18, 5, 26), true],
 ])('testing rename for %s in %s %p', async (name: string, range: Range, allowRename = true) => {
   const projectParser = await ProjectParser.create([__dirname], '', defaultSettingsGetter);
   const path = __dirname + `/${name}`;

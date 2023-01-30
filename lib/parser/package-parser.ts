@@ -18,7 +18,7 @@ export class PackageParser extends ParserBase {
       this.expect('end');
       this.maybe('package');
       this.maybe('body');
-      this.maybe(pkg.lexerToken.text);
+      pkg.endingLexerToken = this.maybe(pkg.lexerToken.text);
       pkg.range = pkg.range.copyWithNewEnd(this.getToken(-1, true).range.end);
       this.advanceSemicolon();
       return pkg;
@@ -57,9 +57,10 @@ export class PackageParser extends ParserBase {
       }
       const declarativePartParser = new DeclarativePartParser(this.state, pkg);
       declarativePartParser.parse(false, 'end');
+      this.expect('end');
       this.maybe('package');
-      this.maybe(pkg.lexerToken.text);
-      this.advanceSemicolon();
+      pkg.endingLexerToken = this.maybe(pkg.lexerToken.text);
+      this.expect(';');
       return pkg;
     }
   }

@@ -286,7 +286,7 @@ export class OPackageInstantiation extends ObjectBase implements I.IHasReference
 
 export class OPackage extends ObjectBase implements I.IHasSubprograms, I.IHasComponents, I.IHasSignals, I.IHasConstants,
   I.IHasVariables, I.IHasTypes, I.IHasAliases, I.IHasFileVariables, I.IHasUseClauses, I.IHasContextReference, I.IHasLexerToken,
-  I.IHasLibraries, I.IHasLibraryReference, I.IHasGenerics, I.IHasReferenceLinks, I.IHasAttributes {
+  I.IHasLibraries, I.IHasLibraryReference, I.IHasGenerics, I.IHasReferenceLinks, I.IHasAttributes, I.IHasEndingLexerToken {
   referenceLinks: OReference[] = [];
   aliasReferences: OAlias[] = [];
   attributes: OAttribute[] = [];
@@ -309,10 +309,12 @@ export class OPackage extends ObjectBase implements I.IHasSubprograms, I.IHasCom
   files: OFileVariable[] = [];
   types: OType[] = [];
   targetLibrary?: string;
+  endingLexerToken?: OLexerToken;
+  correspondingPackageBodies: OPackageBody[] = [];
 }
 
 export class OPackageBody extends ObjectBase implements I.IHasSubprograms, I.IHasConstants, I.IHasVariables, I.IHasTypes,
-  I.IHasAliases, I.IHasFileVariables, I.IHasUseClauses, I.IHasContextReference, I.IHasLexerToken, I.IHasLibraries, I.IHasReferenceLinks, I.IHasAttributes {
+  I.IHasAliases, I.IHasFileVariables, I.IHasUseClauses, I.IHasContextReference, I.IHasLexerToken, I.IHasLibraries, I.IHasReferenceLinks, I.IHasAttributes, I.IHasEndingLexerToken {
     attributes: OAttribute[] = [];
   referenceLinks: OReference[] = [];
   aliasReferences: OAlias[] = [];
@@ -331,6 +333,7 @@ export class OPackageBody extends ObjectBase implements I.IHasSubprograms, I.IHa
   files: OFileVariable[] = [];
   targetLibrary?: string;
   correspondingPackage?: OPackage;
+  endingLexerToken?: OLexerToken;
 }
 
 

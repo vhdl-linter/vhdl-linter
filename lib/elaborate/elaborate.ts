@@ -50,6 +50,7 @@ export class Elaborate {
         }
         if (pkgHeader) {
           pkg.correspondingPackage = pkgHeader;
+          pkgHeader.correspondingPackageBodies.push(pkg);
         } else {
           this.vhdlLinter.addMessage({
             range: pkg.lexerToken.range,

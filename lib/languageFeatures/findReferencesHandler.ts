@@ -2,7 +2,7 @@ import { Location, Position } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { OLexerToken } from '../lexer';
 import { IHasEndingLexerToken, implementsIHasEndingLexerToken, implementsIHasLexerToken, implementsIHasReference } from '../parser/interfaces';
-import { OArchitecture, ObjectBase, OEntity, OReference } from '../parser/objects';
+import { OArchitecture, ObjectBase, OEntity, OPackage, OPackageBody, OReference } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
 export async function getTokenFromPosition(linter: VhdlLinter, position: Position): Promise<OLexerToken | undefined> {
   const startI = linter.getIFromPosition(position);
@@ -28,6 +28,9 @@ export async function findReferenceAndDefinition(linter: VhdlLinter, position: P
       definition = obj.correspondingEntity;
     }
   }
+  if (definition instanceof OPackageBody && definition.correspondingPackage) {
+    definition = definition.correspondingPackage;
+  }
   if (definition) {
     if (implementsIHasReference(definition)) {
       const tokens = [];
@@ -40,6 +43,14 @@ export async function findReferenceAndDefinition(linter: VhdlLinter, position: P
       }
       if (implementsIHasEndingLexerToken(definition)) {
         tokens.push((definition as IHasEndingLexerToken).endingLexerToken as OLexerToken);
+      }
+      if (definition instanceof OPackage) {
+        for (const correspondingPackageBody of definition.correspondingPackageBodies) {
+          tokens.push(correspondingPackageBody.lexerToken);
+          if (correspondingPackageBody.endingLexerToken) {
+            tokens.push(correspondingPackageBody.endingLexerToken);
+          }
+        }
       }
       return tokens;
     }

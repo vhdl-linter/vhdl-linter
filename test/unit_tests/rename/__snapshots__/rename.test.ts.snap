@@ -38,6 +38,42 @@ exports[`testing rename for entity.vhd in 11:18 - 11:22 true 1`] = `
 ]
 `;
 
+exports[`testing rename for package.vhd in 1:9 - 1:17 true 1`] = `
+[
+  "1:9 - 1:17",
+  "3:13 - 3:21",
+  "4:14 - 4:22",
+  "5:18 - 5:26",
+]
+`;
+
+exports[`testing rename for package.vhd in 3:13 - 3:21 true 1`] = `
+[
+  "1:9 - 1:17",
+  "3:13 - 3:21",
+  "4:14 - 4:22",
+  "5:18 - 5:26",
+]
+`;
+
+exports[`testing rename for package.vhd in 4:14 - 4:22 true 1`] = `
+[
+  "1:9 - 1:17",
+  "3:13 - 3:21",
+  "4:14 - 4:22",
+  "5:18 - 5:26",
+]
+`;
+
+exports[`testing rename for package.vhd in 5:18 - 5:26 true 1`] = `
+[
+  "1:9 - 1:17",
+  "3:13 - 3:21",
+  "4:14 - 4:22",
+  "5:18 - 5:26",
+]
+`;
+
 exports[`testing rename for signal.vhd in 10:10 - 10:13 true 1`] = `
 [
   "10:10 - 10:13",
