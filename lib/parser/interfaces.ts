@@ -1,7 +1,7 @@
 import { TextEdit } from "vscode-languageserver";
 import { OLexerToken } from "../lexer";
 import { OIDiagnostic } from "../vhdl-linter";
-import { OAlias, OAttribute, ObjectBase, OComponent, OConstant, OContextReference, OFileVariable, OGeneric, OInstantiation, OIRange, OLabelReference, OLibrary, OLibraryReference, OPackage, OPackageInstantiation, OPort, OReference, OSignal, OSubprogram, OType, OUseClause, OVariable } from "./objects";
+import { OAlias, OAttribute, ObjectBase, OComponent, OConcurrentStatements, OConstant, OContextReference, OFileVariable, OGeneric, OIRange, OLabelReference, OLibrary, OLibraryReference, OPackage, OPackageInstantiation, OPort, OReference, OSequentialStatement, OSignal, OSubprogram, OType, OUseClause, OVariable } from "./objects";
 
 export interface IHasLabel {
   label: OLexerToken;
@@ -99,12 +99,7 @@ export interface IHasComponents {
 export function implementsIHasComponents(obj: ObjectBase): obj is ObjectBase & IHasComponents {
   return (obj as ObjectBase & IHasComponents).components !== undefined;
 }
-export interface IHasInstantiations {
-  instantiations: OInstantiation[];
-}
-export function implementsIHasInstantiations(obj: ObjectBase): obj is ObjectBase & IHasInstantiations {
-  return (obj as ObjectBase & IHasInstantiations).instantiations !== undefined;
-}
+
 
 export interface IHasSignals {
   signals: OSignal[];
@@ -162,6 +157,13 @@ export interface IHasPorts {
 export function implementsIHasPorts(obj: ObjectBase): obj is ObjectBase & IHasPorts {
   return (obj as ObjectBase & IHasPorts).ports !== undefined;
 }
+export interface IHasStatements {
+  statements: (OConcurrentStatements | OSequentialStatement)[];
+}
+export function implementsIHasStatements(obj: ObjectBase): obj is ObjectBase & IHasStatements {
+  return Array.isArray((obj as ObjectBase & IHasStatements).statements);
+}
+
 export interface OIDiagnosticWithSolution extends OIDiagnostic {
   solution?: { message: string, edits: TextEdit[] };
 }
