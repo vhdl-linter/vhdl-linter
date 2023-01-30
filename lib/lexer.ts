@@ -43,7 +43,7 @@ export class OLexerToken {
   }
 }
 export class Lexer {
-  readonly reservedWords = [
+  readonly reservedWords = new RegExp('^(' + [
     'abs', 'access', 'after', 'alias', 'all', 'and', 'architecture', 'array', 'assert', 'assume', 'assume_guarantee', 'attribute', 'begin', 'block', 'body', 'buffer',
     'bus', 'case', 'component', 'configuration', 'constant', 'context', 'cover', 'default', 'disconnect', 'downto', 'else', 'elsif', 'end', 'entity', 'exit', 'fairness',
     'file', 'for', 'force', 'function', 'generate', 'generic', 'group', 'guarded', 'if', 'impure', 'in', 'inertial', 'inout', 'is', 'label', 'library',
@@ -51,7 +51,7 @@ export class Lexer {
     'out', 'package', 'parameter', 'port', 'postponed', 'procedure', 'process', 'property', 'protected', 'pure', 'range', 'record', 'register', 'reject', 'release', 'rem',
     'report', 'restrict', 'restrict_guarantee', 'return', 'rol', 'ror', 'select', 'sequence', 'severity', 'signal', 'shared', 'sla', 'sll', 'sra', 'srl', 'strong',
     'subtype', 'then', 'to', 'transport', 'type', 'unaffected', 'units', 'until', 'use', 'variable', 'vmode', 'vprop', 'vunit', 'wait', 'when', 'while', 'with', 'xnor', 'xor',
-  ].map(reserved => new RegExp('^' + reserved + '\\b', 'i'));
+  ].join('|') + ')\\b', 'i');
 
   tokenTypes: { regex: RegExp, tokenType: TokenType }[] = [
     { regex: /^--.*/, tokenType: TokenType.comment },
@@ -89,19 +89,17 @@ export class Lexer {
       }
       lastOffset = offset;
       foundToken = false;
-      for (const operator of this.reservedWords) {
-        const match = text.match(operator);
-        if (match) {
-          const token = new OLexerToken(match[0],
-            new OIRange(this.file, offset, offset + match[0].length), TokenType.keyword);
+      const match = text.match(this.reservedWords);
+      if (match) {
+        const token = new OLexerToken(match[0],
+          new OIRange(this.file, offset, offset + match[0].length), TokenType.keyword);
 
-          tokens.push(token);
-          text = text.substring(match[0].length);
-          offset += match[0].length;
-          foundToken = true;
+        tokens.push(token);
+        text = text.substring(match[0].length);
+        offset += match[0].length;
+        foundToken = true;
 
-          continue loop;
-        }
+        continue loop;
       }
       for (const tokenType of this.tokenTypes) {
         const match = text.match(tokenType.regex);
