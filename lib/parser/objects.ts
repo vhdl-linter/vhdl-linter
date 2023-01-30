@@ -362,9 +362,9 @@ export class OContext extends ObjectBase implements I.IHasUseClauses, I.IHasCont
   contextReferences: OContextReference[] = [];
   libraries: OLibrary[] = [];
 }
-type OConcurrentStatements = OProcess | OInstantiation | OIfGenerate | OForGenerate | OCaseGenerate | OBlock | OAssignment;
+export type OConcurrentStatements = OProcess | OInstantiation | OIfGenerate | OForGenerate | OCaseGenerate | OBlock | OAssignment;
 
-export abstract class OStatementBody extends ObjectBase implements I.IHasSubprograms, I.IHasComponents, I.IHasInstantiations,
+export abstract class OStatementBody extends ObjectBase implements I.IHasSubprograms, I.IHasComponents,
   I.IHasSignals, I.IHasConstants, I.IHasVariables, I.IHasTypes, I.IHasAliases, I.IHasFileVariables, I.IHasUseClauses, I.IHasContextReference,
   I.IHasPackageInstantiations, I.IHasLibraries, I.IHasReferenceLinks, I.IHasAttributes {
   referenceLinks: OReference[] = [];
@@ -388,18 +388,6 @@ export abstract class OStatementBody extends ObjectBase implements I.IHasSubprog
   statements: OConcurrentStatements[] = [];
   correspondingEntity?: OEntity;
   endOfDeclarativePart?: OI;
-  get processes() {
-    return this.statements.filter(s => s instanceof OProcess) as OProcess[];
-  }
-  get instantiations() {
-    return this.statements.filter(s => s instanceof OInstantiation) as OInstantiation[];
-  }
-  get blocks() {
-    return this.statements.filter(s => s instanceof OBlock) as OBlock[];
-  }
-  get assignments() {
-    return this.statements.filter(s => s instanceof OAssignment) as OAssignment[];
-  }
 
 
 }
@@ -699,29 +687,14 @@ export class OIf extends ObjectBase implements I.IMayHaveLabel {
   label?: OLexerToken;
   labelLinks: OLabelReference[];
 }
-export class OHasSequentialStatements extends ObjectBase implements I.IHasInstantiations, I.IMayHaveLabel {
+export class OHasSequentialStatements extends ObjectBase implements I.IMayHaveLabel, I.IHasStatements {
   statements: OSequentialStatement[] = [];
   labelLinks: OLabelReference[] = [];
   label?: OLexerToken;
-  get cases() {
-    return this.statements.filter(s => s instanceof OCase) as OCase[];
-  }
-  get assignments() {
-    return this.statements.filter(s => s instanceof OAssignment) as OAssignment[];
-  }
-  get ifs() {
-    return this.statements.filter(s => s instanceof OIf) as OIf[];
-  }
-  get loops(): OLoop[] {
-    return this.statements.filter(s => s instanceof OLoop) as OLoop[];
-  }
-  get instantiations() {
-    return this.statements.filter(s => s instanceof OInstantiation) as OInstantiation[];
-  }
 }
 export class OElseClause extends OHasSequentialStatements {
 }
-export class OIfClause extends OHasSequentialStatements implements I.IHasInstantiations {
+export class OIfClause extends OHasSequentialStatements  {
   condition: OReference[] = [];
 }
 export class OCase extends ObjectBase implements I.IMayHaveLabel {
@@ -730,10 +703,10 @@ export class OCase extends ObjectBase implements I.IMayHaveLabel {
   label?: OLexerToken;
   labelLinks: OLabelReference[] = [];
 }
-export class OWhenClause extends OHasSequentialStatements implements I.IHasInstantiations {
+export class OWhenClause extends OHasSequentialStatements  {
   condition: OReference[] = [];
 }
-export class OProcess extends OHasSequentialStatements implements I.IHasSubprograms, I.IHasInstantiations, I.IHasConstants, I.IHasVariables,
+export class OProcess extends OHasSequentialStatements implements I.IHasSubprograms, I.IHasStatements, I.IHasConstants, I.IHasVariables,
   I.IHasTypes, I.IHasAliases, I.IHasFileVariables, I.IHasUseClauses, I.IHasAttributes {
   attributes: OAttribute[] = [];
   label?: OLexerToken;
@@ -750,7 +723,7 @@ export class OProcess extends OHasSequentialStatements implements I.IHasSubprogr
   constants: OConstant[] = [];
 }
 
-export class OLoop extends OHasSequentialStatements implements I.IHasInstantiations {
+export class OLoop extends OHasSequentialStatements  {
 }
 export class OForLoop extends OLoop implements I.IHasConstants {
   constants: OConstant[] = [];
@@ -861,7 +834,7 @@ export class OMagicCommentDisable extends OMagicComment {
     super(parent, commentType, range, rule);
   }
 }
-export class OSubprogram extends OHasSequentialStatements implements I.IHasReferenceLinks, I.IHasSubprograms, I.IHasInstantiations, I.IHasPorts,
+export class OSubprogram extends OHasSequentialStatements implements I.IHasReferenceLinks, I.IHasSubprograms,  I.IHasPorts,
   I.IHasVariables, I.IHasTypes, I.IHasAliases, I.IHasFileVariables, I.IHasUseClauses, I.IHasLexerToken, I.IHasPackageInstantiations, I.IHasConstants, I.IHasAttributes {
   hasBody = false;
   attributes: OAttribute[] = [];
