@@ -1,16 +1,15 @@
 import { implementsIHasReference } from "../parser/interfaces";
-import { OAlias, OFile, ParserError } from "../parser/objects";
+import { OAlias, OFile } from "../parser/objects";
 
 export function elaborateAliases(file: OFile) {
   for (const alias of file.objectList) {
     if (alias instanceof OAlias) {
-      if (alias.name.length === 0) {
-        throw new ParserError(`Alias without name`, alias.range); // TODO: change the parser error to addMessage
-      }
-      alias.aliasDefinitions = alias.name[0].definitions;
-      for (const read of alias.name[0].definitions) {
-        if (implementsIHasReference(read)) {
-          read.aliasReferences.push(alias);
+      if (alias.name.length > 0) { // No Name is throwing an an error in parser but no fatal
+        alias.aliasDefinitions = alias.name[alias.name.length - 1].definitions;
+        for (const read of alias.name[alias.name.length - 1].definitions) {
+          if (implementsIHasReference(read)) {
+            read.aliasReferences.push(alias);
+          }
         }
       }
     }
