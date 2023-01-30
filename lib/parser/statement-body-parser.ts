@@ -108,7 +108,7 @@ export class StatementBodyParser extends ParserBase {
         }
 
         if (structureName === 'architecture' ) {
-          this.maybe((statementBody as OArchitecture).lexerToken.text);
+          (statementBody as OArchitecture).endingLexerToken = this.maybe((statementBody as OArchitecture).lexerToken.text);
         } else {
           if (statementBody instanceof OIfGenerateClause || statementBody instanceof OElseGenerateClause) {
             this.maybe(statementBody.parent.label);

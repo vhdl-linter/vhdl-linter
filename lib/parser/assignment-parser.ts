@@ -12,7 +12,7 @@ export class AssignmentParser extends ParserBase {
     this.debug('parse');
 
     const assignment = new OAssignment(this.parent, this.getToken().range.copyExtendEndOfLine());
-    assignment.postponed = this.maybe('postponed') !== false;
+    assignment.postponed = this.maybe('postponed') !== undefined;
     assignment.label = label;
     let leftHandSideNum = this.state.pos.num;
     this.findToken(['<=', ':=']);
@@ -55,7 +55,7 @@ export class AssignmentParser extends ParserBase {
       return assignment;
     }
     const guardedToken = this.maybe('guarded'); // 11.6
-    assignment.guarded = guardedToken !== false;
+    assignment.guarded = guardedToken !== undefined;
     if (guardedToken && mode !== 'concurrent') {
       this.state.messages.push({
         message: 'guarded only allowed in concurrent statement',

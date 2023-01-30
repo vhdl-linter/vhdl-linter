@@ -33,6 +33,9 @@ export interface IHasUseClauses {
 export interface IHasLexerToken {
   lexerToken: OLexerToken;
 }
+export interface IHasEndingLexerToken {
+  endingLexerToken?: OLexerToken;
+}
 export interface IHasReferenceToken {
   referenceToken: OLexerToken;
 }
@@ -47,6 +50,9 @@ export function implementsIHasUseClause(obj: ObjectBase): obj is ObjectBase & IH
 }
 export function implementsIHasLexerToken(obj: ObjectBase): obj is ObjectBase & IHasLexerToken {
   return (obj as ObjectBase & IHasLexerToken).lexerToken !== undefined;
+}
+export function implementsIHasEndingLexerToken(obj: ObjectBase): obj is ObjectBase & IHasEndingLexerToken {
+  return (obj as ObjectBase & IHasEndingLexerToken).endingLexerToken !== undefined;
 }
 export function implementsIHasReferenceToken(obj: ObjectBase): obj is ObjectBase & IHasReferenceToken {
   return (obj as ObjectBase & IHasReferenceToken).referenceToken !== undefined;

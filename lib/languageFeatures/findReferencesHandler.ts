@@ -1,78 +1,53 @@
-import { ErrorCodes, Location, Position, ReferenceParams, RenameParams, ResponseError, TextDocumentIdentifier, TextDocumentPositionParams, TextEdit } from 'vscode-languageserver';
-import { initialization, linters, lintersValid } from '../language-server';
+import { Location, Position } from 'vscode-languageserver';
+import { URI } from 'vscode-uri';
 import { OLexerToken } from '../lexer';
-import { implementsIHasReference, implementsIHasLexerToken } from '../parser/interfaces';
-import { ObjectBase, OReference } from '../parser/objects';
+import { IHasEndingLexerToken, implementsIHasEndingLexerToken, implementsIHasLexerToken, implementsIHasReference } from '../parser/interfaces';
+import { OArchitecture, ObjectBase, OEntity, OReference } from '../parser/objects';
+import { VhdlLinter } from '../vhdl-linter';
+export async function getTokenFromPosition(linter: VhdlLinter, position: Position): Promise<OLexerToken | undefined> {
+  const startI = linter.getIFromPosition(position);
 
-async function findReferences(params: { textDocument: TextDocumentIdentifier, position: Position }) {
-  await initialization;
-  const linter = linters.get(params.textDocument.uri);
-  if (typeof linter === 'undefined') {
-    return [];
-  }
-  if (typeof linter.file === 'undefined') {
-    return [];
-  }
-  const startI = linter.getIFromPosition(params.position);
-  const candidates = linter.file.objectList.filter(object => object.range.start.i <= startI && startI <= object.range.end.i);
-  candidates.sort((a, b) => (a.range.end.i - a.range.start.i) - (b.range.end.i - b.range.start.i));
-  let candidate = candidates[0];
-  if (!candidate) {
-    return [];
-  }
-  if (candidate instanceof OLexerToken && candidate.parent instanceof ObjectBase) {
-    candidate = candidate.parent;
-  }
-  // debugger;
-  if (candidate instanceof OReference && candidate.definitions) {
-    return candidate.definitions.concat(candidate.definitions.flatMap(c => {
-      return implementsIHasReference(c) ? c.referenceLinks : [];
-    }));
-  }
-  if (implementsIHasReference(candidate)) {
-    return ([candidate] as ObjectBase[]).concat(candidate.referenceLinks ?? []);
-  }
-  return [];
+  const candidateTokens = linter.file.lexerTokens.filter(token => token.isDesignator())
+    .filter(object => object.range.start.i <= startI + 1 && startI < object.range.end.i);
+  return candidateTokens[0];
 }
-export async function findReferencesHandler(params: ReferenceParams, ) {
+export async function findReferenceAndDefinition(linter: VhdlLinter, position: Position) {
+  const token = await getTokenFromPosition(linter, position);
+  let definition: ObjectBase | undefined;
+  for (const obj of linter.file.objectList) {
+    if (obj instanceof OReference && obj.referenceToken === token) {
+      definition = obj.definitions[0];
+    }
+    if (implementsIHasLexerToken(obj) && obj.lexerToken === token) {
+      definition = obj;
+    }
+    if (implementsIHasEndingLexerToken(obj) && obj.endingLexerToken === token) {
+      definition = obj;
+    }
+    if (obj instanceof OArchitecture && obj.entityName === token) {
+      definition = obj.correspondingEntity;
+    }
+  }
+  if (definition) {
+    if (implementsIHasReference(definition)) {
+      const tokens = [];
+      if (definition.lexerToken) {
+        tokens.push(definition.lexerToken);
+      }
+      tokens.push(...definition.referenceLinks.map(ref => ref.referenceToken));
+      if (definition instanceof OEntity) {
+        tokens.push(...definition.correspondingArchitectures.map(arch => arch.entityName));
+      }
+      if (implementsIHasEndingLexerToken(definition)) {
+        tokens.push((definition as IHasEndingLexerToken).endingLexerToken as OLexerToken);
+      }
+      return tokens;
+    }
+  }
 
-  return (await findReferences(params)).map(object => Location.create(params.textDocument.uri, object.range));
+  return undefined;
 }
-export async function prepareRenameHandler(params: TextDocumentPositionParams) {
-  await initialization;
-  const linter = linters.get(params.textDocument.uri);
-  if (lintersValid.get(params.textDocument.uri) !== true) {
-    throw new ResponseError(ErrorCodes.InvalidRequest, 'Document not valid. Renaming only supported for parsable documents.', 'Document not valid. Renaming only supported for parsable documents.');
-  }
-  if (typeof linter === 'undefined') {
-    throw new ResponseError(ErrorCodes.InvalidRequest, 'Parser not ready', 'Parser not ready');
-  }
-  if (typeof linter.file === 'undefined') {
-    throw new ResponseError(ErrorCodes.InvalidRequest, 'Parser not ready', 'Parser not ready');
-  }
-  const startI = linter.getIFromPosition(params.position);
-  const candidates = linter.file.objectList.filter(object => object.range.start.i <= startI && startI <= object.range.end.i);
-  candidates.sort((a, b) => (a.range.end.i - a.range.start.i) - (b.range.end.i - b.range.start.i));
-  const candidate = candidates[0];
-  if (!candidate) {
-    throw new ResponseError(ErrorCodes.InvalidRequest, 'Can not rename this element', 'Can not rename this element');
-  }
-  if (implementsIHasLexerToken(candidate)) {
-    return candidate.lexerToken.range;
-  }
-  return candidate.range;
-}
-export async function renameHandler(params: RenameParams) {
-  // array and set to make sure that only unique references are used
-  const references = Array.from(new Set((await findReferences(params)).map(reference => {
-    if (implementsIHasLexerToken(reference)) {
-      return reference.lexerToken;
-    }
-    return reference;
-  })));
-  return {
-    changes: {
-      [params.textDocument.uri]: references.map(reference => TextEdit.replace(reference.range, params.newName))
-    }
-  };
+export async function findReferencesHandler(linter: VhdlLinter, position: Position) {
+
+  return (await findReferenceAndDefinition(linter, position))?.map(object => Location.create(URI.file(linter.file.file).toString(), object.range));
 }

@@ -222,6 +222,7 @@ export class OLibraryReference extends OReference {
 export class OFile {
   parserMessages: I.OIDiagnosticWithSolution[] = [];
   public lines: string[];
+  public lexerTokens: OLexerToken[];
   constructor(public text: string, public file: string, public originalText: string) {
     this.lines = originalText.split('\n');
   }
@@ -399,9 +400,10 @@ export abstract class OStatementBody extends ObjectBase implements I.IHasSubprog
 
 
 }
-export class OArchitecture extends OStatementBody implements I.IHasLexerToken {
+export class OArchitecture extends OStatementBody implements I.IHasLexerToken, I.IHasEndingLexerToken {
   lexerToken: OLexerToken;
   entityName: OLexerToken;
+  endingLexerToken?: OLexerToken;
 
 }
 export class OBlock extends OStatementBody implements I.IHasLabel {
@@ -630,7 +632,7 @@ export class OAssociation extends ObjectBase implements I.IHasDefinitions {
 }
 export class OEntity extends ObjectBase implements I.IHasDefinitions, I.IHasSubprograms, I.IHasSignals, I.IHasConstants, I.IHasVariables,
   I.IHasTypes, I.IHasAliases, I.IHasFileVariables, I.IHasUseClauses, I.IHasContextReference, I.IHasLexerToken, I.IHasPackageInstantiations,
-  I.IHasAttributes, I.IHasLibraries, I.IHasGenerics, I.IHasPorts, I.IHasReferenceLinks {
+  I.IHasAttributes, I.IHasLibraries, I.IHasGenerics, I.IHasPorts, I.IHasReferenceLinks, I.IHasEndingLexerToken {
   constructor(public parent: OFile, range: OIRange, public targetLibrary?: string) {
     super(parent, range);
   }
@@ -641,6 +643,7 @@ export class OEntity extends ObjectBase implements I.IHasDefinitions, I.IHasSubp
   attributes: OAttribute[] = [];
   packageInstantiations: OPackageInstantiation[] = [];
   lexerToken: OLexerToken;
+  endingLexerToken: OLexerToken | undefined;
   useClauses: OUseClause[] = [];
   packageDefinitions: OPackage[] = [];
   contextReferences: OContextReference[] = [];
@@ -656,6 +659,7 @@ export class OEntity extends ObjectBase implements I.IHasDefinitions, I.IHasSubp
   statements: (OProcess | OAssignment)[] = [];
   definitions: OEntity[] = [];
   files: OFileVariable[] = [];
+  correspondingArchitectures: OArchitecture[] = [];
 }
 export class OComponent extends ObjectBase implements I.IHasDefinitions, I.IHasSubprograms, I.IHasLexerToken,
   I.IHasPackageInstantiations, I.IHasPorts, I.IHasGenerics, I.IHasReferenceLinks {

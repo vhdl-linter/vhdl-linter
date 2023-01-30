@@ -25,6 +25,7 @@ export class FileParser extends ParserBase {
 
     const lexer = new Lexer(this.originalText, this.file);
     this.lexerTokens = lexer.lex();
+    this.file.lexerTokens = this.lexerTokens;
     this.state.pos.lexerTokens = this.lexerTokens;
     this.state.pos.file = this.file;
   }
@@ -111,7 +112,7 @@ export class FileParser extends ParserBase {
       new OLexerToken('std', new OIRange(this.file, 0, 0), TokenType.keyword),
       new OLexerToken('work', new OIRange(this.file, 0, 0), TokenType.keyword),
     ];
-    // store useclauses to be attached to the next design unit
+    // store use clauses to be attached to the next design unit
     let useClausesPrepare: [OLexerToken, OLexerToken, OLexerToken][] = [];
     const getUseClauses = (parent: ObjectBase) => {
       return [

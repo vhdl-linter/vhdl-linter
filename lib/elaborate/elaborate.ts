@@ -35,6 +35,7 @@ export class Elaborate {
       }
       if (entity) {
         architecture.correspondingEntity = entity;
+        entity.correspondingArchitectures.push(architecture);
       }
 
     }

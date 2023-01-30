@@ -1,0 +1,55 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`testing rename for entity.vhd in 5:8 - 5:19 true 1`] = `
+[
+  "5:8 - 5:19",
+  "8:22 - 8:33",
+  "6:5 - 6:16",
+]
+`;
+
+exports[`testing rename for entity.vhd in 6:5 - 6:16 true 1`] = `
+[
+  "5:8 - 5:19",
+  "8:22 - 8:33",
+  "6:5 - 6:16",
+]
+`;
+
+exports[`testing rename for entity.vhd in 8:14 - 8:18 true 1`] = `
+[
+  "8:14 - 8:18",
+  "11:18 - 11:22",
+]
+`;
+
+exports[`testing rename for entity.vhd in 8:22 - 8:33 true 1`] = `
+[
+  "5:8 - 5:19",
+  "8:22 - 8:33",
+  "6:5 - 6:16",
+]
+`;
+
+exports[`testing rename for entity.vhd in 11:18 - 11:22 true 1`] = `
+[
+  "8:14 - 8:18",
+  "11:18 - 11:22",
+]
+`;
+
+exports[`testing rename for signal.vhd in 10:10 - 10:13 true 1`] = `
+[
+  "10:10 - 10:13",
+  "13:3 - 13:6",
+  "14:10 - 14:13",
+]
+`;
+
+exports[`testing rename for signal.vhd in 13:3 - 13:6 true 1`] = `
+[
+  "10:10 - 10:13",
+  "13:3 - 13:6",
+  "14:10 - 14:13",
+]
+`;

@@ -1,24 +1,24 @@
-import {
-  CodeAction, createConnection, DidChangeConfigurationNotification, InitializeParams, LSPErrorCodes, Position, ProposedFeatures, ResponseError, TextDocuments, TextDocumentSyncKind
-} from 'vscode-languageserver/node';
+import { existsSync } from 'fs';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import {
+  CodeAction, createConnection, DidChangeConfigurationNotification, ErrorCodes, InitializeParams, LSPErrorCodes, Position, ProposedFeatures, ResponseError, TextDocuments, TextDocumentSyncKind
+} from 'vscode-languageserver/node';
 import { URI } from 'vscode-uri';
 import { getCompletions } from './languageFeatures/completion';
 import { handleDocumentFormatting } from './languageFeatures/documentFormatting';
 import { documentHighlightHandler } from './languageFeatures/documentHighlightHandler';
-import { findReferencesHandler, prepareRenameHandler, renameHandler } from './languageFeatures/findReferencesHandler';
+import { getDocumentSymbol } from './languageFeatures/documentSymbol';
+import { findDefinitions } from './languageFeatures/findDefinition';
+import { findReferencesHandler } from './languageFeatures/findReferencesHandler';
 import { foldingHandler } from './languageFeatures/folding';
-import { handleReferences } from './languageFeatures/references';
+import { prepareRenameHandler, renameHandler } from './languageFeatures/rename';
+import { handleSemanticTokens, semanticTokensLegend } from './languageFeatures/semanticTokens';
 import { handleOnWorkspaceSymbol } from './languageFeatures/workspaceSymbols';
 import { OComponent, OFile, OInstantiation, OUseClause } from './parser/objects';
 import { ProjectParser } from './project-parser';
-import { VhdlLinter } from './vhdl-linter';
-import { handleSemanticTokens, semanticTokensLegend } from './languageFeatures/semanticTokens';
-import { existsSync } from 'fs';
-import { ISettings, defaultSettings } from './settings';
 import { CancelationError, CancelationObject } from './server-objects';
-import { getDocumentSymbol } from './languageFeatures/documentSymbol';
-import { findDefinitions } from './languageFeatures/findDefinition';
+import { defaultSettings, ISettings } from './settings';
+import { VhdlLinter } from './vhdl-linter';
 
 // Create a connection for the server. The connection auto detected protocol
 // Also include all preview / proposed LSP features.
@@ -329,9 +329,43 @@ connection.onCompletion(async (params, cancelationToken) => {
   }
   return getCompletions(linter, params);
 });
-connection.onReferences(handleReferences);
-connection.onPrepareRename(prepareRenameHandler);
-connection.onRenameRequest(renameHandler);
+connection.onReferences( async params => {
+    await initialization;
+    const linter = linters.get(params.textDocument.uri);
+    if (typeof linter === 'undefined') {
+      throw new ResponseError(ErrorCodes.InvalidRequest, 'Parser not ready', 'Parser not ready');
+    }
+    return findReferencesHandler(linter, params.position);
+
+  });
+connection.onPrepareRename(async params => {
+  await initialization;
+  const linter = linters.get(params.textDocument.uri);
+  if (lintersValid.get(params.textDocument.uri) !== true) {
+    throw new ResponseError(ErrorCodes.InvalidRequest, 'Document not valid. Renaming only supported for parsable documents.', 'Document not valid. Renaming only supported for parsable documents.');
+  }
+  if (typeof linter === 'undefined') {
+    throw new ResponseError(ErrorCodes.InvalidRequest, 'Parser not ready', 'Parser not ready');
+  }
+  if (typeof linter.file === 'undefined') {
+    throw new ResponseError(ErrorCodes.InvalidRequest, 'Parser not ready', 'Parser not ready');
+  }
+  return prepareRenameHandler(linter, params.position);
+});
+connection.onRenameRequest(async params => {
+  await initialization;
+  const linter = linters.get(params.textDocument.uri);
+  if (lintersValid.get(params.textDocument.uri) !== true) {
+    throw new ResponseError(ErrorCodes.InvalidRequest, 'Document not valid. Renaming only supported for parsable documents.', 'Document not valid. Renaming only supported for parsable documents.');
+  }
+  if (typeof linter === 'undefined') {
+    throw new ResponseError(ErrorCodes.InvalidRequest, 'Parser not ready', 'Parser not ready');
+  }
+  if (typeof linter.file === 'undefined') {
+    throw new ResponseError(ErrorCodes.InvalidRequest, 'Parser not ready', 'Parser not ready');
+  }
+  return renameHandler(linter, params.position, params.newName);
+});
 connection.onDocumentFormatting(handleDocumentFormatting);
 connection.onFoldingRanges(foldingHandler);
 connection.onDocumentHighlight(async (params, cancelationToken) => {
@@ -346,7 +380,6 @@ connection.onDocumentHighlight(async (params, cancelationToken) => {
   return documentHighlightHandler(linter, params);
 
 });
-connection.onReferences(findReferencesHandler);
 connection.onWorkspaceSymbol(params => handleOnWorkspaceSymbol(params, projectParser));
 // connection.on
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
