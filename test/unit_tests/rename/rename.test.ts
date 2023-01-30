@@ -1,6 +1,6 @@
 import { expect, test } from '@jest/globals';
 import { readFileSync } from 'fs';
-import { Position, Range, ResponseError } from 'vscode-languageserver';
+import { ErrorCodes, Position, Range, ResponseError } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { prepareRenameHandler, renameHandler } from '../../../lib/languageFeatures/rename';
 import { OIRange } from '../../../lib/parser/objects';
@@ -65,5 +65,21 @@ test.each([
       expect(err.message).toBe('Can not rename this element');
     }
   }
-
+});
+test('testing handling of invalid rename Handler', async () => {
+  const projectParser = await ProjectParser.create([__dirname], '', defaultSettingsGetter);
+  const path = __dirname + `/entity.vhd`;
+  const linter = new VhdlLinter(`dummy.vhd`, readFileSync(path, { encoding: 'utf8' }),
+    projectParser, defaultSettingsGetter);
+  await linter.checkAll();
+  await projectParser.stop();
+  let err;
+  try {
+    await renameHandler(linter, Position.create(7, 1), 'test');
+  } catch (_err) {
+    err = _err;
+  }
+  expect(err).toBeInstanceOf(ResponseError);
+  expect(err.message).toBe('Can not rename this element');
+  expect(err.code).toBe(ErrorCodes.InvalidRequest);
 });
