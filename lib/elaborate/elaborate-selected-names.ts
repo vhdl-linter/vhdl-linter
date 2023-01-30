@@ -30,13 +30,13 @@ export function elaborateSelectedNames(file: OFile) {
     if (selectedName instanceof OSelectedNameRead || selectedName instanceof OSelectedNameWrite || selectedName instanceof OSelectedName) {
       const oldDefinitions = selectedName.definitions;
       selectedName.definitions = [];
-      // TODO: improve the handling of alias in eleaborate-selected-name (see OSVVM/CoveratePkg.vhd:2008)
+      // TODO: improve the handling of alias in elaborate-selected-name (see OSVVM/CoveragePkg.vhd:2008)
       const lastPrefix = selectedName.prefixTokens[selectedName.prefixTokens.length - 1];
-      // check for a record in a record -> if the last prefix was a selected name, search in its type defintion and not in the oldDefinitions
+      // check for a record in a record -> if the last prefix was a selected name, search in its type definition and not in the oldDefinitions
       if (lastPrefix instanceof OSelectedName || lastPrefix instanceof OSelectedNameRead || lastPrefix instanceof OSelectedNameWrite) {
-        for (const childDefintion of lastPrefix.definitions) {
-          if (childDefintion instanceof ORecordChild) {
-            for (const typeDef of childDefintion.referenceLinks.flatMap(r => r.definitions)) {
+        for (const childDefinition of lastPrefix.definitions) {
+          if (childDefinition instanceof ORecordChild) {
+            for (const typeDef of childDefinition.referenceLinks.flatMap(r => r.definitions)) {
               findRecordElement(file, selectedName, typeDef);
             }
           }

@@ -217,7 +217,7 @@ export class OFormalReference extends OReference {
 
 }
 export class OLibraryReference extends OReference {
-  type = 'libary'; // for ts
+  type = 'library'; // for ts
 }
 export class OFile {
   parserMessages: I.OIDiagnosticWithSolution[] = [];
