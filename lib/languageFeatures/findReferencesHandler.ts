@@ -8,7 +8,7 @@ export async function getTokenFromPosition(linter: VhdlLinter, position: Positio
   const startI = linter.getIFromPosition(position);
 
   const candidateTokens = linter.file.lexerTokens.filter(token => token.isDesignator())
-    .filter(object => object.range.start.i <= startI + 1 && startI < object.range.end.i);
+    .filter(object => object.range.start.i <= startI + 1 && startI <= object.range.end.i);
   return candidateTokens[0];
 }
 export async function findReferenceAndDefinition(linter: VhdlLinter, position: Position) {
