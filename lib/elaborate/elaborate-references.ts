@@ -55,7 +55,7 @@ export class ElaborateReferences {
       }
     } else {
       if (reference instanceof OSelectedName || reference instanceof OSelectedNameWrite) {
-        if (definition.lexerToken.getLText() === reference.prefixTokens[0].getLText()) {
+        if (definition.lexerToken.getLText() === reference.prefixTokens[0].referenceToken.getLText()) {
           reference.definitions.push(definition);
           definition.referenceLinks.push(reference);
           if (enableCastToRead) {
@@ -150,7 +150,7 @@ export class ElaborateReferences {
     for (const [obj] of scope(reference)) {
       if (implementsIHasLibraries(obj)) {
         for (const findLibrary of obj.libraries) {
-          if (findLibrary.lexerToken.getLText() == libraryToken.getLText()) {
+          if (findLibrary.lexerToken.getLText() == libraryToken.referenceToken.getLText()) {
             library = findLibrary;
           }
         }
@@ -161,7 +161,7 @@ export class ElaborateReferences {
       for (const [obj] of scope(reference)) {
         if (implementsIHasPackageInstantiations(obj)) {
           for (const pkgInst of obj.packageInstantiations) {
-            if (pkgInst instanceof OPackageInstantiation && pkgInst.lexerToken?.getLText() === reference.prefixTokens[0].getLText()) {
+            if (pkgInst instanceof OPackageInstantiation && pkgInst.lexerToken?.getLText() === reference.prefixTokens[0].referenceToken.getLText()) {
               const pkg = this.vhdlLinter.projectParser.packages.filter(pkg => pkg.lexerToken.getLText() === pkgInst.uninstantiatedPackageToken.getLText());
               packages.push(...pkg);
             }
@@ -169,7 +169,7 @@ export class ElaborateReferences {
         }
         if (implementsIHasGenerics(obj)) {
           for (const pkgInst of obj.generics) {
-            if (pkgInst instanceof OInterfacePackage && pkgInst.lexerToken?.getLText() === reference.prefixTokens[0].getLText()) {
+            if (pkgInst instanceof OInterfacePackage && pkgInst.lexerToken?.getLText() === reference.prefixTokens[0].referenceToken.getLText()) {
               const pkg = this.vhdlLinter.projectParser.packages.filter(pkg => pkg.lexerToken.getLText() === pkgInst.uninstantiatedPackageToken.getLText());
               packages.push(...pkg);
             }
@@ -226,7 +226,7 @@ export class ElaborateReferences {
       const [, pkgToken] = reference.prefixTokens;
       if (library) {
         for (const pkg of this.vhdlLinter.projectParser.packages) {
-          if (pkg.lexerToken.getLText() === pkgToken.getLText()) {
+          if (pkg.lexerToken.getLText() === pkgToken.referenceToken.getLText()) {
             if (implementsIHasSignals(pkg)) {
               this.evaluateDefinition(reference, pkg.signals, true);
             }
@@ -282,7 +282,7 @@ export class ElaborateReferences {
       for (const [obj] of scope(reference)) {
         if (implementsIHasLibraries(obj)) {
           for (const findLibrary of obj.libraries) {
-            if (findLibrary.lexerToken.getLText() == reference.prefixTokens[0].getLText()) {
+            if (findLibrary.lexerToken.getLText() == reference.prefixTokens[0].referenceToken.getLText()) {
               library = findLibrary;
             }
           }

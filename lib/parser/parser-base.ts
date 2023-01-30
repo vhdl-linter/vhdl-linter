@@ -1,7 +1,7 @@
 import { OLexerToken, TokenType } from '../lexer';
 import { config } from './config';
 import { OIDiagnosticWithSolution } from './interfaces';
-import { ObjectBase, OFile, OReference, OSelectedName, ParserError, SelectedNamePrefix } from './objects';
+import { OFile, ParserError } from './objects';
 
 
 export class ParserPosition {
@@ -275,17 +275,6 @@ export class ParserBase {
       }
       return false;
     }
-  }
-
-  consumeNameReference(parent: ObjectBase): OReference {
-    const tokens = [];
-    do {
-      tokens.push(this.consumeToken());
-    } while (this.getToken().text === '.' && this.consumeToken());
-    if (tokens.length > 1) {
-      return new OSelectedName(parent, tokens[tokens.length - 1], tokens.slice(0, tokens.length - 1) as SelectedNamePrefix);
-    }
-    return new OReference(parent, tokens[0]);
   }
 
 

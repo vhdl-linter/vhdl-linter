@@ -110,11 +110,18 @@ export class OIRange implements Range {
   toJSON() {
     return Range.create(this.start, this.end);
   }
-  getLimitedRange(limit = 5) {
-    const newEnd = this.end.line - this.start.line > limit ?
-      new OI(this.parent, this.start.line + limit, Number.POSITIVE_INFINITY)
-      : this.end;
-    return new OIRange(this.parent, this.start, newEnd);
+  getLimitedRange(limit = 5, fromEnd = false) {
+    if (fromEnd) {
+      const newStart = this.end.line - this.start.line > limit ?
+        new OI(this.parent, this.end.line - limit, 0)
+        : this.start;
+      return new OIRange(this.parent, newStart, this.end);
+    } else {
+      const newEnd = this.end.line - this.start.line > limit ?
+        new OI(this.parent, this.start.line + limit, Number.POSITIVE_INFINITY)
+        : this.end;
+      return new OIRange(this.parent, this.start, newEnd);
+    }
   }
   copyExtendBeginningOfLine() {
     const lines = (this.parent instanceof OFile ? this.parent : this.parent.rootFile).lines;
@@ -209,6 +216,9 @@ export class OReference extends ObjectBase implements I.IHasDefinitions, I.IHasR
 export class OFormalReference extends OReference {
 
 }
+export class OLibraryReference extends OReference {
+  type = 'library'; // for ts
+}
 export class OFile {
   parserMessages: I.OIDiagnosticWithSolution[] = [];
   public lines: string[];
@@ -289,7 +299,7 @@ export class OPackage extends ObjectBase implements I.IHasSubprograms, I.IHasCom
   packageDefinitions: OPackage[] = [];
   packageInstantiations: OPackageInstantiation[] = [];
   contextReferences: OContextReference[] = [];
-  library?: OLexerToken;
+  library?: OLibraryReference;
   subprograms: OSubprogram[] = [];
   components: OComponent[] = [];
   signals: OSignal[] = [];
@@ -332,8 +342,9 @@ export class OLibrary extends ObjectBase implements I.IHasLexerToken, I.IHasRefe
 }
 
 export class OContextReference extends ObjectBase implements I.IHasLibraryReference {
-  constructor(public parent: OContext | ObjectBase, range: OIRange, public library: OLexerToken, public contextName: string) {
+  constructor(public parent: OContext | ObjectBase, range: OIRange, public library: OLibraryReference, public contextName: string) {
     super(parent, range);
+    library.parent = this;
   }
   definitions: ObjectBase[] = [];
 
@@ -462,6 +473,9 @@ export class OEnum extends OType {
 }
 export class ORecord extends OType {
   children: ORecordChild[] = [];
+}
+export class OArray extends OType {
+  elementType: OReference[] = [];
 }
 export class ORecordChild extends OType {
   public parent: ORecord;
@@ -599,7 +613,7 @@ export class OInstantiation extends OReference implements I.IHasDefinitions, I.I
   package?: OLexerToken;
   portAssociationList?: OPortAssociationList;
   genericAssociationList?: OGenericAssociationList;
-  library?: OLexerToken;
+  library?: OLibraryReference;
   archIdentifier?: OLexerToken;
   label?: OLexerToken;
   labelLinks: OLabelReference[] = [];
@@ -691,7 +705,7 @@ export class OHasSequentialStatements extends ObjectBase implements I.IHasInstan
   get ifs() {
     return this.statements.filter(s => s instanceof OIf) as OIf[];
   }
-  get loops() {
+  get loops(): OLoop[] {
     return this.statements.filter(s => s instanceof OLoop) as OLoop[];
   }
   get instantiations() {
@@ -796,8 +810,12 @@ export class OSelectedName extends OReference {
   }
 }
 export class OUseClause extends OSelectedName implements I.IHasLibraryReference {
-  constructor(public parent: ObjectBase, public library: OLexerToken | undefined, public packageName: OLexerToken, public suffix: OLexerToken) {
+  constructor(public parent: ObjectBase, public library: OLibraryReference | undefined, public packageName: OReference, public suffix: OLexerToken) {
     super(parent, suffix, library ? [library, packageName] : [packageName]);
+    if (library) {
+      library.parent = this;
+    }
+    packageName.parent = this;
   }
 }
 export class OSelectedNameRead extends ORead {
@@ -806,8 +824,8 @@ export class OSelectedNameRead extends ORead {
   }
 }
 export type SelectedNamePrefix = [
-  first: OLexerToken,
-  ...rest: OLexerToken[]
+  first: OReference,
+  ...rest: OReference[]
 ];
 export class OAttributeReference extends OReference {
   public prefix: OReference;

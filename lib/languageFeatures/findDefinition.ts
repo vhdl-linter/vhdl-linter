@@ -1,6 +1,7 @@
 import { DefinitionLink, Position } from "vscode-languageserver";
 import { URI } from "vscode-uri";
 import { implementsIHasDefinitions } from "../parser/interfaces";
+import { ORecordChild } from "../parser/objects";
 import { VhdlLinter } from "../vhdl-linter";
 import { findObjectFromPosition } from "./findObjectFromPosition";
 
@@ -14,10 +15,16 @@ export async function findDefinitions(linter: VhdlLinter, position: Position): P
     }
     return [];
   }))];
-  return candidateDefinitions.flatMap(definition => ({
-    targetRange: definition.range.copyExtendBeginningOfLine().getLimitedRange(10),
-    targetSelectionRange: definition.lexerToken?.range ?? definition.range.copyExtendBeginningOfLine().getLimitedRange(1),
-    text: definition.rootFile.originalText,
-    targetUri: URI.file(definition.rootFile.file).toString()
-  }));
+  return candidateDefinitions.flatMap(definition => {
+    const targetRange = (definition instanceof ORecordChild)
+    ? definition.parent.range.copyWithNewEnd(definition.range.end).getLimitedRange(5, true)
+    : definition.range.copyExtendBeginningOfLine().getLimitedRange(5);
+    const targetSelectionRange = definition.lexerToken?.range ?? definition.range.copyExtendBeginningOfLine().getLimitedRange(1);
+    return {
+      targetRange,
+      targetSelectionRange,
+      text: definition.rootFile.originalText,
+      targetUri: URI.file(definition.rootFile.file).toString()
+    };
+  });
 }

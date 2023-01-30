@@ -1,7 +1,7 @@
 import { OLexerToken } from '../lexer';
 import { DeclarativePartParser } from './declarative-part-parser';
 import { ExpressionParser } from './expression-parser';
-import { OEntity, OEnum, OEnumLiteral, OIRange, OPackage, OPackageBody, OPort, OProcess, ORecord, ORecordChild, OStatementBody, OSubprogram, OType, OUnit, ParserError } from './objects';
+import { OArray, OEntity, OEnum, OEnumLiteral, OIRange, OPackage, OPackageBody, OPort, OProcess, ORecord, ORecordChild, OStatementBody, OSubprogram, OType, OUnit, ParserError } from './objects';
 import { ParserBase, ParserState } from './parser-base';
 
 
@@ -99,6 +99,7 @@ export class TypeParser extends ParserBase {
           this.maybe('record');
           this.maybe(type.lexerToken.text);
         } else if (nextToken.getLText() === 'array') {
+          Object.setPrototypeOf(type, OArray.prototype);
           this.expect('(');
           const [tokens] = this.advanceParenthesisAware([')'], false, false);
           const unbounded = tokens.find(token => token.getLText() === '<>');
@@ -113,7 +114,7 @@ export class TypeParser extends ParserBase {
 
           }
           this.expect('of');
-          type.referenceLinks.push(...new ExpressionParser(this.state, type, this.advanceParenthesisAware([';'], true, false)[0]).parse());
+          (type as OArray).elementType = new ExpressionParser(this.state, type, this.advanceParenthesisAware([';'], true, false)[0]).parse();
 
         } else if (nextToken.getLText() === 'protected') {
           const protectedBody = this.maybe('body');

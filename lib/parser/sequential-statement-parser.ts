@@ -2,7 +2,7 @@ import { OLexerToken } from '../lexer';
 import { AssignmentParser } from './assignment-parser';
 import { AssociationListParser } from './association-list-parser';
 import { ExpressionParser } from './expression-parser';
-import { OAssertion, OAssignment, ObjectBase, OCase, OConstant, OElseClause, OExit, OForLoop, OHasSequentialStatements, OIf, OIfClause, OInstantiation, OIRange, OLabelReference, OLoop, OReport, OReturn, OSequentialStatement, OWhenClause, OWhileLoop, ParserError } from './objects';
+import { OAssertion, OAssignment, ObjectBase, OCase, OConstant, OElseClause, OExit, OForLoop, OHasSequentialStatements, OIf, OIfClause, OInstantiation, OIRange, OLabelReference, OLibraryReference, OLoop, OReport, OReturn, OSequentialStatement, OWhenClause, OWhileLoop, ParserError } from './objects';
 import { ParserBase, ParserState } from './parser-base';
 
 export class SequentialStatementParser extends ParserBase {
@@ -101,7 +101,9 @@ export class SequentialStatementParser extends ParserBase {
     subprogramCall.componentName = this.consumeToken();
     while (this.getToken().getLText() === '.') {
       this.expect('.');
-      subprogramCall.library = subprogramCall.package;
+      if (subprogramCall.package !== undefined) {
+        subprogramCall.library = new OLibraryReference(subprogramCall, subprogramCall.package);
+      }
       subprogramCall.package = subprogramCall.componentName;
       subprogramCall.componentName = this.consumeToken();
     }

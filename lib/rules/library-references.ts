@@ -14,7 +14,7 @@ export class RLibraryReference extends RuleBase implements IRule {
         let library;
         for (const [iterator] of scope(object)) {
           library = implementsIHasLibraries(iterator) ?
-            iterator.libraries.find(library => library.lexerToken.getLText() === libraryReference.getLText()) : undefined;
+            iterator.libraries.find(library => library.lexerToken.getLText() === libraryReference.referenceToken.getLText()) : undefined;
           if (library) {
             break;
           }
@@ -23,7 +23,7 @@ export class RLibraryReference extends RuleBase implements IRule {
           this.addMessage({
             range: object.library.range,
             severity: DiagnosticSeverity.Error,
-            message: `Library ${object.library} not declared.`
+            message: `Library ${object.library.referenceToken} not declared.`
           });
         }
       }

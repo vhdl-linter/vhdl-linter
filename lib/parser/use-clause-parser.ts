@@ -1,4 +1,4 @@
-import { OUseClause, ObjectBase } from './objects';
+import { ObjectBase, OLibraryReference, OReference, OUseClause } from './objects';
 import { ParserBase, ParserState } from './parser-base';
 
 export class UseClauseParser extends ParserBase {
@@ -22,11 +22,11 @@ export class UseClauseParser extends ParserBase {
     if (tokens.length === 3) {
       const [library, packageName, suffix] = tokens;
 
-      return new OUseClause(this.parent, library, packageName, suffix);
+      return new OUseClause(this.parent, new OLibraryReference(this.parent, library), new OReference(this.parent, packageName), suffix);
     } else {
       // I believe it also possible to `use library_name.all;` to use everything from a library, however, I have no idea what this would accomplish :)
       const [packageName, suffix] = tokens;
-      return new OUseClause(this.parent, undefined, packageName, suffix);
+      return new OUseClause(this.parent, undefined, new OReference(this.parent, packageName), suffix);
 
     }
   }

@@ -51,10 +51,10 @@ export function getEntities(instantiation: OInstantiation | OComponent, projectP
   }
   // find project entities
   const projectEntities = projectParser.entities;
-  if (instantiation instanceof OInstantiation && typeof instantiation.library !== 'undefined' && instantiation.library.getLText() !== 'work') {
+  if (instantiation instanceof OInstantiation && typeof instantiation.library !== 'undefined' && instantiation.library.referenceToken.getLText() !== 'work') {
     entities.push(...projectEntities.filter(entity => {
       if (typeof entity.targetLibrary !== 'undefined') {
-        return entity.targetLibrary.toLowerCase() === instantiation.library?.getLText() ?? '';
+        return entity.targetLibrary.toLowerCase() === instantiation.library?.referenceToken.getLText() ?? '';
       }
       return true;
 
