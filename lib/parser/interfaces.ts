@@ -101,7 +101,6 @@ export function implementsIHasComponents(obj: ObjectBase): obj is ObjectBase & I
 }
 
 
-
 export interface IHasSignals {
   signals: OSignal[];
 }
@@ -162,7 +161,7 @@ export interface IHasStatements {
   statements: (OConcurrentStatements | OSequentialStatement)[];
 }
 export function implementsIHasStatements(obj: ObjectBase): obj is ObjectBase & IHasStatements {
-  return (obj as ObjectBase & IHasStatements).statements !== undefined;
+  return Array.isArray((obj as ObjectBase & IHasStatements).statements);
 }
 
 export interface OIDiagnosticWithSolution extends OIDiagnostic {
