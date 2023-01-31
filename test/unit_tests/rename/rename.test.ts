@@ -15,6 +15,8 @@ beforeAll(async () => {
 afterAll(async () => {
   await projectParser.stop();
 });
+// use dummy Path to avoid having path in snapshots
+const dummyPath = '/file/dummy.vhd';
 
 test.each([
   ['entity.vhd', createPrintableRange(5, 8, 5, 19), true], // three occurrences of entity name (test_entity)
@@ -31,9 +33,9 @@ test.each([
   ['package.vhd', createPrintableRange(3, 13, 3, 21), true],
   ['package.vhd', createPrintableRange(4, 14, 4, 22), true],
   ['package.vhd', createPrintableRange(5, 18, 5, 26), true],
-])('testing rename for %s in %s (allowed: %p)', async (name: string, range: Range, allowRename = true) => {
+])('testing rename for %s in %s (allowed: %p)', async (name, range, allowRename) => {
   const path = __dirname + `/${name}`;
-  const linter = new VhdlLinter(`dummy.vhd`, readFileSync(path, { encoding: 'utf8' }),
+  const linter = new VhdlLinter(dummyPath, readFileSync(path, { encoding: 'utf8' }),
     projectParser, defaultSettingsGetter);
   await linter.checkAll();
   await projectParser.stop();
@@ -50,7 +52,7 @@ test.each([
       expect(result.end.line).toBe(end.line);
       expect(result.end.character).toBe(end.character);
       const renameOperations = await renameHandler(linter, pos, newName);
-      const operations = renameOperations.changes[URI.file('dummy.vhd').toString()].map(op => makeRangePrintable(op.range));
+      const operations = renameOperations.changes[URI.file(dummyPath).toString()].map(op => makeRangePrintable(op.range));
       if (lastOperations) {
         expect(operations).toStrictEqual(lastOperations);
       } else {
@@ -76,7 +78,7 @@ test.each([
 test('testing handling of invalid rename Handler', async () => {
   const projectParser = await ProjectParser.create([__dirname], '', defaultSettingsGetter);
   const path = __dirname + `/entity.vhd`;
-  const linter = new VhdlLinter(`dummy.vhd`, readFileSync(path, { encoding: 'utf8' }),
+  const linter = new VhdlLinter(dummyPath, readFileSync(path, { encoding: 'utf8' }),
     projectParser, defaultSettingsGetter);
   await linter.checkAll();
   await projectParser.stop();

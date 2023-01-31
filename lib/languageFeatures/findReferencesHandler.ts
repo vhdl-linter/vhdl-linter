@@ -5,10 +5,10 @@ import { IHasEndingLexerToken, implementsIHasEndingLexerToken, implementsIHasLex
 import { OArchitecture, ObjectBase, OEntity, OPackage, OPackageBody, OReference } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
 export async function getTokenFromPosition(linter: VhdlLinter, position: Position): Promise<OLexerToken | undefined> {
-  const startI = linter.getIFromPosition(position);
+  const posI = linter.getIFromPosition(position);
 
   const candidateTokens = linter.file.lexerTokens.filter(token => token.isDesignator())
-    .filter(object => object.range.start.i <= startI + 1 && startI <= object.range.end.i);
+    .filter(object => object.range.start.i <= posI + 1 && posI <= object.range.end.i);
   return candidateTokens[0];
 }
 export async function findReferenceAndDefinition(linter: VhdlLinter, position: Position) {
