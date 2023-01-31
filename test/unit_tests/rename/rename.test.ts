@@ -1,4 +1,4 @@
-import { expect, test } from '@jest/globals';
+import { expect, test, beforeAll, afterAll } from '@jest/globals';
 import { readFileSync } from 'fs';
 import { ErrorCodes, Position, Range, ResponseError } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
@@ -8,6 +8,13 @@ import { ProjectParser } from '../../../lib/project-parser';
 import { defaultSettingsGetter } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdl-linter';
 import { createPrintableRange, makeRangePrintable } from '../../helper';
+let projectParser: ProjectParser;
+beforeAll(async () => {
+  projectParser = await ProjectParser.create([__dirname], '', defaultSettingsGetter);
+});
+afterAll(async () => {
+  await projectParser.stop();
+});
 
 test.each([
   ['entity.vhd', createPrintableRange(5, 8, 5, 19), true], // three occurrences of entity name (test_entity)
@@ -17,14 +24,14 @@ test.each([
   ['entity.vhd', createPrintableRange(8, 1, 8, 13), false], // No rename architecture keyword
   ['entity.vhd', createPrintableRange(8, 14, 8, 18), true], // two occurrences of architecture name (arch)
   ['entity.vhd', createPrintableRange(11, 18, 11, 22), true],
-  ['signal.vhd', createPrintableRange(10, 10, 10, 13), true], // two occurrences of the signal name foo
+  ['signal.vhd', createPrintableRange(10, 10, 10, 13), true], // three occurrences of the signal name foo
   ['signal.vhd', createPrintableRange(13, 3, 13, 6), true],
-  ['package.vhd', createPrintableRange(1, 9, 1, 17), true],
+  ['signal.vhd', createPrintableRange(14, 10, 14, 13), true],
+  ['package.vhd', createPrintableRange(1, 9, 1, 17), true], // 4 occurrences of package name (test_pkg)
   ['package.vhd', createPrintableRange(3, 13, 3, 21), true],
   ['package.vhd', createPrintableRange(4, 14, 4, 22), true],
   ['package.vhd', createPrintableRange(5, 18, 5, 26), true],
-])('testing rename for %s in %s %p', async (name: string, range: Range, allowRename = true) => {
-  const projectParser = await ProjectParser.create([__dirname], '', defaultSettingsGetter);
+])('testing rename for %s in %s (allowed: %p)', async (name: string, range: Range, allowRename = true) => {
   const path = __dirname + `/${name}`;
   const linter = new VhdlLinter(`dummy.vhd`, readFileSync(path, { encoding: 'utf8' }),
     projectParser, defaultSettingsGetter);

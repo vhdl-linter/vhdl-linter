@@ -218,17 +218,26 @@ async function validateTextDocument(textDocument: TextDocument, cancelationObjec
   }
 
 }
-
+async function getLinter(uri: string) {
+  await initialization;
+  const linter = linters.get(uri);
+  if (lintersValid.get(uri) !== true) {
+    throw new ResponseError(ErrorCodes.InvalidRequest, 'Document not valid. Renaming only supported for parsable documents.', 'Document not valid. Renaming only supported for parsable documents.');
+  }
+  if (typeof linter === 'undefined') {
+    throw new ResponseError(ErrorCodes.InvalidRequest, 'Parser not ready', 'Parser not ready');
+  }
+  if (typeof linter.file === 'undefined') {
+    throw new ResponseError(ErrorCodes.InvalidRequest, 'Parser not ready', 'Parser not ready');
+  }
+  return linter;
+}
 connection.onDidChangeWatchedFiles(() => {
   // Monitored files have change in VS Code
   connection.console.log('We received an file change event');
 });
 connection.onCodeAction(async (params): Promise<CodeAction[]> => {
-  await initialization;
-  const linter = linters.get(params.textDocument.uri);
-  if (!linter) {
-    return [];
-  }
+  const linter = await getLinter(params.textDocument.uri);
   // linter.codeActionEvent.emit()
   const actions = [];
   for (const diagnostic of params.context.diagnostics) {
@@ -251,11 +260,8 @@ connection.onCodeAction(async (params): Promise<CodeAction[]> => {
   return actions;
 });
 connection.onDocumentSymbol(async (params) => {
-  await initialization;
-  const linter = linters.get(params.textDocument.uri);
-  if (!linter) {
-    return [];
-  }
+  const linter = await getLinter(params.textDocument.uri);
+
   return getDocumentSymbol(linter);
 });
 interface IFindDefinitionParams {
@@ -266,11 +272,8 @@ interface IFindDefinitionParams {
 }
 
 const findBestDefinition = async (params: IFindDefinitionParams) => {
-  await initialization;
-  const linter = linters.get(params.textDocument.uri);
-  if (!linter) {
-    return null;
-  }
+  const linter = await getLinter(params.textDocument.uri);
+
   const definitions = await findDefinitions(linter, params.position);
   if (definitions.length === 0) {
     return null;
@@ -303,15 +306,8 @@ connection.onHover(async (params, token) => {
   };
 });
 connection.onDefinition(async (params, token) => {
-  await initialization;
-  if (token.isCancellationRequested) {
-    console.log('hover canceled');
-    return new ResponseError(LSPErrorCodes.RequestCancelled, 'canceled');
-  }
-  const linter = linters.get(params.textDocument.uri);
-  if (!linter) {
-    return null;
-  }
+  const linter = await getLinter(params.textDocument.uri);
+
   const definitions = await findDefinitions(linter, params.position);
   if (definitions.length === 0) {
     return null;
@@ -319,64 +315,35 @@ connection.onDefinition(async (params, token) => {
   return definitions;
 });
 connection.onCompletion(async (params, cancelationToken) => {
-  await initialization;
-  const linter = linters.get(params.textDocument.uri);
-  if (!linter) {
-    return [];
-  }
+  const linter = await getLinter(params.textDocument.uri);
+
   if (cancelationToken.isCancellationRequested) {
     return [];
   }
   return getCompletions(linter, params);
 });
 connection.onReferences( async params => {
-    await initialization;
-    const linter = linters.get(params.textDocument.uri);
-    if (typeof linter === 'undefined') {
-      throw new ResponseError(ErrorCodes.InvalidRequest, 'Parser not ready', 'Parser not ready');
-    }
+  const linter = await getLinter(params.textDocument.uri);
+
     return findReferencesHandler(linter, params.position);
 
   });
+
 connection.onPrepareRename(async params => {
-  await initialization;
-  const linter = linters.get(params.textDocument.uri);
-  if (lintersValid.get(params.textDocument.uri) !== true) {
-    throw new ResponseError(ErrorCodes.InvalidRequest, 'Document not valid. Renaming only supported for parsable documents.', 'Document not valid. Renaming only supported for parsable documents.');
-  }
-  if (typeof linter === 'undefined') {
-    throw new ResponseError(ErrorCodes.InvalidRequest, 'Parser not ready', 'Parser not ready');
-  }
-  if (typeof linter.file === 'undefined') {
-    throw new ResponseError(ErrorCodes.InvalidRequest, 'Parser not ready', 'Parser not ready');
-  }
+  const linter = await getLinter(params.textDocument.uri);
+
   return prepareRenameHandler(linter, params.position);
 });
 connection.onRenameRequest(async params => {
-  await initialization;
-  const linter = linters.get(params.textDocument.uri);
-  if (lintersValid.get(params.textDocument.uri) !== true) {
-    throw new ResponseError(ErrorCodes.InvalidRequest, 'Document not valid. Renaming only supported for parsable documents.', 'Document not valid. Renaming only supported for parsable documents.');
-  }
-  if (typeof linter === 'undefined') {
-    throw new ResponseError(ErrorCodes.InvalidRequest, 'Parser not ready', 'Parser not ready');
-  }
-  if (typeof linter.file === 'undefined') {
-    throw new ResponseError(ErrorCodes.InvalidRequest, 'Parser not ready', 'Parser not ready');
-  }
+  const linter = await getLinter(params.textDocument.uri);
+
   return renameHandler(linter, params.position, params.newName);
 });
 connection.onDocumentFormatting(handleDocumentFormatting);
 connection.onFoldingRanges(foldingHandler);
 connection.onDocumentHighlight(async (params, cancelationToken) => {
-  await initialization;
-  const linter = linters.get(params.textDocument.uri);
-  if (!linter) {
-    return [];
-  }
-  if (cancelationToken.isCancellationRequested) {
-    return [];
-  }
+  const linter = await getLinter(params.textDocument.uri);
+
   return documentHighlightHandler(linter, params);
 
 });
@@ -384,12 +351,8 @@ connection.onWorkspaceSymbol(params => handleOnWorkspaceSymbol(params, projectPa
 // connection.on
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 connection.onRequest('vhdl-linter/listing', async (params: any) => {
-  await initialization;
-  const textDocumentUri = params.textDocument.uri;
-  const linter = linters.get(textDocumentUri);
-  if (typeof linter === 'undefined') {
-    return;
-  }
+  const linter = await getLinter(params.textDocument.uri);
+
   const files: OFile[] = [];
   const unresolved: string[] = [];
 
