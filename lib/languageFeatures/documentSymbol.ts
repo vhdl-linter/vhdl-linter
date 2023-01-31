@@ -1,8 +1,8 @@
 import { DocumentSymbol, SymbolKind } from 'vscode-languageserver';
-import { OBlock, OCase, OCaseGenerate, OElseGenerateClause, OForGenerate, OForLoop, OIf, OIfGenerate, OIfGenerateClause, OInstantiation, OProcess, OSequentialStatement, OStatementBody, OWhenGenerateClause } from '../parser/objects';
+import { OArchitecture, OBlock, OCase, OPackage, OPackageBody, OEntity, OForGenerate, OForLoop, OIf, OIfGenerate, OIfGenerateClause, OInstantiation, OProcess, OSequentialStatement, OStatementBody, OWhenGenerateClause } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
 
-function parseArchitecture(statementBody: OStatementBody, linter: VhdlLinter): DocumentSymbol[] {
+function parseStatementBody(statementBody: OStatementBody, linter: VhdlLinter): DocumentSymbol {
   const symbols: DocumentSymbol[] = [];
   for (const statement of statementBody.statements) {
     if (statement instanceof OInstantiation) {
@@ -14,15 +14,8 @@ function parseArchitecture(statementBody: OStatementBody, linter: VhdlLinter): D
         selectionRange: statement.range
       });
     }
-    if (statement instanceof OBlock) {
-      symbols.push({
-        name: statement.label.text,
-        detail: 'block',
-        kind: SymbolKind.Object,
-        range: statement.range,
-        selectionRange: statement.range,
-        children: parseArchitecture(statement, linter)
-      });
+    if (statement instanceof OStatementBody) {
+      symbols.push(parseStatementBody(statement, linter));
     }
     if (statement instanceof OProcess) {
       symbols.push({
@@ -42,34 +35,42 @@ function parseArchitecture(statementBody: OStatementBody, linter: VhdlLinter): D
       });
 
     }
-    if (statement instanceof OIfGenerate) {
-      for (const clause of statement.ifGenerateClauses) {
-        symbols.push(formatGenerate(clause, linter));
-      }
-      if (statement.elseGenerateClause) {
-        symbols.push(formatGenerate(statement.elseGenerateClause, linter));
-      }
-    }
-    if (statement instanceof OCaseGenerate) {
-      for (const clause of statement.whenGenerateClauses) {
-        symbols.push(formatGenerate(clause, linter));
-
-      }
-    }
-    if (statement instanceof OForGenerate) {
-      symbols.push(formatGenerate(statement, linter));
-    }
   }
-  return symbols;
-}
-function formatGenerate(statement: OIfGenerate | OForGenerate | OWhenGenerateClause
-  | OCaseGenerate | OIfGenerateClause | OElseGenerateClause, linter: VhdlLinter) {
+
+  if (statementBody instanceof OArchitecture) {
+    return {
+      name: statementBody.entityName.text,
+      detail: 'architecture',
+      kind: SymbolKind.Class,
+      range: statementBody.range,
+      selectionRange: statementBody.entityName.range,
+      children: symbols
+    };
+  } else if (statementBody instanceof OBlock) {
+    return {
+      name: statementBody.label.text,
+      detail: 'block',
+      kind: SymbolKind.Object,
+      range: statementBody.range,
+      selectionRange: statementBody.label.range,
+      children: symbols
+    };
+  } else if (statementBody instanceof OForGenerate) {
+    return {
+      name: linter.text.split('\n')[statementBody.range.start.line].trim(),
+      kind: SymbolKind.Enum,
+      range: statementBody.range,
+      selectionRange: statementBody.label.range,
+      children: symbols
+    };
+  }
+  // if generate, else generate or when generate:
   return {
-    name: linter.text.split('\n')[statement.range.start.line].trim(),
+    name: linter.text.split('\n')[statementBody.range.start.line].trim(),
     kind: SymbolKind.Enum,
-    range: statement.range,
-    selectionRange: statement.range,
-    children: statement instanceof OStatementBody ? parseArchitecture(statement, linter) : []
+    range: statementBody.range,
+    selectionRange: statementBody.range,
+    children: symbols
   };
 }
 function parseSequentialStatements(statement: OSequentialStatement): DocumentSymbol[] {
@@ -109,14 +110,40 @@ function parseSequentialStatements(statement: OSequentialStatement): DocumentSym
   }
   return [];
 }
+function parseEntity(entity: OEntity): DocumentSymbol {
+  return {
+    name: entity.lexerToken.text,
+    detail: 'entity',
+    kind: SymbolKind.Interface,
+    range: entity.range,
+    selectionRange: entity.lexerToken.range
+  };
+}
+function parsePackage(pkg: OPackage | OPackageBody): DocumentSymbol {
+  const children: DocumentSymbol[] = [];
+  children.push(...pkg.types.map(type => DocumentSymbol.create(type.lexerToken.text, undefined, SymbolKind.Enum, type.range, type.range)));
+  children.push(...pkg.subprograms.map(subprogram => DocumentSymbol.create(subprogram.lexerToken.text, undefined, SymbolKind.Function, subprogram.range, subprogram.range)));
+  children.push(...pkg.constants.map(constants => DocumentSymbol.create(constants.lexerToken.text, undefined, SymbolKind.Constant, constants.range, constants.range)));
+  return {
+    name: pkg.lexerToken.text,
+    detail: pkg instanceof OPackage ? 'package' : 'package body',
+    kind: SymbolKind.Class,
+    range: pkg.range,
+    selectionRange: pkg.lexerToken.range,
+    children
+  };
+}
 export function getDocumentSymbol(linter: VhdlLinter) {
   const returnValue: DocumentSymbol[] = [];
 
-  returnValue.push(...linter.file.packages.map(pkg => pkg.types).flat().map(type => DocumentSymbol.create(type.lexerToken.text, undefined, SymbolKind.Enum, type.range, type.range)));
-  returnValue.push(...linter.file.packages.map(pkg => pkg.subprograms).flat().map(subprogram => DocumentSymbol.create(subprogram.lexerToken.text, undefined, SymbolKind.Function, subprogram.range, subprogram.range)));
-  returnValue.push(...linter.file.packages.map(pkg => pkg.constants).flat().map(constants => DocumentSymbol.create(constants.lexerToken.text, undefined, SymbolKind.Constant, constants.range, constants.range)));
+  for (const entity of linter.file.entities) {
+    returnValue.push(parseEntity(entity));
+  }
   for (const architecture of linter.file.architectures) {
-    returnValue.push(...parseArchitecture(architecture, linter));
+    returnValue.push(parseStatementBody(architecture, linter));
+  }
+  for (const pkg of linter.file.packages) {
+    returnValue.push(parsePackage(pkg));
   }
   return returnValue;
 }
