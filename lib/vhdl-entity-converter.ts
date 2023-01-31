@@ -8,7 +8,7 @@ async function getEntity() {
     if (!editor) {
         return;
     }
-    const vhdlLinter = new VhdlLinter(editor.document.uri.path, editor.document.getText(), await ProjectParser.create([], '', clientConfigurationGetter), clientConfigurationGetter, true);
+    const vhdlLinter = new VhdlLinter(editor.document.uri.path, editor.document.getText(), await ProjectParser.create([], '', clientConfigurationGetter), clientConfigurationGetter);
     if (vhdlLinter.file.entities[0] !== undefined) {
         return vhdlLinter.file.entities[0];
     }

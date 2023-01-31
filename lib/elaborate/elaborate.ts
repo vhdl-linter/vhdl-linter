@@ -35,10 +35,13 @@ export class Elaborate {
       }
       if (entity) {
         architecture.correspondingEntity = entity;
-        entity.correspondingArchitectures.push(architecture);
       }
 
     }
+    for (const entity of this.file.entities) {
+      entity.correspondingArchitectures = this.vhdlLinter.projectParser.architectures.filter(architecture => entity.lexerToken.getLText() === architecture.entityName?.getLText());
+    }
+
     // Map package body to package
     for (const pkg of this.file.packages) {
       if (pkg instanceof OPackageBody) {

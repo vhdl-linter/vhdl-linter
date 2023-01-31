@@ -133,7 +133,7 @@ export class TypeParser extends ParserBase {
           // Is this a hack, or is it just fantasy/vhdl
           const [typeTokens] = this.advanceParenthesisAware([';'], true, false);
           const deallocateProcedure = new OSubprogram(this.parent, new OIRange(this.parent, typeTokens[0].range.start.i, typeTokens[typeTokens.length - 1].range.end.i));
-          deallocateProcedure.lexerToken = new OLexerToken('deallocate', type.lexerToken.range, type.lexerToken.type);
+          deallocateProcedure.lexerToken = new OLexerToken('deallocate', type.lexerToken.range, type.lexerToken.type, deallocateProcedure.rootFile);
           this.parent.subprograms.push(deallocateProcedure);
           const port = new OPort(deallocateProcedure, type.lexerToken.range);
           port.direction = 'inout';

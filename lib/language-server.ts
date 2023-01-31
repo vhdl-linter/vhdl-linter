@@ -192,7 +192,7 @@ async function validateTextDocument(textDocument: TextDocument, cancelationObjec
   // console.log(textDocument.uri);
   // console.profile('a');
   // let start = Date.now();
-  const vhdlLinter = new VhdlLinter(URI.parse(textDocument.uri).fsPath, textDocument.getText(), projectParser, getDocumentSettings, false, cancelationObject);
+  const vhdlLinter = new VhdlLinter(URI.parse(textDocument.uri).fsPath, textDocument.getText(), projectParser, getDocumentSettings, cancelationObject);
   if (vhdlLinter.parsedSuccessfully || typeof linters.get(textDocument.uri) === 'undefined') {
     linters.set(textDocument.uri, vhdlLinter);
     lintersValid.set(textDocument.uri, true);
@@ -221,9 +221,9 @@ async function validateTextDocument(textDocument: TextDocument, cancelationObjec
 async function getLinter(uri: string) {
   await initialization;
   const linter = linters.get(uri);
-  if (lintersValid.get(uri) !== true) {
-    throw new ResponseError(ErrorCodes.InvalidRequest, 'Document not valid. Renaming only supported for parsable documents.', 'Document not valid. Renaming only supported for parsable documents.');
-  }
+  // if (lintersValid.get(uri) !== true) {
+  //   throw new ResponseError(ErrorCodes.InvalidRequest, 'Document not valid. Renaming only supported for parsable documents.', 'Document not valid. Renaming only supported for parsable documents.');
+  // }
   if (typeof linter === 'undefined') {
     throw new ResponseError(ErrorCodes.InvalidRequest, 'Parser not ready', 'Parser not ready');
   }
@@ -305,7 +305,7 @@ connection.onHover(async (params, token) => {
     }
   };
 });
-connection.onDefinition(async (params, token) => {
+connection.onDefinition(async (params) => {
   const linter = await getLinter(params.textDocument.uri);
 
   const definitions = await findDefinitions(linter, params.position);

@@ -31,7 +31,7 @@ test.each([[`a`, 1],
   (expression, numberOfReferences) => {
     const file = new OFile('', '', '');
     const parent = new ObjectBase(file, new OIRange(file, 0, 0));
-    const lexerTokens = new Lexer(expression, file).lex();
+    const lexerTokens = new Lexer(expression, file).lex(file);
     const expressionParser = new ExpressionParser(new ParserState(new ParserPosition, ''), parent, lexerTokens);
     const references = expressionParser.parse();
     expect(references.length).toBe(numberOfReferences);

@@ -18,9 +18,15 @@ export async function renameHandler(linter: VhdlLinter, position: Position, newN
   if (!tokens) {
     throw new ResponseError(ErrorCodes.InvalidRequest, 'Can not rename this element', 'Can not rename this element');
   }
-  return {
-    changes: {
-      [URI.file(linter.file.file).toString()]: tokens.map(token => TextEdit.replace(token.range, newName))
+  const changes: {[key: string]: TextEdit[]} = {};
+  for (const token of tokens) {
+    const uri = URI.file(token.file.file).toString();
+    if (!Array.isArray(changes[uri])) {
+      changes[uri] = [];
     }
+    changes[uri].push(TextEdit.replace(token.range, newName));
+  }
+  return {
+    changes
   };
 }

@@ -2,7 +2,7 @@ import { FSWatcher, watch } from 'chokidar';
 import { EventEmitter } from 'events';
 import { existsSync, promises } from 'fs';
 import { join, sep } from 'path';
-import { OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
+import { OArchitecture, OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
 import { SettingsGetter, VhdlLinter } from './vhdl-linter';
 
 
@@ -24,6 +24,7 @@ export class ProjectParser {
   public packageInstantiations: OPackageInstantiation[] = [];
   public contexts: OContext[] = [];
   public entities: OEntity[] = [];
+  public architectures: OArchitecture[] = [];
   events = new EventEmitter();
   private watchers: FSWatcher[] = [];
   // Constructor can not be async. So constructor is private and use factory to create
@@ -118,8 +119,10 @@ export class ProjectParser {
     this.packages = [];
     this.packageInstantiations = [];
     this.entities = [];
+    this.architectures = [];
     for (const cachedFile of this.cachedFiles) {
       this.entities.push(...cachedFile.entities);
+      this.architectures.push(...cachedFile.linter.file.architectures);
       if (cachedFile.packages) {
         this.packages.push(...cachedFile.packages);
       }
