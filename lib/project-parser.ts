@@ -2,6 +2,7 @@ import { FSWatcher, watch } from 'chokidar';
 import { EventEmitter } from 'events';
 import { existsSync, promises } from 'fs';
 import { join, sep } from 'path';
+import { Elaborate } from './elaborate/elaborate';
 import { OArchitecture, OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
 import { SettingsGetter, VhdlLinter } from './vhdl-linter';
 
@@ -134,7 +135,12 @@ export class ProjectParser {
       }
     }
   }
+  async elaborateAll() {
+    for (const cachedFile of this.cachedFiles) {
+      await Elaborate.elaborate(cachedFile.linter);
 
+    }
+  }
 }
 
 class FileCache {

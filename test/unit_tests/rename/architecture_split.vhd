@@ -1,4 +1,4 @@
-architecture arch of test_entity_split  is
+architecture arch of asd  is
 
 
 begin

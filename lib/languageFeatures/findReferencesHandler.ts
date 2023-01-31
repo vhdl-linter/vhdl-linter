@@ -1,10 +1,8 @@
-import { readFileSync } from 'fs';
 import { ErrorCodes, Location, Position, ResponseError } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
-import { Elaborate } from '../elaborate/elaborate';
 import { OLexerToken } from '../lexer';
 import { IHasEndingLexerToken, implementsIHasEndingLexerToken, implementsIHasLexerToken, implementsIHasReference } from '../parser/interfaces';
-import { OArchitecture, ObjectBase, OEntity, OPackage, OPackageBody, OReference } from '../parser/objects';
+import { OArchitecture, ObjectBase, OEntity, OPackage, OPackageBody, OReference, OUseClause } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
 export async function getTokenFromPosition(linter: VhdlLinter, position: Position): Promise<OLexerToken | undefined> {
   const posI = linter.getIFromPosition(position);
@@ -13,38 +11,45 @@ export async function getTokenFromPosition(linter: VhdlLinter, position: Positio
     .filter(object => object.range.start.i <= posI + 1 && posI <= object.range.end.i);
   return candidateTokens[0];
 }
-export async function findReferenceAndDefinition(linter: VhdlLinter, position: Position) {
+export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position: Position) {
+  const linter = oldLinter.projectParser.cachedFiles.find(cachedFile => cachedFile.path === oldLinter.file.file)?.linter;
+  if (!linter) {
+    throw new ResponseError(ErrorCodes.InvalidRequest, 'ERror during find reference operation', 'ERror during find reference operation');
+  }
   const token = await getTokenFromPosition(linter, position);
-  let definition: ObjectBase | undefined;
+  await linter.projectParser.elaborateAll();
+  let definitions: ObjectBase[] = [];
   for (const obj of linter.file.objectList) {
     if (obj instanceof OReference && obj.referenceToken === token) {
-      definition = obj.definitions[0];
-    }
-    if (implementsIHasLexerToken(obj) && obj.lexerToken === token) {
-      definition = obj;
-    }
-    if (implementsIHasEndingLexerToken(obj) && obj.endingLexerToken === token) {
-      definition = obj;
-    }
-    if (obj instanceof OArchitecture && obj.entityName === token) {
-      definition = obj.correspondingEntity;
-    }
-  }
-  if (definition instanceof OPackageBody && definition.correspondingPackage) {
-    definition = definition.correspondingPackage;
-  }
-  if (definition) {
-    if (definition.rootFile !== linter.file) {
-      // The file of the definition is not the current file. Running re-elaborate do get consistent result.
-      const subLinter = new VhdlLinter(definition.rootFile.file, readFileSync(definition.rootFile.file, {encoding: 'utf8'}), linter.projectParser, linter.settingsGetter);
-      await Elaborate.elaborate(subLinter);
-      definition = subLinter.file.objectList.find(obj => obj.range.start.i == (definition as ObjectBase).range.start.i && obj.range.end.i == (definition as ObjectBase).range.end.i);
-      if (definition === undefined) {
-        throw new ResponseError(ErrorCodes.InternalError, 'Error while finding references', 'Error while finding references');
+      if (obj.parent instanceof OUseClause) {
+        definitions.push(obj.parent.definitions[0]);
+      } else {
+        definitions.push(obj.definitions[0]);
+
       }
     }
+    if (implementsIHasLexerToken(obj) && obj.lexerToken === token) {
+      definitions.push(obj);
+    }
+    if (implementsIHasEndingLexerToken(obj) && obj.endingLexerToken === token) {
+      definitions.push(obj);
+    }
+    if (obj instanceof OArchitecture && obj.entityName === token) {
+      if (obj.correspondingEntity) {
+        definitions.push(obj.correspondingEntity);
+      }
+    }
+  }
+  definitions = definitions.map(definition => {
+    if (definition instanceof OPackageBody && definition.correspondingPackage) {
+      return definition.correspondingPackage;
+    }
+    return definition;
+
+  })
+  const tokens = [];
+  for (const definition of definitions) {
     if (implementsIHasReference(definition)) {
-      const tokens = [];
       if (definition.lexerToken) {
         tokens.push(definition.lexerToken);
       }
@@ -63,11 +68,14 @@ export async function findReferenceAndDefinition(linter: VhdlLinter, position: P
           }
         }
       }
-      return tokens;
     }
   }
+  const map = new Map<string, OLexerToken>();
+  for (const token of tokens) {
+    map.set(`${token.file.file}-${token.range.start.i}-${token.range.end.i}`, token);
+  }
+  return [...map.values()];
 
-  return undefined;
 }
 export async function findReferencesHandler(linter: VhdlLinter, position: Position) {
 

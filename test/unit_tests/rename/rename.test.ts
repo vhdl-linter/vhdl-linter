@@ -1,6 +1,7 @@
-import { expect, test, beforeAll, afterAll } from '@jest/globals';
+import { afterAll, beforeAll, expect, test } from '@jest/globals';
 import { readFileSync } from 'fs';
-import { ErrorCodes, Position, ResponseError } from 'vscode-languageserver';
+import { ErrorCodes, Position, Range, ResponseError } from 'vscode-languageserver';
+import { URI } from 'vscode-uri';
 import { prepareRenameHandler, renameHandler } from '../../../lib/languageFeatures/rename';
 import { OIRange } from '../../../lib/parser/objects';
 import { ProjectParser } from '../../../lib/project-parser';
@@ -15,54 +16,102 @@ afterAll(async () => {
   await projectParser.stop();
 });
 // use dummy Path to avoid having path in snapshots
-
+interface TestSetup {
+  occurrences: occurrence[],
+  description: string
+}
+type occurrence = [
+  string,
+  Range
+];
 test.each([
   // testing stuff in one file
-  ['entity.vhd', createPrintableRange(5, 8, 5, 19), 3], // three occurrences of entity name (test_entity)
-  ['entity.vhd', createPrintableRange(6, 5, 6, 16), 3],
-  ['entity.vhd', createPrintableRange(8, 22, 8, 33), 3],
-  ['entity.vhd', createPrintableRange(5, 1, 5, 7), 0], // No rename entity keyword
-  ['entity.vhd', createPrintableRange(8, 1, 8, 13), 0], // No rename architecture keyword
-  ['entity.vhd', createPrintableRange(8, 14, 8, 18), 2], // two occurrences of architecture name (arch)
-  ['entity.vhd', createPrintableRange(11, 18, 11, 22), 2],
-  ['signal.vhd', createPrintableRange(11, 10, 11, 13), 3], // three occurrences of the signal name foo
-  ['signal.vhd', createPrintableRange(16, 3, 16, 6), 3],
-  ['signal.vhd', createPrintableRange(17, 24, 17, 27), 3],
+  {
+    occurrences:
+      [['entity.vhd', createPrintableRange(5, 8, 5, 19)],
+      ['entity.vhd', createPrintableRange(6, 5, 6, 16)],
+      ['entity.vhd', createPrintableRange(8, 22, 8, 33)]],
+    description: 'three occurrences of entity name(test_entity)'
+  },
+  {
+    occurrences:
+      [['entity.vhd', createPrintableRange(8, 14, 8, 18)],
+      ['entity.vhd', createPrintableRange(11, 18, 11, 22)]],
+    description: 'two occurrences of architecture name (arch)'
+  },
+  {
+    occurrences:
+      [['signal.vhd', createPrintableRange(11, 10, 11, 13)],
+      ['signal.vhd', createPrintableRange(16, 3, 16, 6)],
+      ['signal.vhd', createPrintableRange(17, 24, 17, 27)]],
+    description: 'three occurrences of the signal name foo'
+  },
 
   // testing stuff over multiple files
-  ['signal.vhd', createPrintableRange(13, 21, 13, 27), 3], // 3 occurences of t_enum
-  ['package.vhd', createPrintableRange(5, 8, 5, 14), 3],
-  ['package.vhd', createPrintableRange(9, 15, 9, 21), 3],
-
-  ['signal.vhd', createPrintableRange(14, 21, 14, 29), 2], // 2 occurences of t_record
-  ['package.vhd', createPrintableRange(7, 8, 7, 16), 2],
-
-  ['signal.vhd', createPrintableRange(19, 12, 19, 20), 2], // 2 occurences of element1 of t_record
-  ['package.vhd', createPrintableRange(9, 5, 9, 13), 2],
-
-  ['package.vhd', createPrintableRange(4, 9, 4, 17), 5], // 5 occurrences of package name (test_pkg)
-  ['signal.vhd', createPrintableRange(4, 10, 4, 18), 5], // also expect renaming in signal.vhd:4
-  ['package.vhd', createPrintableRange(12, 13, 12, 21), 5],
-  ['package.vhd', createPrintableRange(13, 14, 13, 22), 5],
-  ['package.vhd', createPrintableRange(14, 18, 14, 26), 5],
+  {
+    occurrences: [['signal.vhd', createPrintableRange(13, 21, 13, 27)],
+    ['package.vhd', createPrintableRange(5, 8, 5, 14)],
+    ['package.vhd', createPrintableRange(9, 15, 9, 21)]],
+    description: '3 occurrences of t_enum'
+  },
+  {
+    occurrences: [
+      ['signal.vhd', createPrintableRange(14, 21, 14, 29)],
+      ['package.vhd', createPrintableRange(7, 8, 7, 16)]],
+    description: '2 occurrences of t_record'
+  },
+  {
+    occurrences:
+      [['signal.vhd', createPrintableRange(19, 12, 19, 20)],
+      ['package.vhd', createPrintableRange(9, 5, 9, 13)]],
+    description: '2 occurrences of element1 of t_record'
+  },
+  {
+    occurrences:
+      [['package.vhd', createPrintableRange(4, 9, 4, 17)], //
+      ['signal.vhd', createPrintableRange(4, 10, 4, 18)], // also expect renaming in signal.vhd:4
+      ['package.vhd', createPrintableRange(12, 13, 12, 21)],
+      ['package.vhd', createPrintableRange(13, 14, 13, 22)],
+      ['package.vhd', createPrintableRange(14, 18, 14, 26)]],
+    description: '5 occurrences of package name (test_pkg)'
+  },
   // Testing split entity and architecture file
-  ['entity_split.vhd', createPrintableRange(2, 8, 2, 25), 3], // two occurrences in entity file
-  ['entity_split.vhd', createPrintableRange(3, 5, 3, 22), 3],
-  ['architecture_split.vhd', createPrintableRange(1, 22, 1, 39), 3],
+  {
+    occurrences:
+      [['entity_split.vhd', createPrintableRange(2, 8, 2, 25)],
+      ['entity_split.vhd', createPrintableRange(3, 5, 3, 22)],
+      ['architecture_split.vhd', createPrintableRange(1, 22, 1, 39)]],
+    description: 'two occurrences in entity file'
+  },
 
-])('testing rename for %s in %s (expected %d occurences)', async (name, range, expectOccurences) => {
-  const path = __dirname + `/${name}`;
-  const dummyDirname = `/file`;
+])('testing rename for %j', async (testSetup: TestSetup) => {
+  const { occurrences } = testSetup;
+  interface Operations {
+    [path: string]: string[]
 
-  const linter = new VhdlLinter(path, readFileSync(path, { encoding: 'utf8' }),
-    projectParser, defaultSettingsGetter);
-  await linter.checkAll();
-  await projectParser.stop();
-  const newName = 'foo_bar';
-  const pos = range.start;
-  const { start, end } = range;
-  if (expectOccurences > 0) {
-    let lastOperations;
+  }
+  // Build expected operations
+  const expectedOperations: Operations = {};
+  for (const [name, range] of occurrences) {
+    const uri = URI.file(__dirname + `/${name}`).toString();
+    if (Array.isArray(expectedOperations[uri]) === false) {
+      expectedOperations[uri] = [];
+    }
+    expectedOperations[uri].push(makeRangePrintable(range));
+  }
+  for (const key of Object.keys(expectedOperations)) {
+    expectedOperations[key].sort();
+  }
+  for (const [name, range] of occurrences) {
+    const path = __dirname + `/${name}`;
+
+    const linter = new VhdlLinter(path, readFileSync(path, { encoding: 'utf8' }),
+      projectParser, defaultSettingsGetter);
+    await linter.checkAll();
+    await projectParser.stop();
+    const newName = 'foo_bar';
+    const pos = range.start;
+    const { start, end } = range;
     for (let character = start.character; character <= end.character; character++) {
       const result = await prepareRenameHandler(linter, Position.create(start.line, character));
       expect(result).toBeInstanceOf(OIRange);
@@ -71,28 +120,48 @@ test.each([
       expect(result.end.line).toBe(end.line);
       expect(result.end.character).toBe(end.character);
       const renameOperations = await renameHandler(linter, pos, newName);
-      const operations = Object.entries(renameOperations.changes).map(([file, ops]) => ({ file: file.replace(__dirname, dummyDirname), changes: ops.map(op => makeRangePrintable(op.range)) }));
-      expect(operations.flatMap(o => o.changes)).toHaveLength(expectOccurences);
-      if (lastOperations) {
-        expect(operations).toStrictEqual(lastOperations);
-      } else {
-        expect(operations).toMatchSnapshot();
-        lastOperations = operations;
+      const operations: Operations = {};
+      for (const [path, edits] of Object.entries(renameOperations.changes)) {
+        if (Array.isArray(operations[path]) === false) {
+          operations[path] = [];
+        }
+        for (const edit of edits) {
+          expect(edit.newText).toBe(newName);
+          operations[path].push(makeRangePrintable(edit.range));
+        }
       }
+      for (const key of Object.keys(operations)) {
+        operations[key].sort();
+      }
+      expect(operations).toStrictEqual(expectedOperations);
 
     }
-  } else {
-    for (let character = start.character; character <= end.character; character++) {
+  }
 
-      let err;
-      try {
-        await prepareRenameHandler(linter, Position.create(start.line, character));
-      } catch (_err) {
-        err = _err;
-      }
-      expect(err).toBeInstanceOf(ResponseError);
-      expect(err.message).toBe('Can not rename this element');
+});
+test.each([
+  ['entity.vhd', createPrintableRange(5, 1, 5, 7), 0], // No rename entity keyword
+  ['entity.vhd', createPrintableRange(8, 1, 8, 13), 0], // No rename architecture keyword
+])('testing rename for %s in %s where it is not possible', async (name, range) => {
+  const path = __dirname + `/${name}`;
+
+  const linter = new VhdlLinter(path, readFileSync(path, { encoding: 'utf8' }),
+    projectParser, defaultSettingsGetter);
+  await linter.checkAll();
+  await projectParser.stop();
+  const { start, end } = range;
+
+
+  for (let character = start.character; character <= end.character; character++) {
+
+    let err;
+    try {
+      await prepareRenameHandler(linter, Position.create(start.line, character));
+    } catch (_err) {
+      err = _err;
     }
+    expect(err).toBeInstanceOf(ResponseError);
+    expect(err.message).toBe('Can not rename this element');
   }
 });
 test('testing handling of invalid rename Handler', async () => {
