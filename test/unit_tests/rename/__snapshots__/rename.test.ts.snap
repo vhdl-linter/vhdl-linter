@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`testing rename for architecture_split.vhd in 1:22 - 1:39 (allowed: true) 1`] = `
+exports[`testing rename for architecture_split.vhd in 1:22 - 1:39 (expected 3 occurences) 1`] = `
 [
   {
     "changes": [
@@ -18,7 +18,7 @@ exports[`testing rename for architecture_split.vhd in 1:22 - 1:39 (allowed: true
 ]
 `;
 
-exports[`testing rename for entity.vhd in 5:8 - 5:19 (allowed: true) 1`] = `
+exports[`testing rename for entity.vhd in 5:8 - 5:19 (expected 3 occurences) 1`] = `
 [
   {
     "changes": [
@@ -31,7 +31,7 @@ exports[`testing rename for entity.vhd in 5:8 - 5:19 (allowed: true) 1`] = `
 ]
 `;
 
-exports[`testing rename for entity.vhd in 6:5 - 6:16 (allowed: true) 1`] = `
+exports[`testing rename for entity.vhd in 6:5 - 6:16 (expected 3 occurences) 1`] = `
 [
   {
     "changes": [
@@ -44,7 +44,7 @@ exports[`testing rename for entity.vhd in 6:5 - 6:16 (allowed: true) 1`] = `
 ]
 `;
 
-exports[`testing rename for entity.vhd in 8:14 - 8:18 (allowed: true) 1`] = `
+exports[`testing rename for entity.vhd in 8:14 - 8:18 (expected 2 occurences) 1`] = `
 [
   {
     "changes": [
@@ -56,7 +56,7 @@ exports[`testing rename for entity.vhd in 8:14 - 8:18 (allowed: true) 1`] = `
 ]
 `;
 
-exports[`testing rename for entity.vhd in 8:22 - 8:33 (allowed: true) 1`] = `
+exports[`testing rename for entity.vhd in 8:22 - 8:33 (expected 3 occurences) 1`] = `
 [
   {
     "changes": [
@@ -69,7 +69,7 @@ exports[`testing rename for entity.vhd in 8:22 - 8:33 (allowed: true) 1`] = `
 ]
 `;
 
-exports[`testing rename for entity.vhd in 11:18 - 11:22 (allowed: true) 1`] = `
+exports[`testing rename for entity.vhd in 11:18 - 11:22 (expected 2 occurences) 1`] = `
 [
   {
     "changes": [
@@ -81,7 +81,7 @@ exports[`testing rename for entity.vhd in 11:18 - 11:22 (allowed: true) 1`] = `
 ]
 `;
 
-exports[`testing rename for entity_split.vhd in 2:8 - 2:25 (allowed: true) 1`] = `
+exports[`testing rename for entity_split.vhd in 2:8 - 2:25 (expected 3 occurences) 1`] = `
 [
   {
     "changes": [
@@ -99,7 +99,7 @@ exports[`testing rename for entity_split.vhd in 2:8 - 2:25 (allowed: true) 1`] =
 ]
 `;
 
-exports[`testing rename for entity_split.vhd in 2:8 - 2:25 (allowed: true) 2`] = `
+exports[`testing rename for entity_split.vhd in 3:5 - 3:22 (expected 3 occurences) 1`] = `
 [
   {
     "changes": [
@@ -117,113 +117,51 @@ exports[`testing rename for entity_split.vhd in 2:8 - 2:25 (allowed: true) 2`] =
 ]
 `;
 
-exports[`testing rename for entity_split.vhd in 3:5 - 3:22 (allowed: true) 1`] = `
+exports[`testing rename for package.vhd in 9:5 - 9:13 (expected 2 occurences) 1`] = `
 [
   {
     "changes": [
-      "2:8 - 2:25",
-      "3:5 - 3:22",
-    ],
-    "file": "file:///file/entity_split.vhd",
-  },
-  {
-    "changes": [
-      "1:22 - 1:39",
-    ],
-    "file": "file:///file/architecture_split.vhd",
-  },
-]
-`;
-
-exports[`testing rename for package.vhd in 1:9 - 1:17 (allowed: true) 1`] = `
-[
-  {
-    "changes": [
-      "1:9 - 1:17",
-      "3:13 - 3:21",
-      "4:14 - 4:22",
-      "5:18 - 5:26",
+      "9:5 - 9:13",
+      "9:15 - 9:21",
     ],
     "file": "file:///file/package.vhd",
   },
 ]
 `;
 
-exports[`testing rename for package.vhd in 3:13 - 3:21 (allowed: true) 1`] = `
+exports[`testing rename for signal.vhd in 11:10 - 11:13 (expected 3 occurences) 1`] = `
 [
   {
     "changes": [
-      "1:9 - 1:17",
-      "3:13 - 3:21",
-      "4:14 - 4:22",
-      "5:18 - 5:26",
-    ],
-    "file": "file:///file/package.vhd",
-  },
-]
-`;
-
-exports[`testing rename for package.vhd in 4:14 - 4:22 (allowed: true) 1`] = `
-[
-  {
-    "changes": [
-      "1:9 - 1:17",
-      "3:13 - 3:21",
-      "4:14 - 4:22",
-      "5:18 - 5:26",
-    ],
-    "file": "file:///file/package.vhd",
-  },
-]
-`;
-
-exports[`testing rename for package.vhd in 5:18 - 5:26 (allowed: true) 1`] = `
-[
-  {
-    "changes": [
-      "1:9 - 1:17",
-      "3:13 - 3:21",
-      "4:14 - 4:22",
-      "5:18 - 5:26",
-    ],
-    "file": "file:///file/package.vhd",
-  },
-]
-`;
-
-exports[`testing rename for signal.vhd in 10:10 - 10:13 (allowed: true) 1`] = `
-[
-  {
-    "changes": [
-      "10:10 - 10:13",
-      "13:3 - 13:6",
-      "14:10 - 14:13",
+      "11:10 - 11:13",
+      "16:3 - 16:6",
+      "17:24 - 17:27",
     ],
     "file": "file:///file/signal.vhd",
   },
 ]
 `;
 
-exports[`testing rename for signal.vhd in 13:3 - 13:6 (allowed: true) 1`] = `
+exports[`testing rename for signal.vhd in 16:3 - 16:6 (expected 3 occurences) 1`] = `
 [
   {
     "changes": [
-      "10:10 - 10:13",
-      "13:3 - 13:6",
-      "14:10 - 14:13",
+      "11:10 - 11:13",
+      "16:3 - 16:6",
+      "17:24 - 17:27",
     ],
     "file": "file:///file/signal.vhd",
   },
 ]
 `;
 
-exports[`testing rename for signal.vhd in 14:10 - 14:13 (allowed: true) 1`] = `
+exports[`testing rename for signal.vhd in 17:24 - 17:27 (expected 3 occurences) 1`] = `
 [
   {
     "changes": [
-      "10:10 - 10:13",
-      "13:3 - 13:6",
-      "14:10 - 14:13",
+      "11:10 - 11:13",
+      "16:3 - 16:6",
+      "17:24 - 17:27",
     ],
     "file": "file:///file/signal.vhd",
   },
