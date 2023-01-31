@@ -341,7 +341,7 @@ connection.onRenameRequest(async params => {
 });
 connection.onDocumentFormatting(handleDocumentFormatting);
 connection.onFoldingRanges(foldingHandler);
-connection.onDocumentHighlight(async (params, cancelationToken) => {
+connection.onDocumentHighlight(async (params) => {
   const linter = await getLinter(params.textDocument.uri);
 
   return documentHighlightHandler(linter, params);

@@ -1,7 +1,6 @@
 import { expect, test, beforeAll, afterAll } from '@jest/globals';
 import { readFileSync } from 'fs';
-import { ErrorCodes, Position, Range, ResponseError } from 'vscode-languageserver';
-import { URI } from 'vscode-uri';
+import { ErrorCodes, Position, ResponseError } from 'vscode-languageserver';
 import { prepareRenameHandler, renameHandler } from '../../../lib/languageFeatures/rename';
 import { OIRange } from '../../../lib/parser/objects';
 import { ProjectParser } from '../../../lib/project-parser';
