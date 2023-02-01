@@ -109,16 +109,16 @@ export class FileParser extends ParserBase {
     }
     let contextReferences = [];
     const defaultLibrary = [
-      new OLexerToken('std', new OIRange(this.file, 0, 0), TokenType.keyword, this.file),
-      new OLexerToken('work', new OIRange(this.file, 0, 0), TokenType.keyword, this.file),
+      new OLexerToken('std', new OIRange(this.file, 0, 0), TokenType.implicit, this.file),
+      new OLexerToken('work', new OIRange(this.file, 0, 0), TokenType.implicit, this.file),
     ];
     // store use clauses to be attached to the next design unit
     let useClausesPrepare: [OLexerToken, OLexerToken, OLexerToken][] = [];
     const getUseClauses = (parent: ObjectBase) => {
       return [
-        new OUseClause(parent, new OLibraryReference(parent, new OLexerToken('std', new OIRange(this.file, 0, 0), TokenType.keyword, this.file)),
-          new OReference(parent, new OLexerToken('standard', new OIRange(this.file, 0, 0), TokenType.keyword, this.file)),
-          new OLexerToken('all', new OIRange(this.file, 0, 0), TokenType.keyword, this.file)),
+        new OUseClause(parent, new OLibraryReference(parent, new OLexerToken('std', new OIRange(this.file, 0, 0), TokenType.implicit, this.file)),
+          new OReference(parent, new OLexerToken('standard', new OIRange(this.file, 0, 0), TokenType.implicit, this.file)),
+          new OLexerToken('all', new OIRange(this.file, 0, 0), TokenType.implicit, this.file)),
         ...useClausesPrepare.map(([library, packageName, suffix]) => new OUseClause(parent, new OLibraryReference(parent, library), new OReference(parent, packageName), suffix))
       ];
     };

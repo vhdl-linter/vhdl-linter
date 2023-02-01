@@ -11,6 +11,7 @@ export enum TokenType {
   comment = 'comment',
   delimiter = 'delimiter',
   keyword = 'keyword',
+  implicit = 'implicit'
 }
 
 export class OLexerToken {
@@ -20,6 +21,9 @@ export class OLexerToken {
     public type: TokenType,
     public file: OFile
   ) {
+    // if (this.isWhitespace() == false && type != TokenType.implicit && text.length != range.end.character - range.start.character) {
+    //   throw new ParserError(`Range wrong!`, range);
+    // }
   }
   isIdentifier() {
     return this.type === TokenType.basicIdentifier || this.type === TokenType.extendedIdentifier;

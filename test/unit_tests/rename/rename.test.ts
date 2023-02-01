@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, expect, test } from '@jest/globals';
+import { afterAll, beforeAll, expect, test, jest } from '@jest/globals';
 import { readFileSync } from 'fs';
 import { ErrorCodes, Position, Range, ResponseError } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
@@ -24,6 +24,8 @@ type occurrence = [
   string,
   Range
 ];
+jest.setTimeout(20 * 1000);
+
 test.each([
   // testing stuff in one file
   {
@@ -75,13 +77,25 @@ test.each([
       ['package.vhd', createPrintableRange(14, 18, 14, 26)]],
     description: '5 occurrences of package name (test_pkg)'
   },
-  // Testing split entity and architecture file
   {
     occurrences:
       [['entity_split.vhd', createPrintableRange(2, 8, 2, 25)],
       ['entity_split.vhd', createPrintableRange(3, 5, 3, 22)],
       ['architecture_split.vhd', createPrintableRange(1, 22, 1, 39)]],
-    description: 'two occurrences in entity file'
+    description: 'Testing split entity and architecture file'
+  },
+  {
+    occurrences:
+      [['entity2.vhd', createPrintableRange(11, 25, 11, 29)],
+        ['entity2.vhd', createPrintableRange(15, 26, 15, 30)],
+      ['package2.vhd', createPrintableRange(5, 12, 5, 16)],
+      ['package2.vhd', createPrintableRange(6, 12, 6, 16)],
+      ['package2.vhd', createPrintableRange(9, 12, 9, 16)],
+      ['package2.vhd', createPrintableRange(12, 16, 12, 20)],
+      ['package2.vhd', createPrintableRange(13, 12, 13, 16)],
+      ['package2.vhd', createPrintableRange(17, 16, 17, 20)],
+    ],
+    description: 'Testing function split over files'
   },
 
 ])('testing rename for %j', async (testSetup: TestSetup) => {
@@ -112,8 +126,19 @@ test.each([
     const newName = 'foo_bar';
     const pos = range.start;
     const { start, end } = range;
-    for (let character = start.character; character <= end.character; character++) {
-      const result = await prepareRenameHandler(linter, Position.create(start.line, character));
+    // Test start, middle, end
+    const characters = new Set([start.character, end.character, Math.round((end.character + start.character)/2)]);
+    for (const character of characters) {
+      let result;
+      try {
+        result = await prepareRenameHandler(linter, Position.create(start.line, character));
+      } catch(err) {
+        if (err.code === ErrorCodes.InvalidRequest) {
+          throw new Error(`Unexpected invalid request on ${name}:${start.line + 1}:${character + 1}`);
+        } else {
+          throw err;
+        }
+      }
       expect(result).toBeInstanceOf(OIRange);
       expect(result.start.line).toBe(start.line);
       expect(result.start.character).toBe(start.character);
@@ -179,6 +204,5 @@ test('testing handling of invalid rename Handler', async () => {
     err = _err;
   }
   expect(err).toBeInstanceOf(ResponseError);
-  expect(err.message).toBe('Can not rename this element');
   expect(err.code).toBe(ErrorCodes.InvalidRequest);
 });

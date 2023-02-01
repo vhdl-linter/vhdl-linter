@@ -13,6 +13,6 @@ begin
   identifier : process
   begin
     report boolean'image(func);
-
+    func(5);
   end process;  -- identifier
 end architecture;

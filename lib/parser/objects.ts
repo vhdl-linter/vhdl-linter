@@ -835,7 +835,7 @@ export class OMagicCommentDisable extends OMagicComment {
   }
 }
 export class OSubprogram extends OHasSequentialStatements implements I.IHasReferenceLinks, I.IHasSubprograms,  I.IHasPorts,
-  I.IHasVariables, I.IHasTypes, I.IHasAliases, I.IHasFileVariables, I.IHasUseClauses, I.IHasLexerToken, I.IHasPackageInstantiations, I.IHasConstants, I.IHasAttributes {
+  I.IHasVariables, I.IHasTypes, I.IHasAliases, I.IHasFileVariables, I.IHasUseClauses, I.IHasLexerToken, I.IHasPackageInstantiations, I.IHasConstants, I.IHasAttributes, I.IHasEndingLexerToken {
   hasBody = false;
   attributes: OAttribute[] = [];
   referenceLinks: OReference[] = [];
@@ -854,6 +854,7 @@ export class OSubprogram extends OHasSequentialStatements implements I.IHasRefer
   subprograms: OSubprogram[] = [];
   return: OReference[] = [];
   lexerToken: OLexerToken;
+  endingLexerToken?: OLexerToken;
 }
 export class OTypeMark extends ObjectBase {
   constructor(public parent: ObjectBase, public reference: OReference) {

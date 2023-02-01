@@ -7,7 +7,7 @@ export async function prepareRenameHandler(linter: VhdlLinter, position: Positio
 
   const token = await getTokenFromPosition(linter, position);
   if (!token || token.isDesignator() === false) {
-    throw new ResponseError(ErrorCodes.InvalidRequest, 'Can not rename this element', 'Can not rename this element');
+    throw new ResponseError(ErrorCodes.InvalidRequest, 'Can not rename this element',  'Can not rename this element' );
   }
 
   return token.range;
