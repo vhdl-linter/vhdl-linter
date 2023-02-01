@@ -2,7 +2,7 @@ import { ErrorCodes, Location, Position, ResponseError } from 'vscode-languagese
 import { URI } from 'vscode-uri';
 import { OLexerToken } from '../lexer';
 import { IHasEndingLexerToken, implementsIHasEndingLexerToken, implementsIHasLexerToken, implementsIHasReference } from '../parser/interfaces';
-import { OArchitecture, ObjectBase, OEntity, OPackage, OPackageBody, OReference, OSubprogram, OUseClause } from '../parser/objects';
+import { OArchitecture, ObjectBase, OEntity, OInstantiation, OPackage, OPackageBody, OReference, OSubprogram, OUseClause } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
 export async function getTokenFromPosition(linter: VhdlLinter, position: Position): Promise<OLexerToken | undefined> {
 
@@ -32,12 +32,18 @@ export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position
 
       }
     }
+    if (obj instanceof OInstantiation) {
+      if (obj.componentName === token) {
+        obj.definitions.forEach(def => definitions.add(def));
+      }
+    }
     if (implementsIHasLexerToken(obj) && obj.lexerToken === token) {
       definitions.add(obj);
     }
     if (implementsIHasEndingLexerToken(obj) && obj.endingLexerToken === token) {
       definitions.add(obj);
     }
+
     if (obj instanceof OArchitecture && obj.entityName === token) {
       if (obj.correspondingEntity) {
         definitions.add(obj.correspondingEntity);
@@ -79,6 +85,7 @@ export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position
       tokens.push(...definition.referenceLinks.map(ref => ref.referenceToken).filter(token => token.getLText() === definition.lexerToken?.getLText()));
       if (definition instanceof OEntity) {
         tokens.push(...definition.correspondingArchitectures.map(arch => arch.entityName));
+        tokens.push(...definition.referenceLinks.flatMap(link => link instanceof OInstantiation ? link.componentName : []));
       }
       if (definition instanceof OPackage) {
         for (const correspondingPackageBody of definition.correspondingPackageBodies) {

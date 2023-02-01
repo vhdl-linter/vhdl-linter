@@ -32,8 +32,10 @@ test.each([
     occurrences:
       [['entity.vhd', createPrintableRange(5, 8, 5, 19)],
       ['entity.vhd', createPrintableRange(6, 5, 6, 16)],
-      ['entity.vhd', createPrintableRange(8, 22, 8, 33)]],
-    description: 'three occurrences of entity name(test_entity)'
+      ['entity.vhd', createPrintableRange(8, 22, 8, 33)],
+      ['instantiation.vhd', createPrintableRange(9, 32, 9, 43)],
+    ],
+    description: 'four occurrences of entity name(test_entity)'
   },
   {
     occurrences:
