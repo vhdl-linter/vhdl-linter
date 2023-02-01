@@ -88,11 +88,13 @@ test.each([
     occurrences:
       [['entity2.vhd', createPrintableRange(11, 25, 11, 29)],
         ['entity2.vhd', createPrintableRange(15, 26, 15, 30)],
+        ['entity2.vhd', createPrintableRange(16, 5, 16, 9)],
       ['package2.vhd', createPrintableRange(5, 12, 5, 16)],
       ['package2.vhd', createPrintableRange(6, 12, 6, 16)],
-      ['package2.vhd', createPrintableRange(9, 12, 9, 16)],
-      ['package2.vhd', createPrintableRange(12, 16, 12, 20)],
-      ['package2.vhd', createPrintableRange(13, 12, 13, 16)],
+      ['package2.vhd', createPrintableRange(7, 12, 7, 16)],
+      ['package2.vhd', createPrintableRange(10, 12, 10, 16)],
+      ['package2.vhd', createPrintableRange(13, 16, 13, 20)],
+      ['package2.vhd', createPrintableRange(14, 12, 14, 16)],
       ['package2.vhd', createPrintableRange(17, 16, 17, 20)],
     ],
     description: 'Testing function split over files'

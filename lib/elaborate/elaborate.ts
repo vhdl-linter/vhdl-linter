@@ -15,28 +15,8 @@ export class Elaborate {
   private constructor(public vhdlLinter: VhdlLinter) {
     this.file = vhdlLinter.file;
   }
-  public static async elaborate(vhdlLinter: VhdlLinter, clearFirst = false) {
-    if (clearFirst) {
-      for (const obj of vhdlLinter.file.objectList) {
-        if (implementsIHasReference(obj)) {
-          obj.referenceLinks = [];
-          obj.aliasReferences = [];
-        }
-        if (implementsIHasDefinitions(obj)) {
-          obj.definitions = [];
-        }
-        if (obj instanceof OEntity) {
-          obj.correspondingArchitectures = [];
-        } else if (obj instanceof OArchitecture) {
-          obj.correspondingEntity = undefined;
-        } else if (obj instanceof OPackageBody) {
-          obj.correspondingPackage = undefined;
-        } else if (obj instanceof OPackage) {
-          obj.correspondingPackageBodies = [];
-        }
+  public static async elaborate(vhdlLinter: VhdlLinter) {
 
-      }
-    }
     const elaborator = new Elaborate(vhdlLinter);
     await elaborator.elaborateAll();
   }

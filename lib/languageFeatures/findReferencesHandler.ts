@@ -26,9 +26,9 @@ export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position
   for (const obj of linter.file.objectList) {
     if (obj instanceof OReference && obj.referenceToken === token) {
       if (obj.parent instanceof OUseClause) {
-        definitions.add(obj.parent.definitions[0]);
+        obj.parent.definitions.forEach(def => definitions.add(def));
       } else {
-        definitions.add(obj.definitions[0]);
+        obj.definitions.forEach(def => definitions.add(def));
 
       }
     }

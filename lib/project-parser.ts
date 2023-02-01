@@ -3,8 +3,8 @@ import { EventEmitter } from 'events';
 import { existsSync, promises } from 'fs';
 import { join, sep } from 'path';
 import { Elaborate } from './elaborate/elaborate';
-import { OLexerToken } from './lexer';
-import { OArchitecture, OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
+import { implementsIHasDefinitions, implementsIHasReference } from './parser/interfaces';
+import { OArchitecture, OContext, OEntity, OPackage, OPackageBody, OPackageInstantiation } from './parser/objects';
 import { SettingsGetter, VhdlLinter } from './vhdl-linter';
 
 
@@ -138,9 +138,32 @@ export class ProjectParser {
   }
   async elaborateAll(filter: string) {
     const start = Date.now();
-    for (const cachedFile of this.cachedFiles) {
+    const cachedFiles = this.cachedFiles.filter(cachedFile => cachedFile.linter.file.lexerTokens?.find(token => token.getLText() === filter));
+    for (const cachedFile of cachedFiles) {
+      for (const obj of cachedFile.linter.file.objectList) {
+        if (implementsIHasReference(obj)) {
+          obj.referenceLinks = [];
+          obj.aliasReferences = [];
+        }
+        if (implementsIHasDefinitions(obj)) {
+          obj.definitions = [];
+        }
+        if (obj instanceof OEntity) {
+          obj.correspondingArchitectures = [];
+        } else if (obj instanceof OArchitecture) {
+          obj.correspondingEntity = undefined;
+        } else if (obj instanceof OPackageBody) {
+          obj.correspondingPackage = undefined;
+        } else if (obj instanceof OPackage) {
+          obj.correspondingPackageBodies = [];
+        }
+
+      }
+    }
+
+    for (const cachedFile of cachedFiles) {
       if (cachedFile.linter.file.lexerTokens?.find(token => token.getLText() === filter)) {
-        await Elaborate.elaborate(cachedFile.linter, true);
+        await Elaborate.elaborate(cachedFile.linter);
       }
     }
     // console.log(`elaborateAll: ${Date.now() - start}ms`);
