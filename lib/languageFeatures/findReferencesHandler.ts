@@ -14,10 +14,13 @@ export async function getTokenFromPosition(linter: VhdlLinter, position: Positio
 export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position: Position) {
   const linter = oldLinter.projectParser.cachedFiles.find(cachedFile => cachedFile.path === oldLinter.file.file)?.linter;
   if (!linter) {
-    throw new ResponseError(ErrorCodes.InvalidRequest, 'ERror during find reference operation', 'ERror during find reference operation');
+    throw new ResponseError(ErrorCodes.InvalidRequest, 'Error during find reference operation', 'Error during find reference operation');
   }
   const token = await getTokenFromPosition(linter, position);
-  await linter.projectParser.elaborateAll();
+  if (!token) {
+    throw new ResponseError(ErrorCodes.InvalidRequest, 'Error during find reference operation', 'Error during find reference operation');
+  }
+  await linter.projectParser.elaborateAll(token.text);
   let definitions: ObjectBase[] = [];
   for (const obj of linter.file.objectList) {
     if (obj instanceof OReference && obj.referenceToken === token) {

@@ -135,11 +135,15 @@ export class ProjectParser {
       }
     }
   }
-  async elaborateAll() {
+  async elaborateAll(filter: string) {
+    const start = Date.now();
     for (const cachedFile of this.cachedFiles) {
-      await Elaborate.elaborate(cachedFile.linter);
-
+      if (cachedFile.text.toLowerCase().indexOf(filter.toLowerCase()) > -1) {
+        await Elaborate.elaborate(cachedFile.linter);
+      }
     }
+    console.log(`elaborateAll: ${Date.now() - start}ms`);
+
   }
 }
 
