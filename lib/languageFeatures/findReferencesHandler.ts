@@ -12,6 +12,14 @@ export async function getTokenFromPosition(linter: VhdlLinter, position: Positio
       && token.range.end.character >= position.character);
   return candidateTokens[0];
 }
+class SetAdd<T> extends Set<T> {
+  add(... values: T[]) {
+    for  (const value of values) {
+      super.add(value);
+    }
+    return this;
+  }
+}
 export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position: Position) {
   const linter = oldLinter.projectParser.cachedFiles.find(cachedFile => cachedFile.path === oldLinter.file.file)?.linter;
   if (!linter) {
@@ -22,19 +30,21 @@ export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position
     throw new ResponseError(ErrorCodes.InvalidRequest, 'Error during find reference operation', 'Error during find reference operation');
   }
   await linter.projectParser.elaborateAll(token.getLText());
-  const definitions = new Set<ObjectBase>();
+  const definitions = new SetAdd<ObjectBase>();
+  // find all possible definitions for the lexerToken
   for (const obj of linter.file.objectList) {
     if (obj instanceof OReference && obj.referenceToken === token) {
       if (obj.parent instanceof OUseClause) {
-        obj.parent.definitions.forEach(def => definitions.add(def));
+        definitions.add(...obj.parent.definitions);
       } else {
-        obj.definitions.forEach(def => definitions.add(def));
+        definitions.add(...obj.definitions);
 
       }
     }
     if (obj instanceof OInstantiation) {
       if (obj.componentName === token) {
-        obj.definitions.forEach(def => definitions.add(def));
+        definitions.add(...obj.definitions);
+
       }
     }
     if (implementsIHasLexerToken(obj) && obj.lexerToken === token) {
@@ -53,15 +63,15 @@ export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position
   // find all implementations/definitions of subprograms
   for (const definition of definitions) {
     if (definition instanceof OSubprogram) {
-      definition.parent.subprograms
-        .filter(subprogram => subprogram.lexerToken.getLText() == definition.lexerToken?.getLText()).forEach(def => definitions.add(def));
+      definitions.add(...definition.parent.subprograms
+        .filter(subprogram => subprogram.lexerToken.getLText() == definition.lexerToken?.getLText()));
       if (definition.parent instanceof OPackage) {
-        definition.parent.correspondingPackageBodies.flatMap(packageBodies => packageBodies.subprograms
-          .filter(subprogram => subprogram.lexerToken.getLText() == definition.lexerToken?.getLText())).forEach(def => definitions.add(def));
+        definitions.add(...definition.parent.correspondingPackageBodies.flatMap(packageBodies => packageBodies.subprograms
+          .filter(subprogram => subprogram.lexerToken.getLText() == definition.lexerToken?.getLText())));
       }
       if (definition.parent instanceof OPackageBody) {
-        ((definition.parent as OPackageBody).correspondingPackage?.subprograms
-          .filter(subprogram => subprogram.lexerToken.getLText() == definition.lexerToken?.getLText()) ?? []).forEach(def => definitions.add(def));
+        definitions.add(...((definition.parent as OPackageBody).correspondingPackage?.subprograms
+          .filter(subprogram => subprogram.lexerToken.getLText() == definition.lexerToken?.getLText()) ?? []));
       }
 
 
