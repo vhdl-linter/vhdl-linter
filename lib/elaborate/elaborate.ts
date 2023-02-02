@@ -1,6 +1,5 @@
 import { DiagnosticSeverity } from "vscode-languageserver/node";
-import { implementsIHasDefinitions, implementsIHasReference } from "../parser/interfaces";
-import { OArchitecture, OEntity, OFile, OPackage, OPackageBody } from "../parser/objects";
+import { OFile, OPackage, OPackageBody } from "../parser/objects";
 import { VhdlLinter } from "../vhdl-linter";
 import { elaborateAliases } from "./elaborate-aliases";
 import { elaborateAssociations } from "./elaborate-association";
