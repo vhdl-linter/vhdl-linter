@@ -2,7 +2,7 @@ import { ErrorCodes, Location, Position, ResponseError } from 'vscode-languagese
 import { URI } from 'vscode-uri';
 import { OLexerToken } from '../lexer';
 import { IHasEndingLexerToken, implementsIHasEndingLexerToken, implementsIHasLexerToken, implementsIHasReference } from '../parser/interfaces';
-import { OArchitecture, ObjectBase, OEntity, OInstantiation, OPackage, OPackageBody, OReference, OSubprogram, OUseClause } from '../parser/objects';
+import { OArchitecture, ObjectBase, OEntity, OInstantiation, OPackage, OPackageBody, OPort, OReference, OSubprogram, OUseClause } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
 export async function getTokenFromPosition(linter: VhdlLinter, position: Position): Promise<OLexerToken | undefined> {
 
@@ -54,7 +54,6 @@ export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position
   for (const definition of definitions) {
 
     if (definition instanceof OSubprogram) {
-      const subprograms = [definition];
       definition.parent.subprograms
         .filter(subprogram => subprogram.lexerToken.getLText() == definition.lexerToken?.getLText()).forEach(def => definitions.add(def));
       if (definition.parent instanceof OPackage) {
@@ -69,14 +68,14 @@ export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position
 
     }
   }
-  const definitionsNew =  [...definitions].map(definition => {
+  const definitionsNew = [...definitions].map(definition => {
     if (definition instanceof OPackageBody && definition.correspondingPackage) {
       return definition.correspondingPackage;
     }
     return definition;
 
   });
-  const tokens = [];
+  const tokens: OLexerToken[] = [];
   for (const definition of definitionsNew) {
     if (implementsIHasReference(definition)) {
       if (definition.lexerToken) {
@@ -86,6 +85,12 @@ export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position
       if (definition instanceof OEntity) {
         tokens.push(...definition.correspondingArchitectures.map(arch => arch.entityName));
         tokens.push(...definition.referenceLinks.flatMap(link => link instanceof OInstantiation ? link.componentName : []));
+      }
+      if (definition instanceof OPort) {
+        tokens.push(...definition.parent.referenceLinks
+          .flatMap(link => link instanceof OInstantiation ? link.portAssociationList?.children.flatMap(child => {
+            return child.formalPart.filter(formal => formal.referenceToken.getLText() === definition.lexerToken.getLText()).map(formal => formal.referenceToken);
+          }) ?? [] : []));
       }
       if (definition instanceof OPackage) {
         for (const correspondingPackageBody of definition.correspondingPackageBodies) {

@@ -669,6 +669,7 @@ export class OComponent extends ObjectBase implements I.IHasDefinitions, I.IHasS
   definitions: OEntity[] = [];
 }
 export class OPort extends ObjectBase implements I.IVariableBase, I.IHasDefinitions, I.IHasLexerToken {
+  parent: OEntity | OSubprogram;
   direction: 'in' | 'out' | 'inout';
   directionRange: OIRange;
   definitions: OPort[] = [];

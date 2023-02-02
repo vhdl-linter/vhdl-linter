@@ -8,11 +8,11 @@ entity test_entity2 is
 end test_entity2;
 
 architecture arch of test_entity2 is
-  signal a : boolean := func;
+  signal c : boolean := func;
 begin
   identifier : process
   begin
     report boolean'image(func);
-    func(5);
+    func(a => 5);
   end process;  -- identifier
 end architecture;

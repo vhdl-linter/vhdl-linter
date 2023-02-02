@@ -27,81 +27,97 @@ type occurrence = [
 jest.setTimeout(20 * 1000);
 
 test.each([
-  // testing stuff in one file
   {
     occurrences:
-      [['entity.vhd', createPrintableRange(5, 8, 5, 19)],
-      ['entity.vhd', createPrintableRange(6, 5, 6, 16)],
-      ['entity.vhd', createPrintableRange(8, 22, 8, 33)],
-      ['instantiation.vhd', createPrintableRange(9, 32, 9, 43)],
-    ],
-    description: 'four occurrences of entity name(test_entity)'
+      [['entity.vhd', createPrintableRange(5, 8, 19)],
+      ['entity.vhd', createPrintableRange(6, 5, 16)],
+      ['entity.vhd', createPrintableRange(8, 22, 33)],
+
+      ],
+    description: 'three occurrences of entity name(test_entity)'
   },
+
   {
     occurrences:
-      [['entity.vhd', createPrintableRange(8, 14, 8, 18)],
-      ['entity.vhd', createPrintableRange(11, 18, 11, 22)]],
+      [['entity.vhd', createPrintableRange(8, 14, 18)],
+      ['entity.vhd', createPrintableRange(11, 18, 22)]],
     description: 'two occurrences of architecture name (arch)'
   },
   {
     occurrences:
-      [['signal.vhd', createPrintableRange(11, 10, 11, 13)],
-      ['signal.vhd', createPrintableRange(16, 3, 16, 6)],
-      ['signal.vhd', createPrintableRange(17, 24, 17, 27)]],
+      [['signal.vhd', createPrintableRange(11, 10, 13)],
+      ['signal.vhd', createPrintableRange(16, 3, 6)],
+      ['signal.vhd', createPrintableRange(17, 24, 27)]],
     description: 'three occurrences of the signal name foo'
   },
 
   // testing stuff over multiple files
   {
-    occurrences: [['signal.vhd', createPrintableRange(13, 21, 13, 27)],
-    ['package.vhd', createPrintableRange(5, 8, 5, 14)],
-    ['package.vhd', createPrintableRange(9, 15, 9, 21)]],
+    occurrences: [['signal.vhd', createPrintableRange(13, 21, 27)],
+    ['package.vhd', createPrintableRange(5, 8, 14)],
+    ['package.vhd', createPrintableRange(9, 15, 21)]],
     description: '3 occurrences of t_enum'
   },
   {
     occurrences: [
-      ['signal.vhd', createPrintableRange(14, 21, 14, 29)],
-      ['package.vhd', createPrintableRange(7, 8, 7, 16)]],
+      ['signal.vhd', createPrintableRange(14, 21, 29)],
+      ['package.vhd', createPrintableRange(7, 8, 16)]],
     description: '2 occurrences of t_record'
   },
   {
     occurrences:
-      [['signal.vhd', createPrintableRange(19, 12, 19, 20)],
-      ['package.vhd', createPrintableRange(9, 5, 9, 13)]],
+      [['signal.vhd', createPrintableRange(19, 12, 20)],
+      ['package.vhd', createPrintableRange(9, 5, 13)]],
     description: '2 occurrences of element1 of t_record'
   },
   {
     occurrences:
-      [['package.vhd', createPrintableRange(4, 9, 4, 17)], //
-      ['signal.vhd', createPrintableRange(4, 10, 4, 18)], // also expect renaming in signal.vhd:4
-      ['package.vhd', createPrintableRange(12, 13, 12, 21)],
-      ['package.vhd', createPrintableRange(13, 14, 13, 22)],
-      ['package.vhd', createPrintableRange(14, 18, 14, 26)]],
+      [['package.vhd', createPrintableRange(4, 9, 17)], //
+      ['signal.vhd', createPrintableRange(4, 10, 18)], // also expect renaming in signal.vhd:4
+      ['package.vhd', createPrintableRange(12, 13, 21)],
+      ['package.vhd', createPrintableRange(13, 14, 22)],
+      ['package.vhd', createPrintableRange(14, 18, 26)]],
     description: '5 occurrences of package name (test_pkg)'
   },
   {
     occurrences:
-      [['entity_split.vhd', createPrintableRange(2, 8, 2, 25)],
-      ['entity_split.vhd', createPrintableRange(3, 5, 3, 22)],
-      ['architecture_split.vhd', createPrintableRange(1, 22, 1, 39)]],
+      [['entity_split.vhd', createPrintableRange(2, 8, 25)],
+      ['entity_split.vhd', createPrintableRange(6, 5, 22)],
+      ['architecture_split.vhd', createPrintableRange(1, 22, 39)],
+      ['instantiation.vhd', createPrintableRange(9, 32, 49)],
+      ],
     description: 'Testing split entity and architecture file'
   },
   {
     occurrences:
-      [['entity2.vhd', createPrintableRange(11, 25, 11, 29)],
-        ['entity2.vhd', createPrintableRange(15, 26, 15, 30)],
-        ['entity2.vhd', createPrintableRange(16, 5, 16, 9)],
-      ['package2.vhd', createPrintableRange(5, 12, 5, 16)],
-      ['package2.vhd', createPrintableRange(6, 12, 6, 16)],
-      ['package2.vhd', createPrintableRange(7, 12, 7, 16)],
-      ['package2.vhd', createPrintableRange(10, 12, 10, 16)],
-      ['package2.vhd', createPrintableRange(13, 16, 13, 20)],
-      ['package2.vhd', createPrintableRange(14, 12, 14, 16)],
-      ['package2.vhd', createPrintableRange(17, 16, 17, 20)],
-    ],
+      [['entity_split.vhd', createPrintableRange(4, 5, 8)],
+      ['architecture_split.vhd', createPrintableRange(5, 10, 13)],
+      ['instantiation.vhd', createPrintableRange(10, 10, 13)],
+      ],
+    description: 'port name'
+  },
+  {
+    occurrences:
+      [['entity2.vhd', createPrintableRange(11, 25, 29)],
+      ['entity2.vhd', createPrintableRange(15, 26, 30)],
+      ['entity2.vhd', createPrintableRange(16, 5, 9)],
+      ['package2.vhd', createPrintableRange(5, 12, 16)],
+      ['package2.vhd', createPrintableRange(6, 12, 16)],
+      ['package2.vhd', createPrintableRange(7, 12, 16)],
+      ['package2.vhd', createPrintableRange(10, 12, 16)],
+      ['package2.vhd', createPrintableRange(13, 16, 20)],
+      ['package2.vhd', createPrintableRange(14, 12, 16)],
+      ['package2.vhd', createPrintableRange(17, 16, 20)],
+      ],
     description: 'Testing function split over files'
   },
-
+  {
+    occurrences:
+      [['entity2.vhd', createPrintableRange(16, 10, 11)],
+      ['package2.vhd', createPrintableRange(7, 17, 18)],
+      ],
+    description: 'function parameter name'
+  },
 ])('testing rename for %j', async (testSetup: TestSetup) => {
   const { occurrences } = testSetup;
   interface Operations {
@@ -131,12 +147,12 @@ test.each([
     const pos = range.start;
     const { start, end } = range;
     // Test start, middle, end
-    const characters = new Set([start.character, end.character, Math.round((end.character + start.character)/2)]);
+    const characters = new Set([start.character, end.character, Math.round((end.character + start.character) / 2)]);
     for (const character of characters) {
       let result;
       try {
         result = await prepareRenameHandler(linter, Position.create(start.line, character));
-      } catch(err) {
+      } catch (err) {
         if (err.code === ErrorCodes.InvalidRequest) {
           throw new Error(`Unexpected invalid request on ${name}:${start.line + 1}:${character + 1}`);
         } else {
@@ -169,8 +185,8 @@ test.each([
 
 });
 test.each([
-  ['entity.vhd', createPrintableRange(5, 1, 5, 7), 0], // No rename entity keyword
-  ['entity.vhd', createPrintableRange(8, 1, 8, 13), 0], // No rename architecture keyword
+  ['entity.vhd', createPrintableRange(5, 1, 7), 0], // No rename entity keyword
+  ['entity.vhd', createPrintableRange(8, 1, 13), 0], // No rename architecture keyword
 ])('testing rename for %s in %s where it is not possible', async (name, range) => {
   const path = __dirname + `/${name}`;
 
