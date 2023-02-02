@@ -50,8 +50,6 @@ test.each([
       ['signal.vhd', createPrintableRange(17, 24, 27)]],
     description: 'three occurrences of the signal name foo'
   },
-
-  // testing stuff over multiple files
   {
     occurrences: [['signal.vhd', createPrintableRange(13, 21, 27)],
     ['package.vhd', createPrintableRange(5, 8, 14)],
