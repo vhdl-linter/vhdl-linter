@@ -14,7 +14,7 @@ export async function getTokenFromPosition(linter: VhdlLinter, position: Positio
 }
 class SetAdd<T> extends Set<T> {
   add(... values: T[]) {
-    for  (const value of values) {
+    for (const value of values) {
       super.add(value);
     }
     return this;
