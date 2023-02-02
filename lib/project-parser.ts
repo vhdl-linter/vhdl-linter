@@ -57,6 +57,7 @@ export class ProjectParser {
         } else {
           console.error('modified file not found', path);
         }
+        this.cachedElaborate = undefined;
       });
       watcher.on('unlink', path => {
         const cachedFileIndex = this.cachedFiles.findIndex(cachedFile => cachedFile.path === path);
@@ -136,8 +137,12 @@ export class ProjectParser {
       }
     }
   }
+  // Cache the elaboration result. Caution this can get invalid super easy. Therefore it is completely removed on any file change.
+  private cachedElaborate: string|undefined = undefined;
   async elaborateAll(filter: string) {
-    const start = Date.now();
+    if (this.cachedElaborate === filter) {
+      return;
+    }
     const cachedFiles = this.cachedFiles.filter(cachedFile => cachedFile.linter.file.lexerTokens?.find(token => token.getLText() === filter));
     for (const cachedFile of cachedFiles) {
       for (const obj of cachedFile.linter.file.objectList) {
@@ -166,7 +171,7 @@ export class ProjectParser {
         await Elaborate.elaborate(cachedFile.linter);
       }
     }
-    // console.log(`elaborateAll: ${Date.now() - start}ms`);
+    this.cachedElaborate = filter;
 
   }
 }
