@@ -117,7 +117,7 @@ export class ProjectParser {
     }));
     return files;
   }
-  private flattenProject() {
+  flattenProject() {
     this.packages = [];
     this.packageInstantiations = [];
     this.entities = [];
@@ -173,9 +173,13 @@ class FileCache {
   }
   private constructor(public path: string, public projectParser: ProjectParser) {
   }
-  async parse() {
+  async parse(vhdlLinter?: VhdlLinter) {
     this.text = await promises.readFile(this.path, { encoding: 'utf8' });
-    this.linter = new VhdlLinter(this.path, this.text, this.projectParser, this.projectParser.settingsGetter);
+    if (vhdlLinter) {
+      this.linter = vhdlLinter;
+    } else {
+      this.linter = new VhdlLinter(this.path, this.text, this.projectParser, this.projectParser.settingsGetter);
+    }
     this.packages = this.linter.file.packages.filter((p): p is OPackage => p instanceof OPackage);
     this.packageInstantiations = this.linter.file.packageInstantiations;
     this.entities = this.linter.file.entities;
