@@ -50,9 +50,8 @@ export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position
       }
     }
   }
-
+  // find all implementations/definitions of subprograms
   for (const definition of definitions) {
-
     if (definition instanceof OSubprogram) {
       definition.parent.subprograms
         .filter(subprogram => subprogram.lexerToken.getLText() == definition.lexerToken?.getLText()).forEach(def => definitions.add(def));
@@ -68,46 +67,55 @@ export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position
 
     }
   }
-  const definitionsNew = [...definitions].map(definition => {
+  const definitionsList = [...definitions].map(definition => {
     if (definition instanceof OPackageBody && definition.correspondingPackage) {
       return definition.correspondingPackage;
     }
     return definition;
 
   });
-  const tokens: OLexerToken[] = [];
-  for (const definition of definitionsNew) {
+  // find all tokens that are references to the definition
+  const referenceTokens: OLexerToken[] = [];
+  for (const definition of definitionsList) {
     if (implementsIHasReference(definition)) {
       if (definition.lexerToken) {
-        tokens.push(definition.lexerToken);
+        referenceTokens.push(definition.lexerToken);
       }
-      tokens.push(...definition.referenceLinks.map(ref => ref.referenceToken).filter(token => token.getLText() === definition.lexerToken?.getLText()));
+      referenceTokens.push(...definition.referenceLinks.map(ref => ref.referenceToken).filter(token => token.getLText() === definition.lexerToken?.getLText()));
       if (definition instanceof OEntity) {
-        tokens.push(...definition.correspondingArchitectures.map(arch => arch.entityName));
-        tokens.push(...definition.referenceLinks.flatMap(link => link instanceof OInstantiation ? link.componentName : []));
+        referenceTokens.push(...definition.correspondingArchitectures.map(arch => arch.entityName));
+        referenceTokens.push(...definition.referenceLinks.flatMap(link => link instanceof OInstantiation ? link.componentName : []));
       }
       if (definition instanceof OPort) {
-        tokens.push(...definition.parent.referenceLinks
-          .flatMap(link => link instanceof OInstantiation ? link.portAssociationList?.children.flatMap(child => {
-            return child.formalPart.filter(formal => formal.referenceToken.getLText() === definition.lexerToken.getLText()).map(formal => formal.referenceToken);
-          }) ?? [] : []));
+        referenceTokens.push(...definition.parent.referenceLinks
+          .flatMap(link => {
+            if (link instanceof OInstantiation) {
+              return link.portAssociationList?.children.flatMap(child => {
+                return child.formalPart
+                  .filter(formal => formal.referenceToken.getLText() === definition.lexerToken.getLText())
+                  .map(formal => formal.referenceToken);
+              }) ?? [];
+            }
+            return [];
+          }));
       }
       if (definition instanceof OPackage) {
         for (const correspondingPackageBody of definition.correspondingPackageBodies) {
-          tokens.push(correspondingPackageBody.lexerToken);
+          referenceTokens.push(correspondingPackageBody.lexerToken);
           if (correspondingPackageBody.endingLexerToken) {
-            tokens.push(correspondingPackageBody.endingLexerToken);
+            referenceTokens.push(correspondingPackageBody.endingLexerToken);
           }
         }
       }
     }
     if (implementsIHasEndingLexerToken(definition)) {
-      tokens.push((definition as IHasEndingLexerToken).endingLexerToken as OLexerToken);
+      referenceTokens.push((definition as IHasEndingLexerToken).endingLexerToken as OLexerToken);
     }
 
   }
+  // make sure to only return one reference per range
   const map = new Map<string, OLexerToken>();
-  for (const token of tokens) {
+  for (const token of referenceTokens) {
     map.set(`${token.file.file}-${token.range.start.i}-${token.range.end.i}`, token);
   }
   return [...map.values()];

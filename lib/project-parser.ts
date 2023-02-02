@@ -3,8 +3,7 @@ import { EventEmitter } from 'events';
 import { existsSync, promises } from 'fs';
 import { join, sep } from 'path';
 import { Elaborate } from './elaborate/elaborate';
-import { implementsIHasDefinitions, implementsIHasReference } from './parser/interfaces';
-import { OArchitecture, OContext, OEntity, OPackage, OPackageBody, OPackageInstantiation } from './parser/objects';
+import { OArchitecture, OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
 import { SettingsGetter, VhdlLinter } from './vhdl-linter';
 
 
@@ -145,25 +144,7 @@ export class ProjectParser {
     }
     const cachedFiles = this.cachedFiles.filter(cachedFile => cachedFile.linter.file.lexerTokens?.find(token => token.getLText() === filter));
     for (const cachedFile of cachedFiles) {
-      for (const obj of cachedFile.linter.file.objectList) {
-        if (implementsIHasReference(obj)) {
-          obj.referenceLinks = [];
-          obj.aliasReferences = [];
-        }
-        if (implementsIHasDefinitions(obj)) {
-          obj.definitions = [];
-        }
-        if (obj instanceof OEntity) {
-          obj.correspondingArchitectures = [];
-        } else if (obj instanceof OArchitecture) {
-          obj.correspondingEntity = undefined;
-        } else if (obj instanceof OPackageBody) {
-          obj.correspondingPackage = undefined;
-        } else if (obj instanceof OPackage) {
-          obj.correspondingPackageBodies = [];
-        }
-
-      }
+      Elaborate.clear(cachedFile.linter);
     }
 
     for (const cachedFile of cachedFiles) {

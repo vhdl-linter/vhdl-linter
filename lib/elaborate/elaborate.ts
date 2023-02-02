@@ -1,5 +1,6 @@
 import { DiagnosticSeverity } from "vscode-languageserver/node";
-import { OFile, OPackage, OPackageBody } from "../parser/objects";
+import { implementsIHasReference, implementsIHasDefinitions } from "../parser/interfaces";
+import { OArchitecture, OEntity, OFile, OPackage, OPackageBody } from "../parser/objects";
 import { VhdlLinter } from "../vhdl-linter";
 import { elaborateAliases } from "./elaborate-aliases";
 import { elaborateAssociations } from "./elaborate-association";
@@ -18,6 +19,27 @@ export class Elaborate {
 
     const elaborator = new Elaborate(vhdlLinter);
     await elaborator.elaborateAll();
+  }
+  public static clear(vhdlLinter: VhdlLinter) {
+    for (const obj of vhdlLinter.file.objectList) {
+      if (implementsIHasReference(obj)) {
+        obj.referenceLinks = [];
+        obj.aliasReferences = [];
+      }
+      if (implementsIHasDefinitions(obj)) {
+        obj.definitions = [];
+      }
+      if (obj instanceof OEntity) {
+        obj.correspondingArchitectures = [];
+      } else if (obj instanceof OArchitecture) {
+        obj.correspondingEntity = undefined;
+      } else if (obj instanceof OPackageBody) {
+        obj.correspondingPackage = undefined;
+      } else if (obj instanceof OPackage) {
+        obj.correspondingPackageBodies = [];
+      }
+
+    }
   }
   async elaborateAll() {
 

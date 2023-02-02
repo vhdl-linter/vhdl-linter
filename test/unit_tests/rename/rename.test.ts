@@ -72,7 +72,7 @@ test.each([
   },
   {
     occurrences:
-      [['package.vhd', createPrintableRange(4, 9, 17)], //
+      [['package.vhd', createPrintableRange(4, 9, 17)],
       ['signal.vhd', createPrintableRange(4, 10, 18)], // also expect renaming in signal.vhd:4
       ['package.vhd', createPrintableRange(12, 13, 21)],
       ['package.vhd', createPrintableRange(13, 14, 22)],
@@ -86,7 +86,7 @@ test.each([
       ['architecture_split.vhd', createPrintableRange(1, 22, 39)],
       ['instantiation.vhd', createPrintableRange(9, 32, 49)],
       ],
-    description: 'Testing split entity and architecture file'
+    description: 'split entity and architecture file'
   },
   {
     occurrences:
@@ -109,7 +109,7 @@ test.each([
       ['package2.vhd', createPrintableRange(14, 12, 16)],
       ['package2.vhd', createPrintableRange(17, 16, 20)],
       ],
-    description: 'Testing function split over files'
+    description: 'function split over files'
   },
   {
     occurrences:
