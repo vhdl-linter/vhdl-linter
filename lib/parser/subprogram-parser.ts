@@ -43,7 +43,7 @@ export class SubprogramParser extends ParserBase {
       subprogram.statements = new SequentialStatementParser(this.state).parse(subprogram, ['end']);
       this.expect('end');
       this.maybe(isFunction ? 'function' : 'procedure');
-      this.maybe(token.text);
+      subprogram.endingLexerToken = this.maybe(token);
       subprogram.range = subprogram.range.copyWithNewEnd(this.state.pos.i);
 
     }

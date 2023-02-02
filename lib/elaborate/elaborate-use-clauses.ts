@@ -20,6 +20,7 @@ export function elaborateUseClauses(file: OFile, projectParser: ProjectParser, v
             if (foundPkg.lexerToken.getLText() === useClause.packageName.referenceToken.getLText()) {
               obj.packageDefinitions.push(foundPkg);
               useClause.definitions.push(foundPkg);
+              foundPkg.referenceLinks.push(useClause);
               found = true;
             }
           }

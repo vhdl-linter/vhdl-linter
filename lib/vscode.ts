@@ -97,7 +97,7 @@ export function activate(context: ExtensionContext) {
     if (!editor) {
       return;
     }
-    const parser = new FileParser(editor.document.getText(), editor.document.uri.toString(), false, { canceled: false });
+    const parser = new FileParser(editor.document.getText(), editor.document.uri.toString(), { canceled: false });
     const file = parser.parse();
 
     if (file) {

@@ -11,13 +11,15 @@ export enum TokenType {
   comment = 'comment',
   delimiter = 'delimiter',
   keyword = 'keyword',
+  implicit = 'implicit'
 }
 
 export class OLexerToken {
   constructor(
     public text: string,
     public range: OIRange,
-    public type: TokenType
+    public type: TokenType,
+    public file: OFile
   ) {
   }
   isIdentifier() {
@@ -74,7 +76,7 @@ export class Lexer {
     public text: string,
     public file: OFile
   ) { }
-  lex() {
+  lex(file: OFile) {
     const tokens: OLexerToken[] = [];
     let foundToken = true;
     let offset = 0;
@@ -92,7 +94,7 @@ export class Lexer {
       const match = text.match(this.reservedWords);
       if (match) {
         const token = new OLexerToken(match[0],
-          new OIRange(this.file, offset, offset + match[0].length), TokenType.keyword);
+          new OIRange(this.file, offset, offset + match[0].length), TokenType.keyword, file);
 
         tokens.push(token);
         text = text.substring(match[0].length);
@@ -105,7 +107,7 @@ export class Lexer {
         const match = text.match(tokenType.regex);
         if (match) {
           const token = new OLexerToken(match[2] ? match[2] : match[0],
-            new OIRange(this.file, offset, offset + match[0].length), tokenType.tokenType);
+            new OIRange(this.file, offset, offset + match[0].length), tokenType.tokenType, file);
 
           tokens.push(token);
           text = text.substring(match[0].length);

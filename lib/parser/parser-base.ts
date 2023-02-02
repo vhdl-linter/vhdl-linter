@@ -253,9 +253,9 @@ export class ParserBase {
       throw new ParserError(`expected '${expected.join(', ')}' found '${this.getToken().text}' line: ${this.getLine()}`, this.state.pos.getRangeToEndLine());
     }
   }
-  maybe(expected: (string | OLexerToken)[] | string | OLexerToken): OLexerToken | false {
+  maybe(expected: (string | OLexerToken)[] | string | OLexerToken): OLexerToken | undefined {
     if (expected === undefined) {
-      return false;
+      return undefined;
     }
     if (Array.isArray(expected)) {
       for (const expectedElement of expected) {
@@ -265,7 +265,7 @@ export class ParserBase {
           return token;
         }
       }
-      return false;
+      return undefined;
     } else {
 
       const text = (typeof expected === 'string') ? expected.toLowerCase() : expected.getLText();
@@ -273,7 +273,7 @@ export class ParserBase {
         const token = this.consumeToken();
         return token;
       }
-      return false;
+      return undefined;
     }
   }
 

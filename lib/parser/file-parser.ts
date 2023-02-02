@@ -16,7 +16,7 @@ export class FileParser extends ParserBase {
   public lexerTokens: OLexerToken[] = [];
   text: string;
   file: OFile;
-  constructor(text: string, filePath: string, public onlyEntity: boolean = false, public cancelationObject: CancelationObject) {
+  constructor(text: string, filePath: string, public cancelationObject: CancelationObject) {
 
     super(new ParserState(new ParserPosition(), filePath));
     this.originalText = text;
@@ -24,7 +24,8 @@ export class FileParser extends ParserBase {
     this.file = new OFile(this.text, this.state.filePath, this.originalText);
 
     const lexer = new Lexer(this.originalText, this.file);
-    this.lexerTokens = lexer.lex();
+    this.lexerTokens = lexer.lex(this.file);
+    this.file.lexerTokens = this.lexerTokens;
     this.state.pos.lexerTokens = this.lexerTokens;
     this.state.pos.file = this.file;
   }
@@ -108,16 +109,16 @@ export class FileParser extends ParserBase {
     }
     let contextReferences = [];
     const defaultLibrary = [
-      new OLexerToken('std', new OIRange(this.file, 0, 0), TokenType.keyword),
-      new OLexerToken('work', new OIRange(this.file, 0, 0), TokenType.keyword),
+      new OLexerToken('std', new OIRange(this.file, 0, 0), TokenType.implicit, this.file),
+      new OLexerToken('work', new OIRange(this.file, 0, 0), TokenType.implicit, this.file),
     ];
-    // store useclauses to be attached to the next design unit
+    // store use clauses to be attached to the next design unit
     let useClausesPrepare: [OLexerToken, OLexerToken, OLexerToken][] = [];
     const getUseClauses = (parent: ObjectBase) => {
       return [
-        new OUseClause(parent, new OLibraryReference(parent, new OLexerToken('std', new OIRange(this.file, 0, 0), TokenType.keyword)),
-          new OReference(parent, new OLexerToken('standard', new OIRange(this.file, 0, 0), TokenType.keyword)),
-          new OLexerToken('all', new OIRange(this.file, 0, 0), TokenType.keyword)),
+        new OUseClause(parent, new OLibraryReference(parent, new OLexerToken('std', new OIRange(this.file, 0, 0), TokenType.implicit, this.file)),
+          new OReference(parent, new OLexerToken('standard', new OIRange(this.file, 0, 0), TokenType.implicit, this.file)),
+          new OLexerToken('all', new OIRange(this.file, 0, 0), TokenType.implicit, this.file)),
         ...useClausesPrepare.map(([library, packageName, suffix]) => new OUseClause(parent, new OLibraryReference(parent, library), new OReference(parent, packageName), suffix))
       ];
     };
@@ -177,9 +178,6 @@ export class FileParser extends ParserBase {
         entity.libraries.push(...libraries.map(library => new OLibrary(entity, library)));
         libraries = defaultLibrary.slice(0);
         useClausesPrepare = [];
-        if (this.onlyEntity) {
-          break;
-        }
       } else if (nextToken.getLText() === 'architecture') {
         const architectureParser = new StatementBodyParser(this.state, this.file);
         const architecture = architectureParser.parse();

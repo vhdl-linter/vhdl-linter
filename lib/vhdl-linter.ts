@@ -34,9 +34,9 @@ export class VhdlLinter {
   parsedSuccessfully = false;
   constructor(public editorPath: string, public text: string, public projectParser: ProjectParser,
     public settingsGetter: SettingsGetter,
-    public onlyEntity: boolean = false, public cancelationObject: CancelationObject = { canceled: false }) {
+   public cancelationObject: CancelationObject = { canceled: false }) {
     try {
-      this.parser = new FileParser(text, this.editorPath, onlyEntity, cancelationObject);
+      this.parser = new FileParser(text, this.editorPath, cancelationObject);
       this.file = this.parser.parse();
       this.parsedSuccessfully = true;
       this.file.parserMessages = this.parser.state.messages;

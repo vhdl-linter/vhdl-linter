@@ -37,7 +37,7 @@ export class StatementBodyParser extends ParserBase {
         const guardRange = startRange.copyWithNewEnd(this.getToken().range.end);
         // implicit declare constant GUARD
         const constant = new OConstant(statementBody, guardRange);
-        constant.lexerToken = new OLexerToken('GUARD', guardRange, TokenType.basicIdentifier);
+        constant.lexerToken = new OLexerToken('GUARD', guardRange, TokenType.basicIdentifier, constant.rootFile);
         // read GUARD constant to avoid 'not read' warning
         (statementBody as OBlock).guardCondition?.push(new ORead(statementBody, constant.lexerToken));
         statementBody.constants.push(constant);
@@ -108,7 +108,7 @@ export class StatementBodyParser extends ParserBase {
         }
 
         if (structureName === 'architecture' ) {
-          this.maybe((statementBody as OArchitecture).lexerToken.text);
+          (statementBody as OArchitecture).endingLexerToken = this.maybe((statementBody as OArchitecture).lexerToken.text);
         } else {
           if (statementBody instanceof OIfGenerateClause || statementBody instanceof OElseGenerateClause) {
             this.maybe(statementBody.parent.label);

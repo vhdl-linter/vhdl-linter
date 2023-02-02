@@ -2,7 +2,8 @@ import { FSWatcher, watch } from 'chokidar';
 import { EventEmitter } from 'events';
 import { existsSync, promises } from 'fs';
 import { join, sep } from 'path';
-import { OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
+import { Elaborate } from './elaborate/elaborate';
+import { OArchitecture, OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
 import { SettingsGetter, VhdlLinter } from './vhdl-linter';
 
 
@@ -24,6 +25,7 @@ export class ProjectParser {
   public packageInstantiations: OPackageInstantiation[] = [];
   public contexts: OContext[] = [];
   public entities: OEntity[] = [];
+  public architectures: OArchitecture[] = [];
   events = new EventEmitter();
   private watchers: FSWatcher[] = [];
   // Constructor can not be async. So constructor is private and use factory to create
@@ -54,6 +56,7 @@ export class ProjectParser {
         } else {
           console.error('modified file not found', path);
         }
+        this.cachedElaborate = undefined;
       });
       watcher.on('unlink', path => {
         const cachedFileIndex = this.cachedFiles.findIndex(cachedFile => cachedFile.path === path);
@@ -118,8 +121,10 @@ export class ProjectParser {
     this.packages = [];
     this.packageInstantiations = [];
     this.entities = [];
+    this.architectures = [];
     for (const cachedFile of this.cachedFiles) {
       this.entities.push(...cachedFile.entities);
+      this.architectures.push(...cachedFile.linter.file.architectures);
       if (cachedFile.packages) {
         this.packages.push(...cachedFile.packages);
       }
@@ -131,7 +136,25 @@ export class ProjectParser {
       }
     }
   }
+  // Cache the elaboration result. Caution this can get invalid super easy. Therefore it is completely removed on any file change.
+  private cachedElaborate: string|undefined = undefined;
+  async elaborateAll(filter: string) {
+    if (this.cachedElaborate === filter) {
+      return;
+    }
+    const cachedFiles = this.cachedFiles.filter(cachedFile => cachedFile.linter.file.lexerTokens?.find(token => token.getLText() === filter));
+    for (const cachedFile of cachedFiles) {
+      Elaborate.clear(cachedFile.linter);
+    }
 
+    for (const cachedFile of cachedFiles) {
+      if (cachedFile.linter.file.lexerTokens?.find(token => token.getLText() === filter)) {
+        await Elaborate.elaborate(cachedFile.linter);
+      }
+    }
+    this.cachedElaborate = filter;
+
+  }
 }
 
 class FileCache {
