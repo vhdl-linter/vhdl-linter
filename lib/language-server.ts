@@ -158,7 +158,7 @@ export const initialization = new Promise<void>(resolve => {
       if (oldTimeout !== undefined) {
         clearTimeout(oldTimeout);
       }
-      function handleChange() {
+      async function handleChange() {
         const cancelationObject = cancelationMap.get(change.document.uri);
         if (cancelationObject) {
           cancelationObject.canceled = true;
@@ -166,7 +166,13 @@ export const initialization = new Promise<void>(resolve => {
         const newCancelationObject = {
           canceled: false
         };
-        validateTextDocument(change.document, newCancelationObject);
+        const vhdlLinter = await validateTextDocument(change.document, newCancelationObject);
+        const path = URI.parse(change.document.uri).path;
+        const cachedFile = process.platform === 'win32'
+          ? projectParser.cachedFiles.find(cachedFile => cachedFile.path.toLowerCase() === path.toLowerCase())
+          : projectParser.cachedFiles.find(cachedFile => cachedFile.path === path);
+        cachedFile?.parse(vhdlLinter);
+        projectParser.flattenProject();
         cancelationMap.set(change.document.uri, newCancelationObject);
       }
       if (change.document.version === 1) { // Document was initially opened. Do not delay.
@@ -188,7 +194,7 @@ documents.onDidClose(change => {
 // when the text document first opened or when its content has changed.
 export const linters = new Map<string, VhdlLinter>();
 export const lintersValid = new Map<string, boolean>();
-async function validateTextDocument(textDocument: TextDocument, cancelationObject: CancelationObject = { canceled: false }): Promise<void> {
+async function validateTextDocument(textDocument: TextDocument, cancelationObject: CancelationObject = { canceled: false }): Promise<VhdlLinter> {
   // console.log(textDocument.uri);
   // console.profile('a');
   // let start = Date.now();
@@ -209,13 +215,13 @@ async function validateTextDocument(textDocument: TextDocument, cancelationObjec
     // console.profileEnd('a');
     connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
     // console.log(`send for: ${Date.now() - start} ms.`);
-
   } catch (err) {
     // Ignore cancelled
     if (!(err instanceof CancelationError)) {
       throw err;
     }
   }
+  return vhdlLinter;
 
 }
 async function getLinter(uri: string) {
