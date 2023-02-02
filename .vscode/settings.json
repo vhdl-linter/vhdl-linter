@@ -18,6 +18,9 @@
     "uninstantiated",
     "vhdl",
     "Vhdl",
+    "vmode",
+    "vprop",
+    "vunit",
     "Whitespaces",
     "xnor"
   ]
