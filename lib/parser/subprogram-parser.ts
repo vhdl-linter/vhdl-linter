@@ -13,12 +13,13 @@ export class SubprogramParser extends ParserBase {
   }
   parse(): OSubprogram {
     let nextWord = this.consumeToken();
+    const startRange = nextWord.range;
     if (nextWord.getLText() === 'impure' || nextWord.getLText() === 'pure') {
       nextWord = this.consumeToken();
     }
     const isFunction = nextWord.getLText() === 'function';
     const token = this.consumeToken();
-    const subprogram = new OSubprogram(this.parent, nextWord.range.copyExtendEndOfLine());
+    const subprogram = new OSubprogram(this.parent, startRange);
     subprogram.lexerToken = token;
     const parameter = this.maybe('parameter');
     if (this.getToken().getLText() === '(') {
@@ -44,9 +45,9 @@ export class SubprogramParser extends ParserBase {
       this.expect('end');
       this.maybe(isFunction ? 'function' : 'procedure');
       subprogram.endingLexerToken = this.maybe(token);
-      subprogram.range = subprogram.range.copyWithNewEnd(this.state.pos.i);
-
     }
+
+    subprogram.range = subprogram.range.copyWithNewEnd(this.state.pos.i);
 
     return subprogram;
   }

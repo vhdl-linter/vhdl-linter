@@ -1,0 +1,33 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+entity test_else_generate is
+end test_else_generate;
+
+architecture arch of test_else_generate is
+  type t_state is (idle, working, workingHard, waiting);
+  signal state0 : t_state := idle;
+  signal state1 : t_state := idle;
+begin
+
+  p_reg : process(all)
+  begin
+    case state0 is
+      when idle =>
+        case state1 is
+          when idle =>
+            state0 <= working;
+          when others =>
+            state1 <= idle;
+        end case;
+      when working|workingHard =>
+        state0 <= waiting;
+      when waiting =>
+        state0 <= idle;
+      when others =>
+        state0 <= workingHard;
+    end case;
+  end process;
+
+end arch;

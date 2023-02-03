@@ -91,6 +91,7 @@ export class StatementBodyParser extends ParserBase {
             if (alternativeLabel !== undefined) {
               this.maybe(alternativeLabel.text);
             }
+            statementBody.range = statementBody.range.copyWithNewEnd(this.getToken().range);
             this.expect(';');
             continue;
           }
@@ -116,6 +117,8 @@ export class StatementBodyParser extends ParserBase {
             this.maybe((statementBody as OBlock | OIfGenerate).label);
           }
         }
+
+        statementBody.range = statementBody.range.copyWithNewEnd(this.getToken().range);
         this.expect(';');
         break;
       }

@@ -1,7 +1,440 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`testing document symbol snapshot 1`] = `
+exports[`Testing document symbols of test_case_generate.vhd 1`] = `
 [
+  {
+    "children": undefined,
+    "detail": "entity",
+    "kind": 11,
+    "name": "test",
+    "range": {
+      "end": {
+        "character": 8,
+        "line": 5,
+      },
+      "start": {
+        "character": 0,
+        "line": 4,
+      },
+    },
+    "selectionRange": {
+      "end": {
+        "character": 11,
+        "line": 4,
+      },
+      "start": {
+        "character": 7,
+        "line": 4,
+      },
+    },
+  },
+  {
+    "children": [
+      {
+        "children": [],
+        "kind": 10,
+        "name": "when 1 =>",
+        "range": {
+          "end": {
+            "character": 13,
+            "line": 13,
+          },
+          "start": {
+            "character": 4,
+            "line": 12,
+          },
+        },
+        "selectionRange": {
+          "end": {
+            "character": 13,
+            "line": 13,
+          },
+          "start": {
+            "character": 4,
+            "line": 12,
+          },
+        },
+      },
+      {
+        "children": [],
+        "kind": 10,
+        "name": "when others =>",
+        "range": {
+          "end": {
+            "character": 13,
+            "line": 15,
+          },
+          "start": {
+            "character": 4,
+            "line": 14,
+          },
+        },
+        "selectionRange": {
+          "end": {
+            "character": 13,
+            "line": 15,
+          },
+          "start": {
+            "character": 4,
+            "line": 14,
+          },
+        },
+      },
+    ],
+    "detail": "architecture",
+    "kind": 5,
+    "name": "test",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 18,
+      },
+      "start": {
+        "character": 0,
+        "line": 7,
+      },
+    },
+    "selectionRange": {
+      "end": {
+        "character": 25,
+        "line": 7,
+      },
+      "start": {
+        "character": 21,
+        "line": 7,
+      },
+    },
+  },
+]
+`;
+
+exports[`Testing document symbols of test_for_generate.vhd 1`] = `
+[
+  {
+    "children": undefined,
+    "detail": "entity",
+    "kind": 11,
+    "name": "test",
+    "range": {
+      "end": {
+        "character": 8,
+        "line": 5,
+      },
+      "start": {
+        "character": 0,
+        "line": 4,
+      },
+    },
+    "selectionRange": {
+      "end": {
+        "character": 11,
+        "line": 4,
+      },
+      "start": {
+        "character": 7,
+        "line": 4,
+      },
+    },
+  },
+  {
+    "children": [
+      {
+        "children": [],
+        "kind": 10,
+        "name": "p_gen : for i in 0 to 3 generate",
+        "range": {
+          "end": {
+            "character": 21,
+            "line": 13,
+          },
+          "start": {
+            "character": 2,
+            "line": 11,
+          },
+        },
+        "selectionRange": {
+          "end": {
+            "character": 7,
+            "line": 11,
+          },
+          "start": {
+            "character": 2,
+            "line": 11,
+          },
+        },
+      },
+    ],
+    "detail": "architecture",
+    "kind": 5,
+    "name": "test",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 15,
+      },
+      "start": {
+        "character": 0,
+        "line": 7,
+      },
+    },
+    "selectionRange": {
+      "end": {
+        "character": 25,
+        "line": 7,
+      },
+      "start": {
+        "character": 21,
+        "line": 7,
+      },
+    },
+  },
+]
+`;
+
+exports[`Testing document symbols of test_if_else_generate.vhd 1`] = `
+[
+  {
+    "children": undefined,
+    "detail": "entity",
+    "kind": 11,
+    "name": "test",
+    "range": {
+      "end": {
+        "character": 8,
+        "line": 5,
+      },
+      "start": {
+        "character": 0,
+        "line": 4,
+      },
+    },
+    "selectionRange": {
+      "end": {
+        "character": 11,
+        "line": 4,
+      },
+      "start": {
+        "character": 7,
+        "line": 4,
+      },
+    },
+  },
+  {
+    "children": [
+      {
+        "children": [],
+        "kind": 10,
+        "name": "p_gen : if true generate",
+        "range": {
+          "end": {
+            "character": 11,
+            "line": 12,
+          },
+          "start": {
+            "character": 2,
+            "line": 11,
+          },
+        },
+        "selectionRange": {
+          "end": {
+            "character": 11,
+            "line": 12,
+          },
+          "start": {
+            "character": 2,
+            "line": 11,
+          },
+        },
+      },
+      {
+        "children": [],
+        "kind": 10,
+        "name": "else generate",
+        "range": {
+          "end": {
+            "character": 21,
+            "line": 15,
+          },
+          "start": {
+            "character": 2,
+            "line": 13,
+          },
+        },
+        "selectionRange": {
+          "end": {
+            "character": 21,
+            "line": 15,
+          },
+          "start": {
+            "character": 2,
+            "line": 13,
+          },
+        },
+      },
+    ],
+    "detail": "architecture",
+    "kind": 5,
+    "name": "test",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 17,
+      },
+      "start": {
+        "character": 0,
+        "line": 7,
+      },
+    },
+    "selectionRange": {
+      "end": {
+        "character": 25,
+        "line": 7,
+      },
+      "start": {
+        "character": 21,
+        "line": 7,
+      },
+    },
+  },
+]
+`;
+
+exports[`Testing document symbols of test_if_elsif_generate.vhd 1`] = `
+[
+  {
+    "children": undefined,
+    "detail": "entity",
+    "kind": 11,
+    "name": "test",
+    "range": {
+      "end": {
+        "character": 8,
+        "line": 5,
+      },
+      "start": {
+        "character": 0,
+        "line": 4,
+      },
+    },
+    "selectionRange": {
+      "end": {
+        "character": 11,
+        "line": 4,
+      },
+      "start": {
+        "character": 7,
+        "line": 4,
+      },
+    },
+  },
+  {
+    "children": [
+      {
+        "children": [],
+        "kind": 10,
+        "name": "p_gen2 : if true generate",
+        "range": {
+          "end": {
+            "character": 11,
+            "line": 12,
+          },
+          "start": {
+            "character": 2,
+            "line": 11,
+          },
+        },
+        "selectionRange": {
+          "end": {
+            "character": 11,
+            "line": 12,
+          },
+          "start": {
+            "character": 2,
+            "line": 11,
+          },
+        },
+      },
+      {
+        "children": [],
+        "kind": 10,
+        "name": "elsif false generate",
+        "range": {
+          "end": {
+            "character": 22,
+            "line": 15,
+          },
+          "start": {
+            "character": 2,
+            "line": 13,
+          },
+        },
+        "selectionRange": {
+          "end": {
+            "character": 22,
+            "line": 15,
+          },
+          "start": {
+            "character": 2,
+            "line": 13,
+          },
+        },
+      },
+    ],
+    "detail": "architecture",
+    "kind": 5,
+    "name": "test",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 16,
+      },
+      "start": {
+        "character": 0,
+        "line": 7,
+      },
+    },
+    "selectionRange": {
+      "end": {
+        "character": 25,
+        "line": 7,
+      },
+      "start": {
+        "character": 21,
+        "line": 7,
+      },
+    },
+  },
+]
+`;
+
+exports[`Testing document symbols of test_process.vhd 1`] = `
+[
+  {
+    "children": undefined,
+    "detail": "entity",
+    "kind": 11,
+    "name": "test_else_generate",
+    "range": {
+      "end": {
+        "character": 22,
+        "line": 5,
+      },
+      "start": {
+        "character": 0,
+        "line": 4,
+      },
+    },
+    "selectionRange": {
+      "end": {
+        "character": 25,
+        "line": 4,
+      },
+      "start": {
+        "character": 7,
+        "line": 4,
+      },
+    },
+  },
   {
     "children": [
       {
@@ -11,121 +444,1885 @@ exports[`testing document symbol snapshot 1`] = `
         "name": "p_reg",
         "range": {
           "end": {
-            "character": 15,
-            "line": 19,
+            "character": 13,
+            "line": 14,
           },
           "start": {
-            "character": 4,
+            "character": 2,
+            "line": 11,
+          },
+        },
+        "selectionRange": {
+          "end": {
+            "character": 13,
             "line": 14,
+          },
+          "start": {
+            "character": 2,
+            "line": 11,
+          },
+        },
+      },
+    ],
+    "detail": "architecture",
+    "kind": 5,
+    "name": "test_else_generate",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 16,
+      },
+      "start": {
+        "character": 0,
+        "line": 7,
+      },
+    },
+    "selectionRange": {
+      "end": {
+        "character": 39,
+        "line": 7,
+      },
+      "start": {
+        "character": 21,
+        "line": 7,
+      },
+    },
+  },
+]
+`;
+
+exports[`Testing document symbols of test_protected.vhd 1`] = `
+[
+  {
+    "children": [
+      {
+        "children": [
+          {
+            "kind": 12,
+            "name": "Init",
+            "range": {
+              "end": {
+                "character": 18,
+                "line": 6,
+              },
+              "start": {
+                "character": 4,
+                "line": 6,
+              },
+            },
+            "selectionRange": {
+              "end": {
+                "character": 18,
+                "line": 6,
+              },
+              "start": {
+                "character": 4,
+                "line": 6,
+              },
+            },
+          },
+          {
+            "kind": 12,
+            "name": "Input",
+            "range": {
+              "end": {
+                "character": 44,
+                "line": 7,
+              },
+              "start": {
+                "character": 4,
+                "line": 7,
+              },
+            },
+            "selectionRange": {
+              "end": {
+                "character": 44,
+                "line": 7,
+              },
+              "start": {
+                "character": 4,
+                "line": 7,
+              },
+            },
+          },
+          {
+            "kind": 12,
+            "name": "GetCrc",
+            "range": {
+              "end": {
+                "character": 51,
+                "line": 8,
+              },
+              "start": {
+                "character": 4,
+                "line": 8,
+              },
+            },
+            "selectionRange": {
+              "end": {
+                "character": 51,
+                "line": 8,
+              },
+              "start": {
+                "character": 4,
+                "line": 8,
+              },
+            },
+          },
+        ],
+        "detail": "protected type",
+        "kind": 5,
+        "name": "CrcCalculator",
+        "range": {
+          "end": {
+            "character": 15,
+            "line": 9,
+          },
+          "start": {
+            "character": 2,
+            "line": 5,
           },
         },
         "selectionRange": {
           "end": {
             "character": 15,
-            "line": 19,
+            "line": 9,
           },
           "start": {
-            "character": 4,
-            "line": 14,
+            "character": 2,
+            "line": 5,
           },
         },
       },
     ],
-    "kind": 10,
-    "name": "p_gen : if true generate",
+    "detail": "package",
+    "kind": 5,
+    "name": "pkg",
     "range": {
       "end": {
-        "character": 2,
-        "line": 23,
+        "character": 12,
+        "line": 10,
       },
       "start": {
-        "character": 2,
-        "line": 13,
-      },
-    },
-    "selectionRange": {
-      "end": {
-        "character": 2,
-        "line": 23,
-      },
-      "start": {
-        "character": 2,
-        "line": 13,
-      },
-    },
-  },
-  {
-    "children": [],
-    "kind": 10,
-    "name": "else generate",
-    "range": {
-      "end": {
-        "character": 2,
-        "line": 23,
-      },
-      "start": {
-        "character": 2,
-        "line": 20,
-      },
-    },
-    "selectionRange": {
-      "end": {
-        "character": 2,
-        "line": 23,
-      },
-      "start": {
-        "character": 2,
-        "line": 20,
-      },
-    },
-  },
-  {
-    "children": [],
-    "kind": 10,
-    "name": "p_gen2 : if true generate",
-    "range": {
-      "end": {
         "character": 0,
-        "line": 27,
-      },
-      "start": {
-        "character": 2,
-        "line": 23,
+        "line": 4,
       },
     },
     "selectionRange": {
       "end": {
-        "character": 0,
-        "line": 27,
+        "character": 11,
+        "line": 4,
       },
       "start": {
-        "character": 2,
-        "line": 23,
+        "character": 8,
+        "line": 4,
       },
     },
   },
   {
-    "children": [],
-    "kind": 10,
-    "name": "elsif false generate",
+    "children": [
+      {
+        "children": [
+          {
+            "kind": 12,
+            "name": "Init",
+            "range": {
+              "end": {
+                "character": 17,
+                "line": 32,
+              },
+              "start": {
+                "character": 4,
+                "line": 29,
+              },
+            },
+            "selectionRange": {
+              "end": {
+                "character": 17,
+                "line": 32,
+              },
+              "start": {
+                "character": 4,
+                "line": 29,
+              },
+            },
+          },
+          {
+            "kind": 12,
+            "name": "Input",
+            "range": {
+              "end": {
+                "character": 17,
+                "line": 45,
+              },
+              "start": {
+                "character": 4,
+                "line": 34,
+              },
+            },
+            "selectionRange": {
+              "end": {
+                "character": 17,
+                "line": 45,
+              },
+              "start": {
+                "character": 4,
+                "line": 34,
+              },
+            },
+          },
+          {
+            "kind": 12,
+            "name": "GetCrc",
+            "range": {
+              "end": {
+                "character": 16,
+                "line": 52,
+              },
+              "start": {
+                "character": 4,
+                "line": 47,
+              },
+            },
+            "selectionRange": {
+              "end": {
+                "character": 16,
+                "line": 52,
+              },
+              "start": {
+                "character": 4,
+                "line": 47,
+              },
+            },
+          },
+        ],
+        "detail": "protected type",
+        "kind": 5,
+        "name": "CrcCalculator",
+        "range": {
+          "end": {
+            "character": 16,
+            "line": 54,
+          },
+          "start": {
+            "character": 2,
+            "line": 25,
+          },
+        },
+        "selectionRange": {
+          "end": {
+            "character": 16,
+            "line": 54,
+          },
+          "start": {
+            "character": 2,
+            "line": 25,
+          },
+        },
+      },
+      {
+        "kind": 12,
+        "name": "reflect",
+        "range": {
+          "end": {
+            "character": 14,
+            "line": 22,
+          },
+          "start": {
+            "character": 2,
+            "line": 15,
+          },
+        },
+        "selectionRange": {
+          "end": {
+            "character": 14,
+            "line": 22,
+          },
+          "start": {
+            "character": 2,
+            "line": 15,
+          },
+        },
+      },
+      {
+        "kind": 14,
+        "name": "c_crcPol",
+        "range": {
+          "end": {
+            "character": 66,
+            "line": 13,
+          },
+          "start": {
+            "character": 2,
+            "line": 13,
+          },
+        },
+        "selectionRange": {
+          "end": {
+            "character": 66,
+            "line": 13,
+          },
+          "start": {
+            "character": 2,
+            "line": 13,
+          },
+        },
+      },
+    ],
+    "detail": "package body",
+    "kind": 5,
+    "name": "pkg",
+    "range": {
+      "end": {
+        "character": 16,
+        "line": 55,
+      },
+      "start": {
+        "character": 13,
+        "line": 12,
+      },
+    },
+    "selectionRange": {
+      "end": {
+        "character": 16,
+        "line": 12,
+      },
+      "start": {
+        "character": 13,
+        "line": 12,
+      },
+    },
+  },
+]
+`;
+
+exports[`Testing document symbols of test_record.vhd 1`] = `
+[
+  {
+    "children": [
+      {
+        "children": [
+          {
+            "kind": 8,
+            "name": "field",
+            "range": {
+              "end": {
+                "character": 18,
+                "line": 6,
+              },
+              "start": {
+                "character": 4,
+                "line": 6,
+              },
+            },
+            "selectionRange": {
+              "end": {
+                "character": 18,
+                "line": 6,
+              },
+              "start": {
+                "character": 4,
+                "line": 6,
+              },
+            },
+          },
+        ],
+        "detail": "Record",
+        "kind": 23,
+        "name": "rec",
+        "range": {
+          "end": {
+            "character": 2,
+            "line": 7,
+          },
+          "start": {
+            "character": 2,
+            "line": 5,
+          },
+        },
+        "selectionRange": {
+          "end": {
+            "character": 2,
+            "line": 7,
+          },
+          "start": {
+            "character": 2,
+            "line": 5,
+          },
+        },
+      },
+    ],
+    "detail": "package",
+    "kind": 5,
+    "name": "pkg",
+    "range": {
+      "end": {
+        "character": 12,
+        "line": 8,
+      },
+      "start": {
+        "character": 0,
+        "line": 4,
+      },
+    },
+    "selectionRange": {
+      "end": {
+        "character": 11,
+        "line": 4,
+      },
+      "start": {
+        "character": 8,
+        "line": 4,
+      },
+    },
+  },
+]
+`;
+
+exports[`Testing document symbols of test_stateMachine.vhd 1`] = `
+[
+  {
+    "children": undefined,
+    "detail": "entity",
+    "kind": 11,
+    "name": "test_else_generate",
     "range": {
       "end": {
         "character": 22,
-        "line": 26,
+        "line": 5,
       },
       "start": {
-        "character": 2,
-        "line": 24,
+        "character": 0,
+        "line": 4,
       },
     },
     "selectionRange": {
       "end": {
-        "character": 22,
+        "character": 25,
+        "line": 4,
+      },
+      "start": {
+        "character": 7,
+        "line": 4,
+      },
+    },
+  },
+  {
+    "children": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "children": [],
+                "kind": 22,
+                "name": "idle",
+                "range": {
+                  "end": {
+                    "character": 25,
+                    "line": 16,
+                  },
+                  "start": {
+                    "character": 6,
+                    "line": 15,
+                  },
+                },
+                "selectionRange": {
+                  "end": {
+                    "character": 25,
+                    "line": 16,
+                  },
+                  "start": {
+                    "character": 6,
+                    "line": 15,
+                  },
+                },
+              },
+              {
+                "children": [],
+                "kind": 22,
+                "name": "working|workingHard",
+                "range": {
+                  "end": {
+                    "character": 25,
+                    "line": 18,
+                  },
+                  "start": {
+                    "character": 6,
+                    "line": 17,
+                  },
+                },
+                "selectionRange": {
+                  "end": {
+                    "character": 25,
+                    "line": 18,
+                  },
+                  "start": {
+                    "character": 6,
+                    "line": 17,
+                  },
+                },
+              },
+              {
+                "children": [],
+                "kind": 22,
+                "name": "waiting",
+                "range": {
+                  "end": {
+                    "character": 22,
+                    "line": 20,
+                  },
+                  "start": {
+                    "character": 6,
+                    "line": 19,
+                  },
+                },
+                "selectionRange": {
+                  "end": {
+                    "character": 22,
+                    "line": 20,
+                  },
+                  "start": {
+                    "character": 6,
+                    "line": 19,
+                  },
+                },
+              },
+              {
+                "children": [],
+                "kind": 22,
+                "name": "others",
+                "range": {
+                  "end": {
+                    "character": 29,
+                    "line": 22,
+                  },
+                  "start": {
+                    "character": 6,
+                    "line": 21,
+                  },
+                },
+                "selectionRange": {
+                  "end": {
+                    "character": 29,
+                    "line": 22,
+                  },
+                  "start": {
+                    "character": 6,
+                    "line": 21,
+                  },
+                },
+              },
+            ],
+            "kind": 10,
+            "name": "state",
+            "range": {
+              "end": {
+                "character": 13,
+                "line": 23,
+              },
+              "start": {
+                "character": 4,
+                "line": 14,
+              },
+            },
+            "selectionRange": {
+              "end": {
+                "character": 13,
+                "line": 23,
+              },
+              "start": {
+                "character": 4,
+                "line": 14,
+              },
+            },
+          },
+        ],
+        "detail": "process",
+        "kind": 12,
+        "name": "p_reg",
+        "range": {
+          "end": {
+            "character": 13,
+            "line": 24,
+          },
+          "start": {
+            "character": 2,
+            "line": 12,
+          },
+        },
+        "selectionRange": {
+          "end": {
+            "character": 13,
+            "line": 24,
+          },
+          "start": {
+            "character": 2,
+            "line": 12,
+          },
+        },
+      },
+    ],
+    "detail": "architecture",
+    "kind": 5,
+    "name": "test_else_generate",
+    "range": {
+      "end": {
+        "character": 9,
         "line": 26,
       },
       "start": {
-        "character": 2,
-        "line": 24,
+        "character": 0,
+        "line": 7,
+      },
+    },
+    "selectionRange": {
+      "end": {
+        "character": 39,
+        "line": 7,
+      },
+      "start": {
+        "character": 21,
+        "line": 7,
+      },
+    },
+  },
+]
+`;
+
+exports[`Testing document symbols of test_stateMachineCase.vhd 1`] = `
+[
+  {
+    "children": undefined,
+    "detail": "entity",
+    "kind": 11,
+    "name": "test_else_generate",
+    "range": {
+      "end": {
+        "character": 22,
+        "line": 5,
+      },
+      "start": {
+        "character": 0,
+        "line": 4,
+      },
+    },
+    "selectionRange": {
+      "end": {
+        "character": 25,
+        "line": 4,
+      },
+      "start": {
+        "character": 7,
+        "line": 4,
+      },
+    },
+  },
+  {
+    "children": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "children": [
+                  {
+                    "children": [
+                      {
+                        "children": [],
+                        "kind": 22,
+                        "name": "idle",
+                        "range": {
+                          "end": {
+                            "character": 30,
+                            "line": 19,
+                          },
+                          "start": {
+                            "character": 10,
+                            "line": 18,
+                          },
+                        },
+                        "selectionRange": {
+                          "end": {
+                            "character": 30,
+                            "line": 19,
+                          },
+                          "start": {
+                            "character": 10,
+                            "line": 18,
+                          },
+                        },
+                      },
+                      {
+                        "children": [],
+                        "kind": 22,
+                        "name": "others",
+                        "range": {
+                          "end": {
+                            "character": 27,
+                            "line": 21,
+                          },
+                          "start": {
+                            "character": 10,
+                            "line": 20,
+                          },
+                        },
+                        "selectionRange": {
+                          "end": {
+                            "character": 27,
+                            "line": 21,
+                          },
+                          "start": {
+                            "character": 10,
+                            "line": 20,
+                          },
+                        },
+                      },
+                    ],
+                    "kind": 10,
+                    "name": "state1",
+                    "range": {
+                      "end": {
+                        "character": 17,
+                        "line": 22,
+                      },
+                      "start": {
+                        "character": 8,
+                        "line": 17,
+                      },
+                    },
+                    "selectionRange": {
+                      "end": {
+                        "character": 17,
+                        "line": 22,
+                      },
+                      "start": {
+                        "character": 8,
+                        "line": 17,
+                      },
+                    },
+                  },
+                ],
+                "kind": 22,
+                "name": "idle",
+                "range": {
+                  "end": {
+                    "character": 17,
+                    "line": 22,
+                  },
+                  "start": {
+                    "character": 6,
+                    "line": 16,
+                  },
+                },
+                "selectionRange": {
+                  "end": {
+                    "character": 17,
+                    "line": 22,
+                  },
+                  "start": {
+                    "character": 6,
+                    "line": 16,
+                  },
+                },
+              },
+              {
+                "children": [],
+                "kind": 22,
+                "name": "working|workingHard",
+                "range": {
+                  "end": {
+                    "character": 26,
+                    "line": 24,
+                  },
+                  "start": {
+                    "character": 6,
+                    "line": 23,
+                  },
+                },
+                "selectionRange": {
+                  "end": {
+                    "character": 26,
+                    "line": 24,
+                  },
+                  "start": {
+                    "character": 6,
+                    "line": 23,
+                  },
+                },
+              },
+              {
+                "children": [],
+                "kind": 22,
+                "name": "waiting",
+                "range": {
+                  "end": {
+                    "character": 23,
+                    "line": 26,
+                  },
+                  "start": {
+                    "character": 6,
+                    "line": 25,
+                  },
+                },
+                "selectionRange": {
+                  "end": {
+                    "character": 23,
+                    "line": 26,
+                  },
+                  "start": {
+                    "character": 6,
+                    "line": 25,
+                  },
+                },
+              },
+              {
+                "children": [],
+                "kind": 22,
+                "name": "others",
+                "range": {
+                  "end": {
+                    "character": 30,
+                    "line": 28,
+                  },
+                  "start": {
+                    "character": 6,
+                    "line": 27,
+                  },
+                },
+                "selectionRange": {
+                  "end": {
+                    "character": 30,
+                    "line": 28,
+                  },
+                  "start": {
+                    "character": 6,
+                    "line": 27,
+                  },
+                },
+              },
+            ],
+            "kind": 10,
+            "name": "state0",
+            "range": {
+              "end": {
+                "character": 13,
+                "line": 29,
+              },
+              "start": {
+                "character": 4,
+                "line": 15,
+              },
+            },
+            "selectionRange": {
+              "end": {
+                "character": 13,
+                "line": 29,
+              },
+              "start": {
+                "character": 4,
+                "line": 15,
+              },
+            },
+          },
+        ],
+        "detail": "process",
+        "kind": 12,
+        "name": "p_reg",
+        "range": {
+          "end": {
+            "character": 13,
+            "line": 30,
+          },
+          "start": {
+            "character": 2,
+            "line": 13,
+          },
+        },
+        "selectionRange": {
+          "end": {
+            "character": 13,
+            "line": 30,
+          },
+          "start": {
+            "character": 2,
+            "line": 13,
+          },
+        },
+      },
+    ],
+    "detail": "architecture",
+    "kind": 5,
+    "name": "test_else_generate",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 32,
+      },
+      "start": {
+        "character": 0,
+        "line": 7,
+      },
+    },
+    "selectionRange": {
+      "end": {
+        "character": 39,
+        "line": 7,
+      },
+      "start": {
+        "character": 21,
+        "line": 7,
+      },
+    },
+  },
+]
+`;
+
+exports[`Testing document symbols of test_stateMachineElse.vhd 1`] = `
+[
+  {
+    "children": undefined,
+    "detail": "entity",
+    "kind": 11,
+    "name": "test_else_generate",
+    "range": {
+      "end": {
+        "character": 22,
+        "line": 5,
+      },
+      "start": {
+        "character": 0,
+        "line": 4,
+      },
+    },
+    "selectionRange": {
+      "end": {
+        "character": 25,
+        "line": 4,
+      },
+      "start": {
+        "character": 7,
+        "line": 4,
+      },
+    },
+  },
+  {
+    "children": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "children": [],
+                "kind": 22,
+                "name": "idle",
+                "range": {
+                  "end": {
+                    "character": 27,
+                    "line": 18,
+                  },
+                  "start": {
+                    "character": 8,
+                    "line": 17,
+                  },
+                },
+                "selectionRange": {
+                  "end": {
+                    "character": 27,
+                    "line": 18,
+                  },
+                  "start": {
+                    "character": 8,
+                    "line": 17,
+                  },
+                },
+              },
+              {
+                "children": [],
+                "kind": 22,
+                "name": "working|workingHard",
+                "range": {
+                  "end": {
+                    "character": 27,
+                    "line": 20,
+                  },
+                  "start": {
+                    "character": 8,
+                    "line": 19,
+                  },
+                },
+                "selectionRange": {
+                  "end": {
+                    "character": 27,
+                    "line": 20,
+                  },
+                  "start": {
+                    "character": 8,
+                    "line": 19,
+                  },
+                },
+              },
+              {
+                "children": [],
+                "kind": 22,
+                "name": "waiting",
+                "range": {
+                  "end": {
+                    "character": 24,
+                    "line": 22,
+                  },
+                  "start": {
+                    "character": 8,
+                    "line": 21,
+                  },
+                },
+                "selectionRange": {
+                  "end": {
+                    "character": 24,
+                    "line": 22,
+                  },
+                  "start": {
+                    "character": 8,
+                    "line": 21,
+                  },
+                },
+              },
+              {
+                "children": [],
+                "kind": 22,
+                "name": "others",
+                "range": {
+                  "end": {
+                    "character": 31,
+                    "line": 24,
+                  },
+                  "start": {
+                    "character": 8,
+                    "line": 23,
+                  },
+                },
+                "selectionRange": {
+                  "end": {
+                    "character": 31,
+                    "line": 24,
+                  },
+                  "start": {
+                    "character": 8,
+                    "line": 23,
+                  },
+                },
+              },
+            ],
+            "kind": 10,
+            "name": "state",
+            "range": {
+              "end": {
+                "character": 15,
+                "line": 25,
+              },
+              "start": {
+                "character": 6,
+                "line": 16,
+              },
+            },
+            "selectionRange": {
+              "end": {
+                "character": 15,
+                "line": 25,
+              },
+              "start": {
+                "character": 6,
+                "line": 16,
+              },
+            },
+          },
+        ],
+        "detail": "process",
+        "kind": 12,
+        "name": "p_reg",
+        "range": {
+          "end": {
+            "character": 13,
+            "line": 27,
+          },
+          "start": {
+            "character": 2,
+            "line": 12,
+          },
+        },
+        "selectionRange": {
+          "end": {
+            "character": 13,
+            "line": 27,
+          },
+          "start": {
+            "character": 2,
+            "line": 12,
+          },
+        },
+      },
+    ],
+    "detail": "architecture",
+    "kind": 5,
+    "name": "test_else_generate",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 29,
+      },
+      "start": {
+        "character": 0,
+        "line": 7,
+      },
+    },
+    "selectionRange": {
+      "end": {
+        "character": 39,
+        "line": 7,
+      },
+      "start": {
+        "character": 21,
+        "line": 7,
+      },
+    },
+  },
+]
+`;
+
+exports[`Testing document symbols of test_stateMachineElsif.vhd 1`] = `
+[
+  {
+    "children": undefined,
+    "detail": "entity",
+    "kind": 11,
+    "name": "test_else_generate",
+    "range": {
+      "end": {
+        "character": 22,
+        "line": 5,
+      },
+      "start": {
+        "character": 0,
+        "line": 4,
+      },
+    },
+    "selectionRange": {
+      "end": {
+        "character": 25,
+        "line": 4,
+      },
+      "start": {
+        "character": 7,
+        "line": 4,
+      },
+    },
+  },
+  {
+    "children": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "children": [],
+                "kind": 22,
+                "name": "idle",
+                "range": {
+                  "end": {
+                    "character": 27,
+                    "line": 18,
+                  },
+                  "start": {
+                    "character": 8,
+                    "line": 17,
+                  },
+                },
+                "selectionRange": {
+                  "end": {
+                    "character": 27,
+                    "line": 18,
+                  },
+                  "start": {
+                    "character": 8,
+                    "line": 17,
+                  },
+                },
+              },
+              {
+                "children": [],
+                "kind": 22,
+                "name": "working|workingHard",
+                "range": {
+                  "end": {
+                    "character": 27,
+                    "line": 20,
+                  },
+                  "start": {
+                    "character": 8,
+                    "line": 19,
+                  },
+                },
+                "selectionRange": {
+                  "end": {
+                    "character": 27,
+                    "line": 20,
+                  },
+                  "start": {
+                    "character": 8,
+                    "line": 19,
+                  },
+                },
+              },
+              {
+                "children": [],
+                "kind": 22,
+                "name": "waiting",
+                "range": {
+                  "end": {
+                    "character": 24,
+                    "line": 22,
+                  },
+                  "start": {
+                    "character": 8,
+                    "line": 21,
+                  },
+                },
+                "selectionRange": {
+                  "end": {
+                    "character": 24,
+                    "line": 22,
+                  },
+                  "start": {
+                    "character": 8,
+                    "line": 21,
+                  },
+                },
+              },
+              {
+                "children": [],
+                "kind": 22,
+                "name": "others",
+                "range": {
+                  "end": {
+                    "character": 31,
+                    "line": 24,
+                  },
+                  "start": {
+                    "character": 8,
+                    "line": 23,
+                  },
+                },
+                "selectionRange": {
+                  "end": {
+                    "character": 31,
+                    "line": 24,
+                  },
+                  "start": {
+                    "character": 8,
+                    "line": 23,
+                  },
+                },
+              },
+            ],
+            "kind": 10,
+            "name": "state",
+            "range": {
+              "end": {
+                "character": 15,
+                "line": 25,
+              },
+              "start": {
+                "character": 6,
+                "line": 16,
+              },
+            },
+            "selectionRange": {
+              "end": {
+                "character": 15,
+                "line": 25,
+              },
+              "start": {
+                "character": 6,
+                "line": 16,
+              },
+            },
+          },
+        ],
+        "detail": "process",
+        "kind": 12,
+        "name": "p_reg",
+        "range": {
+          "end": {
+            "character": 13,
+            "line": 27,
+          },
+          "start": {
+            "character": 2,
+            "line": 12,
+          },
+        },
+        "selectionRange": {
+          "end": {
+            "character": 13,
+            "line": 27,
+          },
+          "start": {
+            "character": 2,
+            "line": 12,
+          },
+        },
+      },
+    ],
+    "detail": "architecture",
+    "kind": 5,
+    "name": "test_else_generate",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 29,
+      },
+      "start": {
+        "character": 0,
+        "line": 7,
+      },
+    },
+    "selectionRange": {
+      "end": {
+        "character": 39,
+        "line": 7,
+      },
+      "start": {
+        "character": 21,
+        "line": 7,
+      },
+    },
+  },
+]
+`;
+
+exports[`Testing document symbols of test_stateMachineFor.vhd 1`] = `
+[
+  {
+    "children": undefined,
+    "detail": "entity",
+    "kind": 11,
+    "name": "test_else_generate",
+    "range": {
+      "end": {
+        "character": 22,
+        "line": 5,
+      },
+      "start": {
+        "character": 0,
+        "line": 4,
+      },
+    },
+    "selectionRange": {
+      "end": {
+        "character": 25,
+        "line": 4,
+      },
+      "start": {
+        "character": 7,
+        "line": 4,
+      },
+    },
+  },
+  {
+    "children": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "children": [],
+                "kind": 22,
+                "name": "idle",
+                "range": {
+                  "end": {
+                    "character": 27,
+                    "line": 17,
+                  },
+                  "start": {
+                    "character": 8,
+                    "line": 16,
+                  },
+                },
+                "selectionRange": {
+                  "end": {
+                    "character": 27,
+                    "line": 17,
+                  },
+                  "start": {
+                    "character": 8,
+                    "line": 16,
+                  },
+                },
+              },
+              {
+                "children": [],
+                "kind": 22,
+                "name": "working|workingHard",
+                "range": {
+                  "end": {
+                    "character": 27,
+                    "line": 19,
+                  },
+                  "start": {
+                    "character": 8,
+                    "line": 18,
+                  },
+                },
+                "selectionRange": {
+                  "end": {
+                    "character": 27,
+                    "line": 19,
+                  },
+                  "start": {
+                    "character": 8,
+                    "line": 18,
+                  },
+                },
+              },
+              {
+                "children": [],
+                "kind": 22,
+                "name": "waiting",
+                "range": {
+                  "end": {
+                    "character": 24,
+                    "line": 21,
+                  },
+                  "start": {
+                    "character": 8,
+                    "line": 20,
+                  },
+                },
+                "selectionRange": {
+                  "end": {
+                    "character": 24,
+                    "line": 21,
+                  },
+                  "start": {
+                    "character": 8,
+                    "line": 20,
+                  },
+                },
+              },
+              {
+                "children": [],
+                "kind": 22,
+                "name": "others",
+                "range": {
+                  "end": {
+                    "character": 31,
+                    "line": 23,
+                  },
+                  "start": {
+                    "character": 8,
+                    "line": 22,
+                  },
+                },
+                "selectionRange": {
+                  "end": {
+                    "character": 31,
+                    "line": 23,
+                  },
+                  "start": {
+                    "character": 8,
+                    "line": 22,
+                  },
+                },
+              },
+            ],
+            "kind": 10,
+            "name": "state",
+            "range": {
+              "end": {
+                "character": 15,
+                "line": 24,
+              },
+              "start": {
+                "character": 6,
+                "line": 15,
+              },
+            },
+            "selectionRange": {
+              "end": {
+                "character": 15,
+                "line": 24,
+              },
+              "start": {
+                "character": 6,
+                "line": 15,
+              },
+            },
+          },
+        ],
+        "detail": "process",
+        "kind": 12,
+        "name": "p_reg",
+        "range": {
+          "end": {
+            "character": 13,
+            "line": 26,
+          },
+          "start": {
+            "character": 2,
+            "line": 12,
+          },
+        },
+        "selectionRange": {
+          "end": {
+            "character": 13,
+            "line": 26,
+          },
+          "start": {
+            "character": 2,
+            "line": 12,
+          },
+        },
+      },
+    ],
+    "detail": "architecture",
+    "kind": 5,
+    "name": "test_else_generate",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 28,
+      },
+      "start": {
+        "character": 0,
+        "line": 7,
+      },
+    },
+    "selectionRange": {
+      "end": {
+        "character": 39,
+        "line": 7,
+      },
+      "start": {
+        "character": 21,
+        "line": 7,
+      },
+    },
+  },
+]
+`;
+
+exports[`Testing document symbols of test_stateMachineIf.vhd 1`] = `
+[
+  {
+    "children": undefined,
+    "detail": "entity",
+    "kind": 11,
+    "name": "test_else_generate",
+    "range": {
+      "end": {
+        "character": 22,
+        "line": 5,
+      },
+      "start": {
+        "character": 0,
+        "line": 4,
+      },
+    },
+    "selectionRange": {
+      "end": {
+        "character": 25,
+        "line": 4,
+      },
+      "start": {
+        "character": 7,
+        "line": 4,
+      },
+    },
+  },
+  {
+    "children": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "children": [],
+                "kind": 22,
+                "name": "idle",
+                "range": {
+                  "end": {
+                    "character": 27,
+                    "line": 17,
+                  },
+                  "start": {
+                    "character": 8,
+                    "line": 16,
+                  },
+                },
+                "selectionRange": {
+                  "end": {
+                    "character": 27,
+                    "line": 17,
+                  },
+                  "start": {
+                    "character": 8,
+                    "line": 16,
+                  },
+                },
+              },
+              {
+                "children": [],
+                "kind": 22,
+                "name": "working|workingHard",
+                "range": {
+                  "end": {
+                    "character": 27,
+                    "line": 19,
+                  },
+                  "start": {
+                    "character": 8,
+                    "line": 18,
+                  },
+                },
+                "selectionRange": {
+                  "end": {
+                    "character": 27,
+                    "line": 19,
+                  },
+                  "start": {
+                    "character": 8,
+                    "line": 18,
+                  },
+                },
+              },
+              {
+                "children": [],
+                "kind": 22,
+                "name": "waiting",
+                "range": {
+                  "end": {
+                    "character": 24,
+                    "line": 21,
+                  },
+                  "start": {
+                    "character": 8,
+                    "line": 20,
+                  },
+                },
+                "selectionRange": {
+                  "end": {
+                    "character": 24,
+                    "line": 21,
+                  },
+                  "start": {
+                    "character": 8,
+                    "line": 20,
+                  },
+                },
+              },
+              {
+                "children": [],
+                "kind": 22,
+                "name": "others",
+                "range": {
+                  "end": {
+                    "character": 31,
+                    "line": 23,
+                  },
+                  "start": {
+                    "character": 8,
+                    "line": 22,
+                  },
+                },
+                "selectionRange": {
+                  "end": {
+                    "character": 31,
+                    "line": 23,
+                  },
+                  "start": {
+                    "character": 8,
+                    "line": 22,
+                  },
+                },
+              },
+            ],
+            "kind": 10,
+            "name": "state",
+            "range": {
+              "end": {
+                "character": 15,
+                "line": 24,
+              },
+              "start": {
+                "character": 6,
+                "line": 15,
+              },
+            },
+            "selectionRange": {
+              "end": {
+                "character": 15,
+                "line": 24,
+              },
+              "start": {
+                "character": 6,
+                "line": 15,
+              },
+            },
+          },
+        ],
+        "detail": "process",
+        "kind": 12,
+        "name": "p_reg",
+        "range": {
+          "end": {
+            "character": 13,
+            "line": 26,
+          },
+          "start": {
+            "character": 2,
+            "line": 12,
+          },
+        },
+        "selectionRange": {
+          "end": {
+            "character": 13,
+            "line": 26,
+          },
+          "start": {
+            "character": 2,
+            "line": 12,
+          },
+        },
+      },
+    ],
+    "detail": "architecture",
+    "kind": 5,
+    "name": "test_else_generate",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 28,
+      },
+      "start": {
+        "character": 0,
+        "line": 7,
+      },
+    },
+    "selectionRange": {
+      "end": {
+        "character": 39,
+        "line": 7,
+      },
+      "start": {
+        "character": 21,
+        "line": 7,
+      },
+    },
+  },
+]
+`;
+
+exports[`Testing document symbols of test_subprogram.vhd 1`] = `
+[
+  {
+    "children": [
+      {
+        "kind": 12,
+        "name": "func",
+        "range": {
+          "end": {
+            "character": 30,
+            "line": 5,
+          },
+          "start": {
+            "character": 2,
+            "line": 5,
+          },
+        },
+        "selectionRange": {
+          "end": {
+            "character": 30,
+            "line": 5,
+          },
+          "start": {
+            "character": 2,
+            "line": 5,
+          },
+        },
+      },
+    ],
+    "detail": "package",
+    "kind": 5,
+    "name": "pkg",
+    "range": {
+      "end": {
+        "character": 12,
+        "line": 6,
+      },
+      "start": {
+        "character": 0,
+        "line": 4,
+      },
+    },
+    "selectionRange": {
+      "end": {
+        "character": 11,
+        "line": 4,
+      },
+      "start": {
+        "character": 8,
+        "line": 4,
+      },
+    },
+  },
+  {
+    "children": [
+      {
+        "kind": 12,
+        "name": "func",
+        "range": {
+          "end": {
+            "character": 14,
+            "line": 12,
+          },
+          "start": {
+            "character": 2,
+            "line": 9,
+          },
+        },
+        "selectionRange": {
+          "end": {
+            "character": 14,
+            "line": 12,
+          },
+          "start": {
+            "character": 2,
+            "line": 9,
+          },
+        },
+      },
+    ],
+    "detail": "package body",
+    "kind": 5,
+    "name": "pkg",
+    "range": {
+      "end": {
+        "character": 16,
+        "line": 13,
+      },
+      "start": {
+        "character": 13,
+        "line": 8,
+      },
+    },
+    "selectionRange": {
+      "end": {
+        "character": 16,
+        "line": 8,
+      },
+      "start": {
+        "character": 13,
+        "line": 8,
       },
     },
   },
