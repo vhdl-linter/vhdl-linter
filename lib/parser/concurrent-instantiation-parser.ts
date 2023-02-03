@@ -11,6 +11,9 @@ export class ConcurrentInstantiationParser extends ParserBase {
   }
   parse(nextToken: OLexerToken, label: OLexerToken | undefined): OInstantiation {
     const instantiation = new OInstantiation(this.parent, nextToken);
+    if (label !== undefined) {
+      instantiation.range = instantiation.range.copyWithNewStart(label.range);
+    }
     if (nextToken.getLText() === 'entity') {
       this.consumeToken();
       instantiation.type = 'entity';

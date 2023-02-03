@@ -44,13 +44,10 @@ export class ConcurrentStatementParser extends ParserBase {
       const subarchitecture = new StatementBodyParser(this.state, (this.parent as OArchitecture), label);
       const block = subarchitecture.parse(true, 'block');
       block.range = block.range.copyWithNewStart(savedI);
-      this.reverseWhitespace();
-      block.range = block.range.copyWithNewEnd(this.state.pos.i);
       if (typeof label === 'undefined') {
         throw new ParserError('A block needs a label.', block.range);
       }
       block.label = label;
-      this.advanceWhitespace();
       //        console.log(generate, generate.constructor.name);
       (this.parent as OArchitecture).statements.push(block);
     } else if (nextToken.getLText() === 'for' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {

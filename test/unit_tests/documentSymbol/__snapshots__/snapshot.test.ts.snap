@@ -1,5 +1,196 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`Testing document symbols of test_alias.vhd 1`] = `
+[
+  {
+    "children": [
+      {
+        "children": [
+          {
+            "kind": 8,
+            "name": "field",
+            "range": {
+              "end": {
+                "character": 18,
+                "line": 6,
+              },
+              "start": {
+                "character": 4,
+                "line": 6,
+              },
+            },
+            "selectionRange": {
+              "end": {
+                "character": 18,
+                "line": 6,
+              },
+              "start": {
+                "character": 4,
+                "line": 6,
+              },
+            },
+          },
+        ],
+        "detail": "Record",
+        "kind": 23,
+        "name": "rec",
+        "range": {
+          "end": {
+            "character": 2,
+            "line": 7,
+          },
+          "start": {
+            "character": 2,
+            "line": 5,
+          },
+        },
+        "selectionRange": {
+          "end": {
+            "character": 2,
+            "line": 7,
+          },
+          "start": {
+            "character": 2,
+            "line": 5,
+          },
+        },
+      },
+      {
+        "kind": 8,
+        "name": "a",
+        "range": {
+          "end": {
+            "character": 7,
+            "line": 10,
+          },
+          "start": {
+            "character": 2,
+            "line": 9,
+          },
+        },
+        "selectionRange": {
+          "end": {
+            "character": 7,
+            "line": 10,
+          },
+          "start": {
+            "character": 2,
+            "line": 9,
+          },
+        },
+      },
+    ],
+    "detail": "package",
+    "kind": 5,
+    "name": "pkg",
+    "range": {
+      "end": {
+        "character": 12,
+        "line": 12,
+      },
+      "start": {
+        "character": 0,
+        "line": 4,
+      },
+    },
+    "selectionRange": {
+      "end": {
+        "character": 11,
+        "line": 4,
+      },
+      "start": {
+        "character": 8,
+        "line": 4,
+      },
+    },
+  },
+]
+`;
+
+exports[`Testing document symbols of test_block.vhd 1`] = `
+[
+  {
+    "children": undefined,
+    "detail": "entity",
+    "kind": 11,
+    "name": "test_block",
+    "range": {
+      "end": {
+        "character": 14,
+        "line": 5,
+      },
+      "start": {
+        "character": 0,
+        "line": 4,
+      },
+    },
+    "selectionRange": {
+      "end": {
+        "character": 17,
+        "line": 4,
+      },
+      "start": {
+        "character": 7,
+        "line": 4,
+      },
+    },
+  },
+  {
+    "children": [
+      {
+        "children": [],
+        "detail": "block",
+        "kind": 19,
+        "name": "block",
+        "range": {
+          "end": {
+            "character": 12,
+            "line": 13,
+          },
+          "start": {
+            "character": 2,
+            "line": 11,
+          },
+        },
+        "selectionRange": {
+          "end": {
+            "character": 7,
+            "line": 11,
+          },
+          "start": {
+            "character": 2,
+            "line": 11,
+          },
+        },
+      },
+    ],
+    "detail": "architecture",
+    "kind": 5,
+    "name": "test_block",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 15,
+      },
+      "start": {
+        "character": 0,
+        "line": 7,
+      },
+    },
+    "selectionRange": {
+      "end": {
+        "character": 31,
+        "line": 7,
+      },
+      "start": {
+        "character": 21,
+        "line": 7,
+      },
+    },
+  },
+]
+`;
+
 exports[`Testing document symbols of test_case_generate.vhd 1`] = `
 [
   {
@@ -407,16 +598,16 @@ exports[`Testing document symbols of test_if_elsif_generate.vhd 1`] = `
 ]
 `;
 
-exports[`Testing document symbols of test_process.vhd 1`] = `
+exports[`Testing document symbols of test_inst.vhd 1`] = `
 [
   {
     "children": undefined,
     "detail": "entity",
     "kind": 11,
-    "name": "test_else_generate",
+    "name": "test_inst",
     "range": {
       "end": {
-        "character": 22,
+        "character": 13,
         "line": 5,
       },
       "start": {
@@ -426,7 +617,90 @@ exports[`Testing document symbols of test_process.vhd 1`] = `
     },
     "selectionRange": {
       "end": {
-        "character": 25,
+        "character": 16,
+        "line": 4,
+      },
+      "start": {
+        "character": 7,
+        "line": 4,
+      },
+    },
+  },
+  {
+    "children": [
+      {
+        "detail": "instantiation",
+        "kind": 2,
+        "name": "inst_test_process: test_process",
+        "range": {
+          "end": {
+            "character": 7,
+            "line": 14,
+          },
+          "start": {
+            "character": 2,
+            "line": 11,
+          },
+        },
+        "selectionRange": {
+          "end": {
+            "character": 7,
+            "line": 14,
+          },
+          "start": {
+            "character": 2,
+            "line": 11,
+          },
+        },
+      },
+    ],
+    "detail": "architecture",
+    "kind": 5,
+    "name": "test_inst",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 17,
+      },
+      "start": {
+        "character": 0,
+        "line": 7,
+      },
+    },
+    "selectionRange": {
+      "end": {
+        "character": 30,
+        "line": 7,
+      },
+      "start": {
+        "character": 21,
+        "line": 7,
+      },
+    },
+  },
+]
+`;
+
+exports[`Testing document symbols of test_process.vhd 1`] = `
+[
+  {
+    "children": undefined,
+    "detail": "entity",
+    "kind": 11,
+    "name": "test_process",
+    "range": {
+      "end": {
+        "character": 16,
+        "line": 8,
+      },
+      "start": {
+        "character": 0,
+        "line": 4,
+      },
+    },
+    "selectionRange": {
+      "end": {
+        "character": 19,
         "line": 4,
       },
       "start": {
@@ -445,46 +719,46 @@ exports[`Testing document symbols of test_process.vhd 1`] = `
         "range": {
           "end": {
             "character": 13,
-            "line": 14,
+            "line": 16,
           },
           "start": {
             "character": 2,
-            "line": 11,
+            "line": 13,
           },
         },
         "selectionRange": {
           "end": {
             "character": 13,
-            "line": 14,
+            "line": 16,
           },
           "start": {
             "character": 2,
-            "line": 11,
+            "line": 13,
           },
         },
       },
     ],
     "detail": "architecture",
     "kind": 5,
-    "name": "test_else_generate",
+    "name": "test_process",
     "range": {
       "end": {
         "character": 9,
-        "line": 16,
+        "line": 18,
       },
       "start": {
         "character": 0,
-        "line": 7,
+        "line": 10,
       },
     },
     "selectionRange": {
       "end": {
-        "character": 39,
-        "line": 7,
+        "character": 33,
+        "line": 10,
       },
       "start": {
         "character": 21,
-        "line": 7,
+        "line": 10,
       },
     },
   },
