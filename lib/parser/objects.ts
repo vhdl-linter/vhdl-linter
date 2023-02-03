@@ -94,6 +94,9 @@ export class OIRange implements Range {
       this.end = new OI(parent, end);
     }
   }
+  getText() {
+   return  this.parent.rootFile.text.substring(this.start.i, this.end.i);
+  }
   copyWithNewEnd(newEnd: OI | number | OIRange) {
     if (newEnd instanceof OIRange) {
       newEnd = newEnd.end;

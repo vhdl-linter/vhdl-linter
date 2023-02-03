@@ -364,7 +364,6 @@ connection.onDocumentHighlight(async (params) => {
 connection.onWorkspaceSymbol(params => handleOnWorkspaceSymbol(params, projectParser));
 connection.onSignatureHelp(async params => {
   const linter = await getLinter(params.textDocument.uri);
-  console.log(params);
   return await signatureHelp(linter, params.position);
 });
 // connection.on
