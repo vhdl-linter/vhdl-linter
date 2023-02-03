@@ -1,4 +1,4 @@
-import { Position, SignatureHelp, SignatureInformation } from "vscode-languageserver";
+import { MarkupKind, Position, SignatureHelp, SignatureInformation } from "vscode-languageserver";
 import { IHasDefinitions, implementsIHasDefinitions } from "../parser/interfaces";
 import { OAliasWithSignature, OAssociationList, ObjectBase, OEntity, OFile, OInstantiation, OSubprogram } from "../parser/objects";
 import { VhdlLinter } from "../vhdl-linter";
@@ -37,14 +37,13 @@ export async function signatureHelp(linter: VhdlLinter, position: Position): Pro
             label: ''
           });
         } else {
-          const text = definition.ports[0].range.copyWithNewEnd(definition.ports[definition.ports.length - 1].range).getText();
+          const text = definition.ports.map(port => port.lexerToken.text).join(', ');
           let activeParameter = 0;
           if (associationList) {
             // Find active parameter
             // If in range of association via number
             const posI = linter.getIFromPosition(position);
             const associationIndex = associationList.children.findIndex(association => association.range.start.i <= posI && association.range.end.i >= posI);
-            console.log(associationIndex)
             if (associationIndex > -1) {
               const association = associationList.children[associationIndex];
               if (association.formalPart.length > 0) {
@@ -73,7 +72,11 @@ export async function signatureHelp(linter: VhdlLinter, position: Position): Pro
           signatures.push({
             label: text,
             parameters: definition.ports.map(port => ({
-              label: port.range.getText()
+              label: port.lexerToken.text,
+              documentation: {
+                kind: MarkupKind.Markdown,
+                value: '```vhdl\n' + port.range.getText().replaceAll(/\s+/g, ' ') + '\n```'
+              }
             })),
             activeParameter
           });
@@ -92,7 +95,7 @@ export async function signatureHelp(linter: VhdlLinter, position: Position): Pro
           label: ''
         });
       } else {
-        const startI = definition.ports[0].range.start.i
+        const startI = definition.ports[0].range.start.i;
         const text = linter.text.substring(startI, definition.ports[definition.ports.length - 1].range.end.i);
         signatures.push({
           label: text,
