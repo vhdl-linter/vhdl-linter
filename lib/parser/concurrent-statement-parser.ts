@@ -1,11 +1,11 @@
 import { OLexerToken } from '../lexer';
-import { StatementBodyParser } from './statement-body-parser';
 import { AssignmentParser } from './assignment-parser';
 import { ConcurrentInstantiationParser } from './concurrent-instantiation-parser';
-import { OArchitecture, OCaseGenerate, OEntity, OForGenerate, OIfGenerate, OIfGenerateClause, OIRange, ORead, OStatementBody, ParserError } from './objects';
+import { ExpressionParser } from './expression-parser';
+import { OArchitecture, OCaseGenerate, OEntity, OForGenerate, OIfGenerate, OIfGenerateClause, ORead, OStatementBody, ParserError } from './objects';
 import { ParserBase, ParserState } from './parser-base';
 import { ProcessParser } from './process-parser';
-import { ExpressionParser } from './expression-parser';
+import { StatementBodyParser } from './statement-body-parser';
 export enum ConcurrentStatementTypes {
   Process,
   ProcedureInstantiation,
