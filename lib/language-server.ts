@@ -7,7 +7,7 @@ import { URI } from 'vscode-uri';
 import { getCompletions } from './languageFeatures/completion';
 import { handleDocumentFormatting } from './languageFeatures/documentFormatting';
 import { documentHighlightHandler } from './languageFeatures/documentHighlightHandler';
-import { getDocumentSymbol } from './languageFeatures/documentSymbol';
+import { DocumentSymbols } from './languageFeatures/documentSymbol';
 import { findDefinitions } from './languageFeatures/findDefinition';
 import { findReferencesHandler } from './languageFeatures/findReferencesHandler';
 import { foldingHandler } from './languageFeatures/folding';
@@ -268,7 +268,7 @@ connection.onCodeAction(async (params): Promise<CodeAction[]> => {
 connection.onDocumentSymbol(async (params) => {
   const linter = await getLinter(params.textDocument.uri);
 
-  return getDocumentSymbol(linter);
+  return DocumentSymbols.get(linter);
 });
 interface IFindDefinitionParams {
   textDocument: {

@@ -60,6 +60,7 @@ export class PackageParser extends ParserBase {
       this.expect('end');
       this.maybe('package');
       pkg.endingLexerToken = this.maybe(pkg.lexerToken.text);
+      pkg.range = pkg.range.copyWithNewEnd(this.getToken().range.end);
       this.expect(';');
       return pkg;
     }

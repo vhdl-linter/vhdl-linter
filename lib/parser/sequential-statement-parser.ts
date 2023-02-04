@@ -290,7 +290,7 @@ export class SequentialStatementParser extends ParserBase {
   }
   parseCase(parent: ObjectBase, label?: OLexerToken): OCase {
     this.debug(`parseCase ${label}`);
-    const case_ = new OCase(parent, this.getToken().range.copyExtendEndOfLine());
+    const case_ = new OCase(parent, this.getToken(-1, true).range.copyExtendEndOfLine());
     case_.expression = new ExpressionParser(this.state, case_, this.advancePast('is')).parse();
 
     while (this.getToken().getLText() === 'when') {
@@ -306,6 +306,7 @@ export class SequentialStatementParser extends ParserBase {
     if (label) {
       this.maybe(label);
     }
+    case_.range = case_.range.copyWithNewEnd(this.getToken().range);
     this.expect(';');
     this.debug(`parseCaseDone ${label?.text}`);
 

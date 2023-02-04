@@ -38,9 +38,6 @@ export class DeclarativePartParser extends ParserBase {
       } else if (nextToken.getLText() === 'alias') {
         const alias = new AliasParser(this.state, this.parent).parse();
         this.parent.aliases.push(alias);
-
-
-
       } else if (nextToken.getLText() === 'component' && implementsIHasComponents(this.parent)) {
         if (this.parent instanceof OEntity) {
           this.state.messages.push({

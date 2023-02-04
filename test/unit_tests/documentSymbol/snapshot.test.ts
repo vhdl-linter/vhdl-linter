@@ -1,14 +1,24 @@
-import { expect, test } from '@jest/globals';
-import { readFileSync } from 'fs';
+import { afterAll, beforeAll, expect, test } from '@jest/globals';
+import { readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
-import { getDocumentSymbol } from '../../../lib/languageFeatures/documentSymbol';
+import { DocumentSymbols } from '../../../lib/languageFeatures/documentSymbol';
 import { ProjectParser } from '../../../lib/project-parser';
 import { defaultSettingsGetter } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdl-linter';
-test('testing document symbol snapshot', async () => {
-  const filename = join(__dirname, 'test_generate.vhd');
-  const linter = new VhdlLinter(filename, readFileSync(filename, { encoding: 'utf8' }),
-    await ProjectParser.create([], '', defaultSettingsGetter), defaultSettingsGetter);
-  const symbols = getDocumentSymbol(linter);
+
+let projectParser: ProjectParser;
+beforeAll(async () => {
+  projectParser = await ProjectParser.create([__dirname], '', defaultSettingsGetter);
+});
+afterAll(async () => {
+  await projectParser.stop();
+});
+
+test.each(
+  readdirSync(__dirname).filter(v => v.endsWith('.vhd'))
+)('Testing document symbols of %s', async (fileName) => {
+  const path = join(__dirname, fileName);
+  const linter = new VhdlLinter(path, readFileSync(path, { encoding: 'utf8' }), projectParser, defaultSettingsGetter);
+  const symbols = DocumentSymbols.get(linter);
   expect(symbols).toMatchSnapshot();
 });
