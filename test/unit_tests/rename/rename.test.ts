@@ -221,7 +221,7 @@ test('testing handling of invalid rename Handler', async () => {
   const filename = 'entity.vhd';
   const path = __dirname + `/${filename}`;
   const dummyPath = `/file/${filename}`;
-  const linter = new VhdlLinter(dummyPath, readFileSync(path, { encoding: 'utf8' }),
+  const linter = new VhdlLinter(dummyPath, readFileSyncNorm(path, { encoding: 'utf8' }),
     projectParser, defaultSettingsGetter);
   await linter.checkAll();
   await projectParser.stop();

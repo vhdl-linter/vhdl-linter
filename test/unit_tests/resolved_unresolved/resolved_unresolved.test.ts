@@ -1,9 +1,9 @@
 import { expect, test } from '@jest/globals';
-import { readFileSync } from 'fs';
 import { join } from 'path';
 import { ProjectParser } from '../../../lib/project-parser';
 import { defaultSettingsWithOverwrite } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdl-linter';
+import { readFileSyncNorm } from '../rename/rename.test';
 test.each([
   'test_port_std_logic_vector.vhd',
   'test_port_std_logic.vhd',
@@ -22,7 +22,7 @@ test.each([
     }
   });
   const path = join(__dirname, file);
-  const linter = new VhdlLinter(path, readFileSync(path, { encoding: 'utf8' }),
+  const linter = new VhdlLinter(path, readFileSyncNorm(path, { encoding: 'utf8' }),
     await ProjectParser.create([], '', getter), getter);
   await linter.checkAll();
 

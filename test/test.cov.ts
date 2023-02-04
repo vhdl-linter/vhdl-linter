@@ -1,12 +1,13 @@
 // This file runes the test files via jest to allow code coverage
 // This is normally disabled because it is super slow
 import { expect, test, jest } from '@jest/globals';
-import { lstatSync, readdirSync, readFileSync } from 'fs';
+import { lstatSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { argv, cwd } from 'process';
 import { ProjectParser } from '../lib/project-parser';
 import { defaultSettingsGetter, defaultSettingsWithOverwrite } from '../lib/settings';
 import { VhdlLinter } from '../lib/vhdl-linter';
+import { readFileSyncNorm } from './unit_tests/rename/rename.test';
 function readDirPath(path: string) {
   return readdirSync(path).map(file => join(path, file));
 }
@@ -38,7 +39,7 @@ async function run_test(path: string, error_expected: boolean, projectParser?: P
     if (lstatSync(subPath).isDirectory()) {
       await run_test(subPath, error_expected, projectParser);
     } else if (subPath.match(/\.vhdl?$/i)) {
-      const text = readFileSync(subPath, { encoding: 'utf8' });
+      const text = readFileSyncNorm(subPath, { encoding: 'utf8' });
       const vhdlLinter = new VhdlLinter(subPath, text, projectParser, getter);
       if (vhdlLinter.parsedSuccessfully) {
         await vhdlLinter.checkAll();

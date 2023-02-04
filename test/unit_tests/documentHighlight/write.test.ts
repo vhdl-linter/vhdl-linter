@@ -1,5 +1,4 @@
 import { expect, test } from '@jest/globals';
-import { readFileSync } from 'fs';
 import { join } from 'path';
 import { URI } from 'vscode-uri';
 import { Elaborate } from '../../../lib/elaborate/elaborate';
@@ -7,12 +6,13 @@ import { documentHighlightHandler } from '../../../lib/languageFeatures/document
 import { ProjectParser } from '../../../lib/project-parser';
 import { defaultSettingsGetter } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdl-linter';
+import { readFileSyncNorm } from '../rename/rename.test';
 
 
 test('testing document highlight snapshot write', async () => {
 
   const filename = join(__dirname, 'test_highlight.vhd');
-  const linter = new VhdlLinter(filename, readFileSync(filename, { encoding: 'utf8' }),
+  const linter = new VhdlLinter(filename, readFileSyncNorm(filename, { encoding: 'utf8' }),
     await ProjectParser.create([], '', defaultSettingsGetter), defaultSettingsGetter);
   await Elaborate.elaborate(linter);
   const highlights = await documentHighlightHandler(linter, {
@@ -30,7 +30,7 @@ test('testing document highlight snapshot write', async () => {
 test('testing document highlight on keyword', async () => {
 
   const filename = join(__dirname, 'test_highlight.vhd');
-  const linter = new VhdlLinter(filename, readFileSync(filename, { encoding: 'utf8' }),
+  const linter = new VhdlLinter(filename, readFileSyncNorm(filename, { encoding: 'utf8' }),
     await ProjectParser.create([], '', defaultSettingsGetter), defaultSettingsGetter);
   await Elaborate.elaborate(linter);
   const highlights = await documentHighlightHandler(linter, {
