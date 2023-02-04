@@ -16,8 +16,10 @@ test('Testing nested if generate structures', async () => {
   const topGenerate = linter.file.architectures[0].statements[0] as OIfGenerate;
   expect(topGenerate).toBeInstanceOf(OIfGenerate);
   expect(topGenerate.label.text).toBe('gen');
+  expect(topGenerate.range.start.line).toBe(6);
+  // the generate label belongs to the generate but not to the first if generate clause
   expect(topGenerate.ifGenerateClauses).toHaveLength(2);
-  expect(topGenerate.ifGenerateClauses[0].range.start.line).toBe(6);
+  expect(topGenerate.ifGenerateClauses[0].range.start.line).toBe(7);
   expect(topGenerate.ifGenerateClauses[0].label?.text).toBe('a_label');
   expect(topGenerate.ifGenerateClauses[1].range.start.line).toBe(9);
   expect(topGenerate.ifGenerateClauses[1].label?.text).toBe('b_label');
