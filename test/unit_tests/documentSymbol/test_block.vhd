@@ -9,7 +9,7 @@ architecture arch of test_block is
   signal x : integer;
 begin
 
-  block : block
+  block_label : block
     x <= x;
   end block;
 

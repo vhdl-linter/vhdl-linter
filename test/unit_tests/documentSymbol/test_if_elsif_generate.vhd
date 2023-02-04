@@ -11,7 +11,7 @@ begin
 
   p_gen2 : if true generate
     x <= x;
-  elsif false generate
+  elsif alt_label: false generate
     x <= x;
   end generate p_gen2;
 end arch;

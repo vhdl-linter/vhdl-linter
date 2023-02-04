@@ -1,6 +1,6 @@
 import { DocumentSymbol, SymbolKind } from 'vscode-languageserver';
 import { implementsIHasAliases, implementsIHasConstants, implementsIHasStatements, implementsIHasSubprograms, implementsIHasTypes } from '../parser/interfaces';
-import { OArchitecture, ObjectBase, OBlock, OCase, OCaseGenerate, OEntity, OFile, OForGenerate, OIf, OIfGenerate, OInstantiation, OPackage, OPackageBody, OProcess, ORecord, OSequentialStatement, OStatementBody, OType, OWhenClause } from '../parser/objects';
+import { OArchitecture, ObjectBase, OBlock, OCase, OCaseGenerate, OElseClause, OElseGenerateClause, OEntity, OFile, OForGenerate, OIf, OIfGenerate, OIfGenerateClause, OInstantiation, OPackage, OPackageBody, OProcess, ORecord, OSequentialStatement, OStatementBody, OType, OWhenClause, OWhenGenerateClause } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
 
 
@@ -60,13 +60,28 @@ export class DocumentSymbols {
         children.push(this.getProcess(statement));
       }
       if (statement instanceof OIfGenerate) {
-        children.push(...statement.ifGenerateClauses.flatMap(c => this.getStatementBody(c)));
+        const ifGenChildren = statement.ifGenerateClauses.flatMap(c => this.getStatementBody(c));
         if (statement.elseGenerateClause) {
-          children.push(this.getStatementBody(statement.elseGenerateClause));
+          ifGenChildren.push(this.getStatementBody(statement.elseGenerateClause));
         }
+        children.push({
+          name: statement.label.text,
+          detail: 'if generate',
+          kind: SymbolKind.Enum,
+          range: statement.range,
+          selectionRange: statement.label.range,
+          children: ifGenChildren
+        });
       }
       if (statement instanceof OCaseGenerate) {
-        children.push(...statement.whenGenerateClauses.flatMap(c => this.getStatementBody(c)));
+        children.push({
+          name: `${statement.label.text}: ${statement.expressionTokens.join(' ')}`,
+          detail: 'case generate',
+          kind: SymbolKind.Enum,
+          range: statement.range,
+          selectionRange: statement.label.range,
+          children: statement.whenGenerateClauses.map(c => this.getStatementBody(c))
+        });
       }
     }
 
@@ -92,21 +107,51 @@ export class DocumentSymbols {
     }
     if (statementBody instanceof OForGenerate) {
       return {
-        name: this.file.text.split('\n')[statementBody.range.start.line].trim(),
+        name: `${statementBody.label.text}: ${statementBody.iterationConstant.text} in ${statementBody.iterationRangeTokens.map(t => t.text).join(' ')}`,
+        detail: 'for generate',
         kind: SymbolKind.Enum,
         range: statementBody.range,
         selectionRange: statementBody.label.range,
         children
       };
     }
-    // if generate, else generate or when generate clauses:
-    return {
-      name: this.file.text.split('\n')[statementBody.range.start.line].trim(),
-      kind: SymbolKind.Enum,
-      range: statementBody.range,
-      selectionRange: statementBody.range,
-      children
-    };
+    if (statementBody instanceof OWhenGenerateClause) {
+      return {
+        name: statementBody.conditionTokens.map(t => t.text).join(' '),
+        detail: 'when clause',
+        kind: SymbolKind.EnumMember,
+        range: statementBody.range,
+        selectionRange: statementBody.range,
+        children
+      };
+    }
+    if (statementBody instanceof OIfGenerateClause) {
+      const detail = statementBody.parent.ifGenerateClauses[0] === statementBody ? 'if' : 'elsif';
+      let name = statementBody.conditionTokens.map(t => t.text).join(' ');
+      if (statementBody.label !== undefined) {
+        name = `${statementBody.label.text}: ${name}`;
+      }
+      return {
+        name,
+        detail,
+        kind: SymbolKind.EnumMember,
+        range: statementBody.range,
+        selectionRange: (statementBody.label ?? statementBody.conditionTokens[0]).range,
+        children
+      };
+    }
+    if (statementBody instanceof OElseGenerateClause) {
+      return {
+        name: statementBody.label?.text ?? 'else',
+        detail: 'else',
+        kind: SymbolKind.EnumMember,
+        range: statementBody.range,
+        selectionRange: (statementBody.label ?? statementBody).range,
+        children
+      };
+    }
+    // All statement bodies should be implemented
+    throw new Error('Other statement bodies not implemented.');
   }
   getClause(clause: OWhenClause): DocumentSymbol {
     let name = clause.condition.map(read => read.referenceToken.text).join('|');
@@ -115,6 +160,7 @@ export class DocumentSymbols {
     }
     return {
       name,
+      detail: 'when clause',
       kind: SymbolKind.EnumMember,
       range: clause.range,
       selectionRange: clause.range,
@@ -125,6 +171,7 @@ export class DocumentSymbols {
     if (statement instanceof OCase) {
       return [{
         name: statement.expression.map(read => read.referenceToken.text).join(' '),
+        detail: 'case',
         kind: SymbolKind.Enum,
         range: statement.range,
         selectionRange: statement.range,

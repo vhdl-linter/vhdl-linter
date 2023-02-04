@@ -9,7 +9,7 @@ architecture arch of test is
   signal x : integer;
 begin
 
-  p_gen : if true generate
+  p_gen : if alt_label: true generate
     x <= x;
   else generate
     x <= x;

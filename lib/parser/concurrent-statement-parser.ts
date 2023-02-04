@@ -66,6 +66,7 @@ export class ConcurrentStatementParser extends ParserBase {
       const generate: OForGenerate = subarchitecture.parse(true, 'generate', { constantName, constantRange, startPosI: startI });
       generate.label = label;
       generate.range = generate.range.copyWithNewStart(label.range);
+      generate.iterationRangeTokens = rangeToken.filter(token => !token.isWhitespace());
       (this.parent as OArchitecture).statements.push(generate);
     } else if (nextToken.getLText() === 'when' && returnOnWhen) {
       return true;
@@ -73,10 +74,12 @@ export class ConcurrentStatementParser extends ParserBase {
       if (typeof label === 'undefined') {
         throw new ParserError('A case generate needs a label.', this.state.pos.getRangeToEndLine());
       }
-      const caseGenerate = new OCaseGenerate(this.parent, new OIRange(this.parent, this.state.pos.i, this.state.pos.i));
+      const caseGenerate = new OCaseGenerate(this.parent, label.range);
       this.consumeToken();
+      caseGenerate.label = label;
       const caseConditionToken = this.advancePast('generate');
       caseGenerate.expression.push(...new ExpressionParser(this.state, caseGenerate, caseConditionToken).parse());
+      caseGenerate.expressionTokens = caseConditionToken.filter(token => !token.isWhitespace());
       let nextToken = this.getToken();
       while (nextToken.getLText() === 'when') {
         const whenI = this.state.pos.i;
@@ -90,6 +93,7 @@ export class ConcurrentStatementParser extends ParserBase {
         const subarchitecture = new StatementBodyParser(this.state, caseGenerate, label);
         const whenGenerateClause = subarchitecture.parse(true, 'when-generate', undefined, alternativeLabel);
         whenGenerateClause.condition.push(...new ExpressionParser(this.state, whenGenerateClause, whenConditionToken).parse());
+        whenGenerateClause.conditionTokens = whenConditionToken.filter(token => !token.isWhitespace());
         whenGenerateClause.range = whenGenerateClause.range.copyWithNewStart(whenI);
         caseGenerate.whenGenerateClauses.push(whenGenerateClause);
         nextToken = this.getToken();
@@ -99,16 +103,15 @@ export class ConcurrentStatementParser extends ParserBase {
       if (label) {
         this.maybe(label.text);
       }
-      this.advanceSemicolon();
-      this.reverseWhitespace();
       caseGenerate.range = caseGenerate.range.copyWithNewEnd(this.state.pos.i);
-      this.advanceWhitespace();
+      this.advanceSemicolon();
       (this.parent as OArchitecture).statements.push(caseGenerate);
     } else if (nextToken.getLText() === 'if' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {
       if (typeof label === 'undefined') {
         throw new ParserError('If generate requires a label.', this.state.pos.getRangeToEndLine());
       }
-      const ifGenerate = new OIfGenerate(this.parent, new OIRange(this.parent, this.state.pos.i, this.state.pos.i), label);
+      const ifGenerate = new OIfGenerate(this.parent, label.range, label);
+      const ifGenClauseStart = this.getToken().range;
       this.consumeToken();
       // There is an alternative label possible
       let alternativeLabel;
@@ -120,9 +123,10 @@ export class ConcurrentStatementParser extends ParserBase {
       this.debug('parse if generate ' + label);
       const subarchitecture = new StatementBodyParser(this.state, ifGenerate, label);
       const ifGenerateClause = subarchitecture.parse(true, 'generate', undefined, alternativeLabel);
-      ifGenerateClause.range = ifGenerateClause.range.copyWithNewStart(savedI);
+      ifGenerateClause.range = ifGenerateClause.range.copyWithNewStart(ifGenClauseStart);
       ifGenerateClause.label = alternativeLabel;
       ifGenerateClause.condition = new ExpressionParser(this.state, ifGenerateClause, conditionTokens).parse();
+      ifGenerateClause.conditionTokens = conditionTokens.filter(token => !token.isWhitespace());
       ifGenerate.ifGenerateClauses.unshift(ifGenerateClause);
       (this.parent as OArchitecture).statements.push(ifGenerate);
       this.reverseWhitespace();
@@ -137,6 +141,7 @@ export class ConcurrentStatementParser extends ParserBase {
       }
 
       previousStatementBody.range = previousStatementBody.range.copyWithNewEnd(this.getToken(-1, true).range.end);
+      const elsifGenClauseStart = this.getToken().range;
       this.consumeToken();
       // There is an alternative label possible
       let alternativeLabel;
@@ -144,14 +149,15 @@ export class ConcurrentStatementParser extends ParserBase {
         alternativeLabel = this.consumeToken();
         this.expect(':');
       }
-      const condition = this.advancePast('generate');
+      const conditionTokens = this.advancePast('generate');
       this.debug('parse elsif generate ' + label);
       const subarchitecture = new StatementBodyParser(this.state, this.parent.parent, this.parent.parent.label);
-      const ifGenerateObject = subarchitecture.parse(true, 'generate', undefined, alternativeLabel);
-      ifGenerateObject.range = ifGenerateObject.range.copyWithNewStart(savedI);
+      const ifGenerateClause = subarchitecture.parse(true, 'generate', undefined, alternativeLabel);
+      ifGenerateClause.range = ifGenerateClause.range.copyWithNewStart(elsifGenClauseStart);
+      ifGenerateClause.condition = new ExpressionParser(this.state, ifGenerateClause, conditionTokens).parse();
+      ifGenerateClause.conditionTokens = conditionTokens.filter(token => !token.isWhitespace());
 
-      ifGenerateObject.condition = new ExpressionParser(this.state, ifGenerateObject, condition).parse();
-      this.parent.parent.ifGenerateClauses.unshift(ifGenerateObject);
+      this.parent.parent.ifGenerateClauses.unshift(ifGenerateClause);
       return true;
     } else if (nextToken.getLText() === 'else' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {
       if (!(this.parent instanceof OIfGenerateClause)) {
@@ -161,6 +167,7 @@ export class ConcurrentStatementParser extends ParserBase {
         throw new ParserError('WTF', this.state.pos.getRangeToEndLine());
       }
       previousStatementBody.range = previousStatementBody.range.copyWithNewEnd(this.getToken(-1, true).range.copyExtendEndOfLine().end);
+      const elseGenClauseStart = this.getToken().range;
       this.consumeToken();
       let alternativeLabel;
       if (this.getToken(1, true).getLText() === ':') {
@@ -172,7 +179,7 @@ export class ConcurrentStatementParser extends ParserBase {
       const subarchitecture = new StatementBodyParser(this.state, this.parent.parent, this.parent.parent.label);
 
       const elseGenerateObject = subarchitecture.parse(true, 'else-generate', undefined, alternativeLabel);
-      elseGenerateObject.range = elseGenerateObject.range.copyWithNewStart(savedI);
+      elseGenerateObject.range = elseGenerateObject.range.copyWithNewStart(elseGenClauseStart);
       this.parent.parent.elseGenerateClause = elseGenerateObject;
       return true;
 

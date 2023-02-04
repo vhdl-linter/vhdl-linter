@@ -64,6 +64,7 @@ export class StatementBodyParser extends ParserBase {
       iterateConstant.typeReference = [];
       iterateConstant.lexerToken = constantName;
       statementBody.constants.push(iterateConstant);
+      (statementBody as OForGenerate).iterationConstant = constantName;
     }
     if (skipStart !== true) {
       statementBody.lexerToken = this.consumeIdentifier();
