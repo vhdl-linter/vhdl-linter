@@ -1,5 +1,6 @@
 import { expect, test } from '@jest/globals';
 import { join } from 'path';
+import { pathToFileURL } from 'url';
 import { Position } from 'vscode-languageserver';
 import { ProjectParser } from '../../../lib/project-parser';
 import { defaultSettingsGetter } from '../../../lib/settings';
@@ -43,7 +44,7 @@ test.each([
   ]
 ])('testing proposed solutions for diagnostic with file %s', async (filename: string, range) => {
   const path = join(__dirname, filename);
-  const linter = new VhdlLinter(path, readFileSyncNorm(path, { encoding: 'utf8' }),
+  const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }),
     await ProjectParser.create([], '', defaultSettingsGetter), defaultSettingsGetter);
   await linter.checkAll();
   const changes = linter.diagnosticCodeActionRegistry

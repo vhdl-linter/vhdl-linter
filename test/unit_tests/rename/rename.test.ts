@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, expect, test, jest } from '@jest/globals';
 import { readFileSync } from 'fs';
+import { pathToFileURL } from 'url';
 import { ErrorCodes, Position, Range, ResponseError } from 'vscode-languageserver';
-import { URI } from 'vscode-uri';
 import { prepareRenameHandler, renameHandler } from '../../../lib/languageFeatures/rename';
 import { OIRange } from '../../../lib/parser/objects';
 import { ProjectParser } from '../../../lib/project-parser';
@@ -13,7 +13,7 @@ export function readFileSyncNorm(path: any, options: any) {
   return readFileSync(path, options).toString().replaceAll('\r\n', '\n');
 }
 beforeAll(async () => {
-  projectParser = await ProjectParser.create([__dirname], '', defaultSettingsGetter);
+  projectParser = await ProjectParser.create([pathToFileURL(__dirname)], '', defaultSettingsGetter);
 });
 afterAll(async () => {
   await projectParser.stop();
@@ -135,7 +135,7 @@ test.each([
   // Build expected operations
   const expectedOperations: Operations = {};
   for (const [name, range] of occurrences) {
-    const uri = URI.file(__dirname + `/${name}`).toString();
+    const uri = pathToFileURL(__dirname + `/${name}`).toString();
     if (Array.isArray(expectedOperations[uri]) === false) {
       expectedOperations[uri] = [];
     }
@@ -147,7 +147,7 @@ test.each([
   for (const [name, range] of occurrences) {
     const path = __dirname + `/${name}`;
 
-    const linter = new VhdlLinter(path, readFileSyncNorm(path, { encoding: 'utf8' }),
+    const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }),
       projectParser, defaultSettingsGetter);
     await linter.checkAll();
     await projectParser.stop();
@@ -198,7 +198,7 @@ test.each([
 ])('testing rename for %s in %s where it is not possible', async (name, range) => {
   const path = __dirname + `/${name}`;
 
-  const linter = new VhdlLinter(path, readFileSyncNorm(path, { encoding: 'utf8' }),
+  const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }),
     projectParser, defaultSettingsGetter);
   await linter.checkAll();
   await projectParser.stop();
@@ -221,7 +221,7 @@ test('testing handling of invalid rename Handler', async () => {
   const filename = 'entity.vhd';
   const path = __dirname + `/${filename}`;
   const dummyPath = `/file/${filename}`;
-  const linter = new VhdlLinter(dummyPath, readFileSyncNorm(path, { encoding: 'utf8' }),
+  const linter = new VhdlLinter(pathToFileURL(dummyPath), readFileSyncNorm(path, { encoding: 'utf8' }),
     projectParser, defaultSettingsGetter);
   await linter.checkAll();
   await projectParser.stop();

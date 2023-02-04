@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, expect, test } from '@jest/globals';
 import { join } from 'path';
+import { pathToFileURL } from 'url';
 import { Diagnostic } from 'vscode-languageserver';
-import { URI } from 'vscode-uri';
 import { ProjectParser } from '../../../lib/project-parser';
 import { defaultSettingsGetter } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdl-linter';
@@ -11,9 +11,9 @@ let projectParser: ProjectParser;
 let messages: Diagnostic[];
 let linter: VhdlLinter;
 beforeAll(async () => {
-  projectParser = await ProjectParser.create([__dirname], '', defaultSettingsGetter);
-  const path = join(__dirname, 'listParser.vhd');
-  linter = new VhdlLinter(path, readFileSyncNorm(path, { encoding: 'utf8' }), projectParser, defaultSettingsGetter);
+  projectParser = await ProjectParser.create([pathToFileURL(__dirname)], '', defaultSettingsGetter);
+  const url = pathToFileURL(join(__dirname, 'listParser.vhd'));
+  linter = new VhdlLinter(url, readFileSyncNorm(url, { encoding: 'utf8' }), projectParser, defaultSettingsGetter);
   messages = await linter.checkAll();
 });
 afterAll(async () => {
@@ -38,7 +38,7 @@ test('Not optional separators in interface list', async () => {
       range: expectedRange,
     }),
   );
-  const uri = URI.file(linter.file.file).toString();
+  const uri = linter.file.uri.toString();
   const solution = linter.diagnosticCodeActionRegistry[parseInt(String(message?.code ?? '').split(';')[0])]?.(uri);
   expect(solution).toEqual(expect.arrayContaining([
     {
@@ -78,7 +78,7 @@ test('Not optional separators in association list', async () => {
     },
     range: expectedRange,
   });
-  const uri = URI.file(linter.file.file).toString();
+  const uri = linter.file.uri.toString();
 
   const message = messages.find(message => message.message === "Unexpected ',' at end of association list (parser)");
 

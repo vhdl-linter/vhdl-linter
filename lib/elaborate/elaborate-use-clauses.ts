@@ -63,7 +63,7 @@ export function elaborateUseClauses(file: OFile, projectParser: ProjectParser, v
           const packageInstantiation = pkgInstantiations.find(inst => inst.lexerToken.getLText() === useClause.packageName.referenceToken.getLText());
           if (!packageInstantiation) {
             found = true;
-            if (useClause.rootFile.file === file.file) {
+            if (useClause.rootFile.uri === file.uri) {
               vhdlLinter.addMessage({
                 range: useClause.range,
                 severity: DiagnosticSeverity.Warning,
@@ -73,7 +73,7 @@ export function elaborateUseClauses(file: OFile, projectParser: ProjectParser, v
               vhdlLinter.addMessage({
                 range: obj.getRootElement().range.getLimitedRange(1),
                 severity: DiagnosticSeverity.Warning,
-                message: `could not find package instantiation for ${useClause.packageName.referenceToken.text} (in ${useClause.rootFile.file})`
+                message: `could not find package instantiation for ${useClause.packageName.referenceToken.text} (in ${useClause.rootFile.uri.pathname})`
               }, 'elaborate');
             }
             continue;
@@ -95,7 +95,7 @@ export function elaborateUseClauses(file: OFile, projectParser: ProjectParser, v
           }
         }
         if (!found) {
-          if (useClause.rootFile.file === file.file) {
+          if (useClause.rootFile.uri === file.uri) {
             vhdlLinter.addMessage({
               range: useClause.range,
               severity: DiagnosticSeverity.Warning,

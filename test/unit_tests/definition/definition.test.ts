@@ -1,4 +1,5 @@
 import { beforeAll, expect, test } from '@jest/globals';
+import { pathToFileURL } from 'url';
 import { Position } from 'vscode-languageserver';
 import { Elaborate } from '../../../lib/elaborate/elaborate';
 import { findDefinitions } from '../../../lib/languageFeatures/findDefinition';
@@ -9,8 +10,9 @@ import { readFileSyncNorm } from '../rename/rename.test';
 let linter: VhdlLinter;
 let projectParser: ProjectParser;
 beforeAll(async () => {
-  projectParser = await ProjectParser.create([__dirname], '', defaultSettingsGetter);
-  linter = new VhdlLinter('definition.vhd', readFileSyncNorm(__dirname + '/definition.vhd', { encoding: 'utf8' }),
+  projectParser = await ProjectParser.create([pathToFileURL(__dirname)], '', defaultSettingsGetter);
+  const URL = pathToFileURL(__dirname + '/definition.vhd');
+  linter = new VhdlLinter(URL, readFileSyncNorm(URL, { encoding: 'utf8' }),
     projectParser, defaultSettingsGetter);
   await Elaborate.elaborate(linter);
   await projectParser.stop();
