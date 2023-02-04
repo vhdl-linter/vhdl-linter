@@ -171,7 +171,7 @@ export class InterfaceListParser extends ParserBase {
       const startI = this.state.pos.i;
       this.consumeToken();
       if (this.getToken().text === ')') {
-        const range = new OIRange(parent, startI, startI + 1)
+        const range = new OIRange(parent, startI, startI + 1);
         this.state.messages.push({
           message: `Unexpected ';' at end of interface list`,
           range,
