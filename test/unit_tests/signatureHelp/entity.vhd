@@ -6,8 +6,18 @@ begin
     port map(
       4,
       port3 => 3,
+      port2 => 5
+      );
+  inst_test_entity2 : entity work.test_entity
+    port map(
+      port1 => 2,
       port2 => 5,
-    );
+      asd   => a
+      )
+      generic map(
+        GENERIC_A => 5,
+        GENERIC_B => 5
+      );
 end architecture;
 
 entity test_entity is
@@ -15,6 +25,10 @@ entity test_entity is
     port1 : in integer;
     port2 : in integer;
     port3 : in integer
+    );
+  generic (
+    GENERIC_A : integer := 5;
+    GENERIC_B : integer := 5
     );
 end test_entity;
 

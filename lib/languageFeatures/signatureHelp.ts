@@ -5,6 +5,9 @@ import { VhdlLinter } from "../vhdl-linter";
 import { findObjectFromPosition } from "./findObjectFromPosition";
 export function findParentInstantiation(linter: VhdlLinter, position: Position): [OInstantiation, OAssociationList | undefined] | undefined {
   const object = findObjectFromPosition(linter, position)[0];
+  if (object === undefined) {
+    return undefined
+  }
   let iterator = object;
   let associationList: OAssociationList | undefined;
   // Find Parent that is defined by a subprogram (instantiation)
@@ -45,26 +48,29 @@ export function signatureHelp(linter: VhdlLinter, position: Position): Signature
           continue;
         }
         const text = portOrGeneric.map(port => port.lexerToken.text).join(', ');
-        let activeParameter = 0;
+        let activeParameter;
         if (associationList) {
           // Find active parameter
           // If in range of association via number
           const posI = linter.getIFromPosition(position);
           const associationIndex = associationList.children.findIndex(association => association.range.start.i <= posI && association.range.end.i >= posI);
-          if (associationIndex > -1) {
-            const association = associationList.children[associationIndex];
-            if (association.formalPart.length > 0) {
-              for (const formal of association.formalPart) {
-                for (const [portIndex, port] of portOrGeneric.entries()) {
-                  if (port.lexerToken.getLText() === formal.referenceToken.getLText()) {
-                    activeParameter = portIndex;
-                  }
+          const association = associationList.children[associationIndex];
+          if (associationIndex > -1 || association?.formalPart.length == 0) {
+            for (const formal of association.formalPart) {
+              for (const [portIndex, port] of portOrGeneric.entries()) {
+                if (port.lexerToken.getLText() === formal.referenceToken.getLText()) {
+                  activeParameter = portIndex;
                 }
               }
-            } else {
-              activeParameter = associationIndex;
+            }
+            // If not found set outside of range.
+            // LSP standard is not complete on this.
+            // This might be hacky, client maybe supposed to reset to zero anyways. But works in vscode
+            if (activeParameter === undefined) {
+              activeParameter = portOrGeneric.length;
             }
           } else {
+            activeParameter = 0;
             for (const [childNumber, child] of associationList.children.entries()) {
               if (posI > child.range.end.i) {
                 activeParameter = childNumber + 1;

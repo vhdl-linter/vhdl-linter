@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, expect, test } from '@jest/globals';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { SignatureHelp } from 'vscode';
 import { Position } from 'vscode-languageserver';
 import { Elaborate } from '../../../lib/elaborate/elaborate';
 import { signatureHelp } from '../../../lib/languageFeatures/signatureHelp';
@@ -21,7 +22,7 @@ async function prepare(fileName: string) {
   await Elaborate.elaborate(linter);
   return linter;
 }
-test('Signature help snapshot', async ()=> {
+test('Signature help snapshot port', async ()=> {
   const linter = await prepare('entity.vhd');
   const help = await signatureHelp(linter, Position.create(6, 6));
 
@@ -65,6 +66,49 @@ port3 : in integer
 }
 `);
 
+});
+test('Signature help snapshot generic', async ()=> {
+  const linter = await prepare('entity.vhd');
+  const help = await signatureHelp(linter, Position.create(17, 14));
+
+  expect(help).toMatchInlineSnapshot(`
+{
+  "signatures": [
+    {
+      "activeParameter": 0,
+      "label": "GENERIC_A, GENERIC_B",
+      "parameters": [
+        {
+          "documentation": {
+            "kind": "markdown",
+            "value": "\`\`\`vhdl
+GENERIC_A : integer
+\`\`\`",
+          },
+          "label": "GENERIC_A",
+        },
+        {
+          "documentation": {
+            "kind": "markdown",
+            "value": "\`\`\`vhdl
+GENERIC_B : integer
+\`\`\`",
+          },
+          "label": "GENERIC_B",
+        },
+      ],
+    },
+  ],
+}
+`);
+
+});
+test('Signature help on non existent formal', async () => {
+  const linter = await prepare('entity.vhd');
+  const help = await signatureHelp(linter, Position.create(14, 8));
+  expect(help?.signatures).toHaveLength(1);
+
+  expect((help as SignatureHelp).signatures[0].activeParameter).toBe(3);
 });
 test('Signature help snapshot active parameter', async () => {
   const linter = await prepare('entity.vhd');
