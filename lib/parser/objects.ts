@@ -195,6 +195,7 @@ export class ObjectBase {
 
 
 export abstract class OGeneric extends ObjectBase implements I.IHasDefinitions, I.IHasReferenceLinks {
+  parent: OEntity ;
   definitions: (OGeneric | OPackage)[] = [];
   referenceLinks: OReference[] = [];
   aliasReferences: OAlias[] = [];
