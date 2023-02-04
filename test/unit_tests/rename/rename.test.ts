@@ -9,6 +9,9 @@ import { defaultSettingsGetter } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdl-linter';
 import { createPrintableRange, makeRangePrintable } from '../../helper';
 let projectParser: ProjectParser;
+export function readFileSyncNorm(path: any, options: any) {
+  return readFileSync(path, options).toString().replaceAll('\r\n', '\n');
+}
 beforeAll(async () => {
   projectParser = await ProjectParser.create([__dirname], '', defaultSettingsGetter);
 });
@@ -144,7 +147,7 @@ test.each([
   for (const [name, range] of occurrences) {
     const path = __dirname + `/${name}`;
 
-    const linter = new VhdlLinter(path, readFileSync(path, { encoding: 'utf8' }),
+    const linter = new VhdlLinter(path, readFileSyncNorm(path, { encoding: 'utf8' }),
       projectParser, defaultSettingsGetter);
     await linter.checkAll();
     await projectParser.stop();
@@ -195,7 +198,7 @@ test.each([
 ])('testing rename for %s in %s where it is not possible', async (name, range) => {
   const path = __dirname + `/${name}`;
 
-  const linter = new VhdlLinter(path, readFileSync(path, { encoding: 'utf8' }),
+  const linter = new VhdlLinter(path, readFileSyncNorm(path, { encoding: 'utf8' }),
     projectParser, defaultSettingsGetter);
   await linter.checkAll();
   await projectParser.stop();

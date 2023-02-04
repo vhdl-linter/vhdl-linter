@@ -174,7 +174,7 @@ class FileCache {
   private constructor(public path: string, public projectParser: ProjectParser) {
   }
   async parse(vhdlLinter?: VhdlLinter) {
-    this.text = await promises.readFile(this.path, { encoding: 'utf8' });
+    this.text = await (await promises.readFile(this.path, { encoding: 'utf8' })).replaceAll('\r\n', '\n');
     if (vhdlLinter) {
       this.linter = vhdlLinter;
     } else {
