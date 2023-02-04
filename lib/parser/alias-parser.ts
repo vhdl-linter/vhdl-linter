@@ -1,5 +1,5 @@
 import { ExpressionParser } from "./expression-parser";
-import { OAlias, OAliasWithSignature, ObjectBase, OEntity, OPackage, OPackageBody, OProcess, OReference, OSelectedName, OStatementBody, OSubprogram, OType, OTypeMark, SelectedNamePrefix } from "./objects";
+import { OAlias, OAliasWithSignature, ObjectBase, OEntity, OIRange, OPackage, OPackageBody, OProcess, OReference, OSelectedName, OStatementBody, OSubprogram, OType, OTypeMark, SelectedNamePrefix } from "./objects";
 import { ParserBase, ParserState } from "./parser-base";
 export class AliasParser extends ParserBase {
   constructor(state: ParserState, private parent: OStatementBody | OEntity | OPackage | OPackageBody | OProcess | OSubprogram | OType) {
@@ -7,7 +7,7 @@ export class AliasParser extends ParserBase {
     this.debug('start');
   }
   parse() {
-    this.consumeToken();
+    const startRange = this.consumeToken().range;
     let i = 0;
     let foundSignature = false;
     while (this.getToken(i).getLText() !== ';') {
@@ -18,13 +18,13 @@ export class AliasParser extends ParserBase {
       i++;
     }
     if (foundSignature) {
-      return this.parseAliasWithSignature();
+      return this.parseAliasWithSignature(startRange);
     }
-    return this.parseAlias();
-
+    return this.parseAlias(startRange);
   }
-  parseAliasWithSignature() {
-    const aliasWithSignature = new OAliasWithSignature(this.parent, this.getToken().range.copyExtendEndOfLine());
+
+  parseAliasWithSignature(startRange: OIRange) {
+    const aliasWithSignature = new OAliasWithSignature(this.parent, startRange);
     aliasWithSignature.lexerToken = this.consumeToken();
     if (this.getToken().getLText() === ':') {
       this.consumeToken();
@@ -58,11 +58,12 @@ export class AliasParser extends ParserBase {
         break;
       }
     }
+    aliasWithSignature.range = aliasWithSignature.range.copyWithNewEnd(this.getToken().range);
     this.expect(';');
     return aliasWithSignature;
   }
-  parseAlias() {
-    const alias = new OAlias(this.parent, this.getToken().range.copyExtendEndOfLine());
+  parseAlias(startRange: OIRange) {
+    const alias = new OAlias(this.parent, startRange);
 
     alias.lexerToken = this.consumeToken();
     if (this.getToken().getLText() === ':') {
@@ -72,17 +73,18 @@ export class AliasParser extends ParserBase {
 
       alias.subtypeIndication.push(...new ExpressionParser(this.state, alias, tokens).parse());
     }
-      const isToken = this.expect('is');
-      const [tokens, semicolon] = this.advanceParenthesisAware([';'], true, true);
-      if (tokens.length === 0) {
-          this.state.messages.push({
-              range: isToken.range.copyWithNewEnd(semicolon.range),
-              message: `Expected name for alias. None found.`
-          });
-      } else {
-          alias.name.push(...new ExpressionParser(this.state, alias, tokens).parse());
-      }
-      return alias;
+    const isToken = this.expect('is');
+    const [tokens, semicolon] = this.advanceParenthesisAware([';'], true, true);
+    if (tokens.length === 0) {
+      this.state.messages.push({
+        range: isToken.range.copyWithNewEnd(semicolon.range),
+        message: `Expected name for alias. None found.`
+      });
+    } else {
+      alias.name.push(...new ExpressionParser(this.state, alias, tokens).parse());
+    }
+    alias.range = alias.range.copyWithNewEnd(semicolon.range);
+    return alias;
   }
   consumeNameReference(parent: ObjectBase): OReference {
     const tokens = [];

@@ -2,7 +2,7 @@ import { ErrorCodes, Location, Position, ResponseError } from 'vscode-languagese
 import { URI } from 'vscode-uri';
 import { OLexerToken } from '../lexer';
 import { IHasEndingLexerToken, implementsIHasEndingLexerToken, implementsIHasLexerToken, implementsIHasReference } from '../parser/interfaces';
-import { OArchitecture, ObjectBase, OEntity, OInstantiation, OPackage, OPackageBody, OPort, OReference, OSubprogram, OUseClause } from '../parser/objects';
+import { OArchitecture, ObjectBase, OEntity, OGeneric, OInstantiation, OPackage, OPackageBody, OPort, OReference, OSubprogram, OUseClause } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
 export async function getTokenFromPosition(linter: VhdlLinter, position: Position): Promise<OLexerToken | undefined> {
 
@@ -101,6 +101,19 @@ export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position
           .flatMap(link => {
             if (link instanceof OInstantiation) {
               return link.portAssociationList?.children.flatMap(child => {
+                return child.formalPart
+                  .filter(formal => formal.referenceToken.getLText() === definition.lexerToken.getLText())
+                  .map(formal => formal.referenceToken);
+              }) ?? [];
+            }
+            return [];
+          }));
+      }
+      if (definition instanceof OGeneric) {
+        referenceTokens.push(...definition.parent.referenceLinks
+          .flatMap(link => {
+            if (link instanceof OInstantiation) {
+              return link.genericAssociationList?.children.flatMap(child => {
                 return child.formalPart
                   .filter(formal => formal.referenceToken.getLText() === definition.lexerToken.getLText())
                   .map(formal => formal.referenceToken);

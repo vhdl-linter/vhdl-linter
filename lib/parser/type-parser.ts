@@ -1,3 +1,4 @@
+import { DiagnosticSeverity } from 'vscode-languageserver-types';
 import { OLexerToken } from '../lexer';
 import { DeclarativePartParser } from './declarative-part-parser';
 import { ExpressionParser } from './expression-parser';
@@ -91,13 +92,22 @@ export class TypeParser extends ParserBase {
             this.expect(':');
             const typeTokens = this.advanceSemicolon();
             for (const child of children) {
-              child.referenceLinks = new ExpressionParser(this.state, child, typeTokens).parse();
-              child.range = child.range.copyWithNewEnd(this.state.pos.i);
+              if (typeTokens.length > 0) {
+                child.referenceLinks = new ExpressionParser(this.state, child, typeTokens).parse();
+                child.range = child.range.copyWithNewEnd(typeTokens[typeTokens.length - 1].range);
+              } else {
+                this.state.messages.push({
+                  message: 'Found no type indication of this record child.',
+                  range: child.range,
+                  severity: DiagnosticSeverity.Error
+                });
+              }
             }
             (type as ORecord).children.push(...children);
           }
           this.maybe('record');
           this.maybe(type.lexerToken.text);
+          type.range = type.range.copyWithNewEnd(this.state.pos.i);
         } else if (nextToken.getLText() === 'array') {
           Object.setPrototypeOf(type, OArray.prototype);
           this.expect('(');
