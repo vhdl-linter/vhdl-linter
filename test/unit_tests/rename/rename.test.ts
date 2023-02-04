@@ -116,6 +116,13 @@ test.each([
       ],
     description: 'function parameter name'
   },
+  {
+    occurrences:
+      [['generic_entity.vhd', createPrintableRange(3, 5, 17)],
+      ['generic_instantiation.vhd', createPrintableRange(11, 7, 19)],
+      ],
+    description: 'function parameter name'
+  },
 ])('testing rename for %j', async (testSetup: TestSetup) => {
   const { occurrences } = testSetup;
   interface Operations {
