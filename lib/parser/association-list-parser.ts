@@ -1,4 +1,4 @@
-import { DiagnosticSeverity } from 'vscode-languageserver';
+import { DiagnosticSeverity, TextEdit } from 'vscode-languageserver';
 import { ExpressionParser } from './expression-parser';
 import { OAssociation, OFormalReference, OGenericAssociationList, OInstantiation, OPackage, OPackageInstantiation, OPortAssociationList } from './objects';
 import { ParserBase, ParserState } from './parser-base';
@@ -54,8 +54,12 @@ export class AssociationListParser extends ParserBase {
         if (this.getToken().getLText() === ')') {
           this.state.messages.push({
             message: `Unexpected ',' at end of association list`,
-            range: this.getToken().range.copyExtendBeginningOfLine(),
-            severity: DiagnosticSeverity.Error
+            range: lastChar.range,
+            severity: DiagnosticSeverity.Error,
+            solution: {
+              message: `Remove ','`,
+              edits: [TextEdit.del(lastChar.range)]
+            }
           });
         }
       } else if (lastChar.text === ')') {
