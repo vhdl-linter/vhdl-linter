@@ -37,7 +37,7 @@ export function elaborateUseClauses(file: OFile, projectParser: ProjectParser, v
                 vhdlLinter.addMessage({
                   range: useClause.range,
                   severity: DiagnosticSeverity.Warning,
-                  message: `could not find instantiated package from package ${useClause.library}.${useClause.packageName}`
+                  message: `could not find instantiated package from package ${useClause.library.referenceToken.text}.${useClause.packageName.referenceToken.text}`
                 }, 'elaborate');
                 break;
               }
@@ -67,13 +67,13 @@ export function elaborateUseClauses(file: OFile, projectParser: ProjectParser, v
               vhdlLinter.addMessage({
                 range: useClause.range,
                 severity: DiagnosticSeverity.Warning,
-                message: `could not find package instantiation for ${useClause.packageName}`
+                message: `could not find package instantiation for ${useClause.packageName.referenceToken.text}`
               }, 'elaborate');
             } else {
               vhdlLinter.addMessage({
                 range: obj.getRootElement().range.getLimitedRange(1),
                 severity: DiagnosticSeverity.Warning,
-                message: `could not find package instantiation for ${useClause.packageName} (in ${useClause.rootFile.file})`
+                message: `could not find package instantiation for ${useClause.packageName.referenceToken.text} (in ${useClause.rootFile.file})`
               }, 'elaborate');
             }
             continue;
@@ -99,7 +99,7 @@ export function elaborateUseClauses(file: OFile, projectParser: ProjectParser, v
             vhdlLinter.addMessage({
               range: useClause.range,
               severity: DiagnosticSeverity.Warning,
-              message: `could not find package for ${useClause.library !== undefined ? `${useClause.library}.` : ''}${useClause.packageName}`
+              message: `could not find package for ${useClause.library !== undefined ? `${useClause.library.referenceToken.text}.` : ''}${useClause.packageName.referenceToken.text}`
             }, 'elaborate');
           }
         }
@@ -125,7 +125,7 @@ function getUseClauses(parent: ObjectBase & (IHasUseClauses | IHasContextReferen
         vhdlLinter.addMessage({
           range: reference.range,
           severity: DiagnosticSeverity.Warning,
-          message: `could not find context for ${reference.library.referenceToken}.${reference.contextName}`
+          message: `could not find context for ${reference.library.referenceToken.text}.${reference.contextName}`
         }, 'elaborate');
       } else {
         reference.definitions.push(context);
