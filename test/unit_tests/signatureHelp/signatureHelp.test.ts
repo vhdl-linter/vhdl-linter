@@ -126,3 +126,7 @@ test.each([
   const help = signatureHelp(linter, Position.create(21, characterReal - 1));
   expect(help?.signatures[0].parameters?.[help?.signatures[0].activeParameter ?? -1]?.label).toBe(parameter);
 });
+test('Signature help with component', async () => {
+  const linter = await prepare('component.vhd');
+  expect(signatureHelp(linter, Position.create(21, 42))?.signatures[0].label).toBe('port1, port2, port3');
+});
