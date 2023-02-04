@@ -11,7 +11,7 @@ end test_process;
 architecture arch of test_process is
 begin
 
-  p_reg : process(all)
+  process(all)
   begin
     x <= x;
   end process;

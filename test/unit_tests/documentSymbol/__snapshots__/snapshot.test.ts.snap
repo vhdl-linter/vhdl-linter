@@ -21,7 +21,7 @@ exports[`Testing document symbols of test_alias.vhd 1`] = `
             },
             "selectionRange": {
               "end": {
-                "character": 18,
+                "character": 9,
                 "line": 6,
               },
               "start": {
@@ -46,11 +46,11 @@ exports[`Testing document symbols of test_alias.vhd 1`] = `
         },
         "selectionRange": {
           "end": {
-            "character": 2,
-            "line": 7,
+            "character": 10,
+            "line": 5,
           },
           "start": {
-            "character": 2,
+            "character": 7,
             "line": 5,
           },
         },
@@ -70,11 +70,11 @@ exports[`Testing document symbols of test_alias.vhd 1`] = `
         },
         "selectionRange": {
           "end": {
-            "character": 7,
-            "line": 10,
+            "character": 9,
+            "line": 9,
           },
           "start": {
-            "character": 2,
+            "character": 8,
             "line": 9,
           },
         },
@@ -715,7 +715,7 @@ exports[`Testing document symbols of test_process.vhd 1`] = `
         "children": [],
         "detail": "process",
         "kind": 12,
-        "name": "p_reg",
+        "name": "no label",
         "range": {
           "end": {
             "character": 13,
@@ -790,7 +790,7 @@ exports[`Testing document symbols of test_protected.vhd 1`] = `
                 "line": 6,
               },
               "start": {
-                "character": 4,
+                "character": 14,
                 "line": 6,
               },
             },
@@ -810,11 +810,11 @@ exports[`Testing document symbols of test_protected.vhd 1`] = `
             },
             "selectionRange": {
               "end": {
-                "character": 44,
+                "character": 19,
                 "line": 7,
               },
               "start": {
-                "character": 4,
+                "character": 14,
                 "line": 7,
               },
             },
@@ -834,11 +834,11 @@ exports[`Testing document symbols of test_protected.vhd 1`] = `
             },
             "selectionRange": {
               "end": {
-                "character": 51,
+                "character": 26,
                 "line": 8,
               },
               "start": {
-                "character": 4,
+                "character": 20,
                 "line": 8,
               },
             },
@@ -859,11 +859,11 @@ exports[`Testing document symbols of test_protected.vhd 1`] = `
         },
         "selectionRange": {
           "end": {
-            "character": 15,
-            "line": 9,
+            "character": 20,
+            "line": 5,
           },
           "start": {
-            "character": 2,
+            "character": 7,
             "line": 5,
           },
         },
@@ -912,11 +912,11 @@ exports[`Testing document symbols of test_protected.vhd 1`] = `
             },
             "selectionRange": {
               "end": {
-                "character": 17,
-                "line": 32,
+                "character": 18,
+                "line": 29,
               },
               "start": {
-                "character": 4,
+                "character": 14,
                 "line": 29,
               },
             },
@@ -936,11 +936,11 @@ exports[`Testing document symbols of test_protected.vhd 1`] = `
             },
             "selectionRange": {
               "end": {
-                "character": 17,
-                "line": 45,
+                "character": 19,
+                "line": 34,
               },
               "start": {
-                "character": 4,
+                "character": 14,
                 "line": 34,
               },
             },
@@ -960,11 +960,11 @@ exports[`Testing document symbols of test_protected.vhd 1`] = `
             },
             "selectionRange": {
               "end": {
-                "character": 16,
-                "line": 52,
+                "character": 26,
+                "line": 47,
               },
               "start": {
-                "character": 4,
+                "character": 20,
                 "line": 47,
               },
             },
@@ -985,11 +985,11 @@ exports[`Testing document symbols of test_protected.vhd 1`] = `
         },
         "selectionRange": {
           "end": {
-            "character": 16,
-            "line": 54,
+            "character": 20,
+            "line": 25,
           },
           "start": {
-            "character": 2,
+            "character": 7,
             "line": 25,
           },
         },
@@ -1009,11 +1009,11 @@ exports[`Testing document symbols of test_protected.vhd 1`] = `
         },
         "selectionRange": {
           "end": {
-            "character": 14,
-            "line": 22,
+            "character": 18,
+            "line": 15,
           },
           "start": {
-            "character": 2,
+            "character": 11,
             "line": 15,
           },
         },
@@ -1033,11 +1033,11 @@ exports[`Testing document symbols of test_protected.vhd 1`] = `
         },
         "selectionRange": {
           "end": {
-            "character": 66,
+            "character": 19,
             "line": 13,
           },
           "start": {
-            "character": 2,
+            "character": 11,
             "line": 13,
           },
         },
@@ -1091,7 +1091,7 @@ exports[`Testing document symbols of test_record.vhd 1`] = `
             },
             "selectionRange": {
               "end": {
-                "character": 18,
+                "character": 9,
                 "line": 6,
               },
               "start": {
@@ -1116,11 +1116,11 @@ exports[`Testing document symbols of test_record.vhd 1`] = `
         },
         "selectionRange": {
           "end": {
-            "character": 2,
-            "line": 7,
+            "character": 10,
+            "line": 5,
           },
           "start": {
-            "character": 2,
+            "character": 7,
             "line": 5,
           },
         },
@@ -1327,8 +1327,8 @@ exports[`Testing document symbols of test_stateMachine.vhd 1`] = `
         },
         "selectionRange": {
           "end": {
-            "character": 13,
-            "line": 24,
+            "character": 7,
+            "line": 12,
           },
           "start": {
             "character": 2,
@@ -1615,8 +1615,8 @@ exports[`Testing document symbols of test_stateMachineCase.vhd 1`] = `
         },
         "selectionRange": {
           "end": {
-            "character": 13,
-            "line": 30,
+            "character": 7,
+            "line": 13,
           },
           "start": {
             "character": 2,
@@ -1826,8 +1826,8 @@ exports[`Testing document symbols of test_stateMachineElse.vhd 1`] = `
         },
         "selectionRange": {
           "end": {
-            "character": 13,
-            "line": 27,
+            "character": 7,
+            "line": 12,
           },
           "start": {
             "character": 2,
@@ -2037,8 +2037,8 @@ exports[`Testing document symbols of test_stateMachineElsif.vhd 1`] = `
         },
         "selectionRange": {
           "end": {
-            "character": 13,
-            "line": 27,
+            "character": 7,
+            "line": 12,
           },
           "start": {
             "character": 2,
@@ -2248,8 +2248,8 @@ exports[`Testing document symbols of test_stateMachineFor.vhd 1`] = `
         },
         "selectionRange": {
           "end": {
-            "character": 13,
-            "line": 26,
+            "character": 7,
+            "line": 12,
           },
           "start": {
             "character": 2,
@@ -2459,8 +2459,8 @@ exports[`Testing document symbols of test_stateMachineIf.vhd 1`] = `
         },
         "selectionRange": {
           "end": {
-            "character": 13,
-            "line": 26,
+            "character": 7,
+            "line": 12,
           },
           "start": {
             "character": 2,
@@ -2515,11 +2515,11 @@ exports[`Testing document symbols of test_subprogram.vhd 1`] = `
         },
         "selectionRange": {
           "end": {
-            "character": 30,
+            "character": 15,
             "line": 5,
           },
           "start": {
-            "character": 2,
+            "character": 11,
             "line": 5,
           },
         },
@@ -2566,11 +2566,11 @@ exports[`Testing document symbols of test_subprogram.vhd 1`] = `
         },
         "selectionRange": {
           "end": {
-            "character": 14,
-            "line": 12,
+            "character": 15,
+            "line": 9,
           },
           "start": {
-            "character": 2,
+            "character": 11,
             "line": 9,
           },
         },

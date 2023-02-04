@@ -36,7 +36,7 @@ export class DocumentSymbols {
       detail: 'process',
       kind: SymbolKind.Function,
       range: process.range,
-      selectionRange: process.range,
+      selectionRange: (process.label ?? process).range,
       children
     };
   }
@@ -180,7 +180,7 @@ export class DocumentSymbols {
       kind,
       detail,
       range: type.range,
-      selectionRange: type.range,
+      selectionRange: type.lexerToken.range,
       children: this.getDefinitions(type)
     };
   }
@@ -194,7 +194,7 @@ export class DocumentSymbols {
         name: subprogram.lexerToken.text,
         kind: SymbolKind.Function,
         range: subprogram.range,
-        selectionRange: subprogram.range
+        selectionRange: subprogram.lexerToken.range
       })));
     }
     if (implementsIHasConstants(obj)) {
@@ -202,7 +202,7 @@ export class DocumentSymbols {
         name: constants.lexerToken.text,
         kind: SymbolKind.Constant,
         range: constants.range,
-        selectionRange: constants.range
+        selectionRange: constants.lexerToken.range
       })));
     }
     if (implementsIHasAliases(obj)) {
@@ -210,7 +210,7 @@ export class DocumentSymbols {
         name: alias.lexerToken.text,
         kind: SymbolKind.Field,
         range: alias.range,
-        selectionRange: alias.range
+        selectionRange: alias.lexerToken.range
       })));
     }
     if (obj instanceof ORecord) {
@@ -218,7 +218,7 @@ export class DocumentSymbols {
         name: child.lexerToken.text,
         kind: SymbolKind.Field,
         range: child.range,
-        selectionRange: child.range
+        selectionRange: child.lexerToken.range
       })));
     }
     if (children.length > 0) {
