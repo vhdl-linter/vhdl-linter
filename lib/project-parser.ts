@@ -40,7 +40,8 @@ export class ProjectParser {
   private constructor(public workspaces: URL[], public fileIgnoreRegex: string, public settingsGetter: SettingsGetter) { }
   public addFolders(urls: URL[]) {
     for (const url of urls) {
-      const watcher = watch(fileURLToPath(url).replace(sep, '/') + '/**/*.vhd?(l)', { ignoreInitial: true });
+      // Chokidar does not accept win style line endings
+      const watcher = watch(fileURLToPath(url).replaceAll(sep, '/') + '/**/*.vhd?(l)', { ignoreInitial: true });
       watcher.on('add', async (path) => {
         const cachedFile = await (FileCache.create(pathToFileURL(path), this));
         this.cachedFiles.push(cachedFile);
