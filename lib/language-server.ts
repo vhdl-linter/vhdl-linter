@@ -127,9 +127,8 @@ export const initialization = new Promise<void>(resolve => {
       const parseWorkspaces = async () => {
         const workspaceFolders = await connection.workspace.getWorkspaceFolders();
         const folders = (workspaceFolders ?? []).map(workspaceFolder => new URL(workspaceFolder.uri));
-        // console.log(configuration, 'configuration');
         folders.push(...configuration?.paths?.additional?.map(path => pathToFileURL(path))
-          .filter(url => existsSync(url.toString())) ?? []);
+        .filter(url => existsSync(url)) ?? []);
         projectParser = await ProjectParser.create(folders, configuration?.paths?.ignoreRegex ?? '', getDocumentSettings);
       };
       await parseWorkspaces();
