@@ -108,7 +108,7 @@ export class ProjectParser {
         const filePath = joinURL(directory, entry);
         const fileStat = await promises.stat(filePath);
         if (fileStat.isFile()) {
-          if (entry.match(/\.vhdl?$/i) && (ignoreRegex === null || !filePath.toString().match(ignoreRegex))) {
+          if (entry.match(/\.vhdl?$/i) && (ignoreRegex === null || !filePath.pathname.match(ignoreRegex))) {
             files.push(filePath);
           }
         } else {

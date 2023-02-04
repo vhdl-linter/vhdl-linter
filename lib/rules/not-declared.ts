@@ -22,7 +22,7 @@ export class RNotDeclared extends RuleBase implements IRule {
         if (type.lexerToken.getLText() === ref.referenceToken.getLText()) {
           let library = pkg.targetLibrary ? pkg.targetLibrary : 'work';
           let pkgName = pkg.lexerToken.text;
-          if (library === 'work' && pkg.rootFile.uri.toString().match(/ieee/i)) {
+          if (library === 'work' && pkg.rootFile.uri.pathname.match(/ieee/i)) {
             if (this.settings.style.ieeeCasing === 'lowercase') {
               pkgName = pkgName.toLowerCase();
               library = 'ieee';

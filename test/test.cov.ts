@@ -32,12 +32,12 @@ async function run_test(url: URL, error_expected: boolean, projectParser?: Proje
       continue;
     }
     // Exclude OSVVM and IEEE from resolved/unresolved checker
-    const getter = subPath.toString().match(/OSVVM/i) || subPath.toString().match(/ieee/i)
+    const getter = subPath.pathname.match(/OSVVM/i) || subPath.pathname.match(/ieee/i)
       ? defaultSettingsWithOverwrite({ style: { preferredLogicTypePort: 'ignore', preferredLogicTypeSignal: 'ignore' } })
       : defaultSettingsGetter;
     if (lstatSync(subPath).isDirectory()) {
       await run_test(subPath, error_expected, projectParser);
-    } else if (subPath.toString().match(/\.vhdl?$/i)) {
+    } else if (subPath.pathname.match(/\.vhdl?$/i)) {
       const text = readFileSync(subPath, { encoding: 'utf8' });
       const vhdlLinter = new VhdlLinter(subPath, text, projectParser, getter);
       if (vhdlLinter.parsedSuccessfully) {
