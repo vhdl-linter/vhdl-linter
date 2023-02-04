@@ -6,7 +6,6 @@ import {
   TransportKind
 } from 'vscode-languageclient/node';
 import { FileParser } from './parser/file-parser';
-import { ISettings } from './settings';
 import { copy, CopyTypes } from './vhdl-entity-converter';
 import { IAddSignalCommandArguments, IIgnoreLineCommandArguments } from './vhdl-linter';
 
