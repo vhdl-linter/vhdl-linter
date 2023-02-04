@@ -1,4 +1,5 @@
 import { expect, test } from '@jest/globals';
+import { pathToFileURL } from 'url';
 import { Lexer } from '../../../lib/lexer';
 import { ExpressionParser } from '../../../lib/parser/expression-parser';
 import { ObjectBase, OFile, OIRange } from '../../../lib/parser/objects';
@@ -29,10 +30,10 @@ test.each([[`a`, 1],
 [`xnor a`, 1],
 [`unsigned'(1 => '0')`, 2]])('testing expression %s expecting %d references',
   (expression, numberOfReferences) => {
-    const file = new OFile('', '', '');
+    const file = new OFile('', pathToFileURL('/tmp/test'), '');
     const parent = new ObjectBase(file, new OIRange(file, 0, 0));
     const lexerTokens = new Lexer(expression, file).lex(file);
-    const expressionParser = new ExpressionParser(new ParserState(new ParserPosition, ''), parent, lexerTokens);
+    const expressionParser = new ExpressionParser(new ParserState(new ParserPosition, pathToFileURL('/tmp/test')), parent, lexerTokens);
     const references = expressionParser.parse();
     expect(references.length).toBe(numberOfReferences);
 

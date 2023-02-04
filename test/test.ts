@@ -1,13 +1,13 @@
 import { lstatSync, readdirSync, readFileSync } from 'fs';
-import { join } from 'path';
 import { argv, cwd } from 'process';
+import { pathToFileURL } from 'url';
 import { DiagnosticSeverity } from 'vscode-languageserver';
 import { OIRange } from '../lib/parser/objects';
-import { ProjectParser } from '../lib/project-parser';
+import { joinURL, ProjectParser } from '../lib/project-parser';
 import { defaultSettingsGetter, defaultSettingsWithOverwrite } from '../lib/settings';
 import { OIDiagnostic, VhdlLinter } from '../lib/vhdl-linter';
-function readDirPath(path: string) {
-  return readdirSync(path).map(file => join(path, file));
+function readDirPath(path: URL) {
+  return readdirSync(path).map(file => joinURL(path, file));
 }
 interface MessageWrapper {
   file: string,
@@ -40,7 +40,7 @@ function prettyPrintMessages(messages: MessageWrapper[]) {
   }).join('\n');
 }
 // Take each directory in path as a project run test on every file
-async function run_test_folder(path: string, error_expected: boolean): Promise<MessageWrapper[]> {
+async function run_test_folder(path: URL, error_expected: boolean): Promise<MessageWrapper[]> {
   const messageWrappers: MessageWrapper[] = [];
 
   for (const subPath of readDirPath(path)) {
@@ -49,22 +49,22 @@ async function run_test_folder(path: string, error_expected: boolean): Promise<M
   return messageWrappers;
 }
 // Take path as a project run test on every file
-async function run_test(path: string, error_expected: boolean, projectParser?: ProjectParser): Promise<MessageWrapper[]> {
+async function run_test(path: URL, error_expected: boolean, projectParser?: ProjectParser): Promise<MessageWrapper[]> {
   const messageWrappers: MessageWrapper[] = [];
   if (!projectParser) {
     projectParser = await ProjectParser.create([path], '', defaultSettingsGetter);
   }
   for (const subPath of readDirPath(path)) {
-    if (argv.indexOf('--no-osvvm') > -1 && subPath.match(/OSVVM/i)) {
+    if (argv.indexOf('--no-osvvm') > -1 && subPath.pathname.match(/OSVVM/i)) {
       continue;
     }
     // Exclude OSVVM and IEEE from resolved/unresolved checker
-    const getter = subPath.match(/OSVVM/i) || subPath.match(/ieee/i)
+    const getter = subPath.pathname.match(/OSVVM/i) || subPath.pathname.match(/ieee/i)
     ? defaultSettingsWithOverwrite({ style: { preferredLogicTypePort: 'ignore', preferredLogicTypeSignal: 'ignore' } })
     : defaultSettingsGetter;
     if (lstatSync(subPath).isDirectory()) {
       messageWrappers.push(...await run_test(subPath, error_expected, projectParser));
-    } else if (subPath.match(/\.vhdl?$/i)) {
+    } else if (subPath.pathname.match(/\.vhdl?$/i)) {
       const text = readFileSync(subPath, { encoding: 'utf8' });
       const vhdlLinter = new VhdlLinter(subPath, text, projectParser, getter);
       if (vhdlLinter.parsedSuccessfully) {
@@ -73,7 +73,7 @@ async function run_test(path: string, error_expected: boolean, projectParser?: P
       if (error_expected === false) {
         if (vhdlLinter.messages.length > 0) {
           const newMessage = {
-            file: subPath,
+            file: subPath.pathname,
             messages: vhdlLinter.messages
           };
           messageWrappers.push(newMessage);
@@ -82,7 +82,7 @@ async function run_test(path: string, error_expected: boolean, projectParser?: P
       } else {
         if (vhdlLinter.messages.length !== 1) {
           const newMessage = {
-            file: subPath,
+            file: subPath.pathname,
             messages: [...vhdlLinter.messages, { message: `One message expected found ${vhdlLinter.messages.length}` }]
           };
           messageWrappers.push(newMessage);
@@ -100,9 +100,9 @@ async function run_test(path: string, error_expected: boolean, projectParser?: P
 (async () => {
   const start = new Date().getTime();
   const messages = [];
-  messages.push(... await run_test_folder(join(cwd(), 'test', 'test_files', 'test_error_expected'), true));
-  messages.push(... await run_test_folder(join(cwd(), 'test', 'test_files', 'test_no_error'), false));
-  messages.push(... await run_test(join(cwd(), 'ieee2008'), false));
+  messages.push(... await run_test_folder(joinURL(pathToFileURL(cwd()), 'test', 'test_files', 'test_error_expected'), true));
+  messages.push(... await run_test_folder(joinURL(pathToFileURL(cwd()), 'test', 'test_files', 'test_no_error'), false));
+  messages.push(... await run_test(joinURL(pathToFileURL(cwd()), 'ieee2008'), false));
   const timeTaken = new Date().getTime() - start;
   let timeOutError = 0;
   const TIMEOUT_TIME = 130;

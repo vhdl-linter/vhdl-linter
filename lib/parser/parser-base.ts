@@ -27,7 +27,7 @@ export class ParserPosition {
 
 export class ParserState {
   public messages: OIDiagnosticWithSolution[] = [];
-  constructor(public pos: ParserPosition, public filePath: string) { }
+  constructor(public pos: ParserPosition, public fileUri: URL) { }
 }
 
 export class ParserBase {
@@ -37,7 +37,7 @@ export class ParserBase {
   debug(_message: string) {
     if (config.debug) {
       const pos = this.getPosition();
-      console.log(`${this.constructor.name}: ${_message} at ${pos.line}:${pos.col}, (${this.state.filePath})`);
+      console.log(`${this.constructor.name}: ${_message} at ${pos.line}:${pos.col}, (${this.state.fileUri})`);
     }
   }
 

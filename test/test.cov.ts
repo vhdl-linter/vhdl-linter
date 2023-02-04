@@ -2,16 +2,16 @@
 // This is normally disabled because it is super slow
 import { expect, test, jest } from '@jest/globals';
 import { lstatSync, readdirSync, readFileSync } from 'fs';
-import { join } from 'path';
 import { argv, cwd } from 'process';
-import { ProjectParser } from '../lib/project-parser';
+import { pathToFileURL } from 'url';
+import { joinURL, ProjectParser } from '../lib/project-parser';
 import { defaultSettingsGetter, defaultSettingsWithOverwrite } from '../lib/settings';
 import { VhdlLinter } from '../lib/vhdl-linter';
-function readDirPath(path: string) {
-  return readdirSync(path).map(file => join(path, file));
+function readDirPath(path: URL) {
+  return readdirSync(path).map(file => joinURL(path, file));
 }
 // Take each directory in path as a project run test on every file
-async function run_test_folder(path: string, error_expected: boolean): Promise<number> {
+async function run_test_folder(path: URL, error_expected: boolean): Promise<number> {
   let errorCount = 0;
 
   for (const subPath of readDirPath(path)) {
@@ -20,24 +20,24 @@ async function run_test_folder(path: string, error_expected: boolean): Promise<n
   return errorCount;
 }
 // Take path as a project run test on every file
-async function run_test(path: string, error_expected: boolean, projectParser?: ProjectParser): Promise<number> {
+async function run_test(url: URL, error_expected: boolean, projectParser?: ProjectParser): Promise<number> {
   let errorCount = 0;
   let createdProjectParser = false;
   if (!projectParser) {
     createdProjectParser = true;
-    projectParser = await ProjectParser.create([path], '', defaultSettingsGetter);
+    projectParser = await ProjectParser.create([url], '', defaultSettingsGetter);
   }
-  for (const subPath of readDirPath(path)) {
-    if (argv.indexOf('--no-osvvm') > -1 && subPath.match(/OSVVM/i)) {
+  for (const subPath of readDirPath(url)) {
+    if (argv.indexOf('--no-osvvm') > -1 && subPath.toString().match(/OSVVM/i)) {
       continue;
     }
     // Exclude OSVVM and IEEE from resolved/unresolved checker
-    const getter = subPath.match(/OSVVM/i) || subPath.match(/ieee/i)
+    const getter = subPath.pathname.match(/OSVVM/i) || subPath.pathname.match(/ieee/i)
       ? defaultSettingsWithOverwrite({ style: { preferredLogicTypePort: 'ignore', preferredLogicTypeSignal: 'ignore' } })
       : defaultSettingsGetter;
     if (lstatSync(subPath).isDirectory()) {
       await run_test(subPath, error_expected, projectParser);
-    } else if (subPath.match(/\.vhdl?$/i)) {
+    } else if (subPath.pathname.match(/\.vhdl?$/i)) {
       const text = readFileSync(subPath, { encoding: 'utf8' });
       const vhdlLinter = new VhdlLinter(subPath, text, projectParser, getter);
       if (vhdlLinter.parsedSuccessfully) {
@@ -63,9 +63,9 @@ async function run_test(path: string, error_expected: boolean, projectParser?: P
 (async () => {
   jest.setTimeout(10 * 60 * 1000);
   test('running test file suite', async () => {
-    expect(await run_test_folder(join(cwd(), 'test', 'test_files', 'test_error_expected'), true)).toBe(0);
-    expect(await run_test_folder(join(cwd(), 'test', 'test_files', 'test_no_error'), false)).toBe(0);
-    expect(await run_test(join(cwd(), 'ieee2008'), false)).toBe(0);
+    expect(await run_test_folder(joinURL(pathToFileURL(cwd()), 'test', 'test_files', 'test_error_expected'), true)).toBe(0);
+    expect(await run_test_folder(joinURL(pathToFileURL(cwd()), 'test', 'test_files', 'test_no_error'), false)).toBe(0);
+    expect(await run_test(joinURL(pathToFileURL(cwd()), 'ieee2008'), false)).toBe(0);
   });
 
 })();

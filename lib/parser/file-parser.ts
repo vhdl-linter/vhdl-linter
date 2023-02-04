@@ -16,12 +16,12 @@ export class FileParser extends ParserBase {
   public lexerTokens: OLexerToken[] = [];
   text: string;
   file: OFile;
-  constructor(text: string, filePath: string, public cancelationObject: CancelationObject) {
+  constructor(text: string, filePath: URL, public cancelationObject: CancelationObject) {
 
     super(new ParserState(new ParserPosition(), filePath));
     this.originalText = text;
     this.text = text;
-    this.file = new OFile(this.text, this.state.filePath, this.originalText);
+    this.file = new OFile(this.text, this.state.fileUri, this.originalText);
 
     const lexer = new Lexer(this.originalText, this.file);
     this.lexerTokens = lexer.lex(this.file);

@@ -1,9 +1,9 @@
 import { existsSync } from 'fs';
+import { pathToFileURL } from 'url';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import {
   CodeAction, createConnection, DidChangeConfigurationNotification, ErrorCodes, InitializeParams, LSPErrorCodes, Position, ProposedFeatures, ResponseError, TextDocuments, TextDocumentSyncKind
 } from 'vscode-languageserver/node';
-import { URI } from 'vscode-uri';
 import { getCompletions } from './languageFeatures/completion';
 import { handleDocumentFormatting } from './languageFeatures/documentFormatting';
 import { documentHighlightHandler } from './languageFeatures/documentHighlightHandler';
@@ -55,21 +55,21 @@ connection.onDidChangeConfiguration(change => {
   // Revalidate all open text documents
   documents.all().forEach((textDocument) => validateTextDocument(textDocument));
 });
-export async function getDocumentSettings(resource: string): Promise<ISettings> {
+export async function getDocumentSettings(resource: URL): Promise<ISettings> {
   if (!hasConfigurationCapability) {
     return Promise.resolve(globalSettings);
   }
-  let result = documentSettings.get(resource);
+  let result = documentSettings.get(resource.toString());
   if (!result) {
     result = await connection.workspace.getConfiguration({
-      scopeUri: resource,
+      scopeUri: resource.toString(),
       section: 'VhdlLinter'
     });
   }
   if (!result) {
     return defaultSettings;
   }
-  documentSettings.set(resource, result);
+  documentSettings.set(resource.toString(), result);
   return result;
 }
 connection.onInitialize((params: InitializeParams) => {
@@ -126,20 +126,20 @@ export const initialization = new Promise<void>(resolve => {
     if (hasWorkspaceFolderCapability) {
       const parseWorkspaces = async () => {
         const workspaceFolders = await connection.workspace.getWorkspaceFolders();
-        const folders = (workspaceFolders ?? []).map(workspaceFolder => URI.parse(workspaceFolder.uri).fsPath);
-        // console.log(configuration, 'configuration');
-        folders.push(...configuration?.paths?.additional?.filter(existsSync) ?? []);
+        const folders = (workspaceFolders ?? []).map(workspaceFolder => new URL(workspaceFolder.uri));
+        folders.push(...configuration?.paths?.additional?.map(path => pathToFileURL(path))
+        .filter(url => existsSync(url)) ?? []);
         projectParser = await ProjectParser.create(folders, configuration?.paths?.ignoreRegex ?? '', getDocumentSettings);
       };
       await parseWorkspaces();
       connection.workspace.onDidChangeWorkspaceFolders(async event => {
-        projectParser.addFolders(event.added.map(folder => URI.parse(folder.uri).fsPath));
+        projectParser.addFolders(event.added.map(folder => new URL(folder.uri)));
         connection.console.log('Workspace folder change event received.');
       });
     } else {
       const folders = [];
       if (rootUri) {
-        folders.push(URI.parse(rootUri).fsPath);
+        folders.push(new URL(rootUri));
       }
       // console.log('folders', folders);
       projectParser = await ProjectParser.create(folders, configuration.paths.ignoreRegex, getDocumentSettings);
@@ -167,10 +167,10 @@ export const initialization = new Promise<void>(resolve => {
           canceled: false
         };
         const vhdlLinter = await validateTextDocument(change.document, newCancelationObject);
-        const path = URI.parse(change.document.uri).path;
+        const uri = change.document.uri;
         const cachedFile = process.platform === 'win32'
-          ? projectParser.cachedFiles.find(cachedFile => cachedFile.path.toLowerCase() === path.toLowerCase())
-          : projectParser.cachedFiles.find(cachedFile => cachedFile.path === path);
+          ? projectParser.cachedFiles.find(cachedFile => cachedFile.uri.toString().toLowerCase() === uri.toLowerCase())
+          : projectParser.cachedFiles.find(cachedFile => cachedFile.uri.toString() === uri);
         cachedFile?.parse(vhdlLinter);
         projectParser.flattenProject();
         cancelationMap.set(change.document.uri, newCancelationObject);
@@ -198,7 +198,7 @@ async function validateTextDocument(textDocument: TextDocument, cancelationObjec
   // console.log(textDocument.uri);
   // console.profile('a');
   // let start = Date.now();
-  const vhdlLinter = new VhdlLinter(URI.parse(textDocument.uri).fsPath, textDocument.getText(), projectParser, getDocumentSettings, cancelationObject);
+  const vhdlLinter = new VhdlLinter(new URL(textDocument.uri), textDocument.getText(), projectParser, getDocumentSettings, cancelationObject);
   if (vhdlLinter.parsedSuccessfully || typeof linters.get(textDocument.uri) === 'undefined') {
     linters.set(textDocument.uri, vhdlLinter);
     lintersValid.set(textDocument.uri, true);
@@ -369,7 +369,7 @@ connection.onRequest('vhdl-linter/listing', async (params: any) => {
   }
 
   async function parseTree(file: OFile) {
-    const index = files.findIndex(fileSearch => fileSearch?.file === file?.file);
+    const index = files.findIndex(fileSearch => fileSearch?.uri === file?.uri);
     if (index === -1) {
       files.push(file);
     } else {
@@ -407,7 +407,7 @@ connection.onRequest('vhdl-linter/listing', async (params: any) => {
       }
 
       if (found) {
-        const vhdlLinter = new VhdlLinter(found.file, found.originalText, projectParser, getDocumentSettings);
+        const vhdlLinter = new VhdlLinter(found.uri, found.originalText, projectParser, getDocumentSettings);
         await vhdlLinter.checkAll();
         await parseTree(vhdlLinter.file);
       }
@@ -416,7 +416,7 @@ connection.onRequest('vhdl-linter/listing', async (params: any) => {
   }
 
   await parseTree(linter.file);
-  const filesList = files.reverse().map(file => file.file.replace((rootUri ?? '').replace('file://', ''), '')).join(`\n`);
+  const filesList = files.reverse().map(file => file.uri.toString().replace((rootUri ?? '').replace('file://', ''), '')).join(`\n`);
   const unresolvedList = unresolved.join('\n');
   return `files:\n${filesList}\n\nUnresolved instantiations:\n${unresolvedList}`;
 });
