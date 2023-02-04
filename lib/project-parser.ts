@@ -1,14 +1,17 @@
 import { FSWatcher, watch } from 'chokidar';
 import { EventEmitter } from 'events';
 import { existsSync, promises } from 'fs';
-import { sep } from 'path';
+import { join, sep } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { Elaborate } from './elaborate/elaborate';
+import { SetAdd } from './languageFeatures/findReferencesHandler';
 import { OArchitecture, OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
 import { SettingsGetter, VhdlLinter } from './vhdl-linter';
 
 export function joinURL(url: URL, ...additional: string[]) {
-  return pathToFileURL(url.pathname + additional.map(a => '/' + a).join(''));
+  const path = join(fileURLToPath(url), ...additional);
+
+  return pathToFileURL(path);
 }
 export function getRootDirectory() {
   let currentDir = pathToFileURL(__dirname);
@@ -51,8 +54,8 @@ export class ProjectParser {
       watcher.on('change', async (path) => {
         // console.log('change', path);
         const cachedFile = process.platform === 'win32'
-          ? this.cachedFiles.find(cachedFile => cachedFile.uri.pathname.toLowerCase() === path.toLowerCase())
-          : this.cachedFiles.find(cachedFile => cachedFile.uri.pathname === path);
+          ? this.cachedFiles.find(cachedFile => fileURLToPath(cachedFile.uri).toLowerCase() === path.toLowerCase())
+          : this.cachedFiles.find(cachedFile => fileURLToPath(cachedFile.uri) === path);
         if (cachedFile) {
           await cachedFile.parse();
           this.flattenProject();
@@ -74,16 +77,16 @@ export class ProjectParser {
     }
   }
   private async init(disableWatching: boolean) {
-    const files = new Set<string>();
+    const files = new SetAdd<string>();
     await Promise.all(this.workspaces.map(async (directory) => {
       const directories = await this.parseDirectory(directory);
-      return (await Promise.all(directories.map(file => promises.realpath(file)))).forEach(file => files.add(file));
+      files.add(...directories.map(url => url.toString()));
     }));
     const rootDirectory = getRootDirectory();
-    (await this.parseDirectory(joinURL(rootDirectory, 'ieee2008'))).forEach(file => files.add(file.pathname));
+    files.add(...(await this.parseDirectory(joinURL(rootDirectory, 'ieee2008'))).map(url => url.toString()));
 
     for (const file of files) {
-      const cachedFile = await FileCache.create(pathToFileURL(file), this);
+      const cachedFile = await FileCache.create(new URL(file), this);
       this.cachedFiles.push(cachedFile);
     }
     this.cachedFiles.sort((a, b) => b.lintingTime - a.lintingTime);
@@ -102,7 +105,6 @@ export class ProjectParser {
     const files: URL[] = [];
     const entries = await promises.readdir(directory);
     const ignoreRegex = this.fileIgnoreRegex.trim().length > 0 ? new RegExp(this.fileIgnoreRegex) : null;
-
     // const entries = await promisify(directory.getEntries)()
     await Promise.all(entries.map(async entry => {
       try {
@@ -112,7 +114,7 @@ export class ProjectParser {
           if (entry.match(/\.vhdl?$/i) && (ignoreRegex === null || !filePath.pathname.match(ignoreRegex))) {
             files.push(filePath);
           }
-        } else {
+        } else if (fileStat.isDirectory()) {
           files.push(... await this.parseDirectory(filePath));
         }
       } catch (e) {
@@ -178,7 +180,8 @@ class FileCache {
   private constructor(public uri: URL, public projectParser: ProjectParser) {
   }
   async parse(vhdlLinter?: VhdlLinter) {
-    this.text = await (await promises.readFile(this.uri, { encoding: 'utf8' })).replaceAll('\r\n', '\n');
+    const text = await promises.readFile(this.uri, { encoding: 'utf8' });
+    this.text = text.replaceAll('\r\n', '\n');
     if (vhdlLinter) {
       this.linter = vhdlLinter;
     } else {

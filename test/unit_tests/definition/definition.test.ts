@@ -21,7 +21,7 @@ test(`Testing definitions`, async () => {
   for (const character of [13, 14, 15, 21, 22]) {
     const definition = await findDefinitions(linter, Position.create(12, character));
     expect(definition).toHaveLength(1);
-    expect(definition[0].targetUri.replace(__dirname, '')).toBe('file:///definition.vhd');
+    expect(definition[0].targetUri.replace(pathToFileURL(__dirname).toString(), '')).toBe('/definition.vhd');
     expect(definition[0].targetRange.start.line).toBe(7);
     expect(definition[0].targetRange.end.line).toBe(7);
   }
@@ -35,7 +35,7 @@ test(`Testing empty definitions`, async () => {
 test(`Testing definition for actual without formal`, async () => {
   const definition = await findDefinitions(linter, Position.create(16, 9));
   expect(definition).toHaveLength(1);
-  expect(definition[0].targetUri.replace(__dirname, '')).toBe('file:///definition.vhd');
+  expect(definition[0].targetUri.replace(pathToFileURL(__dirname).toString(), '')).toBe('/definition.vhd');
   expect(definition[0].targetRange.start.line).toBe(7);
   expect(definition[0].targetRange.end.line).toBe(7);
 });

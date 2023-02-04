@@ -167,7 +167,8 @@ export const initialization = new Promise<void>(resolve => {
           canceled: false
         };
         const vhdlLinter = await validateTextDocument(change.document, newCancelationObject);
-        const uri = change.document.uri;
+        // For some reason the : in the beginning of win pathes comes escaped here.
+        const uri = change.document.uri.replace('%3A', ':');
         const cachedFile = process.platform === 'win32'
           ? projectParser.cachedFiles.find(cachedFile => cachedFile.uri.toString().toLowerCase() === uri.toLowerCase())
           : projectParser.cachedFiles.find(cachedFile => cachedFile.uri.toString() === uri);
@@ -195,15 +196,14 @@ documents.onDidClose(change => {
 export const linters = new Map<string, VhdlLinter>();
 export const lintersValid = new Map<string, boolean>();
 async function validateTextDocument(textDocument: TextDocument, cancelationObject: CancelationObject = { canceled: false }): Promise<VhdlLinter> {
-  // console.log(textDocument.uri);
-  // console.profile('a');
-  // let start = Date.now();
-  const vhdlLinter = new VhdlLinter(new URL(textDocument.uri), textDocument.getText(), projectParser, getDocumentSettings, cancelationObject);
-  if (vhdlLinter.parsedSuccessfully || typeof linters.get(textDocument.uri) === 'undefined') {
-    linters.set(textDocument.uri, vhdlLinter);
-    lintersValid.set(textDocument.uri, true);
+  // For some reason the : in the beginning of win pathes comes escaped here.
+  const uri = textDocument.uri.replace('%3A', ':');
+  const vhdlLinter = new VhdlLinter(new URL(uri), textDocument.getText(), projectParser, getDocumentSettings, cancelationObject);
+  if (vhdlLinter.parsedSuccessfully || typeof linters.get(uri) === 'undefined') {
+    linters.set(uri, vhdlLinter);
+    lintersValid.set(uri, true);
   } else {
-    lintersValid.set(textDocument.uri, false);
+    lintersValid.set(uri, false);
   }
   // console.log(`parsed for: ${Date.now() - start} ms.`);
   // start = Date.now();
@@ -213,7 +213,7 @@ async function validateTextDocument(textDocument: TextDocument, cancelationObjec
     // console.log(`checked for: ${Date.now() - start} ms.`);
     // start = Date.now();
     // console.profileEnd('a');
-    connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+    connection.sendDiagnostics({ uri, diagnostics });
     // console.log(`send for: ${Date.now() - start} ms.`);
   } catch (err) {
     // Ignore cancelled
@@ -226,6 +226,8 @@ async function validateTextDocument(textDocument: TextDocument, cancelationObjec
 }
 async function getLinter(uri: string) {
   await initialization;
+  uri = uri.replace('%3A', ':');
+
   const linter = linters.get(uri);
   // if (lintersValid.get(uri) !== true) {
   //   throw new ResponseError(ErrorCodes.InvalidRequest, 'Document not valid. Renaming only supported for parsable documents.', 'Document not valid. Renaming only supported for parsable documents.');

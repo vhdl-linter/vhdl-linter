@@ -11,7 +11,7 @@ export async function getTokenFromPosition(linter: VhdlLinter, position: Positio
       && token.range.end.character >= position.character);
   return candidateTokens[0];
 }
-class SetAdd<T> extends Set<T> {
+export class SetAdd<T> extends Set<T> {
   add(... values: T[]) {
     for (const value of values) {
       super.add(value);
