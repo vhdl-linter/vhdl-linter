@@ -1,6 +1,5 @@
 import { RuleBase, IRule } from "./rules-base";
 import { CodeAction, CodeActionKind, Command, DiagnosticSeverity, TextEdit } from "vscode-languageserver";
-import { URI } from "vscode-uri";
 import { IHasLexerToken, IHasPorts, implementsIHasPorts, implementsIHasGenerics, implementsIHasTypes, implementsIHasComponents, implementsIHasSignals, implementsIHasVariables, implementsIHasConstants, implementsIHasSubprograms } from "../parser/interfaces";
 import { OFile, ObjectBase, OPackage, OPackageBody, OType, OEntity, OSubprogram, OComponent, ORead, OWrite, OSignal, OArchitecture, OProcess, OInstantiation } from "../parser/objects";
 
@@ -134,7 +133,7 @@ export class RUnused extends RuleBase implements IRule {
     }
   }
   async check() {
-    const settings = (await this.vhdlLinter.settingsGetter(URI.file(this.vhdlLinter.editorPath).toString()));
+    const settings = (await this.vhdlLinter.settingsGetter(this.vhdlLinter.uri));
     this.unusedSignalRegex = new RegExp(settings.style.unusedSignalRegex);
 
     for (const obj of this.file.objectList) {

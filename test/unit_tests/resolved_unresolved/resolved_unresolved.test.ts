@@ -1,6 +1,7 @@
 import { expect, test } from '@jest/globals';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { pathToFileURL } from 'url';
 import { ProjectParser } from '../../../lib/project-parser';
 import { defaultSettingsWithOverwrite } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdl-linter';
@@ -22,7 +23,7 @@ test.each([
     }
   });
   const path = join(__dirname, file);
-  const linter = new VhdlLinter(path, readFileSync(path, { encoding: 'utf8' }),
+  const linter = new VhdlLinter(pathToFileURL(path), readFileSync(path, { encoding: 'utf8' }),
     await ProjectParser.create([], '', getter), getter);
   await linter.checkAll();
 

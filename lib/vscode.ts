@@ -5,7 +5,6 @@ import {
   ServerOptions,
   TransportKind
 } from 'vscode-languageclient/node';
-import { URI } from 'vscode-uri';
 import { FileParser } from './parser/file-parser';
 import { ISettings } from './settings';
 import { copy, CopyTypes } from './vhdl-entity-converter';
@@ -97,7 +96,7 @@ export function activate(context: ExtensionContext) {
     if (!editor) {
       return;
     }
-    const parser = new FileParser(editor.document.getText(), editor.document.uri.toString(), { canceled: false });
+    const parser = new FileParser(editor.document.getText(), new URL(editor.document.uri.toString()), { canceled: false });
     const file = parser.parse();
 
     if (file) {
@@ -128,7 +127,4 @@ export function deactivate(): Thenable<void> | undefined {
     return undefined;
   }
   return client.stop();
-}
-export function clientConfigurationGetter(resource: string) {
-  return workspace.getConfiguration('VhdlLinter', URI.parse(resource)) as unknown as ISettings;
 }

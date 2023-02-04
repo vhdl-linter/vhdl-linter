@@ -64,7 +64,7 @@ function pushCorrectToken(builder: SemanticTokensBuilder, obj: ObjectBase, range
 export async function handleSemanticTokens(params: SemanticTokensParams): Promise<SemanticTokens> {
 
   const tokensBuilder = new SemanticTokensBuilder();
-  if (!(await getDocumentSettings(params.textDocument.uri)).semanticTokens) {
+  if (!(await getDocumentSettings(new URL(params.textDocument.uri))).semanticTokens) {
     return tokensBuilder.build();
   }
 

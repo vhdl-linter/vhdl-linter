@@ -1,5 +1,4 @@
 import { DefinitionLink, Position } from "vscode-languageserver";
-import { URI } from "vscode-uri";
 import { implementsIHasDefinitions } from "../parser/interfaces";
 import { ORecordChild } from "../parser/objects";
 import { VhdlLinter } from "../vhdl-linter";
@@ -24,7 +23,7 @@ export async function findDefinitions(linter: VhdlLinter, position: Position): P
       targetRange,
       targetSelectionRange,
       text: definition.rootFile.originalText,
-      targetUri: URI.file(definition.rootFile.file).toString()
+      targetUri: definition.rootFile.uri.toString()
     };
   });
 }

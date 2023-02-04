@@ -224,7 +224,7 @@ export class OFile {
   parserMessages: I.OIDiagnosticWithSolution[] = [];
   public lines: string[];
   public lexerTokens: OLexerToken[];
-  constructor(public text: string, public file: string, public originalText: string) {
+  constructor(public text: string, public uri: URL, public originalText: string) {
     this.lines = originalText.split('\n');
   }
 

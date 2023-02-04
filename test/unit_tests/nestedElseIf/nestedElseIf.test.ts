@@ -1,6 +1,7 @@
 import { expect, test } from '@jest/globals';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { pathToFileURL } from 'url';
 import { OIfGenerate } from '../../../lib/parser/objects';
 import { ProjectParser } from '../../../lib/project-parser';
 import { defaultSettingsGetter } from '../../../lib/settings';
@@ -8,7 +9,7 @@ import { VhdlLinter } from '../../../lib/vhdl-linter';
 test('Testing nested if generate structures', async () => {
 
   const path = join(__dirname, 'test_nested_elsif.vhd');
-  const linter = new VhdlLinter(path, readFileSync(path, { encoding: 'utf8' }),
+  const linter = new VhdlLinter(pathToFileURL(path), readFileSync(path, { encoding: 'utf8' }),
     await ProjectParser.create([], '', defaultSettingsGetter), defaultSettingsGetter);
   await linter.checkAll();
 

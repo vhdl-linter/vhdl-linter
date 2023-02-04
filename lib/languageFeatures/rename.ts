@@ -1,5 +1,4 @@
 import { ErrorCodes, Position, ResponseError, TextEdit } from 'vscode-languageserver';
-import { URI } from "vscode-uri";
 import { VhdlLinter } from "../vhdl-linter";
 import { findReferenceAndDefinition, getTokenFromPosition } from "./findReferencesHandler";
 
@@ -19,7 +18,7 @@ export async function renameHandler(linter: VhdlLinter, position: Position, newN
   }
   const changes: {[key: string]: TextEdit[]} = {};
   for (const token of tokens) {
-    const uri = URI.file(token.file.file).toString();
+    const uri = token.file.uri.toString();
     if (!Array.isArray(changes[uri])) {
       changes[uri] = [];
     }
