@@ -15,31 +15,49 @@ beforeAll(async () => {
 afterAll(async () => {
   await projectParser.stop();
 });
-test.each([
-  'entity.vhd',
-])('Testing signature help of %s', async (fileName) => {
+async function prepare(fileName: string) {
   const path = join(__dirname, fileName);
   const linter = new VhdlLinter(path, readFileSync(path, { encoding: 'utf8' }), projectParser, defaultSettingsGetter);
   await Elaborate.elaborate(linter);
+  return linter;
+}
+test('Signature help snapshot', async ()=> {
+  const linter = await prepare('entity.vhd');
+  const help = await signatureHelp(linter, Position.create(6, 6));
 
-  const help = await signatureHelp(linter, Position.create(7, 0));
   expect(help).toMatchInlineSnapshot(`
 {
   "signatures": [
     {
-      "activeParameter": 1,
-      "label": "port1 : in integer;
-    port2 : in integer;
-    port3 : in integer",
+      "activeParameter": 0,
+      "label": "port1, port2, port3",
       "parameters": [
         {
-          "label": "port1 : in integer",
+          "documentation": {
+            "kind": "markdown",
+            "value": "\`\`\`vhdl
+port1 : in integer
+\`\`\`",
+          },
+          "label": "port1",
         },
         {
-          "label": "port2 : in integer",
+          "documentation": {
+            "kind": "markdown",
+            "value": "\`\`\`vhdl
+port2 : in integer
+\`\`\`",
+          },
+          "label": "port2",
         },
         {
-          "label": "port3 : in integer",
+          "documentation": {
+            "kind": "markdown",
+            "value": "\`\`\`vhdl
+port3 : in integer
+\`\`\`",
+          },
+          "label": "port3",
         },
       ],
     },
@@ -47,4 +65,9 @@ test.each([
 }
 `);
 
+});
+test('Signature help snapshot active parameter', async () => {
+  const linter = await prepare('entity.vhd');
+  expect(signatureHelp(linter, Position.create(7, 8))?.signatures[0].activeParameter).toBe(2);
+  expect(signatureHelp(linter, Position.create(8, 11))?.signatures[0].activeParameter).toBe(1);
 });
