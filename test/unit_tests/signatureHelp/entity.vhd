@@ -1,3 +1,4 @@
+use work.pkg.all;
 entity inst_entity is
 end entity;
 architecture arch of inst_entity is
@@ -14,10 +15,11 @@ begin
       port2 => 5,
       asd   => a
       )
-      generic map(
-        GENERIC_A => 5,
-        GENERIC_B => 5
+    generic map(
+      GENERIC_A => 5,
+      GENERIC_B => 5
       );
+  test_procedure(2, 5);
 end architecture;
 
 entity test_entity is
@@ -37,3 +39,9 @@ architecture arch of test_entity is
 begin
 
 end architecture;
+package pkg is
+  procedure test_procedure (
+    par1 : in integer;
+    par2 : in integer
+    );
+end package;

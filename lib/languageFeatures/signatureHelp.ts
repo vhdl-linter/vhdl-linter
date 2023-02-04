@@ -6,7 +6,7 @@ import { findObjectFromPosition } from "./findObjectFromPosition";
 export function findParentInstantiation(linter: VhdlLinter, position: Position): [OInstantiation, OAssociationList | undefined] | undefined {
   const object = findObjectFromPosition(linter, position)[0];
   if (object === undefined) {
-    return undefined
+    return undefined;
   }
   let iterator = object;
   let associationList: OAssociationList | undefined;
@@ -55,7 +55,7 @@ export function signatureHelp(linter: VhdlLinter, position: Position): Signature
           const posI = linter.getIFromPosition(position);
           const associationIndex = associationList.children.findIndex(association => association.range.start.i <= posI && association.range.end.i >= posI);
           const association = associationList.children[associationIndex];
-          if (associationIndex > -1 || association?.formalPart.length == 0) {
+          if (associationIndex > -1 && association?.formalPart.length > 0) {
             for (const formal of association.formalPart) {
               for (const [portIndex, port] of portOrGeneric.entries()) {
                 if (port.lexerToken.getLText() === formal.referenceToken.getLText()) {
@@ -72,7 +72,7 @@ export function signatureHelp(linter: VhdlLinter, position: Position): Signature
           } else {
             activeParameter = 0;
             for (const [childNumber, child] of associationList.children.entries()) {
-              if (posI > child.range.end.i) {
+              if (posI >= child.range.end.i) {
                 activeParameter = childNumber + 1;
               }
             }

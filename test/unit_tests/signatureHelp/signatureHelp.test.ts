@@ -22,9 +22,9 @@ async function prepare(fileName: string) {
   await Elaborate.elaborate(linter);
   return linter;
 }
-test('Signature help snapshot port', async ()=> {
+test('Signature help snapshot port', async () => {
   const linter = await prepare('entity.vhd');
-  const help = await signatureHelp(linter, Position.create(6, 6));
+  const help = await signatureHelp(linter, Position.create(7, 6));
 
   expect(help).toMatchInlineSnapshot(`
 {
@@ -67,9 +67,9 @@ port3 : in integer
 `);
 
 });
-test('Signature help snapshot generic', async ()=> {
+test('Signature help snapshot generic', async () => {
   const linter = await prepare('entity.vhd');
-  const help = await signatureHelp(linter, Position.create(17, 14));
+  const help = await signatureHelp(linter, Position.create(18, 14));
 
   expect(help).toMatchInlineSnapshot(`
 {
@@ -105,13 +105,24 @@ GENERIC_B : integer
 });
 test('Signature help on non existent formal', async () => {
   const linter = await prepare('entity.vhd');
-  const help = await signatureHelp(linter, Position.create(14, 8));
+  const help = await signatureHelp(linter, Position.create(15, 8));
   expect(help?.signatures).toHaveLength(1);
 
   expect((help as SignatureHelp).signatures[0].activeParameter).toBe(3);
 });
 test('Signature help snapshot active parameter', async () => {
   const linter = await prepare('entity.vhd');
-  expect(signatureHelp(linter, Position.create(7, 8))?.signatures[0].activeParameter).toBe(2);
-  expect(signatureHelp(linter, Position.create(8, 11))?.signatures[0].activeParameter).toBe(1);
+  expect(signatureHelp(linter, Position.create(8, 8))?.signatures[0].activeParameter).toBe(2);
+  expect(signatureHelp(linter, Position.create(9, 11))?.signatures[0].activeParameter).toBe(1);
+});
+test.each([
+  [18, 'par1'],
+  [19, 'par1'],
+  [20, 'par2'],
+  [21, 'par2'],
+  [22, 'par2'],
+])('Signature help procedure instantiation character %d expecting parameter %s', async (characterReal, parameter) => {
+  const linter = await prepare('entity.vhd');
+  const help = signatureHelp(linter, Position.create(21, characterReal - 1));
+  expect(help?.signatures[0].parameters?.[help?.signatures[0].activeParameter ?? -1]?.label).toBe(parameter);
 });
