@@ -1,4 +1,4 @@
-import { PathLike, PathOrFileDescriptor, readFileSync } from 'fs';
+import { PathLike, readFileSync } from 'fs';
 
 export function readFileSyncNorm(path: PathLike, options: {
   encoding?: BufferEncoding;
