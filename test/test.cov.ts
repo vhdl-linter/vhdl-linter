@@ -8,7 +8,7 @@ import { joinURL, ProjectParser } from '../lib/project-parser';
 import { defaultSettingsGetter, defaultSettingsWithOverwrite } from '../lib/settings';
 import { VhdlLinter } from '../lib/vhdl-linter';
 
-import { readFileSyncNorm } from './unit_tests/rename/rename.test';
+import { readFileSyncNorm } from "./readFileSyncNorm";
 function readDirPath(path: URL) {
   return readdirSync(path).map(file => joinURL(path, file));
 }

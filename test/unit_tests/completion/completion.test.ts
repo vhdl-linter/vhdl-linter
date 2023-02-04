@@ -6,7 +6,7 @@ import { getCompletions } from '../../../lib/languageFeatures/completion';
 import { ProjectParser } from '../../../lib/project-parser';
 import { defaultSettingsWithOverwrite } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdl-linter';
-import { readFileSyncNorm } from '../rename/rename.test';
+import { readFileSyncNorm } from "../../readFileSyncNorm";
 
 test.each([
   ['lowercase', 'std_ulogic_vector', 'STD_ULOGIC_VECTOR'],

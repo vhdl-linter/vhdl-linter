@@ -4,7 +4,7 @@ import { pathToFileURL } from 'url';
 import { ProjectParser } from '../../../lib/project-parser';
 import { defaultSettingsWithOverwrite } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdl-linter';
-import { readFileSyncNorm } from '../rename/rename.test';
+import { readFileSyncNorm } from "../../readFileSyncNorm";
 test.each([
   'test_port_std_logic_vector.vhd',
   'test_port_std_logic.vhd',

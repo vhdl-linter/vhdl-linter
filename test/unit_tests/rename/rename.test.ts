@@ -1,5 +1,4 @@
 import { afterAll, beforeAll, expect, test, jest } from '@jest/globals';
-import { readFileSync } from 'fs';
 import { pathToFileURL } from 'url';
 import { ErrorCodes, Position, Range, ResponseError } from 'vscode-languageserver';
 import { prepareRenameHandler, renameHandler } from '../../../lib/languageFeatures/rename';
@@ -8,10 +7,8 @@ import { ProjectParser } from '../../../lib/project-parser';
 import { defaultSettingsGetter } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdl-linter';
 import { createPrintableRange, makeRangePrintable } from '../../helper';
+import { readFileSyncNorm } from '../../readFileSyncNorm';
 let projectParser: ProjectParser;
-export function readFileSyncNorm(path: any, options: any) {
-  return readFileSync(path, options).toString().replaceAll('\r\n', '\n');
-}
 beforeAll(async () => {
   projectParser = await ProjectParser.create([pathToFileURL(__dirname)], '', defaultSettingsGetter);
 });

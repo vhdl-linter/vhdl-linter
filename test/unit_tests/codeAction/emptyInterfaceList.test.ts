@@ -5,7 +5,7 @@ import { Position } from 'vscode-languageserver';
 import { ProjectParser } from '../../../lib/project-parser';
 import { defaultSettingsGetter } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdl-linter';
-import { readFileSyncNorm } from '../rename/rename.test';
+import { readFileSyncNorm } from "../../readFileSyncNorm";
 // Check the proposed solution/changes/code actions for diagnostic
 test.each([
   ['empty_interface_list_generic.vhd', {

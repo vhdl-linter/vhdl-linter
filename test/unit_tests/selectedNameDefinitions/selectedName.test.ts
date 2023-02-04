@@ -6,7 +6,7 @@ import { OAssignment, ORecordChild, OSelectedNameRead, OSelectedNameWrite } from
 import { ProjectParser } from '../../../lib/project-parser';
 import { defaultSettingsGetter } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdl-linter';
-import { readFileSyncNorm } from '../rename/rename.test';
+import { readFileSyncNorm } from "../../readFileSyncNorm";
 
 let projectParser: ProjectParser;
 beforeAll(async () => {

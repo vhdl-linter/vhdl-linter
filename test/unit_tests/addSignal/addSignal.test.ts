@@ -6,7 +6,7 @@ import { pathToFileURL } from 'url';
 import { ProjectParser } from '../../../lib/project-parser';
 import { defaultSettingsGetter } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdl-linter';
-import { readFileSyncNorm } from '../rename/rename.test';
+import { readFileSyncNorm } from "../../readFileSyncNorm";
 
 const files = readdirSync(__dirname).filter(file => file.endsWith('.vhd'));
 test.each(files)('testing add signal helper %s', async (file: string) => {

@@ -6,7 +6,7 @@ import { documentHighlightHandler } from '../../../lib/languageFeatures/document
 import { ProjectParser } from '../../../lib/project-parser';
 import { defaultSettingsGetter } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdl-linter';
-import { readFileSyncNorm } from '../rename/rename.test';
+import { readFileSyncNorm } from "../../readFileSyncNorm";
 
 
 test('testing document highlight snapshot write', async () => {
