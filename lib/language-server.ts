@@ -1,5 +1,5 @@
 import { existsSync } from 'fs';
-import { pathToFileURL } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import {
   CodeAction, createConnection, DidChangeConfigurationNotification, ErrorCodes, InitializeParams, LSPErrorCodes, Position, ProposedFeatures, ResponseError, TextDocuments, TextDocumentSyncKind
@@ -14,6 +14,7 @@ import { foldingHandler } from './languageFeatures/folding';
 import { prepareRenameHandler, renameHandler } from './languageFeatures/rename';
 import { handleSemanticTokens, semanticTokensLegend } from './languageFeatures/semanticTokens';
 import { handleOnWorkspaceSymbol } from './languageFeatures/workspaceSymbols';
+import { normalizeUri } from './normalize-uri';
 import { OComponent, OFile, OInstantiation, OUseClause } from './parser/objects';
 import { ProjectParser } from './project-parser';
 import { CancelationError, CancelationObject } from './server-objects';
@@ -168,7 +169,7 @@ export const initialization = new Promise<void>(resolve => {
         };
         const vhdlLinter = await validateTextDocument(change.document, newCancelationObject);
         // For some reason the : in the beginning of win pathes comes escaped here.
-        const uri = change.document.uri.replace('%3A', ':');
+        const uri = normalizeUri(change.document.uri);
         const cachedFile = process.platform === 'win32'
           ? projectParser.cachedFiles.find(cachedFile => cachedFile.uri.toString().toLowerCase() === uri.toLowerCase())
           : projectParser.cachedFiles.find(cachedFile => cachedFile.uri.toString() === uri);
@@ -197,8 +198,9 @@ export const linters = new Map<string, VhdlLinter>();
 export const lintersValid = new Map<string, boolean>();
 async function validateTextDocument(textDocument: TextDocument, cancelationObject: CancelationObject = { canceled: false }): Promise<VhdlLinter> {
   // For some reason the : in the beginning of win pathes comes escaped here.
-  const uri = textDocument.uri.replace('%3A', ':');
-  const vhdlLinter = new VhdlLinter(new URL(uri), textDocument.getText(), projectParser, getDocumentSettings, cancelationObject);
+  const uri = normalizeUri(textDocument.uri);
+  const url = new URL(uri);
+  const vhdlLinter = new VhdlLinter(url, textDocument.getText(), projectParser, getDocumentSettings, cancelationObject);
   if (vhdlLinter.parsedSuccessfully || typeof linters.get(uri) === 'undefined') {
     linters.set(uri, vhdlLinter);
     lintersValid.set(uri, true);
@@ -226,7 +228,7 @@ async function validateTextDocument(textDocument: TextDocument, cancelationObjec
 }
 async function getLinter(uri: string) {
   await initialization;
-  uri = uri.replace('%3A', ':');
+  uri = normalizeUri(uri);
 
   const linter = linters.get(uri);
   // if (lintersValid.get(uri) !== true) {
