@@ -1,0 +1,32 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Signature help snapshot generic 1`] = `
+{
+  "signatures": [
+    {
+      "activeParameter": 0,
+      "label": "GENERIC_A, GENERIC_B",
+      "parameters": [
+        {
+          "documentation": {
+            "kind": "markdown",
+            "value": "\`\`\`vhdl
+GENERIC_A : integer
+\`\`\`",
+          },
+          "label": "GENERIC_A",
+        },
+        {
+          "documentation": {
+            "kind": "markdown",
+            "value": "\`\`\`vhdl
+GENERIC_B : integer
+\`\`\`",
+          },
+          "label": "GENERIC_B",
+        },
+      ],
+    },
+  ],
+}
+`;

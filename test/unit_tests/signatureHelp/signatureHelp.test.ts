@@ -71,36 +71,7 @@ test('Signature help snapshot generic', async () => {
   const linter = await prepare('entity.vhd');
   const help = await signatureHelp(linter, Position.create(18, 14));
 
-  expect(help).toMatchInlineSnapshot(`
-{
-  "signatures": [
-    {
-      "activeParameter": 0,
-      "label": "GENERIC_A, GENERIC_B",
-      "parameters": [
-        {
-          "documentation": {
-            "kind": "markdown",
-            "value": "\`\`\`vhdl
-GENERIC_A : integer
-\`\`\`",
-          },
-          "label": "GENERIC_A",
-        },
-        {
-          "documentation": {
-            "kind": "markdown",
-            "value": "\`\`\`vhdl
-GENERIC_B : integer
-\`\`\`",
-          },
-          "label": "GENERIC_B",
-        },
-      ],
-    },
-  ],
-}
-`);
+  expect(help).toMatchSnapshot();
 
 });
 test('Signature help on non existent formal', async () => {
