@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, expect, test, jest } from '@jest/globals';
+import { expect, test } from '@jest/globals';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { normalizeUri } from '../../../lib/normalize-uri';
 

@@ -1,5 +1,5 @@
 import { existsSync } from 'fs';
-import { fileURLToPath, pathToFileURL } from 'url';
+import { pathToFileURL } from 'url';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import {
   CodeAction, createConnection, DidChangeConfigurationNotification, ErrorCodes, InitializeParams, LSPErrorCodes, Position, ProposedFeatures, ResponseError, TextDocuments, TextDocumentSyncKind
