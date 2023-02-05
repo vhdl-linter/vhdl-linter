@@ -20,4 +20,14 @@ architecture arch of ent is
   end component;
 begin
   inst_test_entity : test_entity port map();
+  inst_test_entity2 : test_entity port map(
+    entering 
+  );
+  inst_test_entity3 : test_entity port map(
+    entering, 
+  );
+  inst_test_entity4 : test_entity port map(
+    port1 => a,
+    port3 =>
+  );
 end architecture;

@@ -3,6 +3,7 @@ import { implementsIHasGenerics } from "../parser/interfaces";
 import { OAliasWithSignature, OAssociationList, OFile, OGenericAssociationList, OInstantiation } from "../parser/objects";
 import { VhdlLinter } from "../vhdl-linter";
 import { findObjectFromPosition } from "./findObjectFromPosition";
+import { getTokenFromPosition } from "./findReferencesHandler";
 export function findParentInstantiation(linter: VhdlLinter, position: Position): [OInstantiation, OAssociationList | undefined] | undefined {
   const object = findObjectFromPosition(linter, position)[0];
   if (object === undefined) {
@@ -72,7 +73,12 @@ export function signatureHelp(linter: VhdlLinter, position: Position): Signature
           } else {
             activeParameter = 0;
             for (const [childNumber, child] of associationList.children.entries()) {
-              if (posI >= child.range.end.i) {
+              // Extend the end range by white spaces (assume it belongs to the association if cursor is in whitespace)
+              let tokenIndex = linter.file.lexerTokens.findIndex(token => token.range.end.i === child.range.end.i);
+              while (linter.file.lexerTokens[tokenIndex + 1].isWhitespace()) {
+                tokenIndex++;
+              }
+              if (posI >= linter.file.lexerTokens[tokenIndex].range.end.i) {
                 activeParameter = childNumber + 1;
               }
             }

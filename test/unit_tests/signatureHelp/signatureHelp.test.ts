@@ -115,6 +115,16 @@ test('Signature help snapshot active parameter', async () => {
   expect(signatureHelp(linter, Position.create(8, 8))?.signatures[0].activeParameter).toBe(2);
   expect(signatureHelp(linter, Position.create(9, 11))?.signatures[0].activeParameter).toBe(1);
 });
+test('Signature help snapshot active parameter for partially filled', async () => {
+  const linter = await prepare('component.vhd');
+  expect(signatureHelp(linter, Position.create(23, 13))?.signatures[0].activeParameter).toBe(0);
+  // Comma entered before and after
+  expect(signatureHelp(linter, Position.create(26, 12))?.signatures[0].activeParameter).toBe(0);
+  expect(signatureHelp(linter, Position.create(26, 13))?.signatures[0].activeParameter).toBe(1);
+  // only part of formal
+  expect(signatureHelp(linter, Position.create(30, 12))?.signatures[0].activeParameter).toBe(2);
+
+});
 test.each([
   [18, 'par1'],
   [19, 'par1'],
