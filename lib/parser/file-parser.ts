@@ -71,7 +71,7 @@ export class FileParser extends ParserBase {
             }
           }
         } else if ((innerMatch = (match[2].match(/-enable(?:\s|$)(.+)?/i) as [string, string] | null)) !== null) {
-          const rules: (string | undefined)[] = innerMatch[1]?.split(' ') ?? [undefined];
+          const rules: (string | undefined)[] = innerMatch[1]?.split(' ') ?? [];
           if (rules.length == 0) { // If not rule is specified all rules are enabled
             rules.push(...disabledRangeStart.keys());
           }
