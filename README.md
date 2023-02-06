@@ -13,3 +13,14 @@ This includes:
 - project wide definitions in packages (types, functions, etc.)
 
 ![rename](./doc/rename.gif)
+
+## Signature Help
+Show the signature of the object being instantiated.
+Currently working for instantiation of:
+- entities
+- procedures
+- components
+
+Signature help is not yet supported for calling of functions.
+![rename](./doc/signature-help.png)
+![rename2](./doc/signature-help2.png)

@@ -1,111 +1,108 @@
 import { MarkupKind, Position, SignatureHelp, SignatureInformation } from "vscode-languageserver";
-import { IHasDefinitions, implementsIHasDefinitions } from "../parser/interfaces";
-import { OAliasWithSignature, OAssociationList, ObjectBase, OEntity, OFile, OInstantiation, OSubprogram } from "../parser/objects";
+import { implementsIHasGenerics } from "../parser/interfaces";
+import { OAliasWithSignature, OAssociationList, OFile, OGenericAssociationList, OInstantiation } from "../parser/objects";
 import { VhdlLinter } from "../vhdl-linter";
 import { findObjectFromPosition } from "./findObjectFromPosition";
-
-export async function signatureHelp(linter: VhdlLinter, position: Position): Promise<SignatureHelp | null> {
+import { getTokenFromPosition } from "./findReferencesHandler";
+export function findParentInstantiation(linter: VhdlLinter, position: Position): [OInstantiation, OAssociationList | undefined] | undefined {
   const object = findObjectFromPosition(linter, position)[0];
+  if (object === undefined) {
+    return undefined;
+  }
   let iterator = object;
   let associationList: OAssociationList | undefined;
   // Find Parent that is defined by a subprogram (instantiation)
-  iteratorLoop: while (iterator instanceof OFile === false) {
+  while (iterator instanceof OFile === false) {
     if (iterator instanceof OAssociationList) {
       associationList = iterator;
     }
-    if (implementsIHasDefinitions(iterator)) {
-      for (const definition of iterator.definitions) {
-        if (definition instanceof OSubprogram || definition instanceof OEntity) {
-          break iteratorLoop;
-        }
-      }
+    if (iterator instanceof OInstantiation) {
+      return [iterator, associationList];
     }
 
     if (iterator.parent instanceof OFile) {
-      return null;
+      break;
     }
     iterator = iterator.parent;
   }
-  const signatures: SignatureInformation[] = [];
-  if (iterator instanceof OInstantiation) {
-    for (const definition of iterator.definitions) {
-      if (definition instanceof OAliasWithSignature) {
-        // Handle AliasWIthSignatures
-      } else {
-        if (definition.ports.length === 0) {
-          signatures.push({
-            label: ''
-          });
-        } else {
-          const text = definition.ports.map(port => port.lexerToken.text).join(', ');
-          let activeParameter = 0;
-          if (associationList) {
-            // Find active parameter
-            // If in range of association via number
-            const posI = linter.getIFromPosition(position);
-            const associationIndex = associationList.children.findIndex(association => association.range.start.i <= posI && association.range.end.i >= posI);
-            if (associationIndex > -1) {
-              const association = associationList.children[associationIndex];
-              if (association.formalPart.length > 0) {
-                for (const formal of association.formalPart) {
-                  for (const [portIndex, port] of definition.ports.entries()) {
-                    if (port.lexerToken.getLText() === formal.referenceToken.getLText()) {
-                      activeParameter = portIndex;
-                    }
-                  }
-                }
-              } else {
-                activeParameter = associationIndex;
-              }
-            } else {
-              for (const [childNumber, child] of associationList.children.entries()) {
-                console.log(childNumber, child.range.end.line, child.range.end.character, child.range.end.i, posI);
-                if (posI > child.range.end.i) {
-                  activeParameter = childNumber + 1;
-                }
-              }
-
-            }
-          }
-          console.log(object.constructor.name);
-
-          signatures.push({
-            label: text,
-            parameters: definition.ports.map(port => ({
-              label: port.lexerToken.text,
-              documentation: {
-                kind: MarkupKind.Markdown,
-                value: '```vhdl\n' + port.range.getText().replaceAll(/\s+/g, ' ') + '\n```'
-              }
-            })),
-            activeParameter
-          });
-        }
-
-      }
-    }
+  return undefined;
+}
+export function signatureHelp(linter: VhdlLinter, position: Position): SignatureHelp | null {
+  const result = findParentInstantiation(linter, position);
+  if (!result) {
+    return null;
   }
-
-
-  for (const definition of (iterator as (ObjectBase & IHasDefinitions)).definitions) {
-
-    if (definition instanceof OSubprogram) {
-      if (definition.ports.length === 0) {
+  const [instantiation, associationList] = result;
+  const signatures: SignatureInformation[] = [];
+  for (const definition of instantiation.definitions) {
+    if (definition instanceof OAliasWithSignature) {
+      // Handle AliasWIthSignatures
+    } else {
+      const portOrGeneric = associationList instanceof OGenericAssociationList && implementsIHasGenerics(definition) ? definition.generics : definition.ports;
+      if (portOrGeneric.length === 0) {
         signatures.push({
           label: ''
         });
       } else {
-        const startI = definition.ports[0].range.start.i;
-        const text = linter.text.substring(startI, definition.ports[definition.ports.length - 1].range.end.i);
+        // Skip definitions with less ports
+        if (portOrGeneric.length < (associationList?.children?.length ?? 0)) {
+          continue;
+        }
+        const text = portOrGeneric.map(port => port.lexerToken.text).join(', ');
+        let activeParameter;
+        if (associationList) {
+          // Find active parameter
+          // If in range of association via number
+          const posI = linter.getIFromPosition(position);
+          const associationIndex = associationList.children.findIndex(association => association.range.start.i <= posI && association.range.end.i >= posI);
+          const association = associationList.children[associationIndex];
+          if (associationIndex > -1 && association?.formalPart.length > 0) {
+            for (const formal of association.formalPart) {
+              for (const [portIndex, port] of portOrGeneric.entries()) {
+                if (port.lexerToken.getLText() === formal.referenceToken.getLText()) {
+                  activeParameter = portIndex;
+                }
+              }
+            }
+            // If not found set outside of range.
+            // LSP standard is not complete on this.
+            // This might be hacky, client maybe supposed to reset to zero anyways. But works in vscode
+            if (activeParameter === undefined) {
+              activeParameter = portOrGeneric.length;
+            }
+          } else {
+            activeParameter = 0;
+            for (const [childNumber, child] of associationList.children.entries()) {
+              // Extend the end range by white spaces (assume it belongs to the association if cursor is in whitespace)
+              let tokenIndex = linter.file.lexerTokens.findIndex(token => token.range.end.i === child.range.end.i);
+              while (linter.file.lexerTokens[tokenIndex + 1].isWhitespace()) {
+                tokenIndex++;
+              }
+              if (posI >= linter.file.lexerTokens[tokenIndex].range.end.i) {
+                activeParameter = childNumber + 1;
+              }
+            }
+
+          }
+        }
+
         signatures.push({
           label: text,
-          parameters: definition.ports.map(port => ({
-            label: [port.range.start.i - startI, port.range.end.i - startI]
-          }))
+          parameters: portOrGeneric.map(port => ({
+            label: port.lexerToken.text,
+            documentation: {
+              kind: MarkupKind.Markdown,
+              value: '```vhdl\n' + port.range.getText().replaceAll(/\s+/g, ' ') + '\n```'
+            }
+          })),
+          activeParameter
         });
       }
+
     }
   }
+
+
   return {
     signatures
   };

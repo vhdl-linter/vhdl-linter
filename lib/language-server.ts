@@ -114,9 +114,7 @@ connection.onInitialize((params: InitializeParams) => {
       workspaceSymbolProvider: true,
       signatureHelpProvider: {
         triggerCharacters: [
-          ...Array.from(Array(26)).map((e, i) => String.fromCharCode(i + 65)),
-          ...Array.from(Array(26)).map((e, i) => String.fromCharCode(i + 65).toLowerCase()),
-          ...Array.from(Array(10).keys()).map(a => String(a))
+          '('
         ]
       }
     }
