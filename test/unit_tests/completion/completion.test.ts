@@ -1,12 +1,20 @@
-import { expect, test } from '@jest/globals';
+import { afterAll, beforeAll, expect, test } from '@jest/globals';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
 import { Elaborate } from '../../../lib/elaborate/elaborate';
 import { getCompletions } from '../../../lib/languageFeatures/completion';
 import { ProjectParser } from '../../../lib/project-parser';
-import { defaultSettingsWithOverwrite } from '../../../lib/settings';
+import { defaultSettingsGetter, defaultSettingsWithOverwrite } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdl-linter';
+import { createPrintablePosition } from '../../helper';
 import { readFileSyncNorm } from "../../readFileSyncNorm";
+let projectParser: ProjectParser;
+beforeAll(async () => {
+  projectParser = await ProjectParser.create([pathToFileURL(__dirname)], '', defaultSettingsGetter);
+});
+afterAll(async () => {
+  await projectParser.stop();
+});
 
 test.each([
   ['lowercase', 'std_ulogic_vector', 'STD_ULOGIC_VECTOR'],
@@ -22,15 +30,7 @@ test.each([
   const linter = new VhdlLinter(uri, readFileSyncNorm(uri, { encoding: 'utf8' }),
     await ProjectParser.create([], '', getter), getter);
   await Elaborate.elaborate(linter);
-  const completion = await getCompletions(linter, {
-    textDocument: {
-      uri: uri.toString()
-    },
-    position: {
-      line: 9,
-      character: 13
-    }
-  });
+  const completion = await getCompletions(linter, { line: 9, character: 13 });
   expect(completion).toEqual(
     expect.arrayContaining([
       expect.objectContaining({
@@ -45,4 +45,26 @@ test.each([
       })
     ])
   );
+});
+
+
+test.each([
+  ['test_completion.vhd', createPrintablePosition(11, 18), ['u_unsigned'], []],
+  ['test_completion.vhd', createPrintablePosition(15, 5), ['test_port'], []],
+  ['test_completion.vhd', createPrintablePosition(17, 1), ['all', 'procedure'], []],
+  ['test_completion_record.vhd', createPrintablePosition(19, 9), ['foo'], ['banana']],
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+])('testing completion in %s:%s expecting labels: %s', async (filename, position, expectedLabels, notExpectedLabels) => {
+  const uri = pathToFileURL(join(__dirname, filename));
+  const linter = new VhdlLinter(uri, readFileSyncNorm(uri, { encoding: 'utf8' }),
+    projectParser, defaultSettingsGetter);
+  await Elaborate.elaborate(linter);
+  const completions = await getCompletions(linter, position);
+  expect(completions).toEqual(expect.arrayContaining(expectedLabels.map(expectedLabel =>
+    expect.objectContaining({label: expectedLabel})
+  )));
+  // Currently record elements are generally suggested.
+  // expect(completions).toEqual(expect.not.arrayContaining(notExpectedLabels.map(notExpectedLabel =>
+  //   expect.objectContaining({label: notExpectedLabel})
+  // )));
 });

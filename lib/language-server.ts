@@ -330,7 +330,7 @@ connection.onCompletion(async (params, cancelationToken) => {
   if (cancelationToken.isCancellationRequested) {
     return [];
   }
-  return getCompletions(linter, params);
+  return getCompletions(linter, params.position);
 });
 connection.onReferences( async params => {
   const linter = await getLinter(params.textDocument.uri);

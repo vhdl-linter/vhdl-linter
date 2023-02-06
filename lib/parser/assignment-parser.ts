@@ -78,20 +78,21 @@ export class AssignmentParser extends ParserBase {
       }
     }
     let rightHandSide, endToken;
+    let startI;
     do {
-      [rightHandSide, endToken] = this.advanceParenthesisAware([';', 'when', 'else', 'after', ','], true, true);
+      startI = this.state.pos.i;
+      [rightHandSide, endToken] = this.advanceParenthesisAware([';', 'when', 'else', 'after', ',', 'end'], true, true);
       if (rightHandSide.length === 1 && rightHandSide[0].getLText() == 'unaffected') {
         continue;
       }
       const expressionParser = new ExpressionParser(this.state, assignment, rightHandSide);
       assignment.references.push(...expressionParser.parse());
-
-    } while (endToken.getLText() !== ';');
+    } while (endToken.getLText() !== ';' && endToken.getLText() !== 'end');
+    if (endToken.getLText() === 'end') {
+      this.state.messages.push({ message: `Unexpected end. Probably missing a ';'.`, range: endToken.range.copyWithNewStart(startI) });
+    }
     assignment.range = assignment.range.copyWithNewEnd(this.state.pos.i);
     this.debug('parse end');
     return assignment;
   }
-
-
-
 }
