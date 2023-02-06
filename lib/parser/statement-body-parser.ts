@@ -64,6 +64,7 @@ export class StatementBodyParser extends ParserBase {
       iterateConstant.typeReference = [];
       iterateConstant.lexerToken = constantName;
       statementBody.constants.push(iterateConstant);
+      (statementBody as OForGenerate).iterationConstant = constantName;
     }
     if (skipStart !== true) {
       statementBody.lexerToken = this.consumeIdentifier();
@@ -91,6 +92,7 @@ export class StatementBodyParser extends ParserBase {
             if (alternativeLabel !== undefined) {
               this.maybe(alternativeLabel.text);
             }
+            statementBody.range = statementBody.range.copyWithNewEnd(this.getToken().range);
             this.expect(';');
             continue;
           }
@@ -116,6 +118,8 @@ export class StatementBodyParser extends ParserBase {
             this.maybe((statementBody as OBlock | OIfGenerate).label);
           }
         }
+
+        statementBody.range = statementBody.range.copyWithNewEnd(this.getToken().range);
         this.expect(';');
         break;
       }

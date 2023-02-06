@@ -198,6 +198,7 @@ export class ObjectBase {
 
 
 export abstract class OGeneric extends ObjectBase implements I.IHasDefinitions, I.IHasReferenceLinks {
+  parent: OEntity ;
   definitions: (OGeneric | OPackage)[] = [];
   referenceLinks: OReference[] = [];
   aliasReferences: OAlias[] = [];
@@ -226,7 +227,7 @@ export class OFile {
   parserMessages: I.OIDiagnosticWithSolution[] = [];
   public lines: string[];
   public lexerTokens: OLexerToken[];
-  constructor(public text: string, public file: string, public originalText: string) {
+  constructor(public text: string, public uri: URL, public originalText: string) {
     this.lines = originalText.split('\n');
   }
 
@@ -486,6 +487,8 @@ export class OEnumLiteral extends ObjectBase implements I.IHasReferenceLinks, I.
 export class OForGenerate extends OStatementBody implements I.IHasLabel {
   lexerToken: undefined;
   label: OLexerToken;
+  iterationConstant: OLexerToken;
+  iterationRangeTokens: OLexerToken[];
   labelLinks: OLabelReference[] = [];
   constructor(public parent: OArchitecture,
     range: OIRange,
@@ -496,6 +499,7 @@ export class OForGenerate extends OStatementBody implements I.IHasLabel {
 }
 export class OCaseGenerate extends ObjectBase implements I.IHasLabel {
   expression: OReference[] = [];
+  expressionTokens: OLexerToken[] = [];
   whenGenerateClauses: OWhenGenerateClause[] = [];
   label: OLexerToken;
   labelLinks: OLabelReference[] = [];
@@ -506,6 +510,7 @@ export class OWhenGenerateClause extends OStatementBody implements I.IMayHaveLab
   label?: OLexerToken;
   labelLinks: OLabelReference[] = [];
   condition: OReference[] = [];
+  conditionTokens: OLexerToken[] = [];
   public parent: OCaseGenerate;
 }
 export class OIfGenerate extends ObjectBase implements I.IHasLabel {
@@ -522,6 +527,7 @@ export class OIfGenerateClause extends OStatementBody implements I.IMayHaveLabel
   labelLinks: OLabelReference[] = [];
   lexerToken: undefined;
   condition: OReference[] = [];
+  conditionTokens: OLexerToken[] = [];
   public parent: OIfGenerate;
 
 }

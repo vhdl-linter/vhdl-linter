@@ -38,14 +38,14 @@ export class ObjectDeclarationParser extends ParserBase {
       this.maybe(',');
       let object;
       if (variable) {
-        object = new OVariable(this.parent as IHasVariables, this.getToken().range);
+        object = new OVariable(this.parent as IHasVariables, nextToken.range);
         object.shared = shared;
       } else if (constant) {
-        object = new OConstant(this.parent as IHasConstants, this.getToken().range);
+        object = new OConstant(this.parent as IHasConstants, nextToken.range);
       } else if (file) {
-        object = new OFileVariable(this.parent as IHasFileVariables, this.getToken().range);
+        object = new OFileVariable(this.parent as IHasFileVariables, nextToken.range);
       } else {
-        object = new OSignal((this.parent as ObjectBase & IHasSignals), this.getToken().range);
+        object = new OSignal((this.parent as ObjectBase & IHasSignals), nextToken.range);
       }
       object.lexerToken = this.consumeToken();
       objects.push(object);

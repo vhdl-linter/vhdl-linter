@@ -1,8 +1,7 @@
 import { ErrorCodes, Location, Position, ResponseError } from 'vscode-languageserver';
-import { URI } from 'vscode-uri';
 import { OLexerToken } from '../lexer';
 import { IHasEndingLexerToken, implementsIHasEndingLexerToken, implementsIHasLexerToken, implementsIHasReference } from '../parser/interfaces';
-import { OArchitecture, ObjectBase, OEntity, OInstantiation, OPackage, OPackageBody, OPort, OReference, OSubprogram, OUseClause } from '../parser/objects';
+import { OArchitecture, ObjectBase, OEntity, OGeneric, OInstantiation, OPackage, OPackageBody, OPort, OReference, OSubprogram, OUseClause } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
 export async function getTokenFromPosition(linter: VhdlLinter, position: Position): Promise<OLexerToken | undefined> {
 
@@ -12,7 +11,7 @@ export async function getTokenFromPosition(linter: VhdlLinter, position: Positio
       && token.range.end.character >= position.character);
   return candidateTokens[0];
 }
-class SetAdd<T> extends Set<T> {
+export class SetAdd<T> extends Set<T> {
   add(... values: T[]) {
     for (const value of values) {
       super.add(value);
@@ -21,7 +20,7 @@ class SetAdd<T> extends Set<T> {
   }
 }
 export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position: Position) {
-  const linter = oldLinter.projectParser.cachedFiles.find(cachedFile => cachedFile.path === oldLinter.file.file)?.linter;
+  const linter = oldLinter.projectParser.cachedFiles.find(cachedFile => cachedFile.uri.toString() === oldLinter.file.uri.toString())?.linter;
   if (!linter) {
     throw new ResponseError(ErrorCodes.InvalidRequest, 'Error during find reference operation', 'Error during find reference operation');
   }
@@ -109,6 +108,19 @@ export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position
             return [];
           }));
       }
+      if (definition instanceof OGeneric) {
+        referenceTokens.push(...definition.parent.referenceLinks
+          .flatMap(link => {
+            if (link instanceof OInstantiation) {
+              return link.genericAssociationList?.children.flatMap(child => {
+                return child.formalPart
+                  .filter(formal => formal.referenceToken.getLText() === definition.lexerToken.getLText())
+                  .map(formal => formal.referenceToken);
+              }) ?? [];
+            }
+            return [];
+          }));
+      }
       if (definition instanceof OPackage) {
         for (const correspondingPackageBody of definition.correspondingPackageBodies) {
           referenceTokens.push(correspondingPackageBody.lexerToken);
@@ -126,12 +138,12 @@ export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position
   // make sure to only return one reference per range
   const map = new Map<string, OLexerToken>();
   for (const token of referenceTokens) {
-    map.set(`${token.file.file}-${token.range.start.i}-${token.range.end.i}`, token);
+    map.set(`${token.file.uri}-${token.range.start.i}-${token.range.end.i}`, token);
   }
   return [...map.values()];
 
 }
 export async function findReferencesHandler(linter: VhdlLinter, position: Position) {
 
-  return (await findReferenceAndDefinition(linter, position))?.map(object => Location.create(URI.file(object.file.file).toString(), object.range));
+  return (await findReferenceAndDefinition(linter, position))?.map(object => Location.create(object.file.uri.toString(), object.range));
 }

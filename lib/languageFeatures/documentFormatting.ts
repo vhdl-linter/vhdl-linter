@@ -1,12 +1,12 @@
 import { exec, spawn } from 'child_process';
 import { promises } from 'fs';
 import { tmpdir } from 'os';
-import { join, sep } from 'path';
+import {  sep } from 'path';
 import { promisify } from 'util';
 import { CancellationToken, DocumentFormattingParams, LSPErrorCodes, Range, ResponseError, TextEdit, WorkDoneProgressReporter } from 'vscode-languageserver';
 import { attachWorkDone } from 'vscode-languageserver/lib/common/progress';
 import { connection, documents } from '../language-server';
-import { getRootDirectory } from '../project-parser';
+import { getRootDirectory, joinURL } from '../project-parser';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const nullProgressReporter = attachWorkDone(undefined as any, /* params */ undefined);
 async function _getProgressReporter(reporter: WorkDoneProgressReporter, title: string) {
@@ -35,8 +35,8 @@ export async function handleDocumentFormatting(params: DocumentFormattingParams,
   const tmpFile = path + sep + 'beautify';
   await promises.writeFile(tmpFile, text);
   const rootDir = getRootDirectory();
-  const emacsScripts = join(rootDir, 'emacs', 'emacs-vhdl-formatting-script.lisp');
-  const emacsLoadPath = join(rootDir, 'emacs');
+  const emacsScripts = joinURL(rootDir, 'emacs', 'emacs-vhdl-formatting-script.lisp');
+  const emacsLoadPath = joinURL(rootDir, 'emacs');
   const numSpaces = typeof params.options.tabSize === 'number' ? params.options.tabSize : 2;
   try {
     await promisify(exec)(`command -v emacs`);

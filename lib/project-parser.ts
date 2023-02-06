@@ -2,16 +2,22 @@ import { FSWatcher, watch } from 'chokidar';
 import { EventEmitter } from 'events';
 import { existsSync, promises } from 'fs';
 import { join, sep } from 'path';
+import { fileURLToPath, pathToFileURL } from 'url';
 import { Elaborate } from './elaborate/elaborate';
+import { SetAdd } from './languageFeatures/findReferencesHandler';
 import { OArchitecture, OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
 import { SettingsGetter, VhdlLinter } from './vhdl-linter';
 
+export function joinURL(url: URL, ...additional: string[]) {
+  const path = join(fileURLToPath(url), ...additional);
 
+  return pathToFileURL(path);
+}
 export function getRootDirectory() {
-  let currentDir = __dirname;
+  let currentDir = pathToFileURL(__dirname);
   let iterations = 10;
-  while (!existsSync(join(currentDir, 'package.json'))) {
-    currentDir = join(currentDir, '..');
+  while (!existsSync(joinURL(currentDir, 'package.json'))) {
+    currentDir = joinURL(currentDir, '..');
     if (iterations-- === 0) {
       throw new Error('Could not find root directory');
     }
@@ -29,17 +35,18 @@ export class ProjectParser {
   events = new EventEmitter();
   private watchers: FSWatcher[] = [];
   // Constructor can not be async. So constructor is private and use factory to create
-  public static async create(workspaces: string[], fileIgnoreRegex: string, settingsGetter: SettingsGetter, disableWatching = false) {
+  public static async create(workspaces: URL[], fileIgnoreRegex: string, settingsGetter: SettingsGetter, disableWatching = false) {
     const projectParser = new ProjectParser(workspaces, fileIgnoreRegex, settingsGetter);
     await projectParser.init(disableWatching);
     return projectParser;
   }
-  private constructor(public workspaces: string[], public fileIgnoreRegex: string, public settingsGetter: SettingsGetter) { }
-  public addFolders(paths: string[]) {
-    for (const path of paths) {
-      const watcher = watch(path.replace(sep, '/') + '/**/*.vhd?(l)', { ignoreInitial: true });
+  private constructor(public workspaces: URL[], public fileIgnoreRegex: string, public settingsGetter: SettingsGetter) { }
+  public addFolders(urls: URL[]) {
+    for (const url of urls) {
+      // Chokidar does not accept win style line endings
+      const watcher = watch(fileURLToPath(url).replaceAll(sep, '/') + '/**/*.vhd?(l)', { ignoreInitial: true });
       watcher.on('add', async (path) => {
-        const cachedFile = await (FileCache.create(path, this));
+        const cachedFile = await (FileCache.create(pathToFileURL(path), this));
         this.cachedFiles.push(cachedFile);
         this.flattenProject();
         this.events.emit('change', 'add', path);
@@ -47,8 +54,8 @@ export class ProjectParser {
       watcher.on('change', async (path) => {
         // console.log('change', path);
         const cachedFile = process.platform === 'win32'
-          ? this.cachedFiles.find(cachedFile => cachedFile.path.toLowerCase() === path.toLowerCase())
-          : this.cachedFiles.find(cachedFile => cachedFile.path === path);
+          ? this.cachedFiles.find(cachedFile => fileURLToPath(cachedFile.uri).toLowerCase() === path.toLowerCase())
+          : this.cachedFiles.find(cachedFile => fileURLToPath(cachedFile.uri) === path);
         if (cachedFile) {
           await cachedFile.parse();
           this.flattenProject();
@@ -59,7 +66,7 @@ export class ProjectParser {
         this.cachedElaborate = undefined;
       });
       watcher.on('unlink', path => {
-        const cachedFileIndex = this.cachedFiles.findIndex(cachedFile => cachedFile.path === path);
+        const cachedFileIndex = this.cachedFiles.findIndex(cachedFile => cachedFile.uri.pathname === path);
         if (cachedFileIndex > -1) {
           this.cachedFiles.splice(cachedFileIndex, 1);
           this.flattenProject();
@@ -70,16 +77,16 @@ export class ProjectParser {
     }
   }
   private async init(disableWatching: boolean) {
-    const files = new Set<string>();
+    const files = new SetAdd<string>();
     await Promise.all(this.workspaces.map(async (directory) => {
       const directories = await this.parseDirectory(directory);
-      return (await Promise.all(directories.map(file => promises.realpath(file)))).forEach(file => files.add(file));
+      files.add(...directories.map(url => url.toString()));
     }));
     const rootDirectory = getRootDirectory();
-    (await this.parseDirectory(join(rootDirectory, 'ieee2008'))).forEach(file => files.add(file));
+    files.add(...(await this.parseDirectory(joinURL(rootDirectory, 'ieee2008'))).map(url => url.toString()));
 
     for (const file of files) {
-      const cachedFile = await FileCache.create(file, this);
+      const cachedFile = await FileCache.create(new URL(file), this);
       this.cachedFiles.push(cachedFile);
     }
     this.cachedFiles.sort((a, b) => b.lintingTime - a.lintingTime);
@@ -94,21 +101,20 @@ export class ProjectParser {
       await watcher.close();
     }
   }
-  private async parseDirectory(directory: string): Promise<string[]> {
-    const files: string[] = [];
+  private async parseDirectory(directory: URL): Promise<URL[]> {
+    const files: URL[] = [];
     const entries = await promises.readdir(directory);
     const ignoreRegex = this.fileIgnoreRegex.trim().length > 0 ? new RegExp(this.fileIgnoreRegex) : null;
-
     // const entries = await promisify(directory.getEntries)()
     await Promise.all(entries.map(async entry => {
       try {
-        const filePath = directory + sep + entry;
+        const filePath = joinURL(directory, entry);
         const fileStat = await promises.stat(filePath);
         if (fileStat.isFile()) {
-          if (entry.match(/\.vhdl?$/i) && (ignoreRegex === null || !filePath.match(ignoreRegex))) {
+          if (entry.match(/\.vhdl?$/i) && (ignoreRegex === null || !filePath.pathname.match(ignoreRegex))) {
             files.push(filePath);
           }
-        } else {
+        } else if (fileStat.isDirectory()) {
           files.push(... await this.parseDirectory(filePath));
         }
       } catch (e) {
@@ -166,19 +172,20 @@ class FileCache {
   linter: VhdlLinter;
   lintingTime: number;
   // Constructor can not be async. So constructor is private and use factory to create
-  public static async create(path: string, projectParser: ProjectParser) {
-    const cache = new FileCache(path, projectParser);
+  public static async create(uri: URL, projectParser: ProjectParser) {
+    const cache = new FileCache(uri, projectParser);
     await cache.parse();
     return cache;
   }
-  private constructor(public path: string, public projectParser: ProjectParser) {
+  private constructor(public uri: URL, public projectParser: ProjectParser) {
   }
   async parse(vhdlLinter?: VhdlLinter) {
-    this.text = await promises.readFile(this.path, { encoding: 'utf8' });
+    const text = await promises.readFile(this.uri, { encoding: 'utf8' });
+    this.text = text.replaceAll('\r\n', '\n');
     if (vhdlLinter) {
       this.linter = vhdlLinter;
     } else {
-      this.linter = new VhdlLinter(this.path, this.text, this.projectParser, this.projectParser.settingsGetter);
+      this.linter = new VhdlLinter(this.uri, this.text, this.projectParser, this.projectParser.settingsGetter);
     }
     this.packages = this.linter.file.packages.filter((p): p is OPackage => p instanceof OPackage);
     this.packageInstantiations = this.linter.file.packageInstantiations;

@@ -1,13 +1,13 @@
 import { existsSync } from 'fs';
+import { pathToFileURL } from 'url';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import {
   CodeAction, createConnection, DidChangeConfigurationNotification, ErrorCodes, InitializeParams, LSPErrorCodes, Position, ProposedFeatures, ResponseError, TextDocuments, TextDocumentSyncKind
 } from 'vscode-languageserver/node';
-import { URI } from 'vscode-uri';
 import { getCompletions } from './languageFeatures/completion';
 import { handleDocumentFormatting } from './languageFeatures/documentFormatting';
 import { documentHighlightHandler } from './languageFeatures/documentHighlightHandler';
-import { getDocumentSymbol } from './languageFeatures/documentSymbol';
+import { DocumentSymbols } from './languageFeatures/documentSymbol';
 import { findDefinitions } from './languageFeatures/findDefinition';
 import { findReferencesHandler } from './languageFeatures/findReferencesHandler';
 import { foldingHandler } from './languageFeatures/folding';
@@ -15,6 +15,7 @@ import { prepareRenameHandler, renameHandler } from './languageFeatures/rename';
 import { handleSemanticTokens, semanticTokensLegend } from './languageFeatures/semanticTokens';
 import { signatureHelp } from './languageFeatures/signatureHelp';
 import { handleOnWorkspaceSymbol } from './languageFeatures/workspaceSymbols';
+import { normalizeUri } from './normalize-uri';
 import { OComponent, OFile, OInstantiation, OUseClause } from './parser/objects';
 import { ProjectParser } from './project-parser';
 import { CancelationError, CancelationObject } from './server-objects';
@@ -56,21 +57,21 @@ connection.onDidChangeConfiguration(change => {
   // Revalidate all open text documents
   documents.all().forEach((textDocument) => validateTextDocument(textDocument));
 });
-export async function getDocumentSettings(resource: string): Promise<ISettings> {
+export async function getDocumentSettings(resource: URL): Promise<ISettings> {
   if (!hasConfigurationCapability) {
     return Promise.resolve(globalSettings);
   }
-  let result = documentSettings.get(resource);
+  let result = documentSettings.get(resource.toString());
   if (!result) {
     result = await connection.workspace.getConfiguration({
-      scopeUri: resource,
+      scopeUri: resource.toString(),
       section: 'VhdlLinter'
     });
   }
   if (!result) {
     return defaultSettings;
   }
-  documentSettings.set(resource, result);
+  documentSettings.set(resource.toString(), result);
   return result;
 }
 connection.onInitialize((params: InitializeParams) => {
@@ -134,20 +135,20 @@ export const initialization = new Promise<void>(resolve => {
     if (hasWorkspaceFolderCapability) {
       const parseWorkspaces = async () => {
         const workspaceFolders = await connection.workspace.getWorkspaceFolders();
-        const folders = (workspaceFolders ?? []).map(workspaceFolder => URI.parse(workspaceFolder.uri).fsPath);
-        // console.log(configuration, 'configuration');
-        folders.push(...configuration?.paths?.additional?.filter(existsSync) ?? []);
+        const folders = (workspaceFolders ?? []).map(workspaceFolder => new URL(workspaceFolder.uri));
+        folders.push(...configuration?.paths?.additional?.map(path => pathToFileURL(path))
+        .filter(url => existsSync(url)) ?? []);
         projectParser = await ProjectParser.create(folders, configuration?.paths?.ignoreRegex ?? '', getDocumentSettings);
       };
       await parseWorkspaces();
       connection.workspace.onDidChangeWorkspaceFolders(async event => {
-        projectParser.addFolders(event.added.map(folder => URI.parse(folder.uri).fsPath));
+        projectParser.addFolders(event.added.map(folder => new URL(folder.uri)));
         connection.console.log('Workspace folder change event received.');
       });
     } else {
       const folders = [];
       if (rootUri) {
-        folders.push(URI.parse(rootUri).fsPath);
+        folders.push(new URL(rootUri));
       }
       // console.log('folders', folders);
       projectParser = await ProjectParser.create(folders, configuration.paths.ignoreRegex, getDocumentSettings);
@@ -175,10 +176,11 @@ export const initialization = new Promise<void>(resolve => {
           canceled: false
         };
         const vhdlLinter = await validateTextDocument(change.document, newCancelationObject);
-        const path = URI.parse(change.document.uri).path;
+        // For some reason the : in the beginning of win pathes comes escaped here.
+        const uri = normalizeUri(change.document.uri);
         const cachedFile = process.platform === 'win32'
-          ? projectParser.cachedFiles.find(cachedFile => cachedFile.path.toLowerCase() === path.toLowerCase())
-          : projectParser.cachedFiles.find(cachedFile => cachedFile.path === path);
+          ? projectParser.cachedFiles.find(cachedFile => cachedFile.uri.toString().toLowerCase() === uri.toLowerCase())
+          : projectParser.cachedFiles.find(cachedFile => cachedFile.uri.toString() === uri);
         cachedFile?.parse(vhdlLinter);
         projectParser.flattenProject();
         cancelationMap.set(change.document.uri, newCancelationObject);
@@ -203,15 +205,15 @@ documents.onDidClose(change => {
 export const linters = new Map<string, VhdlLinter>();
 export const lintersValid = new Map<string, boolean>();
 async function validateTextDocument(textDocument: TextDocument, cancelationObject: CancelationObject = { canceled: false }): Promise<VhdlLinter> {
-  // console.log(textDocument.uri);
-  // console.profile('a');
-  // let start = Date.now();
-  const vhdlLinter = new VhdlLinter(URI.parse(textDocument.uri).fsPath, textDocument.getText(), projectParser, getDocumentSettings, cancelationObject);
-  if (vhdlLinter.parsedSuccessfully || typeof linters.get(textDocument.uri) === 'undefined') {
-    linters.set(textDocument.uri, vhdlLinter);
-    lintersValid.set(textDocument.uri, true);
+  // For some reason the : in the beginning of win pathes comes escaped here.
+  const uri = normalizeUri(textDocument.uri);
+  const url = new URL(uri);
+  const vhdlLinter = new VhdlLinter(url, textDocument.getText(), projectParser, getDocumentSettings, cancelationObject);
+  if (vhdlLinter.parsedSuccessfully || typeof linters.get(uri) === 'undefined') {
+    linters.set(uri, vhdlLinter);
+    lintersValid.set(uri, true);
   } else {
-    lintersValid.set(textDocument.uri, false);
+    lintersValid.set(uri, false);
   }
   // console.log(`parsed for: ${Date.now() - start} ms.`);
   // start = Date.now();
@@ -221,7 +223,7 @@ async function validateTextDocument(textDocument: TextDocument, cancelationObjec
     // console.log(`checked for: ${Date.now() - start} ms.`);
     // start = Date.now();
     // console.profileEnd('a');
-    connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+    connection.sendDiagnostics({ uri, diagnostics });
     // console.log(`send for: ${Date.now() - start} ms.`);
   } catch (err) {
     // Ignore cancelled
@@ -234,6 +236,8 @@ async function validateTextDocument(textDocument: TextDocument, cancelationObjec
 }
 async function getLinter(uri: string) {
   await initialization;
+  uri = normalizeUri(uri);
+
   const linter = linters.get(uri);
   // if (lintersValid.get(uri) !== true) {
   //   throw new ResponseError(ErrorCodes.InvalidRequest, 'Document not valid. Renaming only supported for parsable documents.', 'Document not valid. Renaming only supported for parsable documents.');
@@ -276,7 +280,7 @@ connection.onCodeAction(async (params): Promise<CodeAction[]> => {
 connection.onDocumentSymbol(async (params) => {
   const linter = await getLinter(params.textDocument.uri);
 
-  return getDocumentSymbol(linter);
+  return DocumentSymbols.get(linter);
 });
 interface IFindDefinitionParams {
   textDocument: {
@@ -381,7 +385,7 @@ connection.onRequest('vhdl-linter/listing', async (params: any) => {
   }
 
   async function parseTree(file: OFile) {
-    const index = files.findIndex(fileSearch => fileSearch?.file === file?.file);
+    const index = files.findIndex(fileSearch => fileSearch?.uri === file?.uri);
     if (index === -1) {
       files.push(file);
     } else {
@@ -419,7 +423,7 @@ connection.onRequest('vhdl-linter/listing', async (params: any) => {
       }
 
       if (found) {
-        const vhdlLinter = new VhdlLinter(found.file, found.originalText, projectParser, getDocumentSettings);
+        const vhdlLinter = new VhdlLinter(found.uri, found.originalText, projectParser, getDocumentSettings);
         await vhdlLinter.checkAll();
         await parseTree(vhdlLinter.file);
       }
@@ -428,7 +432,7 @@ connection.onRequest('vhdl-linter/listing', async (params: any) => {
   }
 
   await parseTree(linter.file);
-  const filesList = files.reverse().map(file => file.file.replace((rootUri ?? '').replace('file://', ''), '')).join(`\n`);
+  const filesList = files.reverse().map(file => file.uri.toString().replace((rootUri ?? '').replace('file://', ''), '')).join(`\n`);
   const unresolvedList = unresolved.join('\n');
   return `files:\n${filesList}\n\nUnresolved instantiations:\n${unresolvedList}`;
 });

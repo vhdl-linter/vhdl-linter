@@ -1,7 +1,6 @@
 import { RuleBase, IRule } from "./rules-base";
 import { DiagnosticSeverity, CodeAction, TextEdit, CodeActionKind } from "vscode-languageserver";
 import { OFile } from "../parser/objects";
-import { URI } from "vscode-uri";
 
 export class RPortDeclaration extends RuleBase implements IRule {
   public name = 'port-declaration';
@@ -10,7 +9,7 @@ export class RPortDeclaration extends RuleBase implements IRule {
   async check() {
     for (const entity of this.file.entities) {
 
-      const portSettings = (await this.vhdlLinter.settingsGetter(URI.file(this.vhdlLinter.editorPath).toString())).ports;
+      const portSettings = (await this.vhdlLinter.settingsGetter(this.vhdlLinter.uri)).ports;
       if (portSettings.enablePortStyle) {
 
         for (const port of entity.ports ?? []) {

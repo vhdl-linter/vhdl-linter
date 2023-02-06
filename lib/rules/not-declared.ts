@@ -1,6 +1,5 @@
 import { findBestMatch } from "string-similarity";
 import { CodeAction, CodeActionKind, Command, DiagnosticSeverity, Range, TextEdit } from "vscode-languageserver";
-import { URI } from "vscode-uri";
 import { IHasLexerToken, implementsIHasLexerToken } from "../parser/interfaces";
 import { OArchitecture, OAssociation, OAttributeReference, OFormalReference, OInstantiation, OLabelReference, OLibraryReference, OPackageBody, OPort, OReference, OSignal, OUseClause, OVariable, OWrite } from "../parser/objects";
 import { ISettings } from "../settings";
@@ -23,7 +22,7 @@ export class RNotDeclared extends RuleBase implements IRule {
         if (type.lexerToken.getLText() === ref.referenceToken.getLText()) {
           let library = pkg.targetLibrary ? pkg.targetLibrary : 'work';
           let pkgName = pkg.lexerToken.text;
-          if (library === 'work' && pkg.rootFile.file.match(/ieee/i)) {
+          if (library === 'work' && pkg.rootFile.uri.pathname.match(/ieee/i)) {
             if (this.settings.style.ieeeCasing === 'lowercase') {
               pkgName = pkgName.toLowerCase();
               library = 'ieee';
@@ -104,7 +103,7 @@ export class RNotDeclared extends RuleBase implements IRule {
   private settings: ISettings;
 
   async check() {
-    this.settings = (await this.vhdlLinter.settingsGetter(URI.file(this.vhdlLinter.editorPath).toString()));
+    this.settings = (await this.vhdlLinter.settingsGetter(this.vhdlLinter.uri));
 
     for (const obj of this.file.objectList) {
       if (obj instanceof OInstantiation) { // Instantiation handled somewhere else, where?

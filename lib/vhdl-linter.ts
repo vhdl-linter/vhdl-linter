@@ -24,7 +24,7 @@ export interface IIgnoreLineCommandArguments {
   textDocumentUri: string;
   range: Range;
 }
-export type SettingsGetter = (resource: string) => Promise<ISettings> | ISettings;
+export type SettingsGetter = (resource: URL) => Promise<ISettings> | ISettings;
 type diagnosticCodeActionCallback = (textDocumentUri: string) => CodeAction[];
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export class VhdlLinter {
@@ -32,11 +32,11 @@ export class VhdlLinter {
   file: OFile;
   parser: FileParser;
   parsedSuccessfully = false;
-  constructor(public editorPath: string, public text: string, public projectParser: ProjectParser,
+  constructor(public uri: URL, public text: string, public projectParser: ProjectParser,
     public settingsGetter: SettingsGetter,
    public cancelationObject: CancelationObject = { canceled: false }) {
     try {
-      this.parser = new FileParser(text, this.editorPath, cancelationObject);
+      this.parser = new FileParser(text, this.uri, cancelationObject);
       this.file = this.parser.parse();
       this.parsedSuccessfully = true;
       this.file.parserMessages = this.parser.state.messages;
@@ -64,14 +64,14 @@ export class VhdlLinter {
           message: e.message,
           code
         });
-        this.file = new OFile(this.text, this.editorPath, this.text);
+        this.file = new OFile(this.text, this.uri, this.text);
       } else {
         this.messages.push({
           range: Range.create(Position.create(0, 0), Position.create(10, 10)),
           message: `Javascript error while parsing '${e.message}' ${e.stack}`
         });
         console.error(e);
-        this.file = new OFile(this.text, this.editorPath, this.text);
+        this.file = new OFile(this.text, this.uri, this.text);
 
       }
     }

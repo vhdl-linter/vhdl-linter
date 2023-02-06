@@ -7,9 +7,9 @@ export async function getCompletions(linter: VhdlLinter, params: CompletionParam
 
 
   const completions: CompletionItem[] = [];
-  const ieeeCasingLowercase = (await linter.settingsGetter(params.textDocument.uri)).style.ieeeCasing === 'lowercase';
+  const ieeeCasingLowercase = (await linter.settingsGetter(new URL(params.textDocument.uri))).style.ieeeCasing === 'lowercase';
   const addCompletion = async (item: ObjectBase & IHasLexerToken, kind?: CompletionItemKind) => {
-    const lowercase = item.rootFile.file.match(/ieee2008/) && ieeeCasingLowercase;
+    const lowercase = item.rootFile.uri.toString().match(/ieee2008/) && ieeeCasingLowercase;
     completions.push({ label: lowercase ? item.lexerToken.getLText() : item.lexerToken.text, kind });
   };
 

@@ -1,14 +1,14 @@
 import * as vscode from 'vscode';
 import { OEntity, OGeneric, OPort } from './parser/objects';
 import { ProjectParser } from './project-parser';
+import { defaultSettingsGetter } from './settings';
 import { VhdlLinter } from './vhdl-linter';
-import { clientConfigurationGetter } from './vscode';
 async function getEntity() {
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
         return;
     }
-    const vhdlLinter = new VhdlLinter(editor.document.uri.path, editor.document.getText(), await ProjectParser.create([], '', clientConfigurationGetter), clientConfigurationGetter);
+    const vhdlLinter = new VhdlLinter(new URL(editor.document.uri.toString()), editor.document.getText(), await ProjectParser.create([], '', defaultSettingsGetter), defaultSettingsGetter);
     if (vhdlLinter.file.entities[0] !== undefined) {
         return vhdlLinter.file.entities[0];
     }
