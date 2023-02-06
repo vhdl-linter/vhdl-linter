@@ -47,11 +47,13 @@ export function documentHighlightHandler(linter: VhdlLinter, params: TextDocumen
             }
         }
     };
-    if (implementsIHasLexerToken(candidate)) {
-        searchForToken(candidate.lexerToken);
-    }
-    if (implementsIHasReferenceToken(candidate)) {
-        searchForToken(candidate.referenceToken);
+    if (candidate) {
+        if (implementsIHasLexerToken(candidate)) {
+            searchForToken(candidate.lexerToken);
+        }
+        if (implementsIHasReferenceToken(candidate)) {
+            searchForToken(candidate.referenceToken);
+        }
     }
     return highlights;
 

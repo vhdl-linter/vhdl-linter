@@ -7,7 +7,7 @@ export class RLibraryReference extends RuleBase implements IRule {
   public name = 'library-reference';
   file: OFile;
 
-  async check() {
+  check() {
     for (const object of this.file.objectList) {
       if (implementsIHasLibraryReference(object) && object.library !== undefined) {
         const libraryReference = object.library;
@@ -23,7 +23,7 @@ export class RLibraryReference extends RuleBase implements IRule {
           this.addMessage({
             range: object.library.range,
             severity: DiagnosticSeverity.Error,
-            message: `Library ${object.library.referenceToken} not declared.`
+            message: `Library ${object.library.referenceToken.text} not declared.`
           });
         }
       }

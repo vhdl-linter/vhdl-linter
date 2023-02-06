@@ -4,9 +4,10 @@ import { OAlias, OFile } from "../parser/objects";
 export function elaborateAliases(file: OFile) {
   for (const alias of file.objectList) {
     if (alias instanceof OAlias) {
-      if (alias.name.length > 0) { // No Name is throwing an an error in parser but no fatal
-        alias.aliasDefinitions = alias.name[alias.name.length - 1].definitions;
-        for (const read of alias.name[alias.name.length - 1].definitions) {
+      const lastName = alias.name[alias.name.length - 1];
+      if (lastName) { // No Name is throwing an an error in parser but no fatal
+        alias.aliasDefinitions = lastName.definitions;
+        for (const read of lastName.definitions) {
           if (implementsIHasReference(read)) {
             read.aliasReferences.push(alias);
           }

@@ -38,7 +38,7 @@ export class RNotDeclared extends RuleBase implements IRule {
     }
 
     for (const proposal of [...proposals].sort()) {
-      const [library, pkgName] = proposal.split('.');
+      const [library, pkgName] = proposal.split('.') as [string, string];
       let newText = `use ${library}.${pkgName}.all;\n`;
       if (root.libraries.find(libraryIt => libraryIt.lexerToken.getLText() === library.toLowerCase()) === undefined) {
         newText = `library ${library};\n${newText}`;
@@ -129,7 +129,7 @@ export class RNotDeclared extends RuleBase implements IRule {
         // This is already handled
       } else if (obj instanceof OArchitecture && obj.correspondingEntity === undefined) {
         this.addMessage({
-          range: obj.entityName?.range ?? obj.range,
+          range: obj.entityName.range,
           severity: DiagnosticSeverity.Error,
           message: `Did not find entity for this architecture`
         });

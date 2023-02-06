@@ -39,12 +39,12 @@ function blockFolding(text: string) {
   let lastIndentBlockHeader = 0;
   let indentCompactDivider: number|undefined = undefined;
   text.split('\n').forEach((line, index) => {
-    const match = line.match(/^(\s*)(-*)(\s*[^-]*\s*)(-*)/);
+    const match = line.match(/^(\s*)(-*)(\s*[^-]*\s*)(-*)/) as [string, string, string, string, string] | null;
     if (match) {
-      const indent    = match[1]?.length ?? 0;
-      const isComment = match[2]?.length >= 2;
-      const isDivider = match[2]?.length >= 4 && match[3]?.length === 0 && match[4]?.length === 0;
-      const isCompact = match[2]?.length >= 3 && match[3]?.length !== 0 && match[4]?.length >= 3;
+      const indent    = match[1].length ?? 0;
+      const isComment = match[2].length >= 2;
+      const isDivider = match[2].length >= 4 && match[3].length === 0 && match[4].length === 0;
+      const isCompact = match[2].length >= 3 && match[3].length !== 0 && match[4].length >= 3;
       if (isDivider) {
         if (indentBlockHeader === indent) {
           foldBlock.push([indent, index - 1]);

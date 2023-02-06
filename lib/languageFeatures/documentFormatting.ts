@@ -1,13 +1,14 @@
 import { exec, spawn } from 'child_process';
 import { promises } from 'fs';
 import { tmpdir } from 'os';
-import {  sep } from 'path';
+import { sep } from 'path';
+import { fileURLToPath } from 'url';
 import { promisify } from 'util';
 import { CancellationToken, DocumentFormattingParams, LSPErrorCodes, Range, ResponseError, TextEdit, WorkDoneProgressReporter } from 'vscode-languageserver';
 import { attachWorkDone } from 'vscode-languageserver/lib/common/progress';
 import { connection, documents } from '../language-server';
 import { getRootDirectory, joinURL } from '../project-parser';
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
 const nullProgressReporter = attachWorkDone(undefined as any, /* params */ undefined);
 async function _getProgressReporter(reporter: WorkDoneProgressReporter, title: string) {
   // This is a bit ugly, but we need to determine whether the provided reporter
@@ -53,12 +54,12 @@ export async function handleDocumentFormatting(params: DocumentFormattingParams,
   try {
     await new Promise<void>((resolve, reject) => {
       const args = ['-c', `emacs --batch --eval "(setq-default vhdl-basic-offset ${numSpaces})" ` +
-        `--eval "(setq load-path (cons (expand-file-name \\"${emacsLoadPath}\\") load-path))" ` +
-        ` -l ${emacsScripts} -f vhdl-batch-indent-region ${tmpFile}`];
+        `--eval "(setq load-path (cons (expand-file-name \\"${fileURLToPath(emacsLoadPath)}\\") load-path))" ` +
+        ` -l ${fileURLToPath(emacsScripts)} -f vhdl-batch-indent-region ${tmpFile}`];
       const emacs = spawn('sh', args, { signal });
 
-      emacs.stderr.on('data', (data) => {
-        const match = data.toString().match(/(\d+)%/);
+      emacs.stderr.on('data', (data: Buffer) => {
+        const match = data.toString().match(/(\d+)%/) as [string, string] | null;
         if (match) {
           progress.report(parseInt(match[1]), data.toString());
         }
@@ -75,6 +76,7 @@ export async function handleDocumentFormatting(params: DocumentFormattingParams,
   } catch (e) {
     progress.done();
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     if (e.name === "AbortError") {
       return new ResponseError(LSPErrorCodes.RequestCancelled, 'canceled');
     }

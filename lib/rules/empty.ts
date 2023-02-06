@@ -6,7 +6,7 @@ export class REmpty extends RuleBase implements IRule {
   public name = 'empty';
   file: OFile;
 
-  async check() {
+  check() {
     if (this.file.entities.length === 0 &&
       this.file.architectures.length === 0 &&
       this.file.packages.length === 0 &&

@@ -8,7 +8,7 @@
         "inlineSourceMap": false,
         "alwaysStrict": true,
         "outDir": "./dist",
-
+        "noUncheckedIndexedAccess": true,
         "jsx": "react",
         "lib": ["ES2021"]
     },

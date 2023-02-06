@@ -20,8 +20,8 @@ test.each(files)('testing add signal helper %s', async (file: string) => {
   expect(linter.messages).toMatchSnapshot();
   for (const message of linter.messages) {
     if (typeof message.code === 'string') {
-      for (const action of message.code?.split(';') ?? []) {
-        const actions = linter.diagnosticCodeActionRegistry[parseInt(action)]('file://dummy.vhd');
+      for (const action of message.code.split(';')) {
+        const actions = linter.diagnosticCodeActionRegistry[parseInt(action)]?.('file://dummy.vhd');
         expect(actions).toMatchSnapshot();
 
       }

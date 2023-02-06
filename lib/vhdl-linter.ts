@@ -4,7 +4,6 @@ import {
 import { Elaborate } from './elaborate/elaborate';
 import { FileParser } from './parser/file-parser';
 import {
-  MagicCommentType,
   OFile, OI, OIRange, ParserError
 } from './parser/objects';
 import { ProjectParser } from './project-parser';
@@ -34,7 +33,7 @@ export class VhdlLinter {
   parsedSuccessfully = false;
   constructor(public uri: URL, public text: string, public projectParser: ProjectParser,
     public settingsGetter: SettingsGetter,
-   public cancelationObject: CancelationObject = { canceled: false }) {
+    public cancelationObject: CancelationObject = { canceled: false }) {
     try {
       this.parser = new FileParser(text, this.uri, cancelationObject);
       this.file = this.parser.parse();
@@ -42,15 +41,17 @@ export class VhdlLinter {
       this.file.parserMessages = this.parser.state.messages;
     } catch (e) {
       if (e instanceof ParserError) {
+        const parserError = e;
         let code;
-        if (e.solution) {
+        if (parserError.solution) {
+          const solution = parserError.solution;
           code = this.addCodeActionCallback((textDocumentUri: string) => {
             const actions = [];
             actions.push(CodeAction.create(
-              e.solution.message,
+              solution.message,
               {
                 changes: {
-                  [textDocumentUri]: e.solution.edits
+                  [textDocumentUri]: solution.edits
                 }
               },
               CodeActionKind.QuickFix));
@@ -66,9 +67,13 @@ export class VhdlLinter {
         });
         this.file = new OFile(this.text, this.uri, this.text);
       } else {
+        let message = 'Unknown error while parsing';
+        if (e instanceof Error) {
+          message = `Javascript error while parsing '${e.message}' ${e.stack ?? ''}`;
+        }
         this.messages.push({
           range: Range.create(Position.create(0, 0), Position.create(10, 10)),
-          message: `Javascript error while parsing '${e.message}' ${e.stack}`
+          message
         });
         console.error(e);
         this.file = new OFile(this.text, this.uri, this.text);
@@ -129,13 +134,10 @@ export class VhdlLinter {
       }
       return true;
     }).filter(magicComment => {
-      if (magicComment.commentType === MagicCommentType.Disable) {
-        if (magicComment.rule) {
-          return name === magicComment.rule;
-        }
-        return true;
+      if (magicComment.rule) {
+        return name === magicComment.rule;
       }
-      return false;
+      return true;
     });
     return matchingMagiComments.length === 0;
 
@@ -161,40 +163,35 @@ export class VhdlLinter {
     }
     let start;
     let i = 0;
-    if (this.file) {
-      start = Date.now();
-      try {
-        await Elaborate.elaborate(this);
-        if (profiling) {
-          console.log(`check ${i++}: ${Date.now() - start}ms`);
-          start = Date.now();
-        }
-        // await this.removeBrokenActuals();
-        if (profiling) {
-          console.log(`check ${i++}: ${Date.now() - start}ms`);
-          start = Date.now();
-        }
-        for (const checkerClass of rules) {
-          const checker = new checkerClass(this);
-          await checker.check();
-          if (profiling) {
-            console.log(`check ${checker.name}: ${Date.now() - start}ms`);
-            start = Date.now();
-          }
-          await this.handleCanceled();
-        }
-      } catch (err) {
-        if (err instanceof ParserError) {
-          this.messages.push(Diagnostic.create(err.range, `Error while parsing: '${err.message}'`));
-
-        } else {
-          this.messages.push(Diagnostic.create(Range.create(Position.create(0, 0), Position.create(10, 100)), `Error while checking: '${err.message}'\n${err.stack}`));
-
-        }
+    start = Date.now();
+    try {
+      await Elaborate.elaborate(this);
+      if (profiling) {
+        console.log(`check ${i++}: ${Date.now() - start}ms`);
+        start = Date.now();
       }
-
-      // this.parser.debugObject(this.tree);
+      // await this.removeBrokenActuals();
+      if (profiling) {
+        console.log(`check ${i++}: ${Date.now() - start}ms`);
+        start = Date.now();
+      }
+      for (const checkerClass of rules) {
+        const checker = new checkerClass(this);
+        checker.check();
+        if (profiling) {
+          console.log(`check ${checker.name}: ${Date.now() - start}ms`);
+          start = Date.now();
+        }
+        await this.handleCanceled();
+      }
+    } catch (err) {
+      if (err instanceof ParserError) {
+        this.messages.push(Diagnostic.create(err.range, `Error while parsing: '${err.message}'`));
+      } else if (err instanceof Error) {
+        this.messages.push(Diagnostic.create(Range.create(Position.create(0, 0), Position.create(10, 100)), `Error while checking: '${err.message}'\n${err.stack ?? ''}`));
+      }
     }
+
     if (profiling) {
       console.profileEnd();
     }

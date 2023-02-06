@@ -65,7 +65,7 @@ export class RMultipleDefinition extends RuleBase implements IRule {
     }
     return objList;
   }
-  async check() {
+  check() {
     for (const obj of this.file.objectList) {
       const objList = new Set<ObjectBase>();
       this.extractObjects(obj).forEach(obj => objList.add(obj));

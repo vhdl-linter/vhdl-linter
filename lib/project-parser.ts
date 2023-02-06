@@ -45,25 +45,31 @@ export class ProjectParser {
     for (const url of urls) {
       // Chokidar does not accept win style line endings
       const watcher = watch(fileURLToPath(url).replaceAll(sep, '/') + '/**/*.vhd?(l)', { ignoreInitial: true });
-      watcher.on('add', async (path) => {
-        const cachedFile = await (FileCache.create(pathToFileURL(path), this));
-        this.cachedFiles.push(cachedFile);
-        this.flattenProject();
-        this.events.emit('change', 'add', path);
-      });
-      watcher.on('change', async (path) => {
-        // console.log('change', path);
-        const cachedFile = process.platform === 'win32'
-          ? this.cachedFiles.find(cachedFile => fileURLToPath(cachedFile.uri).toLowerCase() === path.toLowerCase())
-          : this.cachedFiles.find(cachedFile => fileURLToPath(cachedFile.uri) === path);
-        if (cachedFile) {
-          await cachedFile.parse();
+      watcher.on('add', (path) => {
+        const handleEvent = async () => {
+          const cachedFile = await (FileCache.create(pathToFileURL(path), this));
+          this.cachedFiles.push(cachedFile);
           this.flattenProject();
-          this.events.emit('change', 'change', path);
-        } else {
-          console.error('modified file not found', path);
-        }
-        this.cachedElaborate = undefined;
+          this.events.emit('change', 'add', path);
+        };
+        handleEvent().catch(console.error);
+      });
+      watcher.on('change', (path) => {
+        const handleEvent = async () => {
+          // console.log('change', path);
+          const cachedFile = process.platform === 'win32'
+            ? this.cachedFiles.find(cachedFile => fileURLToPath(cachedFile.uri).toLowerCase() === path.toLowerCase())
+            : this.cachedFiles.find(cachedFile => fileURLToPath(cachedFile.uri) === path);
+          if (cachedFile) {
+            await cachedFile.parse();
+            this.flattenProject();
+            this.events.emit('change', 'change', path);
+          } else {
+            console.error('modified file not found', path);
+          }
+          this.cachedElaborate = undefined;
+        };
+        handleEvent().catch(console.error);
       });
       watcher.on('unlink', path => {
         const cachedFileIndex = this.cachedFiles.findIndex(cachedFile => cachedFile.uri.pathname === path);
@@ -143,18 +149,18 @@ export class ProjectParser {
     }
   }
   // Cache the elaboration result. Caution this can get invalid super easy. Therefore it is completely removed on any file change.
-  private cachedElaborate: string|undefined = undefined;
+  private cachedElaborate: string | undefined = undefined;
   async elaborateAll(filter: string) {
     if (this.cachedElaborate === filter) {
       return;
     }
-    const cachedFiles = this.cachedFiles.filter(cachedFile => cachedFile.linter.file.lexerTokens?.find(token => token.getLText() === filter));
+    const cachedFiles = this.cachedFiles.filter(cachedFile => cachedFile.linter.file.lexerTokens.find(token => token.getLText() === filter));
     for (const cachedFile of cachedFiles) {
       Elaborate.clear(cachedFile.linter);
     }
 
     for (const cachedFile of cachedFiles) {
-      if (cachedFile.linter.file.lexerTokens?.find(token => token.getLText() === filter)) {
+      if (cachedFile.linter.file.lexerTokens.find(token => token.getLText() === filter)) {
         await Elaborate.elaborate(cachedFile.linter);
       }
     }

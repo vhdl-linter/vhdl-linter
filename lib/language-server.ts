@@ -295,11 +295,8 @@ interface IFindDefinitionParams {
 const findBestDefinition = async (params: IFindDefinitionParams) => {
   const linter = await getLinter(params.textDocument.uri);
 
-  const definitions = await findDefinitions(linter, params.position);
-  if (definitions.length === 0) {
-    return null;
-  }
-  return definitions[0];
+  const definitions = findDefinitions(linter, params.position);
+  return definitions[0] ?? null;
 };
 
 connection.onHover(async (params, token) => {
@@ -314,10 +311,10 @@ connection.onHover(async (params, token) => {
   }
   const lines = definition.text.split('\n').slice(definition.targetRange.start.line, definition.targetRange.end.line + 1);
   if (definition.targetRange.start.line === definition.targetRange.end.line) {
-    lines[0] = lines[0].substring(definition.targetRange.start.character, definition.targetRange.end.character);
+    lines[0] = lines[0]!.substring(definition.targetRange.start.character, definition.targetRange.end.character);
   } else {
-    lines[0] = lines[0].substring(definition.targetRange.start.character);
-    lines[lines.length - 1] = lines[lines.length - 1].substring(0, definition.targetRange.end.character);
+    lines[0] = lines[0]!.substring(definition.targetRange.start.character);
+    lines[lines.length - 1] = lines[lines.length - 1]!.substring(0, definition.targetRange.end.character);
   }
   return {
     contents: {
@@ -329,7 +326,7 @@ connection.onHover(async (params, token) => {
 connection.onDefinition(async (params) => {
   const linter = await getLinter(params.textDocument.uri);
 
-  const definitions = await findDefinitions(linter, params.position);
+  const definitions = findDefinitions(linter, params.position);
   if (definitions.length === 0) {
     return null;
   }
@@ -393,23 +390,23 @@ connection.onRequest('vhdl-linter/listing', async (params: any) => {
       files.push(file);
     } else {
       // push the file to the back to have correct compile order
-      files.push(files.splice(index, 1)[0]);
+      files.push(files.splice(index, 1)[0]!);
     }
 
     for (const obj of file.objectList) {
       let found: OFile | undefined = undefined;
       if (obj instanceof OInstantiation) {
         if (obj.type === 'entity') {
-          if (obj.definitions.length > 0 && obj.definitions[0].parent instanceof OFile && obj.definitions[0].parent.entities[0] !== undefined) { // TODO: Fix me better
-            found = obj.definitions[0].parent;
+          if (obj.definitions.length > 0 && obj.definitions[0]!.parent instanceof OFile && obj.definitions[0]!.parent.entities[0] !== undefined) { // TODO: Fix me better
+            found = obj.definitions[0]!.parent;
           } else {
             addUnresolved(`${obj.library}.${obj.componentName.text}`);
           }
         } else if (obj.type === 'component') {
           if (obj.definitions.length > 0
             && obj.definitions[0] instanceof OComponent && obj.definitions[0].definitions.length > 0
-            && obj.definitions[0].definitions[0].parent instanceof OFile) {
-            found = obj.definitions[0].definitions[0].parent;
+            && obj.definitions[0]!.definitions[0]!.parent instanceof OFile) {
+            found = obj.definitions[0]!.definitions[0]!.parent;
           } else {
             addUnresolved(obj.componentName.text);
           }
@@ -421,7 +418,7 @@ connection.onRequest('vhdl-linter/listing', async (params: any) => {
         }
         const matchingPackages = projectParser.packages.filter(pkg => pkg.lexerToken.getLText() === obj.packageName.referenceToken.getLText());
         if (matchingPackages.length > 0) {
-          found = matchingPackages[0].parent;
+          found = matchingPackages[0]!.parent;
         }
       }
 

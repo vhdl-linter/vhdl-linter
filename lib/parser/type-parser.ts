@@ -94,7 +94,8 @@ export class TypeParser extends ParserBase {
             for (const child of children) {
               if (typeTokens.length > 0) {
                 child.referenceLinks = new ExpressionParser(this.state, child, typeTokens).parse();
-                child.range = child.range.copyWithNewEnd(typeTokens[typeTokens.length - 1].range);
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                child.range = child.range.copyWithNewEnd(typeTokens[typeTokens.length - 1]!.range);
               } else {
                 this.state.messages.push({
                   message: 'Found no type indication of this record child.',
@@ -142,7 +143,12 @@ export class TypeParser extends ParserBase {
         } else if (nextToken.getLText() === 'access') {
           // Is this a hack, or is it just fantasy/vhdl
           const [typeTokens] = this.advanceParenthesisAware([';'], true, false);
-          const deallocateProcedure = new OSubprogram(this.parent, new OIRange(this.parent, typeTokens[0].range.start.i, typeTokens[typeTokens.length - 1].range.end.i));
+          const firstTypeToken = typeTokens[0];
+          const lastTypeToken = typeTokens[typeTokens.length - 1];
+          if (!firstTypeToken || !lastTypeToken) {
+            throw new ParserError("Invalid access type", nextToken.range.copyExtendEndOfLine());
+          }
+          const deallocateProcedure = new OSubprogram(this.parent, new OIRange(this.parent, firstTypeToken.range.start.i, lastTypeToken.range.end.i));
           deallocateProcedure.lexerToken = new OLexerToken('deallocate', type.lexerToken.range, type.lexerToken.type, deallocateProcedure.rootFile);
           this.parent.subprograms.push(deallocateProcedure);
           const port = new OPort(deallocateProcedure, type.lexerToken.range);

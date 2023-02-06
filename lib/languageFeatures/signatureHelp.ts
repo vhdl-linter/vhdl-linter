@@ -21,7 +21,7 @@ export function signatureHelp(linter: VhdlLinter, position: Position): Signature
         });
       } else {
         // Skip definitions with less ports
-        if (portOrGeneric.length < (associationList?.children?.length ?? 0)) {
+        if (portOrGeneric.length < (associationList?.children.length ?? 0)) {
           continue;
         }
         const text = portOrGeneric.map(port => port.lexerToken.text).join(', ');
@@ -32,7 +32,7 @@ export function signatureHelp(linter: VhdlLinter, position: Position): Signature
           const posI = linter.getIFromPosition(position);
           const associationIndex = associationList.children.findIndex(association => association.range.start.i <= posI && association.range.end.i >= posI);
           const association = associationList.children[associationIndex];
-          if (associationIndex > -1 && association?.formalPart.length > 0) {
+          if (associationIndex > -1 && association && association.formalPart.length > 0) {
             for (const formal of association.formalPart) {
               for (const [portIndex, port] of portOrGeneric.entries()) {
                 if (port.lexerToken.getLText() === formal.referenceToken.getLText()) {
@@ -51,10 +51,11 @@ export function signatureHelp(linter: VhdlLinter, position: Position): Signature
             for (const [childNumber, child] of associationList.children.entries()) {
               // Extend the end range by white spaces (assume it belongs to the association if cursor is in whitespace)
               let tokenIndex = linter.file.lexerTokens.findIndex(token => token.range.end.i === child.range.end.i);
-              while (linter.file.lexerTokens[tokenIndex + 1].isWhitespace()) {
+              while (linter.file.lexerTokens[tokenIndex + 1]?.isWhitespace()) {
                 tokenIndex++;
               }
-              if (posI >= linter.file.lexerTokens[tokenIndex].range.end.i) {
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              if (posI >= (linter.file.lexerTokens[tokenIndex]!.range.end.i)) {
                 activeParameter = childNumber + 1;
               }
             }

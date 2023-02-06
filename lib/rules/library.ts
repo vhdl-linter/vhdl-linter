@@ -9,7 +9,7 @@ export class RLibrary extends RuleBase implements IRule {
   async check() {
     const settings = await this.vhdlLinter.settingsGetter(this.vhdlLinter.uri);
     for (const entity of this.file.entities) {
-      if (settings.rules.warnLibrary && entity !== undefined && typeof entity.targetLibrary === 'undefined') {
+      if (settings.rules.warnLibrary && typeof entity.targetLibrary === 'undefined') {
         this.addMessage({
           range: new OIRange(this.file, new OI(this.file, 0, 0), new OI(this.file, 1, 0)),
           severity: DiagnosticSeverity.Warning,
@@ -18,4 +18,4 @@ export class RLibrary extends RuleBase implements IRule {
       }
     }
   }
-  }
+}

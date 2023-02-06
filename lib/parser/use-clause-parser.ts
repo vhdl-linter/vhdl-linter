@@ -1,3 +1,4 @@
+import { OLexerToken } from '../lexer';
 import { ObjectBase, OLibraryReference, OReference, OUseClause } from './objects';
 import { ParserBase, ParserState } from './parser-base';
 
@@ -20,12 +21,12 @@ export class UseClauseParser extends ParserBase {
       this.expect(';');
     }
     if (tokens.length === 3) {
-      const [library, packageName, suffix] = tokens;
+      const [library, packageName, suffix] = tokens as [OLexerToken, OLexerToken, OLexerToken];
 
       return new OUseClause(this.parent, new OLibraryReference(this.parent, library), new OReference(this.parent, packageName), suffix);
     } else {
       // I believe it also possible to `use library_name.all;` to use everything from a library, however, I have no idea what this would accomplish :)
-      const [packageName, suffix] = tokens;
+      const [packageName, suffix] = tokens as [OLexerToken, OLexerToken];
       return new OUseClause(this.parent, undefined, new OReference(this.parent, packageName), suffix);
 
     }

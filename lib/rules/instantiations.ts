@@ -40,15 +40,17 @@ export class RInstantiation extends RuleBase implements IRule {
         if (!interfaceElement) {
           let code: number | undefined = undefined;
           const possibleMatches = availableInterfaceElementsFlat.filter(implementsIHasLexerToken).map(element => (element as IHasLexerToken).lexerToken.text);
-          if (possibleMatches.length > 0) {
-            const bestMatch = findBestMatch(association.formalPart[0].referenceToken.text, possibleMatches);
+          const firstFormal = association.formalPart[0];
+          if (possibleMatches.length > 0 && firstFormal) {
+            const bestMatch = findBestMatch(firstFormal.referenceToken.text, possibleMatches);
             code = this.vhdlLinter.addCodeActionCallback((textDocumentUri: string) => {
               const actions = [];
               actions.push(CodeAction.create(
                 `Replace with ${bestMatch.bestMatch.target} (score: ${bestMatch.bestMatch.rating})`,
                 {
                   changes: {
-                    [textDocumentUri]: [TextEdit.replace(Range.create(association.formalPart[0].range.start, association.formalPart[association.formalPart.length - 1].range.end)
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    [textDocumentUri]: [TextEdit.replace(Range.create(firstFormal.range.start, association.formalPart[association.formalPart.length - 1]!.range.end)
                       , bestMatch.bestMatch.target)]
                   }
                 },
@@ -82,11 +84,11 @@ export class RInstantiation extends RuleBase implements IRule {
       const actualCount = associationList?.children.length ?? 0;
       if (!counts.includes(actualCount)) {
         let portCountString: string;
-        if (counts.length > 1) {
-          const last = counts.pop();
+        const last = counts.pop();
+        if (last) {
           portCountString = `${counts.join(', ')} or ${last}`;
         } else {
-          portCountString = `${counts[0]}`;
+          portCountString = String(counts[0]);
         }
         this.addMessage({
           range: range,
@@ -127,9 +129,6 @@ export class RInstantiation extends RuleBase implements IRule {
     }
   }
   checkInstantiations(object: ObjectBase) {
-    if (!object) {
-      return;
-    }
     if (implementsIHasStatements(object)) {
       for (const instantiation of object.statements) {
         if (instantiation instanceof OInstantiation) {
@@ -137,7 +136,7 @@ export class RInstantiation extends RuleBase implements IRule {
             this.addMessage({
               range: instantiation.range.start.getRangeToEndLine(),
               severity: DiagnosticSeverity.Warning,
-              message: `can not find ${instantiation.type} ${instantiation.componentName}`
+              message: `can not find ${instantiation.type} ${instantiation.componentName.text}`
             });
           } else {
             const range = instantiation.range.start.getRangeToEndLine();
@@ -186,7 +185,7 @@ export class RInstantiation extends RuleBase implements IRule {
       }
     }
   }
-  async check() {
+  check() {
     for (const architecture of this.file.architectures) {
       this.checkInstantiations(architecture);
     }

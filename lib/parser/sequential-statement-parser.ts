@@ -31,7 +31,7 @@ export class SequentialStatementParser extends ParserBase {
       const statementText = this.advanceSemicolon(true, { consume: false });
       if (nextToken.getLText() === 'if') {
         statements.push(this.parseIf(parent, label));
-      } else if (exitConditions.indexOf(nextToken.getLText()) > -1) {
+      } else if (exitConditions.includes(nextToken.getLText())) {
         break;
       } else if (nextToken.getLText() === 'case') {
         this.consumeToken();
@@ -289,7 +289,7 @@ export class SequentialStatementParser extends ParserBase {
     return if_;
   }
   parseCase(parent: ObjectBase, label?: OLexerToken): OCase {
-    this.debug(`parseCase ${label}`);
+    this.debug(`parseCase ${label?.text ?? ''}`);
     const case_ = new OCase(parent, this.getToken(-1, true).range.copyExtendEndOfLine());
     case_.expression = new ExpressionParser(this.state, case_, this.advancePast('is')).parse();
 
@@ -308,7 +308,7 @@ export class SequentialStatementParser extends ParserBase {
     }
     case_.range = case_.range.copyWithNewEnd(this.getToken().range);
     this.expect(';');
-    this.debug(`parseCaseDone ${label?.text}`);
+    this.debug(`parseCaseDone ${label?.text ?? ''}`);
 
     return case_;
   }

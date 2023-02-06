@@ -22,6 +22,8 @@ module.exports = {
         disallowTemplateShorthand: true
       }],
     '@typescript-eslint/no-base-to-string': 'error',
-    '@typescript-eslint/no-unnecessary-boolean-literal-compare': 'off'
+    '@typescript-eslint/no-unnecessary-boolean-literal-compare': 'off',
+    '@typescript-eslint/no-unnecessary-condition': 'off',
+    '@typescript-eslint/no-non-null-assertion': 'off',
   }
 };

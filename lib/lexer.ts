@@ -83,6 +83,7 @@ export class Lexer {
     let offset = 0;
     let lastOffset = -1;
     let text = this.text;
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     loop: while (text.length > 0 && foundToken) {
       // if (iterationCount++ > 10000) {
       //   throw new ParserError('Lexer infinite loop2!', new OIRange(this.file, offset, offset));
@@ -92,7 +93,7 @@ export class Lexer {
       }
       lastOffset = offset;
       foundToken = false;
-      const match = text.match(this.reservedWordsRegex);
+      const match = text.match(this.reservedWordsRegex) as [string] | null;
       if (match) {
         const token = new OLexerToken(match[0],
           new OIRange(this.file, offset, offset + match[0].length), TokenType.keyword, file);
@@ -107,16 +108,18 @@ export class Lexer {
       for (const tokenType of this.tokenTypes) {
         const match = text.match(tokenType.regex);
         if (match) {
-          const token = new OLexerToken(match[2] ? match[2] : match[0],
+          const firstMatch = match[0];
+          const token = new OLexerToken(match[2] ? match[2] : firstMatch,
             new OIRange(this.file, offset, offset + match[0].length), tokenType.tokenType, file);
 
           tokens.push(token);
-          text = text.substring(match[0].length);
-          offset += match[0].length;
+          text = text.substring(firstMatch.length);
+          offset += firstMatch.length;
           foundToken = true;
           continue loop;
         }
       }
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (!foundToken) {
         throw new ParserError('Lexer stuck!', new OIRange(this.file, offset, offset));
       }

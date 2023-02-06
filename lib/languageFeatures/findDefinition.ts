@@ -4,12 +4,12 @@ import { ORecordChild } from "../parser/objects";
 import { VhdlLinter } from "../vhdl-linter";
 import { findObjectFromPosition } from "./findObjectFromPosition";
 
-export async function findDefinitions(linter: VhdlLinter, position: Position): Promise<(DefinitionLink & { text: string; })[]> {
+export function findDefinitions(linter: VhdlLinter, position: Position): (DefinitionLink & { text: string; })[] {
 
   const candidates = findObjectFromPosition(linter, position);
   // Get unique definitions
   const candidateDefinitions = [...new Set(candidates.flatMap(candidate => {
-    if (implementsIHasDefinitions(candidate) && candidate.definitions) {
+    if (implementsIHasDefinitions(candidate)) {
       return candidate.definitions;
     }
     return [];

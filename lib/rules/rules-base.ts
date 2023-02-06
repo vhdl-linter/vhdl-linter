@@ -2,7 +2,7 @@ import { OFile } from "../parser/objects";
 import { OIDiagnostic, VhdlLinter } from "../vhdl-linter";
 
 export interface IRule {
-  check(): Promise<void>;
+  check(): Promise<void> | void;
 }
 export class RuleBase {
   file: OFile;

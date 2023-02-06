@@ -7,7 +7,7 @@ export class RConstantWrite extends RuleBase implements IRule {
   file: OFile;
 
 
-  async check() {
+  check() {
 
     // Writes in Associations are excluded for now, as they can not be safely checked for function overloading
     for (const obj of this.file.objectList) {
@@ -16,7 +16,7 @@ export class RConstantWrite extends RuleBase implements IRule {
           this.addMessage({
             range: write.range,
             severity: DiagnosticSeverity.Error,
-            message: `Generic ${obj.lexerToken} cannot be written!`
+            message: `Generic ${obj.lexerToken.text} cannot be written!`
           });
         }
       }
@@ -25,7 +25,7 @@ export class RConstantWrite extends RuleBase implements IRule {
           this.addMessage({
             range: write.range,
             severity: DiagnosticSeverity.Error,
-            message: `Constant ${obj.lexerToken} cannot be written!`
+            message: `Constant ${obj.lexerToken.text} cannot be written!`
           });
         }
       }

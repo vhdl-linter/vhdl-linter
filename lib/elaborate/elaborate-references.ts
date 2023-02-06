@@ -161,7 +161,7 @@ export class ElaborateReferences {
       for (const [obj] of scope(reference)) {
         if (implementsIHasPackageInstantiations(obj)) {
           for (const pkgInst of obj.packageInstantiations) {
-            if (pkgInst instanceof OPackageInstantiation && pkgInst.lexerToken?.getLText() === reference.prefixTokens[0].referenceToken.getLText()) {
+            if (pkgInst instanceof OPackageInstantiation && pkgInst.lexerToken.getLText() === reference.prefixTokens[0].referenceToken.getLText()) {
               const pkg = this.vhdlLinter.projectParser.packages.filter(pkg => pkg.lexerToken.getLText() === pkgInst.uninstantiatedPackageToken.getLText());
               packages.push(...pkg);
             }
@@ -169,7 +169,7 @@ export class ElaborateReferences {
         }
         if (implementsIHasGenerics(obj)) {
           for (const pkgInst of obj.generics) {
-            if (pkgInst instanceof OInterfacePackage && pkgInst.lexerToken?.getLText() === reference.prefixTokens[0].referenceToken.getLText()) {
+            if (pkgInst instanceof OInterfacePackage && pkgInst.lexerToken.getLText() === reference.prefixTokens[0].referenceToken.getLText()) {
               const pkg = this.vhdlLinter.projectParser.packages.filter(pkg => pkg.lexerToken.getLText() === pkgInst.uninstantiatedPackageToken.getLText());
               packages.push(...pkg);
             }
@@ -193,7 +193,7 @@ export class ElaborateReferences {
           }
         }
         for (const type of pkg.types) {
-          const map = new Map();
+          const map = new Map<string, ObjectBase>();
           type.addReadsToMap(map);
           const definition = map.get(reference.referenceToken.getLText());
           if (definition) {
