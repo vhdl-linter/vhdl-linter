@@ -1,34 +1,11 @@
 import { CompletionItem, CompletionItemKind, Position } from 'vscode-languageserver';
 import { reservedWords } from '../lexer';
 import { IHasLexerToken, implementsIHasAliases, implementsIHasConstants, implementsIHasGenerics, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables } from '../parser/interfaces';
-import { OAliasWithSignature, OAssociationList, ObjectBase, OEntity, OEnum, OFile, OGenericAssociationList, OInstantiation, ORecord, scope } from '../parser/objects';
+import { OAliasWithSignature, ObjectBase, OEntity, OEnum, OGenericAssociationList, ORecord, scope } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
 import { findObjectFromPosition } from './findObjectFromPosition';
+import { findParentInstantiation } from './helper/findParentInstantiation';
 
-// TODO: This code is stolen from signature Helper. DRY this code.
-export function findParentInstantiation(linter: VhdlLinter, position: Position): [OInstantiation, OAssociationList | undefined] | undefined {
-  const object = findObjectFromPosition(linter, position)[0];
-  if (object === undefined) {
-    return undefined;
-  }
-  let iterator = object;
-  let associationList: OAssociationList | undefined;
-  // Find Parent that is defined by a subprogram (instantiation)
-  while (iterator instanceof OFile === false) {
-    if (iterator instanceof OAssociationList) {
-      associationList = iterator;
-    }
-    if (iterator instanceof OInstantiation) {
-      return [iterator, associationList];
-    }
-
-    if (iterator.parent instanceof OFile) {
-      break;
-    }
-    iterator = iterator.parent;
-  }
-  return undefined;
-}
 export async function getCompletions(linter: VhdlLinter, position: Position): Promise<CompletionItem[]> {
 
 

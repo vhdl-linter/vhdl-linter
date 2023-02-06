@@ -1,31 +1,8 @@
 import { MarkupKind, Position, SignatureHelp, SignatureInformation } from "vscode-languageserver";
 import { implementsIHasGenerics } from "../parser/interfaces";
-import { OAliasWithSignature, OAssociationList, OFile, OGenericAssociationList, OInstantiation } from "../parser/objects";
+import { OAliasWithSignature, OGenericAssociationList } from "../parser/objects";
 import { VhdlLinter } from "../vhdl-linter";
-import { findObjectFromPosition } from "./findObjectFromPosition";
-export function findParentInstantiation(linter: VhdlLinter, position: Position): [OInstantiation, OAssociationList | undefined] | undefined {
-  const object = findObjectFromPosition(linter, position)[0];
-  if (object === undefined) {
-    return undefined;
-  }
-  let iterator = object;
-  let associationList: OAssociationList | undefined;
-  // Find Parent that is defined by a subprogram (instantiation)
-  while (iterator instanceof OFile === false) {
-    if (iterator instanceof OAssociationList) {
-      associationList = iterator;
-    }
-    if (iterator instanceof OInstantiation) {
-      return [iterator, associationList];
-    }
-
-    if (iterator.parent instanceof OFile) {
-      break;
-    }
-    iterator = iterator.parent;
-  }
-  return undefined;
-}
+import { findParentInstantiation } from "./helper/findParentInstantiation";
 export function signatureHelp(linter: VhdlLinter, position: Position): SignatureHelp | null {
   const result = findParentInstantiation(linter, position);
   if (!result) {
