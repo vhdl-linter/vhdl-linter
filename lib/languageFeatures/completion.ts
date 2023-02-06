@@ -1,13 +1,39 @@
-import { CompletionItem, CompletionItemKind, CompletionParams } from 'vscode-languageserver';
-import { IHasLexerToken, implementsIHasConstants, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables } from '../parser/interfaces';
-import { ObjectBase, OEntity, OEnum, OI, ORecord, scope } from '../parser/objects';
+import { CompletionItem, CompletionItemKind, Position } from 'vscode-languageserver';
+import { reservedWords } from '../lexer';
+import { IHasLexerToken, implementsIHasAliases, implementsIHasConstants, implementsIHasGenerics, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables } from '../parser/interfaces';
+import { OAliasWithSignature, OAssociationList, ObjectBase, OEntity, OEnum, OFile, OGenericAssociationList, OInstantiation, ORecord, scope } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
+import { findObjectFromPosition } from './findObjectFromPosition';
 
-export async function getCompletions(linter: VhdlLinter, params: CompletionParams): Promise<CompletionItem[]> {
+// TODO: This code is stolen from signature Helper. DRY this code.
+export function findParentInstantiation(linter: VhdlLinter, position: Position): [OInstantiation, OAssociationList | undefined] | undefined {
+  const object = findObjectFromPosition(linter, position)[0];
+  if (object === undefined) {
+    return undefined;
+  }
+  let iterator = object;
+  let associationList: OAssociationList | undefined;
+  // Find Parent that is defined by a subprogram (instantiation)
+  while (iterator instanceof OFile === false) {
+    if (iterator instanceof OAssociationList) {
+      associationList = iterator;
+    }
+    if (iterator instanceof OInstantiation) {
+      return [iterator, associationList];
+    }
+
+    if (iterator.parent instanceof OFile) {
+      break;
+    }
+    iterator = iterator.parent;
+  }
+  return undefined;
+}
+export async function getCompletions(linter: VhdlLinter, position: Position): Promise<CompletionItem[]> {
 
 
   const completions: CompletionItem[] = [];
-  const ieeeCasingLowercase = (await linter.settingsGetter(new URL(params.textDocument.uri))).style.ieeeCasing === 'lowercase';
+  const ieeeCasingLowercase = (await linter.settingsGetter(linter.uri)).style.ieeeCasing === 'lowercase';
   const addCompletion = async (item: ObjectBase & IHasLexerToken, kind?: CompletionItemKind) => {
     const lowercase = item.rootFile.uri.toString().match(/ieee2008/) && ieeeCasingLowercase;
     completions.push({ label: lowercase ? item.lexerToken.getLText() : item.lexerToken.text, kind });
@@ -15,7 +41,7 @@ export async function getCompletions(linter: VhdlLinter, params: CompletionParam
 
 
   const lines = linter.text.split('\n');
-  const line = lines[params.position.line];
+  const line = lines[position.line];
 
   const matchUse = line.match(/^\s*use\s+/i);
   if (matchUse) {
@@ -24,12 +50,10 @@ export async function getCompletions(linter: VhdlLinter, params: CompletionParam
       pkg.targetLibrary && completions.push({ label: pkg.targetLibrary });
     }
   }
-  completions.push({ label: 'all' });
+
+  completions.push(...reservedWords.map(reservedWord => ({ label: reservedWord })));
   completions.push({ label: 'work' });
-  const pos = new OI(linter.file, params.position.line, params.position.character);
-  const candidates = linter.file.objectList.filter(object => object.range.start.i <= pos.i && pos.i <= object.range.end.i);
-  candidates.sort((a, b) => (a.range.end.i - a.range.start.i) - (b.range.end.i - b.range.start.i));
-  const completionObject = candidates[0];
+  const completionObject = findObjectFromPosition(linter, position)[0];
   if (!completionObject) {
     return completions;
   }
@@ -69,6 +93,11 @@ export async function getCompletions(linter: VhdlLinter, params: CompletionParam
         }
       }
     }
+    if (implementsIHasAliases(object)) {
+      for (const alias of object.aliases) {
+        addCompletion(alias, CompletionItemKind.Reference);
+      }
+    }
     if (object instanceof OEntity) {
       for (const port of object.ports) {
         addCompletion(port, CompletionItemKind.Field);
@@ -87,6 +116,25 @@ export async function getCompletions(linter: VhdlLinter, params: CompletionParam
       }
       for (const subprogram of object.subprograms) {
         addCompletion(subprogram, CompletionItemKind.Function);
+      }
+    }
+  }
+
+  // Add formals
+  const result = findParentInstantiation(linter, position);
+  if (result) {
+    const [instantiation, associationList] = result;
+    for (const definition of instantiation.definitions) {
+      if (definition instanceof OAliasWithSignature) {
+        // TODO Handle aliases for completion
+      } else {
+        const portsOrGenerics = associationList instanceof OGenericAssociationList && implementsIHasGenerics(definition) ? definition.generics : definition.ports;
+        for (const portOrGeneric of portsOrGenerics) {
+          completions.push({
+            label: portOrGeneric.lexerToken.text,
+            kind: CompletionItemKind.Field
+          });
+        }
       }
     }
   }

@@ -21,7 +21,7 @@ export class ParserPosition {
     return this.num >= 0 && this.num < this.lexerTokens.length;
   }
   public getRangeToEndLine() {
-    return this.lexerTokens[this.num].range.copyExtendEndOfLine();
+    return this.lexerTokens[this.num]?.range.copyExtendEndOfLine();
   }
 }
 
