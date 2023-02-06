@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, expect, test } from '@jest/globals';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { pathToFileURL } from 'url';
 import { SignatureHelp } from 'vscode';
 import { Position } from 'vscode-languageserver';
 import { Elaborate } from '../../../lib/elaborate/elaborate';
@@ -11,14 +12,14 @@ import { VhdlLinter } from '../../../lib/vhdl-linter';
 
 let projectParser: ProjectParser;
 beforeAll(async () => {
-  projectParser = await ProjectParser.create([__dirname], '', defaultSettingsGetter);
+  projectParser = await ProjectParser.create([pathToFileURL(__dirname)], '', defaultSettingsGetter);
 });
 afterAll(async () => {
   await projectParser.stop();
 });
 async function prepare(fileName: string) {
   const path = join(__dirname, fileName);
-  const linter = new VhdlLinter(path, readFileSync(path, { encoding: 'utf8' }), projectParser, defaultSettingsGetter);
+  const linter = new VhdlLinter(pathToFileURL(path), readFileSync(path, { encoding: 'utf8' }), projectParser, defaultSettingsGetter);
   await Elaborate.elaborate(linter);
   return linter;
 }

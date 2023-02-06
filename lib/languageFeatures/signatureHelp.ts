@@ -3,7 +3,6 @@ import { implementsIHasGenerics } from "../parser/interfaces";
 import { OAliasWithSignature, OAssociationList, OFile, OGenericAssociationList, OInstantiation } from "../parser/objects";
 import { VhdlLinter } from "../vhdl-linter";
 import { findObjectFromPosition } from "./findObjectFromPosition";
-import { getTokenFromPosition } from "./findReferencesHandler";
 export function findParentInstantiation(linter: VhdlLinter, position: Position): [OInstantiation, OAssociationList | undefined] | undefined {
   const object = findObjectFromPosition(linter, position)[0];
   if (object === undefined) {
