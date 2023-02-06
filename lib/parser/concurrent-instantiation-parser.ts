@@ -65,7 +65,7 @@ export class ConcurrentInstantiationParser extends ParserBase {
       }
 
       if (lastI === this.state.pos.i) {
-        throw new ParserError(`Parser stuck on line ${this.getLine} in module ${this.constructor.name}`, this.state.pos.getRangeToEndLine());
+        throw new ParserError(`Parser stuck on line ${this.getLine()} in module ${this.constructor.name}`, this.state.pos.getRangeToEndLine());
       }
       lastI = this.state.pos.i;
     }

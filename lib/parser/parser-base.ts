@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'url';
 import { OLexerToken, TokenType } from '../lexer';
 import { config } from './config';
 import { OIDiagnosticWithSolution } from './interfaces';
@@ -37,7 +38,7 @@ export class ParserBase {
   debug(_message: string) {
     if (config.debug) {
       const pos = this.getPosition();
-      console.log(`${this.constructor.name}: ${_message} at ${pos.line}:${pos.col}, (${this.state.fileUri})`);
+      console.log(`${this.constructor.name}: ${_message} at ${pos.line}:${pos.col}, (${fileURLToPath(this.state.fileUri)})`);
     }
   }
 
@@ -54,8 +55,8 @@ export class ParserBase {
         for (let i = 0; i < offset; i++) {
           do {
             offsetCorrected += 1;
-            if (this.state.pos.lexerTokens[this.state.pos.num + offsetCorrected] === undefined) {
-              throw new ParserError(`Out of bound while doing getToken(${offset}, ${offsetIgnoresWhitespaces})`, this.getToken(0).range);
+            if (this.state.pos.num + offsetCorrected >= this.state.pos.lexerTokens.length) {
+              throw new ParserError(`Out of bound while doing getToken(${offset}, ${String(offsetIgnoresWhitespaces)})`, this.getToken(0).range);
             }
           } while ((this.state.pos.lexerTokens[this.state.pos.num + offsetCorrected].isWhitespace()));
         }
@@ -63,8 +64,8 @@ export class ParserBase {
         for (let i = 0; i > offset; i--) {
           do {
             offsetCorrected -= 1;
-            if (this.state.pos.lexerTokens[this.state.pos.num + offsetCorrected] === undefined) {
-              throw new ParserError(`Out of bound while doing getToken(${offset}, ${offsetIgnoresWhitespaces})`, this.getToken(0).range);
+            if (this.state.pos.num + offsetCorrected >= this.state.pos.lexerTokens.length) {
+              throw new ParserError(`Out of bound while doing getToken(${offset}, ${String(offsetIgnoresWhitespaces)})`, this.getToken(0).range);
             }
           } while ((this.state.pos.lexerTokens[this.state.pos.num + offsetCorrected].isWhitespace()));
         }
@@ -219,7 +220,7 @@ export class ParserBase {
       tokens.push(this.getToken(offset));
       offset++;
     }
-    throw new ParserError(`could not find ${searchStrings}`, savedI.getRangeToEndLine());
+    throw new ParserError(`could not find ${searchStrings.join(',')}`, savedI.getRangeToEndLine());
   }
   advanceSemicolon(parenthesisAware = false, { consume } = { consume: true }) {
     if (consume !== false) {
@@ -254,9 +255,6 @@ export class ParserBase {
     }
   }
   maybe(expected: (string | OLexerToken)[] | string | OLexerToken): OLexerToken | undefined {
-    if (expected === undefined) {
-      return undefined;
-    }
     if (Array.isArray(expected)) {
       for (const expectedElement of expected) {
         const text = (typeof expectedElement === 'string') ? expectedElement.toLowerCase() : expectedElement.getLText();
