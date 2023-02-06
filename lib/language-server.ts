@@ -114,7 +114,7 @@ connection.onInitialize((params: InitializeParams) => {
       workspaceSymbolProvider: true,
       signatureHelpProvider: {
         triggerCharacters: [
-          '('
+          '(', ',', '>'
         ]
       }
     }
