@@ -13,6 +13,7 @@ import { findReferencesHandler } from './languageFeatures/findReferencesHandler'
 import { foldingHandler } from './languageFeatures/folding';
 import { prepareRenameHandler, renameHandler } from './languageFeatures/rename';
 import { handleSemanticTokens, semanticTokensLegend } from './languageFeatures/semanticTokens';
+import { signatureHelp } from './languageFeatures/signatureHelp';
 import { handleOnWorkspaceSymbol } from './languageFeatures/workspaceSymbols';
 import { normalizeUri } from './normalize-uri';
 import { OComponent, OFile, OInstantiation, OUseClause } from './parser/objects';
@@ -111,6 +112,11 @@ connection.onInitialize((params: InitializeParams) => {
         prepareProvider: true
       },
       workspaceSymbolProvider: true,
+      signatureHelpProvider: {
+        triggerCharacters: [
+          '(', ',', '>'
+        ]
+      }
     }
   };
 });
@@ -358,6 +364,10 @@ connection.onDocumentHighlight(async (params) => {
 
 });
 connection.onWorkspaceSymbol(params => handleOnWorkspaceSymbol(params, projectParser));
+connection.onSignatureHelp(async params => {
+  const linter = await getLinter(params.textDocument.uri);
+  return await signatureHelp(linter, params.position);
+});
 // connection.on
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 connection.onRequest('vhdl-linter/listing', async (params: any) => {

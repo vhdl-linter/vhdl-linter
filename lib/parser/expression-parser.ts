@@ -1,5 +1,5 @@
 import { OLexerToken } from "../lexer";
-import { OAttributeReference, ObjectBase, OFormalReference, OReference, OSelectedName, OSelectedNameWrite, OWrite, ParserError, SelectedNamePrefix } from "./objects";
+import { OAttributeReference, ObjectBase, OFormalReference, OReference, OSelectedName, OSelectedNameWrite, OWrite, SelectedNamePrefix } from "./objects";
 import { ParserBase, ParserState } from "./parser-base";
 type ExpParserState = {
   maybeOutput: boolean;
@@ -171,7 +171,10 @@ export class ExpressionParser extends ParserBase {
     }
     references.push(...this.splitBuffer(tokenBuffer, false, maybeWrite));
     if (this.expState.lastFormal.length > 0 && tokenBuffer.length === 0) {
-      throw new ParserError("The actual part cannot be empty.", this.expState.lastFormal[0].range.copyWithNewEnd(this.expState.lastFormal[this.expState.lastFormal.length - 1].range));
+      this.state.messages.push({
+        message: "The actual part cannot be empty.",
+        range: this.expState.lastFormal[0].range.copyWithNewEnd(this.expState.lastFormal[this.expState.lastFormal.length - 1].range)
+      });
     }
     if (innerReferences !== undefined) {
       references.push(...innerReferences);
