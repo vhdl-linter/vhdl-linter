@@ -1,5 +1,4 @@
 import { expect, test } from '@jest/globals';
-import { readFileSync } from 'fs';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
 import { Elaborate } from '../../../lib/elaborate/elaborate';
@@ -7,6 +6,7 @@ import { getCompletions } from '../../../lib/languageFeatures/completion';
 import { ProjectParser } from '../../../lib/project-parser';
 import { defaultSettingsWithOverwrite } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdl-linter';
+import { readFileSyncNorm } from "../../readFileSyncNorm";
 
 test.each([
   ['lowercase', 'std_ulogic_vector', 'STD_ULOGIC_VECTOR'],
@@ -19,7 +19,7 @@ test.each([
       ieeeCasing: ieeeCasing as 'lowercase' | 'UPPERCASE'
     }
   });
-  const linter = new VhdlLinter(uri, readFileSync(uri, { encoding: 'utf8' }),
+  const linter = new VhdlLinter(uri, readFileSyncNorm(uri, { encoding: 'utf8' }),
     await ProjectParser.create([], '', getter), getter);
   await Elaborate.elaborate(linter);
   const completion = await getCompletions(linter, {

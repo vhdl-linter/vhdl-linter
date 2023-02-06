@@ -1,11 +1,11 @@
 import { afterAll, beforeAll, expect, test } from '@jest/globals';
-import { readFileSync } from 'fs';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
 import { Diagnostic } from 'vscode-languageserver';
 import { ProjectParser } from '../../../lib/project-parser';
 import { defaultSettingsGetter } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdl-linter';
+import { readFileSyncNorm } from "../../readFileSyncNorm";
 
 let projectParser: ProjectParser;
 let messages: Diagnostic[];
@@ -13,7 +13,7 @@ let linter: VhdlLinter;
 beforeAll(async () => {
   projectParser = await ProjectParser.create([pathToFileURL(__dirname)], '', defaultSettingsGetter);
   const url = pathToFileURL(join(__dirname, 'listParser.vhd'));
-  linter = new VhdlLinter(url, readFileSync(url, { encoding: 'utf8' }), projectParser, defaultSettingsGetter);
+  linter = new VhdlLinter(url, readFileSyncNorm(url, { encoding: 'utf8' }), projectParser, defaultSettingsGetter);
   messages = await linter.checkAll();
 });
 afterAll(async () => {

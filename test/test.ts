@@ -1,4 +1,4 @@
-import { lstatSync, readdirSync, readFileSync } from 'fs';
+import { lstatSync, readdirSync } from 'fs';
 import { argv, cwd } from 'process';
 import { pathToFileURL } from 'url';
 import { DiagnosticSeverity } from 'vscode-languageserver';
@@ -6,6 +6,7 @@ import { OIRange } from '../lib/parser/objects';
 import { joinURL, ProjectParser } from '../lib/project-parser';
 import { defaultSettingsGetter, defaultSettingsWithOverwrite } from '../lib/settings';
 import { OIDiagnostic, VhdlLinter } from '../lib/vhdl-linter';
+import { readFileSyncNorm } from "./readFileSyncNorm";
 function readDirPath(path: URL) {
   return readdirSync(path).map(file => joinURL(path, file));
 }
@@ -65,7 +66,7 @@ async function run_test(path: URL, error_expected: boolean, projectParser?: Proj
     if (lstatSync(subPath).isDirectory()) {
       messageWrappers.push(...await run_test(subPath, error_expected, projectParser));
     } else if (subPath.pathname.match(/\.vhdl?$/i)) {
-      const text = readFileSync(subPath, { encoding: 'utf8' });
+      const text = readFileSyncNorm(subPath, { encoding: 'utf8' });
       const vhdlLinter = new VhdlLinter(subPath, text, projectParser, getter);
       if (vhdlLinter.parsedSuccessfully) {
         await vhdlLinter.checkAll();
