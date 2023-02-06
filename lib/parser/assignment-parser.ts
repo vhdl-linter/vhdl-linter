@@ -89,11 +89,10 @@ export class AssignmentParser extends ParserBase {
       assignment.references.push(...expressionParser.parse());
     } while (endToken.getLText() !== ';' && endToken.getLText() !== 'end');
     if (endToken.getLText() === 'end') {
-      this.state.messages.push({ message: `Unexpected end. Probably missing a ';'.`, range: endToken.range.copyWithNewStart(startI)});    assignment.range = assignment.range.copyWithNewEnd(this.state.pos.i);
+      this.state.messages.push({ message: `Unexpected end. Probably missing a ';'.`, range: endToken.range.copyWithNewStart(startI) });
+    }
+    assignment.range = assignment.range.copyWithNewEnd(this.state.pos.i);
     this.debug('parse end');
     return assignment;
   }
-
-
-
 }
