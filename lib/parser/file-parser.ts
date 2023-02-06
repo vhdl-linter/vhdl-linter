@@ -42,10 +42,10 @@ export class FileParser extends ParserBase {
       const match = /(--\s*vhdl-linter)(.*)/.exec(line) as [string, string, string] | null; // vhdl-linter-disable-next-line //vhdl-linter-disable-this-line
 
       if (match) {
-        let innerMatch: [string, string] | null;
+        let innerMatch: [string, string?] | null;
         const nextLineRange = this.getNextLineRange(lineNumber);
         if ((innerMatch = (match[2]?.match(/-disable(?:-this)?-line(?:\s|$)(.+)?/i)) as [string, string] | null) !== null) {
-          for (const rule of innerMatch[1].split(' ')) {
+          for (const rule of innerMatch[1]?.split(' ') ?? [undefined]) {
             this.file.magicComments.push(new OMagicCommentDisable(
               this.file,
               MagicCommentType.Disable,
@@ -55,7 +55,7 @@ export class FileParser extends ParserBase {
           }
 
         } else if ((innerMatch = (match[2].match(/-disable-next-line(?:\s|$)(.+)?/i) as [string, string] |null)) !== null) {
-          for (const rule of innerMatch[1].split(' ')) {
+          for (const rule of innerMatch[1]?.split(' ') ?? [undefined]) {
             this.file.magicComments.push(new OMagicCommentDisable(
               this.file,
               MagicCommentType.Disable,
@@ -63,18 +63,15 @@ export class FileParser extends ParserBase {
               rule
             ));
           }
-        } else if ((innerMatch = (match[2].match(/-disable(?:\s|$)(.+)?/i) as [string, string] | null)) !== null) {
-          const rules: (string | undefined)[] = innerMatch[1].split(' ');
-          if (rules.length == 0) {
-            rules.push(undefined);
-          }
+        } else if ((innerMatch = (match[2].match(/-disable(?:\s|$)(.+)?/i) as [string, string?] | null)) !== null) {
+          const rules: (string | undefined)[] = innerMatch[1]?.split(' ') ?? [undefined];
           for (const rule of rules) {
             if (disabledRangeStart.has(rule) === false) {
               disabledRangeStart.set(rule, lineNumber);
             }
           }
         } else if ((innerMatch = (match[2].match(/-enable(?:\s|$)(.+)?/i) as [string, string] | null)) !== null) {
-          const rules: (string | undefined)[] = innerMatch[1].split(' ');
+          const rules: (string | undefined)[] = innerMatch[1]?.split(' ') ?? [undefined];
           if (rules.length == 0) { // If not rule is specified all rules are enabled
             rules.push(...disabledRangeStart.keys());
           }

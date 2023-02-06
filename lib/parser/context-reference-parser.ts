@@ -13,7 +13,7 @@ export class ContextReferenceParser extends ParserBase {
     const suffix = this.consumeToken();
     this.expect(';');
     const contextReference = new OContextReference(this.parent, prefix.range.copyWithNewEnd(suffix.range), suffix.text);
-    new OLibraryReference(contextReference, prefix);
+    contextReference.library = new OLibraryReference(contextReference, prefix);
     return contextReference;
   }
 }
