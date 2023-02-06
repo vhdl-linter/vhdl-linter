@@ -10,7 +10,7 @@ export interface ISettings {
     ignoreRegex: string;
   };
   style: {
-    preferredLogicTypePort: "unresolved" |  "resolved" | "ignore";
+    preferredLogicTypePort: "unresolved" | "resolved" | "ignore";
     preferredLogicTypeSignal: "unresolved" | "resolved" | "ignore";
     unusedSignalRegex: string;
     ieeeCasing: 'lowercase' | 'UPPERCASE';
@@ -49,13 +49,13 @@ export function defaultSettingsGetter() {
   return defaultSettings;
 }
 export function defaultSettingsWithOverwrite(overwrite?: DeepPartial<ISettings>) {
-  const newDefault = Object.assign({}, defaultSettings);
+  const newDefault = JSON.parse(JSON.stringify(defaultSettings));
 
   if (overwrite) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     recursiveObjectAssign(newDefault as any, overwrite);
   }
-  return () => defaultSettings;
+  return () => newDefault as ISettings;
 }
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function recursiveObjectAssign<T extends Record<string, any>>(target: T, source: Partial<T>) {
