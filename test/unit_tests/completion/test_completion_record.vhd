@@ -8,7 +8,7 @@ end test_completion_record;
 
 architecture arch of test_completion_record is
   type rec2 is record
-    banane : integer;
+    banana : integer;
   end record;
   type rec is record
   foo : integer;
@@ -16,6 +16,6 @@ architecture arch of test_completion_record is
   signal a : rec;
   signal b : integer;
 begin
- b <= a.  ;
+ b <= a.
 
 end arch;
