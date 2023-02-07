@@ -2,7 +2,7 @@ import { fileURLToPath } from 'url';
 import { OLexerToken, TokenType } from '../lexer';
 import { config } from './config';
 import { OIDiagnosticWithSolution } from './interfaces';
-import { OFile, ParserError } from './objects';
+import { OFile, OIRange, ParserError } from './objects';
 
 
 export class ParserPosition {
@@ -22,8 +22,21 @@ export class ParserPosition {
   public isValid() {
     return this.num >= 0 && this.num < this.lexerTokens.length;
   }
+  /**
+ * @deprecated The method should not be used. Call range.copyExtendEndOfLine)_ directly on the appropriate token.
+ */
   public getRangeToEndLine() {
-    return this.lexerTokens[this.num]!.range.copyExtendEndOfLine();
+    const currentToken = this.lexerTokens[this.num];
+    if (currentToken === undefined) {
+      const lastToken = this.lexerTokens[this.lexerTokens.length - 1];
+      if (lastToken) {
+        throw new ParserError(`EOF reached when getRangeToEndLine() called`, lastToken.range.copyExtendEndOfLine());
+      } else {
+        throw new ParserError(`getRangeToEndLine called on empty file`, new OIRange(this.file, 0, 0));
+
+      }
+    }
+    return currentToken.range.copyExtendEndOfLine();
   }
 }
 
@@ -96,6 +109,7 @@ export class ParserBase {
     if (!token) {
       const lastToken = this.state.pos.lexerTokens[this.state.pos.lexerTokens.length - 1]!;
       throw new ParserError(`EOF reached`, lastToken.range);
+
     }
 
     return token;
@@ -138,6 +152,9 @@ export class ParserBase {
       this.state.pos.num--;
     }
   }
+  /**
+ * @deprecated advancePast is deprecated in favor of advanceParenthesisAware
+ */
   advancePast(search: string, options: { allowSemicolon?: boolean, returnMatch?: boolean, consume?: boolean } = {}) {
     if (typeof options.allowSemicolon === 'undefined') {
       options.allowSemicolon = false;
@@ -175,6 +192,9 @@ export class ParserBase {
     }
     return tokens;
   }
+  /**
+ * @deprecated advanceClosingParenthesis is deprecated in favor of advanceParenthesisAware
+ */
   advanceClosingParenthesis() {
     const tokens = [];
     let parenthesisLevel = 0;
