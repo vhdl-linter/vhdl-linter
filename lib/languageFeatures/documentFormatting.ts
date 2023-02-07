@@ -47,12 +47,14 @@ export async function handleDocumentFormatting(params: DocumentFormattingParams,
       await execP(`emacs --batch`);
       foundEmacs = true;
     } catch (e) {
+      foundEmacs = false;
     }
   } else {
     try {
       await execP(`command -v emacs`);
       foundEmacs = true;
     } catch (e) {
+      foundEmacs = false;
     }
   }
   if (!foundEmacs) {
@@ -73,12 +75,13 @@ export async function handleDocumentFormatting(params: DocumentFormattingParams,
     const cmd = `emacs --batch --eval "(setq-default vhdl-basic-offset ${numSpaces})" ` +
       // The vhdl-mode from the folder does not work with win for some reason
       // `--eval "(setq load-path (cons (expand-file-name \\"${fileURLToPath(emacsLoadPath)}\\") load-path))" ` +
-      ` -l ${fileURLToPath(emacsScripts)} -f vhdl-batch-indent-region ${tmpFile}`
+      ` -l ${fileURLToPath(emacsScripts)} -f vhdl-batch-indent-region ${tmpFile}`;
     try {
       await execP(cmd);
     } catch (e) {
       progress.done();
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       if (e.name === "AbortError") {
         return new ResponseError(LSPErrorCodes.RequestCancelled, 'canceled');
       }
