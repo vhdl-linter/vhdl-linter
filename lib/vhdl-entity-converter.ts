@@ -9,12 +9,12 @@ async function getEntity() {
         return;
     }
     const vhdlLinter = new VhdlLinter(new URL(editor.document.uri.toString()), editor.document.getText(), await ProjectParser.create([], '', defaultSettingsGetter), defaultSettingsGetter);
-    if (vhdlLinter.file.entities[0] !== undefined) {
+    if (vhdlLinter.file.entities.length > 0) {
         return vhdlLinter.file.entities[0];
     }
 }
 export enum CopyTypes {
-    Instance, Sysverilog, Signals
+    Instance, SysVerilog, Signals
 }
 export async function copy(type: CopyTypes) {
     const entity = await getEntity();
@@ -26,16 +26,14 @@ export async function copy(type: CopyTypes) {
         text = instanceTemplate(entity);
     } else if (type === CopyTypes.Signals) {
         text = signalsTemplate(entity);
-    } else if (type === CopyTypes.Sysverilog) {
-        text = sysVerilogTemplate(entity);
     } else {
-        text = '';
+        text = sysVerilogTemplate(entity);
     }
-    vscode.env.clipboard.writeText(text);
-    vscode.window.showInformationMessage(`Instance for '${entity.lexerToken}' copied to the clipboard`);
+    await vscode.env.clipboard.writeText(text);
+    await vscode.window.showInformationMessage(`Instance for '${entity.lexerToken.text}' copied to the clipboard`);
 
 }
-function longestinArray(array: OPort[]|OGeneric[]) {
+function longestInArray(array: OPort[]|OGeneric[]) {
     let longest = 0;
     for (const object of array) {
         if (object.lexerToken.text.length > longest) {
@@ -46,14 +44,14 @@ function longestinArray(array: OPort[]|OGeneric[]) {
 }
 // TODO: Make the formatting configurable
 function instanceTemplate(entity: OEntity) {
-    let text = `inst_${entity.lexerToken} : entity work.${entity.lexerToken}`;
+    let text = `inst_${entity.lexerToken.text} : entity work.${entity.lexerToken.text}`;
     const indentString = '  ';
     if (entity.generics.length > 0) {
         text += `\ngeneric map (\n`;
-        const longest = longestinArray(entity.generics);
+        const longest = longestInArray(entity.generics);
         for (const generic of entity.generics) {
             const name = generic.lexerToken.text.padEnd(longest, ' ');
-            text += `${indentString}${name} => ${generic.lexerToken},\n`;
+            text += `${indentString}${name} => ${generic.lexerToken.text},\n`;
         }
         // Strip the final comma
         text = text.slice(0, -2);
@@ -62,10 +60,10 @@ function instanceTemplate(entity: OEntity) {
 
     if (entity.ports.length > 0) {
         text += `\nport map (\n`;
-        const longest = longestinArray(entity.ports);
+        const longest = longestInArray(entity.ports);
         for (const port of entity.ports) {
             const name = port.lexerToken.text.padEnd(longest, ' ');
-            text += `${indentString}${name} => ${port.lexerToken},\n`;
+            text += `${indentString}${name} => ${port.lexerToken.text},\n`;
         }
         // Strip the final comma
         text = text.slice(0, -2);
@@ -81,10 +79,10 @@ function sysVerilogTemplate(entity: OEntity) {
     const indentString = '  ';
     if (entity.generics.length > 0) {
         text += ` #(\n`;
-        const longest = longestinArray(entity.generics);
+        const longest = longestInArray(entity.generics);
         for (const generic of entity.generics) {
             const name = generic.lexerToken.text.padEnd(longest, ' ');
-            text += `${indentString}.${name}(dut_${generic.lexerToken}),\n`;
+            text += `${indentString}.${name}(dut_${generic.lexerToken.text}),\n`;
         }
         // Strip the final comma
         text = text.slice(0, -2);
@@ -93,10 +91,10 @@ function sysVerilogTemplate(entity: OEntity) {
 
     if (entity.ports.length > 0) {
         text += ` i_dut (\n`;
-        const longest = longestinArray(entity.ports);
+        const longest = longestInArray(entity.ports);
         for (const port of entity.ports) {
             const name = port.lexerToken.text.padEnd(longest, ' ');
-            text += `${indentString}.${name}(dut_s_${port.lexerToken}),\n`;
+            text += `${indentString}.${name}(dut_s_${port.lexerToken.text}),\n`;
         }
         // Strip the final comma
         text = text.slice(0, -2);
@@ -109,10 +107,10 @@ function sysVerilogTemplate(entity: OEntity) {
 function signalsTemplate(entity: OEntity) {
     let text = '';
     if (entity.ports.length > 0) {
-        const longest = longestinArray(entity.ports);
+        const longest = longestInArray(entity.ports);
         for (const port of entity.ports) {
             const name = port.lexerToken.text.padEnd(longest, ' ');
-            text += `signal s_${name} : ${port.typeReference};\n`;
+            text += `signal s_${name} : ${port.typeReference[0]?.referenceToken.text ?? 'unknown_type'};\n`;
         }
     }
     return text;

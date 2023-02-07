@@ -15,7 +15,7 @@ interface MessageWrapper {
   messages: (OIDiagnostic | { message: string })[]
 }
 function isOIDiagnostic(obj: unknown): obj is OIDiagnostic {
-  if ((obj as OIDiagnostic)?.range instanceof OIRange) {
+  if ((obj as OIDiagnostic).range instanceof OIRange) {
     return true;
   }
   return false;
@@ -56,7 +56,7 @@ async function run_test(path: URL, error_expected: boolean, projectParser?: Proj
     projectParser = await ProjectParser.create([path], '', defaultSettingsGetter);
   }
   for (const subPath of readDirPath(path)) {
-    if (argv.indexOf('--no-osvvm') > -1 && subPath.pathname.match(/OSVVM/i)) {
+    if (argv.includes('--no-osvvm') && subPath.pathname.match(/OSVVM/i)) {
       continue;
     }
     // Exclude OSVVM and IEEE from resolved/unresolved checker
@@ -118,4 +118,4 @@ async function run_test(path: URL, error_expected: boolean, projectParser?: Proj
     console.log(message.file);
   }
   process.exit(messages.length + timeOutError);
-})();
+})().catch(err => console.error(err));

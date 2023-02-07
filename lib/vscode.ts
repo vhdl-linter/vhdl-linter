@@ -5,14 +5,13 @@ import {
   ServerOptions,
   TransportKind
 } from 'vscode-languageclient/node';
-import { FileParser } from './parser/file-parser';
 import { copy, CopyTypes } from './vhdl-entity-converter';
 import { IAddSignalCommandArguments, IIgnoreLineCommandArguments } from './vhdl-linter';
 
 
 let client: LanguageClient;
 
-export function activate(context: ExtensionContext) {
+export async function activate(context: ExtensionContext) {
   // The server is implemented in node
   const serverModule = require.resolve('./language-server');
   // The debug options for the server
@@ -54,7 +53,7 @@ export function activate(context: ExtensionContext) {
   );
 
   // Start the client. This will also launch the server
-  client.start();
+  await client.start();
   context.subscriptions.push(commands.registerCommand('vhdl-linter:add-signal', async (args: IAddSignalCommandArguments) => {
     const editor = window.activeTextEditor;
     if (!editor) {
@@ -67,7 +66,7 @@ export function activate(context: ExtensionContext) {
     if (!length) {
       return;
     }
-    editor.edit(editBuilder => {
+    await editor.edit(editBuilder => {
       const { preferredLogicTypeSignal } = workspace.getConfiguration('VhdlLinter.style');
       let typePart = 'std_ulogic';
       if (preferredLogicTypeSignal === 'resolved') {
@@ -83,27 +82,13 @@ export function activate(context: ExtensionContext) {
     if (!editor) {
       return;
     }
-    editor.edit(editBuilder => {
+    await editor.edit(editBuilder => {
       const lineLength = editor.document.lineAt(args.range.start.line).text.length;
       editBuilder.insert(new Position(args.range.start.line, lineLength), `  --vhdl-linter-disable-this-line`);
     });
   }));
   context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-as-instance', () => copy(CopyTypes.Instance)));
   context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-as-signals', () => copy(CopyTypes.Signals)));
-  context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-tree', async () => {
-    const editor = window.activeTextEditor;
-    if (!editor) {
-      return;
-    }
-    const parser = new FileParser(editor.document.getText(), new URL(editor.document.uri.toString()), { canceled: false });
-    const file = parser.parse();
-
-    if (file) {
-      env.clipboard.writeText(file.getJSON());
-      window.showInformationMessage(`VHDL file as JSON copied to clipboard`);
-
-    }
-  }));
   context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-file-listing', async () => {
     const editor = window.activeTextEditor;
     if (!editor) {
@@ -116,14 +101,11 @@ export function activate(context: ExtensionContext) {
     },
       async () => await client.sendRequest('vhdl-linter/listing', { textDocument: { uri: editor.document.uri.toString() } })
     );
-    env.clipboard.writeText(result as string);
-    window.showInformationMessage(`Copied list of files to clipboard.`);
+    await env.clipboard.writeText(result as string);
+    await window.showInformationMessage(`Copied list of files to clipboard.`);
   }));
 }
 
 export function deactivate(): Thenable<void> | undefined {
-  if (!client) {
-    return undefined;
-  }
   return client.stop();
 }

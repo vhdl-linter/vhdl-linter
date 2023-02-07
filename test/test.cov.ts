@@ -1,6 +1,6 @@
 // This file runes the test files via jest to allow code coverage
 // This is normally disabled because it is super slow
-import { expect, test, jest } from '@jest/globals';
+import { expect, jest, test } from '@jest/globals';
 import { lstatSync, readdirSync } from 'fs';
 import { argv, cwd } from 'process';
 import { pathToFileURL } from 'url';
@@ -30,7 +30,7 @@ async function run_test(url: URL, error_expected: boolean, projectParser?: Proje
     projectParser = await ProjectParser.create([url], '', defaultSettingsGetter);
   }
   for (const subPath of readDirPath(url)) {
-    if (argv.indexOf('--no-osvvm') > -1 && subPath.toString().match(/OSVVM/i)) {
+    if (argv.includes('--no-osvvm') && subPath.toString().match(/OSVVM/i)) {
       continue;
     }
     // Exclude OSVVM and IEEE from resolved/unresolved checker
@@ -62,12 +62,9 @@ async function run_test(url: URL, error_expected: boolean, projectParser?: Proje
   }
   return errorCount;
 }
-(async () => {
-  jest.setTimeout(10 * 60 * 1000);
-  test('running test file suite', async () => {
-    expect(await run_test_folder(joinURL(pathToFileURL(cwd()), 'test', 'test_files', 'test_error_expected'), true)).toBe(0);
-    expect(await run_test_folder(joinURL(pathToFileURL(cwd()), 'test', 'test_files', 'test_no_error'), false)).toBe(0);
-    expect(await run_test(joinURL(pathToFileURL(cwd()), 'ieee2008'), false)).toBe(0);
-  });
-
-})();
+jest.setTimeout(10 * 60 * 1000);
+test('running test file suite', async () => {
+  expect(await run_test_folder(joinURL(pathToFileURL(cwd()), 'test', 'test_files', 'test_error_expected'), true)).toBe(0);
+  expect(await run_test_folder(joinURL(pathToFileURL(cwd()), 'test', 'test_files', 'test_no_error'), false)).toBe(0);
+  expect(await run_test(joinURL(pathToFileURL(cwd()), 'ieee2008'), false)).toBe(0);
+});

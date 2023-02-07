@@ -33,7 +33,7 @@ export class InterfaceListParser extends ParserBase {
     }
     const multiInterface = [];
     while (this.state.pos.isValid()) {
-      this.debug('parse i ' + this.state.pos.i);
+      this.debug(`parse i ${this.state.pos.i}`);
 
       this.advanceWhitespace();
       if (this.getToken().text === ')') {
@@ -101,7 +101,7 @@ export class InterfaceListParser extends ParserBase {
             }
           }
           const { type, defaultValue } = this.getTypeDefinition(port);
-          const end = defaultValue?.[defaultValue?.length - 1]?.range.end ?? type[type.length - 1]?.range?.end ?? port.range.end;
+          const end = defaultValue?.[defaultValue.length - 1]?.range.end ?? type[type.length - 1]?.range?.end ?? port.range.end;
           port.range = port.range.copyWithNewEnd(end);
           (port as OGenericConstant).typeReference = new ExpressionParser(this.state, port, type).parse();
 

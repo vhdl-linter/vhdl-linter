@@ -18,7 +18,7 @@ afterAll(async () => {
 
 test.each(
   readdirSync(__dirname).filter(v => v.endsWith('.vhd'))
-)('Testing document symbols of %s', async (fileName) => {
+)('Testing document symbols of %s', (fileName) => {
   const path = join(__dirname, fileName);
   const uri = pathToFileURL(path);
   const linter = new VhdlLinter(uri, readFileSyncNorm(uri, { encoding: 'utf8' }), projectParser, defaultSettingsGetter);

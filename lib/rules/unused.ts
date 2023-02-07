@@ -18,7 +18,7 @@ export class RUnused extends RuleBase implements IRule {
       return;
     }
     // ignore entities that do not have the architecture in the same file
-    if (obj.parent instanceof OEntity && obj.rootFile.architectures.find(a => a.entityName?.getLText() === (obj.parent as OEntity).lexerToken.getLText()) === undefined) {
+    if (obj.parent instanceof OEntity && obj.rootFile.architectures.find(a => a.entityName.getLText() === (obj.parent as OEntity).lexerToken.getLText()) === undefined) {
       return;
     }
     if (this.unusedSignalRegex.exec(obj.lexerToken.text) === null) {
@@ -60,11 +60,11 @@ export class RUnused extends RuleBase implements IRule {
       references.push(...port.aliasReferences.flatMap(alias => alias.referenceLinks));
       if ((port.direction === 'in' || port.direction === 'inout') && references.filter(token => token instanceof ORead).length === 0) {
 
-        this.addUnusedMessage(port, `Not reading input port '${port.lexerToken}'`);
+        this.addUnusedMessage(port, `Not reading input port '${port.lexerToken.text}'`);
       }
       const writes = references.filter(token => token instanceof OWrite);
       if ((port.direction === 'out' || port.direction === 'inout') && writes.length === 0) {
-        this.addUnusedMessage(port, `Not writing output port '${port.lexerToken}'`);
+        this.addUnusedMessage(port, `Not writing output port '${port.lexerToken.text}'`);
       }
     }
   }
@@ -89,9 +89,9 @@ export class RUnused extends RuleBase implements IRule {
     const ignoreAction = this.vhdlLinter.addCodeActionCallback((textDocumentUri: string) => {
       return [
         CodeAction.create(
-          `Ignore multiple drivers of ${signal.lexerToken}`,
+          `Ignore multiple drivers of ${signal.lexerToken.text}`,
           Command.create(
-            `Ignore multiple drivers of ${signal.lexerToken}`,
+            `Ignore multiple drivers of ${signal.lexerToken.text}`,
             'vhdl-linter:ignore-line',
             { textDocumentUri, range: signal.lexerToken.range }
           ),
@@ -104,37 +104,36 @@ export class RUnused extends RuleBase implements IRule {
         code: ignoreAction,
         range: signal.lexerToken.range,
         severity: DiagnosticSeverity.Warning,
-        message: `'${signal.lexerToken}' has multiple drivers (e.g. lines ${filteredScopes.map(s => `${s.write.range.start.line}`).join(', ')}).`
+        message: `'${signal.lexerToken.text}' has multiple drivers (e.g. lines ${filteredScopes.map(s => String(s.write.range.start.line)).join(', ')}).`
       });
       for (const write of writeScopes) {
         this.addMessage({
           code: ignoreAction,
           range: write.write.range,
           severity: DiagnosticSeverity.Warning,
-          message: `Driver of multiple driven signal '${signal.lexerToken}'.`
+          message: `Driver of multiple driven signal '${signal.lexerToken.text}'.`
         });
       }
-    } else if (filteredScopes.length === 1 && writes.length > 1 && !(filteredScopes[0].scope instanceof OProcess)) {
+    } else if (filteredScopes.length === 1 && writes.length > 1 && !(filteredScopes[0]?.scope instanceof OProcess)) {
       // if multiple writes in the architecture or one instantiation
       this.addMessage({
         code: ignoreAction,
         range: signal.lexerToken.range,
         severity: DiagnosticSeverity.Warning,
-        message: `'${signal.lexerToken}' has ${writes.length} drivers (lines ${writeScopes.map(s => `${s.write.range.start.line}`).join(', ')}).`
+        message: `'${signal.lexerToken.text}' has ${writes.length} drivers (lines ${writeScopes.map(s => String(s.write.range.start.line)).join(', ')}).`
       });
       for (const write of writeScopes) {
         this.addMessage({
           code: ignoreAction,
           range: write.write.range,
           severity: DiagnosticSeverity.Warning,
-          message: `Driver of multiple driven signal '${signal.lexerToken}'.`
+          message: `Driver of multiple driven signal '${signal.lexerToken.text}'.`
         });
       }
     }
   }
-  async check() {
-    const settings = (await this.vhdlLinter.settingsGetter(this.vhdlLinter.uri));
-    this.unusedSignalRegex = new RegExp(settings.style.unusedSignalRegex);
+  check() {
+    this.unusedSignalRegex = new RegExp(this.settings.style.unusedSignalRegex);
 
     for (const obj of this.file.objectList) {
       if (implementsIHasPorts(obj)) {
@@ -144,7 +143,7 @@ export class RUnused extends RuleBase implements IRule {
       if (implementsIHasGenerics(obj) && !(obj instanceof OComponent)) {
         for (const generic of obj.generics) {
           if (generic.referenceLinks.filter(token => token instanceof ORead).length === 0) {
-            this.addUnusedMessage(generic, `Not reading generic ${generic.lexerToken}`);
+            this.addUnusedMessage(generic, `Not reading generic ${generic.lexerToken.text}`);
           }
 
         }
@@ -154,14 +153,14 @@ export class RUnused extends RuleBase implements IRule {
           const references = type.referenceLinks.slice(0);
           references.push(...type.aliasReferences.flatMap(alias => alias.referenceLinks));
           if (references.length === 0) {
-            this.addUnusedMessage(type, `Not using type ${type.lexerToken}`);
+            this.addUnusedMessage(type, `Not using type ${type.lexerToken.text}`);
           }
         }
       }
       if (implementsIHasComponents(obj)) {
         for (const comp of obj.components) {
           if (comp.referenceLinks.length === 0) {
-            this.addUnusedMessage(comp, `Not using component ${comp.lexerToken}`);
+            this.addUnusedMessage(comp, `Not using component ${comp.lexerToken.text}`);
           }
         }
       }
@@ -170,11 +169,11 @@ export class RUnused extends RuleBase implements IRule {
           const references = signal.referenceLinks.slice(0);
           references.push(...signal.aliasReferences.flatMap(alias => alias.referenceLinks));
           if (references.filter(token => token instanceof ORead).length === 0) {
-            this.addUnusedMessage(signal, `Not reading signal ${signal.lexerToken}`);
+            this.addUnusedMessage(signal, `Not reading signal ${signal.lexerToken.text}`);
           }
           if (references.filter(token => token instanceof OWrite).length === 0) {
-            this.addUnusedMessage(signal, `Not writing signal ${signal.lexerToken}`);
-          } else if (settings.rules.warnMultipleDriver) {
+            this.addUnusedMessage(signal, `Not writing signal ${signal.lexerToken.text}`);
+          } else if (this.settings.rules.warnMultipleDriver) {
             this.checkMultipleDriver(signal);
           }
         }
@@ -184,13 +183,13 @@ export class RUnused extends RuleBase implements IRule {
           const references = variable.referenceLinks.slice(0);
           references.push(...variable.aliasReferences.flatMap(alias => alias.referenceLinks));
           if (references.filter(token => token instanceof ORead).length === 0) {
-            this.addUnusedMessage(variable, `Not reading variable ${variable.lexerToken}`);
+            this.addUnusedMessage(variable, `Not reading variable ${variable.lexerToken.text}`);
           }
           if (references.filter(token => token instanceof OWrite).length === 0) {
             // Assume protected type has side-effect and does not net writing to.
             const type = variable.typeReference[0]?.definitions?.[0];
             if ((type instanceof OType && (type.protected || type.protectedBody)) === false) {
-              this.addUnusedMessage(variable, `Not writing variable '${variable.lexerToken}'`);
+              this.addUnusedMessage(variable, `Not writing variable '${variable.lexerToken.text}'`);
             }
           }
         }
@@ -200,7 +199,7 @@ export class RUnused extends RuleBase implements IRule {
           const references = constant.referenceLinks.slice(0);
           references.push(...constant.aliasReferences.flatMap(alias => alias.referenceLinks));
           if (references.filter(token => token instanceof ORead).length === 0) {
-            this.addUnusedMessage(constant, `Not reading constant ${constant.lexerToken}`);
+            this.addUnusedMessage(constant, `Not reading constant ${constant.lexerToken.text}`);
           }
         }
       }
@@ -213,7 +212,7 @@ export class RUnused extends RuleBase implements IRule {
           const references = subprogram.referenceLinks.slice(0);
           references.push(...subprogram.aliasReferences.flatMap(alias => alias.referenceLinks));
           if (references.length === 0) {
-            this.addUnusedMessage(subprogram, `Not using subprogram ${subprogram.lexerToken}`);
+            this.addUnusedMessage(subprogram, `Not using subprogram ${subprogram.lexerToken.text}`);
           }
         }
       }

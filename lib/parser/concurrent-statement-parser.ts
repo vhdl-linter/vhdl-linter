@@ -26,7 +26,7 @@ export class ConcurrentStatementParser extends ParserBase {
     const savedI = this.state.pos.i;
     if (this.getToken(1, true).text === ':') {
       label = this.consumeToken();
-      this.debug('parse label ' + label);
+      this.debug(`parse label ${label.text}`);
       this.consumeToken();
       this.advanceWhitespace();
       nextToken = this.getToken();
@@ -58,8 +58,10 @@ export class ConcurrentStatementParser extends ParserBase {
       }
 
       const startI = this.state.pos.i;
-      const [constantName] = this.advancePast('in');
-
+      const [[constantName], inToken] = this.advanceParenthesisAware(['in'], true, true);
+      if (!constantName) {
+        throw new ParserError(`Expected an iterator constant name`, inToken.range);
+      }
       const rangeToken = this.advancePast('generate');
       const constantRange = new ExpressionParser(this.state, this.parent, rangeToken).parse();
       const subarchitecture = new StatementBodyParser(this.state, (this.parent as OArchitecture), label);
@@ -120,7 +122,7 @@ export class ConcurrentStatementParser extends ParserBase {
         this.expect(':');
       }
       const conditionTokens = this.advancePast('generate');
-      this.debug('parse if generate ' + label);
+      this.debug(`parse if generate ${label.text}`);
       const subarchitecture = new StatementBodyParser(this.state, ifGenerate, label);
       const ifGenerateClause = subarchitecture.parse(true, 'generate', undefined, alternativeLabel);
       ifGenerateClause.range = ifGenerateClause.range.copyWithNewStart(ifGenClauseStart);
@@ -150,7 +152,7 @@ export class ConcurrentStatementParser extends ParserBase {
         this.expect(':');
       }
       const conditionTokens = this.advancePast('generate');
-      this.debug('parse elsif generate ' + label);
+      this.debug(`parse elsif generate ${label?.text ?? ''}`);
       const subarchitecture = new StatementBodyParser(this.state, this.parent.parent, this.parent.parent.label);
       const ifGenerateClause = subarchitecture.parse(true, 'generate', undefined, alternativeLabel);
       ifGenerateClause.range = ifGenerateClause.range.copyWithNewStart(elsifGenClauseStart);
@@ -175,7 +177,7 @@ export class ConcurrentStatementParser extends ParserBase {
         this.expect(':');
       }
       this.expect('generate');
-      this.debug('parse else generate ' + label);
+      this.debug(`parse else generate ${label?.text ?? ''}`);
       const subarchitecture = new StatementBodyParser(this.state, this.parent.parent, this.parent.parent.label);
 
       const elseGenerateObject = subarchitecture.parse(true, 'else-generate', undefined, alternativeLabel);

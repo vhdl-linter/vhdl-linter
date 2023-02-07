@@ -3,13 +3,10 @@ import { OLexerToken } from '../lexer';
 import * as I from './interfaces';
 export class OI implements Position {
   protected i_?: number;
-  constructor(parent: ObjectBase | OFile, i: number)
-  constructor(parent: ObjectBase | OFile, line: number, character: number)
-  constructor(parent: ObjectBase | OFile, line: number, character: number, i: number)
   constructor(public parent: ObjectBase | OFile, i: number, j?: number, k?: number) {
     if (j === Number.POSITIVE_INFINITY) {
       const lines = (this.parent instanceof OFile ? this.parent : this.parent.rootFile).lines;
-      j = lines[i].length - 1;
+      j = lines[i]!.length - 1;
     }
     if (k !== undefined && j !== undefined) {
       this.i_ = k;
@@ -29,8 +26,11 @@ export class OI implements Position {
   get i() {
     if (this.i_ === undefined) {
       this.calcI();
+      if (this.i_ === undefined) {
+        throw new Error('Can not convert position to i');
+      }
     }
-    return this.i_ as number;
+    return this.i_;
   }
   private position?: Position;
   get line() {
@@ -66,7 +66,7 @@ export class OI implements Position {
   private calcPosition(): Position {
     const lines = (this.parent instanceof OFile ? this.parent : this.parent.rootFile).text.slice(0, this.i).split('\n');
     const line = lines.length - 1;
-    const character = lines[lines.length - 1].length;
+    const character = lines[lines.length - 1]!.length;
     return { character, line };
   }
   private calcI() {
@@ -74,7 +74,7 @@ export class OI implements Position {
       throw new Error('Something went wrong with OIRange');
     }
     const lines = (this.parent instanceof OFile ? this.parent : this.parent.rootFile).lines;
-    this.i_ = lines.slice(0, this.position.line).join('\n').length + 1 + Math.min(this.position.character, lines[this.position.line].length);
+    this.i_ = lines.slice(0, this.position.line).join('\n').length + 1 + Math.min(this.position.character, lines[this.position.line]!.length);
   }
 }
 
@@ -129,7 +129,7 @@ export class OIRange implements Range {
   copyExtendBeginningOfLine() {
     const lines = (this.parent instanceof OFile ? this.parent : this.parent.rootFile).lines;
     let startCol = 0;
-    const match = lines[this.start.line].match(/\S/);
+    const match = lines[this.start.line]?.match(/\S/);
     if (match) {
       startCol = match.index ?? 0;
     }
@@ -190,7 +190,7 @@ export class ObjectBase {
     return this.rootElement;
   }
   lexerTokenEquals(other: ObjectBase) {
-    return this.lexerToken?.text?.toLowerCase() === other?.lexerToken?.text?.toLowerCase();
+    return this.lexerToken?.text.toLowerCase() === other.lexerToken?.text.toLowerCase();
   }
 }
 
@@ -226,8 +226,7 @@ export class OLibraryReference extends OReference {
 export class OFile {
   parserMessages: I.OIDiagnosticWithSolution[] = [];
   public lines: string[];
-  public lexerTokens: OLexerToken[];
-  constructor(public text: string, public uri: URL, public originalText: string) {
+  constructor(public text: string, public uri: URL, public originalText: string, public lexerTokens: OLexerToken[]) {
     this.lines = originalText.split('\n');
   }
 
@@ -240,27 +239,6 @@ export class OFile {
   packageInstantiations: OPackageInstantiation[] = [];
   configurations: OConfiguration[] = [];
   readonly rootFile = this; // Provided as a convenience to equalize to ObjectBase
-  getJSON() {
-    const seen = new WeakSet();
-
-    return JSON.stringify(this, (key, value) => {
-      if (['parent', 'originalText', 'objectList', 'root'].indexOf(key) > -1) {
-        return;
-      }
-      // text of file
-      if (typeof value === 'string' && value.length > 1000) {
-        return;
-      }
-      if (typeof value === 'object' && value !== null) {
-        if (seen.has(value)) {
-          return;
-        }
-        value.proto = value.constructor.name;
-        seen.add(value);
-      }
-      return value;
-    });
-  }
 }
 
 export class OInterfacePackage extends OGeneric implements I.IHasReferenceLinks, I.IHasUseClauses, I.IHasContextReference, I.IHasLibraries, I.IHasLexerToken, I.IHasDefinitions {
@@ -290,7 +268,7 @@ export class OPackageInstantiation extends ObjectBase implements I.IHasReference
 
 export class OPackage extends ObjectBase implements I.IHasSubprograms, I.IHasComponents, I.IHasSignals, I.IHasConstants,
   I.IHasVariables, I.IHasTypes, I.IHasAliases, I.IHasFileVariables, I.IHasUseClauses, I.IHasContextReference, I.IHasLexerToken,
-  I.IHasLibraries, I.IHasLibraryReference, I.IHasGenerics, I.IHasReferenceLinks, I.IHasAttributes, I.IHasEndingLexerToken {
+  I.IHasLibraries, I.IHasLibraryReference, I.IHasGenerics, I.IHasReferenceLinks, I.IHasAttributes, I.IMayHaveEndingLexerToken {
   referenceLinks: OReference[] = [];
   aliasReferences: OAlias[] = [];
   attributes: OAttribute[] = [];
@@ -318,7 +296,7 @@ export class OPackage extends ObjectBase implements I.IHasSubprograms, I.IHasCom
 }
 
 export class OPackageBody extends ObjectBase implements I.IHasSubprograms, I.IHasConstants, I.IHasVariables, I.IHasTypes,
-  I.IHasAliases, I.IHasFileVariables, I.IHasUseClauses, I.IHasContextReference, I.IHasLexerToken, I.IHasLibraries, I.IHasReferenceLinks, I.IHasAttributes, I.IHasEndingLexerToken {
+  I.IHasAliases, I.IHasFileVariables, I.IHasUseClauses, I.IHasContextReference, I.IHasLexerToken, I.IHasLibraries, I.IHasReferenceLinks, I.IHasAttributes, I.IMayHaveEndingLexerToken {
     attributes: OAttribute[] = [];
   referenceLinks: OReference[] = [];
   aliasReferences: OAlias[] = [];
@@ -350,9 +328,9 @@ export class OLibrary extends ObjectBase implements I.IHasLexerToken, I.IHasRefe
 }
 
 export class OContextReference extends ObjectBase implements I.IHasLibraryReference {
-  constructor(public parent: OContext | ObjectBase, range: OIRange, public library: OLibraryReference, public contextName: string) {
+  public library: OLibraryReference;
+  constructor(public parent: OContext | ObjectBase | OFile, range: OIRange, public contextName: string) {
     super(parent, range);
-    library.parent = this;
   }
   definitions: ObjectBase[] = [];
 
@@ -395,7 +373,7 @@ export abstract class OStatementBody extends ObjectBase implements I.IHasSubprog
 
 
 }
-export class OArchitecture extends OStatementBody implements I.IHasLexerToken, I.IHasEndingLexerToken {
+export class OArchitecture extends OStatementBody implements I.IHasLexerToken, I.IMayHaveEndingLexerToken {
   lexerToken: OLexerToken;
   entityName: OLexerToken;
   endingLexerToken?: OLexerToken;
@@ -440,11 +418,8 @@ export class OType extends ObjectBase implements I.IHasReferenceLinks, I.IHasSub
   addReadsToMap(map: Map<string, ObjectBase>) {
     map.set(this.lexerToken.getLText(), this);
 
-    if (this.units) {
-      for (const unit of this.units) {
-        map.set(unit.lexerToken.getLText(), this);
-
-      }
+    for (const unit of this.units) {
+      map.set(unit.lexerToken.getLText(), this);
     }
     if (this instanceof OEnum) {
       for (const state of this.literals) {
@@ -632,7 +607,7 @@ export class OAssociation extends ObjectBase implements I.IHasDefinitions {
 }
 export class OEntity extends ObjectBase implements I.IHasDefinitions, I.IHasSubprograms, I.IHasSignals, I.IHasConstants, I.IHasVariables,
   I.IHasTypes, I.IHasAliases, I.IHasFileVariables, I.IHasUseClauses, I.IHasContextReference, I.IHasLexerToken, I.IHasPackageInstantiations,
-  I.IHasAttributes, I.IHasLibraries, I.IHasGenerics, I.IHasPorts, I.IHasReferenceLinks, I.IHasEndingLexerToken {
+  I.IHasAttributes, I.IHasLibraries, I.IHasGenerics, I.IHasPorts, I.IHasReferenceLinks, I.IMayHaveEndingLexerToken {
   constructor(public parent: OFile, range: OIRange, public targetLibrary?: string) {
     super(parent, range);
   }
@@ -845,7 +820,7 @@ export class OMagicCommentDisable extends OMagicComment {
   }
 }
 export class OSubprogram extends OHasSequentialStatements implements I.IHasReferenceLinks, I.IHasSubprograms,  I.IHasPorts,
-  I.IHasVariables, I.IHasTypes, I.IHasAliases, I.IHasFileVariables, I.IHasUseClauses, I.IHasLexerToken, I.IHasPackageInstantiations, I.IHasConstants, I.IHasAttributes, I.IHasEndingLexerToken {
+  I.IHasVariables, I.IHasTypes, I.IHasAliases, I.IHasFileVariables, I.IHasUseClauses, I.IHasLexerToken, I.IHasPackageInstantiations, I.IHasConstants, I.IHasAttributes, I.IMayHaveEndingLexerToken {
   hasBody = false;
   attributes: OAttribute[] = [];
   referenceLinks: OReference[] = [];
@@ -905,6 +880,7 @@ export class OConfiguration extends ObjectBase implements I.IHasLibraries {
 export function* scope(startObject: ObjectBase): Generator<[ObjectBase, boolean]> {
   let current = startObject;
   let directlyVisible = true;
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   while (true) {
     yield [current, directlyVisible];
     if (current instanceof OArchitecture && current.correspondingEntity) {

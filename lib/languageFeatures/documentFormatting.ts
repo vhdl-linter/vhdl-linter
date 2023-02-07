@@ -1,13 +1,15 @@
 import { exec, spawn } from 'child_process';
 import { promises } from 'fs';
 import { tmpdir } from 'os';
-import {  sep } from 'path';
+import { sep } from 'path';
+import { platform } from 'process';
+import { fileURLToPath } from 'url';
 import { promisify } from 'util';
 import { CancellationToken, DocumentFormattingParams, LSPErrorCodes, Range, ResponseError, TextEdit, WorkDoneProgressReporter } from 'vscode-languageserver';
 import { attachWorkDone } from 'vscode-languageserver/lib/common/progress';
 import { connection, documents } from '../language-server';
 import { getRootDirectory, joinURL } from '../project-parser';
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
 const nullProgressReporter = attachWorkDone(undefined as any, /* params */ undefined);
 async function _getProgressReporter(reporter: WorkDoneProgressReporter, title: string) {
   // This is a bit ugly, but we need to determine whether the provided reporter
@@ -25,6 +27,7 @@ async function _getProgressReporter(reporter: WorkDoneProgressReporter, title: s
 
   return serverInitiatedReporter;
 }
+const execP = promisify(exec);
 export async function handleDocumentFormatting(params: DocumentFormattingParams, token: CancellationToken, workDoneProgress: WorkDoneProgressReporter): Promise<TextEdit[] | null | ResponseError> {
   const document = documents.get(params.textDocument.uri);
   if (typeof document === 'undefined') {
@@ -38,10 +41,26 @@ export async function handleDocumentFormatting(params: DocumentFormattingParams,
   const emacsScripts = joinURL(rootDir, 'emacs', 'emacs-vhdl-formatting-script.lisp');
   const emacsLoadPath = joinURL(rootDir, 'emacs');
   const numSpaces = typeof params.options.tabSize === 'number' ? params.options.tabSize : 2;
-  try {
-    await promisify(exec)(`command -v emacs`);
-  } catch (e) {
+  let foundEmacs = false;
+  if (platform === 'win32') {
+    try {
+      await execP(`emacs --batch`);
+      foundEmacs = true;
+    } catch (e) {
+      foundEmacs = false;
+    }
+  } else {
+    try {
+      await execP(`command -v emacs`);
+      foundEmacs = true;
+    } catch (e) {
+      foundEmacs = false;
+    }
+  }
+  if (!foundEmacs) {
     connection.window.showErrorMessage('vhdl-linter is using emacs for formatting. Install emacs for formatting to work.');
+    return null;
+
   }
   const controller = new AbortController();
   const { signal } = controller;
@@ -50,35 +69,59 @@ export async function handleDocumentFormatting(params: DocumentFormattingParams,
   });
   const progress = await _getProgressReporter(workDoneProgress, 'Emacs Formatter running');
 
-  try {
-    await new Promise<void>((resolve, reject) => {
-      const args = ['-c', `emacs --batch --eval "(setq-default vhdl-basic-offset ${numSpaces})" ` +
-        `--eval "(setq load-path (cons (expand-file-name \\"${emacsLoadPath}\\") load-path))" ` +
-        ` -l ${emacsScripts} -f vhdl-batch-indent-region ${tmpFile}`];
-      const emacs = spawn('sh', args, { signal });
+  if (platform === 'win32') {
+    progress.report(0, "Emacs Formatter running");
 
-      emacs.stderr.on('data', (data) => {
-        const match = data.toString().match(/(\d+)%/);
-        if (match) {
-          progress.report(parseInt(match[1]), data.toString());
-        }
-      });
-      emacs.on('error', err => reject(err));
-      emacs.on('close', code => {
-        if (code === 0) {
-          resolve();
-        }
-        reject(code);
-      });
-    });
-    progress.done();
-  } catch (e) {
-    progress.done();
+    const cmd = `emacs --batch --eval "(setq-default vhdl-basic-offset ${numSpaces})" ` +
+      // The vhdl-mode from the folder does not work with win for some reason
+      // `--eval "(setq load-path (cons (expand-file-name \\"${fileURLToPath(emacsLoadPath)}\\") load-path))" ` +
+      ` -l ${fileURLToPath(emacsScripts)} -f vhdl-batch-indent-region ${tmpFile}`;
+    try {
+      await execP(cmd);
+    } catch (e) {
+      progress.done();
 
-    if (e.name === "AbortError") {
-      return new ResponseError(LSPErrorCodes.RequestCancelled, 'canceled');
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      if (e.name === "AbortError") {
+        return new ResponseError(LSPErrorCodes.RequestCancelled, 'canceled');
+      }
+      throw e;
     }
-    throw e;
+    progress.done();
+
+  } else {
+    try {
+      await new Promise<void>((resolve, reject) => {
+        const args = ['-c', `emacs --batch --eval "(setq-default vhdl-basic-offset ${numSpaces})" ` +
+          `--eval "(setq load-path (cons (expand-file-name \\"${fileURLToPath(emacsLoadPath)}\\") load-path))" ` +
+          ` -l ${fileURLToPath(emacsScripts)} -f vhdl-batch-indent-region ${tmpFile}`];
+        const emacs = spawn('sh', args, { signal });
+
+        emacs.stderr.on('data', (data: Buffer) => {
+          const match = data.toString().match(/(\d+)%/) as [string, string] | null;
+          if (match) {
+            progress.report(parseInt(match[1]), data.toString());
+          }
+        });
+        emacs.on('error', err => reject(err));
+        emacs.on('close', code => {
+          if (code === 0) {
+            resolve();
+          }
+          reject(code);
+        });
+      });
+
+      progress.done();
+    } catch (e) {
+      progress.done();
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      if (e.name === "AbortError") {
+        return new ResponseError(LSPErrorCodes.RequestCancelled, 'canceled');
+      }
+      throw e;
+    }
   }
   // Emacs VHDL mode hard tabs seem to be broken.
   // Replace spaces in beginning with tabs

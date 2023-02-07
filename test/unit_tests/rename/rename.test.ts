@@ -125,21 +125,19 @@ test.each([
   },
 ])('testing rename for %j', async (testSetup: TestSetup) => {
   const { occurrences } = testSetup;
-  interface Operations {
-    [path: string]: string[]
-
-  }
+  type Operations = Record<string, string[]>;
   // Build expected operations
   const expectedOperations: Operations = {};
   for (const [name, range] of occurrences) {
     const uri = pathToFileURL(__dirname + `/${name}`).toString();
+    const target = expectedOperations[uri] ?? [];
     if (Array.isArray(expectedOperations[uri]) === false) {
-      expectedOperations[uri] = [];
+      expectedOperations[uri] = target;
     }
-    expectedOperations[uri].push(makeRangePrintable(range));
+    target.push(makeRangePrintable(range));
   }
-  for (const key of Object.keys(expectedOperations)) {
-    expectedOperations[key].sort();
+  for (const expectedOperation of Object.values(expectedOperations)) {
+    expectedOperation.sort();
   }
   for (const [name, range] of occurrences) {
     const path = __dirname + `/${name}`;
@@ -156,9 +154,9 @@ test.each([
     for (const character of characters) {
       let result;
       try {
-        result = await prepareRenameHandler(linter, Position.create(start.line, character));
+        result = prepareRenameHandler(linter, Position.create(start.line, character));
       } catch (err) {
-        if (err.code === ErrorCodes.InvalidRequest) {
+        if (err instanceof ResponseError && err.code === ErrorCodes.InvalidRequest) {
           throw new Error(`Unexpected invalid request on ${name}:${start.line + 1}:${character + 1}`);
         } else {
           throw err;
@@ -172,16 +170,17 @@ test.each([
       const renameOperations = await renameHandler(linter, pos, newName);
       const operations: Operations = {};
       for (const [path, edits] of Object.entries(renameOperations.changes)) {
+        const target = operations[path] ?? [];
         if (Array.isArray(operations[path]) === false) {
-          operations[path] = [];
+          operations[path] = target;
         }
         for (const edit of edits) {
           expect(edit.newText).toBe(newName);
-          operations[path].push(makeRangePrintable(edit.range));
+          target.push(makeRangePrintable(edit.range));
         }
       }
-      for (const key of Object.keys(operations)) {
-        operations[key].sort();
+      for (const operation of Object.values(operations)) {
+        operation.sort();
       }
       expect(operations).toStrictEqual(expectedOperations);
 
@@ -204,14 +203,15 @@ test.each([
 
   for (let character = start.character; character <= end.character; character++) {
 
-    let err;
+    let err : Error | undefined;
     try {
-      await prepareRenameHandler(linter, Position.create(start.line, character));
+      prepareRenameHandler(linter, Position.create(start.line, character));
     } catch (_err) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       err = _err;
     }
     expect(err).toBeInstanceOf(ResponseError);
-    expect(err.message).toBe('Can not rename this element');
+    expect(err?.message).toBe('Can not rename this element');
   }
 });
 test('testing handling of invalid rename Handler', async () => {
@@ -226,8 +226,10 @@ test('testing handling of invalid rename Handler', async () => {
   try {
     await renameHandler(linter, Position.create(7, 1), 'test');
   } catch (_err) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     err = _err;
   }
   expect(err).toBeInstanceOf(ResponseError);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   expect(err.code).toBe(ErrorCodes.InvalidRequest);
 });

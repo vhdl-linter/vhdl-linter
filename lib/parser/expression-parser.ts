@@ -1,13 +1,13 @@
 import { OLexerToken } from "../lexer";
 import { OAttributeReference, ObjectBase, OFormalReference, OReference, OSelectedName, OSelectedNameWrite, OWrite, SelectedNamePrefix } from "./objects";
 import { ParserBase, ParserState } from "./parser-base";
-type ExpParserState = {
+interface ExpParserState {
   maybeOutput: boolean;
   maybeInOut: boolean;
   num: number;
   lastFormal: OLexerToken[]; // This is for checking if the actual is empty
   leftHandSide: boolean; // Is this the left hand of an assignment
-};
+}
 
 
 export class ExpressionParser extends ParserBase {
@@ -37,7 +37,7 @@ export class ExpressionParser extends ParserBase {
   // Shim, until supported by ESNEXT
   private findLastIndex<T>(array: T[], callback: (a: T) => boolean ) {
     for (let i = array.length - 1; i >= 0; i--) {
-      if (callback(array[i])) {
+      if (callback(array[i]!)) {
         return i;
       }
     }
@@ -57,8 +57,9 @@ export class ExpressionParser extends ParserBase {
     let lastAttributeReference: OAttributeReference | undefined;
     while (attributeIndex > -1) {
       // If there is not a name after ' mark. This is a type designation
-      if (buffer[attributeIndex + 1] !== undefined) {
-        const attributeReference = new OAttributeReference(this.parent, buffer[attributeIndex + 1]);
+      const reference = buffer[attributeIndex + 1];
+      if (reference) {
+        const attributeReference = new OAttributeReference(this.parent, reference);
         references.push(attributeReference);
         if (lastAttributeReference) {
           attributeReference.prefix = attributeReference;
@@ -72,7 +73,7 @@ export class ExpressionParser extends ParserBase {
     if (attributeIndex === -1) {
       references.push(...this.convertToReference(buffer, formal, write));
       if (lastAttributeReference) {
-        lastAttributeReference.prefix = references[references.length - 1];
+        lastAttributeReference.prefix = references[references.length - 1]!;
       }
     }
     return references;
@@ -136,7 +137,7 @@ export class ExpressionParser extends ParserBase {
 
         // If the token is one of the break tokens a new name/selected name or combined identifier starts.
         // The collected tokens up to this point are then split and converted into OReferences and other objects
-        const breakToken = breakTokens.find(token => token === this.getNumToken()?.getLText() ?? '');
+        const breakToken = breakTokens.find(token => token === (this.getNumToken()?.getLText() ?? ''));
         // Attributes are handled as one block, so check that the break token is not after a attribute ' mark.
         if (breakToken && lastToken?.getLText() !== '\'') {
           const formal = maybeFormal && breakToken === '=>';
@@ -163,7 +164,10 @@ export class ExpressionParser extends ParserBase {
           tokenBuffer = [];
           containedBraces = false;
         } else {
-          tokenBuffer.push(this.getNumToken() as OLexerToken);
+          const token = this.getNumToken();
+          if (token) {
+            tokenBuffer.push(token);
+          }
         }
       }
       lastToken = this.getNumToken();
@@ -173,7 +177,7 @@ export class ExpressionParser extends ParserBase {
     if (this.expState.lastFormal.length > 0 && tokenBuffer.length === 0) {
       this.state.messages.push({
         message: "The actual part cannot be empty.",
-        range: this.expState.lastFormal[0].range.copyWithNewEnd(this.expState.lastFormal[this.expState.lastFormal.length - 1].range)
+        range: this.expState.lastFormal[0]!.range.copyWithNewEnd(this.expState.lastFormal[this.expState.lastFormal.length - 1]!.range)
       });
     }
     if (innerReferences !== undefined) {

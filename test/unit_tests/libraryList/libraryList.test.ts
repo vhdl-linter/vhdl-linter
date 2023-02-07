@@ -18,10 +18,10 @@ test.each(files)('testing library list %s', async (file: string) => {
 
   expect(linter.file).toBeDefined();
   expect(linter.file.entities).toHaveLength(1);
-  expect(linter.file.entities[0].libraries.map(l => l.lexerToken.getLText())).toContain('std'); // default lib
-  expect(linter.file.entities[0].libraries.map(l => l.lexerToken.getLText())).toContain('work'); // default lib
-  expect(linter.file.entities[0].libraries.map(l => l.lexerToken.getLText())).toContain('ieee');
-  expect(linter.file.entities[0].libraries.map(l => l.lexerToken.getLText())).toContain('test');
+  expect(linter.file.entities[0]?.libraries.map(l => l.lexerToken.getLText())).toContain('std'); // default lib
+  expect(linter.file.entities[0]?.libraries.map(l => l.lexerToken.getLText())).toContain('work'); // default lib
+  expect(linter.file.entities[0]?.libraries.map(l => l.lexerToken.getLText())).toContain('ieee');
+  expect(linter.file.entities[0]?.libraries.map(l => l.lexerToken.getLText())).toContain('test');
 
   await projectParser.stop();
 });

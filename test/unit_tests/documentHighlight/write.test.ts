@@ -15,7 +15,7 @@ test('testing document highlight snapshot write', async () => {
   const linter = new VhdlLinter(url, readFileSyncNorm(url, { encoding: 'utf8' }),
     await ProjectParser.create([], '', defaultSettingsGetter), defaultSettingsGetter);
   await Elaborate.elaborate(linter);
-  const highlights = await documentHighlightHandler(linter, {
+  const highlights = documentHighlightHandler(linter, {
     textDocument: {
       uri: url.toString()
     },
@@ -34,7 +34,7 @@ test('testing document highlight on keyword', async () => {
   const linter = new VhdlLinter(url, readFileSyncNorm(url, { encoding: 'utf8' }),
     await ProjectParser.create([], '', defaultSettingsGetter), defaultSettingsGetter);
   await Elaborate.elaborate(linter);
-  const highlights = await documentHighlightHandler(linter, {
+  const highlights = documentHighlightHandler(linter, {
     textDocument: {
       uri: url.toString()
     },

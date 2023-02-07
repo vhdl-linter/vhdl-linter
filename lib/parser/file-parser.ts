@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Lexer, OLexerToken, TokenType } from '../lexer';
 import { CancelationObject } from '../server-objects';
 import { ContextParser } from './context-parser';
@@ -21,30 +20,31 @@ export class FileParser extends ParserBase {
     super(new ParserState(new ParserPosition(), filePath));
     this.originalText = text;
     this.text = text;
-    this.file = new OFile(this.text, this.state.fileUri, this.originalText);
-
+    
+    this.file = new OFile(this.text, this.state.fileUri, this.originalText, this.lexerTokens);
     const lexer = new Lexer(this.originalText, this.file);
-    this.lexerTokens = lexer.lex(this.file);
+    this.lexerTokens.push(...lexer.lex(this.file));
     this.file.lexerTokens = this.lexerTokens;
+
     this.state.pos.lexerTokens = this.lexerTokens;
     this.state.pos.file = this.file;
   }
   getNextLineRange(lineNumber: number) {
-    while (this.originalText.split('\n')[lineNumber + 1].match(/^\s*(?:--.*)?$/)) {
+    while (this.originalText.split('\n')[lineNumber + 1]?.match(/^\s*(?:--.*)?$/)) {
       lineNumber++;
     }
-    return new OIRange(this.file, new OI(this.file, lineNumber + 1, 0), new OI(this.file, lineNumber + 1, this.originalText.split('\n')[lineNumber + 1].length));
+    return new OIRange(this.file, new OI(this.file, lineNumber + 1, 0), new OI(this.file, lineNumber + 1, this.originalText.split('\n')[lineNumber + 1]!.length));
   }
   parse(): OFile {
 
     const disabledRangeStart = new Map<string | undefined, number>();
     for (const [lineNumber, line] of this.originalText.split('\n').entries()) {
-      const match = /(--\s*vhdl-linter)(.*)/.exec(line); // vhdl-linter-disable-next-line //vhdl-linter-disable-this-line
+      const match = /(--\s*vhdl-linter)(.*)/.exec(line) as [string, string, string] | null; // vhdl-linter-disable-next-line //vhdl-linter-disable-this-line
 
       if (match) {
-        let innerMatch: RegExpMatchArray | null;
+        let innerMatch: [string, string?] | null;
         const nextLineRange = this.getNextLineRange(lineNumber);
-        if ((innerMatch = match[2].match(/-disable(?:-this)?-line(?:\s|$)(.+)?/i)) !== null) {
+        if ((innerMatch = (match[2]?.match(/-disable(?:-this)?-line(?:\s|$)(.+)?/i)) as [string, string] | null) !== null) {
           for (const rule of innerMatch[1]?.split(' ') ?? [undefined]) {
             this.file.magicComments.push(new OMagicCommentDisable(
               this.file,
@@ -54,7 +54,7 @@ export class FileParser extends ParserBase {
             ));
           }
 
-        } else if ((innerMatch = match[2].match(/-disable-next-line(?:\s|$)(.+)?/i)) !== null) {
+        } else if ((innerMatch = (match[2].match(/-disable-next-line(?:\s|$)(.+)?/i) as [string, string] |null)) !== null) {
           for (const rule of innerMatch[1]?.split(' ') ?? [undefined]) {
             this.file.magicComments.push(new OMagicCommentDisable(
               this.file,
@@ -63,17 +63,14 @@ export class FileParser extends ParserBase {
               rule
             ));
           }
-        } else if ((innerMatch = match[2].match(/-disable(?:\s|$)(.+)?/i)) !== null) {
-          const rules: (string | undefined)[] = innerMatch[1]?.split(' ') ?? [];
-          if (rules.length == 0) {
-            rules.push(undefined);
-          }
+        } else if ((innerMatch = (match[2].match(/-disable(?:\s|$)(.+)?/i) as [string, string?] | null)) !== null) {
+          const rules: (string | undefined)[] = innerMatch[1]?.split(' ') ?? [undefined];
           for (const rule of rules) {
             if (disabledRangeStart.has(rule) === false) {
               disabledRangeStart.set(rule, lineNumber);
             }
           }
-        } else if ((innerMatch = match[2].match(/-enable(?:\s|$)(.+)?/i)) !== null) {
+        } else if ((innerMatch = (match[2].match(/-enable(?:\s|$)(.+)?/i) as [string, string] | null)) !== null) {
           const rules: (string | undefined)[] = innerMatch[1]?.split(' ') ?? [];
           if (rules.length == 0) { // If not rule is specified all rules are enabled
             rules.push(...disabledRangeStart.keys());
@@ -145,8 +142,7 @@ export class FileParser extends ParserBase {
           this.file.contexts.push(context);
         } else {
           // The Parent gets overwritten when attaching the reference to the correct object
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const contextReferenceParser = new ContextReferenceParser(this.state, (this.file as any));
+          const contextReferenceParser = new ContextReferenceParser(this.state, this.file);
           contextReferences.push(contextReferenceParser.parse());
         }
       } else if (nextToken.getLText() === 'library') {

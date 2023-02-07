@@ -1,7 +1,8 @@
+import { fileURLToPath } from 'url';
 import { OLexerToken, TokenType } from '../lexer';
 import { config } from './config';
 import { OIDiagnosticWithSolution } from './interfaces';
-import { OFile, ParserError } from './objects';
+import { OFile, OIRange, ParserError } from './objects';
 
 
 export class ParserPosition {
@@ -9,10 +10,11 @@ export class ParserPosition {
   public file: OFile;
   public num = 0;
   public get i() {
-    if (this.num >= this.lexerTokens.length) {
-      throw new ParserError(`I out of range`, this.lexerTokens[this.lexerTokens.length - 1].range);
+    const token = this.lexerTokens[this.num];
+    if (!token) {
+      throw new ParserError(`I out of range`, this.lexerTokens[this.lexerTokens.length - 1]!.range);
     }
-    return this.lexerTokens[this.num].range.start.i;
+    return token.range.start.i;
   }
   public isLast() {
     return this.num === this.lexerTokens.length - 1;
@@ -20,8 +22,21 @@ export class ParserPosition {
   public isValid() {
     return this.num >= 0 && this.num < this.lexerTokens.length;
   }
+  /**
+ * @deprecated The method should not be used. Call range.copyExtendEndOfLine)_ directly on the appropriate token.
+ */
   public getRangeToEndLine() {
-    return this.lexerTokens[this.num]?.range.copyExtendEndOfLine();
+    const currentToken = this.lexerTokens[this.num];
+    if (currentToken === undefined) {
+      const lastToken = this.lexerTokens[this.lexerTokens.length - 1];
+      if (lastToken) {
+        throw new ParserError(`EOF reached when getRangeToEndLine() called`, lastToken.range.copyExtendEndOfLine());
+      } else {
+        throw new ParserError(`getRangeToEndLine called on empty file`, new OIRange(this.file, 0, 0));
+
+      }
+    }
+    return currentToken.range.copyExtendEndOfLine();
   }
 }
 
@@ -37,16 +52,16 @@ export class ParserBase {
   debug(_message: string) {
     if (config.debug) {
       const pos = this.getPosition();
-      console.log(`${this.constructor.name}: ${_message} at ${pos.line}:${pos.col}, (${this.state.fileUri})`);
+      console.log(`${this.constructor.name}: ${_message} at ${pos.line}:${pos.col}, (${fileURLToPath(this.state.fileUri)})`);
     }
   }
 
 
   // Offset gives an offset to the current parser position. If offsetIgnoresWhitespaces is set whitespace (and comment) is not counted.
   // Meaning offset = 2 counts only the next two non-whitespaces tokens
-  getToken(offset = 0, offsetIgnoresWhitespaces = false) {
+  getToken(offset = 0, offsetIgnoresWhitespaces = false): OLexerToken {
     if (!this.state.pos.isValid()) {
-      throw new ParserError(`EOF reached`, this.state.pos.lexerTokens[this.state.pos.lexerTokens.length - 1].range);
+      throw new ParserError(`EOF reached`, this.state.pos.lexerTokens[this.state.pos.lexerTokens.length - 1]!.range);
     }
     if (offsetIgnoresWhitespaces) {
       let offsetCorrected = 0;
@@ -54,41 +69,49 @@ export class ParserBase {
         for (let i = 0; i < offset; i++) {
           do {
             offsetCorrected += 1;
-            if (this.state.pos.lexerTokens[this.state.pos.num + offsetCorrected] === undefined) {
-              throw new ParserError(`Out of bound while doing getToken(${offset}, ${offsetIgnoresWhitespaces})`, this.getToken(0).range);
+            if (this.state.pos.num + offsetCorrected >= this.state.pos.lexerTokens.length) {
+              throw new ParserError(`Out of bound while doing getToken(${offset}, ${String(offsetIgnoresWhitespaces)})`, this.getToken(0).range);
             }
-          } while ((this.state.pos.lexerTokens[this.state.pos.num + offsetCorrected].isWhitespace()));
+          } while ((this.state.pos.lexerTokens[this.state.pos.num + offsetCorrected]?.isWhitespace()));
         }
       } else if (offset < 0) {
         for (let i = 0; i > offset; i--) {
           do {
             offsetCorrected -= 1;
-            if (this.state.pos.lexerTokens[this.state.pos.num + offsetCorrected] === undefined) {
-              throw new ParserError(`Out of bound while doing getToken(${offset}, ${offsetIgnoresWhitespaces})`, this.getToken(0).range);
+            if (this.state.pos.num + offsetCorrected >= this.state.pos.lexerTokens.length) {
+              throw new ParserError(`Out of bound while doing getToken(${offset}, ${String(offsetIgnoresWhitespaces)})`, this.getToken(0).range);
             }
-          } while ((this.state.pos.lexerTokens[this.state.pos.num + offsetCorrected].isWhitespace()));
+          } while ((this.state.pos.lexerTokens[this.state.pos.num + offsetCorrected]?.isWhitespace()));
         }
       } else if (offset === 0) {
-        return this.state.pos.lexerTokens[this.state.pos.num];
+        return this.state.pos.lexerTokens[this.state.pos.num]!;
       }
-      if (this.state.pos.num + offsetCorrected < 0 || this.state.pos.num + offsetCorrected >= this.state.pos.lexerTokens.length) {
+      const token = this.state.pos.lexerTokens[this.state.pos.num + offsetCorrected];
+      if (!token) {
         throw new ParserError(`Out of bound`, this.getToken(0).range);
       }
-      return this.state.pos.lexerTokens[this.state.pos.num + offsetCorrected];
+      return token;
     } else {
-      if (this.state.pos.num + offset < 0 || this.state.pos.num + offset >= this.state.pos.lexerTokens.length) {
+      const token = this.state.pos.lexerTokens[this.state.pos.num + offset];
+      if (!token) {
         throw new ParserError(`Out of bound`, this.getToken(0).range);
       }
-      return this.state.pos.lexerTokens[this.state.pos.num + offset];
+      return token;
 
     }
   }
-  consumeToken(advanceWhitespace = true) {
+  consumeToken(advanceWhitespace = true): OLexerToken {
     const token = this.state.pos.lexerTokens[this.state.pos.num];
     this.state.pos.num++;
     if (advanceWhitespace) { // This should not be necessary anymore, if everything is correctly using tokens
       this.advanceWhitespace();
     }
+    if (!token) {
+      const lastToken = this.state.pos.lexerTokens[this.state.pos.lexerTokens.length - 1]!;
+      throw new ParserError(`EOF reached`, lastToken.range);
+
+    }
+
     return token;
   }
   consumeIdentifier(advanceWhitespace = true) {
@@ -99,7 +122,7 @@ export class ParserBase {
     return token;
   }
   findToken(options: string | string[]) {
-    const start = this.state.pos.num;
+    const startToken = this.getToken();
     if (!Array.isArray(options)) {
       options = [options];
     }
@@ -112,10 +135,10 @@ export class ParserBase {
       }
       return false;
     }
-    while (checkToken(this.state.pos.lexerTokens[this.state.pos.num]) === false) {
+    while (checkToken(this.state.pos.lexerTokens[this.state.pos.num]!) === false) {
       this.state.pos.num++;
       if (this.state.pos.num === this.state.pos.lexerTokens.length) {
-        throw new ParserError(`stuck searching for ${options.join(', ')}`, this.state.pos.lexerTokens[start].range);
+        throw new ParserError(`stuck searching for ${options.join(', ')}`, startToken.range);
       }
     }
   }
@@ -129,6 +152,9 @@ export class ParserBase {
       this.state.pos.num--;
     }
   }
+  /**
+ * @deprecated advancePast is deprecated in favor of advanceParenthesisAware
+ */
   advancePast(search: string, options: { allowSemicolon?: boolean, returnMatch?: boolean, consume?: boolean } = {}) {
     if (typeof options.allowSemicolon === 'undefined') {
       options.allowSemicolon = false;
@@ -166,6 +192,9 @@ export class ParserBase {
     }
     return tokens;
   }
+  /**
+ * @deprecated advanceClosingParenthesis is deprecated in favor of advanceParenthesisAware
+ */
   advanceClosingParenthesis() {
     const tokens = [];
     let parenthesisLevel = 0;
@@ -219,7 +248,7 @@ export class ParserBase {
       tokens.push(this.getToken(offset));
       offset++;
     }
-    throw new ParserError(`could not find ${searchStrings}`, savedI.getRangeToEndLine());
+    throw new ParserError(`could not find ${searchStrings.join(',')}`, savedI.getRangeToEndLine());
   }
   advanceSemicolon(parenthesisAware = false, { consume } = { consume: true }) {
     if (consume !== false) {

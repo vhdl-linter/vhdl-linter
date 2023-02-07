@@ -32,7 +32,7 @@ export class DocumentSymbols {
     children.push(...process.statements.map(statement => this.getSequentialStatement(statement)).flat());
     children.push(...this.getDefinitions(process) ?? []);
     return {
-      name: process.label?.text || 'no label',
+      name: process.label?.text ?? 'no label',
       detail: 'process',
       kind: SymbolKind.Function,
       range: process.range,
@@ -46,7 +46,7 @@ export class DocumentSymbols {
     for (const statement of statementBody.statements) {
       if (statement instanceof OInstantiation) {
         children.push({
-          name: (statement.label !== undefined ? (statement.label.text + ': ') : '') + statement.componentName,
+          name: `${(statement.label !== undefined ? (`${statement.label.text}: `) : '')}${statement.componentName.text}`,
           detail: 'instantiation',
           kind: SymbolKind.Module,
           range: statement.range,
@@ -136,7 +136,7 @@ export class DocumentSymbols {
         detail,
         kind: SymbolKind.EnumMember,
         range: statementBody.range,
-        selectionRange: (statementBody.label ?? statementBody.conditionTokens[0]).range,
+        selectionRange: (statementBody.label ?? statementBody.conditionTokens[0] ?? statementBody).range,
         children
       };
     }
@@ -214,6 +214,7 @@ export class DocumentSymbols {
   }
   getType(type: OType): DocumentSymbol {
     let kind: SymbolKind = SymbolKind.Enum;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     let detail: string = Object.getPrototypeOf(type).constructor?.name?.slice(1);
     if (type instanceof ORecord) {
       kind = SymbolKind.Struct;

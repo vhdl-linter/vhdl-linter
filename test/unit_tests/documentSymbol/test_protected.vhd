@@ -44,7 +44,7 @@ package body pkg is
           end loop;
       end loop;
     end procedure;
-
+  
     impure function GetCrc return std_ulogic_vector is
       variable result: std_ulogic_vector(31 downto 0);
     begin

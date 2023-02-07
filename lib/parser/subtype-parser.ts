@@ -23,7 +23,7 @@ export class SubtypeParser extends ParserBase {
     this.subtype.range = this.subtype.range.copyWithNewEnd(this.state.pos.i);
     const tokens = this.advanceSemicolon(true);
     if (tokens.length > 0) {
-      this.subtype.range = this.subtype.range.copyWithNewEnd(tokens[tokens.length - 1].range.end.i);
+      this.subtype.range = this.subtype.range.copyWithNewEnd(tokens[tokens.length - 1]!.range.end.i);
     }
     // const reads = this.extractReads(this.subtype, this.advanceSemicolon(true), startIReads);
     this.subtype.superType = new ORead(this.subtype, superType);

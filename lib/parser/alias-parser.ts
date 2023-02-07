@@ -1,5 +1,5 @@
 import { ExpressionParser } from "./expression-parser";
-import { OAlias, OAliasWithSignature, ObjectBase, OEntity, OIRange, OPackage, OPackageBody, OProcess, OReference, OSelectedName, OStatementBody, OSubprogram, OType, OTypeMark, SelectedNamePrefix } from "./objects";
+import { OAlias, OAliasWithSignature, ObjectBase, OEntity, OIRange, OPackage, OPackageBody, OProcess, OReference, OSelectedName, OStatementBody, OSubprogram, OType, OTypeMark, ParserError, SelectedNamePrefix } from "./objects";
 import { ParserBase, ParserState } from "./parser-base";
 export class AliasParser extends ParserBase {
   constructor(state: ParserState, private parent: OStatementBody | OEntity | OPackage | OPackageBody | OProcess | OSubprogram | OType) {
@@ -38,7 +38,7 @@ export class AliasParser extends ParserBase {
     aliasWithSignature.name.push(...new ExpressionParser(this.state, aliasWithSignature, tokens).parse());
 
     this.expect('[');
-    // eslint-disable-next-line no-constant-condition
+    // eslint-disable-next-line no-constant-condition, @typescript-eslint/no-unnecessary-condition
     while (true) {
       if (this.getToken().getLText() !== 'return') {
         aliasWithSignature.typeMarks.push(new OTypeMark(aliasWithSignature, this.consumeNameReference(aliasWithSignature)));
@@ -90,14 +90,19 @@ export class AliasParser extends ParserBase {
     const tokens = [];
     do {
       tokens.push(this.consumeToken());
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     } while (this.getToken().text === '.' && this.consumeToken());
-    if (tokens.length > 1) {
-      const prefix = [new OReference(parent, tokens[0])];
+    const [firstToken, secondToken] = tokens;
+    if (!firstToken) {
+      throw new ParserError(`expected token`, parent.range);
+    }
+    if (secondToken) {
+      const prefix = [new OReference(parent, firstToken)];
       for (const token of tokens.slice(1)) {
         prefix.push(new OSelectedName(parent, token, prefix.slice() as SelectedNamePrefix));
       }
-      return prefix[prefix.length - 1];
+      return prefix[prefix.length - 1]!;
     }
-    return new OReference(parent, tokens[0]);
+    return new OReference(parent, firstToken);
   }
 }

@@ -52,9 +52,9 @@ export class Elaborate {
         continue;
       }
       // Find entity first in this file
-      let entity = this.file.entities.find(entity => entity.lexerToken.getLText() === architecture.entityName?.getLText());
+      let entity = this.file.entities.find(entity => entity.lexerToken.getLText() === architecture.entityName.getLText());
       if (!entity) { // Find entity in all files
-        entity = this.vhdlLinter.projectParser.entities.find(entity => entity.lexerToken.getLText() === architecture.entityName?.getLText());
+        entity = this.vhdlLinter.projectParser.entities.find(entity => entity.lexerToken.getLText() === architecture.entityName.getLText());
       }
       if (entity) {
         architecture.correspondingEntity = entity;
@@ -62,7 +62,7 @@ export class Elaborate {
 
     }
     for (const entity of this.file.entities) {
-      entity.correspondingArchitectures = this.vhdlLinter.projectParser.architectures.filter(architecture => entity.lexerToken.getLText() === architecture.entityName?.getLText());
+      entity.correspondingArchitectures = this.vhdlLinter.projectParser.architectures.filter(architecture => entity.lexerToken.getLText() === architecture.entityName.getLText());
     }
 
     // Map package body to package
@@ -72,7 +72,7 @@ export class Elaborate {
         // Find entity first in this file
         let pkgHeader: OPackage | undefined = this.file.packages.find(pkgHeader => pkgHeader instanceof OPackage && pkgHeader.lexerToken.getLText() === pkg.lexerToken.getLText()) as OPackage | undefined;
         if (!pkgHeader) { // Find entity in all files
-          pkgHeader = this.vhdlLinter.projectParser.packages.find(pkgHeader => pkgHeader instanceof OPackage && pkgHeader.lexerToken.getLText() === pkg.lexerToken.getLText()) as OPackage | undefined;
+          pkgHeader = this.vhdlLinter.projectParser.packages.find(pkgHeader => pkgHeader instanceof OPackage && pkgHeader.lexerToken.getLText() === pkg.lexerToken.getLText());
         }
         if (pkgHeader) {
           pkg.correspondingPackage = pkgHeader;

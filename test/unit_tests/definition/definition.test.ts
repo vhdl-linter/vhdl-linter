@@ -17,33 +17,33 @@ beforeAll(async () => {
   await Elaborate.elaborate(linter);
   await projectParser.stop();
 });
-test(`Testing definitions`, async () => {
+test(`Testing definitions`, () => {
   for (const character of [13, 14, 15, 21, 22]) {
-    const definition = await findDefinitions(linter, Position.create(12, character));
+    const definition = findDefinitions(linter, Position.create(12, character));
     expect(definition).toHaveLength(1);
-    expect(definition[0].targetUri.replace(pathToFileURL(__dirname).toString(), '')).toBe('/definition.vhd');
-    expect(definition[0].targetRange.start.line).toBe(7);
-    expect(definition[0].targetRange.end.line).toBe(7);
+    expect(definition[0]?.targetUri.replace(pathToFileURL(__dirname).toString(), '')).toBe('/definition.vhd');
+    expect(definition[0]?.targetRange.start.line).toBe(7);
+    expect(definition[0]?.targetRange.end.line).toBe(7);
   }
 });
-test(`Testing empty definitions`, async () => {
-  const definition = await findDefinitions(linter, Position.create(24, 0));
+test(`Testing empty definitions`, () => {
+  const definition = findDefinitions(linter, Position.create(24, 0));
   expect(definition).toHaveLength(0);
-  const definition2 = await findDefinitions(linter, Position.create(6, 0));
+  const definition2 = findDefinitions(linter, Position.create(6, 0));
   expect(definition2).toHaveLength(0);
 });
-test(`Testing definition for actual without formal`, async () => {
-  const definition = await findDefinitions(linter, Position.create(16, 9));
+test(`Testing definition for actual without formal`, () => {
+  const definition = findDefinitions(linter, Position.create(16, 9));
   expect(definition).toHaveLength(1);
-  expect(definition[0].targetUri.replace(pathToFileURL(__dirname).toString(), '')).toBe('/definition.vhd');
-  expect(definition[0].targetRange.start.line).toBe(7);
-  expect(definition[0].targetRange.end.line).toBe(7);
+  expect(definition[0]?.targetUri.replace(pathToFileURL(__dirname).toString(), '')).toBe('/definition.vhd');
+  expect(definition[0]?.targetRange.start.line).toBe(7);
+  expect(definition[0]?.targetRange.end.line).toBe(7);
 });
-test(`Testing definition for literal actual without formal`, async () => {
-  const definition = await findDefinitions(linter, Position.create(20, 7));
+test(`Testing definition for literal actual without formal`, () => {
+  const definition = findDefinitions(linter, Position.create(20, 7));
   expect(definition).toHaveLength(0);
 });
-test(`Testing definition for actual in instantiation which can not be elaborated`, async () => {
-  const definition = await findDefinitions(linter, Position.create(20, 7));
+test(`Testing definition for actual in instantiation which can not be elaborated`, () => {
+  const definition = findDefinitions(linter, Position.create(20, 7));
   expect(definition).toHaveLength(0);
 });

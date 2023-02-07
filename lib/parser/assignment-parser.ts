@@ -18,7 +18,7 @@ export class AssignmentParser extends ParserBase {
     this.findToken(['<=', ':=']);
     const leftHandSideTokens = [];
     while (leftHandSideNum < this.state.pos.num) {
-      leftHandSideTokens.push(this.state.pos.lexerTokens[leftHandSideNum]);
+      leftHandSideTokens.push(this.state.pos.lexerTokens[leftHandSideNum]!);
       leftHandSideNum++;
     }
     const expressionParser = new ExpressionParser(this.state, assignment, leftHandSideTokens);
@@ -82,7 +82,7 @@ export class AssignmentParser extends ParserBase {
     do {
       startI = this.state.pos.i;
       [rightHandSide, endToken] = this.advanceParenthesisAware([';', 'when', 'else', 'after', ',', 'end'], true, true);
-      if (rightHandSide.length === 1 && rightHandSide[0].getLText() == 'unaffected') {
+      if (rightHandSide[0]?.getLText() == 'unaffected') {
         continue;
       }
       const expressionParser = new ExpressionParser(this.state, assignment, rightHandSide);

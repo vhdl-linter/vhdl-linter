@@ -19,7 +19,7 @@ beforeAll(async () => {
 afterAll(async () => {
   await projectParser.stop();
 });
-test('Not optional separators in interface list', async () => {
+test('Not optional separators in interface list', () => {
   const expectedRange = expect.objectContaining({
     start: expect.objectContaining({
       line: 13,
@@ -39,7 +39,7 @@ test('Not optional separators in interface list', async () => {
     }),
   );
   const uri = linter.file.uri.toString();
-  const solution = linter.diagnosticCodeActionRegistry[parseInt(String(message?.code ?? '').split(';')[0])]?.(uri);
+  const solution = linter.diagnosticCodeActionRegistry[parseInt((String(message?.code ?? '').split(';') as [string, ...string[]])[0])]?.(uri);
   expect(solution).toEqual(expect.arrayContaining([
     {
       edit: {
@@ -55,7 +55,7 @@ test('Not optional separators in interface list', async () => {
     }
   ]));
 });
-test('Not optional separators in association list', async () => {
+test('Not optional separators in association list', () => {
 
   const expectedRange = expect.objectContaining({
     start: expect.objectContaining({
@@ -82,7 +82,7 @@ test('Not optional separators in association list', async () => {
 
   const message = messages.find(message => message.message === "Unexpected ',' at end of association list (parser)");
 
-  const solution = linter.diagnosticCodeActionRegistry[parseInt(String(message?.code ?? '').split(';')[0])]?.(uri);
+  const solution = linter.diagnosticCodeActionRegistry[parseInt((String(message?.code ?? '').split(';') as [string, ...string[]])[0])]?.(uri);
   expect(solution).toEqual(expect.arrayContaining([
     {
       edit: {

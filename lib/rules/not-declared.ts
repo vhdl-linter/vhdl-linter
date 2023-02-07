@@ -2,7 +2,6 @@ import { findBestMatch } from "string-similarity";
 import { CodeAction, CodeActionKind, Command, DiagnosticSeverity, Range, TextEdit } from "vscode-languageserver";
 import { IHasLexerToken, implementsIHasLexerToken } from "../parser/interfaces";
 import { OArchitecture, OAssociation, OAttributeReference, OFormalReference, OInstantiation, OLabelReference, OLibraryReference, OPackageBody, OPort, OReference, OSignal, OUseClause, OVariable, OWrite } from "../parser/objects";
-import { ISettings } from "../settings";
 import { IAddSignalCommandArguments } from "../vhdl-linter";
 import { IRule, RuleBase } from "./rules-base";
 export class RNotDeclared extends RuleBase implements IRule {
@@ -38,7 +37,7 @@ export class RNotDeclared extends RuleBase implements IRule {
     }
 
     for (const proposal of [...proposals].sort()) {
-      const [library, pkgName] = proposal.split('.');
+      const [library, pkgName] = proposal.split('.') as [string, string];
       let newText = `use ${library}.${pkgName}.all;\n`;
       if (root.libraries.find(libraryIt => libraryIt.lexerToken.getLText() === library.toLowerCase()) === undefined) {
         newText = `library ${library};\n${newText}`;
@@ -100,10 +99,8 @@ export class RNotDeclared extends RuleBase implements IRule {
       message: `port '${reference.referenceToken.text}' does not exist`
     });
   }
-  private settings: ISettings;
 
-  async check() {
-    this.settings = (await this.vhdlLinter.settingsGetter(this.vhdlLinter.uri));
+  check() {
 
     for (const obj of this.file.objectList) {
       if (obj instanceof OInstantiation) { // Instantiation handled somewhere else, where?
@@ -129,7 +126,7 @@ export class RNotDeclared extends RuleBase implements IRule {
         // This is already handled
       } else if (obj instanceof OArchitecture && obj.correspondingEntity === undefined) {
         this.addMessage({
-          range: obj.entityName?.range ?? obj.range,
+          range: obj.entityName.range,
           severity: DiagnosticSeverity.Error,
           message: `Did not find entity for this architecture`
         });

@@ -1,9 +1,9 @@
 import { ErrorCodes, Location, Position, ResponseError } from 'vscode-languageserver';
 import { OLexerToken } from '../lexer';
-import { IHasEndingLexerToken, implementsIHasEndingLexerToken, implementsIHasLexerToken, implementsIHasReference } from '../parser/interfaces';
+import { implementsIHasEndingLexerToken, implementsIHasLexerToken, implementsIHasReference } from '../parser/interfaces';
 import { OArchitecture, ObjectBase, OEntity, OGeneric, OInstantiation, OPackage, OPackageBody, OPort, OReference, OSubprogram, OUseClause } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
-export async function getTokenFromPosition(linter: VhdlLinter, position: Position): Promise<OLexerToken | undefined> {
+export function getTokenFromPosition(linter: VhdlLinter, position: Position): OLexerToken | undefined {
 
   const candidateTokens = linter.file.lexerTokens.filter(token => token.isDesignator())
     .filter(token => token.range.start.line === position.line
@@ -24,7 +24,7 @@ export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position
   if (!linter) {
     throw new ResponseError(ErrorCodes.InvalidRequest, 'Error during find reference operation', 'Error during find reference operation');
   }
-  const token = await getTokenFromPosition(linter, position);
+  const token = getTokenFromPosition(linter, position);
   if (!token) {
     throw new ResponseError(ErrorCodes.InvalidRequest, 'Error during find reference operation', 'Error during find reference operation');
   }
@@ -63,14 +63,14 @@ export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position
   for (const definition of definitions) {
     if (definition instanceof OSubprogram) {
       definitions.add(...definition.parent.subprograms
-        .filter(subprogram => subprogram.lexerToken.getLText() == definition.lexerToken?.getLText()));
+        .filter(subprogram => subprogram.lexerToken.getLText() == definition.lexerToken.getLText()));
       if (definition.parent instanceof OPackage) {
         definitions.add(...definition.parent.correspondingPackageBodies.flatMap(packageBodies => packageBodies.subprograms
-          .filter(subprogram => subprogram.lexerToken.getLText() == definition.lexerToken?.getLText())));
+          .filter(subprogram => subprogram.lexerToken.getLText() == definition.lexerToken.getLText())));
       }
       if (definition.parent instanceof OPackageBody) {
         definitions.add(...((definition.parent as OPackageBody).correspondingPackage?.subprograms
-          .filter(subprogram => subprogram.lexerToken.getLText() == definition.lexerToken?.getLText()) ?? []));
+          .filter(subprogram => subprogram.lexerToken.getLText() == definition.lexerToken.getLText()) ?? []));
       }
 
 
@@ -131,19 +131,19 @@ export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position
       }
     }
     if (implementsIHasEndingLexerToken(definition)) {
-      referenceTokens.push((definition as IHasEndingLexerToken).endingLexerToken as OLexerToken);
+      referenceTokens.push(definition.endingLexerToken);
     }
 
   }
   // make sure to only return one reference per range
   const map = new Map<string, OLexerToken>();
   for (const token of referenceTokens) {
-    map.set(`${token.file.uri}-${token.range.start.i}-${token.range.end.i}`, token);
+    map.set(`${token.file.uri.toString()}-${token.range.start.i}-${token.range.end.i}`, token);
   }
   return [...map.values()];
 
 }
 export async function findReferencesHandler(linter: VhdlLinter, position: Position) {
 
-  return (await findReferenceAndDefinition(linter, position))?.map(object => Location.create(object.file.uri.toString(), object.range));
+  return (await findReferenceAndDefinition(linter, position)).map(object => Location.create(object.file.uri.toString(), object.range));
 }

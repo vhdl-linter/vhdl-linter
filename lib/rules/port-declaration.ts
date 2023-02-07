@@ -6,20 +6,20 @@ export class RPortDeclaration extends RuleBase implements IRule {
   public name = 'port-declaration';
   file: OFile;
 
-  async check() {
+  check() {
     for (const entity of this.file.entities) {
 
-      const portSettings = (await this.vhdlLinter.settingsGetter(this.vhdlLinter.uri)).ports;
+      const portSettings = this.settings.ports;
       if (portSettings.enablePortStyle) {
 
-        for (const port of entity.ports ?? []) {
+        for (const port of entity.ports) {
           if (port.direction === 'in') {
             if (port.lexerToken.text.match(new RegExp(portSettings.outRegex, 'i'))) {
               const code = this.vhdlLinter.addCodeActionCallback((textDocumentUri: string) => {
                 const actions = [];
                 const newName = port.lexerToken.text.replace(new RegExp(portSettings.outRegex, 'i'), 'i_');
                 actions.push(CodeAction.create(
-                  `Replace portname with '${newName}`,
+                  `Replace port name with '${newName}`,
                   {
                     changes: {
                       [textDocumentUri]: [TextEdit.replace(port.lexerToken.range, newName)]
@@ -39,7 +39,7 @@ export class RPortDeclaration extends RuleBase implements IRule {
               this.addMessage({
                 range: port.range,
                 severity: DiagnosticSeverity.Error,
-                message: `input port '${port.lexerToken}' matches output regex ${portSettings.outRegex}`,
+                message: `input port '${port.lexerToken.text}' matches output regex ${portSettings.outRegex}`,
                 code
               });
             } else if (port.lexerToken.text.match(new RegExp(portSettings.inRegex, 'i')) === null) {
@@ -47,7 +47,7 @@ export class RPortDeclaration extends RuleBase implements IRule {
                 const actions = [];
                 const newName = port.lexerToken.text.replace(/^(._|_?)/, 'i_');
                 actions.push(CodeAction.create(
-                  `Replace portname with '${newName}`,
+                  `Replace port name with '${newName}`,
                   {
                     changes: {
                       [textDocumentUri]: [TextEdit.replace(port.lexerToken.range, newName)]
@@ -59,7 +59,7 @@ export class RPortDeclaration extends RuleBase implements IRule {
               this.addMessage({
                 range: port.range,
                 severity: DiagnosticSeverity.Information,
-                message: `input port '${port.lexerToken}' should match input regex ${portSettings.inRegex}`,
+                message: `input port '${port.lexerToken.text}' should match input regex ${portSettings.inRegex}`,
                 code
               });
             }
@@ -69,7 +69,7 @@ export class RPortDeclaration extends RuleBase implements IRule {
                 const actions = [];
                 const newName = port.lexerToken.text.replace(/^i_/, 'o_');
                 actions.push(CodeAction.create(
-                  `Replace portname with '${newName}`,
+                  `Replace port name with '${newName}`,
                   {
                     changes: {
                       [textDocumentUri]: [TextEdit.replace(port.lexerToken.range, newName)]
@@ -89,7 +89,7 @@ export class RPortDeclaration extends RuleBase implements IRule {
               this.addMessage({
                 range: port.range,
                 severity: DiagnosticSeverity.Error,
-                message: `ouput port '${port.lexerToken}' matches input regex ${portSettings.inRegex}`,
+                message: `output port '${port.lexerToken.text}' matches input regex ${portSettings.inRegex}`,
                 code
               });
             } else if (port.lexerToken.text.match(new RegExp(portSettings.outRegex, 'i')) === null) {
@@ -97,7 +97,7 @@ export class RPortDeclaration extends RuleBase implements IRule {
                 const actions = [];
                 const newName = port.lexerToken.text.replace(/^(._|_?)/, 'o_');
                 actions.push(CodeAction.create(
-                  `Replace portname with '${newName}`,
+                  `Replace port name with '${newName}`,
                   {
                     changes: {
                       [textDocumentUri]: [TextEdit.replace(port.lexerToken.range, newName)]
@@ -110,7 +110,7 @@ export class RPortDeclaration extends RuleBase implements IRule {
                 code,
                 range: port.lexerToken.range,
                 severity: DiagnosticSeverity.Information,
-                message: `ouput port '${port.lexerToken}' should match output regex ${portSettings.outRegex}`
+                message: `output port '${port.lexerToken.text}' should match output regex ${portSettings.outRegex}`
               });
             }
           }

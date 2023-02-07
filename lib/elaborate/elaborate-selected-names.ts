@@ -25,7 +25,7 @@ export class ElaborateSelectedNames {
       }
       if (found === false) {
         this.vhdlLinter.addMessage({
-          message: `${selectedName.referenceToken} does not exist on record ${typeDefinition.lexerToken}`,
+          message: `${selectedName.referenceToken.text} does not exist on record ${typeDefinition.lexerToken.text}`,
           range: selectedName.referenceToken.range,
           severity: DiagnosticSeverity.Error
         }, 'elaborate');

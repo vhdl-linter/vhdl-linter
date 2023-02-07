@@ -6,7 +6,7 @@ export class RComponent extends RuleBase implements IRule {
   public name = 'component';
   file: OFile;
 
-  async check() {
+  check() {
     for (const architecture of [...this.file.architectures, ...this.file.packages.filter(p => p instanceof OPackage) as OPackage[]]) {
       for (const component of architecture.components) {
         const entities = component.definitions;
@@ -14,11 +14,11 @@ export class RComponent extends RuleBase implements IRule {
           this.addMessage({
             range: component.lexerToken.range,
             severity: DiagnosticSeverity.Warning,
-            message: `Could not find an entity declaration for this component (${component.lexerToken})`
+            message: `Could not find an entity declaration for this component (${component.lexerToken.text})`
           });
           continue;
         }
-        // list of generics (possibly multiple occurences)
+        // list of generics (possibly multiple occurrences)
         const realGenerics = entities.flatMap(e => e.generics);
         // generics not in realEntity
         for (const generic of realGenerics) {
@@ -26,7 +26,7 @@ export class RComponent extends RuleBase implements IRule {
             this.addMessage({
               range: generic.lexerToken.range,
               severity: DiagnosticSeverity.Error,
-              message: `no generic ${generic.lexerToken.text} on entity ${component.lexerToken}`
+              message: `no generic ${generic.lexerToken.text} on entity ${component.lexerToken.text}`
             });
           }
         }
@@ -40,7 +40,7 @@ export class RComponent extends RuleBase implements IRule {
             });
           }
         }
-        // list of ports (possibly multiple occurences)
+        // list of ports (possibly multiple occurrences)
         const realPorts = entities.flatMap(e => e.ports);
         // ports not in realEntity
         for (const port of component.ports) {
@@ -48,7 +48,7 @@ export class RComponent extends RuleBase implements IRule {
             this.addMessage({
               range: port.lexerToken.range,
               severity: DiagnosticSeverity.Error,
-              message: `no port ${port.lexerToken.text} on entity ${component.lexerToken}`
+              message: `no port ${port.lexerToken.text} on entity ${component.lexerToken.text}`
             });
           }
         }

@@ -11,14 +11,14 @@ export async function getCompletions(linter: VhdlLinter, position: Position): Pr
 
   const completions: CompletionItem[] = [];
   const ieeeCasingLowercase = (await linter.settingsGetter(linter.uri)).style.ieeeCasing === 'lowercase';
-  const addCompletion = async (item: ObjectBase & IHasLexerToken, kind?: CompletionItemKind) => {
+  const addCompletion = (item: ObjectBase & IHasLexerToken, kind?: CompletionItemKind) => {
     const lowercase = item.rootFile.uri.toString().match(/ieee2008/) && ieeeCasingLowercase;
     completions.push({ label: lowercase ? item.lexerToken.getLText() : item.lexerToken.text, kind });
   };
 
 
   const lines = linter.text.split('\n');
-  const line = lines[position.line];
+  const line = lines[position.line] ?? '';
 
   const matchUse = line.match(/^\s*use\s+/i);
   if (matchUse) {
@@ -30,7 +30,8 @@ export async function getCompletions(linter: VhdlLinter, position: Position): Pr
 
   completions.push(...reservedWords.map(reservedWord => ({ label: reservedWord })));
   completions.push({ label: 'work' });
-  const completionObject = findObjectFromPosition(linter, position)[0];
+  const objects = findObjectFromPosition(linter, position);
+  const completionObject = objects[0];
   if (!completionObject) {
     return completions;
   }

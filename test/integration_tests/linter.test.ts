@@ -13,6 +13,6 @@ test('E2E test of linter with instantiation', async () => {
     projectParser, defaultSettingsGetter);
   const diagnostic = await linter.checkAll();
   expect(diagnostic.length).toBe(1);
-  expect(diagnostic[0].message).toContain('(instantiation)');
-  expect(diagnostic[0].range.start.line).toBe(7);
+  expect(diagnostic[0]?.message).toContain('(instantiation)');
+  expect(diagnostic[0]?.range.start.line).toBe(7);
 });
