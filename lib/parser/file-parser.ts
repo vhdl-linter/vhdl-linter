@@ -21,11 +21,12 @@ export class FileParser extends ParserBase {
     super(new ParserState(new ParserPosition(), filePath));
     this.originalText = text;
     this.text = text;
-    this.file = new OFile(this.text, this.state.fileUri, this.originalText);
-
+    
+    this.file = new OFile(this.text, this.state.fileUri, this.originalText, this.lexerTokens);
     const lexer = new Lexer(this.originalText, this.file);
-    this.lexerTokens = lexer.lex(this.file);
+    this.lexerTokens.push(...lexer.lex(this.file));
     this.file.lexerTokens = this.lexerTokens;
+
     this.state.pos.lexerTokens = this.lexerTokens;
     this.state.pos.file = this.file;
   }

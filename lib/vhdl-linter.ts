@@ -2,6 +2,7 @@ import {
   CodeAction, CodeActionKind, Diagnostic, DiagnosticSeverity, Position, Range, TextEdit
 } from 'vscode-languageserver';
 import { Elaborate } from './elaborate/elaborate';
+import { OLexerToken } from './lexer';
 import { FileParser } from './parser/file-parser';
 import {
   OFile, OI, OIRange, ParserError
@@ -64,7 +65,7 @@ export class VhdlLinter {
           message: e.message,
           code
         });
-        this.file = new OFile(this.text, this.uri, this.text);
+        this.file = new OFile(this.text, this.uri, this.text, this.parser.lexerTokens);
       } else {
         let message = 'Unknown error while parsing';
         if (e instanceof Error) {
@@ -75,7 +76,7 @@ export class VhdlLinter {
           message
         });
         console.error(e);
-        this.file = new OFile(this.text, this.uri, this.text);
+        this.file = new OFile(this.text, this.uri, this.text, this.parser.lexerTokens);
 
       }
     }

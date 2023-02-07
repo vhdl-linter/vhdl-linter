@@ -226,8 +226,7 @@ export class OLibraryReference extends OReference {
 export class OFile {
   parserMessages: I.OIDiagnosticWithSolution[] = [];
   public lines: string[];
-  public lexerTokens: OLexerToken[];
-  constructor(public text: string, public uri: URL, public originalText: string) {
+  constructor(public text: string, public uri: URL, public originalText: string, public lexerTokens: OLexerToken[]) {
     this.lines = originalText.split('\n');
   }
 
