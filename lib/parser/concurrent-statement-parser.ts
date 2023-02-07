@@ -60,7 +60,7 @@ export class ConcurrentStatementParser extends ParserBase {
       const startI = this.state.pos.i;
       const [[constantName], inToken] = this.advanceParenthesisAware(['in'], true, true);
       if (!constantName) {
-        throw new ParserError(`Expected a iterator constant name`, inToken.range);
+        throw new ParserError(`Expected an iterator constant name`, inToken.range);
       }
       const rangeToken = this.advancePast('generate');
       const constantRange = new ExpressionParser(this.state, this.parent, rangeToken).parse();

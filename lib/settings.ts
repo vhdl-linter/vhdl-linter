@@ -52,7 +52,6 @@ export function defaultSettingsWithOverwrite(overwrite?: DeepPartial<ISettings>)
   const newDefault = JSON.parse(JSON.stringify(defaultSettings)) as ISettings;
 
   if (overwrite) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     recursiveObjectAssign(newDefault, overwrite);
   }
   return () => newDefault;

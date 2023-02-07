@@ -41,10 +41,9 @@ export class VhdlLinter {
       this.file.parserMessages = this.parser.state.messages;
     } catch (e) {
       if (e instanceof ParserError) {
-        const parserError = e;
+        const solution = e.solution;
         let code;
-        if (parserError.solution) {
-          const solution = parserError.solution;
+        if (solution) {
           code = this.addCodeActionCallback((textDocumentUri: string) => {
             const actions = [];
             actions.push(CodeAction.create(
