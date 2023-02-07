@@ -33,13 +33,13 @@ export class StatementBodyParser extends ParserBase {
       if (this.getToken().getLText() === '(') {
         const startRange = this.getToken().range;
         this.consumeToken(); // consume '('
-        (statementBody ).guardCondition = new ExpressionParser(this.state, statementBody, this.advanceClosingParenthesis()).parse();
+        statementBody.guardCondition = new ExpressionParser(this.state, statementBody, this.advanceClosingParenthesis()).parse();
         const guardRange = startRange.copyWithNewEnd(this.getToken().range.end);
         // implicit declare constant GUARD
         const constant = new OConstant(statementBody, guardRange);
         constant.lexerToken = new OLexerToken('GUARD', guardRange, TokenType.basicIdentifier, constant.rootFile);
         // read GUARD constant to avoid 'not read' warning
-        (statementBody ).guardCondition.push(new ORead(statementBody, constant.lexerToken));
+        statementBody.guardCondition.push(new ORead(statementBody, constant.lexerToken));
         statementBody.constants.push(constant);
       }
       this.maybe('is');
@@ -64,7 +64,7 @@ export class StatementBodyParser extends ParserBase {
       iterateConstant.typeReference = [];
       iterateConstant.lexerToken = constantName;
       statementBody.constants.push(iterateConstant);
-      (statementBody ).iterationConstant = constantName;
+      statementBody.iterationConstant = constantName;
     }
     if (skipStart !== true) {
       statementBody.lexerToken = this.consumeIdentifier();
