@@ -101,7 +101,6 @@ export class AliasParser extends ParserBase {
       for (const token of tokens.slice(1)) {
         prefix.push(new OSelectedName(parent, token, prefix.slice() as SelectedNamePrefix));
       }
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       return prefix[prefix.length - 1]!;
     }
     return new OReference(parent, firstToken);

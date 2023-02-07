@@ -94,7 +94,6 @@ export class TypeParser extends ParserBase {
             for (const child of children) {
               if (typeTokens.length > 0) {
                 child.referenceLinks = new ExpressionParser(this.state, child, typeTokens).parse();
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 child.range = child.range.copyWithNewEnd(typeTokens[typeTokens.length - 1]!.range);
               } else {
                 this.state.messages.push({

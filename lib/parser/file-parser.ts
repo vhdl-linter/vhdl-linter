@@ -142,7 +142,6 @@ export class FileParser extends ParserBase {
           this.file.contexts.push(context);
         } else {
           // The Parent gets overwritten when attaching the reference to the correct object
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const contextReferenceParser = new ContextReferenceParser(this.state, this.file);
           contextReferences.push(contextReferenceParser.parse());
         }

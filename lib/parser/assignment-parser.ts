@@ -18,7 +18,6 @@ export class AssignmentParser extends ParserBase {
     this.findToken(['<=', ':=']);
     const leftHandSideTokens = [];
     while (leftHandSideNum < this.state.pos.num) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       leftHandSideTokens.push(this.state.pos.lexerTokens[leftHandSideNum]!);
       leftHandSideNum++;
     }

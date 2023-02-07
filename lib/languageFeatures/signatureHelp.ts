@@ -54,7 +54,6 @@ export function signatureHelp(linter: VhdlLinter, position: Position): Signature
               while (linter.file.lexerTokens[tokenIndex + 1]?.isWhitespace()) {
                 tokenIndex++;
               }
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               if (posI >= (linter.file.lexerTokens[tokenIndex]!.range.end.i)) {
                 activeParameter = childNumber + 1;
               }

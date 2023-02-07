@@ -49,7 +49,6 @@ export class RInstantiation extends RuleBase implements IRule {
                 `Replace with ${bestMatch.bestMatch.target} (score: ${bestMatch.bestMatch.rating})`,
                 {
                   changes: {
-                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                     [textDocumentUri]: [TextEdit.replace(Range.create(firstFormal.range.start, association.formalPart[association.formalPart.length - 1]!.range.end)
                       , bestMatch.bestMatch.target)]
                   }

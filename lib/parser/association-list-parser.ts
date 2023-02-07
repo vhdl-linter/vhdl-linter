@@ -20,7 +20,6 @@ export class AssociationListParser extends ParserBase {
       // eslint-disable-next-line prefer-const
       let [associationTokens, lastChar] = this.advanceParenthesisAware([',', ')']);
       if (associationTokens.length > 0) {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const combinedRange = associationTokens[0]!.range.copyWithNewEnd(associationTokens[associationTokens.length - 1]!.range);
         const association = new OAssociation(list, combinedRange);
         // At this point we do not know the direction of the port.

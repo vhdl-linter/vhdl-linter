@@ -12,7 +12,6 @@ export class ParserPosition {
   public get i() {
     const token = this.lexerTokens[this.num];
     if (!token) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       throw new ParserError(`I out of range`, this.lexerTokens[this.lexerTokens.length - 1]!.range);
     }
     return token.range.start.i;
@@ -24,7 +23,6 @@ export class ParserPosition {
     return this.num >= 0 && this.num < this.lexerTokens.length;
   }
   public getRangeToEndLine() {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return this.lexerTokens[this.num]!.range.copyExtendEndOfLine();
   }
 }
@@ -50,7 +48,6 @@ export class ParserBase {
   // Meaning offset = 2 counts only the next two non-whitespaces tokens
   getToken(offset = 0, offsetIgnoresWhitespaces = false): OLexerToken {
     if (!this.state.pos.isValid()) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       throw new ParserError(`EOF reached`, this.state.pos.lexerTokens[this.state.pos.lexerTokens.length - 1]!.range);
     }
     if (offsetIgnoresWhitespaces) {
@@ -74,7 +71,6 @@ export class ParserBase {
           } while ((this.state.pos.lexerTokens[this.state.pos.num + offsetCorrected]?.isWhitespace()));
         }
       } else if (offset === 0) {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         return this.state.pos.lexerTokens[this.state.pos.num]!;
       }
       const token = this.state.pos.lexerTokens[this.state.pos.num + offsetCorrected];
@@ -98,10 +94,8 @@ export class ParserBase {
       this.advanceWhitespace();
     }
     if (!token) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const lastToken = this.state.pos.lexerTokens[this.state.pos.lexerTokens.length - 1]!;
       throw new ParserError(`EOF reached`, lastToken.range);
-
     }
 
     return token;
@@ -127,7 +121,6 @@ export class ParserBase {
       }
       return false;
     }
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     while (checkToken(this.state.pos.lexerTokens[this.state.pos.num]!) === false) {
       this.state.pos.num++;
       if (this.state.pos.num === this.state.pos.lexerTokens.length) {

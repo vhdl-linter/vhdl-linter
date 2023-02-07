@@ -177,7 +177,6 @@ export class ExpressionParser extends ParserBase {
     if (this.expState.lastFormal.length > 0 && tokenBuffer.length === 0) {
       this.state.messages.push({
         message: "The actual part cannot be empty.",
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         range: this.expState.lastFormal[0]!.range.copyWithNewEnd(this.expState.lastFormal[this.expState.lastFormal.length - 1]!.range)
       });
     }

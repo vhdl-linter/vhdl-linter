@@ -26,9 +26,9 @@ export class OI implements Position {
   get i() {
     if (this.i_ === undefined) {
       this.calcI();
-    }
-    if (this.i_ === undefined) {
-      throw new Error('Can not convert position to i');
+      if (this.i_ === undefined) {
+        throw new Error('Can not convert position to i');
+      }
     }
     return this.i_;
   }
@@ -66,7 +66,6 @@ export class OI implements Position {
   private calcPosition(): Position {
     const lines = (this.parent instanceof OFile ? this.parent : this.parent.rootFile).text.slice(0, this.i).split('\n');
     const line = lines.length - 1;
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const character = lines[lines.length - 1]!.length;
     return { character, line };
   }
