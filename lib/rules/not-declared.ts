@@ -2,7 +2,6 @@ import { findBestMatch } from "string-similarity";
 import { CodeAction, CodeActionKind, Command, DiagnosticSeverity, Range, TextEdit } from "vscode-languageserver";
 import { IHasLexerToken, implementsIHasLexerToken } from "../parser/interfaces";
 import { OArchitecture, OAssociation, OAttributeReference, OFormalReference, OInstantiation, OLabelReference, OLibraryReference, OPackageBody, OPort, OReference, OSignal, OUseClause, OVariable, OWrite } from "../parser/objects";
-import { ISettings } from "../settings";
 import { IAddSignalCommandArguments } from "../vhdl-linter";
 import { IRule, RuleBase } from "./rules-base";
 export class RNotDeclared extends RuleBase implements IRule {
@@ -100,10 +99,8 @@ export class RNotDeclared extends RuleBase implements IRule {
       message: `port '${reference.referenceToken.text}' does not exist`
     });
   }
-  private settings: ISettings;
 
-  async check() {
-    this.settings = (await this.vhdlLinter.settingsGetter(this.vhdlLinter.uri));
+  check() {
 
     for (const obj of this.file.objectList) {
       if (obj instanceof OInstantiation) { // Instantiation handled somewhere else, where?

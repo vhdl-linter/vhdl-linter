@@ -174,8 +174,9 @@ export class VhdlLinter {
         console.log(`check ${i++}: ${Date.now() - start}ms`);
         start = Date.now();
       }
+      const settings = await this.settingsGetter(this.uri);
       for (const checkerClass of rules) {
-        const checker = new checkerClass(this);
+        const checker = new checkerClass(this, settings);
         checker.check();
         if (profiling) {
           console.log(`check ${checker.name}: ${Date.now() - start}ms`);

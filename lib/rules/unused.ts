@@ -132,9 +132,8 @@ export class RUnused extends RuleBase implements IRule {
       }
     }
   }
-  async check() {
-    const settings = (await this.vhdlLinter.settingsGetter(this.vhdlLinter.uri));
-    this.unusedSignalRegex = new RegExp(settings.style.unusedSignalRegex);
+  check() {
+    this.unusedSignalRegex = new RegExp(this.settings.style.unusedSignalRegex);
 
     for (const obj of this.file.objectList) {
       if (implementsIHasPorts(obj)) {
@@ -174,7 +173,7 @@ export class RUnused extends RuleBase implements IRule {
           }
           if (references.filter(token => token instanceof OWrite).length === 0) {
             this.addUnusedMessage(signal, `Not writing signal ${signal.lexerToken.text}`);
-          } else if (settings.rules.warnMultipleDriver) {
+          } else if (this.settings.rules.warnMultipleDriver) {
             this.checkMultipleDriver(signal);
           }
         }

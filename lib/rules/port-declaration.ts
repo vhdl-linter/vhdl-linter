@@ -6,10 +6,10 @@ export class RPortDeclaration extends RuleBase implements IRule {
   public name = 'port-declaration';
   file: OFile;
 
-  async check() {
+  check() {
     for (const entity of this.file.entities) {
 
-      const portSettings = (await this.vhdlLinter.settingsGetter(this.vhdlLinter.uri)).ports;
+      const portSettings = this.settings.ports;
       if (portSettings.enablePortStyle) {
 
         for (const port of entity.ports) {

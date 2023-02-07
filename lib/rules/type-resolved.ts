@@ -1,7 +1,6 @@
 import { CodeAction, CodeActionKind, DiagnosticSeverity, TextEdit } from "vscode-languageserver";
 import { implementsIHasPorts, implementsIHasSignals, implementsIHasTypes } from "../parser/interfaces";
 import { OAlias, OFile, OPackage, OPort, OSignal, OSubType, scope } from "../parser/objects";
-import { ISettings } from "../settings";
 import { IRule, RuleBase } from "./rules-base";
 
 export class RTypeResolved extends RuleBase implements IRule {
@@ -122,9 +121,7 @@ export class RTypeResolved extends RuleBase implements IRule {
       }
     }
   }
-  private settings: ISettings;
-  async check() {
-    this.settings = (await this.vhdlLinter.settingsGetter(this.vhdlLinter.uri));
+  check() {
     for (const object of this.file.objectList) {
       if (implementsIHasPorts(object)) {
         for (const port of object.ports) {
