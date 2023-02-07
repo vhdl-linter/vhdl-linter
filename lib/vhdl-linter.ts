@@ -75,7 +75,7 @@ export class VhdlLinter {
           message
         });
         console.error(e);
-        this.file = new OFile(this.text, this.uri, this.text, this.parser.lexerTokens);
+        this.file = new OFile(this.text, this.uri, this.text, []);
 
       }
     }
