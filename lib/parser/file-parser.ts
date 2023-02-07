@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Lexer, OLexerToken, TokenType } from '../lexer';
 import { CancelationObject } from '../server-objects';
 import { ContextParser } from './context-parser';
