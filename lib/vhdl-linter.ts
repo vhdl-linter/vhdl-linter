@@ -2,7 +2,6 @@ import {
   CodeAction, CodeActionKind, Diagnostic, DiagnosticSeverity, Position, Range, TextEdit
 } from 'vscode-languageserver';
 import { Elaborate } from './elaborate/elaborate';
-import { OLexerToken } from './lexer';
 import { FileParser } from './parser/file-parser';
 import {
   OFile, OI, OIRange, ParserError
