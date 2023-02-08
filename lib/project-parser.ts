@@ -1,8 +1,9 @@
 import { FSWatcher, watch } from 'chokidar';
 import { EventEmitter } from 'events';
 import { existsSync, promises } from 'fs';
-import { join, sep } from 'path';
+import { basename, join, sep } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
+import { WorkDoneProgressReporter } from 'vscode-languageserver';
 import { Elaborate } from './elaborate/elaborate';
 import { SetAdd } from './languageFeatures/findReferencesHandler';
 import { OArchitecture, OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
@@ -35,12 +36,13 @@ export class ProjectParser {
   events = new EventEmitter();
   private watchers: FSWatcher[] = [];
   // Constructor can not be async. So constructor is private and use factory to create
-  public static async create(workspaces: URL[], fileIgnoreRegex: string, settingsGetter: SettingsGetter, disableWatching = false) {
-    const projectParser = new ProjectParser(workspaces, fileIgnoreRegex, settingsGetter);
+  public static async create(workspaces: URL[], fileIgnoreRegex: string, settingsGetter: SettingsGetter, disableWatching = false,
+    progress?: WorkDoneProgressReporter) {
+    const projectParser = new ProjectParser(workspaces, fileIgnoreRegex, settingsGetter, progress);
     await projectParser.init(disableWatching);
     return projectParser;
   }
-  private constructor(public workspaces: URL[], public fileIgnoreRegex: string, public settingsGetter: SettingsGetter) { }
+  private constructor(public workspaces: URL[], public fileIgnoreRegex: string, public settingsGetter: SettingsGetter, public progress?: WorkDoneProgressReporter) { }
   public addFolders(urls: URL[]) {
     for (const url of urls) {
       // Chokidar does not accept win style line endings
@@ -90,8 +92,14 @@ export class ProjectParser {
     }));
     const rootDirectory = getRootDirectory();
     files.add(...(await this.parseDirectory(joinURL(rootDirectory, 'ieee2008'))).map(url => url.toString()));
-
+    let index = 0;
     for (const file of files) {
+      if (this.progress) {
+        const percent = Math.round(index / files.size * 100);
+        this.progress.report(index / files.size * 100, `ProjectParser ${percent}% current file: ${basename(fileURLToPath(file))}`);
+        index++;
+      }
+      await new Promise(resolve => setTimeout(resolve, 500));
       const cachedFile = await FileCache.create(new URL(file), this);
       this.cachedFiles.push(cachedFile);
     }
