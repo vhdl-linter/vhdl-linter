@@ -78,7 +78,7 @@ export class Lexer {
   constructor(
     public text: string,
     public file: OFile,
-    tokens: [] | undefined = []
+    tokens: [] | undefined = [] // The tokens array has to be empty!
   ) {
     this.tokens = tokens;
   }
