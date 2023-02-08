@@ -99,7 +99,6 @@ export class ProjectParser {
         this.progress.report(index / files.size * 100, `ProjectParser ${percent}% current file: ${basename(fileURLToPath(file))}`);
         index++;
       }
-      await new Promise(resolve => setTimeout(resolve, 500));
       const cachedFile = await FileCache.create(new URL(file), this);
       this.cachedFiles.push(cachedFile);
     }
