@@ -8,7 +8,7 @@ import { getCompletions } from './languageFeatures/completion';
 import { handleDocumentFormatting } from './languageFeatures/documentFormatting';
 import { documentHighlightHandler } from './languageFeatures/documentHighlightHandler';
 import { DocumentSymbols } from './languageFeatures/documentSymbol';
-import { findDefinitions } from './languageFeatures/findDefinition';
+import { findDefinitionLinks, findDefinitions } from './languageFeatures/findDefinition';
 import { findReferencesHandler } from './languageFeatures/findReferencesHandler';
 import { foldingHandler } from './languageFeatures/folding';
 import { prepareRenameHandler, renameHandler } from './languageFeatures/rename';
@@ -295,7 +295,7 @@ interface IFindDefinitionParams {
 const findBestDefinition = async (params: IFindDefinitionParams) => {
   const linter = await getLinter(params.textDocument.uri);
 
-  const definitions = findDefinitions(linter, params.position);
+  const definitions = findDefinitionLinks(linter, params.position);
   return definitions[0] ?? null;
 };
 
@@ -323,10 +323,15 @@ connection.onHover(async (params, token) => {
     }
   };
 });
-connection.onDefinition(async (params) => {
+connection.onDefinition(async (params, token) => {
+  await initialization;
+  if (token.isCancellationRequested) {
+    console.log('onDefinition canceled');
+    return new ResponseError(LSPErrorCodes.RequestCancelled, 'canceled');
+  }
   const linter = await getLinter(params.textDocument.uri);
 
-  const definitions = findDefinitions(linter, params.position);
+  const definitions = findDefinitionLinks(linter, params.position);
   if (definitions.length === 0) {
     return null;
   }

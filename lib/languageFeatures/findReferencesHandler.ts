@@ -3,6 +3,7 @@ import { OLexerToken } from '../lexer';
 import { implementsIHasEndingLexerToken, implementsIHasLexerToken, implementsIHasReference } from '../parser/interfaces';
 import { OArchitecture, ObjectBase, OEntity, OGeneric, OInstantiation, OPackage, OPackageBody, OPort, OReference, OSubprogram, OUseClause } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
+import { findDefinitions } from './findDefinition';
 export function getTokenFromPosition(linter: VhdlLinter, position: Position): OLexerToken | undefined {
 
   const candidateTokens = linter.file.lexerTokens.filter(token => token.isDesignator())
@@ -26,66 +27,14 @@ export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position
   }
   const token = getTokenFromPosition(linter, position);
   if (!token) {
-    throw new ResponseError(ErrorCodes.InvalidRequest, 'Error during find reference operation', 'Error during find reference operation');
+    // no definitions for something that isn't a token
+    return [];
   }
   await linter.projectParser.elaborateAll(token.getLText());
-  const definitions = new SetAdd<ObjectBase>();
-  // find all possible definitions for the lexerToken
-  for (const obj of linter.file.objectList) {
-    if (obj instanceof OReference && obj.referenceToken === token) {
-      if (obj.parent instanceof OUseClause) {
-        definitions.add(...obj.parent.definitions);
-      } else {
-        definitions.add(...obj.definitions);
-
-      }
-    }
-    if (obj instanceof OInstantiation) {
-      if (obj.componentName === token) {
-        definitions.add(...obj.definitions);
-
-      }
-    }
-    if (implementsIHasLexerToken(obj) && obj.lexerToken === token) {
-      definitions.add(obj);
-    }
-    if (implementsIHasEndingLexerToken(obj) && obj.endingLexerToken === token) {
-      definitions.add(obj);
-    }
-
-    if (obj instanceof OArchitecture && obj.entityName === token) {
-      if (obj.correspondingEntity) {
-        definitions.add(obj.correspondingEntity);
-      }
-    }
-  }
-  // find all implementations/definitions of subprograms
-  for (const definition of definitions) {
-    if (definition instanceof OSubprogram) {
-      definitions.add(...definition.parent.subprograms
-        .filter(subprogram => subprogram.lexerToken.getLText() == definition.lexerToken.getLText()));
-      if (definition.parent instanceof OPackage) {
-        definitions.add(...definition.parent.correspondingPackageBodies.flatMap(packageBodies => packageBodies.subprograms
-          .filter(subprogram => subprogram.lexerToken.getLText() == definition.lexerToken.getLText())));
-      }
-      if (definition.parent instanceof OPackageBody) {
-        definitions.add(...((definition.parent as OPackageBody).correspondingPackage?.subprograms
-          .filter(subprogram => subprogram.lexerToken.getLText() == definition.lexerToken.getLText()) ?? []));
-      }
-
-
-    }
-  }
-  const definitionsList = [...definitions].map(definition => {
-    if (definition instanceof OPackageBody && definition.correspondingPackage) {
-      return definition.correspondingPackage;
-    }
-    return definition;
-
-  });
+  const definitions = findDefinitions(linter, position);
   // find all tokens that are references to the definition
   const referenceTokens: OLexerToken[] = [];
-  for (const definition of definitionsList) {
+  for (const definition of definitions) {
     if (implementsIHasReference(definition)) {
       if (definition.lexerToken) {
         referenceTokens.push(definition.lexerToken);
