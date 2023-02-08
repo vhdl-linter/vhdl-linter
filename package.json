@@ -225,6 +225,8 @@
 			}
 		}
 	},
+	"activationEvents": [
+	],
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
 		"vscode:postpublish": "git push",
