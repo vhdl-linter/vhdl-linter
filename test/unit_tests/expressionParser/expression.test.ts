@@ -2,7 +2,7 @@ import { expect, test } from '@jest/globals';
 import { pathToFileURL } from 'url';
 import { Lexer, OLexerToken } from '../../../lib/lexer';
 import { ExpressionParser } from '../../../lib/parser/expression-parser';
-import { ObjectBase, OFile, OIRange } from '../../../lib/parser/objects';
+import { ObjectBase, OFile, ORange } from '../../../lib/parser/objects';
 import { ParserPosition, ParserState } from '../../../lib/parser/parser-base';
 
 test.each([[`a`, 1],
@@ -32,7 +32,7 @@ test.each([[`a`, 1],
   (expression, numberOfReferences) => {
     const lexerTokens: OLexerToken[] = [];
     const file = new OFile('', pathToFileURL('/tmp/test'), '', lexerTokens);
-    const parent = new ObjectBase(file, new OIRange(file, 0, 0));
+    const parent = new ObjectBase(file, new ORange(file, 0, 0));
     lexerTokens.push(...(new Lexer(expression, file).lex(file)));
     const expressionParser = new ExpressionParser(new ParserState(new ParserPosition, pathToFileURL('/tmp/test')), parent, lexerTokens);
     const references = expressionParser.parse();

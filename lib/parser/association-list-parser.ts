@@ -63,7 +63,7 @@ export class AssociationListParser extends ParserBase {
           });
         }
       } else if (lastChar.text === ')') {
-        list.range = list.range.copyWithNewEnd(this.state.pos.i);
+        list.range = list.range.copyWithNewEnd(this.state.pos.pos);
         break;
       }
     }

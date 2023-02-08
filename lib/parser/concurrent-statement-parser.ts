@@ -23,7 +23,7 @@ export class ConcurrentStatementParser extends ParserBase {
     let nextToken = this.getToken();
 
     let label: OLexerToken | undefined;
-    const savedI = this.state.pos.i;
+    const savedI = this.state.pos.pos;
     if (this.getToken(1, true).text === ':') {
       label = this.consumeToken();
       this.debug(`parse label ${label.text}`);
@@ -57,7 +57,7 @@ export class ConcurrentStatementParser extends ParserBase {
         throw new ParserError('A for generate needs a label.', this.state.pos.getRangeToEndLine());
       }
 
-      const startI = this.state.pos.i;
+      const startI = this.state.pos.pos;
       const [[constantName], inToken] = this.advanceParenthesisAware(['in'], true, true);
       if (!constantName) {
         throw new ParserError(`Expected an iterator constant name`, inToken.range);
@@ -84,7 +84,7 @@ export class ConcurrentStatementParser extends ParserBase {
       caseGenerate.expressionTokens = caseConditionToken.filter(token => !token.isWhitespace());
       let nextToken = this.getToken();
       while (nextToken.getLText() === 'when') {
-        const whenI = this.state.pos.i;
+        const whenI = this.state.pos.pos;
         this.expect('when');
         let alternativeLabel;
         if (this.getToken(1, true).getLText() === ':') {
@@ -105,7 +105,7 @@ export class ConcurrentStatementParser extends ParserBase {
       if (label) {
         this.maybe(label.text);
       }
-      caseGenerate.range = caseGenerate.range.copyWithNewEnd(this.state.pos.i);
+      caseGenerate.range = caseGenerate.range.copyWithNewEnd(this.state.pos.pos);
       this.advanceSemicolon();
       (this.parent as OArchitecture).statements.push(caseGenerate);
     } else if (nextToken.getLText() === 'if' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {
@@ -132,7 +132,7 @@ export class ConcurrentStatementParser extends ParserBase {
       ifGenerate.ifGenerateClauses.unshift(ifGenerateClause);
       (this.parent as OArchitecture).statements.push(ifGenerate);
       this.reverseWhitespace();
-      ifGenerate.range = ifGenerate.range.copyWithNewEnd(this.state.pos.i);
+      ifGenerate.range = ifGenerate.range.copyWithNewEnd(this.state.pos.pos);
       this.advanceWhitespace();
     } else if (nextToken.getLText() === 'elsif' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {
       if (!(this.parent instanceof OIfGenerateClause)) {

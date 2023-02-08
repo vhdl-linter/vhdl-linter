@@ -1,7 +1,7 @@
 import { TextEdit } from "vscode-languageserver";
 import { OLexerToken } from "../lexer";
 import { OIDiagnostic } from "../vhdl-linter";
-import { OAlias, OAttribute, ObjectBase, OComponent, OConcurrentStatements, OConstant, OContextReference, OFileVariable, OGeneric, OIRange, OLabelReference, OLibrary, OLibraryReference, OPackage, OPackageInstantiation, OPort, OReference, OSequentialStatement, OSignal, OSubprogram, OType, OUseClause, OVariable } from "./objects";
+import { OAlias, OAttribute, ObjectBase, OComponent, OConcurrentStatements, OConstant, OContextReference, OFileVariable, OGeneric, ORange, OLabelReference, OLibrary, OLibraryReference, OPackage, OPackageInstantiation, OPort, OReference, OSequentialStatement, OSignal, OSubprogram, OType, OUseClause, OVariable } from "./objects";
 
 export interface IHasLabel {
   label: OLexerToken;
@@ -154,14 +154,14 @@ export function implementsIHasLibraryReference(obj: ObjectBase): obj is ObjectBa
 }
 export interface IHasGenerics {
   generics: OGeneric[];
-  genericRange?: OIRange;
+  genericRange?: ORange;
 }
 export function implementsIHasGenerics(obj: ObjectBase): obj is ObjectBase & IHasGenerics {
   return (obj as ObjectBase & Partial<IHasGenerics>).generics !== undefined;
 }
 export interface IHasPorts {
   ports: OPort[];
-  portRange?: OIRange;
+  portRange?: ORange;
 }
 export function implementsIHasPorts(obj: ObjectBase): obj is ObjectBase & IHasPorts {
   return (obj as ObjectBase & Partial<IHasPorts>).ports !== undefined;

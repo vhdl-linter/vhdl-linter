@@ -78,7 +78,7 @@ export class StatementBodyParser extends ParserBase {
     }
 
     new DeclarativePartParser(this.state, (statementBody as OArchitecture)).parse(structureName !== 'architecture');
-    statementBody.endOfDeclarativePart = new OI(statementBody, this.state.pos.i);
+    statementBody.endOfDeclarativePart = this.state.pos.pos;
     this.maybe('begin');
 
     while (this.state.pos.isValid()) {

@@ -47,7 +47,7 @@ export class SubprogramParser extends ParserBase {
       subprogram.endingLexerToken = this.maybe(token);
     }
 
-    subprogram.range = subprogram.range.copyWithNewEnd(this.state.pos.i);
+    subprogram.range = subprogram.range.copyWithNewEnd(this.state.pos.pos);
 
     return subprogram;
   }

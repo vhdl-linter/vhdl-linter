@@ -1,7 +1,7 @@
 import { ConcurrentStatementParser, ConcurrentStatementTypes } from './concurrent-statement-parser';
 import { DeclarativePartParser } from './declarative-part-parser';
 import { InterfaceListParser } from './interface-list-parser';
-import { OArchitecture, OEntity, OIRange, ParserError, OFile } from './objects';
+import { OArchitecture, OEntity, ORange, ParserError, OFile } from './objects';
 import { ParserBase, ParserState } from './parser-base';
 
 export class EntityParser extends ParserBase {
@@ -26,18 +26,18 @@ export class EntityParser extends ParserBase {
     while (this.state.pos.isValid()) {
       this.advanceWhitespace();
       const nextToken = this.getToken();
-      const savedI = this.state.pos.i;
+      const savedI = this.state.pos.pos;
       if (nextToken.getLText() === 'port') {
         this.consumeToken();
         const interfaceListParser = new InterfaceListParser(this.state, this.entity);
         interfaceListParser.parse(false);
-        this.entity.portRange = new OIRange(this.entity, savedI, this.state.pos.i);
+        this.entity.portRange = new ORange(this.entity, savedI, this.state.pos.pos);
         this.expect(';');
       } else if (nextToken.getLText() === 'generic') {
         this.consumeToken();
         const interfaceListParser = new InterfaceListParser(this.state, this.entity);
         interfaceListParser.parse(true);
-        this.entity.genericRange = new OIRange(this.entity, savedI, this.state.pos.i);
+        this.entity.genericRange = new ORange(this.entity, savedI, this.state.pos.pos);
         this.expect(';');
       } else if (nextToken.getLText() === 'end') {
         this.consumeToken();
@@ -65,10 +65,10 @@ export class EntityParser extends ParserBase {
       } else {
         new DeclarativePartParser(this.state, this.entity).parse(true);
       }
-      if (lastI === this.state.pos.i) {
+      if (lastI === this.state.pos.pos) {
         throw new ParserError(`Parser stuck on line ${this.getLine()} in module ${this.constructor.name}`, this.state.pos.getRangeToEndLine());
       }
-      lastI = this.state.pos.i;
+      lastI = this.state.pos.pos;
     }
 
     return this.entity;

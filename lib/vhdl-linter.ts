@@ -4,9 +4,10 @@ import {
 import { Elaborate } from './elaborate/elaborate';
 import { FileParser } from './parser/file-parser';
 import {
-  OFile, OI, OIRange, ParserError
+  OFile, OI, OPosition, ParserError
 } from './parser/objects';
 import { ProjectParser } from './project-parser';
+import { rangeContains } from './range-helper';
 import { rules } from './rules/rule-index';
 import { CancelationError, CancelationObject } from './server-objects';
 import { ISettings } from './settings';
@@ -14,10 +15,10 @@ import { ISettings } from './settings';
 export interface IAddSignalCommandArguments {
   textDocumentUri: string;
   signalName: string;
-  position: OI;
+  position: OPosition;
 }
 export interface OIDiagnostic extends Diagnostic {
-  range: OIRange;
+  range: Range;
 }
 export interface IIgnoreLineCommandArguments {
   textDocumentUri: string;
@@ -123,16 +124,9 @@ export class VhdlLinter {
     }
   }
 
-  private checkMagicComments(range: OIRange, name: string) {
-    const matchingMagiComments = this.file.magicComments.filter(magicComment => {
-      if (range.start.i < magicComment.range.start.i) {
-        return false;
-      }
-      if (range.end.i > magicComment.range.end.i) {
-        return false;
-      }
-      return true;
-    }).filter(magicComment => {
+  private checkMagicComments(range: Range, name: string) {
+    const matchingMagiComments = this.file.magicComments.filter(magicComment => rangeContains(range, magicComment.range))
+    .filter(magicComment => {
       if (magicComment.rule) {
         return name === magicComment.rule;
       }

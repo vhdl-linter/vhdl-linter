@@ -64,10 +64,10 @@ export class ConcurrentInstantiationParser extends ParserBase {
         instantiation.portAssociationList = new AssociationListParser(this.state, instantiation).parse();
       }
 
-      if (lastI === this.state.pos.i) {
+      if (lastI === this.state.pos.pos) {
         throw new ParserError(`Parser stuck on line ${this.getLine()} in module ${this.constructor.name}`, this.state.pos.getRangeToEndLine());
       }
-      lastI = this.state.pos.i;
+      lastI = this.state.pos.pos;
     }
 
     instantiation.range = instantiation.range.copyWithNewEnd(this.getToken(-1, true).range.end);

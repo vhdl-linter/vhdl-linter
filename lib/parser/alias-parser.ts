@@ -1,5 +1,5 @@
 import { ExpressionParser } from "./expression-parser";
-import { OAlias, OAliasWithSignature, ObjectBase, OEntity, OIRange, OPackage, OPackageBody, OProcess, OReference, OSelectedName, OStatementBody, OSubprogram, OType, OTypeMark, ParserError, SelectedNamePrefix } from "./objects";
+import { OAlias, OAliasWithSignature, ObjectBase, OEntity, ORange, OPackage, OPackageBody, OProcess, OReference, OSelectedName, OStatementBody, OSubprogram, OType, OTypeMark, ParserError, SelectedNamePrefix } from "./objects";
 import { ParserBase, ParserState } from "./parser-base";
 export class AliasParser extends ParserBase {
   constructor(state: ParserState, private parent: OStatementBody | OEntity | OPackage | OPackageBody | OProcess | OSubprogram | OType) {
@@ -23,7 +23,7 @@ export class AliasParser extends ParserBase {
     return this.parseAlias(startRange);
   }
 
-  parseAliasWithSignature(startRange: OIRange) {
+  parseAliasWithSignature(startRange: ORange) {
     const aliasWithSignature = new OAliasWithSignature(this.parent, startRange);
     aliasWithSignature.lexerToken = this.consumeToken();
     if (this.getToken().getLText() === ':') {
@@ -62,7 +62,7 @@ export class AliasParser extends ParserBase {
     this.expect(';');
     return aliasWithSignature;
   }
-  parseAlias(startRange: OIRange) {
+  parseAlias(startRange: ORange) {
     const alias = new OAlias(this.parent, startRange);
 
     alias.lexerToken = this.consumeToken();

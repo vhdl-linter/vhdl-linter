@@ -3,7 +3,7 @@ import { CancelationObject } from '../server-objects';
 import { ContextParser } from './context-parser';
 import { ContextReferenceParser } from './context-reference-parser';
 import { EntityParser } from './entity-parser';
-import { MagicCommentType, ObjectBase, OConfiguration, OFile, OI, OIRange, OLibrary, OLibraryReference, OMagicCommentDisable, OPackageInstantiation, OReference, OUseClause, ParserError } from './objects';
+import { MagicCommentType, ObjectBase, OConfiguration, OFile, OI, ORange, OLibrary, OLibraryReference, OMagicCommentDisable, OPackageInstantiation, OReference, OUseClause, ParserError } from './objects';
 import { PackageInstantiationParser } from './package-instantiation-parser';
 import { PackageParser } from './package-parser';
 import { ParserBase, ParserPosition, ParserState } from './parser-base';
@@ -20,7 +20,7 @@ export class FileParser extends ParserBase {
     super(new ParserState(new ParserPosition(), filePath));
     this.originalText = text;
     this.text = text;
-    
+
     this.file = new OFile(this.text, this.state.fileUri, this.originalText, this.lexerTokens);
     const lexer = new Lexer(this.originalText, this.file);
     this.lexerTokens.push(...lexer.lex(this.file));
@@ -33,7 +33,7 @@ export class FileParser extends ParserBase {
     while (this.originalText.split('\n')[lineNumber + 1]?.match(/^\s*(?:--.*)?$/)) {
       lineNumber++;
     }
-    return new OIRange(this.file, new OI(this.file, lineNumber + 1, 0), new OI(this.file, lineNumber + 1, this.originalText.split('\n')[lineNumber + 1]!.length));
+    return new ORange(this.file, new OI(this.file, lineNumber + 1, 0), new OI(this.file, lineNumber + 1, this.originalText.split('\n')[lineNumber + 1]!.length));
   }
   parse(): OFile {
 
@@ -49,7 +49,7 @@ export class FileParser extends ParserBase {
             this.file.magicComments.push(new OMagicCommentDisable(
               this.file,
               MagicCommentType.Disable,
-              new OIRange(this.file, new OI(this.file, lineNumber, 0), new OI(this.file, lineNumber, line.length)),
+              new ORange(this.file, new OI(this.file, lineNumber, 0), new OI(this.file, lineNumber, line.length)),
               rule
             ));
           }
@@ -78,7 +78,7 @@ export class FileParser extends ParserBase {
           for (const rule of rules) {
             const rangeStart = disabledRangeStart.get(rule);
             if (rangeStart !== undefined) {
-              const disabledRange = new OIRange(this.file,
+              const disabledRange = new ORange(this.file,
                 new OI(this.file, rangeStart, 0),
                 new OI(this.file, lineNumber, line.length - 1));
               this.file.magicComments.push(new OMagicCommentDisable(
@@ -96,7 +96,7 @@ export class FileParser extends ParserBase {
 
     }
     for (const [rule, start] of disabledRangeStart) {
-      const disabledRange = new OIRange(this.file, new OI(this.file, start, 0), new OI(this.file, this.originalText.length - 1));
+      const disabledRange = new ORange(this.file, new OI(this.file, start, 0), new OI(this.file, this.originalText.length - 1));
       this.file.magicComments.push(new OMagicCommentDisable(
         this.file, MagicCommentType.Disable, disabledRange, rule));
     }
@@ -106,16 +106,16 @@ export class FileParser extends ParserBase {
     }
     let contextReferences = [];
     const defaultLibrary = [
-      new OLexerToken('std', new OIRange(this.file, 0, 0), TokenType.implicit, this.file),
-      new OLexerToken('work', new OIRange(this.file, 0, 0), TokenType.implicit, this.file),
+      new OLexerToken('std', new ORange(this.file, 0, 0), TokenType.implicit, this.file),
+      new OLexerToken('work', new ORange(this.file, 0, 0), TokenType.implicit, this.file),
     ];
     // store use clauses to be attached to the next design unit
     let useClausesPrepare: [OLexerToken, OLexerToken, OLexerToken][] = [];
     const getUseClauses = (parent: ObjectBase) => {
       return [
-        new OUseClause(parent, new OLibraryReference(parent, new OLexerToken('std', new OIRange(this.file, 0, 0), TokenType.implicit, this.file)),
-          new OReference(parent, new OLexerToken('standard', new OIRange(this.file, 0, 0), TokenType.implicit, this.file)),
-          new OLexerToken('all', new OIRange(this.file, 0, 0), TokenType.implicit, this.file)),
+        new OUseClause(parent, new OLibraryReference(parent, new OLexerToken('std', new ORange(this.file, 0, 0), TokenType.implicit, this.file)),
+          new OReference(parent, new OLexerToken('standard', new ORange(this.file, 0, 0), TokenType.implicit, this.file)),
+          new OLexerToken('all', new ORange(this.file, 0, 0), TokenType.implicit, this.file)),
         ...useClausesPrepare.map(([library, packageName, suffix]) => new OUseClause(parent, new OLibraryReference(parent, library), new OReference(parent, packageName), suffix))
       ];
     };

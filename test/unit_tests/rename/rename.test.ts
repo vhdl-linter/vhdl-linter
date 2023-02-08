@@ -2,7 +2,7 @@ import { afterAll, beforeAll, expect, test, jest } from '@jest/globals';
 import { pathToFileURL } from 'url';
 import { ErrorCodes, Position, Range, ResponseError } from 'vscode-languageserver';
 import { prepareRenameHandler, renameHandler } from '../../../lib/languageFeatures/rename';
-import { OIRange } from '../../../lib/parser/objects';
+import { ORange } from '../../../lib/parser/objects';
 import { ProjectParser } from '../../../lib/project-parser';
 import { defaultSettingsGetter } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdl-linter';
@@ -162,7 +162,7 @@ test.each([
           throw err;
         }
       }
-      expect(result).toBeInstanceOf(OIRange);
+      expect(result).toBeInstanceOf(ORange);
       expect(result.start.line).toBe(start.line);
       expect(result.start.character).toBe(start.character);
       expect(result.end.line).toBe(end.line);

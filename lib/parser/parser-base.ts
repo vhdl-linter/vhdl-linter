@@ -2,19 +2,19 @@ import { fileURLToPath } from 'url';
 import { OLexerToken, TokenType } from '../lexer';
 import { config } from './config';
 import { OIDiagnosticWithSolution } from './interfaces';
-import { OFile, OIRange, ParserError } from './objects';
+import { OFile, ORange, ParserError } from './objects';
 
 
 export class ParserPosition {
   public lexerTokens: OLexerToken[];
   public file: OFile;
   public num = 0;
-  public get i() {
+  public get pos() {
     const token = this.lexerTokens[this.num];
     if (!token) {
       throw new ParserError(`I out of range`, this.lexerTokens[this.lexerTokens.length - 1]!.range);
     }
-    return token.range.start.i;
+    return token.range.start;
   }
   public isLast() {
     return this.num === this.lexerTokens.length - 1;
@@ -32,7 +32,7 @@ export class ParserPosition {
       if (lastToken) {
         throw new ParserError(`EOF reached when getRangeToEndLine() called`, lastToken.range.copyExtendEndOfLine());
       } else {
-        throw new ParserError(`getRangeToEndLine called on empty file`, new OIRange(this.file, 0, 0));
+        throw new ParserError(`getRangeToEndLine called on empty file`, new ORange(this.file, 0, 0));
 
       }
     }
@@ -262,9 +262,6 @@ export class ParserBase {
 
   getLine() {
     return this.getToken().range.start.line;
-  }
-  getEndOfLineI() {
-    return this.state.pos.getRangeToEndLine().end.i;
   }
   getPosition() {
     const pos = this.getToken().range.start;

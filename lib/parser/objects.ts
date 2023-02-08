@@ -52,7 +52,7 @@ export class OI implements Position {
     return this.position.character;
   }
 
-  getRangeToEndLine(): OIRange {
+  getRangeToEndLine(): ORange {
     const start = this.i;
     const text = this.parent.rootFile.text;
     let end = text.length;
@@ -60,7 +60,7 @@ export class OI implements Position {
     if (match) {
       end = start + match.index;
     }
-    return new OIRange(this.parent, start, end);
+    return new ORange(this.parent, start, end);
 
   }
   private calcPosition(): Position {
@@ -71,90 +71,151 @@ export class OI implements Position {
   }
   private calcI() {
     if (typeof this.position === 'undefined') {
-      throw new Error('Something went wrong with OIRange');
+      throw new Error('Something went wrong with ORange');
     }
     const lines = (this.parent instanceof OFile ? this.parent : this.parent.rootFile).lines;
     this.i_ = lines.slice(0, this.position.line).join('\n').length + 1 + Math.min(this.position.character, lines[this.position.line]!.length);
   }
 }
-
-export class OIRange implements Range {
-
-  public readonly start: OI;
-  public readonly end: OI;
-  constructor(public parent: ObjectBase | OFile, start: number | OI, end: number | OI) {
-    if (start instanceof OI) {
-      this.start = start;
-    } else {
-      this.start = new OI(parent, start);
-    }
-    if (end instanceof OI) {
-      this.end = end;
-    } else {
-      this.end = new OI(parent, end);
-    }
-  }
-  getText() {
-   return  this.parent.rootFile.text.substring(this.start.i, this.end.i);
-  }
-  copyWithNewEnd(newEnd: OI | number | OIRange) {
-    if (newEnd instanceof OIRange) {
-      newEnd = newEnd.end;
-    }
-    return new OIRange(this.parent, this.start, newEnd);
-  }
-  copyWithNewStart(newStart: OI | number | OIRange) {
-    if (newStart instanceof OIRange) {
-      newStart = newStart.start;
-    }
-    return new OIRange(this.parent, newStart, this.end);
-  }
-
-  toJSON() {
-    return Range.create(this.start, this.end);
-  }
-  getLimitedRange(limit = 5, fromEnd = false) {
-    if (fromEnd) {
-      const newStart = this.end.line - this.start.line > limit ?
-        new OI(this.parent, this.end.line - limit, 0)
-        : this.start;
-      return new OIRange(this.parent, newStart, this.end);
-    } else {
-      const newEnd = this.end.line - this.start.line > limit ?
-        new OI(this.parent, this.start.line + limit, Number.POSITIVE_INFINITY)
-        : this.end;
-      return new OIRange(this.parent, this.start, newEnd);
-    }
-  }
-  copyExtendBeginningOfLine() {
-    const lines = (this.parent instanceof OFile ? this.parent : this.parent.rootFile).lines;
-    let startCol = 0;
-    const match = lines[this.start.line]?.match(/\S/);
-    if (match) {
-      startCol = match.index ?? 0;
-    }
-    const newStart = new OI(this.parent, this.start.line, startCol);
-
-    return new OIRange(this.parent, newStart, this.end);
+export class OPosition implements Position {
+  constructor(public parent: ObjectBase | OFile,
+    public readonly line: number,
+    public readonly character: number) {
 
   }
-  copyExtendEndOfLine(): OIRange {
-    const text = this.parent.rootFile.text;
-    const match = /\n/.exec(text.substr(this.start.i));
-    let end = text.length;
-    if (match) {
-      end = this.start.i + match.index;
-    }
-    return new OIRange(this.parent, this.start.i, end);
+  getRangeToEndLine(): ORange {
+    const range = new ORange(this.parent, this, this);
+    return range.copyExtendEndOfLine();
   }
 }
+export class ORange implements Range {
+  public readonly start: OPosition;
+  public readonly end: OPosition;
+  constructor(public parent: ObjectBase | OFile,
+    startLine: number | OPosition,
+    startCharacter: number | OPosition,
+    lengthOrEndLine?: number,
+    endCharacter?: number) {
+    if (startLine instanceof OPosition) {
+      if (startCharacter instanceof OPosition) {
+        this.start = startLine;
+        this.end = startCharacter;
+      } else {
+        throw new Error();
+      }
+    } else if (startCharacter instanceof OPosition) {
+      throw new Error();
+    } else if (lengthOrEndLine === undefined) {
+      throw new Error();
+    } else {
+      this.start = new OPosition(parent, startLine, startCharacter);
+      if (endCharacter === undefined) {
+        this.end = new OPosition(parent, startLine, startCharacter + lengthOrEndLine);
+      } else {
+        this.end = new OPosition(parent, lengthOrEndLine, endCharacter);
+      }
+
+    }
+  }
+  copyWithNewEnd(newEnd: OPosition | ORange) {
+    if (newEnd instanceof ORange) {
+      newEnd = newEnd.end;
+    }
+    return new ORange(this.parent, this.start, newEnd);
+  }
+  copyWithNewStart(newStart: OPosition | ORange) {
+    if (newStart instanceof ORange) {
+      newStart = newStart.start;
+    }
+    return new ORange(this.parent, newStart, this.end);
+  }
+  copyExtendEndOfLine(): ORange {
+    return this.copyWithNewEnd(new OPosition(this.parent, this.end.line, this.parent.rootFile.lines[this.end.line]?.length ?? 100));
+  }
+  get length() {
+    return {
+      lines: this.end.line - this.start.line,
+      characters:  this.end.character - this.start.character
+    };
+  }
+}
+// export class OIRange implements Range {
+
+//   public readonly start: OI;
+//   public readonly end: OI;
+//   constructor(public parent: ObjectBase | OFile, start: number | OI, end: number | OI) {
+//     if (start instanceof OI) {
+//       this.start = start;
+//     } else {
+//       this.start = new OI(parent, start);
+//     }
+//     if (end instanceof OI) {
+//       this.end = end;
+//     } else {
+//       this.end = new OI(parent, end);
+//     }
+//   }
+//   getText() {
+//     return this.parent.rootFile.text.substring(this.start.i, this.end.i);
+//   }
+//   copyWithNewEnd(newEnd: OI | number | ORange) {
+//     if (newEnd instanceof ORange) {
+//       newEnd = newEnd.end;
+//     }
+//     return new ORange(this.parent, this.start, newEnd);
+//   }
+//   copyWithNewStart(newStart: OI | number | ORange) {
+//     if (newStart instanceof ORange) {
+//       newStart = newStart.start;
+//     }
+//     return new ORange(this.parent, newStart, this.end);
+//   }
+
+//   toJSON() {
+//     return Range.create(this.start, this.end);
+//   }
+//   getLimitedRange(limit = 5, fromEnd = false) {
+//     if (fromEnd) {
+//       const newStart = this.end.line - this.start.line > limit ?
+//         new OI(this.parent, this.end.line - limit, 0)
+//         : this.start;
+//       return new ORange(this.parent, newStart, this.end);
+//     } else {
+//       const newEnd = this.end.line - this.start.line > limit ?
+//         new OI(this.parent, this.start.line + limit, Number.POSITIVE_INFINITY)
+//         : this.end;
+//       return new ORange(this.parent, this.start, newEnd);
+//     }
+//   }
+//   copyExtendBeginningOfLine() {
+//     const lines = (this.parent instanceof OFile ? this.parent : this.parent.rootFile).lines;
+//     let startCol = 0;
+//     const match = lines[this.start.line]?.match(/\S/);
+//     if (match) {
+//       startCol = match.index ?? 0;
+//     }
+//     const newStart = new OI(this.parent, this.start.line, startCol);
+
+//     return new ORange(this.parent, newStart, this.end);
+
+//   }
+//   copyExtendEndOfLine(): ORange {
+//     const text = this.parent.rootFile.text;
+//     const match = /\n/.exec(text.substr(this.start.i));
+//     let end = text.length;
+//     if (match) {
+//       end = this.start.i + match.index;
+//     }
+//     return new ORange(this.parent, this.start.i, end);
+//   }
+// }
 
 
 
 export class ObjectBase {
   lexerToken?: OLexerToken;
   readonly rootFile: OFile;
-  constructor(public parent: ObjectBase | OFile, public range: OIRange) {
+  constructor(public parent: ObjectBase | OFile, public range: ORange) {
     let maximumIterationCounter = 5000;
     let p = parent;
     while (!(p instanceof OFile)) {
@@ -198,7 +259,7 @@ export class ObjectBase {
 
 
 export abstract class OGeneric extends ObjectBase implements I.IHasDefinitions, I.IHasReferenceLinks {
-  parent: OEntity ;
+  parent: OEntity;
   definitions: (OGeneric | OPackage)[] = [];
   referenceLinks: OReference[] = [];
   aliasReferences: OAlias[] = [];
@@ -213,7 +274,7 @@ export class OGenericConstant extends OGeneric implements I.IVariableBase, I.IHa
 export class OReference extends ObjectBase implements I.IHasDefinitions, I.IHasReferenceToken {
   definitions: ObjectBase[] = [];
   lexerToken: undefined;
-  constructor(public parent: ObjectBase, public referenceToken: OLexerToken, range?: OIRange) {
+  constructor(public parent: ObjectBase, public referenceToken: OLexerToken, range?: ORange) {
     super(parent, range ?? referenceToken.range);
   }
 }
@@ -276,7 +337,7 @@ export class OPackage extends ObjectBase implements I.IHasSubprograms, I.IHasCom
   aliases: OAlias[] = [];
   libraries: OLibrary[] = [];
   generics: OGeneric[] = [];
-  genericRange?: OIRange;
+  genericRange?: ORange;
   lexerToken: OLexerToken;
   useClauses: OUseClause[] = [];
   packageDefinitions: OPackage[] = [];
@@ -297,7 +358,7 @@ export class OPackage extends ObjectBase implements I.IHasSubprograms, I.IHasCom
 
 export class OPackageBody extends ObjectBase implements I.IHasSubprograms, I.IHasConstants, I.IHasVariables, I.IHasTypes,
   I.IHasAliases, I.IHasFileVariables, I.IHasUseClauses, I.IHasContextReference, I.IHasLexerToken, I.IHasLibraries, I.IHasReferenceLinks, I.IHasAttributes, I.IMayHaveEndingLexerToken {
-    attributes: OAttribute[] = [];
+  attributes: OAttribute[] = [];
   referenceLinks: OReference[] = [];
   aliasReferences: OAlias[] = [];
   lexerToken: OLexerToken;
@@ -329,7 +390,7 @@ export class OLibrary extends ObjectBase implements I.IHasLexerToken, I.IHasRefe
 
 export class OContextReference extends ObjectBase implements I.IHasLibraryReference {
   public library: OLibraryReference;
-  constructor(public parent: OContext | ObjectBase | OFile, range: OIRange, public contextName: string) {
+  constructor(public parent: OContext | ObjectBase | OFile, range: ORange, public contextName: string) {
     super(parent, range);
   }
   definitions: ObjectBase[] = [];
@@ -369,7 +430,7 @@ export abstract class OStatementBody extends ObjectBase implements I.IHasSubprog
   components: OComponent[] = [];
   statements: OConcurrentStatements[] = [];
   correspondingEntity?: OEntity;
-  endOfDeclarativePart?: OI;
+  endOfDeclarativePart?: OPosition;
 
 
 }
@@ -385,7 +446,7 @@ export class OBlock extends OStatementBody implements I.IHasLabel {
   lexerToken: undefined;
   guardCondition?: OReference[];
 }
-export class OUnit extends ObjectBase implements I.IHasReferenceLinks, I.IHasLexerToken{
+export class OUnit extends ObjectBase implements I.IHasReferenceLinks, I.IHasLexerToken {
   constructor(parent: OType, public lexerToken: OLexerToken) {
     super(parent, lexerToken.range);
   }
@@ -466,7 +527,7 @@ export class OForGenerate extends OStatementBody implements I.IHasLabel {
   iterationRangeTokens: OLexerToken[];
   labelLinks: OLabelReference[] = [];
   constructor(public parent: OArchitecture,
-    range: OIRange,
+    range: ORange,
     public variableRange: OReference[],
   ) {
     super(parent, range);
@@ -489,7 +550,7 @@ export class OWhenGenerateClause extends OStatementBody implements I.IMayHaveLab
   public parent: OCaseGenerate;
 }
 export class OIfGenerate extends ObjectBase implements I.IHasLabel {
-  constructor(public parent: ObjectBase | OFile, public range: OIRange, public label: OLexerToken) {
+  constructor(public parent: ObjectBase | OFile, public range: ORange, public label: OLexerToken) {
     super(parent, range);
   }
   ifGenerateClauses: OIfGenerateClause[] = [];
@@ -526,7 +587,7 @@ export class OFileVariable extends ObjectBase implements I.IVariableBase {
   lexerToken: OLexerToken;
   openKind?: OReference[];
   logicalName?: OReference[];
-  constructor(parent: I.IHasFileVariables, range: OIRange) {
+  constructor(parent: I.IHasFileVariables, range: ORange) {
     super((parent as unknown) as ObjectBase, range);
   }
 }
@@ -537,7 +598,7 @@ export class OVariable extends ObjectBase implements I.IVariableBase {
   lexerToken: OLexerToken;
   aliasReferences: OAlias[] = [];
   shared = false;
-  constructor(parent: I.IHasVariables, range: OIRange) {
+  constructor(parent: I.IHasVariables, range: ORange) {
     super((parent as unknown) as ObjectBase, range);
   }
 }
@@ -548,7 +609,7 @@ export class OSignal extends ObjectBase implements I.IVariableBase {
   lexerToken: OLexerToken;
   aliasReferences: OAlias[] = [];
   registerProcess?: OProcess;
-  constructor(parent: (ObjectBase & I.IHasSignals), range: OIRange) {
+  constructor(parent: (ObjectBase & I.IHasSignals), range: ORange) {
     super((parent as unknown) as ObjectBase, range);
   }
 }
@@ -559,24 +620,24 @@ export class OConstant extends ObjectBase implements I.IVariableBase {
   lexerToken: OLexerToken;
   aliasReferences: OAlias[] = [];
 
-  constructor(parent: I.IHasConstants, range: OIRange) {
+  constructor(parent: I.IHasConstants, range: ORange) {
     super((parent as unknown) as ObjectBase, range);
   }
 }
 export class OAssociationList extends ObjectBase {
-  constructor(public parent: OInstantiation | OPackage | OPackageInstantiation, range: OIRange) {
+  constructor(public parent: OInstantiation | OPackage | OPackageInstantiation, range: ORange) {
     super(parent, range);
   }
   public children: OAssociation[] = [];
 
 }
 export class OGenericAssociationList extends OAssociationList {
-  constructor(public parent: OInstantiation | OPackage | OPackageInstantiation, range: OIRange) {
+  constructor(public parent: OInstantiation | OPackage | OPackageInstantiation, range: ORange) {
     super(parent, range);
   }
 }
 export class OPortAssociationList extends OAssociationList {
-  constructor(public parent: OInstantiation | OPackage | OPackageInstantiation, range: OIRange) {
+  constructor(public parent: OInstantiation | OPackage | OPackageInstantiation, range: ORange) {
     super(parent, range);
   }
 }
@@ -596,19 +657,19 @@ export class OInstantiation extends OReference implements I.IHasDefinitions, I.I
   labelLinks: OLabelReference[] = [];
 }
 export class OAssociation extends ObjectBase implements I.IHasDefinitions {
-  constructor(public parent: OAssociationList, range: OIRange) {
+  constructor(public parent: OAssociationList, range: ORange) {
     super(parent, range);
   }
   definitions: (OPort | OGeneric | OTypeMark)[] = [];
   formalPart: OFormalReference[] = [];
   actualIfInput: OReference[] = [];
   actualIfOutput: OReference[] = [];
-  actualIfInoutput: OReference[]= [];
+  actualIfInoutput: OReference[] = [];
 }
 export class OEntity extends ObjectBase implements I.IHasDefinitions, I.IHasSubprograms, I.IHasSignals, I.IHasConstants, I.IHasVariables,
   I.IHasTypes, I.IHasAliases, I.IHasFileVariables, I.IHasUseClauses, I.IHasContextReference, I.IHasLexerToken, I.IHasPackageInstantiations,
   I.IHasAttributes, I.IHasLibraries, I.IHasGenerics, I.IHasPorts, I.IHasReferenceLinks, I.IMayHaveEndingLexerToken {
-  constructor(public parent: OFile, range: OIRange, public targetLibrary?: string) {
+  constructor(public parent: OFile, range: ORange, public targetLibrary?: string) {
     super(parent, range);
   }
   referenceLinks: OReference[] = [];
@@ -622,9 +683,9 @@ export class OEntity extends ObjectBase implements I.IHasDefinitions, I.IHasSubp
   useClauses: OUseClause[] = [];
   packageDefinitions: OPackage[] = [];
   contextReferences: OContextReference[] = [];
-  portRange?: OIRange;
+  portRange?: ORange;
   ports: OPort[] = [];
-  genericRange?: OIRange;
+  genericRange?: ORange;
   generics: OGeneric[] = [];
   signals: OSignal[] = [];
   constants: OConstant[] = [];
@@ -638,7 +699,7 @@ export class OEntity extends ObjectBase implements I.IHasDefinitions, I.IHasSubp
 }
 export class OComponent extends ObjectBase implements I.IHasDefinitions, I.IHasSubprograms, I.IHasLexerToken,
   I.IHasPackageInstantiations, I.IHasPorts, I.IHasGenerics, I.IHasReferenceLinks {
-  constructor(parent: I.IHasComponents, range: OIRange) {
+  constructor(parent: I.IHasComponents, range: ORange) {
     super((parent as unknown) as ObjectBase, range);
   }
   referenceLinks: OReference[] = [];
@@ -646,8 +707,8 @@ export class OComponent extends ObjectBase implements I.IHasDefinitions, I.IHasS
   lexerToken: OLexerToken;
   subprograms: OSubprogram[] = [];
   packageInstantiations: OPackageInstantiation[] = [];
-  portRange?: OIRange;
-  genericRange?: OIRange;
+  portRange?: ORange;
+  genericRange?: ORange;
   ports: OPort[] = [];
   generics: OGeneric[] = [];
   definitions: OEntity[] = [];
@@ -655,7 +716,7 @@ export class OComponent extends ObjectBase implements I.IHasDefinitions, I.IHasS
 export class OPort extends ObjectBase implements I.IVariableBase, I.IHasDefinitions, I.IHasLexerToken {
   parent: OEntity | OSubprogram;
   direction: 'in' | 'out' | 'inout';
-  directionRange: OIRange;
+  directionRange: ORange;
   definitions: OPort[] = [];
   lexerToken: OLexerToken;
   referenceLinks: OReference[] = [];
@@ -679,7 +740,7 @@ export class OHasSequentialStatements extends ObjectBase implements I.IMayHaveLa
 }
 export class OElseClause extends OHasSequentialStatements {
 }
-export class OIfClause extends OHasSequentialStatements  {
+export class OIfClause extends OHasSequentialStatements {
   condition: OReference[] = [];
 }
 export class OCase extends ObjectBase implements I.IMayHaveLabel {
@@ -688,7 +749,7 @@ export class OCase extends ObjectBase implements I.IMayHaveLabel {
   label?: OLexerToken;
   labelLinks: OLabelReference[] = [];
 }
-export class OWhenClause extends OHasSequentialStatements  {
+export class OWhenClause extends OHasSequentialStatements {
   condition: OReference[] = [];
 }
 export class OProcess extends OHasSequentialStatements implements I.IHasSubprograms, I.IHasStatements, I.IHasConstants, I.IHasVariables,
@@ -708,7 +769,7 @@ export class OProcess extends OHasSequentialStatements implements I.IHasSubprogr
   constants: OConstant[] = [];
 }
 
-export class OLoop extends OHasSequentialStatements  {
+export class OLoop extends OHasSequentialStatements {
 }
 export class OForLoop extends OLoop implements I.IHasConstants {
   constants: OConstant[] = [];
@@ -728,7 +789,7 @@ export class OAssignment extends ObjectBase implements I.IMayHaveLabel {
 export class OLabelReference extends ObjectBase {
   definitions: ObjectBase[] = [];
   lexerToken: undefined;
-  constructor(public parent: ObjectBase, public referenceToken: OLexerToken, range?: OIRange) {
+  constructor(public parent: ObjectBase, public referenceToken: OLexerToken, range?: ORange) {
     super(parent, range ?? referenceToken.range);
   }
 }
@@ -749,7 +810,7 @@ export class OReturn extends ObjectBase implements I.IMayHaveLabel {
   label?: OLexerToken;
   labelLinks: OLabelReference[] = [];
 }
-export class OAssertion extends ObjectBase implements I.IMayHaveLabel{
+export class OAssertion extends ObjectBase implements I.IMayHaveLabel {
   references: OReference[] = [];
   label?: OLexerToken;
   labelLinks: OLabelReference[] = [];
@@ -799,7 +860,7 @@ export class OAttributeReference extends OReference {
   }
 }
 export class ParserError extends Error {
-  constructor(message: string, public range: OIRange, public solution?: { message: string, edits: TextEdit[] }) {
+  constructor(message: string, public range: Range, public solution?: { message: string, edits: TextEdit[] }) {
     super(message);
   }
 }
@@ -807,7 +868,7 @@ export enum MagicCommentType {
   Disable
 }
 abstract class OMagicComment extends ObjectBase {
-  constructor(public parent: OFile, public commentType: MagicCommentType, range: OIRange,
+  constructor(public parent: OFile, public commentType: MagicCommentType, range: ORange,
     public rule?: string) {
     super(parent, range);
   }
@@ -815,11 +876,11 @@ abstract class OMagicComment extends ObjectBase {
 export class OMagicCommentDisable extends OMagicComment {
   constructor(public parent: OFile,
     public commentType: MagicCommentType.Disable,
-    range: OIRange, public rule?: string) {
+    range: ORange, public rule?: string) {
     super(parent, commentType, range, rule);
   }
 }
-export class OSubprogram extends OHasSequentialStatements implements I.IHasReferenceLinks, I.IHasSubprograms,  I.IHasPorts,
+export class OSubprogram extends OHasSequentialStatements implements I.IHasReferenceLinks, I.IHasSubprograms, I.IHasPorts,
   I.IHasVariables, I.IHasTypes, I.IHasAliases, I.IHasFileVariables, I.IHasUseClauses, I.IHasLexerToken, I.IHasPackageInstantiations, I.IHasConstants, I.IHasAttributes, I.IMayHaveEndingLexerToken {
   hasBody = false;
   attributes: OAttribute[] = [];

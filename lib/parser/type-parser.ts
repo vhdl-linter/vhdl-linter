@@ -2,7 +2,7 @@ import { DiagnosticSeverity } from 'vscode-languageserver-types';
 import { OLexerToken } from '../lexer';
 import { DeclarativePartParser } from './declarative-part-parser';
 import { ExpressionParser } from './expression-parser';
-import { OArray, OEntity, OEnum, OEnumLiteral, OIRange, OPackage, OPackageBody, OPort, OProcess, ORecord, ORecordChild, OStatementBody, OSubprogram, OType, OUnit, ParserError } from './objects';
+import { OArray, OEntity, OEnum, OEnumLiteral, ORange, OPackage, OPackageBody, OPort, OProcess, ORecord, ORecordChild, OStatementBody, OSubprogram, OType, OUnit, ParserError } from './objects';
 import { ParserBase, ParserState } from './parser-base';
 
 
@@ -59,7 +59,7 @@ export class TypeParser extends ParserBase {
           enumLiteral.lexerToken = item;
           return enumLiteral;
         });
-        type.range = type.range.copyWithNewEnd(this.state.pos.i);
+        type.range = type.range.copyWithNewEnd(this.state.pos.pos);
         this.advanceWhitespace();
         this.expect(';');
       } else if (this.isUnits()) {
@@ -73,7 +73,7 @@ export class TypeParser extends ParserBase {
         }
         this.expect('end');
         this.expect('units');
-        type.range = type.range.copyWithNewEnd(this.state.pos.i);
+        type.range = type.range.copyWithNewEnd(this.state.pos.pos);
         this.expect(';');
       } else {
         const nextToken = this.consumeToken();
@@ -107,7 +107,7 @@ export class TypeParser extends ParserBase {
           }
           this.maybe('record');
           this.maybe(type.lexerToken.text);
-          type.range = type.range.copyWithNewEnd(this.state.pos.i);
+          type.range = type.range.copyWithNewEnd(this.state.pos.pos);
         } else if (nextToken.getLText() === 'array') {
           Object.setPrototypeOf(type, OArray.prototype);
           this.expect('(');
@@ -147,18 +147,18 @@ export class TypeParser extends ParserBase {
           if (!firstTypeToken || !lastTypeToken) {
             throw new ParserError("Invalid access type", nextToken.range.copyExtendEndOfLine());
           }
-          const deallocateProcedure = new OSubprogram(this.parent, new OIRange(this.parent, firstTypeToken.range.start.i, lastTypeToken.range.end.i));
+          const deallocateProcedure = new OSubprogram(this.parent, firstTypeToken.range.copyWithNewEnd(lastTypeToken.range));
           deallocateProcedure.lexerToken = new OLexerToken('deallocate', type.lexerToken.range, type.lexerToken.type, deallocateProcedure.rootFile);
           this.parent.subprograms.push(deallocateProcedure);
           const port = new OPort(deallocateProcedure, type.lexerToken.range);
           port.direction = 'inout';
           deallocateProcedure.ports = [port];
         }
-        type.range = type.range.copyWithNewEnd(this.state.pos.i);
+        type.range = type.range.copyWithNewEnd(this.state.pos.pos);
         this.advancePast(';');
       }
     } else {
-      type.range = type.range.copyWithNewEnd(this.state.pos.i);
+      type.range = type.range.copyWithNewEnd(this.state.pos.pos);
       this.advancePast(';');
     }
     return type;

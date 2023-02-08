@@ -2,7 +2,7 @@ import { OLexerToken } from '../lexer';
 import { AssignmentParser } from './assignment-parser';
 import { AssociationListParser } from './association-list-parser';
 import { ExpressionParser } from './expression-parser';
-import { OAssertion, OAssignment, ObjectBase, OCase, OConstant, OElseClause, OExit, OForLoop, OHasSequentialStatements, OIf, OIfClause, OInstantiation, OIRange, OLabelReference, OLibraryReference, OLoop, OReport, OReturn, OSequentialStatement, OWhenClause, OWhileLoop, ParserError } from './objects';
+import { OAssertion, OAssignment, ObjectBase, OCase, OConstant, OElseClause, OExit, OForLoop, OHasSequentialStatements, OIf, OIfClause, OInstantiation, ORange, OLabelReference, OLibraryReference, OLoop, OReport, OReturn, OSequentialStatement, OWhenClause, OWhileLoop, ParserError } from './objects';
 import { ParserBase, ParserState } from './parser-base';
 
 export class SequentialStatementParser extends ParserBase {
@@ -110,7 +110,7 @@ export class SequentialStatementParser extends ParserBase {
     if (this.getToken().getLText() === '(') {
       subprogramCall.portAssociationList = new AssociationListParser(this.state, subprogramCall).parse();
     }
-    subprogramCall.range = subprogramCall.range.copyWithNewEnd(this.state.pos.i);
+    subprogramCall.range = subprogramCall.range.copyWithNewEnd(this.state.pos.pos);
     this.expect(';');
     return subprogramCall;
   }
@@ -122,7 +122,7 @@ export class SequentialStatementParser extends ParserBase {
 
     assertion.references = [];
     let assertionTokens = this.advanceSemicolon();
-    assertion.range = assertion.range.copyWithNewEnd(this.state.pos.i);
+    assertion.range = assertion.range.copyWithNewEnd(this.state.pos.pos);
     const reportIndex = assertionTokens.findIndex(token => token.getLText() === 'report');
     if (reportIndex > -1) {
       assertion.references.push(...new ExpressionParser(this.state, assertion, assertionTokens.slice(0, reportIndex)).parse());
@@ -149,7 +149,7 @@ export class SequentialStatementParser extends ParserBase {
       report.references.push(...new ExpressionParser(this.state, report, tokens).parse());
 
     }
-    report.range = report.range.copyWithNewEnd(this.state.pos.i);
+    report.range = report.range.copyWithNewEnd(this.state.pos.pos);
     return report;
   }
 
@@ -170,7 +170,7 @@ export class SequentialStatementParser extends ParserBase {
         }
       }
     }
-    _return.range = _return.range.copyWithNewEnd(this.state.pos.i);
+    _return.range = _return.range.copyWithNewEnd(this.state.pos.pos);
     return _return;
   }
 
@@ -197,7 +197,7 @@ export class SequentialStatementParser extends ParserBase {
       assignment.labelLinks.push(...new ExpressionParser(this.state, assignment, rightHandSide).parse());
     }
 
-    assignment.range = assignment.range.copyWithNewEnd(this.state.pos.i);
+    assignment.range = assignment.range.copyWithNewEnd(this.state.pos.pos);
     this.expect(';');
     return assignment;
   }
@@ -274,7 +274,7 @@ export class SequentialStatementParser extends ParserBase {
     }
     if (this.getToken().getLText() === 'else') {
       this.expect('else');
-      if_.else = new OElseClause(if_, new OIRange(if_, this.state.pos.i, this.state.pos.i));
+      if_.else = new OElseClause(if_, new ORange(if_, this.state.pos.pos, this.state.pos.pos));
       if_.else.statements = this.parse(if_, ['end']);
       if_.else.range = if_.else.range.copyWithNewEnd(this.getToken(-1, true).range.end);
 

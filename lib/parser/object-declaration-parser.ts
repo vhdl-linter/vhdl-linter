@@ -66,7 +66,7 @@ export class ObjectDeclarationParser extends ParserBase {
           file.logicalName = new ExpressionParser(this.state, file, tokens).parse();
         }
         // TODO: Parse optional parts of file definition
-        file.range = file.range.copyWithNewEnd(this.state.pos.i);
+        file.range = file.range.copyWithNewEnd(this.state.pos.pos);
       }
     } else {
       // If multiple types have the same type reference (variable a,b : integer) only the last has the text.
@@ -74,7 +74,7 @@ export class ObjectDeclarationParser extends ParserBase {
         const { typeReads, defaultValueReads } = this.getType(signal, false);
         signal.typeReference = typeReads;
         signal.defaultValue = defaultValueReads;
-        signal.range = signal.range.copyWithNewEnd(this.state.pos.i);
+        signal.range = signal.range.copyWithNewEnd(this.state.pos.pos);
       }
 
     }

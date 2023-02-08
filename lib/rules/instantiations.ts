@@ -1,13 +1,13 @@
 import { findBestMatch } from "string-similarity";
 import { CodeAction, CodeActionKind, DiagnosticSeverity, Range, TextEdit } from "vscode-languageserver";
 import { implementsIHasLexerToken, IHasLexerToken, implementsIHasPorts, implementsIHasSubprograms, implementsIHasStatements } from "../parser/interfaces";
-import { OAliasWithSignature, OArchitecture, OAssociationList, ObjectBase, OCase, OComponent, OEntity, OFile, OGeneric, OHasSequentialStatements, OIf, OInstantiation, OIRange, OPort, OTypeMark } from "../parser/objects";
+import { OAliasWithSignature, OArchitecture, OAssociationList, ObjectBase, OCase, OComponent, OEntity, OFile, OGeneric, OHasSequentialStatements, OIf, OInstantiation, ORange, OPort, OTypeMark } from "../parser/objects";
 import { IRule, RuleBase } from "./rules-base";
 
 export class RInstantiation extends RuleBase implements IRule {
   public name = 'instantiation';
   file: OFile;
-  checkAssociations(availableInterfaceElements: (OPort | OGeneric | OTypeMark)[][], associationList: OAssociationList | undefined, typeName: string, range: OIRange, kind: 'port' | 'generic') {
+  checkAssociations(availableInterfaceElements: (OPort | OGeneric | OTypeMark)[][], associationList: OAssociationList | undefined, typeName: string, range: ORange, kind: 'port' | 'generic') {
     const availableInterfaceElementsFlat = availableInterfaceElements.flat().filter((v, i, self) => self.findIndex(o => o.lexerTokenEquals(v)) === i);
     const foundElements: (OPort | OGeneric | OTypeMark)[] = [];
     let elementsWithoutFormal = false;

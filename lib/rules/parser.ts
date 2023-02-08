@@ -11,7 +11,7 @@ export class RParser extends RuleBase implements IRule {
     // Uniquify the messages (for multiplied messages for different exp parser runs in association list)
     const map = new Map<string, OIDiagnosticWithSolution>();
     for (const message of this.file.parserMessages) {
-      map.set(`${message.range.start.i}-${message.range.end.i}-${message.solution?.message ?? ''}-${message.message}`, message);
+      map.set(`${message.range.start.line}-${message.range.start.character}-${message.range.end.line}-${message.range.end.character}-${message.solution?.message ?? ''}-${message.message}`, message);
     }
     for (const message of map.values()) {
       let code;

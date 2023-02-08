@@ -52,7 +52,7 @@ test.each([
     .map(actions => {
       return Object.values(actions.edit?.changes ?? {});
     }).flat(2)
-    .map(message => ({ // Remove Parent from OIRanges so jest does not explode
+    .map(message => ({ // Remove Parent from ORanges so jest does not explode
       ...message,
       range: {
         start: Position.create(message.range.start.line, message.range.start.character),

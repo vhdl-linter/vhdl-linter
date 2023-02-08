@@ -1,5 +1,5 @@
 import { ContextReferenceParser } from './context-reference-parser';
-import { OContext, OFile, OIRange, OLibrary } from './objects';
+import { OContext, OFile, ORange, OLibrary } from './objects';
 import { ParserBase, ParserState } from './parser-base';
 import { UseClauseParser } from './use-clause-parser';
 
@@ -10,7 +10,7 @@ export class ContextParser extends ParserBase {
   }
 
   parse() {
-    const context = new OContext(this.parent, new OIRange(this.parent, this.state.pos.i, this.state.pos.i));
+    const context = new OContext(this.parent, new ORange(this.parent, this.state.pos.pos, this.state.pos.pos));
     context.lexerToken = this.consumeToken();
     this.expect('is');
     while (this.state.pos.isValid()) {
@@ -18,7 +18,7 @@ export class ContextParser extends ParserBase {
       if (nextToken.getLText() === 'end') {
         this.maybe('context');
         this.maybe(context.lexerToken.text);
-        context.range = context.range.copyWithNewEnd(this.state.pos.i);
+        context.range = context.range.copyWithNewEnd(this.state.pos.pos);
         this.expect(';');
         break;
       } else if (nextToken.getLText() === 'context') {

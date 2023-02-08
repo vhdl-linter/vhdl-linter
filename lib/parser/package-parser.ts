@@ -1,6 +1,6 @@
 import { DeclarativePartParser } from './declarative-part-parser';
 import { InterfaceListParser } from './interface-list-parser';
-import { OFile, OIRange, OPackage, OPackageBody } from './objects';
+import { OFile, ORange, OPackage, OPackageBody } from './objects';
 import { ParserBase } from './parser-base';
 
 export class PackageParser extends ParserBase {
@@ -49,10 +49,10 @@ export class PackageParser extends ParserBase {
       // }
       if (nextToken.getLText() === 'generic') {
         this.consumeToken();
-        const savedI = this.state.pos.i;
+        const savedI = this.state.pos.pos;
         const interfaceListParser = new InterfaceListParser(this.state, pkg);
         interfaceListParser.parse(true);
-        pkg.genericRange = new OIRange(pkg, savedI, this.state.pos.i);
+        pkg.genericRange = new ORange(pkg, savedI, this.state.pos.pos);
         this.expect(';');
       }
       const declarativePartParser = new DeclarativePartParser(this.state, pkg);

@@ -13,7 +13,7 @@ export async function handleReferences (params: ReferenceParams): Promise<Locati
   }
   const startI = linter.getIFromPosition(params.position);
   const candidates = linter.file.objectList.filter(object => object.range.start.i <= startI && startI <= object.range.end.i);
-  candidates.sort((a, b) => (a.range.end.i - a.range.start.i) - (b.range.end.i - b.range.start.i));
+  candidates.sort((a, b) => a.range.length.lines === b.range.length.line ? a.range.length.characters - b.range.length.characters : a.range.length.lines - b.range.length.lines);
   const candidate = candidates[0];
   if (!candidate) {
     return [];

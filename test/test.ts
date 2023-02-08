@@ -2,7 +2,7 @@ import { lstatSync, readdirSync } from 'fs';
 import { argv, cwd } from 'process';
 import { pathToFileURL } from 'url';
 import { DiagnosticSeverity } from 'vscode-languageserver';
-import { OIRange } from '../lib/parser/objects';
+import { ORange } from '../lib/parser/objects';
 import { joinURL, ProjectParser } from '../lib/project-parser';
 import { defaultSettingsGetter, defaultSettingsWithOverwrite } from '../lib/settings';
 import { OIDiagnostic, VhdlLinter } from '../lib/vhdl-linter';
@@ -15,7 +15,7 @@ interface MessageWrapper {
   messages: (OIDiagnostic | { message: string })[]
 }
 function isOIDiagnostic(obj: unknown): obj is OIDiagnostic {
-  if ((obj as OIDiagnostic).range instanceof OIRange) {
+  if ((obj as OIDiagnostic).range instanceof ORange) {
     return true;
   }
   return false;

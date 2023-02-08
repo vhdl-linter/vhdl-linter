@@ -1,4 +1,4 @@
-import { OComponent, OEntity, OGeneric, OIRange, OPackage, OPort, OSubprogram, OGenericConstant, ParserError } from './objects';
+import { OComponent, OEntity, OGeneric, ORange, OPackage, OPort, OSubprogram, OGenericConstant, ParserError } from './objects';
 import { ParserBase, ParserState } from './parser-base';
 import { SubprogramParser } from './subprogram-parser';
 import { InterfacePackageParser } from './interface-package-parser';
@@ -33,7 +33,7 @@ export class InterfaceListParser extends ParserBase {
     }
     const multiInterface = [];
     while (this.state.pos.isValid()) {
-      this.debug(`parse i ${this.state.pos.i}`);
+      this.debug(`parse i ${this.state.pos.pos}`);
 
       this.advanceWhitespace();
       if (this.getToken().text === ')') {
@@ -90,13 +90,14 @@ export class InterfaceListParser extends ParserBase {
           this.expect(':');
           let directionString;
           if (port instanceof OPort) {
+            const directionToken = this.getToken();
             directionString = this.getToken().getLText();
             if (directionString !== 'in' && directionString !== 'out' && directionString !== 'inout') {
               port.direction = 'in';
-              port.directionRange = new OIRange(port, this.state.pos.i, this.state.pos.i);
+              port.directionRange = directionToken.range;
             } else {
               port.direction = directionString;
-              port.directionRange = new OIRange(port, this.state.pos.i, this.state.pos.i + directionString.length);
+              port.directionRange = directionToken.range;
               this.consumeToken(); // consume direction
             }
           }
@@ -168,10 +169,9 @@ export class InterfaceListParser extends ParserBase {
     this.reverseWhitespace();
     this.advanceWhitespace();
     if (this.getToken().text === ';') {
-      const startI = this.state.pos.i;
-      this.consumeToken();
+      const token = this.consumeToken();
       if (this.getToken().text === ')') {
-        const range = new OIRange(parent, startI, startI + 1);
+        const range = token.range;
         this.state.messages.push({
           message: `Unexpected ';' at end of interface list`,
           range,
