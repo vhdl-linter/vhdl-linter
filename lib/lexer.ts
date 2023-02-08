@@ -73,12 +73,16 @@ export class Lexer {
     },
 
   ];
+  tokens: OLexerToken[];
+  // A tokens array as a target can be supplied.
   constructor(
     public text: string,
-    public file: OFile
-  ) { }
+    public file: OFile,
+    tokens: [] | undefined = []
+  ) {
+    this.tokens = tokens;
+  }
   lex(file: OFile) {
-    const tokens: OLexerToken[] = [];
     let foundToken = true;
     let offset = 0;
     let lastOffset = -1;
@@ -98,7 +102,7 @@ export class Lexer {
         const token = new OLexerToken(match[0],
           new OIRange(this.file, offset, offset + match[0].length), TokenType.keyword, file);
 
-        tokens.push(token);
+        this.tokens.push(token);
         text = text.substring(match[0].length);
         offset += match[0].length;
         foundToken = true;
@@ -112,7 +116,7 @@ export class Lexer {
           const token = new OLexerToken(match[2] ? match[2] : firstMatch,
             new OIRange(this.file, offset, offset + match[0].length), tokenType.tokenType, file);
 
-          tokens.push(token);
+          this.tokens.push(token);
           text = text.substring(firstMatch.length);
           offset += firstMatch.length;
           foundToken = true;
@@ -125,6 +129,6 @@ export class Lexer {
       }
     }
     // console.log(tokens);
-    return tokens;
+    return this.tokens;
   }
 }
