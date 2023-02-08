@@ -17,7 +17,7 @@ package body subprogram_begin_missing is
     ) is
 
     -- begin
-    report integer'image(5);
+    report integer'image(5); -- vhdl-linter-disable-line parser
   end procedure RemoveExclude;
 
 end package body;
