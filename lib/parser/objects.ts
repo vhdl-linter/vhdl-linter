@@ -798,8 +798,16 @@ export class OAttributeReference extends OReference {
     super(parent, referenceToken);
   }
 }
+export enum ParserErrorIdentifier {
+  declarativePartIncorrectEnd
+}
 export class ParserError extends Error {
-  constructor(message: string, public range: OIRange, public solution?: { message: string, edits: TextEdit[] }) {
+  constructor(message: string,
+    public range: OIRange,
+    public solution?: { message: string, edits: TextEdit[],
+    },
+    public parserErrorIdentifier?: ParserErrorIdentifier
+    ) {
     super(message);
   }
 }

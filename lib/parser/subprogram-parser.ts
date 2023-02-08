@@ -1,7 +1,7 @@
 import { DeclarativePartParser } from './declarative-part-parser';
 import { ExpressionParser } from './expression-parser';
 import { InterfaceListParser } from './interface-list-parser';
-import { ObjectBase, OSubprogram, ParserError } from './objects';
+import { ObjectBase, OSubprogram, ParserError, ParserErrorIdentifier } from './objects';
 import { ParserBase, ParserState } from './parser-base';
 import { SequentialStatementParser } from './sequential-statement-parser';
 
@@ -39,8 +39,16 @@ export class SubprogramParser extends ParserBase {
     if (this.getToken().getLText() === 'is') {
       subprogram.hasBody = true;
       this.expect('is');
-      new DeclarativePartParser(this.state, subprogram).parse();
-      this.expect('begin');
+      try {
+        new DeclarativePartParser(this.state, subprogram).parse();
+        this.expect('begin');
+      } catch(err) {
+        if (err instanceof ParserError && err.parserErrorIdentifier === ParserErrorIdentifier.declarativePartIncorrectEnd) {
+          this.state.messages.push(err);
+        } else {
+          throw err;
+        }
+      }
       subprogram.statements = new SequentialStatementParser(this.state).parse(subprogram, ['end']);
       this.expect('end');
       this.maybe(isFunction ? 'function' : 'procedure');
