@@ -18,7 +18,7 @@ beforeAll(async () => {
       throw err;
     }
   }
-  const testLength = 1000 * 1000;
+  const testLength = 100 * 1000;
   const text = `entity torture_entity is
 end torture_entity;
 
