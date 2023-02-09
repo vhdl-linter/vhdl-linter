@@ -1,6 +1,5 @@
 
 import { expect, test } from '@jest/globals';
-import { readdirSync } from 'fs';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
 import { ProjectParser } from '../../../lib/project-parser';
