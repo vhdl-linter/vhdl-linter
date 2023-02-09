@@ -2,6 +2,7 @@ import { existsSync } from 'fs';
 import { pathToFileURL } from 'url';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import {
+  CancellationToken,
   CodeAction, createConnection, DidChangeConfigurationNotification, ErrorCodes, InitializeParams, LSPErrorCodes, Position, ProposedFeatures, ResponseError, TextDocuments, TextDocumentSyncKind
 } from 'vscode-languageserver/node';
 import { getCompletions } from './languageFeatures/completion';
@@ -245,19 +246,20 @@ async function validateTextDocument(textDocument: TextDocument, cancelationObjec
   }
   return vhdlLinter;
 }
-async function getLinter(uri: string) {
+async function getLinter(uri: string, token?: CancellationToken) {
   await initialization;
   uri = normalizeUri(uri);
 
   const linter = linters.get(uri);
-  // if (lintersValid.get(uri) !== true) {
-  //   throw new ResponseError(ErrorCodes.InvalidRequest, 'Document not valid. Renaming only supported for parsable documents.', 'Document not valid. Renaming only supported for parsable documents.');
-  // }
   if (typeof linter === 'undefined') {
     throw new ResponseError(ErrorCodes.InvalidRequest, 'Parser not ready', 'Parser not ready');
   }
   if (typeof linter.file === 'undefined') {
     throw new ResponseError(ErrorCodes.InvalidRequest, 'Parser not ready', 'Parser not ready');
+  }
+  if (token?.isCancellationRequested) {
+    console.log('hover canceled');
+    throw new ResponseError(LSPErrorCodes.RequestCancelled, 'canceled');
   }
   return linter;
 }
@@ -265,8 +267,8 @@ connection.onDidChangeWatchedFiles(() => {
   // Monitored files have change in VS Code
   connection.console.log('We received an file change event');
 });
-connection.onCodeAction(async (params): Promise<CodeAction[]> => {
-  const linter = await getLinter(params.textDocument.uri);
+connection.onCodeAction(async (params, token): Promise<CodeAction[]> => {
+  const linter = await getLinter(params.textDocument.uri, token);
   // linter.codeActionEvent.emit()
   const actions = [];
   for (const diagnostic of params.context.diagnostics) {
@@ -288,8 +290,8 @@ connection.onCodeAction(async (params): Promise<CodeAction[]> => {
   }
   return actions;
 });
-connection.onDocumentSymbol(async (params) => {
-  const linter = await getLinter(params.textDocument.uri);
+connection.onDocumentSymbol(async (params, token) => {
+  const linter = await getLinter(params.textDocument.uri, token);
 
   return DocumentSymbols.get(linter);
 });
@@ -300,20 +302,15 @@ interface IFindDefinitionParams {
   position: Position;
 }
 
-const findBestDefinition = async (params: IFindDefinitionParams) => {
-  const linter = await getLinter(params.textDocument.uri);
+const findBestDefinition = async (params: IFindDefinitionParams, token: CancellationToken) => {
+  const linter = await getLinter(params.textDocument.uri, token);
 
   const definitions = findDefinitionLinks(linter, params.position);
   return definitions[0] ?? null;
 };
 
 connection.onHover(async (params, token) => {
-  await initialization;
-  if (token.isCancellationRequested) {
-    console.log('hover canceled');
-    return new ResponseError(LSPErrorCodes.RequestCancelled, 'canceled');
-  }
-  const definition = await findBestDefinition(params);
+  const definition = await findBestDefinition(params, token);
   if (definition === null) {
     return null;
   }
@@ -331,8 +328,8 @@ connection.onHover(async (params, token) => {
     }
   };
 });
-connection.onDefinition(async params => {
-  const linter = await getLinter(params.textDocument.uri);
+connection.onDefinition(async (params, token) => {
+  const linter = await getLinter(params.textDocument.uri, token);
 
   const definitions = findDefinitionLinks(linter, params.position);
   if (definitions.length === 0) {
@@ -340,48 +337,44 @@ connection.onDefinition(async params => {
   }
   return definitions;
 });
-connection.onCompletion(async (params, cancelationToken) => {
-  const linter = await getLinter(params.textDocument.uri);
-
-  if (cancelationToken.isCancellationRequested) {
-    return [];
-  }
+connection.onCompletion(async (params, token) => {
+  const linter = await getLinter(params.textDocument.uri, token);
   return getCompletions(linter, params.position);
 });
-connection.onReferences(async params => {
-  const linter = await getLinter(params.textDocument.uri);
+connection.onReferences(async (params, token) => {
+  const linter = await getLinter(params.textDocument.uri, token);
 
   return findReferencesHandler(linter, params.position);
 
 });
 
-connection.onPrepareRename(async params => {
-  const linter = await getLinter(params.textDocument.uri);
+connection.onPrepareRename(async (params, token) => {
+  const linter = await getLinter(params.textDocument.uri, token);
 
   return prepareRenameHandler(linter, params.position);
 });
-connection.onRenameRequest(async params => {
-  const linter = await getLinter(params.textDocument.uri);
+connection.onRenameRequest(async (params, token) => {
+  const linter = await getLinter(params.textDocument.uri, token);
 
   return renameHandler(linter, params.position, params.newName);
 });
 connection.onDocumentFormatting(handleDocumentFormatting);
 connection.onFoldingRanges(foldingHandler);
-connection.onDocumentHighlight(async (params) => {
-  const linter = await getLinter(params.textDocument.uri);
+connection.onDocumentHighlight(async (params, token) => {
+  const linter = await getLinter(params.textDocument.uri, token);
 
   return documentHighlightHandler(linter, params);
 
 });
 connection.onWorkspaceSymbol(params => handleOnWorkspaceSymbol(params, projectParser));
-connection.onSignatureHelp(async params => {
-  const linter = await getLinter(params.textDocument.uri);
+connection.onSignatureHelp(async (params, token) => {
+  const linter = await getLinter(params.textDocument.uri, token);
   return signatureHelp(linter, params.position);
 });
 /* eslint-disable */
 // TODO: Either properly fix vhdl-linter/listing and add testing or remove code.
-connection.onRequest('vhdl-linter/listing', async (params: any) => {
-  const linter = await getLinter(params.textDocument.uri);
+connection.onRequest('vhdl-linter/listing', async (params: any, token) => {
+  const linter = await getLinter(params.textDocument.uri, token);
 
   const files: OFile[] = [];
   const unresolved: string[] = [];

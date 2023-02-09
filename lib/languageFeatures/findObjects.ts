@@ -1,12 +1,11 @@
 import { Position } from "vscode-languageserver";
 import { OLexerToken } from "../lexer";
 import { implementsIHasEndingLexerToken, implementsIHasLexerToken } from "../parser/interfaces";
-import { OArchitecture, OAssociation, ObjectBase, OInstantiation, OReference, OUseClause } from "../parser/objects";
+import { OArchitecture, OAssociation, ObjectBase, OComponent, OInstantiation, OReference, OUseClause } from "../parser/objects";
 import { VhdlLinter } from "../vhdl-linter";
 import { SetAdd } from "./findReferencesHandler";
 
-export function findObjectByDesignator(linter: VhdlLinter, position: Position): ObjectBase[] {
-  // TODO: also find label designators
+export function findObjectFromPosition(linter: VhdlLinter, position: Position): ObjectBase[] {
   const startI = linter.getIFromPosition(position);
   let candidates = (linter.file.objectList.filter(object => object.range.start.i <= startI + 1 && startI <= object.range.end.i) ?? [])
     // If the association has no formal part its range is identical to the included reference.
@@ -22,7 +21,8 @@ export function findObjectByDesignator(linter: VhdlLinter, position: Position): 
   return candidates;
 }
 
-export function findObjectFromToken(linter: VhdlLinter, token: OLexerToken): ObjectBase[] {
+export function findObjectByDesignator(linter: VhdlLinter, token: OLexerToken): ObjectBase[] {
+  // TODO: also find label designators
   const foundObjects = new SetAdd<ObjectBase>();
   // find all possible definitions for the lexerToken
   for (const obj of linter.file.objectList) {
@@ -42,6 +42,9 @@ export function findObjectFromToken(linter: VhdlLinter, token: OLexerToken): Obj
       foundObjects.add(obj);
     }
     if (implementsIHasEndingLexerToken(obj) && obj.endingLexerToken === token) {
+      foundObjects.add(obj);
+    }
+    if (obj instanceof OComponent && obj.endingReferenceToken === token) {
       foundObjects.add(obj);
     }
 

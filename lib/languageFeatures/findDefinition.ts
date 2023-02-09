@@ -2,7 +2,7 @@ import { DefinitionLink, Position } from "vscode-languageserver";
 import { implementsIHasDefinitions, implementsIHasLexerToken } from "../parser/interfaces";
 import { OArchitecture, ObjectBase, OPackage, OPackageBody, ORecordChild, OSubprogram } from "../parser/objects";
 import { VhdlLinter } from "../vhdl-linter";
-import { findObjectFromToken } from "./findObjects";
+import { findObjectByDesignator } from "./findObjects";
 import { getTokenFromPosition, SetAdd } from "./findReferencesHandler";
 
 export function findDefinitions(linter: VhdlLinter, position: Position): ObjectBase[] {
@@ -10,7 +10,7 @@ export function findDefinitions(linter: VhdlLinter, position: Position): ObjectB
   if (!token) {
     return [];
   }
-  const candidates = findObjectFromToken(linter, token);
+  const candidates = findObjectByDesignator(linter, token);
   // Get unique definitions
   const definitions = new SetAdd<ObjectBase>();
   // find all possible definitions for the lexerToken
