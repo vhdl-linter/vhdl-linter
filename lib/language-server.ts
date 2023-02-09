@@ -8,7 +8,7 @@ import { getCompletions } from './languageFeatures/completion';
 import { handleDocumentFormatting } from './languageFeatures/documentFormatting';
 import { documentHighlightHandler } from './languageFeatures/documentHighlightHandler';
 import { DocumentSymbols } from './languageFeatures/documentSymbol';
-import { findDefinitionLinks, findDefinitions } from './languageFeatures/findDefinition';
+import { findDefinitionLinks } from './languageFeatures/findDefinition';
 import { findReferencesHandler } from './languageFeatures/findReferencesHandler';
 import { foldingHandler } from './languageFeatures/folding';
 import { prepareRenameHandler, renameHandler } from './languageFeatures/rename';
@@ -345,7 +345,12 @@ connection.onCompletion(async (params, cancelationToken) => {
   }
   return getCompletions(linter, params.position);
 });
-connection.onReferences(async params => {
+connection.onReferences(async (params, token) => {
+  await initialization;
+  if (token.isCancellationRequested) {
+    console.log('onDefinition canceled');
+    return new ResponseError(LSPErrorCodes.RequestCancelled, 'canceled');
+  }
   const linter = await getLinter(params.textDocument.uri);
 
   return findReferencesHandler(linter, params.position);

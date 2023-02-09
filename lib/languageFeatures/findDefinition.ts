@@ -24,7 +24,7 @@ export function findDefinitions(linter: VhdlLinter, position: Position): ObjectB
       definitions.add(candidate);
     }
   }
-  // find all implementations/definitions of subprograms
+  // find all definitions of subprograms
   for (const definition of definitions) {
     if (definition instanceof OSubprogram) {
       definitions.add(...definition.parent.subprograms

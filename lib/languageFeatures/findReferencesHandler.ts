@@ -1,7 +1,8 @@
 import { ErrorCodes, Location, Position, ResponseError } from 'vscode-languageserver';
+import { Elaborate } from '../elaborate/elaborate';
 import { OLexerToken } from '../lexer';
-import { implementsIHasEndingLexerToken, implementsIHasLexerToken, implementsIHasReference } from '../parser/interfaces';
-import { OArchitecture, ObjectBase, OEntity, OGeneric, OInstantiation, OPackage, OPackageBody, OPort, OReference, OSubprogram, OUseClause } from '../parser/objects';
+import { implementsIHasEndingLexerToken, implementsIHasReference } from '../parser/interfaces';
+import { OArchitecture, ObjectBase, OEntity, OGeneric, OInstantiation, OPackage, OPackageBody, OPort, OSubprogram, OVariable } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
 import { findDefinitions } from './findDefinition';
 export function getTokenFromPosition(linter: VhdlLinter, position: Position): OLexerToken | undefined {
@@ -13,13 +14,29 @@ export function getTokenFromPosition(linter: VhdlLinter, position: Position): OL
   return candidateTokens[0];
 }
 export class SetAdd<T> extends Set<T> {
-  add(... values: T[]) {
+  add(...values: T[]) {
     for (const value of values) {
       super.add(value);
     }
     return this;
   }
 }
+
+
+function isPrivate(obj: ObjectBase) {
+  const rootObj = obj.getRootElement();
+  // everything in architectures and package bodies is private
+  if (rootObj instanceof OArchitecture || rootObj instanceof OPackageBody) {
+    return true;
+  }
+  // variables in subprograms are private
+  if (obj instanceof OVariable && obj.parent instanceof OSubprogram) {
+    return true;
+  }
+  // default to not private
+  return false;
+}
+
 export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position: Position) {
   const linter = oldLinter.projectParser.cachedFiles.find(cachedFile => cachedFile.uri.toString() === oldLinter.file.uri.toString())?.linter;
   if (!linter) {
@@ -30,8 +47,13 @@ export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position
     // no definitions for something that isn't a token
     return [];
   }
-  await linter.projectParser.elaborateAll(token.getLText());
-  const definitions = findDefinitions(linter, position);
+  await Elaborate.elaborate(linter);
+  let definitions = findDefinitions(linter, position);
+  // if no definitions found or at least one definition is in another file or at least one definition is not private -> elaborate the project and try again
+  if (definitions.length === 0 || definitions.some(def => def.rootFile.uri !== linter.file.uri) || definitions.some(def => !isPrivate(def))) {
+    await linter.projectParser.elaborateAll(token.getLText());
+    definitions = findDefinitions(linter, position);
+  }
   // find all tokens that are references to the definition
   const referenceTokens: OLexerToken[] = [];
   for (const definition of definitions) {
