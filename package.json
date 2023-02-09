@@ -2,7 +2,7 @@
 	"name": "vhdl-linter",
 	"publisher": "g0t00",
 	"main": "./dist/lib/vscode.js",
-	"version": "1.5.3",
+	"version": "1.5.4",
 	"description": "A typescript based linter for vhdl",
 	"keywords": [],
 	"repository": "https://github.com/vhdl-linter/vhdl-linter",
@@ -58,11 +58,6 @@
 				"when": "editorLangId == vhdl"
 			},
 			{
-				"key": "ctrl+alt+t",
-				"command": "vhdl-linter:copy-tree",
-				"when": "editorLangId == vhdl"
-			},
-			{
 				"key": "ctrl+alt+l",
 				"command": "vhdl-linter:copy-file-listing",
 				"when": "editorLangId == vhdl"
@@ -83,10 +78,6 @@
 					"when": "editorLangId == vhdl"
 				},
 				{
-					"command": "vhdl-linter:copy-tree",
-					"when": "editorLangId == vhdl"
-				},
-				{
 					"command": "vhdl-linter:copy-file-listing",
 					"when": "editorLangId == vhdl"
 				}
@@ -104,10 +95,6 @@
 			{
 				"command": "vhdl-linter:copy-as-signals",
 				"title": "Copy as Signals"
-			},
-			{
-				"command": "vhdl-linter:copy-tree",
-				"title": "Copy Vhdl Tree"
 			},
 			{
 				"command": "vhdl-linter:copy-file-listing",

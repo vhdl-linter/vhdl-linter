@@ -1,10 +1,10 @@
 import { expect, test } from '@jest/globals';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
-import { ProjectParser } from '../../lib/project-parser';
-import { defaultSettingsGetter } from '../../lib/settings';
-import { VhdlLinter } from '../../lib/vhdl-linter';
-import { readFileSyncNorm } from "../readFileSyncNorm";
+import { ProjectParser } from '../../../lib/project-parser';
+import { defaultSettingsGetter } from '../../../lib/settings';
+import { VhdlLinter } from '../../../lib/vhdl-linter';
+import { readFileSyncNorm } from "../../readFileSyncNorm";
 
 test('E2E test of linter with instantiation', async () => {
   const filename = join(__dirname, 'test_inst.vhd');
