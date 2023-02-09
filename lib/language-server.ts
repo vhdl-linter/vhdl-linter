@@ -121,7 +121,13 @@ connection.onInitialize((params: InitializeParams) => {
 });
 export const initialization = new Promise<void>(resolve => {
   connection.onInitialized(() => {
+
     const handler = async () => {
+      const progress = await connection.window.createWorkDoneProgress();
+      progress.begin(
+        'VHDL-linter initializing...',
+        0
+      );
       if (hasConfigurationCapability) {
         // Register for all configuration changes.
         await connection.client.register(DidChangeConfigurationNotification.type, undefined);
@@ -136,7 +142,8 @@ export const initialization = new Promise<void>(resolve => {
           const folders = (workspaceFolders ?? []).map(workspaceFolder => new URL(workspaceFolder.uri));
           folders.push(...configuration.paths.additional.map(path => pathToFileURL(path))
             .filter(url => existsSync(url)));
-          projectParser = await ProjectParser.create(folders, configuration.paths.ignoreRegex, getDocumentSettings);
+
+          projectParser = await ProjectParser.create(folders, configuration.paths.ignoreRegex, getDocumentSettings, false, progress);
         };
         await parseWorkspaces();
         connection.workspace.onDidChangeWorkspaceFolders(event => {
@@ -149,7 +156,7 @@ export const initialization = new Promise<void>(resolve => {
           folders.push(new URL(rootUri));
         }
         // console.log('folders', folders);
-        projectParser = await ProjectParser.create(folders, configuration.paths.ignoreRegex, getDocumentSettings);
+        projectParser = await ProjectParser.create(folders, configuration.paths.ignoreRegex, getDocumentSettings, false, progress);
       }
       for (const textDocument of documents.all()) {
         await validateTextDocument(textDocument);
@@ -192,6 +199,7 @@ export const initialization = new Promise<void>(resolve => {
         // console.log(`${change.document.uri}: ${lintingTime}ms`);
 
       });
+      progress.done();
       resolve();
     };
     handler().catch((err: Error) => {
