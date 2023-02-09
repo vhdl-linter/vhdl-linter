@@ -1,6 +1,6 @@
 import { ComponentParser } from './component-parser';
 import { ObjectDeclarationParser } from './object-declaration-parser';
-import { OEntity, OPackage, OPackageBody, OProcess, OStatementBody, OSubprogram, OType, ParserError } from './objects';
+import { OAttributeDeclaration, OEntity, OPackage, OPackageBody, OProcess, OStatementBody, OSubprogram, OType, ParserError } from './objects';
 import { ParserBase, ParserState } from './parser-base';
 import { SubprogramParser } from './subprogram-parser';
 import { SubtypeParser } from './subtype-parser';
@@ -28,7 +28,12 @@ export class DeclarativePartParser extends ParserBase {
         const objectDeclarationParser = new ObjectDeclarationParser(this.state, this.parent);
         objectDeclarationParser.parse(nextToken);
       } else if (nextToken.getLText() === 'attribute') {
-        this.parent.attributes.push(new AttributeParser(this.state, this.parent).parse());
+        const obj = new AttributeParser(this.state, this.parent).parse();
+        if (obj instanceof OAttributeDeclaration) {
+          this.parent.attributeDeclarations.push(obj);
+        } else {
+          this.parent.attributeSpecifications.push(obj);
+        }
       } else if (nextToken.getLText() === 'type') {
         const typeParser = new TypeParser(this.state, this.parent);
         this.parent.types.push(typeParser.parse());

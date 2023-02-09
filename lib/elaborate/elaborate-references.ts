@@ -1,5 +1,5 @@
-import { IHasLexerToken, IHasReferenceLinks, implementsIHasAliases, implementsIHasAttributes, implementsIHasConstants, implementsIHasFileVariables, implementsIHasGenerics, implementsIHasLabel, implementsIHasLibraries, implementsIHasPackageInstantiations, implementsIHasPorts, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables } from "../parser/interfaces";
-import { OArchitecture, OAttributeReference, ObjectBase, OEntity, OEnum, OFile, OFormalReference, OHasSequentialStatements, OInstantiation, OInterfacePackage, OLabelReference, OLibrary, OPackage, OPackageBody, OPackageInstantiation, ORead, ORecord, OReference, OSelectedName, OSelectedNameRead, OSelectedNameWrite, OWrite, scope } from "../parser/objects";
+import { IHasLexerToken, IHasReferenceLinks, implementsIHasAliases, implementsIHasAttributeDeclarations, implementsIHasConstants, implementsIHasFileVariables, implementsIHasGenerics, implementsIHasLabel, implementsIHasLibraries, implementsIHasPackageInstantiations, implementsIHasPorts, implementsIHasSignals, implementsIHasStatements, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables } from "../parser/interfaces";
+import { OArchitecture, OAttributeReference, ObjectBase, OConcurrentStatements, OEntity, OEnum, OFile, OFormalReference, OHasSequentialStatements, OInstantiation, OInterfacePackage, OLabelReference, OLibrary, OPackage, OPackageBody, OPackageInstantiation, ORead, ORecord, OReference, OSelectedName, OSelectedNameRead, OSelectedNameWrite, OSequentialStatement, OWrite, scope } from "../parser/objects";
 import { VhdlLinter } from "../vhdl-linter";
 export class ElaborateReferences {
   file: OFile;
@@ -72,13 +72,28 @@ export class ElaborateReferences {
       }
     }
   }
+  evaluateLabelDefinition(reference: OReference, definition: OSequentialStatement | OConcurrentStatements | (OSequentialStatement | OConcurrentStatements)[], enableCastToRead: boolean) {
+    if (Array.isArray(definition)) {
+      for (const def of definition) {
+        this.evaluateLabelDefinition(reference, def, enableCastToRead);
+      }
+    } else {
+      if (definition.label?.getLText() === reference.referenceToken.getLText()) {
+        reference.definitions.push(definition);
+        definition.labelLinks.push(reference);
+        if (enableCastToRead) {
+          this.castToRead(reference);
+        }
+      }
+    }
+  }
   elaborateAttributeReferences(reference: OAttributeReference) {
     for (const [object] of scope(reference)) {
-      if (implementsIHasAttributes(object)) {
-        for (const attribute of object.attributes) {
-          if (attribute.lexerToken.getLText() === reference.referenceToken.getLText()) {
-            attribute.referenceLinks.push(reference);
-            reference.definitions.push(attribute);
+      if (implementsIHasAttributeDeclarations(object)) {
+        for (const attributeDeclaration of object.attributeDeclarations) {
+          if (attributeDeclaration.lexerToken.getLText() === reference.referenceToken.getLText()) {
+            attributeDeclaration.referenceLinks.push(reference);
+            reference.definitions.push(attributeDeclaration);
           }
         }
       }
@@ -86,6 +101,9 @@ export class ElaborateReferences {
   }
   elaborateReference(reference: OReference) {
     for (const [object, directlyVisible] of scope(reference)) {
+      if (implementsIHasStatements(object)) {
+        this.evaluateLabelDefinition(reference, object.statements, true);
+      }
       if (implementsIHasSignals(object)) {
         this.evaluateDefinition(reference, object.signals, true);
       }
