@@ -3,7 +3,7 @@ import { reservedWords } from '../lexer';
 import { IHasLexerToken, implementsIHasAliases, implementsIHasConstants, implementsIHasGenerics, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables } from '../parser/interfaces';
 import { OAliasWithSignature, ObjectBase, OEntity, OEnum, OGenericAssociationList, ORecord, scope } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
-import { findObjectFromPosition } from './findObjects';
+import { findObjectByDesignator } from './findObjects';
 import { findParentInstantiation } from './helper/findParentInstantiation';
 
 export async function getCompletions(linter: VhdlLinter, position: Position): Promise<CompletionItem[]> {
@@ -30,7 +30,7 @@ export async function getCompletions(linter: VhdlLinter, position: Position): Pr
 
   completions.push(...reservedWords.map(reservedWord => ({ label: reservedWord })));
   completions.push({ label: 'work' });
-  const objects = findObjectFromPosition(linter, position);
+  const objects = findObjectByDesignator(linter, position);
   const completionObject = objects[0];
   if (!completionObject) {
     return completions;

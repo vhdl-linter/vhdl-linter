@@ -74,12 +74,15 @@ export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position
             referenceTokens.push(link.componentName);
           }
           if (link instanceof OComponent) {
-            if (implementsIHasEndingLexerToken(link)) {
-              referenceTokens.push(link.endingLexerToken);
+            if (link.endingReferenceToken) {
+              referenceTokens.push(link.endingReferenceToken);
             }
             referenceTokens.push(...link.referenceLinks.flatMap(link => link instanceof OInstantiation ? link.componentName : []));
           }
         }
+      }
+      if (definition instanceof OComponent && definition.endingReferenceToken) {
+        referenceTokens.push(definition.endingReferenceToken);
       }
       if (definition instanceof OPort) {
         referenceTokens.push(...definition.parent.referenceLinks

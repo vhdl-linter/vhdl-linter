@@ -32,7 +32,7 @@ export class ComponentParser extends ParserBase {
       } else if (nextToken.getLText() === 'end') {
         this.consumeToken();
         this.expect('component');
-        component.endingLexerToken = this.maybe(component.referenceToken.text);
+        component.endingReferenceToken = this.maybe(component.referenceToken.text);
         component.range = component.range.copyWithNewEnd(this.getToken(-1, true).range.end);
         break;
       }

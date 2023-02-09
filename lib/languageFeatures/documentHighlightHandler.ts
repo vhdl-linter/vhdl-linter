@@ -3,12 +3,12 @@ import { OLexerToken } from '../lexer';
 import { IHasLexerToken, IHasReferenceToken, implementsIHasLexerToken, implementsIHasReferenceToken } from '../parser/interfaces';
 import { ObjectBase, OWrite } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
-import { findObjectFromPosition } from './findObjects';
+import { findObjectByDesignator } from './findObjects';
 
 export function documentHighlightHandler(linter: VhdlLinter, params: TextDocumentPositionParams): DocumentHighlight[] {
   const startI = linter.getIFromPosition(params.position);
 
-  const candidates = findObjectFromPosition(linter, params.position)
+  const candidates = findObjectByDesignator(linter, params.position)
     .filter(candidate => {
       // Only use Objects that have a lexer Token (either directly or as a reference Token)
       // Also check if the cursor is actually in that token itself, or just in that objects range.

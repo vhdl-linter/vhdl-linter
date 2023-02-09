@@ -5,7 +5,8 @@ import { OArchitecture, OAssociation, ObjectBase, OInstantiation, OReference, OU
 import { VhdlLinter } from "../vhdl-linter";
 import { SetAdd } from "./findReferencesHandler";
 
-export function findObjectFromPosition(linter: VhdlLinter, position: Position): ObjectBase[] {
+export function findObjectByDesignator(linter: VhdlLinter, position: Position): ObjectBase[] {
+  // TODO: also find label designators
   const startI = linter.getIFromPosition(position);
   let candidates = (linter.file.objectList.filter(object => object.range.start.i <= startI + 1 && startI <= object.range.end.i) ?? [])
     // If the association has no formal part its range is identical to the included reference.

@@ -331,12 +331,7 @@ connection.onHover(async (params, token) => {
     }
   };
 });
-connection.onDefinition(async (params, token) => {
-  await initialization;
-  if (token.isCancellationRequested) {
-    console.log('onDefinition canceled');
-    return new ResponseError(LSPErrorCodes.RequestCancelled, 'canceled');
-  }
+connection.onDefinition(async params => {
   const linter = await getLinter(params.textDocument.uri);
 
   const definitions = findDefinitionLinks(linter, params.position);
@@ -353,12 +348,7 @@ connection.onCompletion(async (params, cancelationToken) => {
   }
   return getCompletions(linter, params.position);
 });
-connection.onReferences(async (params, token) => {
-  await initialization;
-  if (token.isCancellationRequested) {
-    console.log('onDefinition canceled');
-    return new ResponseError(LSPErrorCodes.RequestCancelled, 'canceled');
-  }
+connection.onReferences(async params => {
   const linter = await getLinter(params.textDocument.uri);
 
   return findReferencesHandler(linter, params.position);
