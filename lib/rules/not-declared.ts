@@ -1,7 +1,7 @@
 import { findBestMatch } from "string-similarity";
 import { CodeAction, CodeActionKind, Command, DiagnosticSeverity, Range, TextEdit } from "vscode-languageserver";
 import { IHasLexerToken, implementsIHasLexerToken } from "../parser/interfaces";
-import { OArchitecture, OAssociation, OAttributeReference, OFormalReference, OInstantiation, OLabelReference, OLibraryReference, OPackageBody, OPort, OReference, OSignal, OUseClause, OVariable, OWrite } from "../parser/objects";
+import { OArchitecture, OAssociation, OAttributeReference, OComponent, OFormalReference, OInstantiation, OLabelReference, OLibraryReference, OPackageBody, OPort, OReference, OSignal, OUseClause, OVariable, OWrite } from "../parser/objects";
 import { IAddSignalCommandArguments } from "../vhdl-linter";
 import { IRule, RuleBase } from "./rules-base";
 export class RNotDeclared extends RuleBase implements IRule {
@@ -140,7 +140,7 @@ export class RNotDeclared extends RuleBase implements IRule {
         if (instOrPackage instanceof OInstantiation && instOrPackage.definitions.length > 0) {
           this.pushAssociationError(obj);
         }
-      } else if ((obj instanceof OReference) && obj.definitions.length === 0) {
+      } else if ((obj instanceof OReference) && obj.definitions.length === 0 && !(obj instanceof OComponent)) {
         this.pushNotDeclaredError(obj);
       } else if ((obj instanceof OLabelReference) && obj.definitions.length === 0) {
         this.pushNotDeclaredError(obj);
