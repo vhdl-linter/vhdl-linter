@@ -23,19 +23,64 @@ exports[`Testing behavior of missing statements in file _architecture_begin_miss
 exports[`Testing behavior of missing statements in file _package_begin_missing.vhd 1`] = `
 [
   {
-    "code": undefined,
-    "message": "expected 'is' found 'package' line: 3",
+    "code": "0;1",
+    "message": "Unexpected token: 'pkg' in declarative part. end missing? (parser)",
     "range": {
       "end": {
-        "character": 21,
+        "character": 3,
         "line": 3,
       },
       "start": {
-        "character": 2,
+        "character": 0,
         "line": 3,
       },
     },
-    "severity": 1,
+    "severity": undefined,
+  },
+  {
+    "code": "2;3",
+    "message": "Unexpected token: 'pkg' in declarative part. end missing? (parser)",
+    "range": {
+      "end": {
+        "character": 3,
+        "line": 9,
+      },
+      "start": {
+        "character": 0,
+        "line": 9,
+      },
+    },
+    "severity": undefined,
+  },
+  {
+    "code": "4;5",
+    "message": "Unexpected token: ';' in declarative part. end missing? (parser)",
+    "range": {
+      "end": {
+        "character": 1,
+        "line": 13,
+      },
+      "start": {
+        "character": 0,
+        "line": 13,
+      },
+    },
+    "severity": undefined,
+  },
+  {
+    "code": "6;7",
+    "message": "Unexpected token: ';' in declarative part. end missing? (parser)",
+    "range": {
+      "end": {
+        "character": 1,
+        "line": 15,
+      },
+      "start": {
+        "character": 0,
+        "line": 15,
+      },
+    },
+    "severity": undefined,
   },
 ]
 `;
