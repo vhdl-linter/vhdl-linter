@@ -2,23 +2,26 @@ import { DefinitionLink, Position } from "vscode-languageserver";
 import { implementsIHasDefinitions, implementsIHasLexerToken } from "../parser/interfaces";
 import { OArchitecture, ObjectBase, OPackage, OPackageBody, ORecordChild, OSubprogram } from "../parser/objects";
 import { VhdlLinter } from "../vhdl-linter";
-import { findObjectFromPosition } from "./findObjectFromPosition";
-import { SetAdd } from "./findReferencesHandler";
+import { findObjectFromToken } from "./findObjectFromPosition";
+import { getTokenFromPosition, SetAdd } from "./findReferencesHandler";
 
 export function findDefinitions(linter: VhdlLinter, position: Position): ObjectBase[] {
-  const candidates = findObjectFromPosition(linter, position);
+  const token = getTokenFromPosition(linter, position);
+  if (!token) {
+    return [];
+  }
+  const candidates = findObjectFromToken(linter, token);
   // Get unique definitions
   const definitions = new SetAdd<ObjectBase>();
   // find all possible definitions for the lexerToken
   for (const candidate of candidates) {
-    if (implementsIHasLexerToken(candidate)) {
-      definitions.add(candidate);
-    }
     if (implementsIHasDefinitions(candidate)) {
       definitions.add(...candidate.definitions);
     }
-    if (candidate instanceof OArchitecture && candidate.correspondingEntity) {
+    if (candidate instanceof OArchitecture && candidate.correspondingEntity && candidate.entityName === token) {
       definitions.add(candidate.correspondingEntity);
+    } else if (implementsIHasLexerToken(candidate)) {
+      definitions.add(candidate);
     }
   }
   // find all implementations/definitions of subprograms

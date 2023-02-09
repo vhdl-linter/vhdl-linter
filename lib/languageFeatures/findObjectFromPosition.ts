@@ -1,15 +1,11 @@
 import { Position } from "vscode-languageserver";
+import { OLexerToken } from "../lexer";
 import { implementsIHasEndingLexerToken, implementsIHasLexerToken } from "../parser/interfaces";
 import { OArchitecture, ObjectBase, OInstantiation, OReference, OUseClause } from "../parser/objects";
 import { VhdlLinter } from "../vhdl-linter";
 import { getTokenFromPosition, SetAdd } from "./findReferencesHandler";
 
-export function findObjectFromPosition(linter: VhdlLinter, position: Position): ObjectBase[] {
-  const token = getTokenFromPosition(linter, position);
-  if (!token) {
-    return [];
-  }
-
+export function findObjectFromToken(linter: VhdlLinter, token: OLexerToken): ObjectBase[] {
   const foundObjects = new SetAdd<ObjectBase>();
   // find all possible definitions for the lexerToken
   for (const obj of linter.file.objectList) {
@@ -37,4 +33,12 @@ export function findObjectFromPosition(linter: VhdlLinter, position: Position): 
     }
   }
   return [...foundObjects];
+}
+
+export function findObjectFromPosition(linter: VhdlLinter, position: Position): ObjectBase[] {
+  const token = getTokenFromPosition(linter, position);
+  if (!token) {
+    return [];
+  }
+  return findObjectFromToken(linter, token);
 }
