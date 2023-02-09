@@ -3,7 +3,7 @@ import { reservedWords } from '../lexer';
 import { IHasLexerToken, implementsIHasAliases, implementsIHasConstants, implementsIHasGenerics, implementsIHasPorts, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables } from '../parser/interfaces';
 import { OAliasWithSignature, ObjectBase, OEnum, OGenericAssociationList, ORecord, scope } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
-import { findObjectFromPosition } from './findObjectFromPosition';
+import { findObjectFromPosition } from './findObjects';
 import { findParentInstantiation } from './helper/findParentInstantiation';
 
 export async function getCompletions(linter: VhdlLinter, position: Position): Promise<CompletionItem[]> {
