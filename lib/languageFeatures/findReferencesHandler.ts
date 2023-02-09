@@ -2,7 +2,7 @@ import { ErrorCodes, Location, Position, ResponseError } from 'vscode-languagese
 import { Elaborate } from '../elaborate/elaborate';
 import { OLexerToken } from '../lexer';
 import { implementsIHasEndingLexerToken, implementsIHasReference } from '../parser/interfaces';
-import { OArchitecture, ObjectBase, OEntity, OGeneric, OInstantiation, OPackage, OPackageBody, OPort, OSubprogram, OVariable } from '../parser/objects';
+import { OArchitecture, ObjectBase, OComponent, OEntity, OGeneric, OInstantiation, OPackage, OPackageBody, OPort, OSubprogram, OVariable } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
 import { findDefinitions } from './findDefinition';
 export function getTokenFromPosition(linter: VhdlLinter, position: Position): OLexerToken | undefined {
@@ -54,6 +54,11 @@ export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position
     await linter.projectParser.elaborateAll(token.getLText());
     definitions = findDefinitions(linter, position);
   }
+  const compDefinitions = definitions.filter(def => def instanceof OComponent) as OComponent[];
+  for (const component of compDefinitions) {
+    definitions.push(...component.definitions);
+  }
+
   // find all tokens that are references to the definition
   const referenceTokens: OLexerToken[] = [];
   for (const definition of definitions) {
@@ -64,7 +69,17 @@ export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position
       referenceTokens.push(...definition.referenceLinks.map(ref => ref.referenceToken).filter(token => token.getLText() === definition.lexerToken?.getLText()));
       if (definition instanceof OEntity) {
         referenceTokens.push(...definition.correspondingArchitectures.map(arch => arch.entityName));
-        referenceTokens.push(...definition.referenceLinks.flatMap(link => link instanceof OInstantiation ? link.componentName : []));
+        for (const link of definition.referenceLinks) {
+          if (link instanceof OInstantiation) {
+            referenceTokens.push(link.componentName);
+          }
+          if (link instanceof OComponent) {
+            if (implementsIHasEndingLexerToken(link)) {
+              referenceTokens.push(link.endingLexerToken);
+            }
+            referenceTokens.push(...link.referenceLinks.flatMap(link => link instanceof OInstantiation ? link.componentName : []));
+          }
+        }
       }
       if (definition instanceof OPort) {
         referenceTokens.push(...definition.parent.referenceLinks

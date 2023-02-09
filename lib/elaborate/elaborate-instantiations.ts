@@ -41,7 +41,7 @@ function getComponents(instantiation: OInstantiation): OComponent[] {
     }
   }
   const name = instantiation.componentName;
-  return components.filter(e => e.lexerToken.getLText() === name.text.toLowerCase());
+  return components.filter(e => e.referenceToken.getLText() === name.text.toLowerCase());
 }
 // TODO: To fit with the style of packages and architectures I think this should be linked during elaboration
 export function getEntities(instantiation: OInstantiation | OComponent, projectParser: ProjectParser): OEntity[] {
@@ -62,7 +62,7 @@ export function getEntities(instantiation: OInstantiation | OComponent, projectP
   } else {
     entities.push(...projectEntities);
   }
-  const name = (instantiation instanceof OInstantiation) ? instantiation.componentName : instantiation.lexerToken;
+  const name = (instantiation instanceof OInstantiation) ? instantiation.componentName : instantiation.referenceToken;
   return entities.filter(e => e.lexerToken.getLText() === name.text.toLowerCase());
 }
 function getSubprograms(instantiation: OInstantiation, projectParser: ProjectParser): (OSubprogram | OAliasWithSignature)[] {
