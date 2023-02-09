@@ -1,0 +1,76 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Testing behavior of missing statements in file _architecture_begin_missing.vhd 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "Unexpected token: 'assert' in declarative part. begin missing? (parser)",
+    "range": {
+      "end": {
+        "character": 8,
+        "line": 8,
+      },
+      "start": {
+        "character": 2,
+        "line": 8,
+      },
+    },
+    "severity": undefined,
+  },
+]
+`;
+
+exports[`Testing behavior of missing statements in file _package_begin_missing.vhd 1`] = `
+[
+  {
+    "code": undefined,
+    "message": "expected 'is' found 'package' line: 3",
+    "range": {
+      "end": {
+        "character": 21,
+        "line": 3,
+      },
+      "start": {
+        "character": 2,
+        "line": 3,
+      },
+    },
+    "severity": 1,
+  },
+]
+`;
+
+exports[`Testing behavior of missing statements in file _subprogram_begin_missing.vhd 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "Unexpected token: 'norm_NewA' in declarative part. begin missing? (parser)",
+    "range": {
+      "end": {
+        "character": 13,
+        "line": 10,
+      },
+      "start": {
+        "character": 4,
+        "line": 10,
+      },
+    },
+    "severity": undefined,
+  },
+  {
+    "code": "2;3",
+    "message": "Unexpected token: 'report' in declarative part. begin missing? (parser)",
+    "range": {
+      "end": {
+        "character": 10,
+        "line": 19,
+      },
+      "start": {
+        "character": 4,
+        "line": 19,
+      },
+    },
+    "severity": undefined,
+  },
+]
+`;

@@ -3,7 +3,7 @@ import { AttributeParser } from './attribute-parser';
 import { ComponentParser } from './component-parser';
 import { implementsIHasComponents } from './interfaces';
 import { ObjectDeclarationParser } from './object-declaration-parser';
-import { OEntity, OI, OPackage, OPackageBody, OProcess, OStatementBody, OSubprogram, OType, ParserError, ParserErrorIdentifier } from './objects';
+import { OEntity, OI, OPackage, OPackageBody, OProcess, OStatementBody, OSubprogram, OType } from './objects';
 import { PackageInstantiationParser } from './package-instantiation-parser';
 import { ParserBase, ParserState } from './parser-base';
 import { SubprogramParser } from './subprogram-parser';
@@ -17,7 +17,7 @@ export class DeclarativePartParser extends ParserBase {
     super(state);
     this.debug('start');
   }
-  parse(optional = false, lastWord = 'begin') {
+  parse(optional = false, lastWord = 'begin', consumeLastWord = true) {
     let nextToken = this.getToken();
     while (nextToken.getLText() !== lastWord) {
       if (nextToken.getLText() === 'signal'
@@ -99,18 +99,25 @@ export class DeclarativePartParser extends ParserBase {
           this.advanceSemicolon();
         }
       } else {
-        throw new ParserError(`Unexpected token: '${nextToken.text}' in declarative part. ${lastWord} missing?`,
-          nextToken.range, {
-          message: `add ${lastWord}`,
-          edits: [
-            {
-              range: nextToken.range,
-              newText: `${lastWord}\n${nextToken.range.copyWithNewStart(new OI(nextToken.range.parent, nextToken.range.start.line, 0)).getText()}`
-            }
-          ]
-        }, ParserErrorIdentifier.declarativePartIncorrectEnd);
+        this.state.messages.push({
+          message: `Unexpected token: '${nextToken.text}' in declarative part. ${lastWord} missing?`,
+          range: nextToken.range,
+          solution: {
+            message: `add ${lastWord}`,
+            edits: [
+              {
+                range: nextToken.range,
+                newText: `${lastWord}\n${nextToken.range.copyWithNewStart(new OI(nextToken.range.parent, nextToken.range.start.line, 0)).getText()}`
+              }
+            ]
+          }
+        });
+        return;
       }
       nextToken = this.getToken();
+    }
+    if (consumeLastWord) {
+      this.expect(lastWord);
     }
   }
 

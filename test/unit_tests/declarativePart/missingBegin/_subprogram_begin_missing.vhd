@@ -8,7 +8,7 @@ package body subprogram_begin_missing is
     variable NewA   : integer_vector(0 to 5);
     alias norm_NewA : integer_vector(1 to NewA'length) is NewA;
     -- begin
-    norm_NewA(0) := 0;                  -- vhdl-linter-disable-line parser
+    norm_NewA(0) := 0;
   end procedure RemoveExclude;
 
 
@@ -17,7 +17,7 @@ package body subprogram_begin_missing is
     ) is
 
     -- begin
-    report integer'image(5); -- vhdl-linter-disable-line parser
+    report integer'image(5);
   end procedure RemoveExclude;
 
 end package body;
