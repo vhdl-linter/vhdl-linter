@@ -1,7 +1,7 @@
 import { CompletionItem, CompletionItemKind, Position } from 'vscode-languageserver';
 import { reservedWords } from '../lexer';
-import { IHasLexerToken, implementsIHasAliases, implementsIHasConstants, implementsIHasGenerics, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables } from '../parser/interfaces';
-import { OAliasWithSignature, ObjectBase, OEntity, OEnum, OGenericAssociationList, ORecord, scope } from '../parser/objects';
+import { IHasLexerToken, implementsIHasAliases, implementsIHasConstants, implementsIHasGenerics, implementsIHasPorts, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables } from '../parser/interfaces';
+import { OAliasWithSignature, ObjectBase, OEnum, OGenericAssociationList, ORecord, scope } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
 import { findObjectByDesignator } from './findObjects';
 import { findParentInstantiation } from './helper/findParentInstantiation';
@@ -76,24 +76,14 @@ export async function getCompletions(linter: VhdlLinter, position: Position): Pr
         addCompletion(alias, CompletionItemKind.Reference);
       }
     }
-    if (object instanceof OEntity) {
+    if (implementsIHasPorts(object)) {
       for (const port of object.ports) {
         addCompletion(port, CompletionItemKind.Field);
       }
+    }
+    if (implementsIHasGenerics(object)) {
       for (const port of object.generics) {
         addCompletion(port, CompletionItemKind.Constant);
-      }
-      for (const signal of object.signals) {
-        addCompletion(signal, CompletionItemKind.Variable);
-      }
-      for (const constant of object.constants) {
-        addCompletion(constant, CompletionItemKind.Variable);
-      }
-      for (const variable of object.variables) {
-        addCompletion(variable, CompletionItemKind.Variable);
-      }
-      for (const subprogram of object.subprograms) {
-        addCompletion(subprogram, CompletionItemKind.Function);
       }
     }
   }

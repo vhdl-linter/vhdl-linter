@@ -50,9 +50,11 @@ test.each([
 
 test.each([
   ['test_completion.vhd', createPrintablePosition(11, 18), ['u_unsigned'], []],
-  ['test_completion.vhd', createPrintablePosition(15, 5), ['test_port'], []],
+  ['test_completion.vhd', createPrintablePosition(15, 11), ['test_port'], []],
   ['test_completion.vhd', createPrintablePosition(17, 1), ['all', 'procedure'], []],
   ['test_completion_record.vhd', createPrintablePosition(19, 9), ['foo'], ['banana']],
+  ['test_procedure_parameter.vhd', createPrintablePosition(11, 15), ['par1', 'par2'], []],
+  ['test_procedure_parameter.vhd', createPrintablePosition(19, 17), ['par3', 'par4'], []],
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 ])('testing completion in %s:%s expecting labels: %s', async (filename, position, expectedLabels, notExpectedLabels) => {
   const uri = pathToFileURL(join(__dirname, filename));
