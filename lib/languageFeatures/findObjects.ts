@@ -1,9 +1,25 @@
 import { Position } from "vscode-languageserver";
 import { OLexerToken } from "../lexer";
 import { implementsIHasEndingLexerToken, implementsIHasLexerToken } from "../parser/interfaces";
-import { OArchitecture, ObjectBase, OInstantiation, OReference, OUseClause } from "../parser/objects";
+import { OArchitecture, OAssociation, ObjectBase, OInstantiation, OReference, OUseClause } from "../parser/objects";
 import { VhdlLinter } from "../vhdl-linter";
-import { getTokenFromPosition, SetAdd } from "./findReferencesHandler";
+import { SetAdd } from "./findReferencesHandler";
+
+export function findObjectFromPosition(linter: VhdlLinter, position: Position): ObjectBase[] {
+  const startI = linter.getIFromPosition(position);
+  let candidates = (linter.file.objectList.filter(object => object.range.start.i <= startI + 1 && startI <= object.range.end.i) ?? [])
+    // If the association has no formal part its range is identical to the included reference.
+    // But we prefer to get the reference so explicity exclude Association here. (#197)
+    .filter(candidate => candidate instanceof OAssociation === false);
+  candidates.sort((a, b) => (a.range.end.i - a.range.start.i) - (b.range.end.i - b.range.start.i));
+  const firstCandidate = candidates[0];
+  if (!firstCandidate) {
+    return [];
+  }
+  const firstRange = firstCandidate.range.end.i - firstCandidate.range.start.i;
+  candidates = candidates.filter(c => (c.range.end.i - c.range.start.i) === firstRange);
+  return candidates;
+}
 
 export function findObjectFromToken(linter: VhdlLinter, token: OLexerToken): ObjectBase[] {
   const foundObjects = new SetAdd<ObjectBase>();
@@ -33,12 +49,4 @@ export function findObjectFromToken(linter: VhdlLinter, token: OLexerToken): Obj
     }
   }
   return [...foundObjects];
-}
-
-export function findObjectFromPosition(linter: VhdlLinter, position: Position): ObjectBase[] {
-  const token = getTokenFromPosition(linter, position);
-  if (!token) {
-    return [];
-  }
-  return findObjectFromToken(linter, token);
 }
