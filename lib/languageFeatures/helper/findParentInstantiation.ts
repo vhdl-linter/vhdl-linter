@@ -1,7 +1,7 @@
 import { Position } from "vscode-languageserver";
 import { OAssociationList, OFile, OInstantiation } from "../../parser/objects";
 import { VhdlLinter } from "../../vhdl-linter";
-import { findObjectFromPosition } from "../findObjectFromPosition";
+import { findObjectFromPosition } from "../findObjects";
 
 export function findParentInstantiation(linter: VhdlLinter, position: Position): [OInstantiation, OAssociationList | undefined] | undefined {
   const object = findObjectFromPosition(linter, position)[0];

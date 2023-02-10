@@ -12,9 +12,9 @@ export class RComponent extends RuleBase implements IRule {
         const entities = component.definitions;
         if (entities.length === 0) {
           this.addMessage({
-            range: component.lexerToken.range,
+            range: component.referenceToken.range,
             severity: DiagnosticSeverity.Warning,
-            message: `Could not find an entity declaration for this component (${component.lexerToken.text})`
+            message: `Could not find an entity declaration for this component (${component.referenceToken.text})`
           });
           continue;
         }
@@ -26,7 +26,7 @@ export class RComponent extends RuleBase implements IRule {
             this.addMessage({
               range: generic.lexerToken.range,
               severity: DiagnosticSeverity.Error,
-              message: `no generic ${generic.lexerToken.text} on entity ${component.lexerToken.text}`
+              message: `no generic ${generic.lexerToken.text} on entity ${component.referenceToken.text}`
             });
           }
         }
@@ -48,7 +48,7 @@ export class RComponent extends RuleBase implements IRule {
             this.addMessage({
               range: port.lexerToken.range,
               severity: DiagnosticSeverity.Error,
-              message: `no port ${port.lexerToken.text} on entity ${component.lexerToken.text}`
+              message: `no port ${port.lexerToken.text} on entity ${component.referenceToken.text}`
             });
           }
         }

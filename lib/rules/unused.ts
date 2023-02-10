@@ -1,6 +1,6 @@
 import { RuleBase, IRule } from "./rules-base";
 import { CodeAction, CodeActionKind, Command, DiagnosticSeverity, TextEdit } from "vscode-languageserver";
-import { IHasLexerToken, IHasPorts, implementsIHasPorts, implementsIHasGenerics, implementsIHasTypes, implementsIHasComponents, implementsIHasSignals, implementsIHasVariables, implementsIHasConstants, implementsIHasSubprograms } from "../parser/interfaces";
+import { IHasLexerToken, IHasPorts, implementsIHasPorts, implementsIHasGenerics, implementsIHasTypes, implementsIHasComponents, implementsIHasSignals, implementsIHasVariables, implementsIHasConstants, implementsIHasSubprograms, IHasReferenceToken, implementsIHasLexerToken } from "../parser/interfaces";
 import { OFile, ObjectBase, OPackage, OPackageBody, OType, OEntity, OSubprogram, OComponent, ORead, OWrite, OSignal, OArchitecture, OProcess, OInstantiation } from "../parser/objects";
 
 export class RUnused extends RuleBase implements IRule {
@@ -8,7 +8,7 @@ export class RUnused extends RuleBase implements IRule {
   file: OFile;
   private unusedSignalRegex: RegExp;
 
-  private addUnusedMessage(obj: ObjectBase & IHasLexerToken, msg: string) {
+  private addUnusedMessage(obj: ObjectBase & (IHasLexerToken | IHasReferenceToken), msg: string) {
     // ignore unused warnings in packages (they are globally visible)
     if (obj.parent instanceof OPackage || obj.parent instanceof OPackageBody) {
       return;
@@ -21,18 +21,19 @@ export class RUnused extends RuleBase implements IRule {
     if (obj.parent instanceof OEntity && obj.rootFile.architectures.find(a => a.entityName.getLText() === (obj.parent as OEntity).lexerToken.getLText()) === undefined) {
       return;
     }
-    if (this.unusedSignalRegex.exec(obj.lexerToken.text) === null) {
+    const token = implementsIHasLexerToken(obj) ? obj.lexerToken : obj.referenceToken;
+    if (this.unusedSignalRegex.exec(token.text) === null) {
       this.addMessage({
-        range: obj.lexerToken.range,
+        range: token.range,
         severity: DiagnosticSeverity.Warning,
         message: msg,
         code: this.vhdlLinter.addCodeActionCallback((textDocumentUri: string) =>
-          this.unusedSignalRegex.exec(obj.lexerToken.text + '_unused') !== null ? [CodeAction.create(
+          this.unusedSignalRegex.exec(token.text + '_unused') !== null ? [CodeAction.create(
             `Add '_unused' to the name.`,
             {
               changes: {
                 [textDocumentUri]: [
-                  TextEdit.insert(obj.lexerToken.range.end, `_unused`)]
+                  TextEdit.insert(token.range.end, `_unused`)]
               }
             },
             CodeActionKind.QuickFix)] : []
@@ -160,7 +161,7 @@ export class RUnused extends RuleBase implements IRule {
       if (implementsIHasComponents(obj)) {
         for (const comp of obj.components) {
           if (comp.referenceLinks.length === 0) {
-            this.addUnusedMessage(comp, `Not using component ${comp.lexerToken.text}`);
+            this.addUnusedMessage(comp, `Not using component ${comp.referenceToken.text}`);
           }
         }
       }

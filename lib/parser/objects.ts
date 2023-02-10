@@ -641,14 +641,15 @@ export class OEntity extends ObjectBase implements I.IHasDefinitions, I.IHasSubp
   files: OFileVariable[] = [];
   correspondingArchitectures: OArchitecture[] = [];
 }
-export class OComponent extends ObjectBase implements I.IHasDefinitions, I.IHasSubprograms, I.IHasLexerToken,
+export class OComponent extends OReference implements I.IHasDefinitions, I.IHasSubprograms,
   I.IHasPackageInstantiations, I.IHasPorts, I.IHasGenerics, I.IHasReferenceLinks {
-  constructor(parent: I.IHasComponents, range: OIRange) {
-    super((parent as unknown) as ObjectBase, range);
+  constructor(parent: ObjectBase & I.IHasComponents, referenceToken: OLexerToken) {
+    super((parent as unknown) as ObjectBase, referenceToken);
   }
   referenceLinks: OReference[] = [];
   aliasReferences: OAlias[] = [];
-  lexerToken: OLexerToken;
+  referenceToken: OLexerToken;
+  endingReferenceToken?: OLexerToken;
   subprograms: OSubprogram[] = [];
   packageInstantiations: OPackageInstantiation[] = [];
   portRange?: OIRange;
