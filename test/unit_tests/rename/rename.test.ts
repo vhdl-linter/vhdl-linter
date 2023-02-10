@@ -123,6 +123,27 @@ test.each([
       ],
     description: 'function parameter name'
   },
+  {
+    occurrences:
+      [['component_entity.vhd', createPrintableRange(1, 8, 24)],
+      ['component_entity.vhd', createPrintableRange(5, 12, 28)],
+      ['component_instantiation.vhd', createPrintableRange(6, 13, 29)],
+      ['component_instantiation.vhd', createPrintableRange(10, 17, 33)],
+      ['component_instantiation.vhd', createPrintableRange(15, 15, 31)],
+      ['component_instantiation.vhd', createPrintableRange(20, 26, 42)],
+      ],
+    description: 'components'
+  },
+  // The ports/generics of components are currently not linked
+  // {
+  //   occurrences:
+  //     [['component_entity.vhd', createPrintableRange(3, 5, 10)],
+  //     ['component_instantiation.vhd', createPrintableRange(8, 7, 12)],
+  //     ['component_instantiation.vhd', createPrintableRange(17, 7, 12)],
+  //     ['component_instantiation.vhd', createPrintableRange(22, 7, 12)],
+  //     ],
+  //   description: 'port of components'
+  // },
 ])('testing rename for %j', async (testSetup: TestSetup) => {
   const { occurrences } = testSetup;
   type Operations = Record<string, string[]>;
