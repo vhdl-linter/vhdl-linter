@@ -1,3 +1,4 @@
+import { DiagnosticSeverity } from "vscode-languageserver";
 import { OLexerToken } from "../lexer";
 import { ExpressionParser } from "./expression-parser";
 import { OAttributeDeclaration, OAttributeSpecification, ObjectBase, OReference, ParserError } from "./objects";
@@ -17,19 +18,24 @@ export class AttributeParser extends ParserBase {
     } else if (this.getToken().getLText() === ':') {
       return this.parseAttributeDeclaration(token, attribute);
     } else {
-      throw new ParserError(`Unexpected token ${this.getToken().text} in AttributeParser`, this.getToken().range);
+      throw new ParserError(`Unexpected token ${this.getToken().text} in AttributeParser (was expecting 'or' or ':')`, this.getToken().range);
     }
   }
   parseAttributeDeclaration(identifier: OLexerToken, attribute: OLexerToken) {
     this.expect(':');
     const [tokens, semicolon] = this.advanceParenthesisAware([';'], true, true);
-    if (tokens.length === 0) {
-      throw new ParserError('type_mark expected for attribute_declaration', semicolon.range);
-    }
-    const attributeDeclaration = new OAttributeDeclaration(this.parent, attribute.range.copyWithNewEnd(tokens[tokens.length - 1]!.range));
+    const attributeDeclaration = new OAttributeDeclaration(this.parent, attribute.range.copyWithNewEnd(tokens[tokens.length - 1]?.range ?? identifier.range));
     attributeDeclaration.lexerToken = identifier;
+    if (tokens.length === 0) {
+      this.state.messages.push({
+        message: 'type_mark expected for attribute_declaration',
+        range: semicolon.range,
+        severity: DiagnosticSeverity.Error
+      });
+    } else {
+      attributeDeclaration.typeReferences = new ExpressionParser(this.state, attributeDeclaration, tokens).parse();
+    }
 
-    attributeDeclaration.typeReferences = new ExpressionParser(this.state, attributeDeclaration, tokens).parse();
     return attributeDeclaration;
   }
   parseAttributeSpecification(designator: OLexerToken, attribute: OLexerToken) {
@@ -53,7 +59,7 @@ export class AttributeParser extends ParserBase {
           while (tokens[i]?.getLText() !== ']') {
             i++;
             if (i >= tokens.length) {
-              throw new ParserError(`Did not find end of signature in attribute specification`, tokens[tokens.length - 1]!.range);
+              throw new ParserError(`Did not find end of signature in attribute specification ']'`, tokens[tokens.length - 1]!.range);
             }
           }
         }

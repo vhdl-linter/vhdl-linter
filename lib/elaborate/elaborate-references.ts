@@ -72,18 +72,16 @@ export class ElaborateReferences {
       }
     }
   }
-  evaluateLabelDefinition(reference: OReference, definition: OSequentialStatement | OConcurrentStatements | (OSequentialStatement | OConcurrentStatements)[], enableCastToRead: boolean) {
+  evaluateLabelDefinition(reference: OReference, definition: OSequentialStatement | OConcurrentStatements | (OSequentialStatement | OConcurrentStatements)[]) {
     if (Array.isArray(definition)) {
       for (const def of definition) {
-        this.evaluateLabelDefinition(reference, def, enableCastToRead);
+        this.evaluateLabelDefinition(reference, def);
       }
     } else {
       if (definition.label?.getLText() === reference.referenceToken.getLText()) {
         reference.definitions.push(definition);
         definition.labelLinks.push(reference);
-        if (enableCastToRead) {
-          this.castToRead(reference);
-        }
+
       }
     }
   }
@@ -102,7 +100,7 @@ export class ElaborateReferences {
   elaborateReference(reference: OReference) {
     for (const [object, directlyVisible] of scope(reference)) {
       if (implementsIHasStatements(object)) {
-        this.evaluateLabelDefinition(reference, object.statements, true);
+        this.evaluateLabelDefinition(reference, object.statements);
       }
       if (implementsIHasSignals(object)) {
         this.evaluateDefinition(reference, object.signals, true);
