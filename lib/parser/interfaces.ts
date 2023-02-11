@@ -1,7 +1,7 @@
 import { TextEdit } from "vscode-languageserver";
 import { OLexerToken } from "../lexer";
 import { OIDiagnostic } from "../vhdl-linter";
-import { OAlias, OAttribute, ObjectBase, OComponent, OConcurrentStatements, OConstant, OContextReference, OFileVariable, OGeneric, OIRange, OLabelReference, OLibrary, OLibraryReference, OPackage, OPackageInstantiation, OPort, OReference, OSequentialStatement, OSignal, OSubprogram, OType, OUseClause, OVariable } from "./objects";
+import { OAlias, OAttributeDeclaration, OAttributeSpecification, ObjectBase, OComponent, OConcurrentStatements, OConstant, OContextReference, OFileVariable, OGeneric, OIRange, OLabelReference, OLibrary, OLibraryReference, OPackage, OPackageInstantiation, OPort, OReference, OSequentialStatement, OSignal, OSubprogram, OType, OUseClause, OVariable } from "./objects";
 
 export interface IHasLabel {
   label: OLexerToken;
@@ -140,11 +140,17 @@ export interface IHasLibraries {
 export function implementsIHasLibraries(obj: ObjectBase): obj is ObjectBase & IHasLibraries {
   return (obj as ObjectBase & Partial<IHasLibraries>).libraries !== undefined;
 }
-export interface IHasAttributes {
-  attributes: OAttribute[];
+export interface IHasAttributeSpecifications {
+  attributeSpecifications: (OAttributeSpecification)[];
 }
-export function implementsIHasAttributes(obj: ObjectBase): obj is ObjectBase & IHasAttributes {
-  return (obj as ObjectBase & Partial<IHasAttributes>).attributes !== undefined;
+export function implementsIHasAttributeSpecifications(obj: ObjectBase): obj is ObjectBase & IHasAttributeSpecifications {
+  return (obj as ObjectBase & Partial<IHasAttributeSpecifications>).attributeSpecifications !== undefined;
+}
+export interface IHasAttributeDeclarations {
+  attributeDeclarations: (OAttributeDeclaration)[];
+}
+export function implementsIHasAttributeDeclarations(obj: ObjectBase): obj is ObjectBase & IHasAttributeDeclarations {
+  return (obj as ObjectBase & Partial<IHasAttributeDeclarations>).attributeDeclarations !== undefined;
 }
 export interface IHasLibraryReference {
   library?: OLibraryReference;
