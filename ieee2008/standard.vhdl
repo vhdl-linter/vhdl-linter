@@ -64,6 +64,7 @@ package standard is
                        Open_Kind     : in file_open_kind := read_mode);
 
 -- This is a dummy declaration for predefined attributes according to LRM 16.2
+-- vhdl-linter-disable not-declared
 
   -- 16.2.2 Predefined attributes of types and objects
   attribute base          : t;
