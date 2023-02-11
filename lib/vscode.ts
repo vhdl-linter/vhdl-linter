@@ -1,4 +1,4 @@
-import { commands, env, ExtensionContext, Position, ProgressLocation, window, workspace } from 'vscode';
+import { commands, ExtensionContext, Position, window, workspace } from 'vscode';
 import {
   LanguageClient,
   LanguageClientOptions,

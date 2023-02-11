@@ -17,7 +17,6 @@ import { handleSemanticTokens, semanticTokensLegend } from './languageFeatures/s
 import { signatureHelp } from './languageFeatures/signatureHelp';
 import { handleOnWorkspaceSymbol } from './languageFeatures/workspaceSymbols';
 import { normalizeUri } from './normalize-uri';
-import { OComponent, OFile, OInstantiation, OUseClause } from './parser/objects';
 import { ProjectParser } from './project-parser';
 import { CancelationError, CancelationObject } from './server-objects';
 import { defaultSettings, ISettings } from './settings';
