@@ -11,11 +11,14 @@ architecture arch of test_completion_record is
     banana : integer;
   end record;
   type rec is record
-  foo : integer;
+    foo : rec2;
   end record;
   signal a : rec;
   signal b : integer;
 begin
- b <= a.
+  b <= a.;
+  b <= a.f;
+  b <= a.foo.;
+  b <= a.foo.b;
 
 end arch;

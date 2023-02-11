@@ -52,7 +52,10 @@ test.each([
   ['test_completion.vhd', createPrintablePosition(11, 18), ['u_unsigned'], []],
   ['test_completion.vhd', createPrintablePosition(15, 11), ['test_port'], []],
   ['test_completion.vhd', createPrintablePosition(17, 1), ['all', 'procedure'], []],
-  ['test_completion_record.vhd', createPrintablePosition(19, 9), ['foo'], ['banana']],
+  ['test_completion_record.vhd', createPrintablePosition(19, 10), ['foo'], ['a', 'b', 'banana']],
+  ['test_completion_record.vhd', createPrintablePosition(20, 11), ['foo'], ['a', 'b', 'banana']],
+  ['test_completion_record.vhd', createPrintablePosition(21, 14), ['banana'], ['a', 'b', 'foo']],
+  ['test_completion_record.vhd', createPrintablePosition(22, 15), ['banana'], ['a', 'b', 'foo']],
   ['test_procedure_parameter.vhd', createPrintablePosition(11, 15), ['par1', 'par2'], []],
   ['test_procedure_parameter.vhd', createPrintablePosition(19, 17), ['par3', 'par4'], []],
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
