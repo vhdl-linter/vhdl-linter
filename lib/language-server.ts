@@ -13,7 +13,7 @@ import { findDefinitionLinks } from './languageFeatures/findDefinition';
 import { findReferencesHandler } from './languageFeatures/findReferencesHandler';
 import { foldingHandler } from './languageFeatures/folding';
 import { prepareRenameHandler, renameHandler } from './languageFeatures/rename';
-import { handleSemanticTokens, semanticTokensLegend } from './languageFeatures/semanticTokens';
+import { semanticTokens, semanticTokensLegend } from './languageFeatures/semanticTokens';
 import { signatureHelp } from './languageFeatures/signatureHelp';
 import { handleOnWorkspaceSymbol } from './languageFeatures/workspaceSymbols';
 import { normalizeUri } from './normalize-uri';
@@ -190,11 +190,11 @@ export const initialization = new Promise<void>(resolve => {
           projectParser.flattenProject();
           cancelationMap.set(change.document.uri, newCancelationObject);
         }
-        if (change.document.version === 1) { // Document was initially opened. Do not delay.
-          void handleChange();
-        } else {
-          timeoutMap.set(change.document.uri, setTimeout(() => void handleChange(), 100));
-        }
+        void handleChange();
+        // if (change.document.version === 1) { // Document was initially opened. Do not delay.
+        // } else {
+        //   timeoutMap.set(change.document.uri, setTimeout(() => void handleChange(), 100));
+        // }
         // const lintingTime = Date.now() - date;
         // console.log(`${change.document.uri}: ${lintingTime}ms`);
 
@@ -215,18 +215,25 @@ documents.onDidClose(async change => {
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
 export const linters = new Map<string, VhdlLinter>();
+export const liveLinter = new Map<string, Promise<VhdlLinter>>();
 export const lintersValid = new Map<string, boolean>();
 async function validateTextDocument(textDocument: TextDocument, cancelationObject: CancelationObject = { canceled: false }): Promise<VhdlLinter> {
   // For some reason the : in the beginning of win paths comes escaped here.
   const uri = normalizeUri(textDocument.uri);
   const url = new URL(uri);
+  console.log('parse go');
   const vhdlLinter = new VhdlLinter(url, textDocument.getText(), projectParser, getDocumentSettings, cancelationObject);
-  if (vhdlLinter.parsedSuccessfully || typeof linters.get(uri) === 'undefined') {
-    linters.set(uri, vhdlLinter);
-    lintersValid.set(uri, true);
-  } else {
-    lintersValid.set(uri, false);
-  }
+  liveLinter.set(uri, new Promise((resolve, reject) => {
+    if (vhdlLinter.parsedSuccessfully || typeof linters.get(uri) === 'undefined') {
+      resolve(vhdlLinter);
+      linters.set(uri, vhdlLinter);
+      lintersValid.set(uri, true);
+    } else {
+      reject();
+      lintersValid.set(uri, false);
+    }
+  }));
+  console.log('parse done');
   // console.log(`parsed for: ${Date.now() - start} ms.`);
   // start = Date.now();
   try {
@@ -245,11 +252,17 @@ async function validateTextDocument(textDocument: TextDocument, cancelationObjec
   }
   return vhdlLinter;
 }
-async function getLinter(uri: string, token?: CancellationToken) {
+async function getLinter(uri: string, token?: CancellationToken, useOldLinterOnFail = true) {
   await initialization;
   uri = normalizeUri(uri);
-
-  const linter = linters.get(uri);
+  let linter: VhdlLinter | undefined;
+  try {
+    linter = await liveLinter.get(uri);
+  } catch(err) {
+    if (useOldLinterOnFail) {
+      linter = linters.get(uri);
+    }
+  }
   if (typeof linter === 'undefined') {
     throw new ResponseError(ErrorCodes.InvalidRequest, 'Parser not ready', 'Parser not ready');
   }
@@ -370,7 +383,19 @@ connection.onSignatureHelp(async (params, token) => {
   const linter = await getLinter(params.textDocument.uri, token);
   return signatureHelp(linter, params.position);
 });
-connection.languages.semanticTokens.on(handleSemanticTokens);
+connection.languages.semanticTokens.on(async (params, token) => {
+  console.log('semanticTokens start');
+  const linter = await getLinter(params.textDocument.uri, token, false);
+  console.log('semanticTokens got Linter');
+  if (!(await getDocumentSettings(new URL(params.textDocument.uri))).semanticTokens) {
+    return {
+      data: []
+    };
+  }
+  const tokens = semanticTokens(linter);
+  console.log('semanticTokens done');
+  return tokens;
+});
 documents.listen(connection);
 
 // Listen on the connection
