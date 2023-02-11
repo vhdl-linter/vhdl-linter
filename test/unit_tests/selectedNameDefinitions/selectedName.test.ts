@@ -40,6 +40,7 @@ test.each([
 
 test.each([
   'test_protected_type.vhd',
+  // array of protected types is not allowed (5.3.1 "It is an error if a composite type contains elements of file types or protected types.")
 ])('Testing definitions of %s', async (fileName) => {
   const path = join(__dirname, fileName);
   const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser, defaultSettingsGetter);
