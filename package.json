@@ -159,6 +159,12 @@
 					"default": "lowercase",
 					"description": "Default casing for the completion of items of the ieee and standard libraries."
 				},
+				"VhdlLinter.style.warnSpaceBeforeUnit": {
+					"scope": "window",
+					"type": "boolean",
+					"default": true,
+					"description": "Warn when physical literals don't have a space before the unit."
+				},
 				"VhdlLinter.ports.enablePortStyle": {
 					"scope": "window",
 					"type": "boolean",

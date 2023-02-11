@@ -14,6 +14,7 @@ export interface ISettings {
     preferredLogicTypeSignal: "unresolved" | "resolved" | "ignore";
     unusedSignalRegex: string;
     ieeeCasing: 'lowercase' | 'UPPERCASE';
+    warnSpaceBeforeUnit: boolean;
   };
   rules: {
     warnLibrary: boolean;
@@ -36,7 +37,8 @@ export const defaultSettings: ISettings = {
     preferredLogicTypePort: 'unresolved',
     preferredLogicTypeSignal: 'unresolved',
     unusedSignalRegex: '_unused$',
-    ieeeCasing: 'lowercase'
+    ieeeCasing: 'lowercase',
+    warnSpaceBeforeUnit: true
   },
   rules: {
     warnLogicType: true,

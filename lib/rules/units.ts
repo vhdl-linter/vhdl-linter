@@ -7,6 +7,9 @@ export class RUnits extends RuleBase implements IRule {
   file: OFile;
 
   check() {
+    if (!this.settings.style.warnSpaceBeforeUnit) {
+      return;
+    }
     for (const obj of this.file.objectList) {
       if (obj instanceof OReference && obj.definitions.some(def => def instanceof OUnit)) {
         // check if token before unit token is whitespace
@@ -24,8 +27,8 @@ export class RUnits extends RuleBase implements IRule {
           });
           this.addMessage({
             range: obj.referenceToken.range,
-            severity: DiagnosticSeverity.Error,
-            message: `There must be a space before a unit reference.`,
+            severity: DiagnosticSeverity.Warning,
+            message: `There should be a space before a unit reference.`,
             code
           });
 
