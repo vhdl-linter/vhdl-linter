@@ -134,7 +134,6 @@ export class TypeParser extends ParserBase {
             type.protected = true;
           }
           new DeclarativePartParser(this.state, type).parse(false, 'end');
-          this.expect('end');
           this.expect('protected');
           this.maybe(type.lexerToken.text);
         } else if (nextToken.getLText() === 'range') {

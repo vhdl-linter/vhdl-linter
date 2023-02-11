@@ -200,7 +200,6 @@ export class ConcurrentStatementParser extends ParserBase {
       this.parent.statements.push(assignment);
     } else if (nextToken.getLText() === 'assert' && allowedStatements.includes(ConcurrentStatementTypes.Assert)) {
       this.consumeToken();
-      //        console.log('report');
       this.advancePast(';');
     } else {
       let braceLevel = 0;

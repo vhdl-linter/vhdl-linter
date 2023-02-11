@@ -2,7 +2,7 @@ import { OLexerToken, TokenType } from '../lexer';
 import { ConcurrentStatementParser, ConcurrentStatementTypes } from './concurrent-statement-parser';
 import { DeclarativePartParser } from './declarative-part-parser';
 import { ExpressionParser } from './expression-parser';
-import { OArchitecture, OBlock, OCaseGenerate, OConstant, OElseGenerateClause, OFile, OForGenerate, OI, OIfGenerate, OIfGenerateClause, ORead, OReference, OWhenGenerateClause, ParserError } from './objects';
+import { OArchitecture, OBlock, OCaseGenerate, OConstant, OElseGenerateClause, OFile, OForGenerate, OIfGenerate, OIfGenerateClause, ORead, OReference, OWhenGenerateClause, ParserError } from './objects';
 import { ParserBase, ParserState } from './parser-base';
 
 export class StatementBodyParser extends ParserBase {
@@ -78,8 +78,7 @@ export class StatementBodyParser extends ParserBase {
     }
 
     new DeclarativePartParser(this.state, (statementBody as OArchitecture)).parse(structureName !== 'architecture');
-    statementBody.endOfDeclarativePart = new OI(statementBody, this.state.pos.i);
-    this.maybe('begin');
+    statementBody.endOfDeclarativePart = this.getToken(-1, true).range.start;
 
     while (this.state.pos.isValid()) {
       this.advanceWhitespace();

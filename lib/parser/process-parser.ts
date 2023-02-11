@@ -21,7 +21,6 @@ export class ProcessParser extends ParserBase {
     }
     this.maybe('is');
     new DeclarativePartParser(this.state, process).parse();
-    this.expect('begin');
     process.statements = new SequentialStatementParser(this.state).parse(process, ['end']);
     this.expect('end');
     this.expect('process');
