@@ -17,7 +17,6 @@ import { handleSemanticTokens, semanticTokensLegend } from './languageFeatures/s
 import { signatureHelp } from './languageFeatures/signatureHelp';
 import { handleOnWorkspaceSymbol } from './languageFeatures/workspaceSymbols';
 import { normalizeUri } from './normalize-uri';
-import { OComponent, OFile, OInstantiation, OUseClause } from './parser/objects';
 import { ProjectParser } from './project-parser';
 import { CancelationError, CancelationObject } from './server-objects';
 import { defaultSettings, ISettings } from './settings';
@@ -371,73 +370,6 @@ connection.onSignatureHelp(async (params, token) => {
   const linter = await getLinter(params.textDocument.uri, token);
   return signatureHelp(linter, params.position);
 });
-/* eslint-disable */
-// TODO: Either properly fix vhdl-linter/listing and add testing or remove code.
-connection.onRequest('vhdl-linter/listing', async (params: any, token) => {
-  const linter = await getLinter(params.textDocument.uri, token);
-
-  const files: OFile[] = [];
-  const unresolved: string[] = [];
-
-  function addUnresolved(name: string) {
-    if (unresolved.findIndex(search => search === name) === -1) {
-      unresolved.push(name);
-    }
-  }
-
-  async function parseTree(file: OFile) {
-    const index = files.findIndex(fileSearch => fileSearch.uri === file.uri);
-    if (index === -1) {
-      files.push(file);
-    } else {
-      // push the file to the back to have correct compile order
-      files.push(files.splice(index, 1)[0]!);
-    }
-
-    for (const obj of file.objectList) {
-      let found: OFile | undefined = undefined;
-      if (obj instanceof OInstantiation) {
-        if (obj.type === 'entity') {
-          if (obj.definitions.length > 0 && obj.definitions[0]!.parent instanceof OFile && obj.definitions[0]!.parent.entities[0] !== undefined) { // TODO: Fix me better
-            found = obj.definitions[0]!.parent;
-          } else {
-            addUnresolved(`${obj.library}.${obj.componentName.text}`);
-          }
-        } else if (obj.type === 'component') {
-          if (obj.definitions.length > 0
-            && obj.definitions[0] instanceof OComponent && obj.definitions[0].definitions.length > 0
-            && obj.definitions[0]!.definitions[0]!.parent instanceof OFile) {
-            found = obj.definitions[0]!.definitions[0]!.parent;
-          } else {
-            addUnresolved(obj.componentName.text);
-          }
-        }
-      } else if (obj instanceof OUseClause) {
-        // do not generate file listings for ieee files
-        if (obj.library?.referenceToken.getLText() === 'ieee' || obj.library?.referenceToken.getLText() === 'std') {
-          continue;
-        }
-        const matchingPackages = projectParser.packages.filter(pkg => pkg.lexerToken.getLText() === obj.packageName.referenceToken.getLText());
-        if (matchingPackages.length > 0) {
-          found = matchingPackages[0]!.parent;
-        }
-      }
-
-      if (found) {
-        const vhdlLinter = new VhdlLinter(found.uri, found.originalText, projectParser, getDocumentSettings);
-        await vhdlLinter.checkAll();
-        await parseTree(vhdlLinter.file);
-      }
-    }
-
-  }
-
-  await parseTree(linter.file);
-  const filesList = files.reverse().map(file => file.uri.toString().replace((rootUri ?? '').replace('file://', ''), '')).join(`\n`);
-  const unresolvedList = unresolved.join('\n');
-  return `files:\n${filesList}\n\nUnresolved instantiations:\n${unresolvedList}`;
-});
-/* eslint-enable */
 connection.languages.semanticTokens.on(handleSemanticTokens);
 documents.listen(connection);
 

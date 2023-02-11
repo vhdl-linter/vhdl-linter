@@ -1,4 +1,4 @@
-import { commands, env, ExtensionContext, Position, ProgressLocation, window, workspace } from 'vscode';
+import { commands, ExtensionContext, Position, window, workspace } from 'vscode';
 import {
   LanguageClient,
   LanguageClientOptions,
@@ -89,21 +89,7 @@ export async function activate(context: ExtensionContext) {
   }));
   context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-as-instance', () => copy(CopyTypes.Instance)));
   context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-as-signals', () => copy(CopyTypes.Signals)));
-  context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-file-listing', async () => {
-    const editor = window.activeTextEditor;
-    if (!editor) {
-      return;
-    }
 
-    const result = await window.withProgress({
-      location: ProgressLocation.Notification,
-      title: 'Creating list of used files...'
-    },
-      async () => await client.sendRequest('vhdl-linter/listing', { textDocument: { uri: editor.document.uri.toString() } })
-    );
-    await env.clipboard.writeText(result as string);
-    await window.showInformationMessage(`Copied list of files to clipboard.`);
-  }));
 }
 
 export function deactivate(): Thenable<void> | undefined {
