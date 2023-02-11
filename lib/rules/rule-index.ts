@@ -9,6 +9,7 @@ import { RNotDeclared } from "./not-declared";
 import { RParser } from "./parser";
 import { RPortDeclaration } from "./port-declaration";
 import { RTypeResolved } from "./type-resolved";
+import { RUnits } from "./units";
 import { RUnused } from "./unused";
 
 export const rules = [
@@ -23,5 +24,6 @@ export const rules = [
   RUnused,
   REmpty,
   RConstantWrite,
-  RParser
+  RParser,
+  RUnits
 ];
