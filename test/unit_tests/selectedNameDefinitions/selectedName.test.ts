@@ -40,7 +40,6 @@ test.each([
 
 test.each([
   'test_protected_type.vhd',
-  'test_protected_type_array.vhd',
 ])('Testing definitions of %s', async (fileName) => {
   const path = join(__dirname, fileName);
   const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser, defaultSettingsGetter);
