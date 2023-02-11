@@ -1,0 +1,121 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Testing behavior of missing statements in file _architecture_begin_missing.vhd 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "Unexpected token: 'assert' in declarative part. begin missing? (parser)",
+    "range": {
+      "end": {
+        "character": 8,
+        "line": 8,
+      },
+      "start": {
+        "character": 2,
+        "line": 8,
+      },
+    },
+    "severity": undefined,
+  },
+]
+`;
+
+exports[`Testing behavior of missing statements in file _package_begin_missing.vhd 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "Unexpected token: 'pkg' in declarative part. end missing? (parser)",
+    "range": {
+      "end": {
+        "character": 3,
+        "line": 3,
+      },
+      "start": {
+        "character": 0,
+        "line": 3,
+      },
+    },
+    "severity": undefined,
+  },
+  {
+    "code": "2;3",
+    "message": "Unexpected token: 'pkg' in declarative part. end missing? (parser)",
+    "range": {
+      "end": {
+        "character": 3,
+        "line": 9,
+      },
+      "start": {
+        "character": 0,
+        "line": 9,
+      },
+    },
+    "severity": undefined,
+  },
+  {
+    "code": "4;5",
+    "message": "Unexpected token: ';' in declarative part. end missing? (parser)",
+    "range": {
+      "end": {
+        "character": 1,
+        "line": 13,
+      },
+      "start": {
+        "character": 0,
+        "line": 13,
+      },
+    },
+    "severity": undefined,
+  },
+  {
+    "code": "6;7",
+    "message": "Unexpected token: ';' in declarative part. end missing? (parser)",
+    "range": {
+      "end": {
+        "character": 1,
+        "line": 15,
+      },
+      "start": {
+        "character": 0,
+        "line": 15,
+      },
+    },
+    "severity": undefined,
+  },
+]
+`;
+
+exports[`Testing behavior of missing statements in file _subprogram_begin_missing.vhd 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "Unexpected token: 'norm_NewA' in declarative part. begin missing? (parser)",
+    "range": {
+      "end": {
+        "character": 13,
+        "line": 10,
+      },
+      "start": {
+        "character": 4,
+        "line": 10,
+      },
+    },
+    "severity": undefined,
+  },
+  {
+    "code": "2;3",
+    "message": "Unexpected token: 'report' in declarative part. begin missing? (parser)",
+    "range": {
+      "end": {
+        "character": 10,
+        "line": 19,
+      },
+      "start": {
+        "character": 4,
+        "line": 19,
+      },
+    },
+    "severity": undefined,
+  },
+]
+`;

@@ -40,7 +40,6 @@ export class SubprogramParser extends ParserBase {
       subprogram.hasBody = true;
       this.expect('is');
       new DeclarativePartParser(this.state, subprogram).parse();
-      this.expect('begin');
       subprogram.statements = new SequentialStatementParser(this.state).parse(subprogram, ['end']);
       this.expect('end');
       this.maybe(isFunction ? 'function' : 'procedure');

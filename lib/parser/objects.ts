@@ -808,7 +808,10 @@ export class OAttributeReference extends OReference {
   }
 }
 export class ParserError extends Error {
-  constructor(message: string, public range: OIRange, public solution?: { message: string, edits: TextEdit[] }) {
+  constructor(message: string,
+    public range: OIRange,
+    public solution?: { message: string, edits: TextEdit[] }
+    ) {
     super(message);
   }
 }

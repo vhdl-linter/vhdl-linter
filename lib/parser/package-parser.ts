@@ -15,7 +15,6 @@ export class PackageParser extends ParserBase {
       this.expect('is');
       const declarativePartParser = new DeclarativePartParser(this.state, pkg);
       declarativePartParser.parse(false, 'end');
-      this.expect('end');
       this.maybe('package');
       this.maybe('body');
       pkg.endingLexerToken = this.maybe(pkg.lexerToken.text);
@@ -57,7 +56,6 @@ export class PackageParser extends ParserBase {
       }
       const declarativePartParser = new DeclarativePartParser(this.state, pkg);
       declarativePartParser.parse(false, 'end');
-      this.expect('end');
       this.maybe('package');
       pkg.endingLexerToken = this.maybe(pkg.lexerToken.text);
       pkg.range = pkg.range.copyWithNewEnd(this.getToken().range.end);
