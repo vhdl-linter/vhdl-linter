@@ -7,7 +7,6 @@ package pkg is
     field: integer;
   end record;
 
-  alias a is
-   rec;
+  alias a is rec;
 
 end package;
