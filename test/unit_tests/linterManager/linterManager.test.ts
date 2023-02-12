@@ -7,7 +7,6 @@ import { defaultSettingsGetter } from '../../../lib/settings';
 import * as vhdlModule from '../../../lib/vhdl-linter';
 
 jest.mock('../../../lib/vhdl-linter');
-const mockLinter = jest.mocked(vhdlModule.VhdlLinter);
 jest.mock('../../../lib/elaborate/elaborate');
 beforeEach(() => {
   jest.resetAllMocks();
