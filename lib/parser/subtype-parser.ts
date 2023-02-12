@@ -14,7 +14,8 @@ export class SubtypeParser extends ParserBase {
     this.expect('is');
     if (this.getToken().getLText() === '(') { // funky vhdl stuff
       this.subtype.resolved = true;
-      this.advancePast(')');
+      this.consumeToken(); // consume the '(' to be able to parseParenthesisAware
+      this.advanceParenthesisAware([')']);
     }
     if (this.maybe('resolved')) {
       this.subtype.resolved = true;

@@ -30,7 +30,7 @@ export class TypeParser extends ParserBase {
     type.lexerToken = this.consumeToken();
     if (this.getToken().getLText() === ';') {
       type.incomplete = true;
-      this.advancePast(';');
+      this.consumeToken();
       return type;
     }
     const nextToken = this.consumeToken();
@@ -63,7 +63,7 @@ export class TypeParser extends ParserBase {
         this.advanceWhitespace();
         this.expect(';');
       } else if (this.isUnits()) {
-        this.advancePast('units');
+        this.advanceParenthesisAware(['units']);
         type.units = [];
         type.units.push(new OUnit(type, this.consumeToken()));
         this.advanceSemicolon();
@@ -154,11 +154,11 @@ export class TypeParser extends ParserBase {
           deallocateProcedure.ports = [port];
         }
         type.range = type.range.copyWithNewEnd(this.state.pos.i);
-        this.advancePast(';');
+        this.advanceSemicolon();
       }
     } else {
       type.range = type.range.copyWithNewEnd(this.state.pos.i);
-      this.advancePast(';');
+      this.advanceSemicolon();
     }
     return type;
   }

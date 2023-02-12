@@ -152,68 +152,6 @@ export class ParserBase {
       this.state.pos.num--;
     }
   }
-  /**
- * @deprecated advancePast is deprecated in favor of advanceParenthesisAware
- */
-  advancePast(search: string, options: { allowSemicolon?: boolean, returnMatch?: boolean, consume?: boolean } = {}) {
-    if (typeof options.allowSemicolon === 'undefined') {
-      options.allowSemicolon = false;
-    }
-    if (typeof options.returnMatch === 'undefined') {
-      options.returnMatch = false;
-    }
-    if (typeof options.consume === 'undefined') {
-      options.consume = true;
-    }
-    const tokens = [];
-    search = search.toLowerCase();
-    const searchStart = this.state.pos;
-
-    while (this.getToken().getLText() !== search) {
-      if (!options.allowSemicolon && this.getToken().getLText() === ';') {
-        throw new ParserError(`could not find ${search} DEBUG-SEMICOLON`, this.state.pos.getRangeToEndLine());
-      }
-      tokens.push(this.consumeToken(false));
-      if (this.state.pos.num >= this.state.pos.lexerTokens.length) {
-        throw new ParserError(`could not find ${search}`, searchStart.getRangeToEndLine());
-      }
-    }
-    if (options.consume) {
-      if (options.returnMatch) {
-        tokens.push(this.consumeToken());
-      } else {
-        this.consumeToken();
-      }
-      this.advanceWhitespace();
-    } else {
-      if (options.returnMatch) {
-        tokens.push(this.getToken());
-      }
-    }
-    return tokens;
-  }
-  /**
- * @deprecated advanceClosingParenthesis is deprecated in favor of advanceParenthesisAware
- */
-  advanceClosingParenthesis() {
-    const tokens = [];
-    let parenthesisLevel = 0;
-    const savedI = this.state.pos;
-    while (this.state.pos.num < this.state.pos.lexerTokens.length) {
-      if (this.getToken().getLText() === '(') {
-        parenthesisLevel++;
-      } else if (this.getToken().getLText() === ')') {
-        if (parenthesisLevel > 0) {
-          parenthesisLevel--;
-        } else {
-          this.consumeToken();
-          return tokens;
-        }
-      }
-      tokens.push(this.consumeToken(false));
-    }
-    throw new ParserError(`could not find closing parenthesis`, savedI.getRangeToEndLine());
-  }
   advanceParenthesisAware(searchStrings: (string)[], consume = true, consumeLastToken = true): [OLexerToken[], OLexerToken] {
     searchStrings = searchStrings.map(str => str.toLowerCase());
     const savedI = this.state.pos;
@@ -250,14 +188,8 @@ export class ParserBase {
     }
     throw new ParserError(`could not find ${searchStrings.join(',')}`, savedI.getRangeToEndLine());
   }
-  advanceSemicolon(parenthesisAware = false, { consume } = { consume: true }) {
-    if (consume !== false) {
-      consume = true;
-    }
-    if (parenthesisAware) {
-      return this.advanceParenthesisAware([';'], consume)[0];
-    }
-    return this.advancePast(';', { consume });
+  advanceSemicolon(consume = true) {
+    return this.advanceParenthesisAware([';'], consume)[0];
   }
 
   getLine() {
