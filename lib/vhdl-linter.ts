@@ -166,10 +166,12 @@ export class VhdlLinter {
     let i = 0;
     start = Date.now();
     try {
-      await Elaborate.elaborate(this);
-      if (profiling) {
-        console.log(`check ${i++}: ${Date.now() - start}ms`);
-        start = Date.now();
+      if (this.elaborated === false) {
+        await Elaborate.elaborate(this);
+        if (profiling) {
+          console.log(`check ${i++}: ${Date.now() - start}ms`);
+          start = Date.now();
+        }
       }
       // await this.removeBrokenActuals();
       if (profiling) {

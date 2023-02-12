@@ -34,6 +34,7 @@ test.each(files)('testing semantic tokens for %s', async (file: string) => {
   // mock.instances is available with automatic mocks:
   semanticTokens(linter);
   const lines = linter.text.split('\n');
+  expect(mockSemanticTokensBuilder.mock.instances).toHaveLength(1);
   expect(mockSemanticTokensBuilder.mock.instances[0]?.push.mock.calls.map(([line, char, length, tokenType, tokenModifier]) => {
     const text = lines[line]?.slice(char, char + length);
     const modifiers: (string | undefined)[] = [];

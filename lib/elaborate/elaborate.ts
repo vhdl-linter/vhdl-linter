@@ -17,11 +17,8 @@ export class Elaborate {
   }
   public static async elaborate(vhdlLinter: VhdlLinter) {
 
-    if (vhdlLinter.elaborated === false) {
-      const elaborator = new Elaborate(vhdlLinter);
-      await elaborator.elaborateAll();
-      vhdlLinter.elaborated = true;
-    }
+    const elaborator = new Elaborate(vhdlLinter);
+    await elaborator.elaborateAll();
   }
   public static clear(vhdlLinter: VhdlLinter) {
     for (const obj of vhdlLinter.file.objectList) {
