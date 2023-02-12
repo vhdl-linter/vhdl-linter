@@ -210,7 +210,7 @@ const linterManager = new LinterManager();
 async function validateTextDocument(textDocument: TextDocument): Promise<VhdlLinter> {
 
 
-  const vhdlLinter = await linterManager.triggerRefresh(textDocument, projectParser);
+  const vhdlLinter = await linterManager.triggerRefresh(textDocument.uri, textDocument.getText(), projectParser, getDocumentSettings);
   console.log('parse done');
   // console.log(`parsed for: ${Date.now() - start} ms.`);
   // start = Date.now();

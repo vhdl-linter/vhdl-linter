@@ -1,14 +1,13 @@
 import { EventEmitter } from "stream";
 import { CancellationToken, CancellationTokenSource, LSPErrorCodes, ResponseError } from "vscode-languageserver";
-import { TextDocument } from "vscode-languageserver-textdocument";
 import { Elaborate } from "./elaborate/elaborate";
-import { getDocumentSettings } from "./language-server";
 import { normalizeUri } from "./normalize-uri";
 import { ProjectParser } from "./project-parser";
-import { VhdlLinter } from "./vhdl-linter";
+import { SettingsGetter, VhdlLinter } from "./vhdl-linter";
 
 interface ILinterState {
-  valid?: boolean;
+  wasAlreadyValid?: boolean; // Was already once valid (=the linters object has a valid linter)
+  valid?: boolean; // Is currently valid
   done: boolean;
 }
 export class LinterManager {
@@ -22,13 +21,12 @@ export class LinterManager {
 
   async getLinter(uri: string, token?: CancellationToken, preferOldOverWaiting = true) {
     uri = normalizeUri(uri);
-    while (this.state[uri]?.done !== true && (preferOldOverWaiting || this.state[uri]?.valid)) {
+    while (this.state[uri]?.done !== true || (preferOldOverWaiting && this.state[uri]?.wasAlreadyValid !== true) || (preferOldOverWaiting === false && this.state[uri]?.valid !== true)) {
       if (token?.isCancellationRequested) {
         throw new ResponseError(LSPErrorCodes.RequestCancelled, 'canceled');
       }
       await new Promise(resolve => this.emitter.once(uri, resolve));
     }
-
     if (token?.isCancellationRequested) {
       throw new ResponseError(LSPErrorCodes.RequestCancelled, 'canceled');
     }
@@ -39,8 +37,8 @@ export class LinterManager {
     return linter;
   }
   cancellationTokenSources: Record<string, CancellationTokenSource> = {};
-  async triggerRefresh(textDocument: TextDocument, projectParser: ProjectParser) {
-    const uri = normalizeUri(textDocument.uri);
+  async triggerRefresh(uri: string, text: string, projectParser: ProjectParser, settingsGetter: SettingsGetter) {
+    uri = normalizeUri(uri);
     const oldSource = this.cancellationTokenSources[uri];
     if (oldSource) {
       oldSource.cancel();
@@ -48,11 +46,13 @@ export class LinterManager {
     const newSource = new CancellationTokenSource();
     this.cancellationTokenSources[uri] = newSource;
     const url = new URL(uri);
-    this.state[uri] = {
-      done: false
-    };
-    const vhdlLinter = new VhdlLinter(url, textDocument.getText(), projectParser, getDocumentSettings, newSource.token);
-    this.state[uri]!.valid = vhdlLinter.parsedSuccessfully;
+    const state = this.state[uri] ?? { done: false };
+    if (this.state[uri] === undefined) {
+      this.state[uri] = state;
+    }
+    state.done = false;
+    const vhdlLinter = new VhdlLinter(url, text, projectParser, settingsGetter, newSource.token);
+    state.valid = vhdlLinter.parsedSuccessfully;
     this.emitter.emit(uri);
     if (vhdlLinter.parsedSuccessfully) {
       this.linters[uri] = vhdlLinter;
@@ -60,11 +60,11 @@ export class LinterManager {
       if (newSource.token.isCancellationRequested) {
         throw new ResponseError(LSPErrorCodes.RequestCancelled, 'canceled');
       }
-      this.state[uri]!.done = true;
+      state.done = true;
+      state.wasAlreadyValid = true;
       this.emitter.emit(uri);
     }
     return vhdlLinter;
 
   }
 }
-const cancellationTokenSource = new CancellationTokenSource();

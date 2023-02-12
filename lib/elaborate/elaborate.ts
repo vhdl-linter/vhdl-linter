@@ -1,5 +1,5 @@
 import { DiagnosticSeverity } from "vscode-languageserver/node";
-import { implementsIHasReference, implementsIHasDefinitions } from "../parser/interfaces";
+import { implementsIHasDefinitions, implementsIHasReference } from "../parser/interfaces";
 import { OArchitecture, OEntity, OFile, OPackage, OPackageBody } from "../parser/objects";
 import { VhdlLinter } from "../vhdl-linter";
 import { elaborateAliases } from "./elaborate-aliases";
@@ -17,8 +17,11 @@ export class Elaborate {
   }
   public static async elaborate(vhdlLinter: VhdlLinter) {
 
-    const elaborator = new Elaborate(vhdlLinter);
-    await elaborator.elaborateAll();
+    if (vhdlLinter.elaborated === false) {
+      const elaborator = new Elaborate(vhdlLinter);
+      await elaborator.elaborateAll();
+      vhdlLinter.elaborated = true;
+    }
   }
   public static clear(vhdlLinter: VhdlLinter) {
     for (const obj of vhdlLinter.file.objectList) {

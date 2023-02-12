@@ -2,6 +2,7 @@ import {
   CancellationToken,
   CodeAction, CodeActionKind, Diagnostic, DiagnosticSeverity, Position, Range, TextEdit
 } from 'vscode-languageserver';
+import { Elaborate } from './elaborate/elaborate';
 import { FileParser } from './parser/file-parser';
 import {
   OFile, OI, OIRange, ParserError
@@ -31,6 +32,7 @@ export class VhdlLinter {
   file: OFile;
   parser: FileParser;
   parsedSuccessfully = false;
+  elaborated = false;
   constructor(public uri: URL, public text: string, public projectParser: ProjectParser,
     public settingsGetter: SettingsGetter,
     public token?: CancellationToken) {
@@ -164,6 +166,12 @@ export class VhdlLinter {
     let i = 0;
     start = Date.now();
     try {
+      await Elaborate.elaborate(this);
+      if (profiling) {
+        console.log(`check ${i++}: ${Date.now() - start}ms`);
+        start = Date.now();
+      }
+      // await this.removeBrokenActuals();
       if (profiling) {
         console.log(`check ${i++}: ${Date.now() - start}ms`);
         start = Date.now();
