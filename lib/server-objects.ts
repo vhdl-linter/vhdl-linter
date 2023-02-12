@@ -1,6 +1,3 @@
-export interface CancelationObject {
-  canceled: boolean;
-}
-export class CancelationError extends Error {
+export class CancellationError extends Error {
 
 }

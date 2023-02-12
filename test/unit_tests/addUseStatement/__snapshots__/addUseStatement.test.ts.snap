@@ -102,6 +102,58 @@ exports[`testing add use statement actions for file arch.vhd 3`] = `
 ]
 `;
 
+exports[`testing add use statement actions for file arch.vhd 4`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file://dummy.vhd": [
+          {
+            "newText": " -- vhdl-linter-disable-line not-declared",
+            "range": {
+              "end": {
+                "character": 1000,
+                "line": 5,
+              },
+              "start": {
+                "character": 1000,
+                "line": 5,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared on this line.",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file://dummy.vhd": [
+          {
+            "newText": "-- vhdl-linter-disable not-declared
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared for this file.",
+  },
+]
+`;
+
 exports[`testing add use statement actions for file constant.vhd 1`] = `
 [
   {
@@ -338,6 +390,58 @@ exports[`testing add use statement actions for file constant.vhd 2`] = `
 `;
 
 exports[`testing add use statement actions for file constant.vhd 3`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file://dummy.vhd": [
+          {
+            "newText": " -- vhdl-linter-disable-line not-declared",
+            "range": {
+              "end": {
+                "character": 1000,
+                "line": 8,
+              },
+              "start": {
+                "character": 1000,
+                "line": 8,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared on this line.",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file://dummy.vhd": [
+          {
+            "newText": "-- vhdl-linter-disable not-declared
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared for this file.",
+  },
+]
+`;
+
+exports[`testing add use statement actions for file constant.vhd 4`] = `
 [
   {
     "edit": {
@@ -831,6 +935,381 @@ exports[`testing add use statement actions for file function.vhd 3`] = `
 ]
 `;
 
+exports[`testing add use statement actions for file function.vhd 4`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file://dummy.vhd": [
+          {
+            "newText": " -- vhdl-linter-disable-line not-declared",
+            "range": {
+              "end": {
+                "character": 1000,
+                "line": 5,
+              },
+              "start": {
+                "character": 1000,
+                "line": 5,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared on this line.",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file://dummy.vhd": [
+          {
+            "newText": "-- vhdl-linter-disable not-declared
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared for this file.",
+  },
+]
+`;
+
+exports[`testing add use statement actions for file function.vhd 5`] = `
+[
+  {
+    "command": {
+      "arguments": [
+        {
+          "position": {
+            "character": 0,
+            "line": 7,
+          },
+          "signalName": "test",
+          "textDocumentUri": "file://dummy.vhd",
+        },
+      ],
+      "command": "vhdl-linter:add-signal",
+      "title": "add signal to architecture",
+    },
+    "kind": "quickfix",
+    "title": "add signal to architecture",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file://dummy.vhd": [
+          {
+            "newText": "test",
+            "range": {
+              "end": {
+                "character": 6,
+                "line": 8,
+              },
+              "start": {
+                "character": 2,
+                "line": 8,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Replace with test (score: 1)",
+  },
+]
+`;
+
+exports[`testing add use statement actions for file function.vhd 6`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file://dummy.vhd": [
+          {
+            "newText": " -- vhdl-linter-disable-line not-declared",
+            "range": {
+              "end": {
+                "character": 1000,
+                "line": 8,
+              },
+              "start": {
+                "character": 1000,
+                "line": 8,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared on this line.",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file://dummy.vhd": [
+          {
+            "newText": "-- vhdl-linter-disable not-declared
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared for this file.",
+  },
+]
+`;
+
+exports[`testing add use statement actions for file function.vhd 7`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file://dummy.vhd": [
+          {
+            "newText": "library ieee;
+use ieee.fixed_generic_pkg.all;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 3,
+              },
+              "start": {
+                "character": 0,
+                "line": 3,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add use statement for ieee.fixed_generic_pkg",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file://dummy.vhd": [
+          {
+            "newText": "library ieee;
+use ieee.float_generic_pkg.all;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 3,
+              },
+              "start": {
+                "character": 0,
+                "line": 3,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add use statement for ieee.float_generic_pkg",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file://dummy.vhd": [
+          {
+            "newText": "library ieee;
+use ieee.numeric_bit.all;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 3,
+              },
+              "start": {
+                "character": 0,
+                "line": 3,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add use statement for ieee.numeric_bit",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file://dummy.vhd": [
+          {
+            "newText": "library ieee;
+use ieee.numeric_bit_unsigned.all;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 3,
+              },
+              "start": {
+                "character": 0,
+                "line": 3,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add use statement for ieee.numeric_bit_unsigned",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file://dummy.vhd": [
+          {
+            "newText": "library ieee;
+use ieee.numeric_std.all;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 3,
+              },
+              "start": {
+                "character": 0,
+                "line": 3,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add use statement for ieee.numeric_std",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file://dummy.vhd": [
+          {
+            "newText": "library ieee;
+use ieee.numeric_std_unsigned.all;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 3,
+              },
+              "start": {
+                "character": 0,
+                "line": 3,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add use statement for ieee.numeric_std_unsigned",
+  },
+  {
+    "command": {
+      "arguments": [
+        {
+          "position": {
+            "character": 0,
+            "line": 7,
+          },
+          "signalName": "to_integer",
+          "textDocumentUri": "file://dummy.vhd",
+        },
+      ],
+      "command": "vhdl-linter:add-signal",
+      "title": "add signal to architecture",
+    },
+    "kind": "quickfix",
+    "title": "add signal to architecture",
+  },
+]
+`;
+
+exports[`testing add use statement actions for file function.vhd 8`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file://dummy.vhd": [
+          {
+            "newText": " -- vhdl-linter-disable-line not-declared",
+            "range": {
+              "end": {
+                "character": 1000,
+                "line": 8,
+              },
+              "start": {
+                "character": 1000,
+                "line": 8,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared on this line.",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file://dummy.vhd": [
+          {
+            "newText": "-- vhdl-linter-disable not-declared
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared for this file.",
+  },
+]
+`;
+
 exports[`testing add use statement actions for file generic_function_call.vhd 1`] = `
 [
   {
@@ -900,6 +1379,310 @@ use ieee.math_real.all;
 `;
 
 exports[`testing add use statement actions for file generic_function_call.vhd 3`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file://dummy.vhd": [
+          {
+            "newText": " -- vhdl-linter-disable-line not-declared",
+            "range": {
+              "end": {
+                "character": 1000,
+                "line": 17,
+              },
+              "start": {
+                "character": 1000,
+                "line": 17,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared on this line.",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file://dummy.vhd": [
+          {
+            "newText": "-- vhdl-linter-disable not-declared
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared for this file.",
+  },
+]
+`;
+
+exports[`testing add use statement actions for file generic_function_call.vhd 4`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file://dummy.vhd": [
+          {
+            "newText": " -- vhdl-linter-disable-line not-declared",
+            "range": {
+              "end": {
+                "character": 1000,
+                "line": 4,
+              },
+              "start": {
+                "character": 1000,
+                "line": 4,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared on this line.",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file://dummy.vhd": [
+          {
+            "newText": "-- vhdl-linter-disable not-declared
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared for this file.",
+  },
+]
+`;
+
+exports[`testing add use statement actions for file generic_function_call.vhd 5`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file://dummy.vhd": [
+          {
+            "newText": " -- vhdl-linter-disable-line not-declared",
+            "range": {
+              "end": {
+                "character": 1000,
+                "line": 11,
+              },
+              "start": {
+                "character": 1000,
+                "line": 11,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared on this line.",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file://dummy.vhd": [
+          {
+            "newText": "-- vhdl-linter-disable not-declared
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared for this file.",
+  },
+]
+`;
+
+exports[`testing add use statement actions for file generic_function_call.vhd 6`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file://dummy.vhd": [
+          {
+            "newText": "library ieee;
+use ieee.math_real.all;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 11,
+              },
+              "start": {
+                "character": 0,
+                "line": 11,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add use statement for ieee.math_real",
+  },
+  {
+    "command": {
+      "arguments": [
+        {
+          "position": {
+            "character": 0,
+            "line": 14,
+          },
+          "signalName": "ceil",
+          "textDocumentUri": "file://dummy.vhd",
+        },
+      ],
+      "command": "vhdl-linter:add-signal",
+      "title": "add signal to architecture",
+    },
+    "kind": "quickfix",
+    "title": "add signal to architecture",
+  },
+]
+`;
+
+exports[`testing add use statement actions for file generic_function_call.vhd 7`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file://dummy.vhd": [
+          {
+            "newText": " -- vhdl-linter-disable-line not-declared",
+            "range": {
+              "end": {
+                "character": 1000,
+                "line": 17,
+              },
+              "start": {
+                "character": 1000,
+                "line": 17,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared on this line.",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file://dummy.vhd": [
+          {
+            "newText": "-- vhdl-linter-disable not-declared
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared for this file.",
+  },
+]
+`;
+
+exports[`testing add use statement actions for file generic_function_call.vhd 8`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file://dummy.vhd": [
+          {
+            "newText": "library ieee;
+use ieee.standard.all;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 11,
+              },
+              "start": {
+                "character": 0,
+                "line": 11,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add use statement for ieee.standard",
+  },
+  {
+    "command": {
+      "arguments": [
+        {
+          "position": {
+            "character": 0,
+            "line": 14,
+          },
+          "signalName": "integer",
+          "textDocumentUri": "file://dummy.vhd",
+        },
+      ],
+      "command": "vhdl-linter:add-signal",
+      "title": "add signal to architecture",
+    },
+    "kind": "quickfix",
+    "title": "add signal to architecture",
+  },
+]
+`;
+
+exports[`testing add use statement actions for file generic_function_call.vhd 9`] = `
 [
   {
     "edit": {

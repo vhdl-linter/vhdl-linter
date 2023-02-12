@@ -16,5 +16,6 @@ begin
   dummy : process(all)
   begin
     b_out <= a_in;
+    a <= 5;
   end process;  -- dummy
 end architecture;

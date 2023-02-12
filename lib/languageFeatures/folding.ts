@@ -1,11 +1,10 @@
-import { FoldingRange, FoldingRangeParams } from 'vscode-languageserver';
-import { documents, initialization, linters } from '../language-server';
+import { FoldingRange } from 'vscode-languageserver';
+import { documents } from '../language-server';
 import { OArchitecture, OAssociationList, OCase, OComponent, OElseClause, OEntity, OForGenerate, OIfClause, OIfGenerateClause, OInstantiation, OProcess, OSubprogram, OWhenClause } from '../parser/objects';
-export async function foldingHandler (params: FoldingRangeParams): Promise<FoldingRange[]> {
-  await initialization;
-  const linter = linters.get(params.textDocument.uri);
+import { VhdlLinter } from '../vhdl-linter';
+export function foldingHandler (linter: VhdlLinter): FoldingRange[] {
   if (typeof linter === 'undefined' || typeof linter.file === 'undefined') {
-    return blockFolding(documents.get(params.textDocument.uri)?.getText() ?? '');
+    return blockFolding(documents.get(linter.uri.toString())?.getText() ?? '');
   }
   const result: FoldingRange[] = [];
   for (const obj of linter.file.objectList) {
@@ -25,7 +24,7 @@ export async function foldingHandler (params: FoldingRangeParams): Promise<Foldi
       }
     }
   }
-  result.push(...blockFolding(documents.get(params.textDocument.uri)?.getText() ?? ''));
+  result.push(...blockFolding(documents.get(linter.uri.toString())?.getText() ?? ''));
   return result;
 }
 

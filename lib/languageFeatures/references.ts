@@ -1,17 +1,11 @@
-import { Location, ReferenceParams } from 'vscode-languageserver';
-import { initialization, linters } from '../language-server';
+import { Position } from 'vscode';
+import { Location } from 'vscode-languageserver';
 import { OReference } from '../parser/objects';
+import { VhdlLinter } from '../vhdl-linter';
 
-export async function handleReferences (params: ReferenceParams): Promise<Location[]> {
-  await initialization;
-  const linter = linters.get(params.textDocument.uri);
-  if (typeof linter === 'undefined') {
-    return [];
-  }
-  if (typeof linter.file === 'undefined') {
-    return [];
-  }
-  const startI = linter.getIFromPosition(params.position);
+export function handleReferences (linter: VhdlLinter, position: Position): Location[] {
+
+  const startI = linter.getIFromPosition(position);
   const candidates = linter.file.objectList.filter(object => object.range.start.i <= startI && startI <= object.range.end.i);
   candidates.sort((a, b) => (a.range.end.i - a.range.start.i) - (b.range.end.i - b.range.start.i));
   const candidate = candidates[0];
@@ -19,7 +13,7 @@ export async function handleReferences (params: ReferenceParams): Promise<Locati
     return [];
   }
   if (candidate instanceof OReference) {
-    return linter.file.objectList.filter(obj => obj instanceof OReference && obj.referenceToken.getLText() === candidate.referenceToken.getLText() && obj !== candidate).map(obj => Location.create(params.textDocument.uri, obj.range));
+    return linter.file.objectList.filter(obj => obj instanceof OReference && obj.referenceToken.getLText() === candidate.referenceToken.getLText() && obj !== candidate).map(obj => Location.create(linter.file.uri.toString(), obj.range));
   }
   return [];
 }

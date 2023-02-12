@@ -3,7 +3,7 @@ import { pathToFileURL } from 'url';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import {
   CancellationToken,
-  CodeAction, createConnection, DidChangeConfigurationNotification, ErrorCodes, InitializeParams, LSPErrorCodes, Position, ProposedFeatures, ResponseError, TextDocuments, TextDocumentSyncKind
+  CodeAction, createConnection, DidChangeConfigurationNotification, InitializeParams, Position, ProposedFeatures, TextDocuments, TextDocumentSyncKind
 } from 'vscode-languageserver/node';
 import { getCompletions } from './languageFeatures/completion';
 import { handleDocumentFormatting } from './languageFeatures/documentFormatting';
@@ -16,9 +16,10 @@ import { prepareRenameHandler, renameHandler } from './languageFeatures/rename';
 import { semanticTokens, semanticTokensLegend } from './languageFeatures/semanticTokens';
 import { signatureHelp } from './languageFeatures/signatureHelp';
 import { handleOnWorkspaceSymbol } from './languageFeatures/workspaceSymbols';
+import { LinterManager } from './linter-manager';
 import { normalizeUri } from './normalize-uri';
 import { ProjectParser } from './project-parser';
-import { CancelationError, CancelationObject } from './server-objects';
+import { CancellationError } from './server-objects';
 import { defaultSettings, ISettings } from './settings';
 import { VhdlLinter } from './vhdl-linter';
 
@@ -166,21 +167,13 @@ export const initialization = new Promise<void>(resolve => {
         documents.all().forEach((textDocument) => void validateTextDocument(textDocument));
       });
       const timeoutMap = new Map<string, NodeJS.Timeout>();
-      const cancelationMap = new Map<string, CancelationObject>();
       documents.onDidChangeContent(change => {
         const oldTimeout = timeoutMap.get(change.document.uri);
         if (oldTimeout !== undefined) {
           clearTimeout(oldTimeout);
         }
         async function handleChange() {
-          const cancelationObject = cancelationMap.get(change.document.uri);
-          if (cancelationObject) {
-            cancelationObject.canceled = true;
-          }
-          const newCancelationObject = {
-            canceled: false
-          };
-          const vhdlLinter = await validateTextDocument(change.document, newCancelationObject);
+          const vhdlLinter = await validateTextDocument(change.document);
           // For some reason the : in the beginning of win paths comes escaped here.
           const uri = normalizeUri(change.document.uri);
           const cachedFile = process.platform === 'win32'
@@ -188,7 +181,6 @@ export const initialization = new Promise<void>(resolve => {
             : projectParser.cachedFiles.find(cachedFile => cachedFile.uri.toString() === uri);
           await cachedFile?.parse(vhdlLinter);
           projectParser.flattenProject();
-          cancelationMap.set(change.document.uri, newCancelationObject);
         }
         void handleChange();
         // if (change.document.version === 1) { // Document was initially opened. Do not delay.
@@ -212,27 +204,13 @@ export const initialization = new Promise<void>(resolve => {
 documents.onDidClose(async change => {
   await connection.sendDiagnostics({ uri: change.document.uri, diagnostics: [] });
 });
+const linterManager = new LinterManager();
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
-export const linters = new Map<string, VhdlLinter>();
-export const liveLinter = new Map<string, Promise<VhdlLinter>>();
-export const lintersValid = new Map<string, boolean>();
-async function validateTextDocument(textDocument: TextDocument, cancelationObject: CancelationObject = { canceled: false }): Promise<VhdlLinter> {
-  // For some reason the : in the beginning of win paths comes escaped here.
-  const uri = normalizeUri(textDocument.uri);
-  const url = new URL(uri);
-  console.log('parse go');
-  const vhdlLinter = new VhdlLinter(url, textDocument.getText(), projectParser, getDocumentSettings, cancelationObject);
-  liveLinter.set(uri, new Promise((resolve, reject) => {
-    if (vhdlLinter.parsedSuccessfully || typeof linters.get(uri) === 'undefined') {
-      resolve(vhdlLinter);
-      linters.set(uri, vhdlLinter);
-      lintersValid.set(uri, true);
-    } else {
-      reject();
-      lintersValid.set(uri, false);
-    }
-  }));
+async function validateTextDocument(textDocument: TextDocument): Promise<VhdlLinter> {
+
+
+  const vhdlLinter = await linterManager.triggerRefresh(textDocument, projectParser);
   console.log('parse done');
   // console.log(`parsed for: ${Date.now() - start} ms.`);
   // start = Date.now();
@@ -242,45 +220,23 @@ async function validateTextDocument(textDocument: TextDocument, cancelationObjec
     // console.log(`checked for: ${Date.now() - start} ms.`);
     // start = Date.now();
     // console.profileEnd('a');
-    await connection.sendDiagnostics({ uri, diagnostics });
+    await connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
     // console.log(`send for: ${Date.now() - start} ms.`);
   } catch (err) {
     // Ignore cancelled
-    if (!(err instanceof CancelationError)) {
+    if (!(err instanceof CancellationError)) {
       throw err;
     }
   }
   return vhdlLinter;
 }
-async function getLinter(uri: string, token?: CancellationToken, useOldLinterOnFail = true) {
-  await initialization;
-  uri = normalizeUri(uri);
-  let linter: VhdlLinter | undefined;
-  try {
-    linter = await liveLinter.get(uri);
-  } catch(err) {
-    if (useOldLinterOnFail) {
-      linter = linters.get(uri);
-    }
-  }
-  if (typeof linter === 'undefined') {
-    throw new ResponseError(ErrorCodes.InvalidRequest, 'Parser not ready', 'Parser not ready');
-  }
-  if (typeof linter.file === 'undefined') {
-    throw new ResponseError(ErrorCodes.InvalidRequest, 'Parser not ready', 'Parser not ready');
-  }
-  if (token?.isCancellationRequested) {
-    console.log('hover canceled');
-    throw new ResponseError(LSPErrorCodes.RequestCancelled, 'canceled');
-  }
-  return linter;
-}
+
 connection.onDidChangeWatchedFiles(() => {
   // Monitored files have change in VS Code
   connection.console.log('We received an file change event');
 });
 connection.onCodeAction(async (params, token): Promise<CodeAction[]> => {
-  const linter = await getLinter(params.textDocument.uri, token);
+  const linter = await linterManager.getLinter(params.textDocument.uri, token);
   // linter.codeActionEvent.emit()
   const actions = [];
   for (const diagnostic of params.context.diagnostics) {
@@ -303,7 +259,7 @@ connection.onCodeAction(async (params, token): Promise<CodeAction[]> => {
   return actions;
 });
 connection.onDocumentSymbol(async (params, token) => {
-  const linter = await getLinter(params.textDocument.uri, token);
+  const linter = await linterManager.getLinter(params.textDocument.uri, token);
 
   return DocumentSymbols.get(linter);
 });
@@ -315,7 +271,7 @@ interface IFindDefinitionParams {
 }
 
 const findBestDefinition = async (params: IFindDefinitionParams, token: CancellationToken) => {
-  const linter = await getLinter(params.textDocument.uri, token);
+  const linter = await linterManager.getLinter(params.textDocument.uri, token);
 
   const definitions = findDefinitionLinks(linter, params.position);
   return definitions[0] ?? null;
@@ -341,7 +297,7 @@ connection.onHover(async (params, token) => {
   };
 });
 connection.onDefinition(async (params, token) => {
-  const linter = await getLinter(params.textDocument.uri, token);
+  const linter = await linterManager.getLinter(params.textDocument.uri, token);
 
   const definitions = findDefinitionLinks(linter, params.position);
   if (definitions.length === 0) {
@@ -350,42 +306,45 @@ connection.onDefinition(async (params, token) => {
   return definitions;
 });
 connection.onCompletion(async (params, token) => {
-  const linter = await getLinter(params.textDocument.uri, token);
+  const linter = await linterManager.getLinter(params.textDocument.uri, token);
   return getCompletions(linter, params.position);
 });
 connection.onReferences(async (params, token) => {
-  const linter = await getLinter(params.textDocument.uri, token);
+  const linter = await linterManager.getLinter(params.textDocument.uri, token);
 
   return findReferencesHandler(linter, params.position);
 
 });
 
 connection.onPrepareRename(async (params, token) => {
-  const linter = await getLinter(params.textDocument.uri, token);
+  const linter = await linterManager.getLinter(params.textDocument.uri, token);
 
   return prepareRenameHandler(linter, params.position);
 });
 connection.onRenameRequest(async (params, token) => {
-  const linter = await getLinter(params.textDocument.uri, token);
+  const linter = await linterManager.getLinter(params.textDocument.uri, token);
 
   return renameHandler(linter, params.position, params.newName);
 });
 connection.onDocumentFormatting(handleDocumentFormatting);
-connection.onFoldingRanges(foldingHandler);
+connection.onFoldingRanges(async (params, token) => {
+  const linter = await linterManager.getLinter(params.textDocument.uri, token);
+  return foldingHandler(linter);
+});
 connection.onDocumentHighlight(async (params, token) => {
-  const linter = await getLinter(params.textDocument.uri, token);
+  const linter = await linterManager.getLinter(params.textDocument.uri, token);
 
   return documentHighlightHandler(linter, params);
 
 });
 connection.onWorkspaceSymbol(params => handleOnWorkspaceSymbol(params, projectParser));
 connection.onSignatureHelp(async (params, token) => {
-  const linter = await getLinter(params.textDocument.uri, token);
+  const linter = await linterManager.getLinter(params.textDocument.uri, token);
   return signatureHelp(linter, params.position);
 });
 connection.languages.semanticTokens.on(async (params, token) => {
   console.log('semanticTokens start');
-  const linter = await getLinter(params.textDocument.uri, token, false);
+  const linter = await linterManager.getLinter(params.textDocument.uri, token, false);
   console.log('semanticTokens got Linter');
   if (!(await getDocumentSettings(new URL(params.textDocument.uri))).semanticTokens) {
     return {

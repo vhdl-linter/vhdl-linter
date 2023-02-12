@@ -1,14 +1,14 @@
 import {
+  CancellationToken,
   CodeAction, CodeActionKind, Diagnostic, DiagnosticSeverity, Position, Range, TextEdit
 } from 'vscode-languageserver';
-import { Elaborate } from './elaborate/elaborate';
 import { FileParser } from './parser/file-parser';
 import {
   OFile, OI, OIRange, ParserError
 } from './parser/objects';
 import { ProjectParser } from './project-parser';
 import { rules } from './rules/rule-index';
-import { CancelationError, CancelationObject } from './server-objects';
+import { CancellationError } from './server-objects';
 import { ISettings } from './settings';
 
 export interface IAddSignalCommandArguments {
@@ -33,9 +33,9 @@ export class VhdlLinter {
   parsedSuccessfully = false;
   constructor(public uri: URL, public text: string, public projectParser: ProjectParser,
     public settingsGetter: SettingsGetter,
-    public cancelationObject: CancelationObject = { canceled: false }) {
+    public token?: CancellationToken) {
     try {
-      this.parser = new FileParser(text, this.uri, cancelationObject);
+      this.parser = new FileParser(text, this.uri, token);
       this.file = this.parser.parse();
       this.parsedSuccessfully = true;
       this.file.parserMessages = this.parser.state.messages;
@@ -147,9 +147,9 @@ export class VhdlLinter {
 
   async handleCanceled() {
     await new Promise(resolve => setImmediate(resolve));
-    if (this.cancelationObject.canceled) {
+    if (this.token?.isCancellationRequested) {
       console.log('canceled');
-      throw new CancelationError();
+      throw new CancellationError();
     }
   }
 
@@ -164,12 +164,6 @@ export class VhdlLinter {
     let i = 0;
     start = Date.now();
     try {
-      await Elaborate.elaborate(this);
-      if (profiling) {
-        console.log(`check ${i++}: ${Date.now() - start}ms`);
-        start = Date.now();
-      }
-      // await this.removeBrokenActuals();
       if (profiling) {
         console.log(`check ${i++}: ${Date.now() - start}ms`);
         start = Date.now();
