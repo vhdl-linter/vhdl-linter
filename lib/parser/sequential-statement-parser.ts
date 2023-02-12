@@ -28,7 +28,7 @@ export class SequentialStatementParser extends ParserBase {
         this.expect(':');
         nextToken = this.getToken();
       }
-      const statementText = this.advanceSemicolon(true, { consume: false });
+      const statementText = this.advanceSemicolon(false);
       if (nextToken.getLText() === 'if') {
         statements.push(this.parseIf(parent, label));
       } else if (exitConditions.includes(nextToken.getLText())) {
@@ -61,9 +61,9 @@ export class SequentialStatementParser extends ParserBase {
       } else if (nextToken.getLText() === 'return') {
         statements.push(this.parseReturn(parent, label));
       } else if (nextToken.getLText() === 'null') {
-        this.advancePast(';');
+        this.advanceSemicolon();
       } else if (nextToken.getLText() === 'next') {
-        this.advancePast(';');
+        this.advanceSemicolon();
       } else if (nextToken.getLText() === 'while') {
         statements.push(this.parseWhile(parent, label));
       } else if (this.checkIfIsAssignment(statementText)) {
@@ -222,7 +222,7 @@ export class SequentialStatementParser extends ParserBase {
     const whileLoop = new OWhileLoop(parent, this.getToken().range.copyExtendEndOfLine());
     this.expect('while');
     whileLoop.label = label;
-    const condition = this.advancePast('loop');
+    const [condition] = this.advanceParenthesisAware(['loop']);
     whileLoop.condition = new ExpressionParser(this.state, whileLoop, condition).parse();
     whileLoop.statements = this.parse(whileLoop, ['end']);
     this.expect('end');
@@ -242,7 +242,7 @@ export class SequentialStatementParser extends ParserBase {
     constant.lexerToken = variableToken;
     forLoop.constants.push(constant);
     this.expect('in');
-    const rangeToken = this.advancePast('loop');
+    const [rangeToken] = this.advanceParenthesisAware(['loop']);
     forLoop.constantRange = new ExpressionParser(this.state, forLoop, rangeToken).parse();
     forLoop.statements = this.parse(forLoop, ['end']);
     this.expect('end');
@@ -259,7 +259,8 @@ export class SequentialStatementParser extends ParserBase {
     const if_ = new OIf(parent, this.getToken().range.copyExtendEndOfLine());
     const clause = new OIfClause(if_, this.getToken().range.copyExtendEndOfLine());
     this.expect('if');
-    clause.condition = new ExpressionParser(this.state, clause, this.advancePast('then')).parse();
+    const [conditionTokens] = this.advanceParenthesisAware(['then']);
+    clause.condition = new ExpressionParser(this.state, clause, conditionTokens).parse();
     clause.statements = this.parse(clause, ['else', 'elsif', 'end']);
     clause.range = clause.range.copyWithNewEnd(this.getToken(-1, true).range.end);
     if_.clauses.push(clause);
@@ -267,7 +268,8 @@ export class SequentialStatementParser extends ParserBase {
       const clause = new OIfClause(if_, this.getToken().range.copyExtendEndOfLine());
 
       this.expect('elsif');
-      clause.condition = new ExpressionParser(this.state, clause, this.advancePast('then')).parse();
+      const [conditionTokens] = this.advanceParenthesisAware(['then']);
+      clause.condition = new ExpressionParser(this.state, clause, conditionTokens).parse();
       clause.statements = this.parse(clause, ['else', 'elsif', 'end']);
       clause.range = clause.range.copyWithNewEnd(this.getToken(-1, true).range.end);
       if_.clauses.push(clause);
@@ -291,12 +293,14 @@ export class SequentialStatementParser extends ParserBase {
   parseCase(parent: ObjectBase, label?: OLexerToken): OCase {
     this.debug(`parseCase ${label?.text ?? ''}`);
     const case_ = new OCase(parent, this.getToken(-1, true).range.copyExtendEndOfLine());
-    case_.expression = new ExpressionParser(this.state, case_, this.advancePast('is')).parse();
+    const [expressionTokens] = this.advanceParenthesisAware(['is']);
+    case_.expression = new ExpressionParser(this.state, case_, expressionTokens).parse();
 
     while (this.getToken().getLText() === 'when') {
       this.debug(`parseWhen`);
       const whenClause = new OWhenClause(case_, this.getToken().range.copyExtendEndOfLine());
-      whenClause.condition = new ExpressionParser(this.state, whenClause, this.advancePast('=>')).parse();
+      const [whenTokens] = this.advanceParenthesisAware(['=>']);
+      whenClause.condition = new ExpressionParser(this.state, whenClause, whenTokens).parse();
       whenClause.statements = this.parse(whenClause, ['when', 'end']);
       whenClause.range = whenClause.range.copyWithNewEnd(this.getToken(-1, true).range.end);
       case_.whenClauses.push(whenClause);
