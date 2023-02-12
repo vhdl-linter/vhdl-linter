@@ -1,4 +1,5 @@
 import { beforeEach, expect, jest, test } from '@jest/globals';
+import { pathToFileURL } from 'url';
 import { CancellationTokenSource, ResponseError } from 'vscode-languageserver';
 import { Elaborate } from '../../../lib/elaborate/elaborate';
 import { LinterManager } from '../../../lib/linter-manager';
@@ -75,7 +76,7 @@ test('Running linterManager cancel test', async () => {
   // The first two times elaborate is delayed so the third call which is not delayed shall correctly cancel the first two ones.
   const projectParser = await ProjectParser.create([], '', defaultSettingsGetter);
   const linterManager = new LinterManager();
-  const uri = 'file:///asd';
+  const uri = pathToFileURL(__filename).toString();
   const dummyTextCorrect = 'correct linter';
   const returnedLinterPromise = linterManager.getLinter(uri, undefined, false);
   let firstRequestCanceled = false;
@@ -126,7 +127,7 @@ test('Running linterManager cancel getLinter', async () => {
   // The first two times elaborate is delayed so the third call which is not delayed shall correctly cancel the first two ones.
   const projectParser = await ProjectParser.create([], '', defaultSettingsGetter);
   const linterManager = new LinterManager();
-  const uri = 'file:///asd';
+  const uri = pathToFileURL(__filename).toString();
   const cancellationTokenSources = new CancellationTokenSource();
   const returnedLinterPromise = linterManager.getLinter(uri, cancellationTokenSources.token, false);
 
