@@ -9,10 +9,14 @@ architecture rtl of test_selected_name is
     procedure apple(i: integer);
     function banana return integer;
   end protected;
+  type t2 is protected
+    procedure kiwi(i: integer);
+  end protected;
 
   signal s : t;
 begin
 
   s.apple(s.banana);
+  s.kiwi(s.banana);
 
 end architecture;

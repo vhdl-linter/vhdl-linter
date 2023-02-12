@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, expect, test } from '@jest/globals';
+import exp = require('constants');
 import { join } from 'path';
 import { pathToFileURL } from 'url';
 import { Elaborate } from '../../../lib/elaborate/elaborate';
@@ -44,7 +45,7 @@ test.each([
 ])('Testing definitions of %s', async (fileName) => {
   const path = join(__dirname, fileName);
   const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser, defaultSettingsGetter);
-  await Elaborate.elaborate(linter);
+  await linter.checkAll();
 
   const call = linter.file.architectures[0]?.statements[0] as OInstantiation;
   expect(call.definitions).toHaveLength(1);
@@ -58,6 +59,19 @@ test.each([
   expect(call.portAssociationList?.children[0]?.actualIfInput[1]?.definitions).toHaveLength(1);
   expect(call.portAssociationList?.children[0]?.actualIfInput[1]?.definitions[0]).toBeInstanceOf(OSubprogram);
   expect(call.portAssociationList?.children[0]?.actualIfInput[1]?.definitions[0]?.lexerToken?.getLText()).toBe('banana');
+
+
+  expect(linter.messages).toEqual(expect.arrayContaining([
+    expect.objectContaining({
+      range: expect.objectContaining({
+        start: expect.objectContaining({
+          line: 19,
+          message: expect.stringContaining('kiwi does not exist on protected type')
+        })
+      })
+    })
+  ]))
+
 });
 
 test.each([
