@@ -1,6 +1,17 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Testing folding ranges of test_alias.vhd 1`] = `[]`;
+exports[`Testing folding ranges of test_alias.vhd 1`] = `
+[
+  {
+    "endLine": 11,
+    "startLine": 4,
+  },
+  {
+    "endLine": 7,
+    "startLine": 5,
+  },
+]
+`;
 
 exports[`Testing folding ranges of test_block.vhd 1`] = `
 [
@@ -11,6 +22,10 @@ exports[`Testing folding ranges of test_block.vhd 1`] = `
   {
     "endLine": 15,
     "startLine": 7,
+  },
+  {
+    "endLine": 13,
+    "startLine": 11,
   },
 ]
 `;
@@ -25,50 +40,13 @@ exports[`Testing folding ranges of test_case_generate.vhd 1`] = `
     "endLine": 18,
     "startLine": 7,
   },
-]
-`;
-
-exports[`Testing folding ranges of test_comment_block.vhd 1`] = `
-[
   {
-    "endLine": 5,
-    "startLine": 4,
+    "endLine": 13,
+    "startLine": 12,
   },
   {
-    "endLine": 31,
-    "startLine": 7,
-  },
-  {
-    "endLine": 29,
+    "endLine": 15,
     "startLine": 14,
-  },
-  {
-    "endLine": 16,
-    "startLine": 16,
-  },
-  {
-    "endLine": 27,
-    "startLine": 18,
-  },
-  {
-    "endLine": 27,
-    "startLine": 18,
-  },
-  {
-    "endLine": 20,
-    "startLine": 19,
-  },
-  {
-    "endLine": 22,
-    "startLine": 21,
-  },
-  {
-    "endLine": 24,
-    "startLine": 23,
-  },
-  {
-    "endLine": 26,
-    "startLine": 25,
   },
 ]
 `;
@@ -116,6 +94,10 @@ exports[`Testing folding ranges of test_if_else_generate.vhd 1`] = `
   {
     "endLine": 12,
     "startLine": 11,
+  },
+  {
+    "endLine": 15,
+    "startLine": 13,
   },
 ]
 `;
@@ -186,6 +168,14 @@ exports[`Testing folding ranges of test_process.vhd 1`] = `
 exports[`Testing folding ranges of test_protected.vhd 1`] = `
 [
   {
+    "endLine": 10,
+    "startLine": 4,
+  },
+  {
+    "endLine": 9,
+    "startLine": 5,
+  },
+  {
     "endLine": 6,
     "startLine": 6,
   },
@@ -198,8 +188,16 @@ exports[`Testing folding ranges of test_protected.vhd 1`] = `
     "startLine": 8,
   },
   {
+    "endLine": 55,
+    "startLine": 12,
+  },
+  {
     "endLine": 22,
     "startLine": 15,
+  },
+  {
+    "endLine": 54,
+    "startLine": 25,
   },
   {
     "endLine": 32,
@@ -224,7 +222,18 @@ exports[`Testing folding ranges of test_protected.vhd 1`] = `
 ]
 `;
 
-exports[`Testing folding ranges of test_record.vhd 1`] = `[]`;
+exports[`Testing folding ranges of test_record.vhd 1`] = `
+[
+  {
+    "endLine": 8,
+    "startLine": 4,
+  },
+  {
+    "endLine": 7,
+    "startLine": 5,
+  },
+]
+`;
 
 exports[`Testing folding ranges of test_stateMachine.vhd 1`] = `
 [
@@ -483,8 +492,16 @@ exports[`Testing folding ranges of test_stateMachineIf.vhd 1`] = `
 exports[`Testing folding ranges of test_subprogram.vhd 1`] = `
 [
   {
+    "endLine": 6,
+    "startLine": 4,
+  },
+  {
     "endLine": 5,
     "startLine": 5,
+  },
+  {
+    "endLine": 13,
+    "startLine": 8,
   },
   {
     "endLine": 12,
