@@ -22,13 +22,10 @@ export class LinterManager {
   async getLinter(uri: string, token?: CancellationToken, preferOldOverWaiting = true) {
     uri = normalizeUri(uri);
     while (this.state[uri]?.done !== true || (preferOldOverWaiting && this.state[uri]?.wasAlreadyValid !== true) || (preferOldOverWaiting === false && this.state[uri]?.valid !== true)) {
+      await new Promise(resolve => this.emitter.once(uri, resolve));
       if (token?.isCancellationRequested) {
         throw new ResponseError(LSPErrorCodes.RequestCancelled, 'canceled');
       }
-      await new Promise(resolve => this.emitter.once(uri, resolve));
-    }
-    if (token?.isCancellationRequested) {
-      throw new ResponseError(LSPErrorCodes.RequestCancelled, 'canceled');
     }
     const linter = this.linters[uri];
     if (!linter) {

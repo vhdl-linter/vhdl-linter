@@ -1,5 +1,5 @@
 import { beforeEach, expect, jest, test } from '@jest/globals';
-import { ResponseError } from 'vscode-languageserver';
+import { CancellationTokenSource, ResponseError } from 'vscode-languageserver';
 import { Elaborate } from '../../../lib/elaborate/elaborate';
 import { LinterManager } from '../../../lib/linter-manager';
 import { ProjectParser } from '../../../lib/project-parser';
@@ -110,18 +110,6 @@ test('Running linterManager cancel test', async () => {
   });
   await delay(2);
 
-  jest.spyOn(vhdlModule, 'VhdlLinter').mockImplementationOnce(() => {
-    return {
-      text: dummyTextCorrect,
-      parsedSuccessfully: true
-    } as vhdlModule.VhdlLinter;
-  });
-  jest.spyOn(Elaborate, 'elaborate').mockImplementationOnce(() => {
-    return new Promise(resolve => {
-      setTimeout(resolve, 0);
-    });
-  });
-  void linterManager.triggerRefresh(uri, 'X', projectParser, defaultSettingsGetter);
 
   const returnedLinter = await returnedLinterPromise;
   expect(returnedLinter.text).toBe(dummyTextCorrect);
@@ -131,6 +119,33 @@ test('Running linterManager cancel test', async () => {
   expect(firstRequestCanceled).toBe(true);
   expect(secondRequestCanceled).toBe(true);
   expect(thirstRequestCanceled).toBe(false);
+});
+
+test('Running linterManager cancel getLinter', async () => {
+  // Trigger 3 times, to simulate race condition.
+  // The first two times elaborate is delayed so the third call which is not delayed shall correctly cancel the first two ones.
+  const projectParser = await ProjectParser.create([], '', defaultSettingsGetter);
+  const linterManager = new LinterManager();
+  const uri = 'file:///asd';
+  const cancellationTokenSources = new CancellationTokenSource();
+  const returnedLinterPromise = linterManager.getLinter(uri, cancellationTokenSources.token, false);
+
+  void triggerWrapper(linterManager, uri, 'DO NOT CARE TEXT', projectParser, true, 15);
+
+  await delay(2);
+  cancellationTokenSources.cancel();
+  let getLinterCancelHandled = false;
+  try {
+    await returnedLinterPromise;
+  } catch (err) {
+    if (err instanceof ResponseError) {
+      getLinterCancelHandled = true;
+    }
+  }
+
+  expect(getLinterCancelHandled).toBe(true);
+  await delay(15);
+
 });
 function delay(delayValue: number) {
   return new Promise(resolve => setTimeout(resolve, delayValue));
