@@ -39,7 +39,7 @@ test.each([
 ])('Testing manager with random delays unsuccessful runs before %i, after %i', async (wrongBefore, wrongAfter) => {
   const projectParser = await ProjectParser.create([], '', defaultSettingsGetter);
   const linterManager = new LinterManager();
-  const uri = 'file:///tmp/file';
+  const uri = pathToFileURL(__filename).toString();
   const dummyTextCorrect = 'correct linter';
   const returnedLinterPromise = linterManager.getLinter(uri, undefined, false);
 
