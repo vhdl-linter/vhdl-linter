@@ -10,9 +10,7 @@ architecture arch of test_else_generate is
   signal state : t_state := idle;
 begin
 
-  -----
-  --asdsad
-  ----
+
   p_reg : process(all)
   begin
     if true then
