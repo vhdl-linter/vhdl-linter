@@ -5,9 +5,9 @@ import { implementsIHasEndingLexerToken, implementsIHasReference } from '../pars
 import { OArchitecture, ObjectBase, OComponent, OEntity, OGeneric, OInstantiation, OPackage, OPackageBody, OPort, OSubprogram, OVariable } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
 import { findDefinitions } from './findDefinition';
-export function getTokenFromPosition(linter: VhdlLinter, position: Position): OLexerToken | undefined {
+export function getTokenFromPosition(linter: VhdlLinter, position: Position, onlyDesignator = true): OLexerToken | undefined {
 
-  const candidateTokens = linter.file.lexerTokens.filter(token => token.isDesignator())
+  const candidateTokens = linter.file.lexerTokens.filter(token => !onlyDesignator || token.isDesignator())
     .filter(token => token.range.start.line === position.line
       && token.range.start.character <= position.character
       && token.range.end.character >= position.character);

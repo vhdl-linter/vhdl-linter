@@ -1,14 +1,34 @@
 import { CompletionItem, CompletionItemKind, Position } from 'vscode-languageserver';
 import { reservedWords } from '../lexer';
-import { IHasLexerToken, implementsIHasAliases, implementsIHasConstants, implementsIHasGenerics, implementsIHasPorts, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables } from '../parser/interfaces';
-import { OAliasWithSignature, ObjectBase, OEnum, OGenericAssociationList, ORecord, scope } from '../parser/objects';
+import { IHasLexerToken, IHasTypeReference, implementsIHasAliases, implementsIHasConstants, implementsIHasGenerics, implementsIHasPorts, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypeReference, implementsIHasTypes, implementsIHasVariables } from '../parser/interfaces';
+import { OAliasWithSignature, ObjectBase, OEnum, OGenericAssociationList, ORecord, OReference, OSelectedNameRead, OSelectedNameWrite, OSubprogram, OType, scope } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
 import { findObjectFromPosition } from './findObjects';
+import { getTokenFromPosition } from './findReferencesHandler';
 import { findParentInstantiation } from './helper/findParentInstantiation';
 
+function getSelectedNameCompletions(prefix: OReference) {
+  const result: {
+    label: string,
+    kind: CompletionItemKind
+  }[] = [];
+  // if last prefix's definition is a record or protected type (i.e. its typeReferences contain a record or protected type)
+  const prefixDefinitions = prefix.definitions.filter(def => implementsIHasTypeReference(def)) as (ObjectBase & IHasTypeReference)[];
+  const typeDefinitions = prefixDefinitions.flatMap(def => def.typeReference).flatMap(ref => ref.definitions);
+  const recordTypes = typeDefinitions.filter(type => type instanceof ORecord) as ORecord[];
+  result.push(...recordTypes.flatMap(type => type.children.map(child => ({
+    label: child.lexerToken.text,
+    kind: CompletionItemKind.Field
+  }))));
+  const protectedTypes = typeDefinitions.filter(type => type instanceof OType && type.protected) as OType[];
+  result.push(...protectedTypes.flatMap(type => (type.subprograms as (ObjectBase & IHasLexerToken)[]).concat(type.attributeSpecifications).map(child => ({
+    label: child.lexerToken.text,
+    kind: (child instanceof OSubprogram) ? CompletionItemKind.Function : CompletionItemKind.Field
+  }))));
+  return result;
+}
+
 export async function getCompletions(linter: VhdlLinter, position: Position): Promise<CompletionItem[]> {
-
-
   const completions: CompletionItem[] = [];
   const ieeeCasingLowercase = (await linter.settingsGetter(linter.uri)).style.ieeeCasing === 'lowercase';
   const addCompletion = (item: ObjectBase & IHasLexerToken, kind?: CompletionItemKind) => {
@@ -35,6 +55,24 @@ export async function getCompletions(linter: VhdlLinter, position: Position): Pr
   if (!completionObject) {
     return completions;
   }
+
+  const token = getTokenFromPosition(linter, position, false);
+  // if completing selected name and found a record definition -> only show its elements as completion
+  if (completionObject instanceof OSelectedNameRead || completionObject instanceof OSelectedNameWrite) {
+    // special case: if current token is '.', a new selected name is started -> the completionObject is the actual prefix
+    const actualPrefix = token?.text === '.' ? completionObject : completionObject.prefixTokens[completionObject.prefixTokens.length - 1]!;
+    const result = getSelectedNameCompletions(actualPrefix);
+    if (result.length > 0) {
+      return result;
+    }
+  } else if (completionObject instanceof OReference && token?.text === '.') {
+    // special case: if completionObject is OReference and current token is '.', a selected name is started -> treat like one
+    const result = getSelectedNameCompletions(completionObject);
+    if (result) {
+      return result;
+    }
+  }
+
 
   for (const [object] of scope(completionObject)) {
     if (implementsIHasSignals(object)) {

@@ -11,11 +11,23 @@ architecture arch of test_completion_record is
     banana : integer;
   end record;
   type rec is record
-  foo : integer;
+    foo : rec2;
   end record;
+
+  type t is protected
+    function apple return integer;
+  end protected;
+
+  signal s : t;
   signal a : rec;
   signal b : integer;
 begin
- b <= a.
+  b <= a.;
+  b <= a.f;
+  b <= a.foo.;
+  b <= a.foo.b;
+  b <= s.;
+  b <= s.ap; -- TODO: OSelectedNameRead becomes ORead if lexerToken is defined -> why?
+  -- (thats why I test on `s.ap`)
 
 end arch;

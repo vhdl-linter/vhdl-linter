@@ -127,7 +127,7 @@ export class FileParser extends ParserBase {
     while (this.state.pos.isValid()) {
       const nextToken = this.consumeToken();
       if (nextToken.getLText() === 'context') {
-        if (this.advanceSemicolon(true, { consume: false }).find(token => token.getLText() === 'is')) {
+        if (this.advanceSemicolon(false).find(token => token.getLText() === 'is')) {
           const contextParser = new ContextParser(this.state, this.file);
           const context = contextParser.parse();
           context.libraries.push(...libraries.map(library => new OLibrary(context, library)));
