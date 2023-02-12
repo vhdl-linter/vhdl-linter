@@ -10,10 +10,7 @@ jest.mock('../../../lib/vhdl-linter');
 const mockLinter = jest.mocked(vhdlModule.VhdlLinter);
 jest.mock('../../../lib/elaborate/elaborate');
 beforeEach(() => {
-  // Clear all instances and calls to constructor and all methods:
-  jest.clearAllMocks();
-  jest.clearAllTimers();
-
+  jest.resetAllMocks();
 });
 jest.mock('../../../lib/project-parser');
 
@@ -31,6 +28,8 @@ async function triggerWrapper(linterManager: LinterManager, uri: string, text: s
   });
   await linterManager.triggerRefresh(uri, text, projectParser, defaultSettingsGetter);
 }
+
+
 
 test.each([
   [5, 5],
@@ -93,7 +92,7 @@ test('Running linterManager cancel test', async () => {
   await delay(2);
   let secondRequestCanceled = false;
 
-  void triggerWrapper(linterManager, uri, 'WRONG2', projectParser, true, 15).catch(err => {
+  void triggerWrapper(linterManager, uri, 'WRONG2', projectParser, true, 17).catch(err => {
     if (err instanceof ResponseError) {
       secondRequestCanceled = true;
     } else {
