@@ -268,7 +268,8 @@
 		"watch": "tsc -w  --project  .",
 		"lint": "eslint --ext .ts --max-warnings=0 .",
 		"test": "jest && npm run compile && node dist/test/test.js",
-		"coverage": "jest -c jest-coverage.config.js && xdg-open coverage/lcov-report/index.html"
+		"coverage": "jest -c jest-coverage.config.js && xdg-open coverage/lcov-report/index.html",
+		"settings": "ts-node generate-settings.ts"
 	},
 	"dependencies": {
 		"chokidar": "^3.5.3",
