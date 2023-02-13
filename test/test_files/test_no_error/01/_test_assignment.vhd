@@ -15,9 +15,9 @@ begin
     target     <= release out;
     target     <= unaffected;
     target     <= transport unaffected;
-    target     <= reject 5ns inertial unaffected;
-    target     <= reject 5ns inertial 5;
-    target     <= reject 5ns inertial 5, 10       after 10 ns, null;
+    target     <= reject 5 ns inertial unaffected;
+    target     <= reject 5 ns inertial 5;
+    target     <= reject 5 ns inertial 5, 10       after 10 ns, null;
     target     <= unaffected when true else unaffected;
     -- Examples from 10.5.2.1
     Output_pin <= Input_pin                       after 10 ns;

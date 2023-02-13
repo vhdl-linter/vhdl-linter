@@ -5,10 +5,12 @@ import { RInstantiation } from "./instantiations";
 import { RLibrary } from "./library";
 import { RLibraryReference } from "./library-references";
 import { RMultipleDefinition } from "./multiple-definitions";
+import { RMultipleDriver } from "./multiple-driver";
 import { RNotDeclared } from "./not-declared";
 import { RParser } from "./parser";
 import { RPortDeclaration } from "./port-declaration";
 import { RTypeResolved } from "./type-resolved";
+import { RUnits } from "./units";
 import { RUnused } from "./unused";
 
 export const rules = [
@@ -23,5 +25,7 @@ export const rules = [
   RUnused,
   REmpty,
   RConstantWrite,
-  RParser
+  RParser,
+  RUnits,
+  RMultipleDriver
 ];

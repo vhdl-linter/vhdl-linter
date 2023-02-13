@@ -1,50 +1,7 @@
 import { DeepPartial } from 'utility-types';
-export interface ISettings {
-  ports: {
-    outRegex: string;
-    inRegex: string;
-    enablePortStyle: boolean;
-  };
-  paths: {
-    additional: string[];
-    ignoreRegex: string;
-  };
-  style: {
-    preferredLogicTypePort: "unresolved" | "resolved" | "ignore";
-    preferredLogicTypeSignal: "unresolved" | "resolved" | "ignore";
-    unusedSignalRegex: string;
-    ieeeCasing: 'lowercase' | 'UPPERCASE';
-  };
-  rules: {
-    warnLibrary: boolean;
-    warnLogicType: boolean;
-    warnMultipleDriver: boolean;
-  };
-  semanticTokens: boolean;
-}
-export const defaultSettings: ISettings = {
-  ports: {
-    outRegex: '^o_',
-    inRegex: '^i_',
-    enablePortStyle: true,
-  },
-  paths: {
-    additional: [],
-    ignoreRegex: ''
-  },
-  style: {
-    preferredLogicTypePort: 'unresolved',
-    preferredLogicTypeSignal: 'unresolved',
-    unusedSignalRegex: '_unused$',
-    ieeeCasing: 'lowercase'
-  },
-  rules: {
-    warnLogicType: true,
-    warnLibrary: false,
-    warnMultipleDriver: false
-  },
-  semanticTokens: false
-};
+import { defaultSettings, ISettings } from './settings-generated';
+export { defaultSettings, ISettings };
+
 export function defaultSettingsGetter() {
   return defaultSettings;
 }
