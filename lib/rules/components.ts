@@ -3,7 +3,7 @@ import { DiagnosticSeverity } from "vscode-languageserver";
 import { OFile, OPackage } from "../parser/objects";
 
 export class RComponent extends RuleBase implements IRule {
-  public name = 'component';
+  public static ruleName = 'component';
   file: OFile;
 
   check() {

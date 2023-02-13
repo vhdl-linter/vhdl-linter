@@ -5,7 +5,7 @@ import { OArchitecture, OAssociation, OAttributeReference, OComponent, OFormalRe
 import { IAddSignalCommandArguments } from "../vhdl-linter";
 import { IRule, RuleBase } from "./rules-base";
 export class RNotDeclared extends RuleBase implements IRule {
-  public name = 'not-declared';
+  public static ruleName = 'not-declared';
   private findUsePackageActions(ref: OReference, textDocumentUri: string): CodeAction[] {
     const actions: CodeAction[] = [];
     const proposals = new Set<string>();

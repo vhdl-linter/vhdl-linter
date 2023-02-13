@@ -7,12 +7,12 @@ export interface IRule {
 }
 export class RuleBase {
   file: OFile;
-  readonly name: string;
+  static readonly ruleName: string;
   constructor(public vhdlLinter: VhdlLinter, public settings: ISettings) {
     this.file = vhdlLinter.file;
   }
 
   addMessage(diagnostic: OIDiagnostic): void {
-    this.vhdlLinter.addMessage(diagnostic, this.name);
+    this.vhdlLinter.addMessage(diagnostic, (this.constructor as typeof RuleBase).ruleName);
   }
 }

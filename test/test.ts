@@ -61,10 +61,9 @@ async function run_test(path: URL, error_expected: boolean, projectParser?: Proj
     }
     // Exclude OSVVM and IEEE from some checker
     const getter = subPath.pathname.match(/OSVVM/i) || subPath.pathname.match(/ieee/i)
-    ? defaultSettingsWithOverwrite({ style: {
-      preferredLogicTypePort: 'ignore',
-      preferredLogicTypeSignal: 'ignore',
-      warnSpaceBeforeUnit: false
+    ? defaultSettingsWithOverwrite({ rules: {
+      "type-resolved": false,
+      "unit": false
     } })
     : defaultSettingsGetter;
     if (lstatSync(subPath).isDirectory()) {

@@ -1,33 +1,59 @@
 import { DeepPartial } from 'utility-types';
+import { rules } from './rules/rule-index';
+
+const ruleNames = rules.map(r => r.ruleName);
 export interface ISettings {
   ports: {
     outRegex: string;
     inRegex: string;
-    enablePortStyle: boolean;
   };
   paths: {
     additional: string[];
     ignoreRegex: string;
   };
   style: {
-    preferredLogicTypePort: "unresolved" | "resolved" | "ignore";
-    preferredLogicTypeSignal: "unresolved" | "resolved" | "ignore";
+    preferredLogicTypePort: "unresolved" | "resolved";
+    preferredLogicTypeSignal: "unresolved" | "resolved";
     unusedSignalRegex: string;
     ieeeCasing: 'lowercase' | 'UPPERCASE';
-    warnSpaceBeforeUnit: boolean;
   };
   rules: {
-    warnLibrary: boolean;
-    warnLogicType: boolean;
-    warnMultipleDriver: boolean;
-  };
+    'component': boolean;
+    'instantiation': boolean;
+    'library': boolean;
+    'library-reference': boolean;
+    'multiple-definition': boolean;
+    'not-declared': boolean;
+    'port-declaration': boolean;
+    'type-resolved': boolean;
+    'unused': boolean;
+    'empty': boolean;
+    'constant-write': boolean;
+    'parser': boolean;
+    'unit': boolean;
+    'multiple-driver': boolean;
+  } // Can this be automated? `typeof ruleNames[number]` as in https://stackoverflow.com/a/55505556 does not work because ruleNames cannot be `as const`
   semanticTokens: boolean;
 }
-export const defaultSettings: ISettings = {
+// Verify the rules array on start
+function verifyRulesType(settings: ISettings) {
+  for (const ruleName of ruleNames) {
+    if (!Object.keys(settings.rules).includes(ruleName)) {
+      throw new Error(`The settings do not include rule '${ruleName}'`);
+    }
+  }
+  for (const rule of Object.keys(settings.rules)) {
+    if (!ruleNames.includes(rule)) {
+      throw new Error(`The settings include an unknown rule '${rule}'`);
+    }
+  }
+  return settings;
+}
+
+export const defaultSettings: ISettings = verifyRulesType({
   ports: {
     outRegex: '^o_',
     inRegex: '^i_',
-    enablePortStyle: true,
   },
   paths: {
     additional: [],
@@ -37,16 +63,29 @@ export const defaultSettings: ISettings = {
     preferredLogicTypePort: 'unresolved',
     preferredLogicTypeSignal: 'unresolved',
     unusedSignalRegex: '_unused$',
-    ieeeCasing: 'lowercase',
-    warnSpaceBeforeUnit: true
+    ieeeCasing: 'lowercase'
   },
   rules: {
-    warnLogicType: true,
-    warnLibrary: false,
-    warnMultipleDriver: false
+    'component': true,
+    'instantiation': true,
+    'library': false,
+    'library-reference': true,
+    'multiple-definition': true,
+    'not-declared': true,
+    'port-declaration': true,
+    'type-resolved': true,
+    'unused': true,
+    'empty': true,
+    'constant-write': true,
+    'parser': true,
+    'unit': true,
+    'multiple-driver': false
   },
   semanticTokens: false
-};
+});
+
+
+
 export function defaultSettingsGetter() {
   return defaultSettings;
 }

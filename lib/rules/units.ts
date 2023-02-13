@@ -3,13 +3,10 @@ import { OFile, OReference, OUnit } from "../parser/objects";
 import { IRule, RuleBase } from "./rules-base";
 
 export class RUnits extends RuleBase implements IRule {
-  public name = 'unit';
+  public static ruleName = 'unit';
   file: OFile;
 
   check() {
-    if (!this.settings.style.warnSpaceBeforeUnit) {
-      return;
-    }
     for (const obj of this.file.objectList) {
       if (obj instanceof OReference && obj.definitions.some(def => def instanceof OUnit)) {
         // check if token before unit token is whitespace

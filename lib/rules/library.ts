@@ -3,12 +3,12 @@ import { DiagnosticSeverity } from "vscode-languageserver";
 import { OFile, OI, OIRange } from "../parser/objects";
 
 export class RLibrary extends RuleBase implements IRule {
-  public name = 'library';
+  public static ruleName = 'library';
   file: OFile;
 
   check() {
     for (const entity of this.file.entities) {
-      if (this.settings.rules.warnLibrary && typeof entity.targetLibrary === 'undefined') {
+      if (typeof entity.targetLibrary === 'undefined') {
         this.addMessage({
           range: new OIRange(this.file, new OI(this.file, 0, 0), new OI(this.file, 1, 0)),
           severity: DiagnosticSeverity.Warning,

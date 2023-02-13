@@ -5,6 +5,7 @@ import { RInstantiation } from "./instantiations";
 import { RLibrary } from "./library";
 import { RLibraryReference } from "./library-references";
 import { RMultipleDefinition } from "./multiple-definitions";
+import { RMultipleDriver } from "./multiple-driver";
 import { RNotDeclared } from "./not-declared";
 import { RParser } from "./parser";
 import { RPortDeclaration } from "./port-declaration";
@@ -25,5 +26,6 @@ export const rules = [
   REmpty,
   RConstantWrite,
   RParser,
-  RUnits
+  RUnits,
+  RMultipleDriver
 ];
