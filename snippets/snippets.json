@@ -1,7 +1,7 @@
 {
 	"arch": {
 		"prefix": "arch",
-		"body": "architecture ${2:arch} of ${1:ent} is\nbegin\n\t$0\nend ${2:arch};",
+		"body": "architecture ${2:arch} of ${1:ent} is\nbegin\n\t$0\nend architecture;",
 		"description": "architecture",
 		"scope": "source.vhdl"
 	},
@@ -13,19 +13,19 @@
 	},
 	"caseg": {
 		"prefix": "caseg",
-		"body": "${1:label}: case ${2:object} generate\n\twhen ${3:choice} =>\n\t\t$0\n\twhen others =>\nend generate ${1:label};",
+		"body": "${1:label}: case ${2:object} generate\n\twhen ${3:choice} =>\n\t\t$0\n\twhen others =>\nend generate;",
 		"description": "case",
 		"scope": "source.vhdl"
 	},
 	"ent": {
 		"prefix": "ent",
-		"body": "entity ${1:ent} is\n\tport (\n\t\t$0\n\t);\nend ${1:ent};",
+		"body": "entity ${1:ent} is\n\tport (\n\t\t$0\n\t);\nend entity;",
 		"description": "entity",
 		"scope": "source.vhdl"
 	},
 	"entarch": {
 		"prefix": "entarch",
-		"body": "entity ${1:ent} is\n\tport (\n\t\t$0\n\t);\nend ${1:ent};\narchitecture ${2:arch} of ${1:ent} is\nbegin\nend architecture ${2:arch};",
+		"body": "entity ${1:ent} is\n\tport (\n\t\t$0\n\t);\nend entity;\narchitecture ${2:arch} of ${1:ent} is\nbegin\nend architecture;",
 		"description": "entity + architecture",
 		"scope": "source.vhdl"
 	},
@@ -37,7 +37,7 @@
 	},
 	"forg": {
 		"prefix": "forg",
-		"body": "${1:identifier} : for ${2:i} in ${3:range} generate\n\t$0\nend generate ${1:identifier};",
+		"body": "${1:label} : for ${2:i} in ${3:range} generate\n\t$0\nend generate;",
 		"description": "for generate",
 		"scope": "source.vhdl"
 	},
@@ -49,7 +49,7 @@
 	},
 	"ifg": {
 		"prefix": "ifg",
-		"body": "${1:label}: if ${2:expression} generate\n\t$0\nend generate ${1:label};",
+		"body": "${1:label}: if ${2:expression} generate\n\t$0\nend generate;",
 		"description": "if",
 		"scope": "source.vhdl"
 	},
@@ -67,19 +67,19 @@
 	},
 	"process": {
 		"prefix": "process",
-		"body": "${1:label} : process\nbegin\n\t$0\nend process ${1:label};",
+		"body": "${1:label} : process\nbegin\n\t$0\nend process;",
 		"description": "process",
 		"scope": "source.vhdl"
 	},
 	"process_async": {
 		"prefix": "process_async",
-		"body": "${1:label} : process(all)\nbegin\n\t$0\nend process ${1:label};",
+		"body": "${1:label} : process(all)\nbegin\n\t$0\nend process;",
 		"description": "process",
 		"scope": "source.vhdl"
 	},
 	"process_sync": {
 		"prefix": "process_sync",
-		"body": "${1:label} : process(${2:clock}, ${3:reset})\nbegin\n\tif rising_edge(${2:clock}) then\n\t\t$0\n\tend if;\n\n\tif ${3:reset} then\n\tend if;\nend process ${1:label};",
+		"body": "${1:label} : process(${2:clock}, ${3:reset})\nbegin\n\tif rising_edge(${2:clock}) then\n\t\t$0\n\tend if;\n\n\tif ${3:reset} then\n\tend if;\nend process;",
 		"description": "process",
 		"scope": "source.vhdl"
 	},
