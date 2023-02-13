@@ -244,11 +244,13 @@
 					"items": {
 						"type": "string"
 					},
+					"default": [],
 					"description": "Additional Paths to be included (for verification library etc.)"
 				},
 				"VhdlLinter.paths.ignoreRegex": {
 					"scope": "window",
 					"type": "string",
+					"default": "",
 					"description": "Regex for files to be ignored by the Project Parser"
 				},
 				"VhdlLinter.semanticTokens": {

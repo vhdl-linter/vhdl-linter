@@ -1,61 +1,62 @@
 import { readFileSync, writeFileSync } from "fs";
 import { rules } from './lib/rules/rule-index';
 
-const settings = JSON.parse(readFileSync('package.json', { encoding: 'utf8' })).contributes.configuration.properties as {
-  [key: string]: {
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+const settings = JSON.parse(readFileSync('package.json', { encoding: 'utf8' })).contributes.configuration.properties as Record<string, {
     type: string;
     enum?: string[];
     items?: {
       type: string
     };
-    default?: string | boolean;
-  }
-};
+    default?: string | boolean | string[];
+  }>;
 interface ISettings {
-  [key: string]: ISettings | string | boolean;
-};
-const int: ISettings = {};
-const def: ISettings = {};
+  [key: string]: ISettings | string | boolean | string[];
+}
+const _interface: ISettings = {};
+const defaultValues: ISettings = {};
 // Extract defaults
-for (let [key, value] of Object.entries(settings)) {
+for (const [key, value] of Object.entries(settings)) {
   if (key.startsWith('VhdlLinter.')) {
-    // const path = key.split('.');
-    key = key.replace(/^VhdlLinter\./, '');
+    // ignore vhdlLinter in the beginning
+    const path = key.split('.').slice(1);
 
-
-    const path = key.split('.');
-    let obj = def;
+    let defaultObj = defaultValues;
     for (const [index, segment] of path.entries()) {
       if (index === path.length - 1) {
-        if (value.default === undefined) {
-          continue;
+        if (value.default !== undefined) {
+          if (typeof value.default === 'string') {
+            defaultObj[segment] = `'${value.default}'`;
+          } else {
+            defaultObj[segment] = value.default;
+          }
+        } else {
+          throw new Error(`${path.join('.')} doesn't have a default value.`);
         }
-        obj[segment] = typeof value.default === 'boolean' ? value.default : `'${value.default}'`;
       } else {
-        const child = obj[segment];
+        const child = defaultObj[segment];
         if (child === undefined) {
           const newPath = {};
-          obj[segment] = newPath;
-          obj = newPath;
+          defaultObj[segment] = newPath;
+          defaultObj = newPath;
         } else {
-          if (typeof child !== 'object') {
-            throw new Error();
+          if (typeof child === 'object' && !Array.isArray(child)) {
+            defaultObj = child;
           } else {
-            obj = child;
+            throw new Error(`The setting ${path.join('.')} would overwrite another setting at ${segment}.`);
           }
         }
       }
     }
+  } else {
+    throw new Error(`Setting ${key} should start with 'VhdlLinter'`);
   }
 }
 
 // Extract interface
-for (let [key, value] of Object.entries(settings)) {
+for (const [key, value] of Object.entries(settings)) {
   if (key.startsWith('VhdlLinter.')) {
-    // const path = key.split('.');
-    key = key.replace(/^VhdlLinter\./, '');
-
-    let type
+    let type;
     if (value.enum) {
       type = value.enum.map(value => `'${value}'`).join('|');
     } else if (value.type === 'array') {
@@ -66,12 +67,13 @@ for (let [key, value] of Object.entries(settings)) {
     } else {
       type = value.type;
     }
-    const path = key.split('.');
-    let obj = int;
+
+    const path = key.split('.').slice(1);
+    let interfaceObj = _interface;
     for (const [index, segment] of path.entries()) {
       if (index === path.length - 1) {
         let optional = true;
-        let innerObj = def;
+        let innerObj = defaultValues;
         for (const [index, segment] of path.entries()) {
           if (index === path.length - 1) {
             if (innerObj[segment] !== undefined) {
@@ -82,24 +84,24 @@ for (let [key, value] of Object.entries(settings)) {
             }
           } else {
             const newInner = innerObj[segment];
-            if (typeof newInner !== 'object') {
+            if (typeof newInner !== 'object' || Array.isArray(newInner)) {
               break;
             }
             innerObj = newInner;
           }
         }
-        obj[`${segment}${optional ? '?' : ''}`] = type;
+        interfaceObj[`${segment}${optional ? '?' : ''}`] = type;
       } else {
-        const child = obj[segment];
+        const child = interfaceObj[segment];
         if (child === undefined) {
           const newPath = {};
-          obj[segment] = newPath;
-          obj = newPath;
+          interfaceObj[segment] = newPath;
+          interfaceObj = newPath;
         } else {
-          if (typeof child !== 'object') {
-            throw new Error();
+          if (typeof child === 'object' && !Array.isArray(child)) {
+            interfaceObj = child;
           } else {
-            obj = child;
+            throw new Error(`The setting ${path.join('.')} would overwrite another setting at ${segment}.`);
           }
         }
       }
@@ -109,8 +111,8 @@ for (let [key, value] of Object.entries(settings)) {
 
 
 // Check rules
-const rulesInInterface = int?.rules;
-if (typeof rulesInInterface !== 'object') {
+const rulesInInterface = _interface?.rules;
+if (typeof rulesInInterface !== 'object' || Array.isArray(rulesInInterface)) {
   throw new Error('No rules path found!');
 }
 for (const rule of rules) {
@@ -119,14 +121,14 @@ for (const rule of rules) {
   }
 }
 
-
-
 // Export Files
 let text = 'export interface ISettings ';
 let indent = 0;
-function output(parameter: string | ISettings | boolean, delimiter = ';') {
-  if (typeof parameter !== 'object') {
-    text += `${parameter}${delimiter}\n`;
+function output(parameter: string | ISettings | boolean | string[], delimiter = ';') {
+  if (Array.isArray(parameter)) {
+    text += `[${parameter.map(p => `'${p}'`).join(', ')}]${delimiter}\n`;
+  } else if (typeof parameter !== 'object') {
+    text += `${parameter.toString()}${delimiter}\n`;
   } else {
     indent += 2;
     text += '{\n';
@@ -138,12 +140,11 @@ function output(parameter: string | ISettings | boolean, delimiter = ';') {
     indent -= 2;
     text += ''.padStart(indent, ' ') + `}${delimiter}\n`;
   }
-
 }
-output(int);
+output(_interface);
 text = text.trim().substring(0, text.length - 2);
 text += `\nexport const defaultSettings: ISettings = `;
-output(def, ',');
+output(defaultValues, ',');
 text = text.trim().substring(0, text.length - 2);
 text += ';';
 writeFileSync(`lib/settings-generated.ts`, text);

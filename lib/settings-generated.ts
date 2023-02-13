@@ -30,7 +30,7 @@ export interface ISettings {
   };
   'paths': {
     'additional': string[];
-    'ignoreRegex'?: string;
+    'ignoreRegex': string;
   };
   'semanticTokens': boolean;
 }
@@ -66,6 +66,7 @@ export const defaultSettings: ISettings = {
   },
   'paths': {
     'additional': [],
+    'ignoreRegex': '',
   },
   'semanticTokens': false,
 };
