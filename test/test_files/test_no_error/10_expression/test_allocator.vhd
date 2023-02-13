@@ -14,7 +14,7 @@ begin
     variable PopCountVar     : IntegerArrayPointerType := new IntegerArrayType'(1 => 0) ; -- vhdl-linter-disable-line unused
   variable Min, Max : integer; -- vhdl-linter-disable-line unused
   begin
-        PopCountVar := new IntegerArrayType'(Min to Max => 0) ; -- vhdl-linter-disable-line unit (min can also reference the minute unit of the type time...)
+        PopCountVar := new IntegerArrayType'(Min to Max => 0) ;
 
   end process ; -- identifier
 end architecture ;
