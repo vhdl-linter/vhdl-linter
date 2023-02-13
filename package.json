@@ -193,7 +193,8 @@
 					"type": "string",
 					"enum": [
 						"unresolved",
-						"resolved"
+						"resolved",
+						"ignore"
 					],
 					"default": "unresolved",
 					"description": "Preferred logic type (resolved/unresolved) to check for on ports (The rule 'type-resolved' can also be ignored)."
@@ -203,7 +204,8 @@
 					"type": "string",
 					"enum": [
 						"unresolved",
-						"resolved"
+						"resolved",
+						"ignore"
 					],
 					"default": "unresolved",
 					"description": "Preferred logic type (resolved/unresolved) to check for on signals (The rule 'type-resolved' can also be ignored)."

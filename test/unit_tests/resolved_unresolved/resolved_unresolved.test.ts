@@ -14,7 +14,7 @@ test.each([
   'test_port_u_unsigned.vhd',
   'test_signal_std_logic.vhd',
   'test_signal_std_ulogic.vhd',
-].flatMap(file => [[file, 'unresolved'], [file, 'resolved'], [file, 'ignore']]))('testing type_resolved messages for file %s with setting %s', async (file: string, setting: 'unresolved' | 'resolved') => {
+].flatMap(file => [[file, 'unresolved'], [file, 'resolved'], [file, 'ignore']]))('testing type_resolved messages for file %s with setting %s', async (file: string, setting: 'unresolved' | 'resolved' | 'ignore') => {
 
   const getter = defaultSettingsWithOverwrite({
     style: {

@@ -12,8 +12,8 @@ export interface ISettings {
     ignoreRegex: string;
   };
   style: {
-    preferredLogicTypePort: "unresolved" | "resolved";
-    preferredLogicTypeSignal: "unresolved" | "resolved";
+    preferredLogicTypePort: "unresolved" | "resolved" | "ignore";
+    preferredLogicTypeSignal: "unresolved" | "resolved" | "ignore";
     unusedSignalRegex: string;
     ieeeCasing: 'lowercase' | 'UPPERCASE';
   };
