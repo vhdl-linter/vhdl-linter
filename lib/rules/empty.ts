@@ -3,7 +3,7 @@ import { DiagnosticSeverity } from "vscode-languageserver";
 import { OFile, OI } from "../parser/objects";
 
 export class REmpty extends RuleBase implements IRule {
-  public name = 'empty';
+  public static readonly ruleName = 'empty';
   file: OFile;
 
   check() {
