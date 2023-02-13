@@ -83,6 +83,7 @@ export class AssignmentParser extends ParserBase {
       startI = this.state.pos.i;
       [rightHandSide, endToken] = this.advanceParenthesisAware([';', 'when', 'else', 'after', ',', 'end'], true, false);
       if (rightHandSide[0]?.getLText() == 'unaffected') {
+        this.consumeToken();
         continue;
       }
       const expressionParser = new ExpressionParser(this.state, assignment, rightHandSide);

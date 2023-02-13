@@ -55,7 +55,7 @@ export class ObjectDeclarationParser extends ParserBase {
 
     if (file) {
       const typeToken = this.consumeToken();
-      for (const file of objects as OFileVariable[]) {
+      for (const file of objects.slice(objects.length - 1) as OFileVariable[]) {
         const typeRead = new ORead(file, typeToken);
         file.typeReference = [typeRead];
         let tokens, endToken;

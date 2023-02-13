@@ -3,6 +3,7 @@ package test_pkg is
   variable TEST3 : integer := 3
   file TEST : integer
   constant TEST2: integer := 3
+  file TEST4, TEST5 : integer;
 end package;
 
 entity test_ent is
