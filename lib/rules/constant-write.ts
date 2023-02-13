@@ -3,7 +3,7 @@ import { DiagnosticSeverity } from "vscode-languageserver";
 import { OConstant, OFile, OGeneric, OWrite } from "../parser/objects";
 
 export class RConstantWrite extends RuleBase implements IRule {
-  public static ruleName = 'constant-write';
+  public static readonly ruleName = 'constant-write';
   file: OFile;
 
 

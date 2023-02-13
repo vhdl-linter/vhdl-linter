@@ -6,7 +6,7 @@ import { IRule, RuleBase } from "./rules-base";
 
 // TODO: multiple-driver rule: verify its functionality and write tests (or remove)
 export class RMultipleDriver extends RuleBase implements IRule {
-  public static ruleName = 'multiple-driver';
+  public static readonly ruleName = 'multiple-driver';
   file: OFile;
 
   private checkMultipleDriver(signal: OSignal) {

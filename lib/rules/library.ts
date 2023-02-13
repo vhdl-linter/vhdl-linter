@@ -3,7 +3,7 @@ import { DiagnosticSeverity } from "vscode-languageserver";
 import { OFile, OI, OIRange } from "../parser/objects";
 
 export class RLibrary extends RuleBase implements IRule {
-  public static ruleName = 'library';
+  public static readonly ruleName = 'library';
   file: OFile;
 
   check() {

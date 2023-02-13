@@ -4,7 +4,7 @@ import { implementsIHasLibraryReference, implementsIHasLibraries } from "../pars
 import { OFile, scope } from "../parser/objects";
 
 export class RLibraryReference extends RuleBase implements IRule {
-  public static ruleName = 'library-reference';
+  public static readonly ruleName = 'library-reference';
   file: OFile;
 
   check() {

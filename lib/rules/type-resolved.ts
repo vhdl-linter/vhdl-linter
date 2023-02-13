@@ -4,7 +4,7 @@ import { OAlias, OFile, OPackage, OPort, OSignal, OSubType, scope } from "../par
 import { IRule, RuleBase } from "./rules-base";
 
 export class RTypeResolved extends RuleBase implements IRule {
-  public static ruleName = 'type-resolved';
+  public static readonly ruleName = 'type-resolved';
   file: OFile;
   private checkObject(object: OPort | OSignal) {
     if (object instanceof OPort && this.settings.style.preferredLogicTypePort === 'unresolved'

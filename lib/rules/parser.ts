@@ -4,7 +4,7 @@ import { OFile } from "../parser/objects";
 import { IRule, RuleBase } from "./rules-base";
 
 export class RParser extends RuleBase implements IRule {
-  public static ruleName = 'parser';
+  public static readonly ruleName = 'parser';
   file: OFile;
 
   check() {

@@ -4,7 +4,7 @@ import { ObjectBase, OComponent, OEntity, OFile, OPackage, OPackageBody, ORead, 
 import { IRule, RuleBase } from "./rules-base";
 
 export class RUnused extends RuleBase implements IRule {
-  public static ruleName = 'unused';
+  public static readonly ruleName = 'unused';
   file: OFile;
   private unusedSignalRegex: RegExp;
 

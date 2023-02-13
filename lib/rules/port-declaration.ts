@@ -3,7 +3,7 @@ import { OFile } from "../parser/objects";
 import { IRule, RuleBase } from "./rules-base";
 
 export class RPortDeclaration extends RuleBase implements IRule {
-  public static ruleName = 'port-declaration';
+  public static readonly ruleName = 'port-declaration';
   file: OFile;
 
   check() {
