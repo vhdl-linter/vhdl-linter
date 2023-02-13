@@ -103,23 +103,90 @@
 					"default": "off",
 					"description": "Traces the communication between VS Code and the language server."
 				},
-				"VhdlLinter.rules.warnLibrary": {
+
+    		"VhdlLinter.rules.component": {
 					"scope": "window",
 					"type": "boolean",
-					"default": false,
-					"description": "Enables checking for library magic comment."
+					"description": "Enable the rule to check if component declarations are correct.",
+					"default": true
 				},
-				"VhdlLinter.rules.warnLogicType": {
+    		"VhdlLinter.rules.instantiation": {
 					"scope": "window",
 					"type": "boolean",
-					"default": true,
-					"description": "Enables checking for preferred logic type."
+					"description": "Enable the rule to check if ports and generics of instantiations are correct.",
+					"default": true
 				},
-				"VhdlLinter.rules.warnMultipleDriver": {
+    		"VhdlLinter.rules.library": {
 					"scope": "window",
 					"type": "boolean",
-					"default": false,
-					"description": "Enables checking for multiple drivers."
+					"description": "Enable the rule to check if each file contains a magic comment stating the library where the file is compiled to.",
+					"default": false
+				},
+    		"VhdlLinter.rules.library-reference": {
+					"scope": "window",
+					"type": "boolean",
+					"description": "Enable the rule to check if used libraries are declared.",
+					"default": true
+				},
+    		"VhdlLinter.rules.multiple-definition": {
+					"scope": "window",
+					"type": "boolean",
+					"description": "Enable the rule to check if something is defined multiple times.",
+					"default": true
+				},
+    		"VhdlLinter.rules.not-declared": {
+					"scope": "window",
+					"type": "boolean",
+					"description": "Enable the rule to check if something is used but not declared",
+					"default": true
+				},
+    		"VhdlLinter.rules.port-declaration": {
+					"scope": "window",
+					"type": "boolean",
+					"description": "Enable the rule to check if ports match the regular expressions given in VhdlLinter.ports.",
+					"default": true
+				},
+    		"VhdlLinter.rules.type-resolved": {
+					"scope": "window",
+					"type": "boolean",
+					"description": "Enable the rule to check if ports and signals have the resolved/unresolved type given in VhdlLinter.style.preferredLogicType*.",
+					"default": true
+				},
+    		"VhdlLinter.rules.unused": {
+					"scope": "window",
+					"type": "boolean",
+					"description": "Enable the rule to warn for unused objects.",
+					"default": true
+				},
+    		"VhdlLinter.rules.empty": {
+					"scope": "window",
+					"type": "boolean",
+					"description": "Enable the rule to warn for empty files.",
+					"default": true
+				},
+    		"VhdlLinter.rules.constant-write": {
+					"scope": "window",
+					"type": "boolean",
+					"description": "Enable the rule to warn when writing a constant value.",
+					"default": true
+				},
+    		"VhdlLinter.rules.parser": {
+					"scope": "window",
+					"type": "boolean",
+					"description": "Enable displaying parser errors.",
+					"default": true
+				},
+    		"VhdlLinter.rules.unit": {
+					"scope": "window",
+					"type": "boolean",
+					"description": "Enable the rule to check if a space is before a unit reference",
+					"default": true
+				},
+    		"VhdlLinter.rules.multiple-driver": {
+					"scope": "window",
+					"type": "boolean",
+					"description": "Enable the rule to check if a signal is driven multiple times (this rule has a lot of false-positives).",
+					"default": false
 				},
 				"VhdlLinter.style.preferredLogicTypePort": {
 					"scope": "window",
@@ -130,7 +197,7 @@
 						"ignore"
 					],
 					"default": "unresolved",
-					"description": "Preferred logic type (resolved/unresolved) to check for on ports."
+					"description": "Preferred logic type (resolved/unresolved) to check for on ports (The rule 'type-resolved' can also be ignored)."
 				},
 				"VhdlLinter.style.preferredLogicTypeSignal": {
 					"scope": "window",
@@ -141,7 +208,7 @@
 						"ignore"
 					],
 					"default": "unresolved",
-					"description": "Preferred logic type (resolved/unresolved) to check for on signals."
+					"description": "Preferred logic type (resolved/unresolved) to check for on signals (The rule 'type-resolved' can also be ignored)."
 				},
 				"VhdlLinter.style.unusedSignalRegex": {
 					"scope": "window",
@@ -158,12 +225,6 @@
 					],
 					"default": "lowercase",
 					"description": "Default casing for the completion of items of the ieee and standard libraries."
-				},
-				"VhdlLinter.ports.enablePortStyle": {
-					"scope": "window",
-					"type": "boolean",
-					"default": true,
-					"description": "Enables checking of naming style of ports."
 				},
 				"VhdlLinter.ports.outRegex": {
 					"scope": "window",
@@ -183,11 +244,13 @@
 					"items": {
 						"type": "string"
 					},
-					"description": "Additional Pathes to be included (for verification library etc.)"
+					"default": [],
+					"description": "Additional Paths to be included (for verification library etc.)"
 				},
 				"VhdlLinter.paths.ignoreRegex": {
 					"scope": "window",
 					"type": "string",
+					"default": "",
 					"description": "Regex for files to be ignored by the Project Parser"
 				},
 				"VhdlLinter.semanticTokens": {
@@ -207,7 +270,8 @@
 		"watch": "tsc -w  --project  .",
 		"lint": "eslint --ext .ts --max-warnings=0 .",
 		"test": "jest && npm run compile && node dist/test/test.js",
-		"coverage": "jest -c jest-coverage.config.js && xdg-open coverage/lcov-report/index.html"
+		"coverage": "jest -c jest-coverage.config.js && xdg-open coverage/lcov-report/index.html",
+		"settings": "ts-node generate-settings.ts"
 	},
 	"dependencies": {
 		"chokidar": "^3.5.3",

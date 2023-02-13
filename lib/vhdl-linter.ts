@@ -176,11 +176,13 @@ export class VhdlLinter {
       }
       const settings = await this.settingsGetter(this.uri);
       for (const checkerClass of rules) {
-        const checker = new checkerClass(this, settings);
-        checker.check();
-        if (profiling) {
-          console.log(`check ${checker.name}: ${Date.now() - start}ms`);
-          start = Date.now();
+        if ((settings.rules as Record<string, boolean>)[checkerClass.ruleName]) {
+          const checker = new checkerClass(this, settings);
+          checker.check();
+          if (profiling) {
+            console.log(`check ${checkerClass.ruleName}: ${Date.now() - start}ms`);
+            start = Date.now();
+          }
         }
         await this.handleCanceled();
       }

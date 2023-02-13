@@ -6,8 +6,7 @@ architecture arch of test_units is
 begin
   a_p : process
   begin
-    wait for 6 ns;
-    wait for (ns);
+    wait for 6ns; -- expect space before unit reference
   end process;
 
 end architecture;

@@ -5,7 +5,7 @@ import { OAliasWithSignature, OArchitecture, OAssociationList, ObjectBase, OCase
 import { IRule, RuleBase } from "./rules-base";
 
 export class RInstantiation extends RuleBase implements IRule {
-  public name = 'instantiation';
+  public static readonly ruleName = 'instantiation';
   file: OFile;
   checkAssociations(availableInterfaceElements: (OPort | OGeneric | OTypeMark)[][], associationList: OAssociationList | undefined, typeName: string, range: OIRange, kind: 'port' | 'generic') {
     const availableInterfaceElementsFlat = availableInterfaceElements.flat().filter((v, i, self) => self.findIndex(o => o.lexerTokenEquals(v)) === i);

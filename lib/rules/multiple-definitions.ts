@@ -5,7 +5,7 @@ import { OArchitecture, ObjectBase, OFile, OPackageBody, OType } from "../parser
 import { IRule, RuleBase } from "./rules-base";
 type objListType = ObjectBase | { lexerToken: OLexerToken };
 export class RMultipleDefinition extends RuleBase implements IRule {
-  public name = 'multiple-definition';
+  public static readonly ruleName = 'multiple-definition';
   file: OFile;
   checkMultipleDefinitions(objList: objListType[]) {
     for (const obj of objList) {
