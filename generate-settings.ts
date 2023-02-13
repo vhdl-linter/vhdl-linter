@@ -12,10 +12,11 @@ const settings = JSON.parse(readFileSync('package.json', { encoding: 'utf8' })).
   }
 };
 interface ISettings {
-  [key: string]: ISettings | string | boolean
+  [key: string]: ISettings | string | boolean;
 };
 const int: ISettings = {};
 const def: ISettings = {};
+// Extract defaults
 for (let [key, value] of Object.entries(settings)) {
   if (key.startsWith('VhdlLinter.')) {
     // const path = key.split('.');
@@ -47,6 +48,8 @@ for (let [key, value] of Object.entries(settings)) {
     }
   }
 }
+
+// Extract interface
 for (let [key, value] of Object.entries(settings)) {
   if (key.startsWith('VhdlLinter.')) {
     // const path = key.split('.');
@@ -72,6 +75,9 @@ for (let [key, value] of Object.entries(settings)) {
         for (const [index, segment] of path.entries()) {
           if (index === path.length - 1) {
             if (innerObj[segment] !== undefined) {
+              optional = false;
+            } else if (value.type === 'array') {
+              innerObj[segment] = '[]';
               optional = false;
             }
           } else {

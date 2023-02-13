@@ -29,7 +29,7 @@ export interface ISettings {
     'inRegex': string;
   };
   'paths': {
-    'additional'?: string[];
+    'additional': string[];
     'ignoreRegex'?: string;
   };
   'semanticTokens': boolean;
@@ -65,6 +65,7 @@ export const defaultSettings: ISettings = {
     'inRegex': '^i_',
   },
   'paths': {
+    'additional': [],
   },
   'semanticTokens': false,
 };
