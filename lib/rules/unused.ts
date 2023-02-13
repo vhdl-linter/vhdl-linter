@@ -1,10 +1,10 @@
-import { RuleBase, IRule } from "./rules-base";
-import { CodeAction, CodeActionKind, Command, DiagnosticSeverity, TextEdit } from "vscode-languageserver";
-import { IHasLexerToken, IHasPorts, implementsIHasPorts, implementsIHasGenerics, implementsIHasTypes, implementsIHasComponents, implementsIHasSignals, implementsIHasVariables, implementsIHasConstants, implementsIHasSubprograms, IHasReferenceToken, implementsIHasLexerToken } from "../parser/interfaces";
-import { OFile, ObjectBase, OPackage, OPackageBody, OType, OEntity, OSubprogram, OComponent, ORead, OWrite, OSignal, OArchitecture, OProcess, OInstantiation } from "../parser/objects";
+import { CodeAction, CodeActionKind, DiagnosticSeverity, TextEdit } from "vscode-languageserver";
+import { IHasLexerToken, IHasPorts, IHasReferenceToken, implementsIHasComponents, implementsIHasConstants, implementsIHasGenerics, implementsIHasLexerToken, implementsIHasPorts, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables } from "../parser/interfaces";
+import { ObjectBase, OComponent, OEntity, OFile, OPackage, OPackageBody, ORead, OSubprogram, OType, OWrite } from "../parser/objects";
+import { IRule, RuleBase } from "./rules-base";
 
 export class RUnused extends RuleBase implements IRule {
-  public name = 'unused';
+  public static readonly ruleName = 'unused';
   file: OFile;
   private unusedSignalRegex: RegExp;
 
@@ -69,70 +69,6 @@ export class RUnused extends RuleBase implements IRule {
       }
     }
   }
-  private checkMultipleDriver(signal: OSignal) {
-    const writes = signal.referenceLinks.filter(token => token instanceof OWrite);
-    // check for multiple drivers
-    const writeScopes = writes.map(write => {
-      // checked scopes are: OArchitecture, OProcess, OInstantiation (only component and entity)
-      let scope: ObjectBase | OFile = write.parent;
-      while (!(scope instanceof OArchitecture
-        || scope instanceof OFile
-        || scope instanceof OProcess)) {
-        if (scope instanceof OInstantiation && (scope.type === 'component' || scope.type === 'entity')) {
-          break;
-        }
-        scope = scope.parent;
-      }
-      return { scope, write };
-    });
-    const filteredScopes = writeScopes.filter((v, i, a) => a.findIndex(x => x.scope === v.scope) === i);
-
-    const ignoreAction = this.vhdlLinter.addCodeActionCallback((textDocumentUri: string) => {
-      return [
-        CodeAction.create(
-          `Ignore multiple drivers of ${signal.lexerToken.text}`,
-          Command.create(
-            `Ignore multiple drivers of ${signal.lexerToken.text}`,
-            'vhdl-linter:ignore-line',
-            { textDocumentUri, range: signal.lexerToken.range }
-          ),
-          CodeActionKind.QuickFix
-        )
-      ];
-    });
-    if (filteredScopes.length > 1) {
-      this.addMessage({
-        code: ignoreAction,
-        range: signal.lexerToken.range,
-        severity: DiagnosticSeverity.Warning,
-        message: `'${signal.lexerToken.text}' has multiple drivers (e.g. lines ${filteredScopes.map(s => String(s.write.range.start.line)).join(', ')}).`
-      });
-      for (const write of writeScopes) {
-        this.addMessage({
-          code: ignoreAction,
-          range: write.write.range,
-          severity: DiagnosticSeverity.Warning,
-          message: `Driver of multiple driven signal '${signal.lexerToken.text}'.`
-        });
-      }
-    } else if (filteredScopes.length === 1 && writes.length > 1 && !(filteredScopes[0]?.scope instanceof OProcess)) {
-      // if multiple writes in the architecture or one instantiation
-      this.addMessage({
-        code: ignoreAction,
-        range: signal.lexerToken.range,
-        severity: DiagnosticSeverity.Warning,
-        message: `'${signal.lexerToken.text}' has ${writes.length} drivers (lines ${writeScopes.map(s => String(s.write.range.start.line)).join(', ')}).`
-      });
-      for (const write of writeScopes) {
-        this.addMessage({
-          code: ignoreAction,
-          range: write.write.range,
-          severity: DiagnosticSeverity.Warning,
-          message: `Driver of multiple driven signal '${signal.lexerToken.text}'.`
-        });
-      }
-    }
-  }
   check() {
     this.unusedSignalRegex = new RegExp(this.settings.style.unusedSignalRegex);
 
@@ -174,8 +110,6 @@ export class RUnused extends RuleBase implements IRule {
           }
           if (references.filter(token => token instanceof OWrite).length === 0) {
             this.addUnusedMessage(signal, `Not writing signal ${signal.lexerToken.text}`);
-          } else if (this.settings.rules.warnMultipleDriver) {
-            this.checkMultipleDriver(signal);
           }
         }
       }
