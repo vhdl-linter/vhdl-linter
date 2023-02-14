@@ -211,7 +211,7 @@ export class ParserBase {
       this.advanceWhitespace();
       return token;
     } else {
-      throw new ParserError(`expected '${expected.join(', ')}' found '${this.getToken().text}' line: ${this.getLine()}`, this.state.pos.getRangeToEndLine());
+      throw new ParserError(`expected '${expected.join(', ')} found '${this.getToken().text}'`, this.state.pos.getRangeToEndLine());
     }
   }
   maybe(expected: (string | OLexerToken)[] | string | OLexerToken): OLexerToken | undefined {

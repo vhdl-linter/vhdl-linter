@@ -57,7 +57,7 @@ export class VhdlLinter {
             return actions;
           });
         }
-
+        this.messages.push(...this.parser.state.messages);
         this.messages.push({
           range: e.range,
           severity: DiagnosticSeverity.Error,

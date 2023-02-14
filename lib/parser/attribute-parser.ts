@@ -40,12 +40,22 @@ export class AttributeParser extends ParserBase {
   }
   parseAttributeSpecification(designator: OLexerToken, attribute: OLexerToken) {
     this.expect('of');
-    const [tokens, colon] = this.advanceParenthesisAware([':'], true, true);
+    const unexpectedDelimiter = [';', 'begin'];
+    const [tokens, endToken] = this.advanceParenthesisAware([':', ...unexpectedDelimiter], true, false);
     if (tokens.length === 0) {
       this.state.messages.push({
         message: `entity_name_list for attribute_specification may not be empty!`,
-        range: colon.range.copyWithNewEnd(colon.range.start)
+        range: endToken.range.copyWithNewEnd(endToken.range.start)
       });
+    }
+    if (unexpectedDelimiter.includes(endToken.getLText())) {
+      this.state.messages.push({
+        message: `Unexpected ${endToken.text} in attribute_specification. Assuming forgotten ':'`,
+        range: endToken.range
+      });
+
+    } else {
+      this.consumeToken();
     }
     const attributeSpecification = new OAttributeSpecification(this.parent, attribute.range);
     attributeSpecification.lexerToken = designator;
