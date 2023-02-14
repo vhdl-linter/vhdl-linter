@@ -24,6 +24,7 @@ export class ConcurrentInstantiationParser extends ParserBase {
       instantiation.type = 'component';
     }
     // all names may have multiple '.' in them...
+    // TODO: parse selectedNames for concurrent instantiations
     nextToken = this.consumeToken();
     while (this.getToken().text === '.') {
       this.consumeToken();
