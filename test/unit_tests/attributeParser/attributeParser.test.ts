@@ -22,7 +22,7 @@ test('testing attribute parser for declaration and specification', async () => {
 });
 test.each([
   ['attribute_test_error.vhd', `Did not find end of signature in attribute specification ']'`],
-  ['attribute_test_error2.vhd', `Unexpected token unexpected in AttributeParser (was expecting 'or' or ':')`],
+  ['attribute_test_error2.vhd', `Unexpected token unexpected in AttributeParser (was expecting 'of' or ':')`],
   ['attribute_test_error3.vhd', `type_mark expected for attribute_declaration (parser)`],
 ]) ('testing attribute parser with error %s %s', async (file, message) => {
     const path = join(__dirname, file);
