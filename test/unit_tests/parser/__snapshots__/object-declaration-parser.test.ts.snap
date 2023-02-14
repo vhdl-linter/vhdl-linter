@@ -1,0 +1,225 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Missing semicolon handling 1`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file:///dummy.vhd": [
+          {
+            "newText": ";",
+            "range": {
+              "end": {
+                "character": 30,
+                "line": 1,
+              },
+              "start": {
+                "character": 30,
+                "line": 1,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Insert ';'",
+  },
+]
+`;
+
+exports[`Missing semicolon handling 2`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file:///dummy.vhd": [
+          {
+            "newText": ";",
+            "range": {
+              "end": {
+                "character": 31,
+                "line": 2,
+              },
+              "start": {
+                "character": 31,
+                "line": 2,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Insert ';'",
+  },
+]
+`;
+
+exports[`Missing semicolon handling 3`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file:///dummy.vhd": [
+          {
+            "newText": ";",
+            "range": {
+              "end": {
+                "character": 21,
+                "line": 3,
+              },
+              "start": {
+                "character": 21,
+                "line": 3,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Insert ';'",
+  },
+]
+`;
+
+exports[`Missing semicolon handling 4`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file:///dummy.vhd": [
+          {
+            "newText": ";",
+            "range": {
+              "end": {
+                "character": 30,
+                "line": 4,
+              },
+              "start": {
+                "character": 30,
+                "line": 4,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Insert ';'",
+  },
+]
+`;
+
+exports[`Missing semicolon handling 5`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file:///dummy.vhd": [
+          {
+            "newText": ";",
+            "range": {
+              "end": {
+                "character": 36,
+                "line": 11,
+              },
+              "start": {
+                "character": 36,
+                "line": 11,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Insert ';'",
+  },
+]
+`;
+
+exports[`Missing semicolon handling 6`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file:///dummy.vhd": [
+          {
+            "newText": ";",
+            "range": {
+              "end": {
+                "character": 37,
+                "line": 12,
+              },
+              "start": {
+                "character": 37,
+                "line": 12,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Insert ';'",
+  },
+]
+`;
+
+exports[`Missing semicolon handling 7`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file:///dummy.vhd": [
+          {
+            "newText": ";",
+            "range": {
+              "end": {
+                "character": 38,
+                "line": 13,
+              },
+              "start": {
+                "character": 38,
+                "line": 13,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Insert ';'",
+  },
+]
+`;
+
+exports[`Missing semicolon handling 8`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file:///dummy.vhd": [
+          {
+            "newText": ";",
+            "range": {
+              "end": {
+                "character": 28,
+                "line": 14,
+              },
+              "start": {
+                "character": 28,
+                "line": 14,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Insert ';'",
+  },
+]
+`;

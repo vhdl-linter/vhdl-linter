@@ -1,6 +1,6 @@
 import { DiagnosticSeverity } from "vscode-languageserver";
-import { implementsIHasReference, implementsIHasTypeReference } from "../parser/interfaces";
-import { OArray, ObjectBase, OFile, ORecord, ORecordChild, OSelectedName, OSelectedNameRead, OSelectedNameWrite } from "../parser/objects";
+import { IHasLexerToken, implementsIHasReference, implementsIHasTypeReference } from "../parser/interfaces";
+import { OArray, ObjectBase, OFile, ORecord, ORecordChild, OSelectedName, OSelectedNameRead, OSelectedNameWrite, OType } from "../parser/objects";
 import { VhdlLinter } from "../vhdl-linter";
 
 export class ElaborateSelectedNames {
@@ -15,17 +15,28 @@ export class ElaborateSelectedNames {
   }
 
   private findRecordElement(selectedName: OSelectedName | OSelectedNameWrite | OSelectedNameRead, typeDefinition: ObjectBase) {
-    if (typeDefinition instanceof ORecord) {
+    if (typeDefinition instanceof ORecord || (typeDefinition instanceof OType && typeDefinition.protected)) {
       let found = false;
-      for (const child of typeDefinition.children) {
-        if (child.lexerToken.getLText() === selectedName.referenceToken.getLText()) {
-          selectedName.definitions.push(child);
-          found = true;
+      if (typeDefinition instanceof ORecord) {
+        for (const child of typeDefinition.children) {
+          if (child.lexerToken.getLText() === selectedName.referenceToken.getLText()) {
+            selectedName.definitions.push(child);
+            found = true;
+          }
+        }
+      } else {
+        // for protected types (not protected bodies) search subprograms and attributes
+
+        for (const child of (typeDefinition.subprograms as (ObjectBase & IHasLexerToken)[]).concat(typeDefinition.attributeSpecifications)) {
+          if (child.lexerToken.getLText() === selectedName.referenceToken.getLText()) {
+            selectedName.definitions.push(child);
+            found = true;
+          }
         }
       }
       if (found === false) {
         this.vhdlLinter.addMessage({
-          message: `${selectedName.referenceToken.text} does not exist on record ${typeDefinition.lexerToken.text}`,
+          message: `${selectedName.referenceToken.text} does not exist on ${typeDefinition instanceof ORecord ? 'record' : 'protected type'} ${typeDefinition.lexerToken.text}`,
           range: selectedName.referenceToken.range,
           severity: DiagnosticSeverity.Error
         }, 'elaborate');
