@@ -1,5 +1,4 @@
 import { afterAll, beforeAll, expect, test } from '@jest/globals';
-import exp = require('constants');
 import { join } from 'path';
 import { pathToFileURL } from 'url';
 import { Elaborate } from '../../../lib/elaborate/elaborate';
@@ -65,12 +64,31 @@ test.each([
     expect.objectContaining({
       range: expect.objectContaining({
         start: expect.objectContaining({
-          line: 19,
-          message: expect.stringContaining('kiwi does not exist on protected type')
-        })
-      })
-    })
-  ]))
+          line: 20,
+          character: 11,
+        }),
+        end: expect.objectContaining({
+          line: 20,
+          character: 17,
+        }),
+      }),
+      message: expect.stringContaining('orange does not exist on protected type')
+    }),
+    // expect this when parsing selectedNames for instantiations
+    // expect.objectContaining({
+    //   range: expect.objectContaining({
+    //     start: expect.objectContaining({
+    //       line: 20,
+    //       character: 4,
+    //     }),
+    //     end: expect.objectContaining({
+    //       line: 20,
+    //       character: 8,
+    //     }),
+    //   }),
+    //   message: expect.stringContaining('kiwi does not exist on protected type')
+    // })
+  ]));
 
 });
 

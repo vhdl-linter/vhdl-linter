@@ -11,12 +11,13 @@ architecture rtl of test_selected_name is
   end protected;
   type t2 is protected
     procedure kiwi(i: integer);
+    function orange return integer;
   end protected;
 
   signal s : t;
 begin
 
   s.apple(s.banana);
-  s.kiwi(s.banana);
+  s.kiwi(s.orange);
 
 end architecture;
