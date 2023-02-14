@@ -1,3 +1,4 @@
+import { TextEdit } from 'vscode-languageserver';
 import { OLexerToken } from '../lexer';
 import { ExpressionParser } from './expression-parser';
 import { IHasConstants, IHasFileVariables, IHasSignals, IHasVariables, implementsIHasConstants, implementsIHasFileVariables, implementsIHasSignals, implementsIHasVariables } from './interfaces';
@@ -52,36 +53,52 @@ export class ObjectDeclarationParser extends ParserBase {
 
     } while (this.getToken().getLText() === ',');
     this.expect(':');
+
     if (file) {
       const typeToken = this.consumeToken();
-      for (const file of objects as OFileVariable[]) {
+      for (const file of objects.slice(objects.length - 1) as OFileVariable[]) {
         const typeRead = new ORead(file, typeToken);
         file.typeReference = [typeRead];
+        let tokens, endToken;
         if (this.maybe('open')) {
-          const [tokens] = this.advanceParenthesisAware(['is', ';'], true, false);
+          [tokens, endToken] = this.advanceParenthesisAware(['is', ';', ...this.NotExpectedDelimiter], true, false);
           file.openKind = new ExpressionParser(this.state, file, tokens).parse();
         }
         if (this.maybe('is')) {
-          const [tokens] = this.advanceParenthesisAware([';'], true, false);
+          [tokens, endToken] = this.advanceParenthesisAware([';', ...this.NotExpectedDelimiter], true, false);
           file.logicalName = new ExpressionParser(this.state, file, tokens).parse();
         }
+        if (!endToken) {
+          endToken = this.getToken();
+        }
+        if (this.NotExpectedDelimiter.includes(endToken.getLText())) {
+          this.state.messages.push({
+            message: `Unexpected ${endToken.text} in object declaration. Assuming forgotten ';'`,
+            range: endToken.range,
+            solution: {
+              message: `Insert ';'`,
+              edits: [
+                TextEdit.insert(this.getToken(-1, true).range.end, ';')
+              ]
+            }
+          });
+        } else {
+          this.expect(';');
+        }
         // TODO: Parse optional parts of file definition
-        file.range = file.range.copyWithNewEnd(this.state.pos.i);
       }
     } else {
       // If multiple types have the same type reference (variable a,b : integer) only the last has the text.
       for (const signal of objects.slice(objects.length - 1)) {
-        const { typeReads, defaultValueReads } = this.getType(signal, false);
+        const { typeReads, defaultValueReads } = this.getType(signal);
         signal.typeReference = typeReads;
         signal.defaultValue = defaultValueReads;
-        signal.range = signal.range.copyWithNewEnd(this.state.pos.i);
       }
 
     }
     for (const object of objects) {
-      object.range.copyWithNewEnd(this.getToken().range.end);
+      object.range = object.range.copyWithNewEnd(this.getToken(-1, true).range.end);
     }
-    this.advanceSemicolon();
     if (constant) {
       (this.parent as IHasConstants).constants.push(...objects as OSignal[]);
     } else if (variable) {
@@ -92,12 +109,23 @@ export class ObjectDeclarationParser extends ParserBase {
       (this.parent as IHasSignals).signals.push(...objects as OSignal[]);
     }
   }
-  getType(parent: ObjectBase, advanceSemicolon = true, endWithParenthesis = false) {
-    let type;
-    if (endWithParenthesis) {
-      [type] = this.advanceParenthesisAware([';', 'is', ')'], true, false);
+  readonly NotExpectedDelimiter = ['end', 'file', 'constant', 'variable', 'begin', 'signal', 'is'];
+  getType(parent: ObjectBase) {
+    const [type, endToken] = this.advanceParenthesisAware([';', ...this.NotExpectedDelimiter], true, false);
+    if (this.NotExpectedDelimiter.includes(endToken.getLText())) {
+
+      this.state.messages.push({
+        message: `Unexpected ${endToken.text} in object declaration. Assuming forgotten ';'`,
+        range: endToken.range,
+        solution: {
+          message: `Insert ';'`,
+          edits: [
+            TextEdit.insert(this.getToken(-1, true).range.end, ';')
+          ]
+        }
+      });
     } else {
-      [type] = this.advanceParenthesisAware([';', 'is'], true, false);
+      this.expect(';');
     }
     let defaultValueReads;
     let typeReads;
@@ -112,10 +140,7 @@ export class ObjectDeclarationParser extends ParserBase {
       typeReads = new ExpressionParser(this.state, parent, type).parse();
 
     }
-    if (advanceSemicolon) {
-      this.expect(';');
-      this.advanceWhitespace();
-    }
+
     return {
       typeReads,
       defaultValueReads
