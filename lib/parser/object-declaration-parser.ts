@@ -1,3 +1,4 @@
+import { TextEdit } from 'vscode-languageserver';
 import { OLexerToken } from '../lexer';
 import { ExpressionParser } from './expression-parser';
 import { IHasConstants, IHasFileVariables, IHasSignals, IHasVariables, implementsIHasConstants, implementsIHasFileVariables, implementsIHasSignals, implementsIHasVariables } from './interfaces';
@@ -72,8 +73,14 @@ export class ObjectDeclarationParser extends ParserBase {
         }
         if (this.NotExpectedDelimiter.includes(endToken.getLText())) {
           this.state.messages.push({
-            message: `Unexpected ${endToken.text} in object declaration. Assuming forgotten delimiter`,
-            range: endToken.range
+            message: `Unexpected ${endToken.text} in object declaration. Assuming forgotten ';'`,
+            range: endToken.range,
+            solution: {
+              message: `Insert ';'`,
+              edits: [
+                TextEdit.insert(this.getToken(-1, true).range.end, ';')
+              ]
+            }
           });
         } else {
           this.expect(';');
@@ -102,13 +109,20 @@ export class ObjectDeclarationParser extends ParserBase {
       (this.parent as IHasSignals).signals.push(...objects as OSignal[]);
     }
   }
-  readonly NotExpectedDelimiter = ['end', 'file', 'constant', 'variable', 'begin', 'signal'];
+  readonly NotExpectedDelimiter = ['end', 'file', 'constant', 'variable', 'begin', 'signal', 'is'];
   getType(parent: ObjectBase) {
-    const [type, endToken] = this.advanceParenthesisAware([';', 'is', ...this.NotExpectedDelimiter], true, false);
+    const [type, endToken] = this.advanceParenthesisAware([';', ...this.NotExpectedDelimiter], true, false);
     if (this.NotExpectedDelimiter.includes(endToken.getLText())) {
+
       this.state.messages.push({
-        message: `Unexpected ${endToken.text} in object declaration. Assuming forgotten delimiter`,
-        range: endToken.range
+        message: `Unexpected ${endToken.text} in object declaration. Assuming forgotten ';'`,
+        range: endToken.range,
+        solution: {
+          message: `Insert ';'`,
+          edits: [
+            TextEdit.insert(this.getToken(-1, true).range.end, ';')
+          ]
+        }
       });
     } else {
       this.expect(';');
