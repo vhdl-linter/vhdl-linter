@@ -100,13 +100,6 @@ export class ParserBase {
 
     }
   }
-  getNum(token: OLexerToken) {
-    const num = this.state.pos.lexerTokens.find(tokenFind => tokenFind === token);
-    if (num === undefined) {
-      throw new ParserError(`Out of bound`, this.getToken(0).range);
-    }
-    return num;
-  }
   consumeToken(advanceWhitespace = true): OLexerToken {
     const token = this.state.pos.lexerTokens[this.state.pos.num];
     this.state.pos.num++;
