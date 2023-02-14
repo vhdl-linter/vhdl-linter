@@ -4,7 +4,11 @@ import { VhdlLinter } from '../vhdl-linter';
 export function foldingHandler(linter: VhdlLinter): FoldingRange[] {
   const result: FoldingRange[] = [];
   for (const obj of linter.file.objectList) {
-    if (obj instanceof OProcess || obj instanceof OIfClause || obj instanceof OInstantiation || obj instanceof OIfGenerateClause || obj instanceof OForGenerate ||
+    if (obj instanceof OStatementBody && obj.endOfDeclarativePart) {
+      result.push(FoldingRange.create(obj.range.start.line, obj.endOfDeclarativePart.line));
+      result.push(FoldingRange.create(obj.endOfDeclarativePart.line + 1, obj.range.end.line));
+
+    } else if (obj instanceof OProcess || obj instanceof OIfClause || obj instanceof OInstantiation || obj instanceof OIfGenerateClause || obj instanceof OForGenerate ||
       obj instanceof OAssociationList || obj instanceof OEntity || obj instanceof OArchitecture || obj instanceof OElseClause || obj instanceof OCase || obj instanceof OWhenClause || obj instanceof OSubprogram ||
       obj instanceof OCase || obj instanceof OComponent || obj instanceof OPackage || obj instanceof OPackageBody ||
       obj instanceof OStatementBody || (obj instanceof OType && (obj.protected || obj.protectedBody || obj instanceof ORecord))) {
