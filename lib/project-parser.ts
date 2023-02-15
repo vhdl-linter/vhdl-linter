@@ -49,23 +49,25 @@ export class ProjectParser {
       const watcher = watch(fileURLToPath(url).replaceAll(sep, '/') + '/**/*.vhd?(l)', { ignoreInitial: true });
       watcher.on('add', (path) => {
         const handleEvent = async () => {
-          const cachedFile = await (FileCache.create(pathToFileURL(path), this));
+          const url = pathToFileURL(path);
+          const cachedFile = await (FileCache.create(url, this));
           this.cachedFiles.push(cachedFile);
           this.flattenProject();
-          this.events.emit('change', 'add', path);
+          this.events.emit('change', 'add', url.toString());
         };
         handleEvent().catch(console.error);
       });
       watcher.on('change', (path) => {
         const handleEvent = async () => {
-          // console.log('change', path);
+          const url = pathToFileURL(path);
+
           const cachedFile = process.platform === 'win32'
-            ? this.cachedFiles.find(cachedFile => fileURLToPath(cachedFile.uri).toLowerCase() === path.toLowerCase())
-            : this.cachedFiles.find(cachedFile => fileURLToPath(cachedFile.uri) === path);
+            ? this.cachedFiles.find(cachedFile => cachedFile.uri.toString() === url.toString().toLowerCase())
+            : this.cachedFiles.find(cachedFile => cachedFile.uri.toString() === url.toString());
           if (cachedFile) {
             await cachedFile.parse();
             this.flattenProject();
-            this.events.emit('change', 'change', path);
+            this.events.emit('change', 'change', url.toString());
           } else {
             console.error('modified file not found', path);
           }
@@ -74,11 +76,15 @@ export class ProjectParser {
         handleEvent().catch(console.error);
       });
       watcher.on('unlink', path => {
-        const cachedFileIndex = this.cachedFiles.findIndex(cachedFile => cachedFile.uri.pathname === path);
+        const url = pathToFileURL(path);
+
+        const cachedFileIndex = process.platform === 'win32'
+          ? this.cachedFiles.findIndex(cachedFile => cachedFile.uri.toString() === url.toString().toLowerCase())
+          : this.cachedFiles.findIndex(cachedFile => cachedFile.uri.toString() === url.toString());
         if (cachedFileIndex > -1) {
           this.cachedFiles.splice(cachedFileIndex, 1);
           this.flattenProject();
-          this.events.emit('change', 'unlink', path);
+          this.events.emit('change', 'unlink', url.toString());
         }
       });
       this.watchers.push(watcher);

@@ -1,3 +1,4 @@
+import { basename } from "path";
 import { platform } from "process";
 import { EventEmitter } from "stream";
 import { CancellationToken, CancellationTokenSource, LSPErrorCodes, ResponseError } from "vscode-languageserver";
@@ -24,10 +25,13 @@ export class LinterManager {
   // To wait on a specific state the getLinter function checks for state and then waits on emitter in a loop
   private emitter = new EventEmitter();
   async waitOnStateChange(uri: string, token?: CancellationToken) {
-    await new Promise(resolve => this.emitter.once(uri, resolve));
-    if (token?.isCancellationRequested) {
-      throw new ResponseError(LSPErrorCodes.RequestCancelled, 'canceled');
-    }
+    await new Promise((resolve, reject) => {
+      token?.onCancellationRequested(() => {
+        this.emitter.off(uri, resolve);
+        reject(new ResponseError(LSPErrorCodes.RequestCancelled, 'canceled'));
+      });
+      this.emitter.once(uri, resolve);
+     });
   }
   async getLinter(uri: string, token?: CancellationToken, preferOldOverWaiting = true) {
     uri = normalizeUri(uri);
@@ -52,6 +56,7 @@ export class LinterManager {
   }
   cancellationTokenSources: Record<string, CancellationTokenSource> = {};
   async triggerRefresh(uri: string, text: string, projectParser: ProjectParser, settingsGetter: SettingsGetter, fromProjectParser = false) {
+    console.log('triggerRefresh', basename(uri));
     uri = normalizeUri(uri);
     // Cancel previous running linter of this uri
     const oldSource = this.cancellationTokenSources[uri];
@@ -105,7 +110,7 @@ export class LinterManager {
         cachedFile?.replaceLinter(vhdlLinter);
         projectParser.flattenProject();
         projectParser.events.emit('change', 'change', uri);
-      }, 100);
+      }, 30);
     }
   }
 }

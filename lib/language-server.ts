@@ -1,4 +1,5 @@
 import { existsSync } from 'fs';
+import { basename } from 'path';
 import { pathToFileURL } from 'url';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import {
@@ -17,6 +18,7 @@ import { semanticTokens, semanticTokensLegend } from './languageFeatures/semanti
 import { signatureHelp } from './languageFeatures/signatureHelp';
 import { handleOnWorkspaceSymbol } from './languageFeatures/workspaceSymbols';
 import { LinterManager } from './linter-manager';
+import { normalizeUri } from './normalize-uri';
 import { ProjectParser } from './project-parser';
 import { defaultSettings, ISettings } from './settings';
 
@@ -158,10 +160,18 @@ export const initialization = new Promise<void>(resolve => {
       for (const textDocument of documents.all()) {
         await validateTextDocument(textDocument);
       }
-      projectParser.events.on('change', () => {
-        documents.all().forEach((textDocument) => void validateTextDocument(textDocument, true));
+      projectParser.events.on('change', (_, uri: string) => {
+        // A file in project parser got changed
+        // Revalidate all *other* files. (The file itself gets directly handled.)
+        for (const document of documents.all()) {
+          if (normalizeUri(document.uri) !== uri) {
+            void validateTextDocument(document, true);
+          }
+        }
       });
-      documents.onDidChangeContent(change => validateTextDocument(change.document));
+      documents.onDidChangeContent(change => {
+        void validateTextDocument(change.document);
+      });
       progress.done();
       resolve();
     };
@@ -179,6 +189,7 @@ const linterManager = new LinterManager();
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
 async function validateTextDocument(textDocument: TextDocument, fromProjectParser = false) {
+  console.log('validating', basename(pathToFileURL(textDocument.uri).pathname));
   try {
     const vhdlLinter = await linterManager.triggerRefresh(textDocument.uri, textDocument.getText(), projectParser, getDocumentSettings, fromProjectParser);
     const diagnostics = await vhdlLinter.checkAll();
