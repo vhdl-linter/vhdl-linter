@@ -1,0 +1,37 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Testing formatting call on platform linux 4`] = `
+[
+  {
+    "newText": "expected dummy result",
+    "range": {
+      "end": {
+        "character": 0,
+        "line": 0,
+      },
+      "start": {
+        "character": 0,
+        "line": 0,
+      },
+    },
+  },
+]
+`;
+
+exports[`Testing formatting call on platform win32 3`] = `
+[
+  {
+    "newText": "expected dummy result",
+    "range": {
+      "end": {
+        "character": 0,
+        "line": 0,
+      },
+      "start": {
+        "character": 0,
+        "line": 0,
+      },
+    },
+  },
+]
+`;
