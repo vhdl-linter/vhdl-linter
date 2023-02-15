@@ -3,7 +3,7 @@ import { pathToFileURL } from 'url';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import {
   CancellationToken,
-  CodeAction, createConnection, DidChangeConfigurationNotification, InitializeParams, Position, ProposedFeatures, TextDocuments, TextDocumentSyncKind
+  CodeAction, createConnection, DidChangeConfigurationNotification, InitializeParams, LSPErrorCodes, Position, ProposedFeatures, ResponseError, TextDocuments, TextDocumentSyncKind
 } from 'vscode-languageserver/node';
 import { getCompletions } from './languageFeatures/completion';
 import { handleDocumentFormatting } from './languageFeatures/documentFormatting';
@@ -17,11 +17,8 @@ import { semanticTokens, semanticTokensLegend } from './languageFeatures/semanti
 import { signatureHelp } from './languageFeatures/signatureHelp';
 import { handleOnWorkspaceSymbol } from './languageFeatures/workspaceSymbols';
 import { LinterManager } from './linter-manager';
-import { normalizeUri } from './normalize-uri';
 import { ProjectParser } from './project-parser';
-import { CancellationError } from './server-objects';
 import { defaultSettings, ISettings } from './settings';
-import { VhdlLinter } from './vhdl-linter';
 
 // Create a connection for the server. The connection auto detected protocol
 // Also include all preview / proposed LSP features.
@@ -156,41 +153,15 @@ export const initialization = new Promise<void>(resolve => {
         if (rootUri) {
           folders.push(new URL(rootUri));
         }
-        // console.log('folders', folders);
         projectParser = await ProjectParser.create(folders, configuration.paths.ignoreRegex, getDocumentSettings, false, progress);
       }
       for (const textDocument of documents.all()) {
         await validateTextDocument(textDocument);
       }
       projectParser.events.on('change', () => {
-        // console.log('projectParser.events.change', new Date().getTime(), ... args);
-        documents.all().forEach((textDocument) => void validateTextDocument(textDocument));
+        documents.all().forEach((textDocument) => void validateTextDocument(textDocument, true));
       });
-      const timeoutMap = new Map<string, NodeJS.Timeout>();
-      documents.onDidChangeContent(change => {
-        const oldTimeout = timeoutMap.get(change.document.uri);
-        if (oldTimeout !== undefined) {
-          clearTimeout(oldTimeout);
-        }
-        async function handleChange() {
-          const vhdlLinter = await validateTextDocument(change.document);
-          // For some reason the : in the beginning of win paths comes escaped here.
-          const uri = normalizeUri(change.document.uri);
-          const cachedFile = process.platform === 'win32'
-            ? projectParser.cachedFiles.find(cachedFile => cachedFile.uri.toString().toLowerCase() === uri.toLowerCase())
-            : projectParser.cachedFiles.find(cachedFile => cachedFile.uri.toString() === uri);
-          await cachedFile?.parse(vhdlLinter);
-          projectParser.flattenProject();
-        }
-        void handleChange();
-        // if (change.document.version === 1) { // Document was initially opened. Do not delay.
-        // } else {
-        //   timeoutMap.set(change.document.uri, setTimeout(() => void handleChange(), 100));
-        // }
-        // const lintingTime = Date.now() - date;
-        // console.log(`${change.document.uri}: ${lintingTime}ms`);
-
-      });
+      documents.onDidChangeContent(change => validateTextDocument(change.document));
       progress.done();
       resolve();
     };
@@ -207,14 +178,14 @@ documents.onDidClose(async change => {
 const linterManager = new LinterManager();
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
-async function validateTextDocument(textDocument: TextDocument): Promise<VhdlLinter> {
+async function validateTextDocument(textDocument: TextDocument, fromProjectParser = false) {
 
 
-  const vhdlLinter = await linterManager.triggerRefresh(textDocument.uri, textDocument.getText(), projectParser, getDocumentSettings);
-  console.log('parse done');
+  try {
+    const vhdlLinter = await linterManager.triggerRefresh(textDocument.uri, textDocument.getText(), projectParser, getDocumentSettings, fromProjectParser);
+    console.log('parse done');
   // console.log(`parsed for: ${Date.now() - start} ms.`);
   // start = Date.now();
-  try {
     const diagnostics = await vhdlLinter.checkAll();
     diagnostics.forEach((diag) => diag.source = 'vhdl-linter');
     // console.log(`checked for: ${Date.now() - start} ms.`);
@@ -224,11 +195,10 @@ async function validateTextDocument(textDocument: TextDocument): Promise<VhdlLin
     // console.log(`send for: ${Date.now() - start} ms.`);
   } catch (err) {
     // Ignore cancelled
-    if (!(err instanceof CancellationError)) {
+    if (!(err instanceof ResponseError && err.code === LSPErrorCodes.RequestCancelled)) {
       throw err;
     }
   }
-  return vhdlLinter;
 }
 
 connection.onDidChangeWatchedFiles(() => {

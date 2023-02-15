@@ -1,6 +1,6 @@
 import {
   CancellationToken,
-  CodeAction, CodeActionKind, Diagnostic, DiagnosticSeverity, Position, Range, TextEdit
+  CodeAction, CodeActionKind, Diagnostic, DiagnosticSeverity, LSPErrorCodes, Position, Range, ResponseError, TextEdit
 } from 'vscode-languageserver';
 import { Elaborate } from './elaborate/elaborate';
 import { FileParser } from './parser/file-parser';
@@ -9,7 +9,6 @@ import {
 } from './parser/objects';
 import { ProjectParser } from './project-parser';
 import { rules } from './rules/rule-index';
-import { CancellationError } from './server-objects';
 import { ISettings } from './settings';
 
 export interface IAddSignalCommandArguments {
@@ -151,7 +150,7 @@ export class VhdlLinter {
     await new Promise(resolve => setImmediate(resolve));
     if (this.token?.isCancellationRequested) {
       console.log('canceled');
-      throw new CancellationError();
+      throw new ResponseError(LSPErrorCodes.RequestCancelled, 'canceled');
     }
   }
 

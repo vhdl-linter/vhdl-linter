@@ -181,7 +181,6 @@ class FileCache {
   packageInstantiations?: OPackageInstantiation[];
   contexts: OContext[] = [];
   entities: OEntity[] = [];
-  text: string;
   linter: VhdlLinter;
   lintingTime: number;
   // Constructor can not be async. So constructor is private and use factory to create
@@ -192,14 +191,14 @@ class FileCache {
   }
   private constructor(public uri: URL, public projectParser: ProjectParser) {
   }
-  async parse(vhdlLinter?: VhdlLinter) {
-    const text = await promises.readFile(this.uri, { encoding: 'utf8' });
-    this.text = text.replaceAll('\r\n', '\n');
-    if (vhdlLinter) {
-      this.linter = vhdlLinter;
-    } else {
-      this.linter = new VhdlLinter(this.uri, this.text, this.projectParser, this.projectParser.settingsGetter);
-    }
+  async parse() {
+    let text = await promises.readFile(this.uri, { encoding: 'utf8' });
+    text = text.replaceAll('\r\n', '\n');
+    this.linter = new VhdlLinter(this.uri, text, this.projectParser, this.projectParser.settingsGetter);
+    this.replaceLinter(this.linter);
+  }
+  replaceLinter(vhdlLinter: VhdlLinter) {
+    this.linter = vhdlLinter;
     this.packages = this.linter.file.packages.filter((p): p is OPackage => p instanceof OPackage);
     this.packageInstantiations = this.linter.file.packageInstantiations;
     this.entities = this.linter.file.entities;
