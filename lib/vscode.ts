@@ -73,7 +73,7 @@ export async function activate(context: ExtensionContext) {
         typePart = 'std_logic';
       }
       const type = parseInt(length, 10) === 1 ? typePart : `${typePart}_vector(${length} - 1 downto 0)`;
-      editBuilder.insert(new Position(args.position.line, 0), `  signal ${args.signalName} : ${type};\n`);
+      editBuilder.insert(new Position(args.position.line, args.position.character), `  signal ${args.signalName} : ${type};\n`);
     });
 
   }));

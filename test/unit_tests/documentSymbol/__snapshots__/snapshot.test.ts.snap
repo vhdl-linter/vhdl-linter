@@ -1111,7 +1111,7 @@ exports[`Testing document symbols of test_protected.vhd 1`] = `
         "name": "c_crcPol",
         "range": {
           "end": {
-            "character": 66,
+            "character": 67,
             "line": 13,
           },
           "start": {

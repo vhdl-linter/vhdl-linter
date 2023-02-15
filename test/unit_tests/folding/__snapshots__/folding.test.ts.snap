@@ -1,0 +1,720 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Testing folding ranges of test_alias.vhd 1`] = `
+[
+  {
+    "endLine": 11,
+    "startLine": 4,
+  },
+  {
+    "endLine": 2,
+    "kind": "imports",
+    "startLine": 0,
+  },
+  {
+    "endLine": 7,
+    "startLine": 5,
+  },
+]
+`;
+
+exports[`Testing folding ranges of test_block.vhd 1`] = `
+[
+  {
+    "endLine": 5,
+    "startLine": 4,
+  },
+  {
+    "endLine": 2,
+    "kind": "imports",
+    "startLine": 0,
+  },
+  {
+    "endLine": 8,
+    "startLine": 7,
+  },
+  {
+    "endLine": 15,
+    "startLine": 9,
+  },
+  {
+    "endLine": 11,
+    "startLine": 11,
+  },
+  {
+    "endLine": 13,
+    "startLine": 11,
+  },
+  {
+    "endLine": 0,
+    "kind": "imports",
+    "startLine": Infinity,
+  },
+]
+`;
+
+exports[`Testing folding ranges of test_case_generate.vhd 1`] = `
+[
+  {
+    "endLine": 5,
+    "startLine": 4,
+  },
+  {
+    "endLine": 2,
+    "kind": "imports",
+    "startLine": 0,
+  },
+  {
+    "endLine": 8,
+    "startLine": 7,
+  },
+  {
+    "endLine": 18,
+    "startLine": 9,
+  },
+  {
+    "endLine": 12,
+    "startLine": 12,
+  },
+  {
+    "endLine": 13,
+    "startLine": 12,
+  },
+  {
+    "endLine": 0,
+    "kind": "imports",
+    "startLine": Infinity,
+  },
+  {
+    "endLine": 14,
+    "startLine": 14,
+  },
+  {
+    "endLine": 15,
+    "startLine": 14,
+  },
+  {
+    "endLine": 0,
+    "kind": "imports",
+    "startLine": Infinity,
+  },
+]
+`;
+
+exports[`Testing folding ranges of test_entity.vhd 1`] = `
+[
+  {
+    "endLine": 5,
+    "startLine": 0,
+  },
+  {
+    "endLine": 3,
+    "startLine": 1,
+  },
+]
+`;
+
+exports[`Testing folding ranges of test_for_generate.vhd 1`] = `
+[
+  {
+    "endLine": 5,
+    "startLine": 4,
+  },
+  {
+    "endLine": 2,
+    "kind": "imports",
+    "startLine": 0,
+  },
+  {
+    "endLine": 8,
+    "startLine": 7,
+  },
+  {
+    "endLine": 15,
+    "startLine": 9,
+  },
+  {
+    "endLine": 11,
+    "startLine": 11,
+  },
+  {
+    "endLine": 13,
+    "startLine": 11,
+  },
+  {
+    "endLine": 0,
+    "kind": "imports",
+    "startLine": Infinity,
+  },
+]
+`;
+
+exports[`Testing folding ranges of test_if_else_generate.vhd 1`] = `
+[
+  {
+    "endLine": 5,
+    "startLine": 4,
+  },
+  {
+    "endLine": 2,
+    "kind": "imports",
+    "startLine": 0,
+  },
+  {
+    "endLine": 8,
+    "startLine": 7,
+  },
+  {
+    "endLine": 17,
+    "startLine": 9,
+  },
+  {
+    "endLine": 11,
+    "startLine": 11,
+  },
+  {
+    "endLine": 12,
+    "startLine": 11,
+  },
+  {
+    "endLine": 0,
+    "kind": "imports",
+    "startLine": Infinity,
+  },
+  {
+    "endLine": 13,
+    "startLine": 13,
+  },
+  {
+    "endLine": 15,
+    "startLine": 13,
+  },
+  {
+    "endLine": 0,
+    "kind": "imports",
+    "startLine": Infinity,
+  },
+]
+`;
+
+exports[`Testing folding ranges of test_if_elsif_generate.vhd 1`] = `
+[
+  {
+    "endLine": 5,
+    "startLine": 4,
+  },
+  {
+    "endLine": 2,
+    "kind": "imports",
+    "startLine": 0,
+  },
+  {
+    "endLine": 8,
+    "startLine": 7,
+  },
+  {
+    "endLine": 16,
+    "startLine": 9,
+  },
+  {
+    "endLine": 11,
+    "startLine": 11,
+  },
+  {
+    "endLine": 12,
+    "startLine": 11,
+  },
+  {
+    "endLine": 0,
+    "kind": "imports",
+    "startLine": Infinity,
+  },
+  {
+    "endLine": 13,
+    "startLine": 13,
+  },
+  {
+    "endLine": 15,
+    "startLine": 13,
+  },
+  {
+    "endLine": 0,
+    "kind": "imports",
+    "startLine": Infinity,
+  },
+]
+`;
+
+exports[`Testing folding ranges of test_inst.vhd 1`] = `
+[
+  {
+    "endLine": 5,
+    "startLine": 4,
+  },
+  {
+    "endLine": 2,
+    "kind": "imports",
+    "startLine": 0,
+  },
+  {
+    "endLine": 8,
+    "startLine": 7,
+  },
+  {
+    "endLine": 17,
+    "startLine": 9,
+  },
+  {
+    "endLine": 14,
+    "startLine": 11,
+  },
+  {
+    "endLine": 14,
+    "startLine": 12,
+  },
+]
+`;
+
+exports[`Testing folding ranges of test_process.vhd 1`] = `
+[
+  {
+    "endLine": 8,
+    "startLine": 4,
+  },
+  {
+    "endLine": 2,
+    "kind": "imports",
+    "startLine": 0,
+  },
+  {
+    "endLine": 10,
+    "startLine": 10,
+  },
+  {
+    "endLine": 18,
+    "startLine": 11,
+  },
+  {
+    "endLine": 16,
+    "startLine": 13,
+  },
+  {
+    "endLine": 7,
+    "startLine": 5,
+  },
+]
+`;
+
+exports[`Testing folding ranges of test_protected.vhd 1`] = `
+[
+  {
+    "endLine": 10,
+    "startLine": 4,
+  },
+  {
+    "endLine": 2,
+    "kind": "imports",
+    "startLine": 0,
+  },
+  {
+    "endLine": 9,
+    "startLine": 5,
+  },
+  {
+    "endLine": 6,
+    "startLine": 6,
+  },
+  {
+    "endLine": 7,
+    "startLine": 7,
+  },
+  {
+    "endLine": 8,
+    "startLine": 8,
+  },
+  {
+    "endLine": 55,
+    "startLine": 12,
+  },
+  {
+    "endLine": 22,
+    "startLine": 15,
+  },
+  {
+    "endLine": 54,
+    "startLine": 25,
+  },
+  {
+    "endLine": 32,
+    "startLine": 29,
+  },
+  {
+    "endLine": 45,
+    "startLine": 34,
+  },
+  {
+    "endLine": 39,
+    "startLine": 38,
+  },
+  {
+    "endLine": 41,
+    "startLine": 41,
+  },
+  {
+    "endLine": 52,
+    "startLine": 47,
+  },
+]
+`;
+
+exports[`Testing folding ranges of test_record.vhd 1`] = `
+[
+  {
+    "endLine": 8,
+    "startLine": 4,
+  },
+  {
+    "endLine": 2,
+    "kind": "imports",
+    "startLine": 0,
+  },
+  {
+    "endLine": 7,
+    "startLine": 5,
+  },
+]
+`;
+
+exports[`Testing folding ranges of test_stateMachine.vhd 1`] = `
+[
+  {
+    "endLine": 5,
+    "startLine": 4,
+  },
+  {
+    "endLine": 2,
+    "kind": "imports",
+    "startLine": 0,
+  },
+  {
+    "endLine": 9,
+    "startLine": 7,
+  },
+  {
+    "endLine": 26,
+    "startLine": 10,
+  },
+  {
+    "endLine": 24,
+    "startLine": 12,
+  },
+  {
+    "endLine": 23,
+    "startLine": 14,
+  },
+  {
+    "endLine": 16,
+    "startLine": 15,
+  },
+  {
+    "endLine": 18,
+    "startLine": 17,
+  },
+  {
+    "endLine": 20,
+    "startLine": 19,
+  },
+  {
+    "endLine": 22,
+    "startLine": 21,
+  },
+]
+`;
+
+exports[`Testing folding ranges of test_stateMachineCase.vhd 1`] = `
+[
+  {
+    "endLine": 5,
+    "startLine": 4,
+  },
+  {
+    "endLine": 2,
+    "kind": "imports",
+    "startLine": 0,
+  },
+  {
+    "endLine": 10,
+    "startLine": 7,
+  },
+  {
+    "endLine": 32,
+    "startLine": 11,
+  },
+  {
+    "endLine": 30,
+    "startLine": 13,
+  },
+  {
+    "endLine": 29,
+    "startLine": 15,
+  },
+  {
+    "endLine": 22,
+    "startLine": 16,
+  },
+  {
+    "endLine": 22,
+    "startLine": 17,
+  },
+  {
+    "endLine": 19,
+    "startLine": 18,
+  },
+  {
+    "endLine": 21,
+    "startLine": 20,
+  },
+  {
+    "endLine": 24,
+    "startLine": 23,
+  },
+  {
+    "endLine": 26,
+    "startLine": 25,
+  },
+  {
+    "endLine": 28,
+    "startLine": 27,
+  },
+]
+`;
+
+exports[`Testing folding ranges of test_stateMachineElse.vhd 1`] = `
+[
+  {
+    "endLine": 5,
+    "startLine": 4,
+  },
+  {
+    "endLine": 2,
+    "kind": "imports",
+    "startLine": 0,
+  },
+  {
+    "endLine": 9,
+    "startLine": 7,
+  },
+  {
+    "endLine": 29,
+    "startLine": 10,
+  },
+  {
+    "endLine": 27,
+    "startLine": 12,
+  },
+  {
+    "endLine": 14,
+    "startLine": 14,
+  },
+  {
+    "endLine": 25,
+    "startLine": 16,
+  },
+  {
+    "endLine": 25,
+    "startLine": 16,
+  },
+  {
+    "endLine": 18,
+    "startLine": 17,
+  },
+  {
+    "endLine": 20,
+    "startLine": 19,
+  },
+  {
+    "endLine": 22,
+    "startLine": 21,
+  },
+  {
+    "endLine": 24,
+    "startLine": 23,
+  },
+]
+`;
+
+exports[`Testing folding ranges of test_stateMachineElsif.vhd 1`] = `
+[
+  {
+    "endLine": 5,
+    "startLine": 4,
+  },
+  {
+    "endLine": 2,
+    "kind": "imports",
+    "startLine": 0,
+  },
+  {
+    "endLine": 9,
+    "startLine": 7,
+  },
+  {
+    "endLine": 29,
+    "startLine": 10,
+  },
+  {
+    "endLine": 27,
+    "startLine": 12,
+  },
+  {
+    "endLine": 14,
+    "startLine": 14,
+  },
+  {
+    "endLine": 25,
+    "startLine": 15,
+  },
+  {
+    "endLine": 25,
+    "startLine": 16,
+  },
+  {
+    "endLine": 18,
+    "startLine": 17,
+  },
+  {
+    "endLine": 20,
+    "startLine": 19,
+  },
+  {
+    "endLine": 22,
+    "startLine": 21,
+  },
+  {
+    "endLine": 24,
+    "startLine": 23,
+  },
+]
+`;
+
+exports[`Testing folding ranges of test_stateMachineFor.vhd 1`] = `
+[
+  {
+    "endLine": 5,
+    "startLine": 4,
+  },
+  {
+    "endLine": 2,
+    "kind": "imports",
+    "startLine": 0,
+  },
+  {
+    "endLine": 9,
+    "startLine": 7,
+  },
+  {
+    "endLine": 28,
+    "startLine": 10,
+  },
+  {
+    "endLine": 26,
+    "startLine": 12,
+  },
+  {
+    "endLine": 24,
+    "startLine": 15,
+  },
+  {
+    "endLine": 17,
+    "startLine": 16,
+  },
+  {
+    "endLine": 19,
+    "startLine": 18,
+  },
+  {
+    "endLine": 21,
+    "startLine": 20,
+  },
+  {
+    "endLine": 23,
+    "startLine": 22,
+  },
+]
+`;
+
+exports[`Testing folding ranges of test_stateMachineIf.vhd 1`] = `
+[
+  {
+    "endLine": 5,
+    "startLine": 4,
+  },
+  {
+    "endLine": 2,
+    "kind": "imports",
+    "startLine": 0,
+  },
+  {
+    "endLine": 9,
+    "startLine": 7,
+  },
+  {
+    "endLine": 28,
+    "startLine": 10,
+  },
+  {
+    "endLine": 26,
+    "startLine": 12,
+  },
+  {
+    "endLine": 24,
+    "startLine": 14,
+  },
+  {
+    "endLine": 24,
+    "startLine": 15,
+  },
+  {
+    "endLine": 17,
+    "startLine": 16,
+  },
+  {
+    "endLine": 19,
+    "startLine": 18,
+  },
+  {
+    "endLine": 21,
+    "startLine": 20,
+  },
+  {
+    "endLine": 23,
+    "startLine": 22,
+  },
+]
+`;
+
+exports[`Testing folding ranges of test_subprogram.vhd 1`] = `
+[
+  {
+    "endLine": 6,
+    "startLine": 4,
+  },
+  {
+    "endLine": 2,
+    "kind": "imports",
+    "startLine": 0,
+  },
+  {
+    "endLine": 5,
+    "startLine": 5,
+  },
+  {
+    "endLine": 13,
+    "startLine": 8,
+  },
+  {
+    "endLine": 12,
+    "startLine": 9,
+  },
+]
+`;
