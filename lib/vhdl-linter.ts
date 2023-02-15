@@ -57,6 +57,8 @@ export class VhdlLinter {
             return actions;
           });
         }
+        // Include the parser messages that did not result in fatal.
+        // Normally this is done in RParser. (This rule can not be called here as it needs settings which need to be fetched async and this is constructor)
         this.messages.push(...this.parser.state.messages);
         this.messages.push({
           range: e.range,
