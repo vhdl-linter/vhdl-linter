@@ -23,8 +23,9 @@ export function foldingHandler(linter: VhdlLinter): FoldingRange[] {
     if (implementsIHasUseClause(obj) && implementsIHasLibraries(obj)) {
       const startLine = [...obj.useClauses, ...obj.libraries].reduce((prev, curr) => Math.min(prev, curr.range.start.line), Number.POSITIVE_INFINITY);
       const endLine = [...obj.useClauses, ...obj.libraries].reduce((prev, curr) => Math.max(prev, curr.range.end.line), 0);
-
-      result.push(FoldingRange.create(startLine, endLine, undefined, undefined, FoldingRangeKind.Imports));
+      if (startLine > 0 || endLine > 0) {
+        result.push(FoldingRange.create(startLine, endLine, undefined, undefined, FoldingRangeKind.Imports));
+      }
     }
   }
   for (const entity of linter.file.entities) {
