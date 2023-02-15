@@ -48,7 +48,7 @@ test('testing attribute_test_error4.vhd', async () => {
 
   expect(linter.messages).toHaveLength(2);
   expect(linter.messages[0]?.message).toBe(`Unexpected ; in attribute_specification. Assuming forgotten ':'`);
-  expect(linter.messages[1]?.message).toBe(`expected 'entity, architecture, configuration, procedure, function, package, type, subtype, constant, signal, variable, component, label, literal, units, group, file, property, sequence found ';'`);
+  expect(linter.messages[1]?.message).toBe(`expected entity, architecture, configuration, procedure, function, package, type, subtype, constant, signal, variable, component, label, literal, units, group, file, property, sequence found ';'`);
   await projectParser.stop();
 });
 test('attribute_test_error6.vhd', async () => {
