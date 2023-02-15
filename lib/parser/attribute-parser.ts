@@ -1,4 +1,4 @@
-import { DiagnosticSeverity } from "vscode-languageserver";
+import { DiagnosticSeverity, TextEdit } from "vscode-languageserver";
 import { OLexerToken } from "../lexer";
 import { ExpressionParser } from "./expression-parser";
 import { OAttributeDeclaration, OAttributeSpecification, ObjectBase, OReference, ParserError } from "./objects";
@@ -18,7 +18,7 @@ export class AttributeParser extends ParserBase {
     } else if (this.getToken().getLText() === ':') {
       return this.parseAttributeDeclaration(token, attribute);
     } else {
-      throw new ParserError(`Unexpected token ${this.getToken().text} in AttributeParser (was expecting 'or' or ':')`, this.getToken().range);
+      throw new ParserError(`Unexpected token ${this.getToken().text} in AttributeParser (was expecting 'of' or ':')`, this.getToken().range);
     }
   }
   parseAttributeDeclaration(identifier: OLexerToken, attribute: OLexerToken) {
@@ -38,9 +38,12 @@ export class AttributeParser extends ParserBase {
 
     return attributeDeclaration;
   }
+  static readonly EntityClasses = ['entity', 'architecture', 'configuration', 'procedure', 'function', 'package', 'type',
+    'subtype', 'constant', 'signal', 'variable', 'component', 'label', 'literal', 'units', 'group',
+    'file', 'property', 'sequence',];
   parseAttributeSpecification(designator: OLexerToken, attribute: OLexerToken) {
     this.expect('of');
-    const unexpectedDelimiter = [';', 'begin'];
+    const unexpectedDelimiter = [';', 'begin', ...AttributeParser.EntityClasses];
     const [tokens, endToken] = this.advanceParenthesisAware([':', ...unexpectedDelimiter], true, false);
     if (tokens.length === 0) {
       this.state.messages.push({
@@ -51,7 +54,13 @@ export class AttributeParser extends ParserBase {
     if (unexpectedDelimiter.includes(endToken.getLText())) {
       this.state.messages.push({
         message: `Unexpected ${endToken.text} in attribute_specification. Assuming forgotten ':'`,
-        range: endToken.range
+        range: endToken.range,
+        solution: {
+          message: "Insert ':'",
+          edits: [
+            TextEdit.insert(this.getToken(-1, true).range.end, ':')
+          ]
+        }
       });
 
     } else {
@@ -75,9 +84,8 @@ export class AttributeParser extends ParserBase {
         }
       }
     }
-    attributeSpecification.entityClass = this.expect(['entity', 'architecture', 'configuration', 'procedure', 'function', 'package', 'type',
-      'subtype', 'constant', 'signal', 'variable', 'component', 'label', 'literal', 'units', 'group',
-      'file', 'property', 'sequence',]);
+
+    attributeSpecification.entityClass = this.expect(AttributeParser.EntityClasses);
     this.expect('is');
     const [expressionTokens, semicolon] = this.advanceParenthesisAware([';'], true, true);
     attributeSpecification.references.push(...new ExpressionParser(this.state, attributeSpecification, expressionTokens).parse());
