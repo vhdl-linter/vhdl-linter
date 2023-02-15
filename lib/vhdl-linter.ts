@@ -31,12 +31,11 @@ export class VhdlLinter {
   file: OFile;
   parser: FileParser;
   parsedSuccessfully = false;
-  elaborated = false;
   constructor(public uri: URL, public text: string, public projectParser: ProjectParser,
     public settingsGetter: SettingsGetter,
     public token?: CancellationToken) {
     try {
-      this.parser = new FileParser(text, this.uri, token);
+      this.parser = new FileParser(text, this.uri);
       this.file = this.parser.parse();
       this.parsedSuccessfully = true;
       this.file.parserMessages = this.parser.state.messages;
@@ -165,12 +164,10 @@ export class VhdlLinter {
     let i = 0;
     start = Date.now();
     try {
-      if (this.elaborated === false) {
-        await Elaborate.elaborate(this);
-        if (profiling) {
-          console.log(`check ${i++}: ${Date.now() - start}ms`);
-          start = Date.now();
-        }
+      await Elaborate.elaborate(this);
+      if (profiling) {
+        console.log(`check ${i++}: ${Date.now() - start}ms`);
+        start = Date.now();
       }
       // await this.removeBrokenActuals();
       if (profiling) {

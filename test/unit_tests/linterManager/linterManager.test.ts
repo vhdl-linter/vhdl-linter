@@ -26,7 +26,7 @@ async function triggerWrapper(linterManager: LinterManager, uri: string, text: s
       parsedSuccessfully
     } as vhdlModule.VhdlLinter;
   });
-  await linterManager.triggerRefresh(uri, text, projectParser, defaultSettingsGetter);
+  await linterManager.triggerRefresh(uri, text, projectParser, defaultSettingsGetter, true);
 }
 
 

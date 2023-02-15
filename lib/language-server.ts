@@ -179,13 +179,11 @@ const linterManager = new LinterManager();
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
 async function validateTextDocument(textDocument: TextDocument, fromProjectParser = false) {
-
-
   try {
     const vhdlLinter = await linterManager.triggerRefresh(textDocument.uri, textDocument.getText(), projectParser, getDocumentSettings, fromProjectParser);
     console.log('parse done');
-  // console.log(`parsed for: ${Date.now() - start} ms.`);
-  // start = Date.now();
+    // console.log(`parsed for: ${Date.now() - start} ms.`);
+    // start = Date.now();
     const diagnostics = await vhdlLinter.checkAll();
     diagnostics.forEach((diag) => diag.source = 'vhdl-linter');
     // console.log(`checked for: ${Date.now() - start} ms.`);
