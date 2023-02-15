@@ -4,8 +4,10 @@ use ieee.numeric_std.all;
 
 entity ent is
   port (
-    i_c  : in  std_ulogic;
-    o_c : out std_ulogic
+    i_c : in  std_ulogic;
+    o_c : out std_ulogic;
+    i_d : in  std_ulogic;
+    o_d : out std_ulogic
     );
 end ent;
 
@@ -18,19 +20,24 @@ architecture arch of ent is
       uF = 1000 nF;
       mF = 1000 uF;
     end units;
-
+  function funky return boolean;
+  function funky return integer;
 -- Examples from 6.7
   type COORDINATE is record X, Y : integer; end record;
   subtype positive is integer range 1 to integer'high;
   attribute LOCATION             : COORDINATE;
   attribute PIN_NO               : positive;
   attribute CAPACITANCE          : cap;
+
 -- Examples from 7.3
-  attribute PIN_NO of i_c        : signal is 10;
-  attribute PIN_NO of o_c       : signal is 5;
-  attribute LOCATION of ADDER1   : label is (10, 15);
-  attribute LOCATION of others   : label is (25, 77);
-  attribute CAPACITANCE of all   : signal is 15 pF;
+  attribute PIN_NO of i_c      : signal is 10;
+  attribute PIN_NO of o_c      : signal is 5;
+  attribute PIN_NO of o_d, i_d : signal is 5;
+  attribute PIN_NO of          : signal is 5;
+  attribute PIN_NO of funky[]  : signal is 5;
+  attribute LOCATION of ADDER1 : label is (10, 15);
+  attribute LOCATION of others : label is (25, 77);
+  attribute CAPACITANCE of all : signal is 15 pF;
 
 
 --   -- TODO: Fix parsing of groups
@@ -45,6 +52,7 @@ architecture arch of ent is
 -- -- parts (and regions).
 begin
   o_c <= '0';
+  o_d <= '0';
   ADDER1 : entity work.adder;
 end architecture;
 
