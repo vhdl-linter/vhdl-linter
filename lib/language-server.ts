@@ -181,16 +181,9 @@ const linterManager = new LinterManager();
 async function validateTextDocument(textDocument: TextDocument, fromProjectParser = false) {
   try {
     const vhdlLinter = await linterManager.triggerRefresh(textDocument.uri, textDocument.getText(), projectParser, getDocumentSettings, fromProjectParser);
-    console.log('parse done');
-    // console.log(`parsed for: ${Date.now() - start} ms.`);
-    // start = Date.now();
     const diagnostics = await vhdlLinter.checkAll();
     diagnostics.forEach((diag) => diag.source = 'vhdl-linter');
-    // console.log(`checked for: ${Date.now() - start} ms.`);
-    // start = Date.now();
-    // console.profileEnd('a');
     await connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
-    // console.log(`send for: ${Date.now() - start} ms.`);
   } catch (err) {
     // Ignore cancelled
     if (!(err instanceof ResponseError && err.code === LSPErrorCodes.RequestCancelled)) {
@@ -311,16 +304,13 @@ connection.onSignatureHelp(async (params, token) => {
   return signatureHelp(linter, params.position);
 });
 connection.languages.semanticTokens.on(async (params, token) => {
-  console.log('semanticTokens start');
   const linter = await linterManager.getLinter(params.textDocument.uri, token, false);
-  console.log('semanticTokens got Linter');
   if (!(await getDocumentSettings(new URL(params.textDocument.uri))).semanticTokens) {
     return {
       data: []
     };
   }
   const tokens = semanticTokens(linter);
-  console.log('semanticTokens done');
   return tokens;
 });
 documents.listen(connection);
