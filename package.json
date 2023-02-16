@@ -2,7 +2,7 @@
 	"name": "vhdl-linter",
 	"publisher": "g0t00",
 	"main": "./dist/lib/vscode.js",
-	"version": "1.5.5",
+	"version": "1.5.6",
 	"description": "A typescript based linter for vhdl",
 	"keywords": [],
 	"repository": "https://github.com/vhdl-linter/vhdl-linter",
@@ -103,86 +103,85 @@
 					"default": "off",
 					"description": "Traces the communication between VS Code and the language server."
 				},
-
-    		"VhdlLinter.rules.component": {
+				"VhdlLinter.rules.component": {
 					"scope": "window",
 					"type": "boolean",
 					"description": "Enable the rule to check if component declarations are correct.",
 					"default": true
 				},
-    		"VhdlLinter.rules.instantiation": {
+				"VhdlLinter.rules.instantiation": {
 					"scope": "window",
 					"type": "boolean",
 					"description": "Enable the rule to check if ports and generics of instantiations are correct.",
 					"default": true
 				},
-    		"VhdlLinter.rules.library": {
+				"VhdlLinter.rules.library": {
 					"scope": "window",
 					"type": "boolean",
 					"description": "Enable the rule to check if each file contains a magic comment stating the library where the file is compiled to.",
 					"default": false
 				},
-    		"VhdlLinter.rules.library-reference": {
+				"VhdlLinter.rules.library-reference": {
 					"scope": "window",
 					"type": "boolean",
 					"description": "Enable the rule to check if used libraries are declared.",
 					"default": true
 				},
-    		"VhdlLinter.rules.multiple-definition": {
+				"VhdlLinter.rules.multiple-definition": {
 					"scope": "window",
 					"type": "boolean",
 					"description": "Enable the rule to check if something is defined multiple times.",
 					"default": true
 				},
-    		"VhdlLinter.rules.not-declared": {
+				"VhdlLinter.rules.not-declared": {
 					"scope": "window",
 					"type": "boolean",
 					"description": "Enable the rule to check if something is used but not declared",
 					"default": true
 				},
-    		"VhdlLinter.rules.port-declaration": {
+				"VhdlLinter.rules.port-declaration": {
 					"scope": "window",
 					"type": "boolean",
 					"description": "Enable the rule to check if ports match the regular expressions given in VhdlLinter.ports.",
 					"default": true
 				},
-    		"VhdlLinter.rules.type-resolved": {
+				"VhdlLinter.rules.type-resolved": {
 					"scope": "window",
 					"type": "boolean",
 					"description": "Enable the rule to check if ports and signals have the resolved/unresolved type given in VhdlLinter.style.preferredLogicType*.",
 					"default": true
 				},
-    		"VhdlLinter.rules.unused": {
+				"VhdlLinter.rules.unused": {
 					"scope": "window",
 					"type": "boolean",
 					"description": "Enable the rule to warn for unused objects.",
 					"default": true
 				},
-    		"VhdlLinter.rules.empty": {
+				"VhdlLinter.rules.empty": {
 					"scope": "window",
 					"type": "boolean",
 					"description": "Enable the rule to warn for empty files.",
 					"default": true
 				},
-    		"VhdlLinter.rules.constant-write": {
+				"VhdlLinter.rules.constant-write": {
 					"scope": "window",
 					"type": "boolean",
 					"description": "Enable the rule to warn when writing a constant value.",
 					"default": true
 				},
-    		"VhdlLinter.rules.parser": {
+				"VhdlLinter.rules.parser": {
 					"scope": "window",
 					"type": "boolean",
 					"description": "Enable displaying parser errors.",
 					"default": true
 				},
-    		"VhdlLinter.rules.unit": {
+				"VhdlLinter.rules.unit": {
 					"scope": "window",
 					"type": "boolean",
 					"description": "Enable the rule to check if a space is before a unit reference",
 					"default": true
 				},
-    		"VhdlLinter.rules.multiple-driver": {
+				"VhdlLinter.rules.multiple-driver": {
 					"scope": "window",
 					"type": "boolean",
 					"description": "Enable the rule to check if a signal is driven multiple times (this rule has a lot of false-positives).",
