@@ -35,6 +35,7 @@ export class LinterManager {
   }
   async getLinter(uri: string, token?: CancellationToken, preferOldOverWaiting = true) {
     uri = normalizeUri(uri);
+
     if (preferOldOverWaiting) {
       // language feature prefers fast result -> wait on wasAlreadyValid
       // This parameter gets set the first time a file gets valid and will not become false again
@@ -74,7 +75,6 @@ export class LinterManager {
     // Mark File as currently being worked on
     state.done = false;
     const vhdlLinter = new VhdlLinter(url, text, projectParser, settingsGetter, newSource.token);
-
     if (vhdlLinter.parsedSuccessfully === false) {
       // If parsed unsuccessfully mark this file as invalid.
       // (But old linter is kept for language-features that do not care for having the newest data)
@@ -109,7 +109,14 @@ export class LinterManager {
           : projectParser.cachedFiles.find(cachedFile => cachedFile.uri.toString() === uri);
         cachedFile?.replaceLinter(vhdlLinter);
         projectParser.flattenProject();
-        projectParser.events.emit('change', 'change', uri);
+        try {
+          projectParser.events.emit('change', 'change', uri);
+        } catch(err) {
+          console.log('crr', err);
+          if (!(err instanceof ResponseError && err.code === LSPErrorCodes.RequestCancelled)) {
+            throw err;
+          }
+        }
       }, 30);
     }
   }

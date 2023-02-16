@@ -150,11 +150,10 @@ export class VhdlLinter {
   async handleCanceled() {
     await new Promise(resolve => setImmediate(resolve));
     if (this.token?.isCancellationRequested) {
-      console.log('canceled');
-      throw new ResponseError(LSPErrorCodes.RequestCancelled, 'canceled');
+
+    throw new ResponseError(LSPErrorCodes.RequestCancelled, 'canceled');
     }
   }
-
   async checkAll(profiling = false) {
     if (this.parsedSuccessfully === false) {
       return this.messages;
@@ -176,6 +175,8 @@ export class VhdlLinter {
         console.log(`check ${i++}: ${Date.now() - start}ms`);
         start = Date.now();
       }
+      await this.handleCanceled();
+
       const settings = await this.settingsGetter(this.uri);
       for (const checkerClass of rules) {
         if ((settings.rules as Record<string, boolean>)[checkerClass.ruleName]) {
