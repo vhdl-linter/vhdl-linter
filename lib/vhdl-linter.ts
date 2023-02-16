@@ -194,7 +194,7 @@ export class VhdlLinter {
         throw err;
       } else if (err instanceof ParserError) {
         this.messages.push(Diagnostic.create(err.range, `Error while parsing: '${err.message}'`));
-      } else if (err instanceof Error) {
+      } else {
         this.messages.push(Diagnostic.create(Range.create(Position.create(0, 0), Position.create(10, 100)), `Error while checking: '${err.message}'\n${err.stack ?? ''}`));
       }
     }
