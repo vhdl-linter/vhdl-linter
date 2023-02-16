@@ -21,7 +21,7 @@ begin
       a <= 5
     case true is
     when true =>
-      a <= 5
+      -- a <= 5 -- when can not be detected without misinterpreting teneray
     when others =>
       a <= 5
     end case;

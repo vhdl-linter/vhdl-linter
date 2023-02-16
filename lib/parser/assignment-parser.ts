@@ -79,7 +79,7 @@ export class AssignmentParser extends ParserBase {
     }
     let rightHandSide, endToken;
     let startI;
-    const unexpectedTokens = ['end', ':', 'if', 'for', 'while', 'when', 'case'];
+    const unexpectedTokens = ['end', ':', 'if', 'for', 'while', 'case'];
     do {
       startI = this.state.pos.i;
       [rightHandSide, endToken] = this.advanceParenthesisAware([';', 'when', 'else', 'after', ',', ...unexpectedTokens], true, false);
