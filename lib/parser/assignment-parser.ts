@@ -79,22 +79,28 @@ export class AssignmentParser extends ParserBase {
     }
     let rightHandSide, endToken;
     let startI;
+    const unexpectedTokens = ['end', ':', 'if', 'for', 'while', 'when', 'case'];
     do {
       startI = this.state.pos.i;
-      [rightHandSide, endToken] = this.advanceParenthesisAware([';', 'when', 'else', 'after', ',', 'end'], true, false);
+      [rightHandSide, endToken] = this.advanceParenthesisAware([';', 'when', 'else', 'after', ',', ...unexpectedTokens], true, false);
       if (rightHandSide[0]?.getLText() == 'unaffected') {
         this.consumeToken();
         continue;
       }
+      if (endToken.getLText() === ':') { // We accidentally caught  a label
+        this.state.pos.num--;
+        this.reverseWhitespace();
+        rightHandSide = rightHandSide.slice(0, rightHandSide.length - 1);
+      }
       const expressionParser = new ExpressionParser(this.state, assignment, rightHandSide);
       assignment.references.push(...expressionParser.parse());
-      if (endToken.getLText() !== 'end') {
+      if (unexpectedTokens.includes(endToken.getLText()) === false) {
         this.consumeToken();
       }
-    } while (endToken.getLText() !== ';' && endToken.getLText() !== 'end');
+    } while (endToken.getLText() !== ';' && unexpectedTokens.includes(endToken.getLText()) === false);
     assignment.range = assignment.range.copyWithNewEnd(this.getToken(-1, true).range.end);
-    if (endToken.getLText() === 'end') {
-      this.state.messages.push({ message: `Unexpected end. Probably missing a ';'.`, range: endToken.range.copyWithNewStart(startI) });
+    if (unexpectedTokens.includes(endToken.getLText())) {
+      this.state.messages.push({ message: `Unexpected '${endToken.text}'. Probably missing a ';'.`, range: endToken.range.copyWithNewStart(startI) });
     }
     this.debug('parse end');
     return assignment;
