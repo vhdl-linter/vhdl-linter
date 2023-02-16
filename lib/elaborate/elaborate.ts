@@ -106,9 +106,10 @@ export class Elaborate {
     await this.vhdlLinter.handleCanceled();
 
     // console.log(`elaboration: components for: ${Date.now() - start} ms.`);
-    // start = Date.now();
+    const start = Date.now();
     await this.vhdlLinter.handleCanceled();
     ElaborateReferences.elaborate(this.vhdlLinter);
+    console.log(`elaboration: references: ${Date.now() - start} ms.`);
     await this.vhdlLinter.handleCanceled();
     elaborateAssociations(this.file);
     await this.vhdlLinter.handleCanceled();
