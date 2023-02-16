@@ -191,7 +191,7 @@ export class VhdlLinter {
       }
     } catch (err) {
       if ((err instanceof ResponseError && err.code === LSPErrorCodes.RequestCancelled)) {
-        // do nothing
+        throw err;
       } else if (err instanceof ParserError) {
         this.messages.push(Diagnostic.create(err.range, `Error while parsing: '${err.message}'`));
       } else if (err instanceof Error) {
