@@ -1,5 +1,5 @@
 import { IHasLexerToken, IHasReferenceLinks, implementsIHasAliases, implementsIHasAttributeDeclarations, implementsIHasConstants, implementsIHasFileVariables, implementsIHasGenerics, implementsIHasLabel, implementsIHasLexerToken, implementsIHasLibraries, implementsIHasPackageInstantiations, implementsIHasPorts, implementsIHasReference, implementsIHasSignals, implementsIHasStatements, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables } from "../parser/interfaces";
-import { OAttributeDeclaration, OAttributeReference, ObjectBase, OConcurrentStatements, OEnum, OFile, OFormalReference, OInstantiation, OLabelReference, ORead, ORecord, OReference, OSelectedName, OSelectedNameRead, OSelectedNameWrite, OSequentialStatement, OWrite, scope } from "../parser/objects";
+import { OAlias, OAttributeDeclaration, OAttributeReference, ObjectBase, OConcurrentStatements, OEntity, OEnum, OFile, OFormalReference, OInstantiation, OLabelReference, OPackage, OPackageBody, OProcess, ORead, ORecord, OReference, OSelectedName, OSelectedNameRead, OSelectedNameWrite, OSequentialStatement, OStatementBody, OSubprogram, OWrite, scope } from "../parser/objects";
 import { VhdlLinter } from "../vhdl-linter";
 export class ElaborateReferences {
   file: OFile;
@@ -15,14 +15,10 @@ export class ElaborateReferences {
       if (obj instanceof OFormalReference) {
         continue;
       }
-      if (obj instanceof OLabelReference) {
-        elaborator.elaborateLabelReference(obj);
-      }
+      // elaborate all references except instantiations
       if (obj instanceof OReference && obj instanceof OInstantiation === false) {
         if (obj instanceof OSelectedName || obj instanceof OSelectedNameWrite) {
           elaborator.elaborateSelectedNames(obj);
-        } else if (obj instanceof OAttributeReference) {
-          elaborator.elaborateAttributeReferences(obj);
         } else {
           elaborator.elaborateReference(obj);
         }
@@ -31,97 +27,106 @@ export class ElaborateReferences {
     console.log(`counter: ${elaborator.counter}`);
   }
 
+  getObjectText(obj: ObjectBase) {
+    if (implementsIHasLabel(obj)) {
+      return obj.label.getLText();
+    }
+    return obj?.lexerToken?.getLText();
+  }
+  addObjectsToMap(map: Map<string, ObjectBase[]>, ...objects: ObjectBase[]) {
+    for (const obj of objects) {
+      const text = this.getObjectText(obj);
+      if (text === undefined) {
+        continue;
+      }
+      const list = (map.has(text)) ? map.get(text)! : [];
+      list.push(obj);
+      map.set(text, list);
+    }
+  }
+
   fillVisibilityMap(parent: ObjectBase) {
     this.counter++;
     const newMap = new Map<string, ObjectBase[]>();
-    const setObj = (...objects: ObjectBase[]) => {
-      for (const obj of objects.filter(o => implementsIHasLexerToken(o)) as (ObjectBase & IHasLexerToken)[]) {
-        const text = obj.lexerToken.getLText();
-        const list = (newMap.has(text)) ? newMap.get(text)! : [];
-        list.push(obj);
-        newMap.set(text, list);
-      }
-    };
     for (const [scopeObj] of scope(parent)) {
-      setObj(scopeObj);
+      this.addObjectsToMap(newMap, scopeObj);
       if (implementsIHasStatements(scopeObj)) {
-        setObj(...scopeObj.statements);
+        this.addObjectsToMap(newMap, ...scopeObj.statements);
       }
       if (implementsIHasAttributeDeclarations(scopeObj)) {
-        setObj(...scopeObj.attributeDeclarations);
+        this.addObjectsToMap(newMap, ...scopeObj.attributeDeclarations);
       }
       if (implementsIHasSignals(scopeObj)) {
-        setObj(...scopeObj.signals);
+        this.addObjectsToMap(newMap, ...scopeObj.signals);
       }
       if (implementsIHasConstants(scopeObj)) {
-        setObj(...scopeObj.constants);
+        this.addObjectsToMap(newMap, ...scopeObj.constants);
       }
       if (implementsIHasAliases(scopeObj)) {
-        setObj(...scopeObj.aliases);
+        this.addObjectsToMap(newMap, ...scopeObj.aliases);
       }
       if (implementsIHasPorts(scopeObj)) {
-        setObj(...scopeObj.ports);
+        this.addObjectsToMap(newMap, ...scopeObj.ports);
       }
       if (implementsIHasGenerics(scopeObj)) {
-        setObj(...scopeObj.generics);
+        this.addObjectsToMap(newMap, ...scopeObj.generics);
       }
       if (implementsIHasSubprograms(scopeObj)) {
-        setObj(...scopeObj.subprograms);
+        this.addObjectsToMap(newMap, ...scopeObj.subprograms);
       }
       if (implementsIHasLibraries(scopeObj)) {
-        setObj(...scopeObj.libraries);
+        this.addObjectsToMap(newMap, ...scopeObj.libraries);
       }
       if (implementsIHasTypes(scopeObj)) {
         for (const type of scopeObj.types) {
-          setObj(type);
+          this.addObjectsToMap(newMap, type);
           if (type instanceof OEnum) {
-            setObj(...type.literals);
+            this.addObjectsToMap(newMap, ...type.literals);
           }
           if (type instanceof ORecord) {
-            setObj(...type.children);
+            this.addObjectsToMap(newMap, ...type.children);
           }
           if (type.units !== undefined) {
-            setObj(...type.units);
+            this.addObjectsToMap(newMap, ...type.units);
           }
-
         }
       }
       if (implementsIHasVariables(scopeObj)) {
-        setObj(...scopeObj.variables);
+        this.addObjectsToMap(newMap, ...scopeObj.variables);
       }
       if (implementsIHasFileVariables(scopeObj)) {
-        setObj(...scopeObj.files);
-
+        this.addObjectsToMap(newMap, ...scopeObj.files);
       }
       if (implementsIHasPackageInstantiations(scopeObj)) {
-        setObj(...scopeObj.packageInstantiations);
+        this.addObjectsToMap(newMap, ...scopeObj.packageInstantiations);
       }
       if (implementsIHasAttributeDeclarations(scopeObj)) {
-        setObj(...scopeObj.attributeDeclarations);
+        this.addObjectsToMap(newMap, ...scopeObj.attributeDeclarations);
       }
     }
     this.scopeVisibilityMap.set(parent, newMap);
   }
 
   getList(reference: OReference, searchText: string) {
-    if (!this.scopeVisibilityMap.has(reference.parent)) {
-      this.fillVisibilityMap(reference.parent);
+    // find parent with visibility of reference
+    let parent = reference.parent;
+    for (const [p] of scope(reference)) {
+      if (p instanceof OStatementBody || p instanceof OEntity || p instanceof OSubprogram || p instanceof OProcess || p instanceof OPackage || p instanceof OPackageBody) {
+        parent = p;
+        break;
+      }
     }
-    const list = this.scopeVisibilityMap.get(reference.parent);
+
+    if (!this.scopeVisibilityMap.has(parent)) {
+      this.fillVisibilityMap(parent);
+    }
+    const list = this.scopeVisibilityMap.get(parent);
     if (list === undefined) {
       throw new Error('no map found');
     }
     return list.get(searchText) ?? [];
   }
 
-  elaborateLabelReference(reference: OLabelReference) {
-    for (const object of this.getList(reference, reference.referenceToken.getLText())) {
-      if (implementsIHasLabel(object)) {
-        object.labelLinks.push(reference);
-        reference.definitions.push(object);
-      }
-    }
-  }
 
   castToRead(reference: OReference) {
     if (reference instanceof OWrite === false) {
@@ -133,69 +138,17 @@ export class ElaborateReferences {
     }
   }
 
-  evaluateDefinition(reference: OReference, definition: (ObjectBase & IHasReferenceLinks & IHasLexerToken) | (ObjectBase & IHasReferenceLinks & IHasLexerToken)[], enableCastToRead: boolean) {
-    if (Array.isArray(definition)) {
-      for (const def of definition) {
-        this.evaluateDefinition(reference, def, enableCastToRead);
-      }
-    } else {
-      if (reference instanceof OSelectedName || reference instanceof OSelectedNameWrite) {
-        if (definition.lexerToken.getLText() === reference.prefixTokens[0].referenceToken.getLText()) {
-          reference.definitions.push(definition);
-          definition.referenceLinks.push(reference);
-          if (enableCastToRead) {
-            this.castToRead(reference);
-          }
-        }
-      }
-      if (definition.lexerToken.getLText() === reference.referenceToken.getLText()) {
-        reference.definitions.push(definition);
-        definition.referenceLinks.push(reference);
-        if (enableCastToRead) {
-          this.castToRead(reference);
-        }
-      }
-    }
-  }
-
-  evaluateLabelDefinition(reference: OReference, definition: OSequentialStatement | OConcurrentStatements | (OSequentialStatement | OConcurrentStatements)[]) {
-    if (Array.isArray(definition)) {
-      for (const def of definition) {
-        this.evaluateLabelDefinition(reference, def);
-      }
-    } else {
-      if (definition.label?.getLText() === reference.referenceToken.getLText()) {
-        reference.definitions.push(definition);
-        definition.labelLinks.push(reference);
-
-      }
-    }
-  }
-
   elaborateReference(reference: OReference) {
     for (const obj of this.getList(reference, reference.referenceToken.getLText())) {
-      if (implementsIHasReference(obj)) {
+      // alias doesn't has aliasReferences
+      if (implementsIHasReference(obj) || obj instanceof OAlias) {
         reference.definitions.push(obj);
-        obj.referenceLinks.push(reference);
-        this.castToRead(reference);
-      }
-    }
-    if (reference instanceof OSelectedName || reference instanceof OSelectedNameWrite) {
-      for (const obj of this.getList(reference, reference.prefixTokens[0].referenceToken.getLText())) {
-        if (implementsIHasReference(obj)) {
-          reference.definitions.push(obj);
+        if (implementsIHasLabel(obj)) {
+          obj.labelLinks.push(reference);
+        } else {
           obj.referenceLinks.push(reference);
-          this.castToRead(reference);
         }
-      }
-    }
-  }
-
-  elaborateAttributeReferences(reference: OAttributeReference) {
-    for (const attributeDeclaration of this.getList(reference, reference.referenceToken.getLText())) {
-      if (attributeDeclaration instanceof OAttributeDeclaration) {
-        attributeDeclaration.referenceLinks.push(reference);
-        reference.definitions.push(attributeDeclaration);
+        this.castToRead(reference);
       }
     }
   }
