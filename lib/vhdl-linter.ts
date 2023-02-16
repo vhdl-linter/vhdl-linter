@@ -151,7 +151,7 @@ export class VhdlLinter {
     await new Promise(resolve => setImmediate(resolve));
     if (this.token?.isCancellationRequested) {
 
-    throw new ResponseError(LSPErrorCodes.RequestCancelled, 'canceled');
+      throw new ResponseError(LSPErrorCodes.RequestCancelled, 'canceled');
     }
   }
   async checkAll(profiling = false) {
@@ -190,7 +190,9 @@ export class VhdlLinter {
         await this.handleCanceled();
       }
     } catch (err) {
-      if (err instanceof ParserError) {
+      if ((err instanceof ResponseError && err.code === LSPErrorCodes.RequestCancelled)) {
+        // do nothing
+      } else if (err instanceof ParserError) {
         this.messages.push(Diagnostic.create(err.range, `Error while parsing: '${err.message}'`));
       } else if (err instanceof Error) {
         this.messages.push(Diagnostic.create(Range.create(Position.create(0, 0), Position.create(10, 100)), `Error while checking: '${err.message}'\n${err.stack ?? ''}`));
