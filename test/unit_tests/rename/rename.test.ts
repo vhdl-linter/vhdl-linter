@@ -72,6 +72,7 @@ test.each([
     occurrences:
       [['package.vhd', createPrintableRange(4, 9, 17)],
       ['signal.vhd', createPrintableRange(4, 10, 18)], // also expect renaming in signal.vhd:4
+      ['context.vhd', createPrintableRange(2, 12, 20)], // also expect renaming in signal.vhd:4
       ['package.vhd', createPrintableRange(12, 13, 21)],
       ['package.vhd', createPrintableRange(13, 14, 22)],
       ['package.vhd', createPrintableRange(14, 18, 26)]],
@@ -133,6 +134,14 @@ test.each([
       ['component_instantiation.vhd', createPrintableRange(20, 26, 42)],
       ],
     description: 'components'
+  },
+  {
+    occurrences:
+      [['use_context.vhd', createPrintableRange(1, 14, 26)],
+      ['context.vhd', createPrintableRange(1, 9, 21)],
+      ['component_entity.vhd', createPrintableRange(5, 13, 24)],
+      ],
+    description: 'context'
   },
   // The ports/generics of components are currently not linked
   // {

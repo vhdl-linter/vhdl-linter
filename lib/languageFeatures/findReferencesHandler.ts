@@ -2,7 +2,7 @@ import { ErrorCodes, Location, Position, ResponseError } from 'vscode-languagese
 import { Elaborate } from '../elaborate/elaborate';
 import { OLexerToken } from '../lexer';
 import { implementsIHasEndingLexerToken, implementsIHasReference } from '../parser/interfaces';
-import { OArchitecture, ObjectBase, OComponent, OEntity, OGeneric, OInstantiation, OPackage, OPackageBody, OPort, OSubprogram, OVariable } from '../parser/objects';
+import { ObjectBase, OComponent, OConfiguration, OContext, OEntity, OGeneric, OInstantiation, OPackage, OPort } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
 import { findDefinitions } from './findDefinition';
 export function getTokenFromPosition(linter: VhdlLinter, position: Position, onlyDesignator = true): OLexerToken | undefined {
@@ -25,16 +25,22 @@ export class SetAdd<T> extends Set<T> {
 
 function isPrivate(obj: ObjectBase) {
   const rootObj = obj.getRootElement();
-  // everything in architectures and package bodies is private
-  if (rootObj instanceof OArchitecture || rootObj instanceof OPackageBody) {
-    return true;
+  // every direct child of entity of package
+  if (obj.parent instanceof OEntity || obj instanceof OEntity) {
+    return false;
   }
-  // variables in subprograms are private
-  if (obj instanceof OVariable && obj.parent instanceof OSubprogram) {
-    return true;
+  if (obj.parent instanceof OPackage || obj instanceof OPackage) {
+    return false;
   }
-  // default to not private
-  return false;
+  if (obj.parent instanceof OConfiguration || obj instanceof OConfiguration) {
+    return false;
+  }
+  if (obj.parent instanceof OContext || obj instanceof OContext) {
+    return false;
+  }
+
+
+  return true;
 }
 
 export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position: Position) {
