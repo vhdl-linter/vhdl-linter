@@ -1,6 +1,6 @@
 import { DiagnosticSeverity } from "vscode-languageserver/node";
-import { implementsIHasUseClause, implementsIHasContextReference, implementsIHasPackageInstantiations, implementsIHasGenerics, IHasUseClauses, IHasContextReference } from "../parser/interfaces";
-import { OFile, scope, OInterfacePackage, OPackage, ObjectBase, OPackageBody, OArchitecture } from "../parser/objects";
+import { implementsIHasUseClause, implementsIHasContextReference, implementsIHasGenerics, IHasUseClauses, IHasContextReference, implementsIHasDeclarations } from "../parser/interfaces";
+import { OFile, scope, OInterfacePackage, OPackage, ObjectBase, OPackageBody, OArchitecture, OPackageInstantiation } from "../parser/objects";
 import { ProjectParser } from "../project-parser";
 import { VhdlLinter } from "../vhdl-linter";
 
@@ -47,8 +47,8 @@ export function elaborateUseClauses(file: OFile, projectParser: ProjectParser, v
           const pkgInstantiations = [];
           // go through scope to find all package instantiations
           for (const [iterator] of scope(obj)) {
-            if (implementsIHasPackageInstantiations(iterator)) {
-              pkgInstantiations.push(...iterator.packageInstantiations);
+            if (implementsIHasDeclarations(iterator)) {
+              pkgInstantiations.push(...iterator.declarations.filter(decl => decl instanceof OPackageInstantiation) as OPackageInstantiation[]);
             }
             if (implementsIHasGenerics(iterator)) {
               for (const generic of iterator.generics) {

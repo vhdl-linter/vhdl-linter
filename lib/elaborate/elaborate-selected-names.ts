@@ -1,5 +1,5 @@
 import { DiagnosticSeverity } from "vscode-languageserver";
-import { IHasLexerToken, implementsIHasReference, implementsIHasTypeReference } from "../parser/interfaces";
+import { implementsIHasReference, implementsIHasTypeReference } from "../parser/interfaces";
 import { OArray, ObjectBase, OFile, ORecord, ORecordChild, OSelectedName, OSelectedNameRead, OSelectedNameWrite, OType } from "../parser/objects";
 import { VhdlLinter } from "../vhdl-linter";
 
@@ -27,7 +27,7 @@ export class ElaborateSelectedNames {
       } else {
         // for protected types (not protected bodies) search subprograms and attributes
 
-        for (const child of (typeDefinition.subprograms as (ObjectBase & IHasLexerToken)[]).concat(typeDefinition.attributeSpecifications)) {
+        for (const child of (typeDefinition.declarations)) {
           if (child.lexerToken.getLText() === selectedName.referenceToken.getLText()) {
             selectedName.definitions.push(child);
             found = true;

@@ -1,6 +1,6 @@
 import { CodeAction, CodeActionKind, DiagnosticSeverity, TextEdit } from "vscode-languageserver";
-import { IHasLexerToken, IHasPorts, IHasReferenceToken, implementsIHasComponents, implementsIHasConstants, implementsIHasGenerics, implementsIHasLexerToken, implementsIHasPorts, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables } from "../parser/interfaces";
-import { ObjectBase, OComponent, OEntity, OFile, OPackage, OPackageBody, ORead, OSubprogram, OType, OWrite } from "../parser/objects";
+import { IHasLexerToken, IHasPorts, IHasReferenceToken, implementsIHasDeclarations, implementsIHasGenerics, implementsIHasLexerToken, implementsIHasPorts } from "../parser/interfaces";
+import { ObjectBase, OComponent, OConstant, OEntity, OFile, OPackage, OPackageBody, ORead, OSignal, OSubprogram, OType, OVariable, OWrite } from "../parser/objects";
 import { IRule, RuleBase } from "./rules-base";
 
 export class RUnused extends RuleBase implements IRule {
@@ -85,72 +85,68 @@ export class RUnused extends RuleBase implements IRule {
 
         }
       }
-      if (implementsIHasTypes(obj)) {
-        for (const type of obj.types) {
-          const references = type.referenceLinks.slice(0);
-          references.push(...type.aliasReferences.flatMap(alias => alias.referenceLinks));
-          if (references.length === 0) {
-            this.addUnusedMessage(type, `Not using type ${type.lexerToken.text}`);
+      if (implementsIHasDeclarations(obj)) {
+        for (const declaration of obj.declarations) {
+          if (declaration instanceof OType) {
+            const references = declaration.referenceLinks.slice(0);
+            references.push(...declaration.aliasReferences.flatMap(alias => alias.referenceLinks));
+            if (references.length === 0) {
+              this.addUnusedMessage(declaration, `Not using type ${declaration.lexerToken.text}`);
+            }
           }
-        }
-      }
-      if (implementsIHasComponents(obj)) {
-        for (const comp of obj.components) {
-          if (comp.referenceLinks.length === 0) {
-            this.addUnusedMessage(comp, `Not using component ${comp.referenceToken.text}`);
+          if (declaration instanceof OComponent) {
+            if (declaration.referenceLinks.length === 0) {
+              this.addUnusedMessage(declaration, `Not using component ${declaration.lexerToken.text}`);
+            }
           }
-        }
-      }
-      if (implementsIHasSignals(obj)) {
-        for (const signal of obj.signals) {
-          const references = signal.referenceLinks.slice(0);
-          references.push(...signal.aliasReferences.flatMap(alias => alias.referenceLinks));
-          if (references.filter(token => token instanceof ORead).length === 0) {
-            this.addUnusedMessage(signal, `Not reading signal ${signal.lexerToken.text}`);
+          if (declaration instanceof OSignal) {
+
+            const references = declaration.referenceLinks.slice(0);
+            references.push(...declaration.aliasReferences.flatMap(alias => alias.referenceLinks));
+            if (references.filter(token => token instanceof ORead).length === 0) {
+              this.addUnusedMessage(declaration, `Not reading signal ${declaration.lexerToken.text}`);
+            }
+            if (references.filter(token => token instanceof OWrite).length === 0) {
+              this.addUnusedMessage(declaration, `Not writing signal ${declaration.lexerToken.text}`);
+            }
           }
-          if (references.filter(token => token instanceof OWrite).length === 0) {
-            this.addUnusedMessage(signal, `Not writing signal ${signal.lexerToken.text}`);
+          if (declaration instanceof OVariable) {
+            const references = declaration.referenceLinks.slice(0);
+            references.push(...declaration.aliasReferences.flatMap(alias => alias.referenceLinks));
+            if (references.filter(token => token instanceof ORead).length === 0) {
+              this.addUnusedMessage(declaration, `Not reading variable ${declaration.lexerToken.text}`);
+            }
+            if (references.filter(token => token instanceof OWrite).length === 0) {
+              // Assume protected type has side-effect and does not net writing to.
+              const type = declaration.typeReference[0]?.definitions?.[0];
+              if ((type instanceof OType && (type.protected || type.protectedBody)) === false) {
+                this.addUnusedMessage(declaration, `Not writing variable '${declaration.lexerToken.text}'`);
+              }
+            }
           }
-        }
-      }
-      if (implementsIHasVariables(obj)) {
-        for (const variable of obj.variables) {
-          const references = variable.referenceLinks.slice(0);
-          references.push(...variable.aliasReferences.flatMap(alias => alias.referenceLinks));
-          if (references.filter(token => token instanceof ORead).length === 0) {
-            this.addUnusedMessage(variable, `Not reading variable ${variable.lexerToken.text}`);
+          if (declaration instanceof OConstant) {
+            const references = declaration.referenceLinks.slice(0);
+            references.push(...declaration.aliasReferences.flatMap(alias => alias.referenceLinks));
+            if (references.filter(token => token instanceof ORead).length === 0) {
+              this.addUnusedMessage(declaration, `Not reading constant ${declaration.lexerToken.text}`);
+            }
           }
-          if (references.filter(token => token instanceof OWrite).length === 0) {
-            // Assume protected type has side-effect and does not net writing to.
-            const type = variable.typeReference[0]?.definitions?.[0];
-            if ((type instanceof OType && (type.protected || type.protectedBody)) === false) {
-              this.addUnusedMessage(variable, `Not writing variable '${variable.lexerToken.text}'`);
+          if (declaration instanceof OSubprogram) {
+            // Skip implicitly declared deallocate
+            if (declaration.lexerToken.getLText() === 'deallocate') {
+              continue;
+            }
+            const references = declaration.referenceLinks.slice(0);
+            references.push(...declaration.aliasReferences.flatMap(alias => alias.referenceLinks));
+            if (references.length === 0) {
+              this.addUnusedMessage(declaration, `Not using subprogram ${declaration.lexerToken.text}`);
             }
           }
         }
+
       }
-      if (implementsIHasConstants(obj)) {
-        for (const constant of obj.constants) {
-          const references = constant.referenceLinks.slice(0);
-          references.push(...constant.aliasReferences.flatMap(alias => alias.referenceLinks));
-          if (references.filter(token => token instanceof ORead).length === 0) {
-            this.addUnusedMessage(constant, `Not reading constant ${constant.lexerToken.text}`);
-          }
-        }
-      }
-      if (implementsIHasSubprograms(obj)) {
-        for (const subprogram of obj.subprograms) {
-          // Skip implicitly declared deallocate
-          if (subprogram.lexerToken.getLText() === 'deallocate') {
-            continue;
-          }
-          const references = subprogram.referenceLinks.slice(0);
-          references.push(...subprogram.aliasReferences.flatMap(alias => alias.referenceLinks));
-          if (references.length === 0) {
-            this.addUnusedMessage(subprogram, `Not using subprogram ${subprogram.lexerToken.text}`);
-          }
-        }
-      }
+
+
     }
   }
 }

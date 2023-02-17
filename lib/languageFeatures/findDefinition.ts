@@ -27,15 +27,15 @@ export function findDefinitions(linter: VhdlLinter, position: Position): ObjectB
   // find all definitions of subprograms
   for (const definition of definitions) {
     if (definition instanceof OSubprogram) {
-      definitions.add(...definition.parent.subprograms
-        .filter(subprogram => subprogram.lexerToken.getLText() == definition.lexerToken.getLText()));
+      definitions.add(...definition.parent.declarations
+        .filter(subprogram => subprogram instanceof OSubprogram && subprogram.lexerToken.getLText() == definition.lexerToken.getLText()));
       if (definition.parent instanceof OPackage) {
-        definitions.add(...definition.parent.correspondingPackageBodies.flatMap(packageBodies => packageBodies.subprograms
-          .filter(subprogram => subprogram.lexerToken.getLText() == definition.lexerToken.getLText())));
+        definitions.add(...definition.parent.correspondingPackageBodies.flatMap(packageBodies => packageBodies.declarations
+          .filter(subprogram => subprogram instanceof OSubprogram && subprogram.lexerToken.getLText() == definition.lexerToken.getLText())));
       }
       if (definition.parent instanceof OPackageBody) {
-        definitions.add(...((definition.parent as OPackageBody).correspondingPackage?.subprograms
-          .filter(subprogram => subprogram.lexerToken.getLText() == definition.lexerToken.getLText()) ?? []));
+        definitions.add(...((definition.parent as OPackageBody).correspondingPackage?.declarations
+          .filter(subprogram => subprogram instanceof OSubprogram && subprogram.lexerToken.getLText() == definition.lexerToken.getLText()) ?? []));
       }
     }
   }
