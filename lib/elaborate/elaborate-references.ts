@@ -1,5 +1,5 @@
-import { IHasLexerToken, IHasReferenceLinks, implementsIHasAliases, implementsIHasAttributeDeclarations, implementsIHasConstants, implementsIHasFileVariables, implementsIHasGenerics, implementsIHasLabel, implementsIHasLexerToken, implementsIHasLibraries, implementsIHasPackageInstantiations, implementsIHasPorts, implementsIHasReference, implementsIHasSignals, implementsIHasStatements, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables } from "../parser/interfaces";
-import { OAlias, OAttributeDeclaration, OAttributeReference, ObjectBase, OConcurrentStatements, OEntity, OEnum, OFile, OFormalReference, OInstantiation, OLabelReference, OPackage, OPackageBody, OProcess, ORead, ORecord, OReference, OSelectedName, OSelectedNameRead, OSelectedNameWrite, OSequentialStatement, OStatementBody, OSubprogram, OWrite, scope } from "../parser/objects";
+import { implementsIHasAliases, implementsIHasAttributeDeclarations, implementsIHasConstants, implementsIHasFileVariables, implementsIHasGenerics, implementsIHasLabel, implementsIHasLibraries, implementsIHasPackageInstantiations, implementsIHasPorts, implementsIHasReference, implementsIHasSignals, implementsIHasStatements, implementsIHasSubprograms, implementsIHasTypes, implementsIHasVariables } from "../parser/interfaces";
+import { OAlias, ObjectBase, OEntity, OEnum, OFile, OFormalReference, OInstantiation, OPackage, OPackageBody, OProcess, ORead, ORecord, OReference, OSelectedName, OSelectedNameRead, OSelectedNameWrite, OStatementBody, OSubprogram, OWrite, scope } from "../parser/objects";
 import { VhdlLinter } from "../vhdl-linter";
 export class ElaborateReferences {
   file: OFile;
@@ -24,7 +24,7 @@ export class ElaborateReferences {
         }
       }
     }
-    console.log(`counter: ${elaborator.counter}`);
+    // console.log(`counter: ${elaborator.counter}`);
   }
 
   getObjectText(obj: ObjectBase) {
@@ -39,9 +39,18 @@ export class ElaborateReferences {
       if (text === undefined) {
         continue;
       }
-      const list = (map.has(text)) ? map.get(text)! : [];
+      // const list = (map.has(text)) ? map.get(text)! : [];
+      // list.push(obj);
+      // map.set(text, list);
+
+      let list: ObjectBase[];
+      if (map.has(text)) {
+        list = map.get(text)!;
+      } else {
+        list = [];
+        map.set(text, list);
+      }
       list.push(obj);
-      map.set(text, list);
     }
   }
 

@@ -18,7 +18,7 @@ export class Elaborate {
   public static async elaborate(vhdlLinter: VhdlLinter) {
 
     const elaborator = new Elaborate(vhdlLinter);
-    await elaborator.elaborateAll();
+    return await elaborator.elaborateAll();
   }
   public static clear(vhdlLinter: VhdlLinter) {
     for (const obj of vhdlLinter.file.objectList) {
@@ -109,7 +109,8 @@ export class Elaborate {
     const start = Date.now();
     await this.vhdlLinter.handleCanceled();
     ElaborateReferences.elaborate(this.vhdlLinter);
-    console.log(`elaboration: references: ${Date.now() - start} ms.`);
+    const elabRef = Date.now() - start;
+    // console.log(`elaboration: references: ${Date.now() - start} ms.`);
     await this.vhdlLinter.handleCanceled();
     elaborateAssociations(this.file);
     await this.vhdlLinter.handleCanceled();
@@ -119,9 +120,9 @@ export class Elaborate {
     // console.log(`elaboration: associations for: ${Date.now() - start} ms.`);
     // start = Date.now();
     await this.vhdlLinter.handleCanceled();
+    return {elabRef};
 
   }
-
 
 
 
