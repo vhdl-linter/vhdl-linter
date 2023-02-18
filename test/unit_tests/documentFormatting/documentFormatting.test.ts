@@ -8,6 +8,8 @@ import { beforeEach, expect, jest, test } from '@jest/globals';
 import * as child_process from 'child_process';
 import * as fs from 'fs';
 import * as process from 'process';
+import { platform } from 'process';
+import { pathToFileURL } from 'url';
 import { CancellationTokenSource, Position } from 'vscode-languageserver';
 import { attachWorkDone } from 'vscode-languageserver/lib/common/progress';
 import { connection } from '../../../lib/language-server';
@@ -56,11 +58,6 @@ jest.mock('fs', () => {
     }
   };
 });
-jest.mock('process', () => {
-  return {
-    platform: ''
-  };
-});
 jest.mock('../../../lib/project-parser', () => {
   const originalModule = jest.requireActual('../../../lib/project-parser') as any;
   return {
@@ -69,43 +66,23 @@ jest.mock('../../../lib/project-parser', () => {
     getRootDirectory: jest.fn()
   };
 });
-
+const testOnWindows = platform === 'win32' ? test : test.skip;
+const skipOnWindows = platform !== 'win32' ? test : test.skip;
 const mockFs = jest.mocked(fs);
 const mockChild_process = jest.mocked(child_process);
-const mockProcess = jest.mocked(process);
 const mockProjectParser = jest.mocked(PP);
-test.each([
-  'win32',
-  'linux',
-])('Testing formatting call on platform %s', async (platform) => {
-
-  (mockProcess.platform as string) = platform;
-
-  const uri = 'file:///dummy.vhd';
+testOnWindows('Testing formatting call on win32', async () => {
+  const uri = 'file:///c/dummy.vhd';
+  const rootURI = pathToFileURL('C:\\dummyRoot');
   const cancellationTokenSource = new CancellationTokenSource();
-  mockProjectParser.getRootDirectory.mockImplementation(() => new URL('file:///dummyRoot'));
+  mockProjectParser.getRootDirectory.mockImplementation(() => rootURI);
   mockChild_process.exec.mockImplementationOnce(((_command: string, callback: () => void) => {
     callback();
   }) as any);
-  if (platform === 'win32') {
-    mockChild_process.exec.mockImplementationOnce(((_command: string, callback: () => void) => {
-      callback();
-    }) as any);
-  } else {
-    mockChild_process.spawn.mockImplementationOnce(() => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-      return {
-        on: (eventName: string, callback: (par: any) => void) => {
-          if (eventName === 'close') {
-            callback(0);
-          }
-        },
-        stderr: {
-          on: jest.fn()
-        }
-      } as any;
-    });
-  }
+  mockChild_process.exec.mockImplementationOnce(((_command: string, callback: () => void) => {
+    callback();
+  }) as any);
+
 
   mockFs.promises.readFile.mockResolvedValueOnce(expectedTest);
   mockFs.promises.mkdtemp.mockResolvedValueOnce('tmpName');
@@ -119,20 +96,63 @@ test.each([
       insertSpaces: true
     }
   }, cancellationTokenSource.token, nullProgressReporter);
-  if (platform === 'win32') {
-    expect(mockChild_process.exec.mock.calls[0]?.[0]).toMatchInlineSnapshot(`"emacs --batch"`);
-    expect(mockChild_process.exec.mock.calls[1]?.[0]).toMatchInlineSnapshot(`"emacs --batch --eval "(setq-default vhdl-basic-offset 2)"  -l /dummyRoot/emacs/emacs-vhdl-formatting-script.lisp -f vhdl-batch-indent-region tmpName/beautify"`);
-  } else {
-    expect(mockChild_process.exec.mock.calls[0]?.[0]).toMatchInlineSnapshot(`"command -v emacs"`);
-    expect(mockChild_process.spawn.mock.calls[0]?.[0]).toMatchInlineSnapshot(`"sh"`);
-    expect(mockChild_process.spawn.mock.calls[0]?.[1]).toMatchInlineSnapshot(`
+  expect(mockChild_process.exec.mock.calls[0]?.[0]).toMatchInlineSnapshot(`"emacs --batch"`);
+  expect(mockChild_process.exec.mock.calls[1]?.[0]).toMatchInlineSnapshot(`"emacs --batch --eval "(setq-default vhdl-basic-offset 2)"  -l C:\\dummyRoot\\emacs\\emacs-vhdl-formatting-script.lisp -f vhdl-batch-indent-region tmpName\\beautify"`);
+
+
+  expect(formatting).not.toBeNull();
+  expect(formatting![0]!.newText).toBe(expectedTest);
+  expect(formatting).toMatchSnapshot();
+  expect((mockConnection.window.createWorkDoneProgress.mock.results[0]!.value as any).done).toHaveBeenCalled();
+});
+
+skipOnWindows('Testing formatting call on linux (non win32)', async () => {
+  const uri = 'file:///dummy.vhd';
+  const rootURI = 'file:///dummyRoot';
+  const cancellationTokenSource = new CancellationTokenSource();
+  mockProjectParser.getRootDirectory.mockImplementation(() => new URL(rootURI));
+  mockChild_process.exec.mockImplementationOnce(((_command: string, callback: () => void) => {
+    callback();
+  }) as any);
+
+  mockChild_process.spawn.mockImplementationOnce(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+      on: (eventName: string, callback: (par: any) => void) => {
+        if (eventName === 'close') {
+          callback(0);
+        }
+      },
+      stderr: {
+        on: jest.fn()
+      }
+    } as any;
+  });
+
+
+  mockFs.promises.readFile.mockResolvedValueOnce(expectedTest);
+  mockFs.promises.mkdtemp.mockResolvedValueOnce('tmpName');
+  mockFs.promises.writeFile.mockResolvedValueOnce();
+  const formatting = await handleDocumentFormatting({
+    textDocument: {
+      uri: uri
+    },
+    options: {
+      tabSize: 2,
+      insertSpaces: true
+    }
+  }, cancellationTokenSource.token, nullProgressReporter);
+
+  expect(mockChild_process.exec.mock.calls[0]?.[0]).toMatchInlineSnapshot(`"command -v emacs"`);
+  expect(mockChild_process.spawn.mock.calls[0]?.[0]).toMatchInlineSnapshot(`"sh"`);
+  expect(mockChild_process.spawn.mock.calls[0]?.[1]).toMatchInlineSnapshot(`
 [
   "-c",
   "emacs --batch --eval "(setq-default vhdl-basic-offset 2)" --eval "(setq load-path (cons (expand-file-name \\"/dummyRoot/emacs\\") load-path))"  -l /dummyRoot/emacs/emacs-vhdl-formatting-script.lisp -f vhdl-batch-indent-region tmpName/beautify",
 ]
 `);
 
-  }
+
 
   expect(formatting).not.toBeNull();
   expect(formatting![0]!.newText).toBe(expectedTest);
