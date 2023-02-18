@@ -6,8 +6,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { beforeEach, expect, jest, test } from '@jest/globals';
 import * as child_process from 'child_process';
+import { ExecException } from 'child_process';
 import * as fs from 'fs';
-import * as process from 'process';
 import { platform } from 'process';
 import { pathToFileURL } from 'url';
 import { CancellationTokenSource, Position } from 'vscode-languageserver';
@@ -39,7 +39,8 @@ jest.mock('../../../lib/language-server', () => {
           begin: jest.fn(),
           done: jest.fn(),
           report: jest.fn()
-        }))
+        })),
+        showErrorMessage: jest.fn()
       }
     }
   };
@@ -152,10 +153,33 @@ skipOnWindows('Testing formatting call on linux (non win32)', async () => {
 ]
 `);
 
-
-
   expect(formatting).not.toBeNull();
   expect(formatting![0]!.newText).toBe(expectedTest);
   expect(formatting).toMatchSnapshot();
   expect((mockConnection.window.createWorkDoneProgress.mock.results[0]!.value as any).done).toHaveBeenCalled();
+});
+test(`Testing detection for missing emacs`, async () => {
+  const uri = platform === 'win32' ? 'file:///c/dummy.vhd' : 'file:///dummy.vhd';
+  const rootURI = platform === 'win32' ? 'file:///c:/dummyRoot'  :'file:///dummyRoot';
+  const cancellationTokenSource = new CancellationTokenSource();
+
+  mockProjectParser.getRootDirectory.mockImplementation(() => new URL(rootURI));
+  mockChild_process.exec.mockImplementationOnce(((_command: string, callback: (error: ExecException | null) => void) => {
+    callback(new Error("Emacs not found mock"));
+  }) as any);
+  const formatting = await handleDocumentFormatting({
+    textDocument: {
+      uri: uri
+    },
+    options: {
+      tabSize: 2,
+      insertSpaces: true
+    }
+  }, cancellationTokenSource.token, nullProgressReporter);
+  // eslint-disable-next-line @typescript-eslint/unbound-method
+  expect(mockConnection.window.showErrorMessage).toHaveBeenCalled();
+  expect(mockConnection.window.showErrorMessage.mock.calls[0]?.[0]).toBe('vhdl-linter is using emacs for formatting. Install emacs for formatting to work.');
+  expect(formatting).toBeNull();
+  expect(mockChild_process.exec.mock.calls[0]?.[0]).toBe(platform === 'win32' ? "emacs --batch" : "command -v emacs");
+
 });
