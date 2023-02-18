@@ -17,7 +17,7 @@ exports[`Testing formatting call on win32 3`] = `
   },
 ]
 `;
-exports[`Testing formatting call on linux (non win32) 3`] = `
+exports[`Testing formatting call on linux (non win32) 4`] = `
 [
   {
     "newText": "expected dummy result",
