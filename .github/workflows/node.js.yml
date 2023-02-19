@@ -17,6 +17,11 @@ jobs:
         node-version: [16.x, 18.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
     steps:
+    - name: Install emacs
+      uses: awalsh128/cache-apt-pkgs-action@latest
+      with:
+        packages: emacs
+        version: 1.0
     - uses: actions/checkout@v3
       with:
         submodules: recursive
@@ -25,10 +30,6 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-    - uses: awalsh128/cache-apt-pkgs-action@latest
-        with:
-          packages: emacs
-          version: 1.0
     - run: npm ci
     - run: npm test
   build-win:
@@ -38,7 +39,8 @@ jobs:
         node-version: [16.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
     steps:
-    - run: choco install gh
+    - name: Install emacs
+      run: choco install emacs
     - uses: actions/checkout@v3
       with:
         submodules: recursive
@@ -56,6 +58,10 @@ jobs:
         node-version: [16.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
     steps:
+    - name: Install emacs
+      run: |
+        brew update
+        brew install emacs
     - uses: actions/checkout@v3
       with:
         submodules: recursive
