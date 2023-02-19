@@ -1,21 +1,13 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { beforeEach, expect, jest, test } from '@jest/globals';
-import * as child_process from 'child_process';
-import { ExecException } from 'child_process';
 import * as fs from 'fs';
-import { platform } from 'process';
 import { pathToFileURL } from 'url';
 import { CancellationTokenSource, Position } from 'vscode-languageserver';
 import { attachWorkDone } from 'vscode-languageserver/lib/common/progress';
-import { connection, documents } from '../../../lib/language-server';
+import { documents } from '../../../lib/language-server';
 import { handleDocumentFormatting } from '../../../lib/languageFeatures/documentFormatting';
-import * as PP from '../../../lib/project-parser';
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
 const nullProgressReporter = attachWorkDone(undefined as any, /* params */ undefined);
 beforeEach(() => {
   jest.clearAllMocks();
@@ -38,17 +30,12 @@ jest.mock('../../../lib/language-server', () => {
     }
   };
 });
-const mockConnection = jest.mocked(connection);
 const mockDocuments = jest.mocked(documents);
 
-const testOnWindows = platform === 'win32' ? test : test.skip;
-const skipOnWindows = platform !== 'win32' ? test : test.skip;
 
-skipOnWindows('Testing formatting call on linux (non win32)', async () => {
+test('Testing foll formatter with emacs', async () => {
   const uri = pathToFileURL(__dirname + '/test_stateMachineCase.vhd');
   const cancellationTokenSource = new CancellationTokenSource();
-
-
   mockDocuments.get.mockImplementationOnce(() => {
     return {
       uri: uri.toString(),
