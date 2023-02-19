@@ -9,6 +9,11 @@ jobs:
   coverage:
     runs-on: ubuntu-latest
     steps:
+      - name: Install emacs
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: emacs
+          version: 1.0
       - uses: actions/checkout@v3
         with:
           submodules: recursive
