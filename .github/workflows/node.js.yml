@@ -25,6 +25,10 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
+    - uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: emacs
+          version: 1.0
     - run: npm ci
     - run: npm test
   build-win:
