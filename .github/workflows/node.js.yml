@@ -34,9 +34,17 @@ jobs:
     strategy:
       matrix:
         node-version: [16.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+        # See supported Node.js release schedule at  https://nodejs.org/en/about/releases/
     steps:
+    - uses: actions/cache@v3
+      id: cache
+      with:
+        path: |
+          C:\ProgramData
+          C:\tools
+        key: ${{ runner.os }}-cache-emacs
     - name: Install emacs
+      if: steps.cache.outputs.cache-hit != 'true'
       run: choco install emacs
     - uses: actions/checkout@v3
       with:
