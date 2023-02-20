@@ -1,13 +1,13 @@
 import { TextEdit } from 'vscode-languageserver';
 import { OLexerToken } from '../lexer';
 import { ExpressionParser } from './expression-parser';
-import { IHasConstants, IHasFileVariables, IHasSignals, IHasVariables, implementsIHasConstants, implementsIHasFileVariables, implementsIHasSignals, implementsIHasVariables } from './interfaces';
-import { ObjectBase, OConstant, OFileVariable, ORead, OSignal, OVariable, ParserError } from './objects';
+import { IHasDeclarations } from './interfaces';
+import { ObjectBase, OConstant, OFileVariable, ORead, OSignal, OVariable } from './objects';
 import { ParserBase, ParserState } from './parser-base';
 
 export class ObjectDeclarationParser extends ParserBase {
 
-  constructor(state: ParserState, private parent: ObjectBase & (IHasSignals | IHasConstants | IHasVariables | IHasFileVariables)) {
+  constructor(state: ParserState, private parent: ObjectBase & (IHasDeclarations)) {
     super(state);
     this.debug('start');
   }
@@ -22,31 +22,21 @@ export class ObjectDeclarationParser extends ParserBase {
     const constant = nextToken.getLText() === 'constant';
     const variable = nextToken.getLText() === 'variable';
     const file = nextToken.getLText() === 'file';
-    if ((variable) && !implementsIHasVariables(this.parent)) {
-      throw new ParserError(`No variables allowed here.`, this.state.pos.getRangeToEndLine());
-    }
-    if ((file) && !implementsIHasFileVariables(this.parent)) {
-      throw new ParserError(`No files allowed here.`, this.state.pos.getRangeToEndLine());
-    }
-    if (constant && !implementsIHasConstants(this.parent)) {
-      throw new ParserError(`No constants allowed here.`, this.state.pos.getRangeToEndLine());
-    }
-    if (!variable && !constant && !file && !implementsIHasSignals(this.parent)) {
-      throw new ParserError(`No signals allowed here`, this.state.pos.getRangeToEndLine());
-    }
+    // TODO: Implement checking for supported declaration type.
+
     this.consumeToken();
     do {
       this.maybe(',');
       let object;
       if (variable) {
-        object = new OVariable(this.parent as IHasVariables, nextToken.range);
+        object = new OVariable(this.parent , nextToken.range);
         object.shared = shared;
       } else if (constant) {
-        object = new OConstant(this.parent as IHasConstants, nextToken.range);
+        object = new OConstant(this.parent , nextToken.range);
       } else if (file) {
-        object = new OFileVariable(this.parent as IHasFileVariables, nextToken.range);
+        object = new OFileVariable(this.parent, nextToken.range);
       } else {
-        object = new OSignal((this.parent as ObjectBase & IHasSignals), nextToken.range);
+        object = new OSignal(this.parent, nextToken.range);
       }
       object.lexerToken = this.consumeToken();
       objects.push(object);
@@ -100,13 +90,13 @@ export class ObjectDeclarationParser extends ParserBase {
       object.range = object.range.copyWithNewEnd(this.getToken(-1, true).range.end);
     }
     if (constant) {
-      (this.parent as IHasConstants).constants.push(...objects as OSignal[]);
+      this.parent.declarations.push(...objects);
     } else if (variable) {
-      (this.parent as IHasVariables).variables.push(...objects as OVariable[]);
+      this.parent.declarations.push(...objects);
     } else if (file) {
-      (this.parent as IHasFileVariables).files.push(...objects as OFileVariable[]);
+      this.parent.declarations.push(...objects);
     } else {
-      (this.parent as IHasSignals).signals.push(...objects as OSignal[]);
+      this.parent.declarations.push(...objects);
     }
   }
   readonly NotExpectedDelimiter = ['end', 'file', 'constant', 'variable', 'begin', 'signal', 'is'];

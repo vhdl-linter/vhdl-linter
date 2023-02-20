@@ -240,7 +240,7 @@ export class SequentialStatementParser extends ParserBase {
     const variableToken = this.consumeToken();
     const constant = new OConstant(forLoop, variableToken.range);
     constant.lexerToken = variableToken;
-    forLoop.constants.push(constant);
+    forLoop.declarations.push(constant);
     this.expect('in');
     const [rangeToken] = this.advanceParenthesisAware(['loop']);
     forLoop.constantRange = new ExpressionParser(this.state, forLoop, rangeToken).parse();
