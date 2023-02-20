@@ -212,7 +212,7 @@ export class FileParser extends ParserBase {
         useClausesPrepare = [];
       } else if (nextToken.getLText() === 'configuration') {
         const configuration = new OConfiguration(this.file, this.getToken().range.copyExtendEndOfLine());
-        configuration.identifier = this.consumeToken();
+        configuration.lexerToken = this.consumeToken();
         this.expect('of');
         configuration.entityName = this.consumeToken();
         while (
@@ -220,9 +220,9 @@ export class FileParser extends ParserBase {
             || (this.getToken(0).getLText() === 'end' && this.getToken(1, true).getLText() === 'configuration'
               && this.getToken(2, true).getLText() === ';')
             || (this.getToken(0).getLText() === 'end' && this.getToken(1, true).getLText() === 'configuration'
-              && this.getToken(2, true).getLText() === configuration.identifier.getLText() && this.getToken(3, true).getLText() === ';')
+              && this.getToken(2, true).getLText() === configuration.lexerToken.getLText() && this.getToken(3, true).getLText() === ';')
             || (this.getToken(0).getLText() === 'end'
-              && this.getToken(1, true).getLText() === configuration.identifier.getLText() && this.getToken(2, true).getLText() === ';'))
+              && this.getToken(1, true).getLText() === configuration.lexerToken.getLText() && this.getToken(2, true).getLText() === ';'))
           === false) {
           this.consumeToken(true);
         }

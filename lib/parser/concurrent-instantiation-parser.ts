@@ -19,6 +19,11 @@ export class ConcurrentInstantiationParser extends ParserBase {
       instantiation.type = 'entity';
       instantiation.library = new OLibraryReference(instantiation, this.consumeToken());
       this.expect('.');
+    } else if (nextToken.getLText() === 'configuration') {
+      this.consumeToken();
+      instantiation.type = 'configuration';
+      instantiation.library = new OLibraryReference(instantiation, this.consumeToken());
+      this.expect('.');
     } else if (nextToken.getLText() === 'component') {
       this.consumeToken();
       instantiation.type = 'component';
@@ -72,7 +77,7 @@ export class ConcurrentInstantiationParser extends ParserBase {
     }
 
     instantiation.range = instantiation.range.copyWithNewEnd(this.getToken(-1, true).range.end);
-    if ((instantiation.type === 'component' || instantiation.type === 'entity') && label === undefined) {
+    if ((instantiation.type === 'component' || instantiation.type === 'entity' || instantiation.type === 'configuration') && label === undefined) {
       throw new ParserError(`${instantiation.type} instantiations require a label.`, instantiation.range);
     }
     this.expect(';');

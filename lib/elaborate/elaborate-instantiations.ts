@@ -1,5 +1,5 @@
 import { implementsIHasDeclarations } from "../parser/interfaces";
-import { OAliasWithSignature, OComponent, OEntity, OFile, OInstantiation, OSubprogram, OType, ParserError, scope } from "../parser/objects";
+import { OAliasWithSignature, OComponent, OConfiguration, OEntity, OFile, OInstantiation, OSubprogram, OType, ParserError, scope } from "../parser/objects";
 import { ProjectParser } from "../project-parser";
 
 export function elaborateInstantiations(file: OFile, projectParser: ProjectParser) {
@@ -14,15 +14,15 @@ export function elaborateInstantiations(file: OFile, projectParser: ProjectParse
       case 'subprogram':
         instantiation.definitions.push(...getSubprograms(instantiation, projectParser));
         break;
+      case 'configuration':
+        instantiation.definitions.push(...getConfiguration(instantiation, projectParser));
+        break;
       // Instantiations syntax does not have to give hints for the types if it has neither parameters nor ports nor generics
       // In that case it may be component or subprogram instantiation
       case 'unknown':
         instantiation.definitions.push(...getComponents(instantiation));
         instantiation.definitions.push(...getSubprograms(instantiation, projectParser));
         break;
-
-
-
     }
     for (const subprogram of instantiation.definitions) {
       subprogram.referenceLinks.push(instantiation);
@@ -47,7 +47,6 @@ function getComponents(instantiation: OInstantiation): OComponent[] {
   const name = instantiation.componentName;
   return components.filter(e => e.lexerToken.getLText() === name.text.toLowerCase());
 }
-// TODO: To fit with the style of packages and architectures I think this should be linked during elaboration
 export function getEntities(instantiation: OInstantiation | OComponent, projectParser: ProjectParser): OEntity[] {
   const entities: OEntity[] = [];
   if (instantiation instanceof OInstantiation && instantiation.type === 'component') {
@@ -73,6 +72,24 @@ export function getEntities(instantiation: OInstantiation | OComponent, projectP
   }
   const name = (instantiation instanceof OInstantiation) ? instantiation.componentName : instantiation.lexerToken;
   return entities.filter(e => e.lexerToken.getLText() === name.text.toLowerCase());
+}
+export function getConfiguration(instantiation: OInstantiation, projectParser: ProjectParser): OConfiguration[] {
+  const configurations: OConfiguration[] = [];
+  // find project entities
+  const projectConfigurations = projectParser.configurations;
+  if (typeof instantiation.library !== 'undefined' && instantiation.library.referenceToken.getLText() !== 'work') {
+    configurations.push(...projectConfigurations.filter(configuration => {
+      if (configuration.targetLibrary !== undefined) {
+        return configuration.targetLibrary.toLowerCase() === instantiation.library?.referenceToken.getLText() ?? '';
+      }
+      return true;
+
+    }));
+  } else {
+    configurations.push(...projectConfigurations);
+  }
+  return configurations.filter(e => e.lexerToken.getLText() === instantiation.componentName.text.toLowerCase());
+
 }
 function getSubprograms(instantiation: OInstantiation, projectParser: ProjectParser): (OSubprogram | OAliasWithSignature)[] {
   const subprograms: (OSubprogram | OAliasWithSignature)[] = [];

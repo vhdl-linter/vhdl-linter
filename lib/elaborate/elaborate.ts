@@ -5,6 +5,7 @@ import { VhdlLinter } from "../vhdl-linter";
 import { elaborateAliases } from "./elaborate-aliases";
 import { elaborateAssociations } from "./elaborate-association";
 import { elaborateComponents } from "./elaborate-components";
+import { elaborateConfigurations } from "./elaborate-configurations";
 import { elaborateInstantiations } from "./elaborate-instantiations";
 import { ElaborateReferences } from "./elaborate-references";
 import { ElaborateSelectedNames } from "./elaborate-selected-names";
@@ -100,6 +101,8 @@ export class Elaborate {
     elaborateComponents(this.file, this.vhdlLinter.projectParser);
     await this.vhdlLinter.handleCanceled();
     elaborateInstantiations(this.file, this.vhdlLinter.projectParser);
+    await this.vhdlLinter.handleCanceled();
+    elaborateConfigurations(this.file, this.vhdlLinter.projectParser);
 
     // console.log(`elaboration: instantiations for: ${Date.now() - start} ms.`);
     // start = Date.now();

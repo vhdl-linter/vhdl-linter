@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, expect, test, jest } from '@jest/globals';
+import { afterAll, beforeAll, expect, jest, test } from '@jest/globals';
 import { pathToFileURL } from 'url';
 import { ErrorCodes, Position, Range, ResponseError } from 'vscode-languageserver';
 import { prepareRenameHandler, renameHandler } from '../../../lib/languageFeatures/rename';
@@ -32,16 +32,25 @@ test.each([
       [['entity.vhd', createPrintableRange(5, 8, 19)],
       ['entity.vhd', createPrintableRange(6, 5, 16)],
       ['entity.vhd', createPrintableRange(8, 22, 33)],
+      ['entity.vhd', createPrintableRange(13, 34, 45)],
 
       ],
-    description: 'three occurrences of entity name(test_entity)'
+    description: 'four occurrences of entity name(test_entity)'
   },
-
   {
     occurrences:
       [['entity.vhd', createPrintableRange(8, 14, 18)],
-      ['entity.vhd', createPrintableRange(11, 18, 22)]],
+      ['entity.vhd', createPrintableRange(11, 18, 22)],
+
+      ],
     description: 'two occurrences of architecture name (arch)'
+  },
+  {
+    occurrences:
+      [['entity.vhd', createPrintableRange(13, 15, 30)],
+      ['entity.vhd', createPrintableRange(24, 31, 46)],
+      ],
+    description: 'two occurrences of configuration name (arch)'
   },
   {
     occurrences:
@@ -82,7 +91,8 @@ test.each([
       [['entity_split.vhd', createPrintableRange(2, 8, 25)],
       ['entity_split.vhd', createPrintableRange(6, 5, 22)],
       ['architecture_split.vhd', createPrintableRange(1, 22, 39)],
-      ['instantiation.vhd', createPrintableRange(9, 32, 49)],
+      ['instantiation.vhd', createPrintableRange(10, 32, 49)],
+      ['instantiation.vhd', createPrintableRange(1, 40, 57)],
       ],
     description: 'split entity and architecture file'
   },
@@ -90,7 +100,8 @@ test.each([
     occurrences:
       [['entity_split.vhd', createPrintableRange(4, 5, 8)],
       ['architecture_split.vhd', createPrintableRange(5, 10, 13)],
-      ['instantiation.vhd', createPrintableRange(10, 10, 13)],
+      ['instantiation.vhd', createPrintableRange(11, 10, 13)],
+      ['instantiation.vhd', createPrintableRange(13, 10, 13)],
       ],
     description: 'port name'
   },
@@ -224,7 +235,7 @@ test.each([
 
   for (let character = start.character; character <= end.character; character++) {
 
-    let err : Error | undefined;
+    let err: Error | undefined;
     try {
       prepareRenameHandler(linter, Position.create(start.line, character));
     } catch (_err) {

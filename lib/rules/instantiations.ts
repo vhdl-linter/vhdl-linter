@@ -1,7 +1,7 @@
 import { findBestMatch } from "string-similarity";
 import { CodeAction, CodeActionKind, DiagnosticSeverity, Range, TextEdit } from "vscode-languageserver";
-import { implementsIHasLexerToken, IHasLexerToken, implementsIHasPorts, implementsIHasStatements, implementsIHasDeclarations } from "../parser/interfaces";
-import { OAliasWithSignature, OArchitecture, OAssociationList, ObjectBase, OCase, OComponent, OEntity, OFile, OGeneric, OHasSequentialStatements, OIf, OInstantiation, OIRange, OPort, OSubprogram, OTypeMark } from "../parser/objects";
+import { implementsIHasLexerToken, IHasLexerToken, implementsIHasStatements, implementsIHasPorts, implementsIHasDeclarations } from "../parser/interfaces";
+import { OFile, OPort, OGeneric, OTypeMark, OAssociationList, OIRange, ObjectBase, OInstantiation, OConfiguration, OAliasWithSignature, OComponent, OEntity, OSubprogram, OArchitecture, OIf, OCase, OHasSequentialStatements } from "../parser/objects";
 import { IRule, RuleBase } from "./rules-base";
 
 export class RInstantiation extends RuleBase implements IRule {
@@ -131,15 +131,28 @@ export class RInstantiation extends RuleBase implements IRule {
     if (implementsIHasStatements(object)) {
       for (const instantiation of object.statements) {
         if (instantiation instanceof OInstantiation) {
+          let definitions = instantiation.definitions;
+          if (instantiation.type === 'configuration') {
+            definitions = definitions.flatMap((definition: OConfiguration) => {
+              const entities = this.vhdlLinter.projectParser.entities.filter(e => e.lexerToken.getLText() === definition.entityName.getLText());
+              return entities;
+            });
+          }
           if (instantiation.definitions.length === 0) {
             this.addMessage({
               range: instantiation.range.start.getRangeToEndLine(),
               severity: DiagnosticSeverity.Warning,
               message: `can not find ${instantiation.type} ${instantiation.componentName.text}`
             });
+          } else if (instantiation.type === 'configuration' && definitions.length === 0) {
+            this.addMessage({
+              range: instantiation.range.start.getRangeToEndLine(),
+              severity: DiagnosticSeverity.Warning,
+              message: `can not find entity ${(instantiation.definitions as OConfiguration[])[0]!.entityName.text} for configuration instantiation ${instantiation.componentName.text}`
+            });
           } else {
             const range = instantiation.range.start.getRangeToEndLine();
-            const availablePorts = instantiation.definitions.map(e => {
+            const availablePorts = definitions.map(e => {
               if (implementsIHasPorts(e)) {
                 return e.ports;
               }
@@ -149,7 +162,7 @@ export class RInstantiation extends RuleBase implements IRule {
               return [];
             });
             this.checkAssociations(availablePorts, instantiation.portAssociationList, instantiation.type, range, 'port');
-            const availableGenerics = instantiation.definitions.map(d => (d instanceof OComponent || d instanceof OEntity) ? d.generics : []);
+            const availableGenerics = definitions.map(d => (d instanceof OComponent || d instanceof OEntity) ? d.generics : []);
             this.checkAssociations(availableGenerics, instantiation.genericAssociationList, instantiation.type, range, 'generic');
           }
         }
