@@ -1,7 +1,7 @@
-import { SemanticTokenModifiers, SemanticTokens, SemanticTokensBuilder, SemanticTokensLegend, SemanticTokensParams, SemanticTokenTypes } from "vscode-languageserver";
-import { getDocumentSettings, initialization, linters } from "../language-server";
-import { implementsIHasDefinitions, implementsIHasLexerToken } from "../parser/interfaces";
-import { OIRange, ObjectBase, OEnum, ORecord, ORecordChild, OType, OEnumLiteral, OPort, OConstant, OGeneric, OSignal, OVariable, OWrite, OEntity, OSubprogram, OInstantiation } from "../parser/objects";
+import { SemanticTokenModifiers, SemanticTokens, SemanticTokensBuilder, SemanticTokensLegend, SemanticTokenTypes } from "vscode-languageserver";
+import { implementsIHasDefinitions, implementsIHasLexerToken, implementsIHasReferenceToken } from "../parser/interfaces";
+import { ObjectBase, OConstant, OEntity, OEnum, OEnumLiteral, OGeneric, OInstantiation, OIRange, OPort, ORecord, ORecordChild, OSignal, OSubprogram, OType, OVariable, OWrite } from "../parser/objects";
+import { VhdlLinter } from "../vhdl-linter";
 
 export const semanticTokensLegend: SemanticTokensLegend = {
   tokenTypes: Object.values(SemanticTokenTypes),
@@ -61,23 +61,14 @@ function pushCorrectToken(builder: SemanticTokensBuilder, obj: ObjectBase, range
   }
 }
 
-export async function handleSemanticTokens(params: SemanticTokensParams): Promise<SemanticTokens> {
+export function semanticTokens(linter: VhdlLinter): SemanticTokens {
 
   const tokensBuilder = new SemanticTokensBuilder();
-  if (!(await getDocumentSettings(new URL(params.textDocument.uri))).semanticTokens) {
-    return tokensBuilder.build();
-  }
-
-  await initialization;
-  const linter = linters.get(params.textDocument.uri);
-  if (typeof linter === 'undefined') {
-    return tokensBuilder.build();
-  }
 
   for (const obj of linter.file.objectList) {
     const definition = findDefinition(obj);
-    if (typeof definition !== 'undefined' && implementsIHasLexerToken(obj)) {
-      pushCorrectToken(tokensBuilder, definition, obj.lexerToken.range, []);
+    if (definition !== undefined && implementsIHasReferenceToken(obj)) {
+      pushCorrectToken(tokensBuilder, definition, obj.referenceToken.range, []);
     } else if (implementsIHasLexerToken(obj)) { // is the definition itself?
       pushCorrectToken(tokensBuilder, obj, obj.lexerToken.range, [SemanticTokenModifiers.declaration]);
     } else if (obj instanceof OInstantiation) {

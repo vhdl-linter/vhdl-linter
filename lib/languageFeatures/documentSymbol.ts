@@ -1,6 +1,6 @@
 import { DocumentSymbol, SymbolKind } from 'vscode-languageserver';
-import { implementsIHasAliases, implementsIHasConstants, implementsIHasStatements, implementsIHasSubprograms, implementsIHasTypes } from '../parser/interfaces';
-import { OArchitecture, ObjectBase, OBlock, OCase, OCaseGenerate, OElseGenerateClause, OEntity, OFile, OForGenerate, OIf, OIfGenerate, OIfGenerateClause, OInstantiation, OPackage, OPackageBody, OProcess, ORecord, OSequentialStatement, OStatementBody, OType, OWhenClause, OWhenGenerateClause } from '../parser/objects';
+import { implementsIHasDeclarations, implementsIHasStatements } from '../parser/interfaces';
+import { OAlias, OArchitecture, ObjectBase, OBlock, OCase, OCaseGenerate, OConstant, OElseGenerateClause, OEntity, OFile, OForGenerate, OIf, OIfGenerate, OIfGenerateClause, OInstantiation, OPackage, OPackageBody, OProcess, ORecord, OSequentialStatement, OStatementBody, OSubprogram, OType, OWhenClause, OWhenGenerateClause } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
 
 
@@ -234,41 +234,46 @@ export class DocumentSymbols {
   }
   getDefinitions(obj: ObjectBase): DocumentSymbol[] | undefined {
     const children: DocumentSymbol[] = [];
-    if (implementsIHasTypes(obj)) {
-      children.push(...obj.types.map(type => this.getType(type)));
-    }
-    if (implementsIHasSubprograms(obj)) {
-      children.push(...obj.subprograms.map(subprogram => ({
-        name: subprogram.lexerToken.text,
-        kind: SymbolKind.Function,
-        range: subprogram.range,
-        selectionRange: subprogram.lexerToken.range
-      })));
-    }
-    if (implementsIHasConstants(obj)) {
-      children.push(...obj.constants.map(constants => ({
-        name: constants.lexerToken.text,
-        kind: SymbolKind.Constant,
-        range: constants.range,
-        selectionRange: constants.lexerToken.range
-      })));
-    }
-    if (implementsIHasAliases(obj)) {
-      children.push(...obj.aliases.map(alias => ({
-        name: alias.lexerToken.text,
-        kind: SymbolKind.Field,
-        range: alias.range,
-        selectionRange: alias.lexerToken.range
-      })));
+    if (implementsIHasDeclarations(obj)) {
+      for (const decl of obj.declarations) {
+        if (decl instanceof OType) {
+          children.push(this.getType(decl));
+        }
+         if (decl instanceof OSubprogram) {
+          children.push({
+            name: decl.lexerToken.text,
+            kind: SymbolKind.Function,
+            range: decl.range,
+            selectionRange: decl.lexerToken.range
+          });
+        }
+         if (decl instanceof OConstant) {
+          children.push({
+            name: decl.lexerToken.text,
+            kind: SymbolKind.Constant,
+            range: decl.range,
+            selectionRange: decl.lexerToken.range
+          });
+        }
+         if (decl instanceof OAlias) {
+          children.push({
+            name: decl.lexerToken.text,
+            kind: SymbolKind.Field,
+            range: decl.range,
+            selectionRange: decl.lexerToken.range
+          });
+        }
+      }
     }
     if (obj instanceof ORecord) {
-      children.push(...obj.children.map(child => ({
-        name: child.lexerToken.text,
-        kind: SymbolKind.Field,
-        range: child.range,
-        selectionRange: child.lexerToken.range
-      })));
-    }
+     children.push(...obj.children.map(child => ({
+       name: child.lexerToken.text,
+       kind: SymbolKind.Field,
+       range: child.range,
+       selectionRange: child.lexerToken.range
+     })));
+   }
+
     if (children.length > 0) {
       return children;
     }

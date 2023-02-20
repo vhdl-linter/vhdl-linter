@@ -1,5 +1,6 @@
 import {
-  CodeAction, CodeActionKind, Diagnostic, DiagnosticSeverity, Position, Range, TextEdit
+  CancellationToken,
+  CodeAction, CodeActionKind, Diagnostic, DiagnosticSeverity, LSPErrorCodes, Position, Range, ResponseError, TextEdit
 } from 'vscode-languageserver';
 import { Elaborate } from './elaborate/elaborate';
 import { FileParser } from './parser/file-parser';
@@ -8,7 +9,6 @@ import {
 } from './parser/objects';
 import { ProjectParser } from './project-parser';
 import { rules } from './rules/rule-index';
-import { CancelationError, CancelationObject } from './server-objects';
 import { ISettings } from './settings';
 
 export interface IAddSignalCommandArguments {
@@ -19,6 +19,10 @@ export interface IAddSignalCommandArguments {
 export interface OIDiagnostic extends Diagnostic {
   range: OIRange;
 }
+export interface OIDiagnosticWithSolution extends OIDiagnostic {
+  solution?: { message: string, edits: TextEdit[] };
+}
+
 export interface IIgnoreLineCommandArguments {
   textDocumentUri: string;
   range: Range;
@@ -33,9 +37,9 @@ export class VhdlLinter {
   parsedSuccessfully = false;
   constructor(public uri: URL, public text: string, public projectParser: ProjectParser,
     public settingsGetter: SettingsGetter,
-    public cancelationObject: CancelationObject = { canceled: false }) {
+    public token?: CancellationToken) {
     try {
-      this.parser = new FileParser(text, this.uri, cancelationObject);
+      this.parser = new FileParser(text, this.uri);
       this.file = this.parser.parse();
       this.parsedSuccessfully = true;
       this.file.parserMessages = this.parser.state.messages;
@@ -149,12 +153,11 @@ export class VhdlLinter {
 
   async handleCanceled() {
     await new Promise(resolve => setImmediate(resolve));
-    if (this.cancelationObject.canceled) {
-      console.log('canceled');
-      throw new CancelationError();
+    if (this.token?.isCancellationRequested) {
+
+      throw new ResponseError(LSPErrorCodes.RequestCancelled, 'canceled');
     }
   }
-
   async checkAll(profiling = false) {
     if (this.parsedSuccessfully === false) {
       return this.messages;
@@ -176,6 +179,8 @@ export class VhdlLinter {
         console.log(`check ${i++}: ${Date.now() - start}ms`);
         start = Date.now();
       }
+      await this.handleCanceled();
+
       const settings = await this.settingsGetter(this.uri);
       for (const checkerClass of rules) {
         if ((settings.rules as Record<string, boolean>)[checkerClass.ruleName]) {
@@ -189,10 +194,12 @@ export class VhdlLinter {
         await this.handleCanceled();
       }
     } catch (err) {
-      if (err instanceof ParserError) {
+      if ((err instanceof ResponseError && err.code === LSPErrorCodes.RequestCancelled)) {
+        throw err;
+      } else if (err instanceof ParserError) {
         this.messages.push(Diagnostic.create(err.range, `Error while parsing: '${err.message}'`));
-      } else if (err instanceof Error) {
-        this.messages.push(Diagnostic.create(Range.create(Position.create(0, 0), Position.create(10, 100)), `Error while checking: '${err.message}'\n${err.stack ?? ''}`));
+      } else {
+        this.messages.push(Diagnostic.create(Range.create(Position.create(0, 0), Position.create(10, 100)), `Error while checking: '${(err as Error)?.message}'\n${(err as Error)?.stack ?? ''}`));
       }
     }
 

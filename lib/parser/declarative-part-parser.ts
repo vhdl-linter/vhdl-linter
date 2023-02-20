@@ -1,7 +1,7 @@
 import { AliasParser } from './alias-parser';
 import { AttributeParser } from './attribute-parser';
 import { ComponentParser } from './component-parser';
-import { implementsIHasComponents } from './interfaces';
+import { implementsIHasDeclarations } from './interfaces';
 import { ObjectDeclarationParser } from './object-declaration-parser';
 import { OStatementBody, OEntity, OPackage, OPackageBody, OProcess, OSubprogram, OType, OAttributeDeclaration, OI } from './objects';
 import { PackageInstantiationParser } from './package-instantiation-parser';
@@ -30,20 +30,20 @@ export class DeclarativePartParser extends ParserBase {
       } else if (nextToken.getLText() === 'attribute') {
         const obj = new AttributeParser(this.state, this.parent).parse();
         if (obj instanceof OAttributeDeclaration) {
-          this.parent.attributeDeclarations.push(obj);
+          this.parent.declarations.push(obj);
         } else {
-          this.parent.attributeSpecifications.push(obj);
+          this.parent.declarations.push(obj);
         }
       } else if (nextToken.getLText() === 'type') {
         const typeParser = new TypeParser(this.state, this.parent);
-        this.parent.types.push(typeParser.parse());
+        this.parent.declarations.push(typeParser.parse());
       } else if (nextToken.getLText() === 'subtype') {
         const subtypeParser = new SubtypeParser(this.state, this.parent);
-        this.parent.types.push(subtypeParser.parse());
+        this.parent.declarations.push(subtypeParser.parse());
       } else if (nextToken.getLText() === 'alias') {
         const alias = new AliasParser(this.state, this.parent).parse();
-        this.parent.aliases.push(alias);
-      } else if (nextToken.getLText() === 'component' && implementsIHasComponents(this.parent)) {
+        this.parent.declarations.push(alias);
+      } else if (nextToken.getLText() === 'component' && implementsIHasDeclarations(this.parent)) {
         if (this.parent instanceof OEntity) {
           this.state.messages.push({
             message: `Components are not allowed in entity`,
@@ -76,15 +76,15 @@ export class DeclarativePartParser extends ParserBase {
         }
         this.consumeToken();
         const componentParser = new ComponentParser(this.state, this.parent);
-        this.parent.components.push(componentParser.parse());
+        this.parent.declarations.push(componentParser.parse());
         this.expect(';');
       } else if (nextToken.getLText() === 'procedure' || nextToken.getLText() === 'impure' || nextToken.getLText() === 'pure' || nextToken.getLText() === 'function') {
         const subprogramParser = new SubprogramParser(this.state, this.parent);
-        this.parent.subprograms.push(subprogramParser.parse());
+        this.parent.declarations.push(subprogramParser.parse());
         this.expect(';');
       } else if (nextToken.getLText() === 'package') {
         this.consumeToken(); // consume 'package
-        this.parent.packageInstantiations.push(new PackageInstantiationParser(this.state, this.parent).parse());
+        this.parent.declarations.push(new PackageInstantiationParser(this.state, this.parent).parse());
         this.expect(';');
       } else if (nextToken.getLText() === 'generic') {
         this.advanceSemicolon();

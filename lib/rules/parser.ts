@@ -1,6 +1,6 @@
 import { CodeAction, CodeActionKind } from "vscode-languageserver";
-import { OIDiagnosticWithSolution } from "../parser/interfaces";
 import { OFile } from "../parser/objects";
+import { OIDiagnosticWithSolution } from "../vhdl-linter";
 import { IRule, RuleBase } from "./rules-base";
 
 export class RParser extends RuleBase implements IRule {

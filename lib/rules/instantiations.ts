@@ -1,7 +1,7 @@
 import { findBestMatch } from "string-similarity";
 import { CodeAction, CodeActionKind, DiagnosticSeverity, Range, TextEdit } from "vscode-languageserver";
-import { implementsIHasLexerToken, IHasLexerToken, implementsIHasPorts, implementsIHasSubprograms, implementsIHasStatements } from "../parser/interfaces";
-import { OAliasWithSignature, OArchitecture, OAssociationList, ObjectBase, OCase, OComponent, OEntity, OFile, OGeneric, OHasSequentialStatements, OIf, OInstantiation, OIRange, OPort, OTypeMark } from "../parser/objects";
+import { implementsIHasLexerToken, IHasLexerToken, implementsIHasPorts, implementsIHasStatements, implementsIHasDeclarations } from "../parser/interfaces";
+import { OAliasWithSignature, OArchitecture, OAssociationList, ObjectBase, OCase, OComponent, OEntity, OFile, OGeneric, OHasSequentialStatements, OIf, OInstantiation, OIRange, OPort, OSubprogram, OTypeMark } from "../parser/objects";
 import { IRule, RuleBase } from "./rules-base";
 
 export class RInstantiation extends RuleBase implements IRule {
@@ -155,9 +155,11 @@ export class RInstantiation extends RuleBase implements IRule {
         }
       }
     }
-    if (implementsIHasSubprograms(object)) {
-      for (const subprograms of object.subprograms) {
-        this.checkInstantiations(subprograms);
+    if (implementsIHasDeclarations(object)) {
+      for (const subprogram of object.declarations) {
+        if (subprogram instanceof OSubprogram) {
+          this.checkInstantiations(subprogram);
+        }
       }
     }
     if (object instanceof OArchitecture) {

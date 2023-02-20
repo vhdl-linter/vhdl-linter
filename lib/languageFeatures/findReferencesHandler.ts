@@ -62,6 +62,17 @@ export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position
   // find all tokens that are references to the definition
   const referenceTokens: OLexerToken[] = [];
   for (const definition of definitions) {
+    if (definition instanceof OEntity) {
+      for (const link of definition.referenceComponents) {
+        if (link instanceof OComponent) {
+          if (link.endingReferenceToken) {
+            referenceTokens.push(link.endingReferenceToken);
+          }
+          referenceTokens.push(link.lexerToken);
+          referenceTokens.push(...link.referenceLinks.flatMap(link => link instanceof OInstantiation ? link.componentName : []));
+        }
+      }
+    }
     if (implementsIHasReference(definition)) {
       if (definition.lexerToken) {
         referenceTokens.push(definition.lexerToken);
@@ -73,12 +84,7 @@ export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position
           if (link instanceof OInstantiation) {
             referenceTokens.push(link.componentName);
           }
-          if (link instanceof OComponent) {
-            if (link.endingReferenceToken) {
-              referenceTokens.push(link.endingReferenceToken);
-            }
-            referenceTokens.push(...link.referenceLinks.flatMap(link => link instanceof OInstantiation ? link.componentName : []));
-          }
+
         }
       }
       if (definition instanceof OComponent && definition.endingReferenceToken) {
