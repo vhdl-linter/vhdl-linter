@@ -984,6 +984,54 @@ exports[`Testing document symbols of test_protected.vhd 1`] = `
   {
     "children": [
       {
+        "kind": 14,
+        "name": "c_crcPol",
+        "range": {
+          "end": {
+            "character": 67,
+            "line": 13,
+          },
+          "start": {
+            "character": 2,
+            "line": 13,
+          },
+        },
+        "selectionRange": {
+          "end": {
+            "character": 19,
+            "line": 13,
+          },
+          "start": {
+            "character": 11,
+            "line": 13,
+          },
+        },
+      },
+      {
+        "kind": 12,
+        "name": "reflect",
+        "range": {
+          "end": {
+            "character": 14,
+            "line": 22,
+          },
+          "start": {
+            "character": 2,
+            "line": 15,
+          },
+        },
+        "selectionRange": {
+          "end": {
+            "character": 18,
+            "line": 15,
+          },
+          "start": {
+            "character": 11,
+            "line": 15,
+          },
+        },
+      },
+      {
         "children": [
           {
             "kind": 12,
@@ -1079,54 +1127,6 @@ exports[`Testing document symbols of test_protected.vhd 1`] = `
           "start": {
             "character": 7,
             "line": 25,
-          },
-        },
-      },
-      {
-        "kind": 12,
-        "name": "reflect",
-        "range": {
-          "end": {
-            "character": 14,
-            "line": 22,
-          },
-          "start": {
-            "character": 2,
-            "line": 15,
-          },
-        },
-        "selectionRange": {
-          "end": {
-            "character": 18,
-            "line": 15,
-          },
-          "start": {
-            "character": 11,
-            "line": 15,
-          },
-        },
-      },
-      {
-        "kind": 14,
-        "name": "c_crcPol",
-        "range": {
-          "end": {
-            "character": 67,
-            "line": 13,
-          },
-          "start": {
-            "character": 2,
-            "line": 13,
-          },
-        },
-        "selectionRange": {
-          "end": {
-            "character": 19,
-            "line": 13,
-          },
-          "start": {
-            "character": 11,
-            "line": 13,
           },
         },
       },

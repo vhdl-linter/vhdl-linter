@@ -148,7 +148,7 @@ export class TypeParser extends ParserBase {
           }
           const deallocateProcedure = new OSubprogram(this.parent, new OIRange(this.parent, firstTypeToken.range.start.i, lastTypeToken.range.end.i));
           deallocateProcedure.lexerToken = new OLexerToken('deallocate', type.lexerToken.range, type.lexerToken.type, deallocateProcedure.rootFile);
-          this.parent.subprograms.push(deallocateProcedure);
+          this.parent.declarations.push(deallocateProcedure);
           const port = new OPort(deallocateProcedure, type.lexerToken.range);
           port.direction = 'inout';
           deallocateProcedure.ports = [port];

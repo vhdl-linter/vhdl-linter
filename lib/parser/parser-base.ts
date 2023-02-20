@@ -1,7 +1,7 @@
 import { fileURLToPath } from 'url';
 import { OLexerToken, TokenType } from '../lexer';
+import { OIDiagnosticWithSolution } from '../vhdl-linter';
 import { config } from './config';
-import { OIDiagnosticWithSolution } from './interfaces';
 import { OFile, OIRange, ParserError } from './objects';
 
 

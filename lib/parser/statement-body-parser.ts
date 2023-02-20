@@ -40,7 +40,7 @@ export class StatementBodyParser extends ParserBase {
         constant.lexerToken = new OLexerToken('GUARD', guardRange, TokenType.basicIdentifier, constant.rootFile);
         // read GUARD constant to avoid 'not read' warning
         statementBody.guardCondition.push(new ORead(statementBody, constant.lexerToken));
-        statementBody.constants.push(constant);
+        statementBody.declarations.push(constant);
       }
       this.maybe('is');
     } else if (structureName === 'when-generate') {
@@ -63,7 +63,7 @@ export class StatementBodyParser extends ParserBase {
       const iterateConstant = new OConstant(statementBody, constantName.range);
       iterateConstant.typeReference = [];
       iterateConstant.lexerToken = constantName;
-      statementBody.constants.push(iterateConstant);
+      statementBody.declarations.push(iterateConstant);
       statementBody.iterationConstant = constantName;
     }
     if (skipStart !== true) {

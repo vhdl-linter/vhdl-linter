@@ -19,6 +19,10 @@ export interface IAddSignalCommandArguments {
 export interface OIDiagnostic extends Diagnostic {
   range: OIRange;
 }
+export interface OIDiagnosticWithSolution extends OIDiagnostic {
+  solution?: { message: string, edits: TextEdit[] };
+}
+
 export interface IIgnoreLineCommandArguments {
   textDocumentUri: string;
   range: Range;

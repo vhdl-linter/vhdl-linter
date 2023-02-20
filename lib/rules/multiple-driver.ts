@@ -1,5 +1,5 @@
 import { CodeAction, CodeActionKind, Command, DiagnosticSeverity } from "vscode-languageserver";
-import { implementsIHasSignals } from "../parser/interfaces";
+import { implementsIHasDeclarations } from "../parser/interfaces";
 import { OArchitecture, ObjectBase, OFile, OInstantiation, OProcess, OSignal, OWrite } from "../parser/objects";
 import { IRule, RuleBase } from "./rules-base";
 
@@ -75,12 +75,15 @@ export class RMultipleDriver extends RuleBase implements IRule {
   }
   check() {
     for (const obj of this.file.objectList) {
-      if (implementsIHasSignals(obj)) {
-        for (const signal of obj.signals) {
+      if (implementsIHasDeclarations(obj)) {
+        for (const signal of obj.declarations) {
+          if (signal instanceof OSignal === false) {
+            continue;
+          }
           const references = signal.referenceLinks.slice(0);
           references.push(...signal.aliasReferences.flatMap(alias => alias.referenceLinks));
           if (references.filter(token => token instanceof OWrite).length > 0) {
-            this.checkMultipleDriver(signal);
+            this.checkMultipleDriver(signal as OSignal);
           }
         }
       }
