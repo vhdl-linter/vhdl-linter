@@ -90,13 +90,13 @@ export class ObjectDeclarationParser extends ParserBase {
       object.range = object.range.copyWithNewEnd(this.getToken(-1, true).range.end);
     }
     if (constant) {
-      this.parent.declarations.push(...objects as OSignal[]);
+      this.parent.declarations.push(...objects);
     } else if (variable) {
-      this.parent.declarations.push(...objects as OVariable[]);
+      this.parent.declarations.push(...objects);
     } else if (file) {
-      this.parent.declarations.push(...objects as OFileVariable[]);
+      this.parent.declarations.push(...objects);
     } else {
-      this.parent.declarations.push(...objects as OSignal[]);
+      this.parent.declarations.push(...objects);
     }
   }
   readonly NotExpectedDelimiter = ['end', 'file', 'constant', 'variable', 'begin', 'signal', 'is'];

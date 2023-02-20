@@ -156,9 +156,9 @@ export class RInstantiation extends RuleBase implements IRule {
       }
     }
     if (implementsIHasDeclarations(object)) {
-      for (const subprograms of object.declarations) {
-        if (subprograms instanceof OSubprogram) {
-          this.checkInstantiations(subprograms);
+      for (const subprogram of object.declarations) {
+        if (subprogram instanceof OSubprogram) {
+          this.checkInstantiations(subprogram);
         }
       }
     }

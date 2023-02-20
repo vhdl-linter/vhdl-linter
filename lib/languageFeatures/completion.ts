@@ -1,7 +1,7 @@
 import { CompletionItem, CompletionItemKind, Position } from 'vscode-languageserver';
 import { reservedWords } from '../lexer';
 import { IHasLexerToken, IHasTypeReference, implementsIHasDeclarations, implementsIHasGenerics, implementsIHasPorts, implementsIHasTypeReference } from '../parser/interfaces';
-import { OAlias, OAliasWithSignature, OAttributeSpecification, ObjectBase, OConstant, OEnum, OGenericAssociationList, ORecord, OReference, OSelectedNameRead, OSelectedNameWrite, OSignal, OSubprogram, OType, OVariable, scope } from '../parser/objects';
+import { OAlias, OAliasWithSignature, OAttributeSpecification, ObjectBase, OConstant, OEnum, OFileVariable, OGenericAssociationList, ORecord, OReference, OSelectedNameRead, OSelectedNameWrite, OSignal, OSubprogram, OType, OVariable, scope } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
 import { findObjectFromPosition } from './findObjects';
 import { getTokenFromPosition } from './findReferencesHandler';
@@ -82,7 +82,7 @@ export async function getCompletions(linter: VhdlLinter, position: Position): Pr
           addCompletion(declaration, CompletionItemKind.Variable);
         } else if (declaration instanceof OConstant) {
           addCompletion(declaration, CompletionItemKind.Variable);
-        } else if (declaration instanceof OVariable) {
+        } else if (declaration instanceof OVariable || declaration instanceof OFileVariable) {
           addCompletion(declaration, CompletionItemKind.Variable);
         } else if (declaration instanceof OSubprogram) {
           addCompletion(declaration, CompletionItemKind.Function);
@@ -100,7 +100,7 @@ export async function getCompletions(linter: VhdlLinter, position: Position): Pr
         } else if (declaration instanceof OAlias) {
           addCompletion(declaration, CompletionItemKind.Reference);
         } else {
-          addCompletion(declaration, CompletionItemKind.Constructor);
+          addCompletion(declaration);
         }
       }
 

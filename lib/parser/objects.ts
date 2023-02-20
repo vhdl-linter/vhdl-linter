@@ -273,7 +273,6 @@ export class OPackage extends ObjectBase implements I.IHasDeclarations, I.IHasUs
   aliasReferences: OAlias[] = [];
   declarations: ODeclaration[] = [];
   parent: OFile;
-  aliases: OAlias[] = [];
   libraries: OLibrary[] = [];
   generics: OGeneric[] = [];
   genericRange?: OIRange;
@@ -294,9 +293,8 @@ export class OPackageBody extends ObjectBase implements I.IHasUseClauses, I.IHas
   aliasReferences: OAlias[] = [];
   lexerToken: OLexerToken;
   libraries: OLibrary[] = [];
-  aliases: OAlias[] = [];
-  useClauses: OUseClause[] = [];
   packageDefinitions: OPackage[] = [];
+  useClauses: OUseClause[] = [];
   contextReferences: OContextReference[] = [];
   parent: OFile;
   targetLibrary?: string;
@@ -332,7 +330,7 @@ export class OContext extends ObjectBase implements I.IHasUseClauses, I.IHasCont
 }
 export type OConcurrentStatements = OProcess | OInstantiation | OIfGenerate | OForGenerate | OCaseGenerate | OBlock | OAssignment;
 export type ODeclaration = OSignal | OAttributeSpecification | OAttributeDeclaration | OVariable | OConstant | OFileVariable | OType
-  | OAlias | OSubprogram | OComponent | OAliasWithSignature | OPackageInstantiation;
+  | OAlias | OSubprogram | OComponent | OPackageInstantiation;
 
 export abstract class OStatementBody extends ObjectBase implements I.IHasDeclarations,
    I.IHasUseClauses, I.IHasContextReference, I.IHasLibraries, I.IHasReferenceLinks {
@@ -660,8 +658,8 @@ export class OProcess extends OHasSequentialStatements implements I.IHasDeclarat
   label?: OLexerToken;
 
   aliases: OAlias[] = [];
-  useClauses: OUseClause[] = [];
   packageDefinitions: OPackage[] = [];
+  useClauses: OUseClause[] = [];
   sensitivityList: OReference[] = [];
   labelLinks: OLabelReference[] = [];
 

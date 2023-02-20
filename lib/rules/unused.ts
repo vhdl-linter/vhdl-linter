@@ -143,10 +143,7 @@ export class RUnused extends RuleBase implements IRule {
             }
           }
         }
-
       }
-
-
     }
   }
 }
