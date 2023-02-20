@@ -181,7 +181,8 @@ export class ObjectBase {
       && parent instanceof OPackage === false
       && parent instanceof OPackageInstantiation === false
       && parent instanceof OPackageBody === false
-      && parent instanceof OContext === false) {
+      && parent instanceof OContext === false
+      && parent instanceof OConfiguration === false) {
       if (parent.parent instanceof OFile) {
         throw new ParserError('Failed to find root element', this.range);
       }
@@ -553,7 +554,7 @@ export class OInstantiation extends OReference implements I.IHasDefinitions, I.I
   constructor(public parent: OStatementBody | OEntity | OProcess | OLoop | OIf, lexerToken: OLexerToken, public type: 'entity' | 'component' | 'configuration' | 'subprogram' | 'unknown' = 'unknown') {
     super(parent, lexerToken);
   }
-  definitions: (OEntity | OSubprogram | OComponent | OAliasWithSignature)[] = [];
+  definitions: (OEntity | OSubprogram | OComponent | OAliasWithSignature | OConfiguration)[] = [];
   componentName: OLexerToken;
   package?: OLexerToken;
   portAssociationList?: OPortAssociationList;
@@ -582,6 +583,7 @@ export class OEntity extends ObjectBase implements I.IHasDefinitions, I.IHasDecl
   }
   referenceLinks: OReference[] = [];
   referenceComponents: OComponent[] = [];
+  referenceConfigurations: OConfiguration[] = [];
   libraries: OLibrary[] = [];
   declarations: ODeclaration[] = [];
   aliasReferences: OAlias[] = [];
@@ -817,10 +819,15 @@ export class OAliasWithSignature extends OAlias implements I.IHasLexerToken {
   return: OReference;
 }
 
-export class OConfiguration extends ObjectBase implements I.IHasLibraries {
-  identifier: OLexerToken;
+export class OConfiguration extends ObjectBase implements I.IHasLibraries, I.IHasDefinitions, I.IHasReferenceLinks {
+  lexerToken: OLexerToken;
+  targetLibrary?: string;
   entityName: OLexerToken;
   libraries: OLibrary[] = [];
+  definitions: OEntity[] = [];
+  referenceLinks: OInstantiation[] = [];
+  aliasReferences: OAlias[] = [];
+
 }
 export class OAttributeSpecification extends ObjectBase implements I.IHasLexerToken, I.IHasReferenceLinks {
   lexerToken: OLexerToken;

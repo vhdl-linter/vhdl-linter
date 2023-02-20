@@ -112,3 +112,7 @@ test('Signature help with component', async () => {
   const linter = await prepare('component.vhd');
   expect(signatureHelp(linter, Position.create(21, 42))?.signatures[0]?.label).toBe('port1, port2, port3');
 });
+test('Signature help with configuration', async () => {
+  const linter = await prepare('configuration.vhd');
+  expect(signatureHelp(linter, Position.create(9, 8))?.signatures[0]?.label).toBe('port1, port2, port3');
+});
