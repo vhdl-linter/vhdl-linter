@@ -1,6 +1,6 @@
 import { CodeAction, CodeActionKind, DiagnosticSeverity, TextEdit } from "vscode-languageserver";
-import { implementsIHasPorts, implementsIHasSignals, implementsIHasTypes } from "../parser/interfaces";
-import { OAlias, OFile, OPackage, OPort, OSignal, OSubType, scope } from "../parser/objects";
+import { implementsIHasDeclarations, implementsIHasPorts } from "../parser/interfaces";
+import { OAlias, OFile, OPackage, OPort, OSignal, OSubType, OType, scope } from "../parser/objects";
 import { IRule, RuleBase } from "./rules-base";
 
 export class RTypeResolved extends RuleBase implements IRule {
@@ -16,8 +16,8 @@ export class RTypeResolved extends RuleBase implements IRule {
         if (definition instanceof OSubType && definition.resolved) {
           let unresolvedTypes = [definition.superType.referenceToken.text];
           const root = definition.getRootElement();
-          for (const alias of root.aliases) { // IEEE defines more convenient aliases. Show them as well
-            if (alias.name[0]?.referenceToken.getLText() === definition.superType.referenceToken.getLText()) {
+          for (const alias of root.declarations) { // IEEE defines more convenient aliases. Show them as well
+            if (alias instanceof OAlias && alias.name[0]?.referenceToken.getLText() === definition.superType.referenceToken.getLText()) {
               unresolvedTypes.push(alias.lexerToken.text);
             }
           }
@@ -61,9 +61,9 @@ export class RTypeResolved extends RuleBase implements IRule {
           const alias = [type.referenceToken.getLText()];
           while (definition instanceof OAlias) {
             for (const [obj] of scope(definition)) {
-              if (implementsIHasTypes(obj)) {
-                for (const typeIter of obj.types) {
-                  if (typeIter.lexerToken.getLText() === (definition as OAlias).name[0]!.referenceToken.getLText()) {
+              if (implementsIHasDeclarations(obj)) {
+                for (const typeIter of obj.declarations) {
+                  if (typeIter instanceof OType && typeIter.lexerToken.getLText() === (definition as OAlias).name[0]!.referenceToken.getLText()) {
                     definition = typeIter;
                     alias.push(typeIter.lexerToken.getLText());
                     break;
@@ -82,7 +82,7 @@ export class RTypeResolved extends RuleBase implements IRule {
           if (!resolved) {
             const root = definition.getRootElement();
             let resolvedSubtype: string[] = [];
-            for (const subtype of root.types) {
+            for (const subtype of root.declarations) {
               if (subtype instanceof OSubType && subtype.resolved && alias.includes(subtype.superType.referenceToken.getLText())) {
                 resolvedSubtype.push(subtype.lexerToken.text);
               }
@@ -128,9 +128,11 @@ export class RTypeResolved extends RuleBase implements IRule {
           this.checkObject(port);
         }
       }
-      if (implementsIHasSignals(object)) {
-        for (const signal of object.signals) {
-          this.checkObject(signal);
+      if (implementsIHasDeclarations(object)) {
+        for (const signal of object.declarations) {
+          if (signal instanceof OSignal) {
+            this.checkObject(signal);
+          }
         }
       }
     }

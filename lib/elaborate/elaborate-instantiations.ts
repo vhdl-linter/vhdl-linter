@@ -1,5 +1,5 @@
-import { implementsIHasComponents, implementsIHasSubprograms, implementsIHasAliases, implementsIHasTypes } from "../parser/interfaces";
-import { OFile, OInstantiation, OComponent, scope, OEntity, OSubprogram, OAliasWithSignature, OType, ParserError } from "../parser/objects";
+import { implementsIHasDeclarations } from "../parser/interfaces";
+import { OAliasWithSignature, OComponent, OEntity, OFile, OInstantiation, OSubprogram, OType, ParserError, scope } from "../parser/objects";
 import { ProjectParser } from "../project-parser";
 
 export function elaborateInstantiations(file: OFile, projectParser: ProjectParser) {
@@ -36,12 +36,16 @@ function getComponents(instantiation: OInstantiation): OComponent[] {
   }
   // find all defined components in current scope
   for (const [iterator] of scope(instantiation)) {
-    if (implementsIHasComponents(iterator)) {
-      components.push(...iterator.components);
+    if (implementsIHasDeclarations(iterator)) {
+      for(const component of iterator.declarations) {
+        if (component instanceof OComponent) {
+          components.push(component);
+        }
+      }
     }
   }
   const name = instantiation.componentName;
-  return components.filter(e => e.referenceToken.getLText() === name.text.toLowerCase());
+  return components.filter(e => e.lexerToken.getLText() === name.text.toLowerCase());
 }
 // TODO: To fit with the style of packages and architectures I think this should be linked during elaboration
 export function getEntities(instantiation: OInstantiation | OComponent, projectParser: ProjectParser): OEntity[] {
@@ -62,15 +66,15 @@ export function getEntities(instantiation: OInstantiation | OComponent, projectP
   } else {
     entities.push(...projectEntities);
   }
-  const name = (instantiation instanceof OInstantiation) ? instantiation.componentName : instantiation.referenceToken;
+  const name = (instantiation instanceof OInstantiation) ? instantiation.componentName : instantiation.lexerToken;
   return entities.filter(e => e.lexerToken.getLText() === name.text.toLowerCase());
 }
 function getSubprograms(instantiation: OInstantiation, projectParser: ProjectParser): (OSubprogram | OAliasWithSignature)[] {
   const subprograms: (OSubprogram | OAliasWithSignature)[] = [];
   const addTypes = (types: OType[], recursionCounter: number) => {
-    subprograms.push(...types.flatMap(t => t.subprograms));
+    subprograms.push(...types.flatMap(t => t.declarations.filter(a => a instanceof OSubprogram) as OSubprogram[]));
     if (recursionCounter > 0) {
-      const children = types.flatMap(t => t.types);
+      const children = types.flatMap(t => t.declarations.filter(a => a instanceof OType) as OType[]);
       if (children.length > 0) {
         addTypes(children, recursionCounter - 1);
       }
@@ -80,19 +84,23 @@ function getSubprograms(instantiation: OInstantiation, projectParser: ProjectPar
   };
 
   for (const [iterator] of scope(instantiation)) {
-    if (implementsIHasSubprograms(iterator)) {
-      subprograms.push(...iterator.subprograms);
-    }
-    if (implementsIHasAliases(iterator)) {
-      subprograms.push(...iterator.aliases.filter(a => a instanceof OAliasWithSignature) as OAliasWithSignature[]);
-    }
-    if (implementsIHasTypes(iterator)) {
-      addTypes(iterator.types, 500);
+    if (implementsIHasDeclarations(iterator)) {
+      for (const declaration of iterator.declarations) {
+        if (declaration instanceof OSubprogram) {
+          subprograms.push(declaration);
+        } else if (declaration instanceof OAliasWithSignature) {
+          subprograms.push(declaration);
+        } else if (declaration instanceof OType) {
+          addTypes([declaration], 500);
+
+        }
+
+      }
     }
   }
   // Direct call via library.package.function
   if (instantiation.library !== undefined && instantiation.package !== undefined) {
-    subprograms.push(...projectParser.packages.filter(pkg => pkg.lexerToken.getLText() === instantiation.package?.text.toLowerCase()).map(pkg => pkg.subprograms).flat());
+    subprograms.push(...projectParser.packages.filter(pkg => pkg.lexerToken.getLText() === instantiation.package?.text.toLowerCase()).map(pkg => pkg.declarations.filter(a => a instanceof OSubprogram) as OSubprogram[]).flat());
   }
   return subprograms.filter(e => e.lexerToken.getLText() === instantiation.componentName.getLText());
 }

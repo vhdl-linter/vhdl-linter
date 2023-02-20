@@ -83,14 +83,14 @@ package standard is
   attribute rightof       : t;
   attribute subtype       : t;
 -- 16.2.3 Predefined attributes of arrays
-  attribute left          : t;
-  attribute right         : t;
-  attribute high          : t;
-  attribute low           : t;
+  -- attribute left          : t;
+  -- attribute right         : t;
+  -- attribute high          : t;
+  -- attribute low           : t;
   attribute range         : t;
   attribute reverse_range : t;
   attribute length        : t;
-  attribute ascending     : t;
+  -- attribute ascending     : t;
   attribute element       : t;
 -- 16.2.4 Predefined attributes of signals
   attribute delayed       : t;

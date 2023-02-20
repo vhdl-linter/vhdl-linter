@@ -17,7 +17,7 @@ export class RNotDeclared extends RuleBase implements IRule {
     }
     const pos = root.range.start;
     for (const pkg of this.vhdlLinter.projectParser.packages) {
-      for (const type of [...pkg.constants, ...pkg.types, ...pkg.subprograms]) {
+      for (const type of pkg.declarations) {
         if (type.lexerToken.getLText() === ref.referenceToken.getLText()) {
           let library = pkg.targetLibrary ? pkg.targetLibrary : 'work';
           let pkgName = pkg.lexerToken.text;
