@@ -1,0 +1,18 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`testing semantic tokens for test.vhd 1`] = `
+[
+  "       5:8        class                test",
+  "       7:5     variable       readonly a_in",
+  "      7:17         enum       readonly std_ulogic",
+  "      8:17         enum       readonly std_ulogic",
+  "     18:14     variable       readonly a_in",
+]
+`;
+
+exports[`testing semantic tokens for test_pkg.vhd 1`] = `
+[
+  "      6:12    parameter       readonly TEST",
+  "      6:19         type       readonly integer",
+]
+`;
