@@ -15,9 +15,13 @@ export function elaborateAssociations(file: OFile) {
         if (definition instanceof OVariable) {
           // Protected Type
         } else if (association.parent instanceof OPortAssociationList) {
-          elements = definition instanceof OAliasWithSignature ? definition.typeMarks : (
-            definition instanceof OConfiguration ? (definition.definitions[0]?.ports ?? [])
-            : definition.ports);
+          if (definition instanceof OAliasWithSignature) {
+            elements = definition.typeMarks;
+          } else if (definition instanceof OConfiguration) {
+            elements = definition.definitions[0]?.ports ?? [];
+          } else {
+            elements = definition.ports;
+          }
         } else if (definition instanceof OComponent || definition instanceof OEntity) {
           elements = definition.generics;
         }

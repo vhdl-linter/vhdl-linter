@@ -153,15 +153,9 @@ export class ProjectParser {
       this.entities.push(...cachedFile.linter.file.entities);
       this.architectures.push(...cachedFile.linter.file.architectures);
       this.configurations.push(...cachedFile.linter.file.configurations);
-      if (cachedFile.packages) {
-        this.packages.push(...cachedFile.packages);
-      }
-      if (cachedFile.packageInstantiations) {
-        this.packageInstantiations.push(...cachedFile.packageInstantiations);
-      }
-      if (cachedFile.linter.file.contexts) {
-        this.contexts.push(...cachedFile.linter.file.contexts);
-      }
+      this.packages.push(...cachedFile.linter.file.packages.filter(pkg => pkg instanceof OPackage) as OPackage[]);
+      this.packageInstantiations.push(...cachedFile.linter.file.packageInstantiations);
+      this.contexts.push(...cachedFile.linter.file.contexts);
     }
   }
   // Cache the elaboration result. Caution this can get invalid super easy. Therefore it is completely removed on any file change.
@@ -186,8 +180,6 @@ export class ProjectParser {
 }
 
 class FileCache {
-  packages?: OPackage[];
-  packageInstantiations?: OPackageInstantiation[];
   contexts: OContext[] = [];
   entities: OEntity[] = [];
   linter: VhdlLinter;
@@ -208,8 +200,6 @@ class FileCache {
   }
   replaceLinter(vhdlLinter: VhdlLinter) {
     this.linter = vhdlLinter;
-    this.packages = this.linter.file.packages.filter((p): p is OPackage => p instanceof OPackage);
-    this.packageInstantiations = this.linter.file.packageInstantiations;
   }
 
 }

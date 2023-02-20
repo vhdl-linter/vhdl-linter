@@ -91,7 +91,8 @@ test.each([
       [['entity_split.vhd', createPrintableRange(2, 8, 25)],
       ['entity_split.vhd', createPrintableRange(6, 5, 22)],
       ['architecture_split.vhd', createPrintableRange(1, 22, 39)],
-      ['instantiation.vhd', createPrintableRange(9, 32, 49)],
+      ['instantiation.vhd', createPrintableRange(10, 32, 49)],
+      ['instantiation.vhd', createPrintableRange(1, 40, 57)],
       ],
     description: 'split entity and architecture file'
   },
@@ -99,7 +100,8 @@ test.each([
     occurrences:
       [['entity_split.vhd', createPrintableRange(4, 5, 8)],
       ['architecture_split.vhd', createPrintableRange(5, 10, 13)],
-      ['instantiation.vhd', createPrintableRange(10, 10, 13)],
+      ['instantiation.vhd', createPrintableRange(11, 10, 13)],
+      ['instantiation.vhd', createPrintableRange(13, 10, 13)],
       ],
     description: 'port name'
   },

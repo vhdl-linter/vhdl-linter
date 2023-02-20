@@ -105,6 +105,22 @@ export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position
         referenceTokens.push(definition.endingReferenceToken);
       }
       if (definition instanceof OPort) {
+        if (definition.parent instanceof OEntity) {
+          for (const configurations of definition.parent.referenceConfigurations) {
+            referenceTokens.push(...configurations.referenceLinks
+              .flatMap(link => {
+                if (link instanceof OInstantiation) {
+                  return link.portAssociationList?.children.flatMap(child => {
+                    return child.formalPart
+                      .filter(formal => formal.referenceToken.getLText() === definition.lexerToken.getLText())
+                      .map(formal => formal.referenceToken);
+                  }) ?? [];
+                }
+                return [];
+              }));
+          }
+
+        }
         referenceTokens.push(...definition.parent.referenceLinks
           .flatMap(link => {
             if (link instanceof OInstantiation) {

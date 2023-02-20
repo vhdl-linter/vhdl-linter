@@ -172,6 +172,7 @@ export class VhdlLinter {
     try {
       if (this.elaborated === false) {
         await Elaborate.elaborate(this);
+        this.elaborated = true;
       }
       if (profiling) {
         console.log(`check ${i++}: ${Date.now() - start}ms`);
