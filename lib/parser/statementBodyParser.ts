@@ -78,8 +78,7 @@ export class StatementBodyParser extends ParserBase {
       this.expect('is');
     }
 
-    new DeclarativePartParser(this.state, (statementBody as OArchitecture)).parse(structureName !== 'architecture');
-    statementBody.endOfDeclarativePart = this.getToken(-1, true).range.start;
+    new DeclarativePartParser(this.state, statementBody).parse(structureName !== 'architecture');
 
     while (this.state.pos.isValid()) {
       this.advanceWhitespace();

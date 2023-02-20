@@ -1,9 +1,9 @@
 import { AliasParser } from './aliasParser';
 import { AttributeParser } from './attributeParser';
 import { ComponentParser } from './componentParser';
-import { implementsIHasDeclarations } from './interfaces';
+import { IMayHasDeclarations, implementsIHasDeclarations, implementsIHasUseClause } from './interfaces';
 import { ObjectDeclarationParser } from './objectDeclarationParser';
-import { OStatementBody, OEntity, OPackage, OPackageBody, OProcess, OSubprogram, OType, OAttributeDeclaration, OI } from './objects';
+import { OAttributeDeclaration, ObjectBase, OEntity, OI, OPackageBody, OProcess, OSubprogram, OType } from './objects';
 import { PackageInstantiationParser } from './packageInstantiationParser';
 import { ParserBase, ParserState } from './parserBase';
 import { SubprogramParser } from './subprogramParser';
@@ -13,11 +13,12 @@ import { UseClauseParser } from './useClauseParser';
 
 export class DeclarativePartParser extends ParserBase {
   type: string;
-  constructor(state: ParserState, private parent: OStatementBody | OEntity | OPackage | OPackageBody | OProcess | OSubprogram | OType) {
+  constructor(state: ParserState, private parent: ObjectBase & IMayHasDeclarations) {
     super(state);
     this.debug('start');
   }
   parse(optional = false, lastWord = 'begin', consumeLastWord = true) {
+    const start = this.getToken(-1).range;
     let nextToken = this.getToken();
     while (nextToken.getLText() !== lastWord) {
       if (nextToken.getLText() === 'signal'
@@ -43,7 +44,7 @@ export class DeclarativePartParser extends ParserBase {
       } else if (nextToken.getLText() === 'alias') {
         const alias = new AliasParser(this.state, this.parent).parse();
         this.parent.declarations.push(alias);
-      } else if (nextToken.getLText() === 'component' && implementsIHasDeclarations(this.parent)) {
+      } else if (nextToken.getLText() === 'component') {
         if (this.parent instanceof OEntity) {
           this.state.messages.push({
             message: `Components are not allowed in entity`,
@@ -94,8 +95,15 @@ export class DeclarativePartParser extends ParserBase {
         return;
       } else if (nextToken.getLText() === 'use') {
         this.consumeToken();
-        const useClauseParser = new UseClauseParser(this.state, this.parent);
-        this.parent.useClauses.push(useClauseParser.parse());
+        const useClause = new UseClauseParser(this.state, this.parent).parse();
+        if (implementsIHasUseClause(this.parent)) {
+          this.parent.useClauses.push(useClause);
+        } else {
+          this.state.messages.push({ 
+            message: 'Use clause is not allowed here',
+            range: useClause.range
+          });
+        }
       } else if (nextToken.getLText() === 'for') {
         // skip simple configurations for now (§ 7.3.1)
         this.advanceSemicolon(true);
@@ -120,6 +128,9 @@ export class DeclarativePartParser extends ParserBase {
         return;
       }
       nextToken = this.getToken();
+    }
+    if (this.parent.declarations.length > 0 || !optional) {
+      this.parent.declarationsRange = start.copyWithNewEnd(this.getToken(-1).range);
     }
     if (consumeLastWord) {
       this.expect(lastWord);
