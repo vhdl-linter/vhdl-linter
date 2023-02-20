@@ -57,4 +57,11 @@ begin
             my_port_1 => my_port_1,
             my_port_2 => my_port_2
             );
+    wrapper2 : entity work.my_module
+        port map(
+            rstn      => rstn,
+            clk       => clk,
+            my_port_1 => my_port_1,
+            my_port_2 => my_port_2
+            );
 end rtl;

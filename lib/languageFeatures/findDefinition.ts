@@ -1,6 +1,6 @@
 import { DefinitionLink, Position } from "vscode-languageserver";
 import { implementsIHasDefinitions, implementsIHasLexerToken } from "../parser/interfaces";
-import { OArchitecture, ObjectBase, OPackage, OPackageBody, ORecordChild, OSubprogram } from "../parser/objects";
+import { OArchitecture, ObjectBase, OConfiguration, OPackage, OPackageBody, ORecordChild, OSubprogram } from "../parser/objects";
 import { VhdlLinter } from "../vhdl-linter";
 import { findObjectByDesignator } from "./findObjects";
 import { getTokenFromPosition, SetAdd } from "./findReferencesHandler";
@@ -15,7 +15,13 @@ export function findDefinitions(linter: VhdlLinter, position: Position): ObjectB
   const definitions = new SetAdd<ObjectBase>();
   // find all possible definitions for the lexerToken
   for (const candidate of candidates) {
-    if (implementsIHasDefinitions(candidate)) {
+    if (candidate instanceof OConfiguration) {
+      if (candidate.entityName === token) {
+        definitions.add(...candidate.definitions);
+      } else {
+        definitions.add(candidate);
+      }
+    } else if (implementsIHasDefinitions(candidate)) {
       definitions.add(...candidate.definitions);
     }
     if (candidate instanceof OArchitecture && candidate.correspondingEntity && candidate.entityName === token) {

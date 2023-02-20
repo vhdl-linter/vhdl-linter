@@ -131,14 +131,26 @@ export class RInstantiation extends RuleBase implements IRule {
     if (implementsIHasStatements(object)) {
       for (const instantiation of object.statements) {
         if (instantiation instanceof OInstantiation) {
+          let definitions = instantiation.definitions;
+          if (instantiation.type === 'configuration') {
+            definitions = definitions.flatMap((definition: OConfiguration) => {
+              const entities = this.vhdlLinter.projectParser.entities.filter(e => e.lexerToken.getLText() === definition.entityName.getLText());
+              return entities;
+            });
+          }
           if (instantiation.definitions.length === 0) {
             this.addMessage({
               range: instantiation.range.start.getRangeToEndLine(),
               severity: DiagnosticSeverity.Warning,
               message: `can not find ${instantiation.type} ${instantiation.componentName.text}`
             });
+          } else if (instantiation.type === 'configuration' && definitions.length === 0) {
+            this.addMessage({
+              range: instantiation.range.start.getRangeToEndLine(),
+              severity: DiagnosticSeverity.Warning,
+              message: `can not find entity ${(instantiation.definitions as OConfiguration[])[0]!.entityName.text} for configuration instantiation ${instantiation.componentName.text}`
+            });
           } else {
-            const definitions = instantiation.definitions.flatMap(definition => definition instanceof OConfiguration ? definition.definitions : definition);
             const range = instantiation.range.start.getRangeToEndLine();
             const availablePorts = definitions.map(e => {
               if (implementsIHasPorts(e)) {

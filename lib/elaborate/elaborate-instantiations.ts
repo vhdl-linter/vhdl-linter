@@ -1,6 +1,5 @@
-import { OLexerToken } from "../lexer";
 import { implementsIHasDeclarations } from "../parser/interfaces";
-import { OAliasWithSignature, OComponent, OEntity, OFile, OInstantiation, OSubprogram, OType, ParserError, scope } from "../parser/objects";
+import { OAliasWithSignature, OComponent, OConfiguration, OEntity, OFile, OInstantiation, OSubprogram, OType, ParserError, scope } from "../parser/objects";
 import { ProjectParser } from "../project-parser";
 
 export function elaborateInstantiations(file: OFile, projectParser: ProjectParser) {
@@ -48,7 +47,6 @@ function getComponents(instantiation: OInstantiation): OComponent[] {
   const name = instantiation.componentName;
   return components.filter(e => e.lexerToken.getLText() === name.text.toLowerCase());
 }
-// TODO: To fit with the style of packages and architectures I think this should be linked during elaboration
 export function getEntities(instantiation: OInstantiation | OComponent, projectParser: ProjectParser): OEntity[] {
   const entities: OEntity[] = [];
   if (instantiation instanceof OInstantiation && instantiation.type === 'component') {

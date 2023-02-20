@@ -181,7 +181,8 @@ export class ObjectBase {
       && parent instanceof OPackage === false
       && parent instanceof OPackageInstantiation === false
       && parent instanceof OPackageBody === false
-      && parent instanceof OContext === false) {
+      && parent instanceof OContext === false
+      && parent instanceof OConfiguration === false) {
       if (parent.parent instanceof OFile) {
         throw new ParserError('Failed to find root element', this.range);
       }
@@ -582,6 +583,7 @@ export class OEntity extends ObjectBase implements I.IHasDefinitions, I.IHasDecl
   }
   referenceLinks: OReference[] = [];
   referenceComponents: OComponent[] = [];
+  referenceConfigurations: OConfiguration[] = [];
   libraries: OLibrary[] = [];
   declarations: ODeclaration[] = [];
   aliasReferences: OAlias[] = [];
@@ -824,7 +826,7 @@ export class OConfiguration extends ObjectBase implements I.IHasLibraries, I.IHa
   libraries: OLibrary[] = [];
   definitions: OEntity[] = [];
   referenceLinks: OInstantiation[] = [];
-  aliasReferences: OAlias[];
+  aliasReferences: OAlias[] = [];
 
 }
 export class OAttributeSpecification extends ObjectBase implements I.IHasLexerToken, I.IHasReferenceLinks {

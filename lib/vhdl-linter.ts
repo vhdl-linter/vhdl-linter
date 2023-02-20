@@ -158,6 +158,7 @@ export class VhdlLinter {
       throw new ResponseError(LSPErrorCodes.RequestCancelled, 'canceled');
     }
   }
+  elaborated = false;
   async checkAll(profiling = false) {
     if (this.parsedSuccessfully === false) {
       return this.messages;
@@ -169,7 +170,9 @@ export class VhdlLinter {
     let i = 0;
     start = Date.now();
     try {
-      await Elaborate.elaborate(this);
+      if (this.elaborated === false) {
+        await Elaborate.elaborate(this);
+      }
       if (profiling) {
         console.log(`check ${i++}: ${Date.now() - start}ms`);
         start = Date.now();

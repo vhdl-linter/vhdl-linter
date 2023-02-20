@@ -1,4 +1,3 @@
-import { basename } from "path";
 import { platform } from "process";
 import { EventEmitter } from "stream";
 import { CancellationToken, CancellationTokenSource, LSPErrorCodes, ResponseError } from "vscode-languageserver";
@@ -57,7 +56,6 @@ export class LinterManager {
   }
   cancellationTokenSources: Record<string, CancellationTokenSource> = {};
   async triggerRefresh(uri: string, text: string, projectParser: ProjectParser, settingsGetter: SettingsGetter, fromProjectParser = false) {
-    console.log('triggerRefresh', basename(uri));
     uri = normalizeUri(uri);
     // Cancel previous running linter of this uri
     const oldSource = this.cancellationTokenSources[uri];

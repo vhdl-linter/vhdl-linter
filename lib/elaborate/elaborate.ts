@@ -20,6 +20,7 @@ export class Elaborate {
 
     const elaborator = new Elaborate(vhdlLinter);
     await elaborator.elaborateAll();
+    vhdlLinter.elaborated = true;
   }
   public static clear(vhdlLinter: VhdlLinter) {
     for (const obj of vhdlLinter.file.objectList) {
@@ -100,10 +101,9 @@ export class Elaborate {
     await this.vhdlLinter.handleCanceled();
     elaborateComponents(this.file, this.vhdlLinter.projectParser);
     await this.vhdlLinter.handleCanceled();
-    // Configurations has to be before instantiations
-    elaborateConfigurations(this.file, this.vhdlLinter.projectParser);
-    await this.vhdlLinter.handleCanceled();
     elaborateInstantiations(this.file, this.vhdlLinter.projectParser);
+    await this.vhdlLinter.handleCanceled();
+    elaborateConfigurations(this.file, this.vhdlLinter.projectParser);
 
     // console.log(`elaboration: instantiations for: ${Date.now() - start} ms.`);
     // start = Date.now();
