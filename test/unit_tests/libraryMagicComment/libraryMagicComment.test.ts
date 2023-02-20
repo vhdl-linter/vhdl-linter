@@ -1,6 +1,5 @@
 import { afterAll, beforeAll, expect, test } from "@jest/globals";
 import { writeFileSync } from "fs";
-import { writeFile } from "fs/promises";
 import { join } from "path";
 import { pathToFileURL } from "url";
 import { ProjectParser } from "../../../lib/project-parser";
