@@ -1,9 +1,10 @@
 import { existsSync } from 'fs';
+import { basename } from 'path';
 import { pathToFileURL } from 'url';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import {
   CancellationToken,
-  CodeAction, createConnection, DidChangeConfigurationNotification, ErrorCodes, InitializeParams, LSPErrorCodes, Position, ProposedFeatures, ResponseError, TextDocuments, TextDocumentSyncKind
+  CodeAction, createConnection, DidChangeConfigurationNotification, InitializeParams, LSPErrorCodes, Position, ProposedFeatures, ResponseError, TextDocuments, TextDocumentSyncKind
 } from 'vscode-languageserver/node';
 import { getCompletions } from './languageFeatures/completion';
 import { handleDocumentFormatting } from './languageFeatures/documentFormatting';
@@ -13,14 +14,13 @@ import { findDefinitionLinks } from './languageFeatures/findDefinition';
 import { findReferencesHandler } from './languageFeatures/findReferencesHandler';
 import { foldingHandler } from './languageFeatures/folding';
 import { prepareRenameHandler, renameHandler } from './languageFeatures/rename';
-import { handleSemanticTokens, semanticTokensLegend } from './languageFeatures/semanticTokens';
+import { semanticTokens, semanticTokensLegend } from './languageFeatures/semanticTokens';
 import { signatureHelp } from './languageFeatures/signatureHelp';
 import { handleOnWorkspaceSymbol } from './languageFeatures/workspaceSymbols';
+import { LinterManager } from './linter-manager';
 import { normalizeUri } from './normalize-uri';
 import { ProjectParser } from './project-parser';
-import { CancelationError, CancelationObject } from './server-objects';
 import { defaultSettings, ISettings } from './settings';
-import { VhdlLinter } from './vhdl-linter';
 
 // Create a connection for the server. The connection auto detected protocol
 // Also include all preview / proposed LSP features.
@@ -155,49 +155,22 @@ export const initialization = new Promise<void>(resolve => {
         if (rootUri) {
           folders.push(new URL(rootUri));
         }
-        // console.log('folders', folders);
         projectParser = await ProjectParser.create(folders, configuration.paths.ignoreRegex, getDocumentSettings, false, progress);
       }
       for (const textDocument of documents.all()) {
         await validateTextDocument(textDocument);
       }
-      projectParser.events.on('change', () => {
-        // console.log('projectParser.events.change', new Date().getTime(), ... args);
-        documents.all().forEach((textDocument) => void validateTextDocument(textDocument));
-      });
-      const timeoutMap = new Map<string, NodeJS.Timeout>();
-      const cancelationMap = new Map<string, CancelationObject>();
-      documents.onDidChangeContent(change => {
-        const oldTimeout = timeoutMap.get(change.document.uri);
-        if (oldTimeout !== undefined) {
-          clearTimeout(oldTimeout);
-        }
-        async function handleChange() {
-          const cancelationObject = cancelationMap.get(change.document.uri);
-          if (cancelationObject) {
-            cancelationObject.canceled = true;
+      projectParser.events.on('change', (_, uri: string) => {
+        // A file in project parser got changed
+        // Revalidate all *other* files. (The file itself gets directly handled.)
+        for (const document of documents.all()) {
+          if (normalizeUri(document.uri) !== uri) {
+            void validateTextDocument(document, true);
           }
-          const newCancelationObject = {
-            canceled: false
-          };
-          const vhdlLinter = await validateTextDocument(change.document, newCancelationObject);
-          // For some reason the : in the beginning of win paths comes escaped here.
-          const uri = normalizeUri(change.document.uri);
-          const cachedFile = process.platform === 'win32'
-            ? projectParser.cachedFiles.find(cachedFile => cachedFile.uri.toString().toLowerCase() === uri.toLowerCase())
-            : projectParser.cachedFiles.find(cachedFile => cachedFile.uri.toString() === uri);
-          await cachedFile?.parse(vhdlLinter);
-          projectParser.flattenProject();
-          cancelationMap.set(change.document.uri, newCancelationObject);
         }
-        if (change.document.version === 1) { // Document was initially opened. Do not delay.
-          void handleChange();
-        } else {
-          timeoutMap.set(change.document.uri, setTimeout(() => void handleChange(), 100));
-        }
-        // const lintingTime = Date.now() - date;
-        // console.log(`${change.document.uri}: ${lintingTime}ms`);
-
+      });
+      documents.onDidChangeContent(change => {
+        void validateTextDocument(change.document);
       });
       progress.done();
       resolve();
@@ -212,62 +185,30 @@ export const initialization = new Promise<void>(resolve => {
 documents.onDidClose(async change => {
   await connection.sendDiagnostics({ uri: change.document.uri, diagnostics: [] });
 });
+const linterManager = new LinterManager();
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
-export const linters = new Map<string, VhdlLinter>();
-export const lintersValid = new Map<string, boolean>();
-async function validateTextDocument(textDocument: TextDocument, cancelationObject: CancelationObject = { canceled: false }): Promise<VhdlLinter> {
-  // For some reason the : in the beginning of win paths comes escaped here.
-  const uri = normalizeUri(textDocument.uri);
-  const url = new URL(uri);
-  const vhdlLinter = new VhdlLinter(url, textDocument.getText(), projectParser, getDocumentSettings, cancelationObject);
-  if (vhdlLinter.parsedSuccessfully || typeof linters.get(uri) === 'undefined') {
-    linters.set(uri, vhdlLinter);
-    lintersValid.set(uri, true);
-  } else {
-    lintersValid.set(uri, false);
-  }
-  // console.log(`parsed for: ${Date.now() - start} ms.`);
-  // start = Date.now();
+async function validateTextDocument(textDocument: TextDocument, fromProjectParser = false) {
+  console.log('validating', basename(pathToFileURL(textDocument.uri).pathname));
   try {
+    const vhdlLinter = await linterManager.triggerRefresh(textDocument.uri, textDocument.getText(), projectParser, getDocumentSettings, fromProjectParser);
     const diagnostics = await vhdlLinter.checkAll();
     diagnostics.forEach((diag) => diag.source = 'vhdl-linter');
-    // console.log(`checked for: ${Date.now() - start} ms.`);
-    // start = Date.now();
-    // console.profileEnd('a');
-    await connection.sendDiagnostics({ uri, diagnostics });
-    // console.log(`send for: ${Date.now() - start} ms.`);
+    await connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
   } catch (err) {
     // Ignore cancelled
-    if (!(err instanceof CancelationError)) {
+    if (!(err instanceof ResponseError && err.code === LSPErrorCodes.RequestCancelled)) {
       throw err;
     }
   }
-  return vhdlLinter;
 }
-async function getLinter(uri: string, token?: CancellationToken) {
-  await initialization;
-  uri = normalizeUri(uri);
 
-  const linter = linters.get(uri);
-  if (typeof linter === 'undefined') {
-    throw new ResponseError(ErrorCodes.InvalidRequest, 'Parser not ready', 'Parser not ready');
-  }
-  if (typeof linter.file === 'undefined') {
-    throw new ResponseError(ErrorCodes.InvalidRequest, 'Parser not ready', 'Parser not ready');
-  }
-  if (token?.isCancellationRequested) {
-    console.log('hover canceled');
-    throw new ResponseError(LSPErrorCodes.RequestCancelled, 'canceled');
-  }
-  return linter;
-}
 connection.onDidChangeWatchedFiles(() => {
   // Monitored files have change in VS Code
   connection.console.log('We received an file change event');
 });
 connection.onCodeAction(async (params, token): Promise<CodeAction[]> => {
-  const linter = await getLinter(params.textDocument.uri, token);
+  const linter = await linterManager.getLinter(params.textDocument.uri, token);
   // linter.codeActionEvent.emit()
   const actions = [];
   for (const diagnostic of params.context.diagnostics) {
@@ -290,7 +231,7 @@ connection.onCodeAction(async (params, token): Promise<CodeAction[]> => {
   return actions;
 });
 connection.onDocumentSymbol(async (params, token) => {
-  const linter = await getLinter(params.textDocument.uri, token);
+  const linter = await linterManager.getLinter(params.textDocument.uri, token);
 
   return DocumentSymbols.get(linter);
 });
@@ -302,7 +243,7 @@ interface IFindDefinitionParams {
 }
 
 const findBestDefinition = async (params: IFindDefinitionParams, token: CancellationToken) => {
-  const linter = await getLinter(params.textDocument.uri, token);
+  const linter = await linterManager.getLinter(params.textDocument.uri, token);
 
   const definitions = findDefinitionLinks(linter, params.position);
   return definitions[0] ?? null;
@@ -328,7 +269,7 @@ connection.onHover(async (params, token) => {
   };
 });
 connection.onDefinition(async (params, token) => {
-  const linter = await getLinter(params.textDocument.uri, token);
+  const linter = await linterManager.getLinter(params.textDocument.uri, token);
 
   const definitions = findDefinitionLinks(linter, params.position);
   if (definitions.length === 0) {
@@ -337,43 +278,52 @@ connection.onDefinition(async (params, token) => {
   return definitions;
 });
 connection.onCompletion(async (params, token) => {
-  const linter = await getLinter(params.textDocument.uri, token);
+  const linter = await linterManager.getLinter(params.textDocument.uri, token);
   return getCompletions(linter, params.position);
 });
 connection.onReferences(async (params, token) => {
-  const linter = await getLinter(params.textDocument.uri, token);
+  const linter = await linterManager.getLinter(params.textDocument.uri, token);
 
   return findReferencesHandler(linter, params.position);
 
 });
 
 connection.onPrepareRename(async (params, token) => {
-  const linter = await getLinter(params.textDocument.uri, token);
+  const linter = await linterManager.getLinter(params.textDocument.uri, token);
 
   return prepareRenameHandler(linter, params.position);
 });
 connection.onRenameRequest(async (params, token) => {
-  const linter = await getLinter(params.textDocument.uri, token);
+  const linter = await linterManager.getLinter(params.textDocument.uri, token);
 
   return renameHandler(linter, params.position, params.newName);
 });
 connection.onDocumentFormatting(handleDocumentFormatting);
 connection.onFoldingRanges(async (params, token) => {
-  const linter = await getLinter(params.textDocument.uri, token);
+  const linter = await linterManager.getLinter(params.textDocument.uri, token);
   return foldingHandler(linter);
 });
 connection.onDocumentHighlight(async (params, token) => {
-  const linter = await getLinter(params.textDocument.uri, token);
+  const linter = await linterManager.getLinter(params.textDocument.uri, token);
 
   return documentHighlightHandler(linter, params);
 
 });
 connection.onWorkspaceSymbol(params => handleOnWorkspaceSymbol(params, projectParser));
 connection.onSignatureHelp(async (params, token) => {
-  const linter = await getLinter(params.textDocument.uri, token);
+  const linter = await linterManager.getLinter(params.textDocument.uri, token);
   return signatureHelp(linter, params.position);
 });
-connection.languages.semanticTokens.on(handleSemanticTokens);
+connection.languages.semanticTokens.on(async (params, token) => {
+  const linter = await linterManager.getLinter(params.textDocument.uri, token, false);
+  if (!(await getDocumentSettings(new URL(params.textDocument.uri))).semanticTokens) {
+    return {
+      data: []
+    };
+  }
+  const tokens = semanticTokens(linter);
+  return tokens;
+});
 documents.listen(connection);
 
 // Listen on the connection
