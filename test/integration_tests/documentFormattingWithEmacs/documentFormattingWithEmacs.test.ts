@@ -33,7 +33,7 @@ jest.mock('../../../lib/language-server', () => {
 const mockDocuments = jest.mocked(documents);
 
 
-test('Testing foll formatter with emacs', async () => {
+test('Testing full formatter workflow with emacs', async () => {
   const uri = pathToFileURL(__dirname + '/test_stateMachineCase.vhd');
   const cancellationTokenSource = new CancellationTokenSource();
   mockDocuments.get.mockImplementationOnce(() => {

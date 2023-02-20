@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Testing foll formatter with emacs 1`] = `
+exports[`Testing full formatter workflow with emacs 1`] = `
 [
   {
     "newText": "library ieee;
