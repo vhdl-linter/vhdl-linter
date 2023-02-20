@@ -1,4 +1,5 @@
 import { RComponent } from "./components";
+import { RConfiguration } from "./configuration";
 import { RConstantWrite } from "./constant-write";
 import { REmpty } from "./empty";
 import { RInstantiation } from "./instantiations";
@@ -27,5 +28,6 @@ export const rules = [
   RConstantWrite,
   RParser,
   RUnits,
-  RMultipleDriver
+  RMultipleDriver,
+  RConfiguration
 ];

@@ -10,12 +10,17 @@ export function signatureHelp(linter: VhdlLinter, position: Position): Signature
   }
   const [instantiation, associationList] = result;
   const signatures: SignatureInformation[] = [];
-  for (const definition of instantiation.definitions) {
+  for (let definition of instantiation.definitions) {
     if (definition instanceof OAliasWithSignature) {
       // Handle AliasWIthSignatures
     } else {
-      const entityDefinition = definition instanceof OConfiguration ? definition.definitions[0] : definition;
-      const portOrGeneric = entityDefinition === undefined ? [] : associationList instanceof OGenericAssociationList && implementsIHasGenerics(entityDefinition) ? entityDefinition.generics : entityDefinition.ports;
+      if (definition instanceof OConfiguration) {
+        definition = linter.projectParser.entities.find(e => e.lexerToken.getLText() === (definition as OConfiguration).entityName.getLText())!;
+        if (definition === undefined) {
+          continue;
+        }
+      }
+      const portOrGeneric = associationList instanceof OGenericAssociationList && implementsIHasGenerics(definition) ? definition.generics : definition.ports;
       if (portOrGeneric.length === 0) {
         signatures.push({
           label: ''

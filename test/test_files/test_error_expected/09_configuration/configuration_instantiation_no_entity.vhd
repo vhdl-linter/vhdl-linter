@@ -14,7 +14,7 @@ begin
 
 end rtl;
 
-configuration my_module_cfg of my_module is
+configuration my_module_cfg of my_module_wrong_name is
     for rtl
     end for;
 end configuration;
