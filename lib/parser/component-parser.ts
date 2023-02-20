@@ -1,10 +1,10 @@
 import { InterfaceListParser } from './interface-list-parser';
-import { IHasComponents } from './interfaces';
+import { IHasDeclarations } from './interfaces';
 import { ObjectBase, OComponent, OIRange, ParserError } from './objects';
 import { ParserBase, ParserState } from './parser-base';
 
 export class ComponentParser extends ParserBase {
-  constructor(state: ParserState, private parent: ObjectBase & IHasComponents) {
+  constructor(state: ParserState, private parent: ObjectBase & IHasDeclarations) {
     super(state);
     this.debug(`start`);
   }
@@ -32,7 +32,7 @@ export class ComponentParser extends ParserBase {
       } else if (nextToken.getLText() === 'end') {
         this.consumeToken();
         this.expect('component');
-        component.endingReferenceToken = this.maybe(component.referenceToken.text);
+        component.endingReferenceToken = this.maybe(component.lexerToken.text);
         component.range = component.range.copyWithNewEnd(this.getToken(-1, true).range.end);
         break;
       }

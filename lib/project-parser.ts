@@ -50,23 +50,25 @@ export class ProjectParser {
       const watcher = watch(fileURLToPath(url).replaceAll(sep, '/') + '/**/*.vhd?(l)', { ignoreInitial: true });
       watcher.on('add', (path) => {
         const handleEvent = async () => {
-          const cachedFile = await (FileCache.create(pathToFileURL(path), this));
+          const url = pathToFileURL(path);
+          const cachedFile = await (FileCache.create(url, this));
           this.cachedFiles.push(cachedFile);
           this.flattenProject();
-          this.events.emit('change', 'add', path);
+          this.events.emit('change', 'add', url.toString());
         };
         handleEvent().catch(console.error);
       });
       watcher.on('change', (path) => {
         const handleEvent = async () => {
-          // console.log('change', path);
+          const url = pathToFileURL(path);
+
           const cachedFile = process.platform === 'win32'
-            ? this.cachedFiles.find(cachedFile => fileURLToPath(cachedFile.uri).toLowerCase() === path.toLowerCase())
-            : this.cachedFiles.find(cachedFile => fileURLToPath(cachedFile.uri) === path);
+            ? this.cachedFiles.find(cachedFile => cachedFile.uri.toString() === url.toString().toLowerCase())
+            : this.cachedFiles.find(cachedFile => cachedFile.uri.toString() === url.toString());
           if (cachedFile) {
             await cachedFile.parse();
             this.flattenProject();
-            this.events.emit('change', 'change', path);
+            this.events.emit('change', 'change', url.toString());
           } else {
             console.error('modified file not found', path);
           }
@@ -75,11 +77,15 @@ export class ProjectParser {
         handleEvent().catch(console.error);
       });
       watcher.on('unlink', path => {
-        const cachedFileIndex = this.cachedFiles.findIndex(cachedFile => cachedFile.uri.pathname === path);
+        const url = pathToFileURL(path);
+
+        const cachedFileIndex = process.platform === 'win32'
+          ? this.cachedFiles.findIndex(cachedFile => cachedFile.uri.toString() === url.toString().toLowerCase())
+          : this.cachedFiles.findIndex(cachedFile => cachedFile.uri.toString() === url.toString());
         if (cachedFileIndex > -1) {
           this.cachedFiles.splice(cachedFileIndex, 1);
           this.flattenProject();
-          this.events.emit('change', 'unlink', path);
+          this.events.emit('change', 'unlink', url.toString());
         }
       });
       this.watchers.push(watcher);
@@ -182,7 +188,8 @@ export class ProjectParser {
 class FileCache {
   packages?: OPackage[];
   packageInstantiations?: OPackageInstantiation[];
-  text: string;
+  contexts: OContext[] = [];
+  entities: OEntity[] = [];
   linter: VhdlLinter;
   lintingTime: number;
   // Constructor can not be async. So constructor is private and use factory to create
@@ -193,14 +200,14 @@ class FileCache {
   }
   private constructor(public uri: URL, public projectParser: ProjectParser) {
   }
-  async parse(vhdlLinter?: VhdlLinter) {
-    const text = await promises.readFile(this.uri, { encoding: 'utf8' });
-    this.text = text.replaceAll('\r\n', '\n');
-    if (vhdlLinter) {
-      this.linter = vhdlLinter;
-    } else {
-      this.linter = new VhdlLinter(this.uri, this.text, this.projectParser, this.projectParser.settingsGetter);
-    }
+  async parse() {
+    let text = await promises.readFile(this.uri, { encoding: 'utf8' });
+    text = text.replaceAll('\r\n', '\n');
+    this.linter = new VhdlLinter(this.uri, text, this.projectParser, this.projectParser.settingsGetter);
+    this.replaceLinter(this.linter);
+  }
+  replaceLinter(vhdlLinter: VhdlLinter) {
+    this.linter = vhdlLinter;
     this.packages = this.linter.file.packages.filter((p): p is OPackage => p instanceof OPackage);
     this.packageInstantiations = this.linter.file.packageInstantiations;
   }

@@ -1,7 +1,7 @@
 import { CompletionItem, CompletionItemKind, Position } from 'vscode-languageserver';
 import { reservedWords } from '../lexer';
-import { IHasLexerToken, IHasTypeReference, implementsIHasAliases, implementsIHasConstants, implementsIHasGenerics, implementsIHasPorts, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypeReference, implementsIHasTypes, implementsIHasVariables } from '../parser/interfaces';
-import { OAliasWithSignature, ObjectBase, OConfiguration, OEnum, OGenericAssociationList, ORecord, OReference, OSelectedNameRead, OSelectedNameWrite, OSubprogram, OType, scope } from '../parser/objects';
+import { IHasLexerToken, IHasTypeReference, implementsIHasDeclarations, implementsIHasGenerics, implementsIHasPorts, implementsIHasTypeReference } from '../parser/interfaces';
+import { OAlias, OAliasWithSignature, OAttributeSpecification, ObjectBase, OConstant, OEnum, OFileVariable, OGenericAssociationList, ORecord, OReference, OSelectedNameRead, OSelectedNameWrite, OSignal, OSubprogram, OType, OVariable, scope } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
 import { findObjectFromPosition } from './findObjects';
 import { getTokenFromPosition } from './findReferencesHandler';
@@ -21,7 +21,7 @@ function getSelectedNameCompletions(prefix: OReference) {
     kind: CompletionItemKind.Field
   }))));
   const protectedTypes = typeDefinitions.filter(type => type instanceof OType && type.protected) as OType[];
-  result.push(...protectedTypes.flatMap(type => (type.subprograms as (ObjectBase & IHasLexerToken)[]).concat(type.attributeSpecifications).map(child => ({
+  result.push(...protectedTypes.flatMap(type => (type.declarations.filter(decl => decl instanceof OSubprogram || decl instanceof OAttributeSpecification) as OSubprogram[]).map(child => ({
     label: child.lexerToken.text,
     kind: (child instanceof OSubprogram) ? CompletionItemKind.Function : CompletionItemKind.Field
   }))));
@@ -75,53 +75,44 @@ export async function getCompletions(linter: VhdlLinter, position: Position): Pr
 
 
   for (const [object] of scope(completionObject)) {
-    if (implementsIHasSignals(object)) {
-      for (const signal of object.signals) {
-        addCompletion(signal, CompletionItemKind.Variable);
-      }
-    }
-    if (implementsIHasConstants(object)) {
-      for (const constant of object.constants) {
-        addCompletion(constant, CompletionItemKind.Variable);
-      }
-    }
-    if (implementsIHasVariables(object)) {
-      for (const variable of object.variables) {
-        addCompletion(variable, CompletionItemKind.Variable);
-      }
-    }
-    if (implementsIHasSubprograms(object)) {
-      for (const subprogram of object.subprograms) {
-        addCompletion(subprogram, CompletionItemKind.Function);
-      }
-    }
-    if (implementsIHasTypes(object)) {
-      for (const type of object.types) {
-        addCompletion(type, CompletionItemKind.TypeParameter);
-        if (type instanceof OEnum) {
-          for (const literal of type.literals) {
-            addCompletion(literal, CompletionItemKind.EnumMember);
+    if (implementsIHasDeclarations(object)) {
+      for (const declaration of object.declarations) {
+
+        if (declaration instanceof OSignal) {
+          addCompletion(declaration, CompletionItemKind.Variable);
+        } else if (declaration instanceof OConstant) {
+          addCompletion(declaration, CompletionItemKind.Variable);
+        } else if (declaration instanceof OVariable || declaration instanceof OFileVariable) {
+          addCompletion(declaration, CompletionItemKind.Variable);
+        } else if (declaration instanceof OSubprogram) {
+          addCompletion(declaration, CompletionItemKind.Function);
+        } else if (declaration instanceof OType) {
+          addCompletion(declaration, CompletionItemKind.TypeParameter);
+          if (declaration instanceof OEnum) {
+            for (const literal of declaration.literals) {
+              addCompletion(literal, CompletionItemKind.EnumMember);
+            }
+          } else if (declaration instanceof ORecord) {
+            for (const child of declaration.children) {
+              addCompletion(child, CompletionItemKind.Field);
+            }
           }
-        } else if (type instanceof ORecord) {
-          for (const child of type.children) {
-            addCompletion(child, CompletionItemKind.Field);
-          }
+        } else if (declaration instanceof OAlias) {
+          addCompletion(declaration, CompletionItemKind.Reference);
+        } else {
+          addCompletion(declaration);
         }
       }
-    }
-    if (implementsIHasAliases(object)) {
-      for (const alias of object.aliases) {
-        addCompletion(alias, CompletionItemKind.Reference);
+
+      if (implementsIHasPorts(object)) {
+        for (const port of object.ports) {
+          addCompletion(port, CompletionItemKind.Field);
+        }
       }
-    }
-    if (implementsIHasPorts(object)) {
-      for (const port of object.ports) {
-        addCompletion(port, CompletionItemKind.Field);
-      }
-    }
-    if (implementsIHasGenerics(object)) {
-      for (const port of object.generics) {
-        addCompletion(port, CompletionItemKind.Constant);
+      if (implementsIHasGenerics(object)) {
+        for (const port of object.generics) {
+          addCompletion(port, CompletionItemKind.Constant);
+        }
       }
     }
   }

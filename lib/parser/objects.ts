@@ -1,5 +1,6 @@
 import { Position, Range, TextEdit } from 'vscode-languageserver';
 import { OLexerToken } from '../lexer';
+import { OIDiagnosticWithSolution } from '../vhdl-linter';
 import * as I from './interfaces';
 export class OI implements Position {
   protected i_?: number;
@@ -224,7 +225,7 @@ export class OLibraryReference extends OReference {
   type = 'library'; // for ts
 }
 export class OFile {
-  parserMessages: I.OIDiagnosticWithSolution[] = [];
+  parserMessages: OIDiagnosticWithSolution[] = [];
   public lines: string[];
   constructor(public text: string, public uri: URL, public originalText: string, public lexerTokens: OLexerToken[]) {
     this.lines = originalText.split('\n');
@@ -266,55 +267,36 @@ export class OPackageInstantiation extends ObjectBase implements I.IHasReference
   contextReferences: OContextReference[] = [];
 }
 
-export class OPackage extends ObjectBase implements I.IHasSubprograms, I.IHasComponents, I.IHasSignals, I.IHasConstants,
-  I.IHasVariables, I.IHasTypes, I.IHasAliases, I.IHasFileVariables, I.IHasUseClauses, I.IHasContextReference, I.IHasLexerToken,
-  I.IHasLibraries, I.IHasLibraryReference, I.IHasGenerics, I.IHasReferenceLinks, I.IHasAttributeSpecifications, I.IHasAttributeDeclarations, I.IMayHaveEndingLexerToken {
+export class OPackage extends ObjectBase implements I.IHasDeclarations, I.IHasUseClauses, I.IHasContextReference, I.IHasLexerToken,
+  I.IHasLibraries, I.IHasLibraryReference, I.IHasGenerics, I.IHasReferenceLinks, I.IMayHaveEndingLexerToken {
   referenceLinks: OReference[] = [];
   aliasReferences: OAlias[] = [];
-  attributeSpecifications: OAttributeSpecification[] = [];
-  attributeDeclarations: OAttributeDeclaration[] = [];
+  declarations: ODeclaration[] = [];
   parent: OFile;
-  aliases: OAlias[] = [];
   libraries: OLibrary[] = [];
   generics: OGeneric[] = [];
   genericRange?: OIRange;
   lexerToken: OLexerToken;
   useClauses: OUseClause[] = [];
   packageDefinitions: OPackage[] = [];
-  packageInstantiations: OPackageInstantiation[] = [];
   contextReferences: OContextReference[] = [];
   library?: OLibraryReference;
-  subprograms: OSubprogram[] = [];
-  components: OComponent[] = [];
-  signals: OSignal[] = [];
-  constants: OConstant[] = [];
-  variables: OVariable[] = [];
-  files: OFileVariable[] = [];
-  types: OType[] = [];
   targetLibrary?: string;
   endingLexerToken?: OLexerToken;
   correspondingPackageBodies: OPackageBody[] = [];
 }
 
-export class OPackageBody extends ObjectBase implements I.IHasSubprograms, I.IHasConstants, I.IHasVariables, I.IHasTypes,
-  I.IHasAliases, I.IHasFileVariables, I.IHasUseClauses, I.IHasContextReference, I.IHasLexerToken, I.IHasLibraries, I.IHasReferenceLinks, I.IHasAttributeSpecifications, I.IHasAttributeDeclarations, I.IMayHaveEndingLexerToken {
-    attributeSpecifications: OAttributeSpecification[] = [];
-  attributeDeclarations: OAttributeDeclaration[] = [];
+export class OPackageBody extends ObjectBase implements I.IHasUseClauses, I.IHasContextReference, I.IHasLexerToken, I.IHasLibraries,
+  I.IHasReferenceLinks,I.IMayHaveEndingLexerToken, I.IHasDeclarations {
+  declarations: ODeclaration[] = [];
   referenceLinks: OReference[] = [];
   aliasReferences: OAlias[] = [];
   lexerToken: OLexerToken;
   libraries: OLibrary[] = [];
-  aliases: OAlias[] = [];
-  packageInstantiations: OPackageInstantiation[] = [];
-  useClauses: OUseClause[] = [];
   packageDefinitions: OPackage[] = [];
+  useClauses: OUseClause[] = [];
   contextReferences: OContextReference[] = [];
   parent: OFile;
-  subprograms: OSubprogram[] = [];
-  constants: OConstant[] = [];
-  variables: OVariable[] = [];
-  types: OType[] = [];
-  files: OFileVariable[] = [];
   targetLibrary?: string;
   correspondingPackage?: OPackage;
   endingLexerToken?: OLexerToken;
@@ -347,29 +329,18 @@ export class OContext extends ObjectBase implements I.IHasUseClauses, I.IHasCont
   libraries: OLibrary[] = [];
 }
 export type OConcurrentStatements = OProcess | OInstantiation | OIfGenerate | OForGenerate | OCaseGenerate | OBlock | OAssignment;
+export type ODeclaration = OSignal | OAttributeSpecification | OAttributeDeclaration | OVariable | OConstant | OFileVariable | OType
+  | OAlias | OSubprogram | OComponent | OPackageInstantiation;
 
-export abstract class OStatementBody extends ObjectBase implements I.IHasSubprograms, I.IHasComponents,
-  I.IHasSignals, I.IHasConstants, I.IHasVariables, I.IHasTypes, I.IHasAliases, I.IHasFileVariables, I.IHasUseClauses, I.IHasContextReference,
-  I.IHasPackageInstantiations, I.IHasLibraries, I.IHasReferenceLinks, I.IHasAttributeSpecifications, I.IHasAttributeDeclarations {
+export abstract class OStatementBody extends ObjectBase implements I.IHasDeclarations,
+   I.IHasUseClauses, I.IHasContextReference, I.IHasLibraries, I.IHasReferenceLinks {
   referenceLinks: OReference[] = [];
   useClauses: OUseClause[] = [];
-  subprogramAliases: OAliasWithSignature[] = [];
-  aliasReferences: OAlias[] = [];
-
   packageDefinitions: OPackage[] = [];
+  aliasReferences: OAlias[] = [];
+  declarations: ODeclaration[] = [];
   contextReferences: OContextReference[] = [];
   libraries: OLibrary[] = [];
-  packageInstantiations: OPackageInstantiation[] = [];
-  signals: OSignal[] = [];
-  constants: OConstant[] = [];
-  variables: OVariable[] = [];
-  attributeSpecifications: OAttributeSpecification[] = [];
-  attributeDeclarations: OAttributeDeclaration[] = [];
-  files: OFileVariable[] = [];
-  types: OType[] = [];
-  aliases: OAlias[] = [];
-  subprograms: OSubprogram[] = [];
-  components: OComponent[] = [];
   statements: OConcurrentStatements[] = [];
   correspondingEntity?: OEntity;
   endOfDeclarativePart?: OI;
@@ -396,23 +367,13 @@ export class OUnit extends ObjectBase implements I.IHasReferenceLinks, I.IHasLex
   aliasReferences: OAlias[] = [];
 
 }
-export class OType extends ObjectBase implements I.IHasReferenceLinks, I.IHasSubprograms, I.IHasSignals, I.IHasConstants, I.IHasVariables,
-  I.IHasTypes, I.IHasAliases, I.IHasFileVariables, I.IHasUseClauses, I.IHasLexerToken, I.IHasPackageInstantiations, I.IHasAttributeSpecifications, I.IHasAttributeDeclarations {
-  attributeSpecifications: OAttributeSpecification[] = [];
-  attributeDeclarations: OAttributeDeclaration[] = [];
+export class OType extends ObjectBase implements I.IHasReferenceLinks,
+   I.IHasUseClauses, I.IHasLexerToken, I.IHasDeclarations {
   useClauses: OUseClause[] = [];
   packageDefinitions: OPackage[] = [];
   incomplete = false;
-  packageInstantiations: OPackageInstantiation[] = [];
-  types: OType[] = [];
-  aliases: OAlias[] = [];
   aliasReferences: OAlias[] = [];
-
-  subprograms: OSubprogram[] = [];
-  variables: OVariable[] = [];
-  constants: OConstant[] = [];
-  signals: OSignal[] = [];
-  files: OFileVariable[] = [];
+  declarations: ODeclaration[] = [];
   referenceLinks: OReference[] = [];
   units: OUnit[] = [];
   alias = false;
@@ -434,10 +395,13 @@ export class OType extends ObjectBase implements I.IHasReferenceLinks, I.IHasSub
         map.set(child.lexerToken.getLText(), child);
       }
     }
-    for (const subprogram of this.subprograms) {
-      map.set(subprogram.lexerToken.getLText(), subprogram);
+    for (const subprogram of this.declarations) {
+      if (subprogram instanceof OSubprogram) {
+        map.set(subprogram.lexerToken.getLText(), subprogram);
+      }
     }
   }
+
 }
 export class OSubType extends OType {
   superType: OReference;
@@ -530,7 +494,7 @@ export class OFileVariable extends ObjectBase implements I.IVariableBase {
   lexerToken: OLexerToken;
   openKind?: OReference[];
   logicalName?: OReference[];
-  constructor(parent: I.IHasFileVariables, range: OIRange) {
+  constructor(parent: I.IHasDeclarations, range: OIRange) {
     super((parent as unknown) as ObjectBase, range);
   }
 }
@@ -541,7 +505,7 @@ export class OVariable extends ObjectBase implements I.IVariableBase {
   lexerToken: OLexerToken;
   aliasReferences: OAlias[] = [];
   shared = false;
-  constructor(parent: I.IHasVariables, range: OIRange) {
+  constructor(parent: I.IHasDeclarations, range: OIRange) {
     super((parent as unknown) as ObjectBase, range);
   }
 }
@@ -552,7 +516,7 @@ export class OSignal extends ObjectBase implements I.IVariableBase {
   lexerToken: OLexerToken;
   aliasReferences: OAlias[] = [];
   registerProcess?: OProcess;
-  constructor(parent: (ObjectBase & I.IHasSignals), range: OIRange) {
+  constructor(parent: (ObjectBase & I.IHasDeclarations), range: OIRange) {
     super((parent as unknown) as ObjectBase, range);
   }
 }
@@ -563,7 +527,7 @@ export class OConstant extends ObjectBase implements I.IVariableBase {
   lexerToken: OLexerToken;
   aliasReferences: OAlias[] = [];
 
-  constructor(parent: I.IHasConstants, range: OIRange) {
+  constructor(parent: I.IHasDeclarations, range: OIRange) {
     super((parent as unknown) as ObjectBase, range);
   }
 }
@@ -609,19 +573,18 @@ export class OAssociation extends ObjectBase implements I.IHasDefinitions {
   actualIfOutput: OReference[] = [];
   actualIfInoutput: OReference[]= [];
 }
-export class OEntity extends ObjectBase implements I.IHasDefinitions, I.IHasSubprograms, I.IHasSignals, I.IHasConstants, I.IHasVariables,
-  I.IHasTypes, I.IHasAliases, I.IHasFileVariables, I.IHasUseClauses, I.IHasContextReference, I.IHasLexerToken, I.IHasPackageInstantiations,
-  I.IHasAttributeDeclarations, I.IHasAttributeSpecifications, I.IHasLibraries, I.IHasGenerics, I.IHasPorts, I.IHasReferenceLinks, I.IMayHaveEndingLexerToken {
+
+export class OEntity extends ObjectBase implements I.IHasDefinitions, I.IHasDeclarations,
+  I.IHasUseClauses, I.IHasContextReference, I.IHasLexerToken,
+  I.IHasLibraries, I.IHasGenerics, I.IHasPorts, I.IHasReferenceLinks, I.IMayHaveEndingLexerToken {
   constructor(public parent: OFile, range: OIRange, public targetLibrary?: string) {
     super(parent, range);
   }
   referenceLinks: OReference[] = [];
+  referenceComponents: OComponent[] = [];
   libraries: OLibrary[] = [];
-  aliases: OAlias[] = [];
+  declarations: ODeclaration[] = [];
   aliasReferences: OAlias[] = [];
-  attributeSpecifications: OAttributeSpecification[] = [];
-  attributeDeclarations: OAttributeDeclaration[] = [];
-  packageInstantiations: OPackageInstantiation[] = [];
   lexerToken: OLexerToken;
   endingLexerToken: OLexerToken | undefined;
   useClauses: OUseClause[] = [];
@@ -631,27 +594,19 @@ export class OEntity extends ObjectBase implements I.IHasDefinitions, I.IHasSubp
   ports: OPort[] = [];
   genericRange?: OIRange;
   generics: OGeneric[] = [];
-  signals: OSignal[] = [];
-  constants: OConstant[] = [];
-  variables: OVariable[] = [];
-  subprograms: OSubprogram[] = [];
-  types: OType[] = [];
   statements: (OProcess | OAssignment)[] = [];
   definitions: OEntity[] = [];
-  files: OFileVariable[] = [];
   correspondingArchitectures: OArchitecture[] = [];
 }
-export class OComponent extends OReference implements I.IHasDefinitions, I.IHasSubprograms,
-  I.IHasPackageInstantiations, I.IHasPorts, I.IHasGenerics, I.IHasReferenceLinks {
-  constructor(parent: ObjectBase & I.IHasComponents, referenceToken: OLexerToken) {
-    super((parent as unknown) as ObjectBase, referenceToken);
+export class OComponent extends ObjectBase implements I.IHasDefinitions, I.IHasDeclarations,
+   I.IHasPorts, I.IHasGenerics, I.IHasReferenceLinks, I.IHasLexerToken {
+  constructor(parent: ObjectBase & I.IHasDeclarations, public lexerToken: OLexerToken) {
+    super((parent as unknown) as ObjectBase, lexerToken.range);
   }
   referenceLinks: OReference[] = [];
   aliasReferences: OAlias[] = [];
-  referenceToken: OLexerToken;
   endingReferenceToken?: OLexerToken;
-  subprograms: OSubprogram[] = [];
-  packageInstantiations: OPackageInstantiation[] = [];
+  declarations: ODeclaration[] = [];
   portRange?: OIRange;
   genericRange?: OIRange;
   ports: OPort[] = [];
@@ -697,30 +652,23 @@ export class OCase extends ObjectBase implements I.IMayHaveLabel {
 export class OWhenClause extends OHasSequentialStatements  {
   condition: OReference[] = [];
 }
-export class OProcess extends OHasSequentialStatements implements I.IHasSubprograms, I.IHasStatements, I.IHasConstants, I.IHasVariables,
-  I.IHasTypes, I.IHasAliases, I.IHasFileVariables, I.IHasUseClauses, I.IHasAttributeSpecifications, I.IHasAttributeDeclarations {
-  attributeSpecifications: OAttributeSpecification[] = [];
-  attributeDeclarations: OAttributeDeclaration[] = [];
+export class OProcess extends OHasSequentialStatements implements I.IHasDeclarations, I.IHasStatements,
+ I.IHasUseClauses {
+  declarations: ODeclaration[] = [];
   label?: OLexerToken;
 
   aliases: OAlias[] = [];
-  packageInstantiations: OPackageInstantiation[] = [];
-  useClauses: OUseClause[] = [];
   packageDefinitions: OPackage[] = [];
+  useClauses: OUseClause[] = [];
   sensitivityList: OReference[] = [];
-  types: OType[] = [];
-  subprograms: OSubprogram[] = [];
-  variables: OVariable[] = [];
-  files: OFileVariable[] = [];
-  constants: OConstant[] = [];
   labelLinks: OLabelReference[] = [];
 
 }
 
 export class OLoop extends OHasSequentialStatements  {
 }
-export class OForLoop extends OLoop implements I.IHasConstants {
-  constants: OConstant[] = [];
+export class OForLoop extends OLoop implements I.IHasDeclarations {
+  declarations: ODeclaration[] = [];
   constantRange: OReference[] = [];
 }
 export class OWhileLoop extends OLoop {
@@ -831,25 +779,17 @@ export class OMagicCommentDisable extends OMagicComment {
     super(parent, commentType, range, rule);
   }
 }
-export class OSubprogram extends OHasSequentialStatements implements I.IHasReferenceLinks, I.IHasSubprograms,  I.IHasPorts,
-  I.IHasVariables, I.IHasTypes, I.IHasAliases, I.IHasFileVariables, I.IHasUseClauses, I.IHasLexerToken, I.IHasPackageInstantiations, I.IHasConstants, I.IHasAttributeSpecifications, I.IHasAttributeDeclarations, I.IMayHaveEndingLexerToken {
+export class OSubprogram extends OHasSequentialStatements implements I.IHasReferenceLinks, I.IHasDeclarations,  I.IHasPorts,
+  I.IHasUseClauses, I.IHasLexerToken,  I.IMayHaveEndingLexerToken {
   hasBody = false;
-  attributeSpecifications: OAttributeSpecification[] = [];
-  attributeDeclarations: OAttributeDeclaration[] = [];
+  declarations: ODeclaration[] = [];
   referenceLinks: OReference[] = [];
   aliasReferences: OAlias[] = [];
   useClauses: OUseClause[] = [];
   packageDefinitions: OPackage[] = [];
   parent: OPackage;
-  packageInstantiations: OPackageInstantiation[] = [];
   labelLinks: OReference[] = [];
-  aliases: OAlias[] = [];
-  variables: OVariable[] = [];
-  files: OFileVariable[] = [];
-  constants: OConstant[] = [];
   ports: OPort[] = [];
-  types: OType[] = [];
-  subprograms: OSubprogram[] = [];
   return: OReference[] = [];
   lexerToken: OLexerToken;
   endingLexerToken?: OLexerToken;

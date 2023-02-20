@@ -9,6 +9,8 @@ jobs:
   coverage:
     runs-on: ubuntu-latest
     steps:
+      - name: Install emacs
+        run: sudo apt install emacs
       - uses: actions/checkout@v3
         with:
           submodules: recursive

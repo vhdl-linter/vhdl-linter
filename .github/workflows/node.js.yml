@@ -17,6 +17,8 @@ jobs:
         node-version: [16.x, 18.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
     steps:
+    - name: Install emacs
+      run: sudo apt install emacs
     - uses: actions/checkout@v3
       with:
         submodules: recursive
@@ -32,8 +34,10 @@ jobs:
     strategy:
       matrix:
         node-version: [16.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+        # See supported Node.js release schedule at  https://nodejs.org/en/about/releases/
     steps:
+    - name: Install emacs
+      run: choco install emacs
     - uses: actions/checkout@v3
       with:
         submodules: recursive
@@ -51,6 +55,10 @@ jobs:
         node-version: [16.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
     steps:
+    - name: Install emacs
+      run: |
+        brew update
+        brew install emacs
     - uses: actions/checkout@v3
       with:
         submodules: recursive

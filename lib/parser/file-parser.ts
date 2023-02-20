@@ -1,5 +1,4 @@
 import { Lexer, OLexerToken, TokenType } from '../lexer';
-import { CancelationObject } from '../server-objects';
 import { ContextParser } from './context-parser';
 import { ContextReferenceParser } from './context-reference-parser';
 import { EntityParser } from './entity-parser';
@@ -15,7 +14,7 @@ export class FileParser extends ParserBase {
   public lexerTokens: OLexerToken[] = [];
   text: string;
   file: OFile;
-  constructor(text: string, filePath: URL, public cancelationObject: CancelationObject) {
+  constructor(text: string, filePath: URL) {
 
     super(new ParserState(new ParserPosition(), filePath));
     this.originalText = text;

@@ -19,7 +19,6 @@ async function _getProgressReporter(reporter: WorkDoneProgressReporter, title: s
   if (reporter.constructor !== nullProgressReporter.constructor) {
     return reporter;
   }
-
   const serverInitiatedReporter = await connection.window.createWorkDoneProgress();
   serverInitiatedReporter.begin(
     title
@@ -28,7 +27,7 @@ async function _getProgressReporter(reporter: WorkDoneProgressReporter, title: s
   return serverInitiatedReporter;
 }
 const execP = promisify(exec);
-export async function handleDocumentFormatting(params: DocumentFormattingParams, token: CancellationToken, workDoneProgress: WorkDoneProgressReporter): Promise<TextEdit[] | null | ResponseError> {
+export async function handleDocumentFormatting(params: DocumentFormattingParams, token: CancellationToken, workDoneProgress: WorkDoneProgressReporter): Promise<TextEdit[] | null > {
   const document = documents.get(params.textDocument.uri);
   if (typeof document === 'undefined') {
     return null;
@@ -83,7 +82,7 @@ export async function handleDocumentFormatting(params: DocumentFormattingParams,
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       if (e.name === "AbortError") {
-        return new ResponseError(LSPErrorCodes.RequestCancelled, 'canceled');
+        throw new ResponseError(LSPErrorCodes.RequestCancelled, 'canceled');
       }
       throw e;
     }
@@ -118,7 +117,7 @@ export async function handleDocumentFormatting(params: DocumentFormattingParams,
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       if (e.name === "AbortError") {
-        return new ResponseError(LSPErrorCodes.RequestCancelled, 'canceled');
+        throw new ResponseError(LSPErrorCodes.RequestCancelled, 'canceled');
       }
       throw e;
     }
