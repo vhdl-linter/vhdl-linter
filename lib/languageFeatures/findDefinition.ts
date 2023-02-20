@@ -16,6 +16,9 @@ export function findDefinitions(linter: VhdlLinter, position: Position): ObjectB
   // find all possible definitions for the lexerToken
   for (const candidate of candidates) {
     if (candidate instanceof OConfiguration) {
+      // OConfiguration has two thing to rename.
+      // The name of the entity and the configuration itself.
+      // We need to add the actual definition of the token(not of the candidation, which only maybe is the same)
       if (candidate.entityName === token) {
         definitions.add(...candidate.definitions);
       } else {
