@@ -589,7 +589,7 @@ export class OInstantiation extends OReference implements I.IHasDefinitions, I.I
   constructor(public parent: OStatementBody | OEntity | OProcess | OLoop | OIf, lexerToken: OLexerToken, public type: 'entity' | 'component' | 'configuration' | 'subprogram' | 'unknown' = 'unknown') {
     super(parent, lexerToken);
   }
-  definitions: (OEntity | OSubprogram | OComponent | OAliasWithSignature)[] = [];
+  definitions: (OEntity | OSubprogram | OComponent | OAliasWithSignature | OConfiguration)[] = [];
   componentName: OLexerToken;
   package?: OLexerToken;
   portAssociationList?: OPortAssociationList;
@@ -877,12 +877,15 @@ export class OAliasWithSignature extends OAlias implements I.IHasLexerToken {
   return: OReference;
 }
 
-export class OConfiguration extends ObjectBase implements I.IHasLibraries {
+export class OConfiguration extends ObjectBase implements I.IHasLibraries, I.IHasDefinitions, I.IHasReferenceLinks {
   lexerToken: OLexerToken;
   targetLibrary?: string;
-  identifier: OLexerToken;
   entityName: OLexerToken;
   libraries: OLibrary[] = [];
+  definitions: OEntity[] = [];
+  referenceLinks: OInstantiation[] = [];
+  aliasReferences: OAlias[];
+
 }
 export class OAttributeSpecification extends ObjectBase implements I.IHasLexerToken, I.IHasReferenceLinks {
   lexerToken: OLexerToken;

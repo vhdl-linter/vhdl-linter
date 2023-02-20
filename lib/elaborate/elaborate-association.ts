@@ -1,5 +1,5 @@
 import { implementsIHasReference } from "../parser/interfaces";
-import { OAssociation, OGenericAssociationList, OPortAssociationList, OInstantiation, OPort, OGeneric, OTypeMark, OAliasWithSignature, OComponent, OEntity, OFile, OVariable } from "../parser/objects";
+import { OAliasWithSignature, OAssociation, OComponent, OConfiguration, OEntity, OFile, OGeneric, OGenericAssociationList, OInstantiation, OPort, OPortAssociationList, OTypeMark, OVariable } from "../parser/objects";
 
 export function elaborateAssociations(file: OFile) {
   for (const association of file.objectList.filter(obj => obj instanceof OAssociation) as OAssociation[]) {
@@ -15,7 +15,9 @@ export function elaborateAssociations(file: OFile) {
         if (definition instanceof OVariable) {
           // Protected Type
         } else if (association.parent instanceof OPortAssociationList) {
-          elements = definition instanceof OAliasWithSignature ? definition.typeMarks : definition.ports;
+          elements = definition instanceof OAliasWithSignature ? definition.typeMarks : (
+            definition instanceof OConfiguration ? (definition.definitions[0]?.ports ?? [])
+            : definition.ports);
         } else if (definition instanceof OComponent || definition instanceof OEntity) {
           elements = definition.generics;
         }

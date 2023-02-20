@@ -16,7 +16,7 @@ export function elaborateInstantiations(file: OFile, projectParser: ProjectParse
         instantiation.definitions.push(...getSubprograms(instantiation, projectParser));
         break;
       case 'configuration':
-        instantiation.definitions.push(...getEntityViaConfigurations(instantiation, projectParser));
+        instantiation.definitions.push(...getConfiguration(instantiation, projectParser));
         break;
       // Instantiations syntax does not have to give hints for the types if it has neither parameters nor ports nor generics
       // In that case it may be component or subprogram instantiation
@@ -24,9 +24,6 @@ export function elaborateInstantiations(file: OFile, projectParser: ProjectParse
         instantiation.definitions.push(...getComponents(instantiation));
         instantiation.definitions.push(...getSubprograms(instantiation, projectParser));
         break;
-
-
-
     }
     for (const subprogram of instantiation.definitions) {
       subprogram.referenceLinks.push(instantiation);
@@ -69,11 +66,8 @@ export function getEntities(instantiation: OInstantiation | OComponent, projectP
   const name = (instantiation instanceof OInstantiation) ? instantiation.componentName : instantiation.referenceToken;
   return entities.filter(e => e.lexerToken.getLText() === name.text.toLowerCase());
 }
-export function getEntityViaConfigurations(instantiation: OInstantiation, projectParser: ProjectParser): OEntity[] {
-  let configurations: OConfiguration[] = [];
-  if (instantiation instanceof OInstantiation && instantiation.type === 'configuration') {
-    return [];
-  }
+export function getConfiguration(instantiation: OInstantiation, projectParser: ProjectParser): OConfiguration[] {
+  const configurations: OConfiguration[] = [];
   // find project entities
   const projectConfigurations = projectParser.configurations;
   if (typeof instantiation.library !== 'undefined' && instantiation.library.referenceToken.getLText() !== 'work') {
@@ -87,34 +81,8 @@ export function getEntityViaConfigurations(instantiation: OInstantiation, projec
   } else {
     configurations.push(...projectConfigurations);
   }
-  configurations = configurations.filter(e => e.lexerToken.getLText() === instantiation.componentName.text.toLowerCase());
-  let entityName: OLexerToken | undefined;
-  for (const configuration of configurations) {
-    if (entityName === undefined) {
-      entityName = configuration.entityName;
-    } else if (configuration.entityName.getLText() !== entityName.getLText()) {
-      // Throw error
-    }
-  }
-  if (!entityName) {
-    throw new Error();
-  }
-  // find project entities
-  const entities: OEntity[] = [];
+  return configurations.filter(e => e.lexerToken.getLText() === instantiation.componentName.text.toLowerCase());
 
-  const projectEntities = projectParser.entities;
-  if (typeof instantiation.library !== 'undefined' && instantiation.library.referenceToken.getLText() !== 'work') {
-    entities.push(...projectEntities.filter(entity => {
-      if (typeof entity.targetLibrary !== 'undefined') {
-        return entity.targetLibrary.toLowerCase() === instantiation.library?.referenceToken.getLText() ?? '';
-      }
-      return true;
-
-    }));
-  } else {
-    entities.push(...projectEntities);
-  }
-  return entities.filter(e => e.lexerToken.getLText() === entityName!.getLText());
 }
 function getSubprograms(instantiation: OInstantiation, projectParser: ProjectParser): (OSubprogram | OAliasWithSignature)[] {
   const subprograms: (OSubprogram | OAliasWithSignature)[] = [];

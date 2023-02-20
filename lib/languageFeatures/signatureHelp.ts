@@ -1,6 +1,6 @@
 import { MarkupKind, Position, SignatureHelp, SignatureInformation } from "vscode-languageserver";
 import { implementsIHasGenerics } from "../parser/interfaces";
-import { OAliasWithSignature, OGenericAssociationList } from "../parser/objects";
+import { OAliasWithSignature, OConfiguration, OGenericAssociationList } from "../parser/objects";
 import { VhdlLinter } from "../vhdl-linter";
 import { findParentInstantiation } from "./helper/findParentInstantiation";
 export function signatureHelp(linter: VhdlLinter, position: Position): SignatureHelp | null {
@@ -14,7 +14,8 @@ export function signatureHelp(linter: VhdlLinter, position: Position): Signature
     if (definition instanceof OAliasWithSignature) {
       // Handle AliasWIthSignatures
     } else {
-      const portOrGeneric = associationList instanceof OGenericAssociationList && implementsIHasGenerics(definition) ? definition.generics : definition.ports;
+      const entityDefinition = definition instanceof OConfiguration ? definition.definitions[0] : definition;
+      const portOrGeneric = entityDefinition === undefined ? [] : associationList instanceof OGenericAssociationList && implementsIHasGenerics(entityDefinition) ? entityDefinition.generics : entityDefinition.ports;
       if (portOrGeneric.length === 0) {
         signatures.push({
           label: ''

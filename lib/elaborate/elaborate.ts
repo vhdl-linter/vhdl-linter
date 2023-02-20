@@ -5,6 +5,7 @@ import { VhdlLinter } from "../vhdl-linter";
 import { elaborateAliases } from "./elaborate-aliases";
 import { elaborateAssociations } from "./elaborate-association";
 import { elaborateComponents } from "./elaborate-components";
+import { elaborateConfigurations } from "./elaborate-configurations";
 import { elaborateInstantiations } from "./elaborate-instantiations";
 import { ElaborateReferences } from "./elaborate-references";
 import { ElaborateSelectedNames } from "./elaborate-selected-names";
@@ -98,6 +99,9 @@ export class Elaborate {
     // start = Date.now();
     await this.vhdlLinter.handleCanceled();
     elaborateComponents(this.file, this.vhdlLinter.projectParser);
+    await this.vhdlLinter.handleCanceled();
+    // Configurations has to be before instantiations
+    elaborateConfigurations(this.file, this.vhdlLinter.projectParser);
     await this.vhdlLinter.handleCanceled();
     elaborateInstantiations(this.file, this.vhdlLinter.projectParser);
 

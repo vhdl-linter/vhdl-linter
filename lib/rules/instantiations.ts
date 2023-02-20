@@ -1,7 +1,7 @@
 import { findBestMatch } from "string-similarity";
 import { CodeAction, CodeActionKind, DiagnosticSeverity, Range, TextEdit } from "vscode-languageserver";
 import { implementsIHasLexerToken, IHasLexerToken, implementsIHasPorts, implementsIHasSubprograms, implementsIHasStatements } from "../parser/interfaces";
-import { OAliasWithSignature, OArchitecture, OAssociationList, ObjectBase, OCase, OComponent, OEntity, OFile, OGeneric, OHasSequentialStatements, OIf, OInstantiation, OIRange, OPort, OTypeMark } from "../parser/objects";
+import { OAliasWithSignature, OArchitecture, OAssociationList, ObjectBase, OCase, OComponent, OConfiguration, OEntity, OFile, OGeneric, OHasSequentialStatements, OIf, OInstantiation, OIRange, OPort, OTypeMark } from "../parser/objects";
 import { IRule, RuleBase } from "./rules-base";
 
 export class RInstantiation extends RuleBase implements IRule {
@@ -138,8 +138,9 @@ export class RInstantiation extends RuleBase implements IRule {
               message: `can not find ${instantiation.type} ${instantiation.componentName.text}`
             });
           } else {
+            const definitions = instantiation.definitions.flatMap(definition => definition instanceof OConfiguration ? definition.definitions : definition);
             const range = instantiation.range.start.getRangeToEndLine();
-            const availablePorts = instantiation.definitions.map(e => {
+            const availablePorts = definitions.map(e => {
               if (implementsIHasPorts(e)) {
                 return e.ports;
               }
@@ -149,7 +150,7 @@ export class RInstantiation extends RuleBase implements IRule {
               return [];
             });
             this.checkAssociations(availablePorts, instantiation.portAssociationList, instantiation.type, range, 'port');
-            const availableGenerics = instantiation.definitions.map(d => (d instanceof OComponent || d instanceof OEntity) ? d.generics : []);
+            const availableGenerics = definitions.map(d => (d instanceof OComponent || d instanceof OEntity) ? d.generics : []);
             this.checkAssociations(availableGenerics, instantiation.genericAssociationList, instantiation.type, range, 'generic');
           }
         }

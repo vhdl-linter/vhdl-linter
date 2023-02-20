@@ -1,7 +1,7 @@
 import { CompletionItem, CompletionItemKind, Position } from 'vscode-languageserver';
 import { reservedWords } from '../lexer';
 import { IHasLexerToken, IHasTypeReference, implementsIHasAliases, implementsIHasConstants, implementsIHasGenerics, implementsIHasPorts, implementsIHasSignals, implementsIHasSubprograms, implementsIHasTypeReference, implementsIHasTypes, implementsIHasVariables } from '../parser/interfaces';
-import { OAliasWithSignature, ObjectBase, OEnum, OGenericAssociationList, ORecord, OReference, OSelectedNameRead, OSelectedNameWrite, OSubprogram, OType, scope } from '../parser/objects';
+import { OAliasWithSignature, ObjectBase, OConfiguration, OEnum, OGenericAssociationList, ORecord, OReference, OSelectedNameRead, OSelectedNameWrite, OSubprogram, OType, scope } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
 import { findObjectFromPosition } from './findObjects';
 import { getTokenFromPosition } from './findReferencesHandler';
@@ -131,7 +131,7 @@ export async function getCompletions(linter: VhdlLinter, position: Position): Pr
   if (result) {
     const [instantiation, associationList] = result;
     for (const definition of instantiation.definitions) {
-      if (definition instanceof OAliasWithSignature) {
+      if (definition instanceof OAliasWithSignature || definition instanceof OConfiguration) {
         // TODO Handle aliases for completion
       } else {
         const portsOrGenerics = associationList instanceof OGenericAssociationList && implementsIHasGenerics(definition) ? definition.generics : definition.ports;
