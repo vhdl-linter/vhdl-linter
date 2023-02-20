@@ -6,7 +6,7 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import { WorkDoneProgressReporter } from 'vscode-languageserver';
 import { Elaborate } from './elaborate/elaborate';
 import { SetAdd } from './languageFeatures/findReferencesHandler';
-import { OArchitecture, OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
+import { OArchitecture, OConfiguration, OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
 import { SettingsGetter, VhdlLinter } from './vhdl-linter';
 
 export function joinURL(url: URL, ...additional: string[]) {
@@ -32,6 +32,7 @@ export class ProjectParser {
   public packageInstantiations: OPackageInstantiation[] = [];
   public contexts: OContext[] = [];
   public entities: OEntity[] = [];
+  public configurations: OConfiguration[] = [];
   public architectures: OArchitecture[] = [];
   events = new EventEmitter();
   private watchers: FSWatcher[] = [];
@@ -140,18 +141,20 @@ export class ProjectParser {
     this.packages = [];
     this.packageInstantiations = [];
     this.entities = [];
+    this.configurations = [];
     this.architectures = [];
     for (const cachedFile of this.cachedFiles) {
-      this.entities.push(...cachedFile.entities);
+      this.entities.push(...cachedFile.linter.file.entities);
       this.architectures.push(...cachedFile.linter.file.architectures);
+      this.configurations.push(...cachedFile.linter.file.configurations);
       if (cachedFile.packages) {
         this.packages.push(...cachedFile.packages);
       }
       if (cachedFile.packageInstantiations) {
         this.packageInstantiations.push(...cachedFile.packageInstantiations);
       }
-      if (cachedFile.contexts) {
-        this.contexts.push(...cachedFile.contexts);
+      if (cachedFile.linter.file.contexts) {
+        this.contexts.push(...cachedFile.linter.file.contexts);
       }
     }
   }
@@ -179,8 +182,6 @@ export class ProjectParser {
 class FileCache {
   packages?: OPackage[];
   packageInstantiations?: OPackageInstantiation[];
-  contexts: OContext[] = [];
-  entities: OEntity[] = [];
   text: string;
   linter: VhdlLinter;
   lintingTime: number;
@@ -202,8 +203,6 @@ class FileCache {
     }
     this.packages = this.linter.file.packages.filter((p): p is OPackage => p instanceof OPackage);
     this.packageInstantiations = this.linter.file.packageInstantiations;
-    this.entities = this.linter.file.entities;
-    this.contexts = this.linter.file.contexts;
   }
 
 }

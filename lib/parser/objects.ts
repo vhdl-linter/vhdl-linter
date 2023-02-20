@@ -878,6 +878,8 @@ export class OAliasWithSignature extends OAlias implements I.IHasLexerToken {
 }
 
 export class OConfiguration extends ObjectBase implements I.IHasLibraries {
+  lexerToken: OLexerToken;
+  targetLibrary?: string;
   identifier: OLexerToken;
   entityName: OLexerToken;
   libraries: OLibrary[] = [];
