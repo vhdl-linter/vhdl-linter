@@ -37,7 +37,7 @@ function getComponents(instantiation: OInstantiation): OComponent[] {
   // find all defined components in current scope
   for (const [iterator] of scope(instantiation)) {
     if (implementsIHasDeclarations(iterator)) {
-      for(const component of iterator.declarations) {
+      for (const component of iterator.declarations) {
         if (component instanceof OComponent) {
           components.push(component);
         }
@@ -55,10 +55,15 @@ export function getEntities(instantiation: OInstantiation | OComponent, projectP
   }
   // find project entities
   const projectEntities = projectParser.entities;
-  if (instantiation instanceof OInstantiation && typeof instantiation.library !== 'undefined' && instantiation.library.referenceToken.getLText() !== 'work') {
+  if (instantiation instanceof OInstantiation && instantiation.library !== undefined) {
     entities.push(...projectEntities.filter(entity => {
-      if (typeof entity.targetLibrary !== 'undefined') {
-        return entity.targetLibrary.toLowerCase() === instantiation.library?.referenceToken.getLText() ?? '';
+      if (instantiation.library!.referenceToken.getLText() !== 'work') {
+        if (typeof entity.targetLibrary !== 'undefined') {
+          return entity.targetLibrary.toLowerCase() === instantiation.library?.referenceToken.getLText() ?? '';
+        }
+      } else if (entity.targetLibrary !== undefined && instantiation.getRootElement().targetLibrary !== undefined) {
+        return entity.targetLibrary.toLowerCase() === instantiation.getRootElement().targetLibrary!.toLowerCase();
+
       }
       return true;
 
