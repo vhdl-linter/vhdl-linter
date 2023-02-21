@@ -77,10 +77,15 @@ export function getConfiguration(instantiation: OInstantiation, projectParser: P
   const configurations: OConfiguration[] = [];
   // find project entities
   const projectConfigurations = projectParser.configurations;
-  if (typeof instantiation.library !== 'undefined' && instantiation.library.referenceToken.getLText() !== 'work') {
+  if (typeof instantiation.library !== 'undefined') {
     configurations.push(...projectConfigurations.filter(configuration => {
-      if (configuration.targetLibrary !== undefined) {
-        return configuration.targetLibrary.toLowerCase() === instantiation.library?.referenceToken.getLText() ?? '';
+      if (instantiation.library!.referenceToken.getLText() !== 'work') {
+        if (typeof configuration.targetLibrary !== 'undefined') {
+          return configuration.targetLibrary.toLowerCase() === instantiation.library?.referenceToken.getLText() ?? '';
+        }
+      } else if (configuration.targetLibrary !== undefined && instantiation.getRootElement().targetLibrary !== undefined) {
+        return configuration.targetLibrary.toLowerCase() === instantiation.getRootElement().targetLibrary!.toLowerCase();
+
       }
       return true;
 
