@@ -10,10 +10,10 @@ export function foldingHandler(linter: VhdlLinter): FoldingRange[] {
     }
     if (I.implementsIHasStatements(obj) && obj.statements.length > 0) {
       const statementsStart = (I.implementsIHasDeclarations(obj)) ? obj.declarationsRange.end.line : (obj.statements.map(dec => dec.range.start).sort((a, b) => a.i - b.i)[0]!.line - 1);
-      const statementsEnd = obj.statements.map(dec => dec.range.end).sort((a, b) => b.i - a.i)[0]!.line + 1;
+      const statementsEnd = obj.statements.map(dec => dec.range.end).sort((a, b) => b.i - a.i)[0]!.line;
       result.push(FoldingRange.create(statementsStart, statementsEnd));
     }
-    if (obj instanceof O.OInstantiation || obj instanceof O.OAssociationList || obj instanceof O.OComponent ||
+    if (obj instanceof O.OInstantiation || obj instanceof O.OAssociationList || obj instanceof O.OComponent || obj instanceof O.OCaseGenerate ||
        (obj instanceof O.OType && (obj.protected || obj.protectedBody || obj instanceof O.ORecord))) {
       result.push(FoldingRange.create(obj.range.start.line, obj.range.end.line));
     }

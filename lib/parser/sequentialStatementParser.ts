@@ -250,6 +250,7 @@ export class SequentialStatementParser extends ParserBase {
     if (label) {
       this.maybe(label);
     }
+    forLoop.range = forLoop.range.copyWithNewEnd(this.getToken().range);
     this.expect(';');
     return forLoop;
   }

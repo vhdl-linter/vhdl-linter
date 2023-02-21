@@ -89,6 +89,51 @@ exports[`Testing behavior of missing statements in file _subprogram_begin_missin
 [
   {
     "code": "0;1",
+    "message": "signal 'NewA' is referenced but not declared (not-declared)",
+    "range": {
+      "end": {
+        "character": 46,
+        "line": 8,
+      },
+      "start": {
+        "character": 42,
+        "line": 8,
+      },
+    },
+    "severity": 1,
+  },
+  {
+    "code": "2;3",
+    "message": "signal 'NewA' is referenced but not declared (not-declared)",
+    "range": {
+      "end": {
+        "character": 62,
+        "line": 8,
+      },
+      "start": {
+        "character": 58,
+        "line": 8,
+      },
+    },
+    "severity": 1,
+  },
+  {
+    "code": "4;5",
+    "message": "signal 'norm_NewA' is written but not declared (not-declared)",
+    "range": {
+      "end": {
+        "character": 13,
+        "line": 10,
+      },
+      "start": {
+        "character": 4,
+        "line": 10,
+      },
+    },
+    "severity": 1,
+  },
+  {
+    "code": "6;7",
     "message": "Unexpected token: 'norm_NewA' in declarative part. begin missing? (parser)",
     "range": {
       "end": {
@@ -103,7 +148,7 @@ exports[`Testing behavior of missing statements in file _subprogram_begin_missin
     "severity": undefined,
   },
   {
-    "code": "2;3",
+    "code": "8;9",
     "message": "Unexpected token: 'report' in declarative part. begin missing? (parser)",
     "range": {
       "end": {
