@@ -1,5 +1,5 @@
 import { ExpressionParser } from "./expressionParser";
-import { IHasDeclarations, IMayHasDeclarations } from "./interfaces";
+import { IMayHasDeclarations } from "./interfaces";
 import { OAlias, OAliasWithSignature, ObjectBase, OIRange, OReference, OSelectedName, OTypeMark, ParserError, SelectedNamePrefix } from "./objects";
 import { ParserBase, ParserState } from "./parserBase";
 export class AliasParser extends ParserBase {
