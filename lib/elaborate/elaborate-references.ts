@@ -4,6 +4,7 @@ import { VhdlLinter } from "../vhdl-linter";
 export class ElaborateReferences {
   file: O.OFile;
   private scopeVisibilityMap = new Map<O.ObjectBase, Map<string, O.ObjectBase[]>>();
+  private projectVisibilityMap?: Map<string, O.ObjectBase[]> = undefined;
 
   private constructor(public vhdlLinter: VhdlLinter) {
     this.file = vhdlLinter.file;
@@ -53,8 +54,11 @@ export class ElaborateReferences {
     const newMap = new Map<string, O.ObjectBase[]>();
     for (const [scopeObj] of O.scope(parent)) {
       this.addObjectsToMap(newMap, scopeObj);
-      if (I.implementsIHasStatements(scopeObj)) {
-        this.addObjectsToMap(newMap, ...scopeObj.statements);
+      if (I.implementsIHasPorts(scopeObj)) {
+        this.addObjectsToMap(newMap, ...scopeObj.ports);
+      }
+      if (I.implementsIHasGenerics(scopeObj)) {
+        this.addObjectsToMap(newMap, ...scopeObj.generics);
       }
       if (I.implementsIHasDeclarations(scopeObj)) {
         this.addObjectsToMap(newMap, ...scopeObj.declarations);
@@ -79,24 +83,49 @@ export class ElaborateReferences {
     this.scopeVisibilityMap.set(parent, newMap);
   }
 
-  getList(reference: O.OReference, searchText: string) {
-    // find parent with visibility of reference
-    let parent = reference.parent;
-    for (const [p] of O.scope(reference)) {
-      if (p instanceof O.OStatementBody || p instanceof O.OEntity || p instanceof O.OSubprogram || p instanceof O.OProcess || p instanceof O.OPackage || p instanceof O.OPackageBody) {
-        parent = p;
-        break;
-      }
+  fillProjectMap() {
+    const projectParser = this.vhdlLinter.projectParser;
+    this.projectVisibilityMap = new Map();
+    this.addObjectsToMap(this.projectVisibilityMap, ...projectParser.packages);
+    for (const pkg of projectParser.packages) {
+      this.fillVisibilityMap(pkg);
     }
+  }
 
-    if (!this.scopeVisibilityMap.has(parent)) {
-      this.fillVisibilityMap(parent);
+  // reference is undefined -> find objects in projectParser
+  // reference is OReference -> find parent with visibility
+  // reference is other ObjectBase -> search this object in visibility map
+  getList(object: O.ObjectBase | O.OReference | undefined, searchText: string) {
+    // find parent with visibility of reference
+    if (object === undefined) {
+      if (this.projectVisibilityMap === undefined) {
+        this.fillProjectMap();
+      }
+      return this.projectVisibilityMap?.get(searchText) ?? [];
+    } else {
+
+      let parent: O.ObjectBase;
+      if (object instanceof O.OReference) {
+        parent = object.parent;
+        for (const [p] of O.scope(object)) {
+          if (I.implementsIHasDeclarations(p)) {
+            parent = p;
+            break;
+          }
+        }
+      } else {
+        parent = object;
+      }
+
+      if (!this.scopeVisibilityMap.has(parent)) {
+        this.fillVisibilityMap(parent);
+      }
+      const list = this.scopeVisibilityMap.get(parent);
+      if (list === undefined) {
+        throw new Error('no map found');
+      }
+      return list.get(searchText) ?? [];
     }
-    const list = this.scopeVisibilityMap.get(parent);
-    if (list === undefined) {
-      throw new Error('no map found');
-    }
-    return list.get(searchText) ?? [];
   }
 
 
@@ -126,17 +155,53 @@ export class ElaborateReferences {
   }
 
   elaborateSelectedNames(reference: O.OSelectedName | O.OSelectedNameWrite) {
-    // const [libraryToken] = reference.prefixTokens;
-    // let library: O.OLibrary | undefined;
-    // for (const [obj] of scope(reference)) {
-    //   if (I.implementsIHasLibraries(obj)) {
-    //     for (const findLibrary of obj.libraries) {
-    //       if (findLibrary.lexerToken.getLText() == libraryToken.referenceToken.getLText()) {
-    //         library = findLibrary;
-    //       }
-    //     }
-    //   }
-    // }
+    const firstPrefix = reference.prefixTokens[0];
+    const libraries: O.OLibrary[] = [];
+    for (const obj of this.getList(reference, firstPrefix.referenceToken.getLText())) {
+      if (obj instanceof O.OLibrary) {
+        libraries.push(obj);
+      }
+      // todo package inst
+    }
+    if (libraries.length > 0) {
+      // first token is library
+      // 1 prefix token  -> lib.pkg;
+      // 2 prefix tokens -> lib.pkg.obj;
+      if (reference.prefixTokens.length === 1) {
+        const pkgToken = reference;
+        for (const pkg of this.getList(undefined, pkgToken.referenceToken.getLText())) {
+          if (pkg instanceof O.OPackage) {
+            reference.definitions.push(pkg);
+            if (I.implementsIHasLabel(pkg)) {
+              pkg.labelLinks.push(reference);
+            } else {
+              pkg.referenceLinks.push(reference);
+            }
+          }
+        }
+      } else if (reference.prefixTokens.length === 2) {
+        const pkgToken = reference.prefixTokens[1]!;
+        // expect pkgToken to already be elaborated -> take its definitions
+        for (const pkg of pkgToken.definitions) {
+          if (pkg instanceof O.OPackage) {
+            for (const obj of this.getList(pkg, reference.referenceToken.getLText())) {
+              if (I.implementsIHasReference(obj) || obj instanceof O.OAlias) {
+                reference.definitions.push(obj);
+                if (I.implementsIHasLabel(obj)) {
+                  obj.labelLinks.push(reference);
+                } else {
+                  obj.referenceLinks.push(reference);
+                }
+                this.castToRead(reference);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+
     // if (!library) {
     //   const packages: O.OPackage[] = [];
     //   for (const [obj] of scope(reference)) {
@@ -203,91 +268,4 @@ export class ElaborateReferences {
     //     }
     //   }
     // }
-    // if (reference.prefixTokens.length === 2) {
-    //   const [, pkgToken] = reference.prefixTokens;
-    //   if (library) {
-    //     for (const pkg of this.vhdlLinter.projectParser.packages) {
-    //       if (pkg.lexerToken.getLText() === pkgToken.referenceToken.getLText()) {
-    //         if (I.implementsIHasSignals(pkg)) {
-    //           this.evaluateDefinition(reference, pkg.signals, true);
-    //         }
-    //         if (I.implementsIHasConstants(pkg)) {
-    //           this.evaluateDefinition(reference, pkg.constants, true);
-    //         }
-    //         if (I.implementsIHasAliases(pkg)) {
-    //           this.evaluateDefinition(reference, pkg.aliases, true);
-    //         }
-    //         if (I.implementsIHasPorts(pkg)) {
-    //           this.evaluateDefinition(reference, pkg.ports, true);
-    //         }
-    //         if (I.implementsIHasGenerics(pkg)) {
-    //           this.evaluateDefinition(reference, pkg.generics, true);
-    //         }
-    //         if (I.implementsIHasSubprograms(pkg)) {
-    //           this.evaluateDefinition(reference, pkg.subprograms, false);
-    //         }
-
-    //         if (I.implementsIHasTypes(pkg)) {
-    //           for (const type of pkg.types) {
-    //             this.evaluateDefinition(reference, type, false);
-    //             if (type instanceof O.OEnum) {
-    //               this.evaluateDefinition(reference, type.literals, true);
-    //             }
-    //             if (type instanceof O.ORecord) {
-    //               this.evaluateDefinition(reference, type.children, false);
-    //             }
-
-    //           }
-    //         }
-    //         if (I.implementsIHasVariables(pkg)) {
-    //           this.evaluateDefinition(reference, pkg.variables, true);
-    //         }
-    //         if (I.implementsIHasFileVariables(pkg)) {
-    //           this.evaluateDefinition(reference, pkg.files, true);
-
-    //         }
-
-
-    //         if (I.implementsIHasPackageInstantiations(pkg)) {
-    //           this.evaluateDefinition(reference, pkg.packageInstantiations, false);
-    //         }
-
-    //       }
-    //     }
-    //   }
-
-    // } else if (reference.prefixTokens.length === 1) {
-    //   // If first token is library this is referencing a package
-    //   // O.Otherwise object from package
-    //   let library;
-    //   for (const [obj] of scope(reference)) {
-    //     if (I.implementsIHasLibraries(obj)) {
-    //       for (const findLibrary of obj.libraries) {
-    //         if (findLibrary.lexerToken.getLText() == reference.prefixTokens[0].referenceToken.getLText()) {
-    //           library = findLibrary;
-    //         }
-    //       }
-    //     }
-    //   }
-    //   if (library) {
-    //     for (const pkg of this.vhdlLinter.projectParser.packages) {
-    //       if (reference.referenceToken.getLText() === pkg.lexerToken.getLText()) {
-    //         reference.definitions.push(pkg);
-    //       }
-    //     }
-    //     for (const pkg of this.vhdlLinter.projectParser.packageInstantiations) {
-    //       if (reference.referenceToken.getLText() === pkg.lexerToken.getLText()) {
-    //         reference.definitions.push(pkg);
-    //       }
-    //     }
-    //   }
-    // } else {
-    //   // This seems expected if record in record for example...
-    //   // this.vhdlLinter.addMessage({
-    //   //   range: reference.range,
-    //   //   severity: DiagnosticSeverity.Warning,
-    //   //   message: `selected name found with ${reference.prefixTokens.length} prefixes. This is unexpected.`
-    //   // });
-    // }
-  }
 }

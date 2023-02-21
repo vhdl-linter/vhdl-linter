@@ -14,7 +14,7 @@ architecture arch of test_signal is
   signal s_record : t_record;
 begin
   foo               <= '1';
-  b                 <= foo;
+  b                 <= std.standard.bit;
   s_enum            <= enum0;
   s_record.element1 <= s_enum;
 end architecture;
