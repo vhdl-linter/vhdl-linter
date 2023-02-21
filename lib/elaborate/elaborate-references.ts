@@ -23,7 +23,6 @@ export class ElaborateReferences {
         }
       }
     }
-    // console.log(`counter: ${elaborator.counter}`);
   }
 
   getObjectText(obj: O.ObjectBase) {
@@ -38,9 +37,6 @@ export class ElaborateReferences {
       if (text === undefined) {
         continue;
       }
-      // const list = (map.has(text)) ? map.get(text)! : [];
-      // list.push(obj);
-      // map.set(text, list);
 
       let list: O.ObjectBase[];
       if (map.has(text)) {
