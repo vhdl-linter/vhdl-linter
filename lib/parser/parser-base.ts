@@ -2,7 +2,8 @@ import { fileURLToPath } from 'url';
 import { OLexerToken, TokenType } from '../lexer';
 import { OIDiagnosticWithSolution } from '../vhdl-linter';
 import { config } from './config';
-import { OFile, OIRange, ParserError } from './objects';
+import { ExpressionParser } from './expression-parser';
+import { ObjectBase, OFile, OIRange, OReference, ParserError } from './objects';
 
 
 export class ParserPosition {
@@ -151,6 +152,14 @@ export class ParserBase {
     while (this.getToken().isWhitespace()) {
       this.state.pos.num--;
     }
+  }
+  advanceSelectedName(parent: ObjectBase): OReference[] {
+    const tokens: OLexerToken[] = [];
+    while (this.getToken().isIdentifier() || this.getToken().getLText() === '.') {
+      tokens.push(this.getToken());
+      this.consumeToken();
+    }
+    return new ExpressionParser(this.state, parent, tokens).parse();
   }
   advanceParenthesisAware(searchStrings: (string)[], consume = true, consumeLastToken = true): [OLexerToken[], OLexerToken] {
     searchStrings = searchStrings.map(str => str.toLowerCase());

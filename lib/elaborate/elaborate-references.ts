@@ -202,10 +202,18 @@ export class ElaborateReferences {
         }
       }
     }
-
+    // find record elements and protected type procedures
     const typeRefDefinitions = [...new Set(lastPrefix.definitions.flatMap(def => I.implementsIHasTypeReference(def) ? def.typeReference : []).flatMap(typeRef => typeRef.definitions))];
     for (const typeDef of typeRefDefinitions) {
       this.elaborateTypeChildren(reference, typeDef);
+    }
+    const pkgInstantiations = lastPrefix.definitions.filter(def => def instanceof O.OPackageInstantiation) as O.OPackageInstantiation[];
+    for (const pkg of pkgInstantiations.flatMap(inst => inst.definitions)) {
+      for (const decl of pkg.declarations) {
+        if (decl.lexerToken.getLText() === reference.referenceToken.getLText()) {
+          this.link(reference, decl);
+        }
+      }
     }
   }
 }
