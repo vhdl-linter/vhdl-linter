@@ -1,6 +1,6 @@
 import { SemanticTokenModifiers, SemanticTokens, SemanticTokensBuilder, SemanticTokensLegend, SemanticTokenTypes } from "vscode-languageserver";
 import { implementsIHasDefinitions, implementsIHasLexerToken, implementsIHasReferenceToken } from "../parser/interfaces";
-import { ObjectBase, OConstant, OEntity, OEnum, OEnumLiteral, OGeneric, OInstantiation, OIRange, OPort, ORecord, ORecordChild, OSignal, OSubprogram, OType, OVariable, OWrite } from "../parser/objects";
+import { OArchitecture, ObjectBase, OConstant, OEntity, OEnum, OEnumLiteral, OGeneric, OInstantiation, OIRange, OPackage, OPort, ORecord, ORecordChild, OSignal, OSubprogram, OType, OVariable, OWrite } from "../parser/objects";
 import { VhdlLinter } from "../vhdl-linter";
 
 export const semanticTokensLegend: SemanticTokensLegend = {
@@ -37,7 +37,9 @@ function findDefinition(obj: ObjectBase) {
 }
 
 function pushCorrectToken(builder: SemanticTokensBuilder, obj: ObjectBase, range: OIRange, fixedModifiers: SemanticTokenModifiers[]) {
-  if (obj instanceof OEnum) {
+  if (obj instanceof OArchitecture || obj instanceof OEntity || obj instanceof OPackage) {
+    pushToken(builder, obj.lexerToken.range, SemanticTokenTypes.class, [...fixedModifiers]);
+  } else if (obj instanceof OEnum) {
     pushToken(builder, range, SemanticTokenTypes.enum, [...fixedModifiers, SemanticTokenModifiers.readonly]);
   } else if (obj instanceof ORecord) {
     pushToken(builder, range, SemanticTokenTypes.struct, [...fixedModifiers, SemanticTokenModifiers.readonly]);
