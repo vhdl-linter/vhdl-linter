@@ -352,7 +352,7 @@ export class OArchitecture extends OStatementBody implements I.IHasLexerToken, I
   lexerToken: OLexerToken;
   entityName: OLexerToken;
   endingLexerToken?: OLexerToken;
-
+  targetLibrary?: string;
 }
 export class OBlock extends OStatementBody implements I.IHasLabel {
   label: OLexerToken;
