@@ -555,10 +555,12 @@ export class OInstantiation extends OReference implements I.IHasDefinitions, I.I
     super(parent, lexerToken);
   }
   definitions: (OEntity | OSubprogram | OComponent | OAliasWithSignature | OConfiguration)[] = [];
+  prefix: OLexerToken[] = [];
   componentName: OLexerToken;
   package?: OLexerToken;
   portAssociationList?: OPortAssociationList;
   genericAssociationList?: OGenericAssociationList;
+
   library?: OLibraryReference;
   archIdentifier?: OLexerToken;
   label?: OLexerToken;
