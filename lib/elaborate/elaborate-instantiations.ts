@@ -52,6 +52,11 @@ export function getEntities(instantiation: OInstantiation | OComponent, projectP
   if (instantiation instanceof OInstantiation && instantiation.type === 'component') {
     return [];
   }
+  // The selected name for the instantiation gets split up into library{.prefix}.componentName
+  // If there is a prefix this is not a valid entity name
+  if (instantiation instanceof OInstantiation && instantiation.prefix.length > 0) {
+    return [];
+  }
   // find project entities
   const projectEntities = projectParser.entities;
   if (instantiation instanceof OInstantiation && instantiation.library !== undefined) {
@@ -75,6 +80,11 @@ export function getEntities(instantiation: OInstantiation | OComponent, projectP
 }
 export function getConfiguration(instantiation: OInstantiation, projectParser: ProjectParser): OConfiguration[] {
   const configurations: OConfiguration[] = [];
+  // The selected name for the instantiation gets split up into library{.prefix}.componentName
+  // If there is a prefix this is not a valid entity name
+  if (instantiation.prefix.length > 0) {
+    return [];
+  }
   // find project entities
   const projectConfigurations = projectParser.configurations;
   if (typeof instantiation.library !== 'undefined') {

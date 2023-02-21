@@ -32,6 +32,7 @@ export class ConcurrentInstantiationParser extends ParserBase {
     // TODO: parse selectedNames for concurrent instantiations
     nextToken = this.consumeToken();
     while (this.getToken().text === '.') {
+      instantiation.prefix.push(nextToken);
       this.consumeToken();
       nextToken = this.consumeToken();
     }
