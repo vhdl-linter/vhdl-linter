@@ -418,7 +418,8 @@ export class ORecord extends OType {
 export class OArray extends OType {
   elementType: OReference[] = [];
 }
-export class ORecordChild extends OType {
+export class ORecordChild extends OType implements I.IHasTypeReference{
+  typeReference: OReference[] = [];
   public parent: ORecord;
 }
 export class OEnumLiteral extends ObjectBase implements I.IHasReferenceLinks, I.IHasLexerToken {

@@ -1,3 +1,4 @@
+import { DiagnosticSeverity } from "vscode-languageserver";
 import * as I from "../parser/interfaces";
 import * as O from "../parser/objects";
 import { VhdlLinter } from "../vhdl-linter";
@@ -52,6 +53,7 @@ export class ElaborateReferences {
 
   fillVisibilityMap(parent: O.ObjectBase) {
     const newMap = new Map<string, O.ObjectBase[]>();
+    this.scopeVisibilityMap.set(parent, newMap);
     for (const [scopeObj] of O.scope(parent)) {
       this.addObjectsToMap(newMap, scopeObj);
       if (I.implementsIHasPorts(scopeObj)) {
@@ -67,9 +69,6 @@ export class ElaborateReferences {
             if (type instanceof O.OEnum) {
               this.addObjectsToMap(newMap, ...type.literals);
             }
-            if (type instanceof O.ORecord) {
-              this.addObjectsToMap(newMap, ...type.children);
-            }
             if (type.units !== undefined) {
               this.addObjectsToMap(newMap, ...type.units);
             }
@@ -80,7 +79,6 @@ export class ElaborateReferences {
         this.addObjectsToMap(newMap, ...scopeObj.libraries);
       }
     }
-    this.scopeVisibilityMap.set(parent, newMap);
   }
 
   fillProjectMap() {
@@ -103,24 +101,24 @@ export class ElaborateReferences {
       }
       return this.projectVisibilityMap?.get(searchText) ?? [];
     } else {
-
-      let parent: O.ObjectBase;
+      // if reference: find parent which has declarations to use as key
+      let key: O.ObjectBase;
       if (object instanceof O.OReference) {
-        parent = object.parent;
+        key = object.parent;
         for (const [p] of O.scope(object)) {
           if (I.implementsIHasDeclarations(p)) {
-            parent = p;
+            key = p;
             break;
           }
         }
       } else {
-        parent = object;
+        key = object;
       }
 
-      if (!this.scopeVisibilityMap.has(parent)) {
-        this.fillVisibilityMap(parent);
+      if (!this.scopeVisibilityMap.has(key)) {
+        this.fillVisibilityMap(key);
       }
-      const list = this.scopeVisibilityMap.get(parent);
+      const list = this.scopeVisibilityMap.get(key);
       if (list === undefined) {
         throw new Error('no map found');
       }
@@ -139,133 +137,75 @@ export class ElaborateReferences {
     }
   }
 
+  link(reference: O.OReference, obj: O.ObjectBase & (I.IHasReferenceLinks | I.IHasLabel)) {
+    reference.definitions.push(obj);
+    if (I.implementsIHasLabel(obj)) {
+      obj.labelLinks.push(reference);
+    } else {
+      obj.referenceLinks.push(reference);
+    }
+    this.castToRead(reference);
+
+  }
+
   elaborateReference(reference: O.OReference) {
     for (const obj of this.getList(reference, reference.referenceToken.getLText())) {
-      // alias doesn't has aliasReferences
+      // alias doesn't has aliasReferences but still referenceLinks
       if (I.implementsIHasReference(obj) || obj instanceof O.OAlias) {
-        reference.definitions.push(obj);
-        if (I.implementsIHasLabel(obj)) {
-          obj.labelLinks.push(reference);
-        } else {
-          obj.referenceLinks.push(reference);
+        this.link(reference, obj);
+      }
+    }
+  }
+
+
+  private elaborateTypeChildren(selectedName: O.OSelectedName | O.OSelectedNameWrite | O.OSelectedNameRead, typeDefinition: O.ObjectBase) {
+    if (typeDefinition instanceof O.ORecord || (typeDefinition instanceof O.OType && typeDefinition.protected)) {
+      let found = false;
+      if (typeDefinition instanceof O.ORecord) {
+        for (const child of typeDefinition.children) {
+          if (child.lexerToken.getLText() === selectedName.referenceToken.getLText()) {
+            selectedName.definitions.push(child);
+            found = true;
+          }
         }
-        this.castToRead(reference);
+      } else {
+        // for protected types (not protected bodies) search subprograms and attributes
+        for (const child of typeDefinition.declarations) {
+          if (child.lexerToken.getLText() === selectedName.referenceToken.getLText()) {
+            selectedName.definitions.push(child);
+            found = true;
+          }
+        }
+      }
+      if (found === false) {
+        this.vhdlLinter.addMessage({
+          message: `${selectedName.referenceToken.text} does not exist on ${typeDefinition instanceof O.ORecord ? 'record' : 'protected type'} ${typeDefinition.lexerToken.text}`,
+          range: selectedName.referenceToken.range,
+          severity: DiagnosticSeverity.Error
+        }, 'elaborate');
+      }
+    } else if (typeDefinition instanceof O.OArray) {
+      for (const def of typeDefinition.elementType.flatMap(r => r.definitions)) {
+        this.elaborateTypeChildren(selectedName, def);
       }
     }
   }
 
   elaborateSelectedNames(reference: O.OSelectedName | O.OSelectedNameWrite) {
-    const firstPrefix = reference.prefixTokens[0];
-    const libraries: O.OLibrary[] = [];
-    for (const obj of this.getList(reference, firstPrefix.referenceToken.getLText())) {
-      if (obj instanceof O.OLibrary) {
-        libraries.push(obj);
+    // all prefix tokens should be elaborated already
+    const lastPrefix = reference.prefixTokens[reference.prefixTokens.length - 1]!;
+    // last token is library -> expect a package
+    if (lastPrefix.definitions.some(def => def instanceof O.OLibrary)) {
+      for (const pkg of this.getList(undefined, reference.referenceToken.getLText())) {
+        if (pkg instanceof O.OPackage) {
+          this.link(reference, pkg);
+        }
       }
-      // todo package inst
     }
-    if (libraries.length > 0) {
-      // first token is library
-      // 1 prefix token  -> lib.pkg;
-      // 2 prefix tokens -> lib.pkg.obj;
-      if (reference.prefixTokens.length === 1) {
-        const pkgToken = reference;
-        for (const pkg of this.getList(undefined, pkgToken.referenceToken.getLText())) {
-          if (pkg instanceof O.OPackage) {
-            reference.definitions.push(pkg);
-            if (I.implementsIHasLabel(pkg)) {
-              pkg.labelLinks.push(reference);
-            } else {
-              pkg.referenceLinks.push(reference);
-            }
-          }
-        }
-      } else if (reference.prefixTokens.length === 2) {
-        const pkgToken = reference.prefixTokens[1]!;
-        // expect pkgToken to already be elaborated -> take its definitions
-        for (const pkg of pkgToken.definitions) {
-          if (pkg instanceof O.OPackage) {
-            for (const obj of this.getList(pkg, reference.referenceToken.getLText())) {
-              if (I.implementsIHasReference(obj) || obj instanceof O.OAlias) {
-                reference.definitions.push(obj);
-                if (I.implementsIHasLabel(obj)) {
-                  obj.labelLinks.push(reference);
-                } else {
-                  obj.referenceLinks.push(reference);
-                }
-                this.castToRead(reference);
-              }
-            }
-          }
-        }
-      }
+
+    const typeRefDefinitions = [...new Set(lastPrefix.definitions.flatMap(def => I.implementsIHasTypeReference(def) ? def.typeReference : []).flatMap(typeRef => typeRef.definitions))];
+    for (const typeDef of typeRefDefinitions) {
+      this.elaborateTypeChildren(reference, typeDef);
     }
   }
-
-
-    // if (!library) {
-    //   const packages: O.OPackage[] = [];
-    //   for (const [obj] of scope(reference)) {
-    //     if (I.implementsIHasPackageInstantiations(obj)) {
-    //       for (const pkgInst of obj.packageInstantiations) {
-    //         if (pkgInst instanceof O.OPackageInstantiation && pkgInst.lexerToken.getLText() === reference.prefixTokens[0].referenceToken.getLText()) {
-    //           const pkg = this.vhdlLinter.projectParser.packages.filter(pkg => pkg.lexerToken.getLText() === pkgInst.uninstantiatedPackageToken.getLText());
-    //           packages.push(...pkg);
-    //         }
-    //       }
-    //     }
-    //     if (I.implementsIHasGenerics(obj)) {
-    //       for (const pkgInst of obj.generics) {
-    //         if (pkgInst instanceof O.OInterfacePackage && pkgInst.lexerToken.getLText() === reference.prefixTokens[0].referenceToken.getLText()) {
-    //           const pkg = this.vhdlLinter.projectParser.packages.filter(pkg => pkg.lexerToken.getLText() === pkgInst.uninstantiatedPackageToken.getLText());
-    //           packages.push(...pkg);
-    //         }
-    //       }
-    //     }
-    //   }
-    //   for (const pkg of packages) {
-    //     for (const constant of pkg.constants) {
-    //       if (constant.lexerToken.getLText() === reference.referenceToken.getLText()) {
-    //         reference.definitions.push(constant);
-    //       }
-    //     }
-    //     for (const subprogram of pkg.subprograms) {
-    //       if (subprogram.lexerToken.getLText() === reference.referenceToken.getLText()) {
-    //         reference.definitions.push(subprogram);
-    //       }
-    //     }
-    //     for (const generic of pkg.generics) {
-    //       if (generic.lexerToken.getLText() === reference.referenceToken.getLText()) {
-    //         reference.definitions.push(generic);
-    //       }
-    //     }
-    //     for (const type of pkg.types) {
-    //       const map = new Map<string, O.ObjectBase>();
-    //       type.addReadsToMap(map);
-    //       const definition = map.get(reference.referenceToken.getLText());
-    //       if (definition) {
-    //         reference.definitions.push(definition);
-    //       }
-    //     }
-    //   }
-    //   for (const [obj] of scope(reference)) {
-    //     if (I.implementsIHasVariables(obj)) {
-    //       this.evaluateDefinition(reference, obj.variables, true);
-    //     }
-    //     if (I.implementsIHasSignals(obj)) {
-    //       this.evaluateDefinition(reference, obj.signals, true);
-    //     }
-    //     if (I.implementsIHasConstants(obj)) {
-    //       this.evaluateDefinition(reference, obj.constants, true);
-    //     }
-    //     if (I.implementsIHasAliases(obj)) {
-    //       this.evaluateDefinition(reference, obj.aliases, true);
-    //     }
-    //     if (I.implementsIHasPorts(obj)) {
-    //       this.evaluateDefinition(reference, obj.ports, true);
-    //     }
-    //     if (I.implementsIHasGenerics(obj)) {
-    //       this.evaluateDefinition(reference, obj.generics, true);
-    //     }
-    //   }
-    // }
 }
