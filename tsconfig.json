@@ -10,7 +10,7 @@
         "outDir": "./dist",
         "noUncheckedIndexedAccess": true,
         "jsx": "react",
-        "lib": ["ES2021"]
+        "lib": ["ES2021", "DOM"]
     },
     "include": ["lib/**/*", "test/**/*", "generate-settings.ts"]
 }

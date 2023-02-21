@@ -32,7 +32,7 @@
 			{
 				"language": "vhdl",
 				"scopeName": "source.vhdl",
-				"path": "./syntaxes/vhdl.tmLanguage"
+				"path": "./syntaxes/vhdl-new.json"
 			}
 		],
 		"snippets": [
@@ -303,7 +303,9 @@
 		"ts-jest": "^29.0.3",
 		"typescript": "^4.9.5",
 		"utility-types": "^3.10.0",
-		"vsce": "^2.11.0"
+		"vsce": "^2.11.0",
+		"vscode-oniguruma": "^1.7.0",
+		"vscode-textmate": "^9.0.0"
 	},
 	"__metadata": {
 		"id": "a14f930c-c182-41bd-8a6b-61417ee49e7e",
