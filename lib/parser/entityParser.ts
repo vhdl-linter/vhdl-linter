@@ -47,6 +47,7 @@ export class EntityParser extends ParserBase {
         this.expect(';');
         break;
       } else if (nextToken.getLText() === 'begin') {
+        const statementStart = this.getToken().range;
         this.consumeToken();
         while (this.getToken().getLText() !== 'end') {
           new ConcurrentStatementParser(this.state, this.entity).parse([
@@ -55,6 +56,7 @@ export class EntityParser extends ParserBase {
             ConcurrentStatementTypes.Process
           ]);
         }
+        this.entity.statementsRange = statementStart.copyWithNewEnd(this.getToken().range);
         this.consumeToken();
         this.maybe('entity');
         this.maybe(this.entity.lexerToken.text);

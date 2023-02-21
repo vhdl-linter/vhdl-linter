@@ -346,6 +346,7 @@ export abstract class OStatementBody extends ObjectBase implements I.IMayHasDecl
   contextReferences: OContextReference[] = [];
   libraries: OLibrary[] = [];
   statements: OConcurrentStatements[] = [];
+  statementsRange: OIRange;
   correspondingEntity?: OEntity;
 }
 export class OArchitecture extends OStatementBody implements I.IHasLexerToken, I.IMayHaveEndingLexerToken, I.IHasDeclarations {
@@ -602,6 +603,7 @@ export class OEntity extends ObjectBase implements I.IHasDefinitions, I.IMayHasD
   genericRange?: OIRange;
   generics: OGeneric[] = [];
   statements: (OProcess | OAssignment)[] = [];
+  statementsRange: OIRange;
   definitions: OEntity[] = [];
   correspondingArchitectures: OArchitecture[] = [];
 }
@@ -643,6 +645,7 @@ export class OIf extends ObjectBase implements I.IMayHaveLabel {
 }
 export class OHasSequentialStatements extends ObjectBase implements I.IMayHaveLabel, I.IHasStatements {
   statements: OSequentialStatement[] = [];
+  statementsRange: OIRange;
   labelLinks: OLabelReference[] = [];
   label?: OLexerToken;
 }

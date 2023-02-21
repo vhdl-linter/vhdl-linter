@@ -9,10 +9,18 @@ architecture arch of test is
   signal x : integer;
 begin
 
-  p_gen : if alt_label: true generate
+  p_gen :
+  if alt_label: true
+  generate
     x <= x;
-  else generate
+  else
+  generate
+
+
+
     x <= x;
+
+
   end generate p_gen;
 
 end arch;

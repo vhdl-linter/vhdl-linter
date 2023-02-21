@@ -13,7 +13,9 @@ begin
 
   process(all)
   begin
+  
     x <= x;
+
   end process;
 
 end arch;

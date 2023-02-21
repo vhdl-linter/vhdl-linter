@@ -17,8 +17,9 @@ export class SequentialStatementParser extends ParserBase {
     }
     return this.getToken(i).text === ':';
   }
-  parse(parent: OHasSequentialStatements | OIf, exitConditions: string[]): OSequentialStatement[] {
+  parse(parent: OHasSequentialStatements, exitConditions: string[]): OSequentialStatement[] {
     const statements: OSequentialStatement[] = [];
+    const start = this.getToken(-1, true).range;
     while (this.state.pos.isValid()) {
       let nextToken = this.getToken();
       let label;
@@ -74,6 +75,7 @@ export class SequentialStatementParser extends ParserBase {
 
       }
     }
+    parent.statementsRange = start.copyWithNewEnd(this.getToken().range);
     return statements;
   }
   // Assignments are detected by := or <= But as <= is comparison also can be part of e.g. procedure call
@@ -277,10 +279,10 @@ export class SequentialStatementParser extends ParserBase {
     }
     if (this.getToken().getLText() === 'else') {
       this.expect('else');
-      if_.else = new OElseClause(if_, new OIRange(if_, this.state.pos.i, this.state.pos.i));
-      if_.else.statements = this.parse(if_, ['end']);
-      if_.else.range = if_.else.range.copyWithNewEnd(this.getToken(-1, true).range.end);
-
+      const elseClause = new OElseClause(if_, new OIRange(if_, this.state.pos.i, this.state.pos.i));
+      elseClause.statements = this.parse(elseClause, ['end']);
+      elseClause.range = elseClause.range.copyWithNewEnd(this.getToken(-1, true).range.end);
+      if_.else = elseClause;
     }
     this.expect('end');
     this.expect('if');
