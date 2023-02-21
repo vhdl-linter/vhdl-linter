@@ -2,7 +2,7 @@
 	"name": "vhdl-linter",
 	"publisher": "g0t00",
 	"main": "./dist/lib/vscode.js",
-	"version": "1.5.6",
+	"version": "1.5.7",
 	"description": "A typescript based linter for vhdl",
 	"keywords": [],
 	"repository": "https://github.com/vhdl-linter/vhdl-linter",
@@ -113,6 +113,12 @@
 					"scope": "window",
 					"type": "boolean",
 					"description": "Enable the rule to check if ports and generics of instantiations are correct.",
+					"default": true
+				},
+				"VhdlLinter.rules.configuration": {
+					"scope": "window",
+					"type": "boolean",
+					"description": "Enable the rule to check if configuration reference existing entity.",
 					"default": true
 				},
 				"VhdlLinter.rules.library": {

@@ -102,6 +102,7 @@ async function run_test(path: URL, error_expected: boolean, projectParser?: Proj
   return messageWrappers;
 }
 (async () => {
+  console.log('Starting tests on test_files');
   const start = new Date().getTime();
   const messages = [];
   messages.push(... await run_test_folder(joinURL(pathToFileURL(cwd()), 'test', 'test_files', 'test_error_expected'), true));

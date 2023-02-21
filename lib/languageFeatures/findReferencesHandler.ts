@@ -2,7 +2,7 @@ import { ErrorCodes, Location, Position, ResponseError } from 'vscode-languagese
 import { Elaborate } from '../elaborate/elaborate';
 import { OLexerToken } from '../lexer';
 import { implementsIHasEndingLexerToken, implementsIHasReference } from '../parser/interfaces';
-import { OArchitecture, ObjectBase, OComponent, OEntity, OGeneric, OInstantiation, OPackage, OPackageBody, OPort, OSubprogram, OVariable } from '../parser/objects';
+import { OArchitecture, ObjectBase, OComponent, OConfiguration, OEntity, OGeneric, OInstantiation, OPackage, OPackageBody, OPort, OSubprogram, OVariable } from '../parser/objects';
 import { VhdlLinter } from '../vhdl-linter';
 import { findDefinitions } from './findDefinition';
 export function getTokenFromPosition(linter: VhdlLinter, position: Position, onlyDesignator = true): OLexerToken | undefined {
@@ -75,7 +75,15 @@ export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position
     }
     if (implementsIHasReference(definition)) {
       if (definition.lexerToken) {
-        referenceTokens.push(definition.lexerToken);
+        if (definition instanceof OConfiguration) {
+          // Configuration has lexer token (its identifier) and the name of the entity.
+          if (definition.lexerToken.getLText() === token.getLText()) {
+            referenceTokens.push(definition.lexerToken);
+          }
+        } else {
+          referenceTokens.push(definition.lexerToken);
+
+        }
       }
       referenceTokens.push(...definition.referenceLinks.map(ref => ref.referenceToken).filter(token => token.getLText() === definition.lexerToken?.getLText()));
       if (definition instanceof OEntity) {
@@ -84,13 +92,35 @@ export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position
           if (link instanceof OInstantiation) {
             referenceTokens.push(link.componentName);
           }
-
+        }
+        for (const link of definition.referenceConfigurations) {
+          referenceTokens.push(link.entityName);
+        }
+      } else if (definition instanceof OConfiguration && token.getLText() === definition.lexerToken.getLText()) {
+        for (const link of definition.referenceLinks) {
+            referenceTokens.push(link.componentName);
         }
       }
       if (definition instanceof OComponent && definition.endingReferenceToken) {
         referenceTokens.push(definition.endingReferenceToken);
       }
       if (definition instanceof OPort) {
+        if (definition.parent instanceof OEntity) {
+          for (const configurations of definition.parent.referenceConfigurations) {
+            referenceTokens.push(...configurations.referenceLinks
+              .flatMap(link => {
+                if (link instanceof OInstantiation) {
+                  return link.portAssociationList?.children.flatMap(child => {
+                    return child.formalPart
+                      .filter(formal => formal.referenceToken.getLText() === definition.lexerToken.getLText())
+                      .map(formal => formal.referenceToken);
+                  }) ?? [];
+                }
+                return [];
+              }));
+          }
+
+        }
         referenceTokens.push(...definition.parent.referenceLinks
           .flatMap(link => {
             if (link instanceof OInstantiation) {

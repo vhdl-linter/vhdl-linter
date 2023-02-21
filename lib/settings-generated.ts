@@ -5,6 +5,7 @@ export interface ISettings {
   'rules': {
     'component': boolean;
     'instantiation': boolean;
+    'configuration': boolean;
     'library': boolean;
     'library-reference': boolean;
     'multiple-definition': boolean;
@@ -41,6 +42,7 @@ export const defaultSettings: ISettings = {
   'rules': {
     'component': true,
     'instantiation': true,
+    'configuration': true,
     'library': false,
     'library-reference': true,
     'multiple-definition': true,
