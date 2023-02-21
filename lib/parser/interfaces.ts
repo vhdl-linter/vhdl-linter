@@ -79,15 +79,10 @@ export function implementsIHasDefinitions(obj: O.ObjectBase): obj is O.ObjectBas
 
 export interface IHasDeclarations {
   declarations: O.ODeclaration[];
-  declarationsRange: O.OIRange;
-}
-export interface IMayHasDeclarations {
-  declarations: O.ODeclaration[];
   declarationsRange?: O.OIRange;
 }
 export function implementsIHasDeclarations(obj: O.ObjectBase): obj is O.ObjectBase & IHasDeclarations {
-  const o = (obj as O.ObjectBase & Partial<IHasDeclarations>);
-  return o.declarations !== undefined && o.declarationsRange !== undefined;
+  return (obj as O.ObjectBase & Partial<IHasDeclarations>).declarations !== undefined;
 }
 
 export interface IHasLibraries {

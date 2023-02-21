@@ -1,7 +1,7 @@
 import { AliasParser } from './aliasParser';
 import { AttributeParser } from './attributeParser';
 import { ComponentParser } from './componentParser';
-import { IMayHasDeclarations, implementsIHasUseClause } from './interfaces';
+import { IHasDeclarations, implementsIHasUseClause } from './interfaces';
 import { ObjectDeclarationParser } from './objectDeclarationParser';
 import { OAttributeDeclaration, ObjectBase, OEntity, OI, OPackageBody, OProcess, OSubprogram, OType } from './objects';
 import { PackageInstantiationParser } from './packageInstantiationParser';
@@ -13,7 +13,7 @@ import { UseClauseParser } from './useClauseParser';
 
 export class DeclarativePartParser extends ParserBase {
   type: string;
-  constructor(state: ParserState, private parent: ObjectBase & IMayHasDeclarations) {
+  constructor(state: ParserState, private parent: ObjectBase & IHasDeclarations) {
     super(state);
     this.debug('start');
   }

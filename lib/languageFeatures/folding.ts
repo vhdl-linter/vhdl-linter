@@ -5,7 +5,7 @@ import { VhdlLinter } from '../vhdlLinter';
 export function foldingHandler(linter: VhdlLinter): FoldingRange[] {
   const result: FoldingRange[] = [];
   for (const obj of linter.file.objectList) {
-    if (I.implementsIHasDeclarations(obj)) {
+    if (I.implementsIHasDeclarations(obj) && obj.declarationsRange !== undefined) {
       result.push(FoldingRange.create(obj.declarationsRange.start.line, obj.declarationsRange.end.line - 1));
     }
     if (I.implementsIHasStatements(obj)) {

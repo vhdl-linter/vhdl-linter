@@ -1,9 +1,9 @@
 import { ExpressionParser } from "./expressionParser";
-import { IMayHasDeclarations } from "./interfaces";
+import { IHasDeclarations } from "./interfaces";
 import { OAlias, OAliasWithSignature, ObjectBase, OIRange, OReference, OSelectedName, OTypeMark, ParserError, SelectedNamePrefix } from "./objects";
 import { ParserBase, ParserState } from "./parserBase";
 export class AliasParser extends ParserBase {
-  constructor(state: ParserState, private parent: ObjectBase & IMayHasDeclarations) {
+  constructor(state: ParserState, private parent: ObjectBase & IHasDeclarations) {
     super(state);
     this.debug('start');
   }

@@ -2,13 +2,13 @@ import { DiagnosticSeverity } from 'vscode-languageserver-types';
 import { OLexerToken } from '../lexer';
 import { DeclarativePartParser } from './declarativePartParser';
 import { ExpressionParser } from './expressionParser';
-import { IMayHasDeclarations } from './interfaces';
+import { IHasDeclarations } from './interfaces';
 import { OArray, ObjectBase, OEnum, OEnumLiteral, OIRange, OPort, ORecord, ORecordChild, OSubprogram, OType, OUnit, ParserError } from './objects';
 import { ParserBase, ParserState } from './parserBase';
 
 
 export class TypeParser extends ParserBase {
-  constructor(state: ParserState, private parent: ObjectBase & IMayHasDeclarations) {
+  constructor(state: ParserState, private parent: ObjectBase & IHasDeclarations) {
     super(state);
     this.debug('start');
   }

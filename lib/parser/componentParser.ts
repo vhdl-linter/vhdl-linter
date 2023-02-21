@@ -1,10 +1,10 @@
 import { InterfaceListParser } from './interfaceListParser';
-import { IMayHasDeclarations } from './interfaces';
+import { IHasDeclarations } from './interfaces';
 import { ObjectBase, OComponent, OIRange, ParserError } from './objects';
 import { ParserBase, ParserState } from './parserBase';
 
 export class ComponentParser extends ParserBase {
-  constructor(state: ParserState, private parent: ObjectBase & IMayHasDeclarations) {
+  constructor(state: ParserState, private parent: ObjectBase & IHasDeclarations) {
     super(state);
     this.debug(`start`);
   }

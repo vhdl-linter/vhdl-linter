@@ -1,13 +1,13 @@
 import { TextEdit } from 'vscode-languageserver';
 import { OLexerToken } from '../lexer';
 import { ExpressionParser } from './expressionParser';
-import { IMayHasDeclarations } from './interfaces';
+import { IHasDeclarations } from './interfaces';
 import { ObjectBase, OConstant, OFileVariable, ORead, OSignal, OVariable } from './objects';
 import { ParserBase, ParserState } from './parserBase';
 
 export class ObjectDeclarationParser extends ParserBase {
 
-  constructor(state: ParserState, private parent: ObjectBase & IMayHasDeclarations) {
+  constructor(state: ParserState, private parent: ObjectBase & IHasDeclarations) {
     super(state);
     this.debug('start');
   }
