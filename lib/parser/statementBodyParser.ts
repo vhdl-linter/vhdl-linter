@@ -120,6 +120,7 @@ export class StatementBodyParser extends ParserBase {
           }
         }
 
+        statementBody.range = statementBody.range.copyWithNewEnd(this.getToken().range);
         this.expect(';');
         break;
       }
