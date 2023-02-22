@@ -3,9 +3,9 @@ import { argv, cwd } from 'process';
 import { pathToFileURL } from 'url';
 import { DiagnosticSeverity } from 'vscode-languageserver';
 import { OIRange } from '../lib/parser/objects';
-import { joinURL, ProjectParser } from '../lib/project-parser';
+import { joinURL, ProjectParser } from '../lib/projectParser';
 import { defaultSettingsGetter, defaultSettingsWithOverwrite } from '../lib/settings';
-import { OIDiagnostic, VhdlLinter } from '../lib/vhdl-linter';
+import { OIDiagnostic, VhdlLinter } from '../lib/vhdlLinter';
 import { readFileSyncNorm } from "./readFileSyncNorm";
 function readDirPath(path: URL) {
   return readdirSync(path).map(file => joinURL(path, file));

@@ -1,7 +1,7 @@
 import { FoldingRange, FoldingRangeKind } from 'vscode-languageserver';
 import { implementsIHasLibraries, implementsIHasUseClause } from '../parser/interfaces';
 import { OArchitecture, OAssociationList, OCase, OComponent, OElseClause, OEntity, OForGenerate, OIfClause, OIfGenerateClause, OInstantiation, OPackage, OPackageBody, OProcess, ORecord, OStatementBody, OSubprogram, OType, OWhenClause } from '../parser/objects';
-import { VhdlLinter } from '../vhdl-linter';
+import { VhdlLinter } from '../vhdlLinter';
 export function foldingHandler(linter: VhdlLinter): FoldingRange[] {
   const result: FoldingRange[] = [];
   for (const obj of linter.file.objectList) {

@@ -7,8 +7,8 @@ import { fileURLToPath } from 'url';
 import { promisify } from 'util';
 import { CancellationToken, DocumentFormattingParams, LSPErrorCodes, Range, ResponseError, TextEdit, WorkDoneProgressReporter } from 'vscode-languageserver';
 import { attachWorkDone } from 'vscode-languageserver/lib/common/progress';
-import { connection, documents } from '../language-server';
-import { getRootDirectory, joinURL } from '../project-parser';
+import { connection, documents } from '../languageServer';
+import { getRootDirectory, joinURL } from '../projectParser';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
 const nullProgressReporter = attachWorkDone(undefined as any, /* params */ undefined);
 async function _getProgressReporter(reporter: WorkDoneProgressReporter, title: string) {

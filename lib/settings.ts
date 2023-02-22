@@ -1,5 +1,5 @@
 import { DeepPartial } from 'utility-types';
-import { defaultSettings, ISettings } from './settings-generated';
+import { defaultSettings, ISettings } from './settingsGenerated';
 export { defaultSettings, ISettings };
 
 export function defaultSettingsGetter() {
