@@ -1,4 +1,3 @@
-import { DiagnosticSeverity } from "vscode-languageserver";
 import * as I from "../parser/interfaces";
 import * as O from "../parser/objects";
 import { VhdlLinter } from "../vhdlLinter";
@@ -56,7 +55,7 @@ export class ElaborateReferences {
     }
   }
 
-  addHiddenDeclarationsToMap(map: Map<string, O.ObjectBase[]>, obj: O.OType) {
+  addHiddenDeclarationsToMap(map: Map<string, O.ObjectBase[]>, obj: O.ObjectBase & I.IHasDeclarations) {
     for (const decl of obj.declarations) {
       if (decl instanceof O.ORecord) {
         this.addObjectsToMap(map, ...decl.children);
@@ -83,6 +82,7 @@ export class ElaborateReferences {
       }
       if (I.implementsIHasDeclarations(scopeObj)) {
         this.addObjectsToMap(visibilityMap, ...scopeObj.declarations);
+        this.addHiddenDeclarationsToMap(fallbackMap, scopeObj);
         for (const type of scopeObj.declarations) {
           if (type instanceof O.OType) {
             if (type instanceof O.OEnum) {
@@ -93,8 +93,6 @@ export class ElaborateReferences {
             }
             if (type.protected || type.protectedBody) {
               this.addObjectsToMap(visibilityMap, ...type.declarations);
-              // also search for recursive record and protected types...
-              this.addHiddenDeclarationsToMap(fallbackMap, type);
             }
             if (type instanceof O.ORecord) {
               this.addObjectsToMap(fallbackMap, ...type.declarations);
@@ -116,6 +114,7 @@ export class ElaborateReferences {
       for (const pkg of projectParser.packages) {
         this.fillVisibilityMap(pkg);
       }
+      this.addObjectsToMap(this.projectVisibilityMap, ...projectParser.packageInstantiations);
     }
     return this.projectVisibilityMap?.get(searchText) ?? [];
   }
@@ -181,6 +180,16 @@ export class ElaborateReferences {
         this.link(reference, obj);
       }
     }
+
+    // if nothing was found look in the fallback map
+    if (reference.definitions.length === 0) {
+      for (const obj of this.getList(reference, true)) {
+        // alias doesn't has aliasReferences but still referenceLinks
+        if (I.implementsIHasReference(obj) || obj instanceof O.OAlias) {
+          this.link(reference, obj);
+        }
+      }
+    }
   }
 
 
@@ -217,22 +226,26 @@ export class ElaborateReferences {
   elaborateSelectedNames(reference: O.OSelectedName | O.OSelectedNameWrite) {
     // all prefix tokens should be elaborated already
     const lastPrefix = reference.prefixTokens[reference.prefixTokens.length - 1]!;
-    // last token is library -> expect a package
+    // privious token is library -> expect a package
     if (lastPrefix.definitions.some(def => def instanceof O.OLibrary)) {
       for (const pkg of this.getProjectList(reference.referenceToken.getLText())) {
-        if (pkg instanceof O.OPackage) {
+        if (pkg instanceof O.OPackage || pkg instanceof O.OPackageInstantiation) {
           this.link(reference, pkg);
         }
       }
     }
 
+    // previous token is type (e.g. protected or record) -> expect stuff from within
     const typeRefDefinitions = [...new Set(lastPrefix.definitions.flatMap(def => I.implementsIHasTypeReference(def) ? def.typeReference : []).flatMap(typeRef => typeRef.definitions))];
     for (const typeDef of typeRefDefinitions) {
       this.elaborateTypeChildren(reference, typeDef);
     }
 
+    // previous token is package
+    const packages = lastPrefix.definitions.filter(def => def instanceof O.OPackage) as O.OPackage[];
+    // previous token is pkg inst or interface pkg -> find stuff from the uninstantiated package
     const pkgInstantiations = lastPrefix.definitions.filter(def => def instanceof O.OPackageInstantiation || def instanceof O.OInterfacePackage) as (O.OPackageInstantiation | O.OInterfacePackage)[];
-    const packages = pkgInstantiations.flatMap(inst => inst.uninstantiatedPackage[inst.uninstantiatedPackage.length - 1]!.definitions).filter(ref => ref instanceof O.OPackage) as O.OPackage[];
+    packages.push(...pkgInstantiations.flatMap(inst => inst.uninstantiatedPackage[inst.uninstantiatedPackage.length - 1]!.definitions).filter(ref => ref instanceof O.OPackage) as O.OPackage[]);
     for (const pkg of packages) {
       for (const decl of pkg.declarations) {
         if (decl.lexerToken.getLText() === reference.referenceToken.getLText()) {
@@ -242,10 +255,12 @@ export class ElaborateReferences {
     }
 
     // if nothing was found look in the fallback map
-    for (const obj of this.getList(reference, true)) {
-      // alias doesn't has aliasReferences but still referenceLinks
-      if (I.implementsIHasReference(obj) || obj instanceof O.OAlias) {
-        this.link(reference, obj);
+    if (reference.definitions.length === 0) {
+      for (const obj of this.getList(reference, true)) {
+        // alias doesn't has aliasReferences but still referenceLinks
+        if (I.implementsIHasReference(obj) || obj instanceof O.OAlias) {
+          this.link(reference, obj);
+        }
       }
     }
   }

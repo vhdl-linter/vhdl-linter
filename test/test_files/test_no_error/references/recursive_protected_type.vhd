@@ -13,6 +13,7 @@ package body pkg is
     function fu return rec is
       variable myRec: rec;
     begin
+      myRec.child := 1;
       return myRec;
     end function;
 
@@ -21,7 +22,8 @@ package body pkg is
       variable myRec: rec;
     begin
       var := myRec.child;
-      var := fu.child;
+      myRec := fu.child;
+      fu.child := var;
     end procedure;
 
   end protected body;
