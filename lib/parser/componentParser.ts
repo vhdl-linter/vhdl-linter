@@ -21,13 +21,11 @@ export class ComponentParser extends ParserBase {
         this.consumeToken();
         const interfaceListParser = new InterfaceListParser(this.state, component);
         interfaceListParser.parse(false);
-        component.portRange = new OIRange(component, savedI, this.state.pos.i);
         this.expect(';');
       } else if (nextToken.getLText() === 'generic') {
         this.consumeToken();
         const interfaceListParser = new InterfaceListParser(this.state, component);
         interfaceListParser.parse(true);
-        component.genericRange = new OIRange(component, savedI, this.state.pos.i);
         this.expect(';');
       } else if (nextToken.getLText() === 'end') {
         this.consumeToken();

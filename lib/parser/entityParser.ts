@@ -31,13 +31,11 @@ export class EntityParser extends ParserBase {
         this.consumeToken();
         const interfaceListParser = new InterfaceListParser(this.state, this.entity);
         interfaceListParser.parse(false);
-        this.entity.portRange = new OIRange(this.entity, savedI, this.state.pos.i);
         this.expect(';');
       } else if (nextToken.getLText() === 'generic') {
         this.consumeToken();
         const interfaceListParser = new InterfaceListParser(this.state, this.entity);
         interfaceListParser.parse(true);
-        this.entity.genericRange = new OIRange(this.entity, savedI, this.state.pos.i);
         this.expect(';');
       } else if (nextToken.getLText() === 'end') {
         this.consumeToken();

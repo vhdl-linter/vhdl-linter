@@ -12,7 +12,7 @@ export function foldingHandler(linter: VhdlLinter): FoldingRange[] {
       result.push(FoldingRange.create(obj.statementsRange.start.line, obj.statementsRange.end.line - 1));
     }
     if (obj instanceof O.OInstantiation || obj instanceof O.OAssociationList || obj instanceof O.OComponent || obj instanceof O.OCaseGenerate || obj instanceof O.OCase ||
-       (obj instanceof O.OType && (obj.protected || obj.protectedBody || obj instanceof O.ORecord))) {
+      (obj instanceof O.OType && (obj.protected || obj.protectedBody || obj instanceof O.ORecord))) {
       result.push(FoldingRange.create(obj.range.start.line, obj.range.end.line));
     }
     if (I.implementsIHasUseClause(obj) && I.implementsIHasLibraries(obj)) {
@@ -22,15 +22,11 @@ export function foldingHandler(linter: VhdlLinter): FoldingRange[] {
         result.push(FoldingRange.create(startLine, endLine, undefined, undefined, FoldingRangeKind.Imports));
       }
     }
-  }
-  for (const entity of linter.file.entities) {
-    if (entity !== undefined) {
-      if (entity.portRange) {
-        result.push(FoldingRange.create(entity.portRange.start.line, entity.portRange.end.line));
-      }
-      if (entity.genericRange) {
-        result.push(FoldingRange.create(entity.genericRange.start.line, entity.genericRange.end.line));
-      }
+    if (I.implementsIHasPorts(obj) && obj.portRange !== undefined) {
+      result.push(FoldingRange.create(obj.portRange.start.line, obj.portRange.end.line));
+    }
+    if (I.implementsIHasGenerics(obj) && obj.genericRange !== undefined) {
+      result.push(FoldingRange.create(obj.genericRange.start.line, obj.genericRange.end.line));
     }
   }
   return result;
