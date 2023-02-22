@@ -1,6 +1,6 @@
 import { OLexerToken } from "../lexer";
 import { OAttributeReference, ObjectBase, OFormalReference, OReference, OSelectedName, OSelectedNameWrite, OWrite, SelectedNamePrefix } from "./objects";
-import { ParserBase, ParserState } from "./parserBase";
+import { ParserState } from "./parserBase";
 interface ExpParserState {
   maybeOutput: boolean;
   maybeInOut: boolean;
