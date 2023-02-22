@@ -3,7 +3,7 @@ import { Elaborate } from '../elaborate/elaborate';
 import { OLexerToken } from '../lexer';
 import { implementsIHasEndingLexerToken, implementsIHasReference } from '../parser/interfaces';
 import { OArchitecture, ObjectBase, OComponent, OConfiguration, OEntity, OGeneric, OInstantiation, OPackage, OPackageBody, OPort, OSubprogram, OVariable } from '../parser/objects';
-import { VhdlLinter } from '../vhdl-linter';
+import { VhdlLinter } from '../vhdlLinter';
 import { findDefinitions } from './findDefinition';
 export function getTokenFromPosition(linter: VhdlLinter, position: Position, onlyDesignator = true): OLexerToken | undefined {
 

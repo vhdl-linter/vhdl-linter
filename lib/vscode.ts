@@ -5,15 +5,15 @@ import {
   ServerOptions,
   TransportKind
 } from 'vscode-languageclient/node';
-import { copy, CopyTypes } from './vhdl-entity-converter';
-import { IAddSignalCommandArguments, IIgnoreLineCommandArguments } from './vhdl-linter';
+import { copy, CopyTypes } from './vhdlEntityConverter';
+import { IAddSignalCommandArguments, IIgnoreLineCommandArguments } from './vhdlLinter';
 
 
 let client: LanguageClient;
 
 export async function activate(context: ExtensionContext) {
   // The server is implemented in node
-  const serverModule = require.resolve('./language-server');
+  const serverModule = require.resolve('./languageServer');
   // The debug options for the server
   // --inspect=6009: runs the server in Node's Inspector mode so VS Code can attach to the server for debugging
   const debugOptions = { execArgv: ['--nolazy', '--inspect=6011', '--enable-source-maps'] };

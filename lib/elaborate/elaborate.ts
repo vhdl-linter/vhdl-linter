@@ -1,14 +1,14 @@
 import { DiagnosticSeverity } from "vscode-languageserver/node";
 import { implementsIHasDefinitions, implementsIHasReference } from "../parser/interfaces";
 import { OArchitecture, OEntity, OFile, OPackage, OPackageBody } from "../parser/objects";
-import { VhdlLinter } from "../vhdl-linter";
-import { elaborateAliases } from "./elaborate-aliases";
-import { elaborateAssociations } from "./elaborate-association";
-import { elaborateComponents } from "./elaborate-components";
-import { elaborateConfigurations } from "./elaborate-configurations";
-import { elaborateInstantiations } from "./elaborate-instantiations";
-import { ElaborateReferences } from "./elaborate-references";
-import { elaborateUseClauses } from "./elaborate-use-clauses";
+import { VhdlLinter } from "../vhdlLinter";
+import { elaborateAliases } from "./elaborateAliases";
+import { elaborateAssociations } from "./elaborateAssociation";
+import { elaborateComponents } from "./elaborateComponents";
+import { elaborateConfigurations } from "./elaborateConfigurations";
+import { elaborateInstantiations } from "./elaborateInstantiations";
+import { ElaborateReferences } from "./elaborateReferences";
+import { elaborateUseClauses } from "./elaborateUseClauses";
 
 export class Elaborate {
   file: OFile;

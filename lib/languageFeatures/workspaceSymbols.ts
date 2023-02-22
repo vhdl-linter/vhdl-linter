@@ -1,6 +1,6 @@
 import { SymbolInformation, SymbolKind, WorkspaceSymbolParams } from 'vscode-languageserver';
 import { OEntity, OInstantiation, OPackage, OProcess, OSubprogram } from '../parser/objects';
-import { ProjectParser } from '../project-parser';
+import { ProjectParser } from '../projectParser';
 
 export function handleOnWorkspaceSymbol(params: WorkspaceSymbolParams, projectParser: ProjectParser): SymbolInformation[] | null {
 
