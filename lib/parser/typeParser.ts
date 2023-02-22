@@ -45,7 +45,7 @@ export class TypeParser extends ParserBase {
             this.consumeToken();
           }
           if (this.getToken().getLText() === ',') {
-            enumItems.push(this.getToken(1, true));
+            enumItems.push(this.getToken(-1, true));
           }
           if (this.getToken().getLText() === ')') {
             enumItems.push(this.getToken(-1, true));
