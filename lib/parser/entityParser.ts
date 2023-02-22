@@ -26,7 +26,6 @@ export class EntityParser extends ParserBase {
     while (this.state.pos.isValid()) {
       this.advanceWhitespace();
       const nextToken = this.getToken();
-      const savedI = this.state.pos.i;
       if (nextToken.getLText() === 'port') {
         this.consumeToken();
         const interfaceListParser = new InterfaceListParser(this.state, this.entity);
