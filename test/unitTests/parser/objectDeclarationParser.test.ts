@@ -21,7 +21,7 @@ test('Missing semicolon handling', async () => {
   const mockPath = {
     toString: () => `file:///dummy.vhd`
   };
-  const url = pathToFileURL(join(__dirname, 'object-declaration-parser.vhd'));
+  const url = pathToFileURL(join(__dirname, 'object_declaration_parser.vhd'));
 
   linter = new VhdlLinter(mockPath as URL, readFileSyncNorm(url, { encoding: 'utf8' }), projectParser, defaultSettingsGetter);
   messages = await linter.checkAll();
