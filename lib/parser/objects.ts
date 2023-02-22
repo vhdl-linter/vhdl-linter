@@ -352,7 +352,7 @@ export class OArchitecture extends OStatementBody implements I.IHasLexerToken, I
   lexerToken: OLexerToken;
   entityName: OLexerToken;
   endingLexerToken?: OLexerToken;
-
+  targetLibrary?: string;
 }
 export class OBlock extends OStatementBody implements I.IHasLabel {
   label: OLexerToken;
@@ -555,10 +555,12 @@ export class OInstantiation extends OReference implements I.IHasDefinitions, I.I
     super(parent, lexerToken);
   }
   definitions: (OEntity | OSubprogram | OComponent | OAliasWithSignature | OConfiguration)[] = [];
+  prefix: OLexerToken[] = [];
   componentName: OLexerToken;
   package?: OLexerToken;
   portAssociationList?: OPortAssociationList;
   genericAssociationList?: OGenericAssociationList;
+
   library?: OLibraryReference;
   archIdentifier?: OLexerToken;
   label?: OLexerToken;

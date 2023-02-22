@@ -212,6 +212,7 @@ export class FileParser extends ParserBase {
         useClausesPrepare = [];
       } else if (nextToken.getLText() === 'configuration') {
         const configuration = new OConfiguration(this.file, this.getToken().range.copyExtendEndOfLine());
+        configuration.targetLibrary = this.file.originalText.match(/!\s*@library\s+(\S+)/i)?.[1];
         configuration.lexerToken = this.consumeToken();
         this.expect('of');
         configuration.entityName = this.consumeToken();
