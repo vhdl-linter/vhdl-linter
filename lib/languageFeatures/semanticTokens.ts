@@ -37,7 +37,7 @@ function findDefinition(obj: O.ObjectBase) {
 }
 
 function pushCorrectToken(builder: SemanticTokensBuilder, obj: O.ObjectBase, range: O.OIRange, fixedModifiers: SemanticTokenModifiers[]) {
-  if (obj instanceof O.OArchitecture || obj instanceof O.OEntity || obj instanceof O.OPackage) {
+  if (obj instanceof O.OArchitecture || obj instanceof O.OEntity || obj instanceof O.OPackage || obj instanceof O.OPackageBody || obj instanceof O.OConfiguration) {
     pushToken(builder, obj.lexerToken.range, SemanticTokenTypes.class, [...fixedModifiers]);
   } else if (obj instanceof O.OEnum) {
     pushToken(builder, range, SemanticTokenTypes.enum, [...fixedModifiers, SemanticTokenModifiers.readonly]);
@@ -56,8 +56,6 @@ function pushCorrectToken(builder: SemanticTokensBuilder, obj: O.ObjectBase, ran
   } else if (obj instanceof O.OSignal || obj instanceof O.OVariable) {
     const modifiers = obj instanceof O.OWrite ? [SemanticTokenModifiers.modification] : [];
     pushToken(builder, range, SemanticTokenTypes.variable, [...fixedModifiers, ...modifiers]);
-  } else if (obj instanceof O.OEntity) {
-    pushToken(builder, range, SemanticTokenTypes.class, fixedModifiers);
   } else if (obj instanceof O.OSubprogram) {
     pushToken(builder, range, SemanticTokenTypes.function, fixedModifiers);
   }
