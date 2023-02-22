@@ -28,7 +28,11 @@ export function elaborateUseClauses(file: OFile, projectParser: ProjectParser, v
           for (const foundPkg of packageInstantiations) {
             if (foundPkg.lexerToken.getLText() === useClause.packageName.referenceToken.getLText()) {
               found = true;
-              const uninstantiatedPackage = packages.find(p => p.lexerToken.getLText() === foundPkg.uninstantiatedPackageToken.getLText());
+
+              const uninstantiatedPackage = packages.find(p => {
+                const lastToken = foundPkg.uninstantiatedPackage[foundPkg.uninstantiatedPackage.length - 1]!.referenceToken;
+                return p.lexerToken.getLText() === lastToken.getLText();
+              });
               if (uninstantiatedPackage) {
                 obj.packageDefinitions.push(uninstantiatedPackage);
                 useClause.definitions.push(uninstantiatedPackage);
@@ -44,7 +48,7 @@ export function elaborateUseClauses(file: OFile, projectParser: ProjectParser, v
             }
           }
         } else { // if using package directly, it is an instantiated package
-          const pkgInstantiations = [];
+          const pkgInstantiations: (OPackageInstantiation|OInterfacePackage)[] = [];
           // go through scope to find all package instantiations
           for (const [iterator] of scope(obj)) {
             if (implementsIHasDeclarations(iterator)) {
@@ -56,43 +60,25 @@ export function elaborateUseClauses(file: OFile, projectParser: ProjectParser, v
                   pkgInstantiations.push(generic);
                 }
               }
-
             }
           }
 
           const packageInstantiation = pkgInstantiations.find(inst => inst.lexerToken.getLText() === useClause.packageName.referenceToken.getLText());
+          found = true; // avoid general message
           if (!packageInstantiation) {
-            found = true;
             if (useClause.rootFile.uri === file.uri) {
               vhdlLinter.addMessage({
                 range: useClause.range,
                 severity: DiagnosticSeverity.Warning,
                 message: `could not find package instantiation for ${useClause.packageName.referenceToken.text}`
               }, 'elaborate');
-            } else {
-              vhdlLinter.addMessage({
-                range: obj.getRootElement().range.getLimitedRange(1),
-                severity: DiagnosticSeverity.Warning,
-                message: `could not find package instantiation for ${useClause.packageName.referenceToken.text} (in ${useClause.rootFile.uri.pathname})`
-              }, 'elaborate');
             }
             continue;
           }
           packageInstantiation.referenceLinks.push(useClause);
-          const uninstantiatedPackage = packages.filter(p => p instanceof OPackage).find(p => p.lexerToken.getLText() === packageInstantiation.uninstantiatedPackageToken.text.toLowerCase());
-          if (uninstantiatedPackage) {
-            obj.packageDefinitions.push(uninstantiatedPackage);
-            useClause.definitions.push(uninstantiatedPackage);
-
-            found = true;
-
-          } else {
-            vhdlLinter.addMessage({
-              range: useClause.range,
-              severity: DiagnosticSeverity.Warning,
-              message: `could not find uninstantiated package of package instantiation ${packageInstantiation.lexerToken.text}.`
-            }, 'elaborate');
-          }
+          useClause.definitions.push(packageInstantiation);
+          const uninstantiatedPackages = packageInstantiation.uninstantiatedPackage[packageInstantiation.uninstantiatedPackage.length - 1]!.definitions.filter(def => def instanceof OPackage) as OPackage[];
+          obj.packageDefinitions.push(...uninstantiatedPackages);
         }
         if (!found) {
           if (useClause.rootFile.uri === file.uri) {

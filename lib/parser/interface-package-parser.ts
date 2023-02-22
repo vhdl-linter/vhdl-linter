@@ -13,9 +13,7 @@ export class InterfacePackageParser extends ParserBase {
     inst.lexerToken = this.consumeToken();
     this.expect('is');
     this.expect('new');
-    this.consumeToken(); // ignore package library
-    this.expect('.');
-    inst.uninstantiatedPackageToken = this.consumeToken();
+    inst.uninstantiatedPackage = this.advanceSelectedName(inst);
     if (this.getToken().getLText() === 'generic') {
       this.consumeToken();
       this.expect('map');

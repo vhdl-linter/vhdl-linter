@@ -10,7 +10,7 @@ interface ExpParserState {
 }
 
 
-export class ExpressionParser extends ParserBase {
+export class ExpressionParser {
   private expState: ExpParserState = {
     num: 0,
     lastFormal: [],
@@ -18,9 +18,7 @@ export class ExpressionParser extends ParserBase {
     maybeOutput: false,
     maybeInOut: false
   };
-  constructor(state: ParserState, private parent: ObjectBase, private tokens: OLexerToken[]) {
-    super(state);
-    this.debug('start');
+  constructor(private state: ParserState, private parent: ObjectBase, private tokens: OLexerToken[]) {
   }
 
   parse(): OReference[] {
@@ -126,7 +124,7 @@ export class ExpressionParser extends ParserBase {
         containedBraces = true;
       } else {
         const breakTokens = [',', '=>',
-          'range', 'to', // range constraints
+          'range', 'to', 'downto', // range constraints
           '*', '/', 'mod', 'rem', // term
           'and', 'or', 'xor', 'nand', 'nor', 'xnor', //logical expression
           "=", "/=", "<", "<=", ">", ">=", "?=", "?/=", "?<", "?<=", "?>", "?>=", //relation

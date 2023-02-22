@@ -243,11 +243,10 @@ export class OFile {
   readonly rootFile = this; // Provided as a convenience to equalize to ObjectBase
 }
 
-export class OInterfacePackage extends OGeneric implements I.IHasReferenceLinks, I.IHasUseClauses, I.IHasContextReference, I.IHasLibraries, I.IHasLexerToken, I.IHasDefinitions {
+export class OInterfacePackage extends OGeneric implements I.IHasReferenceLinks, I.IHasUseClauses, I.IHasContextReference, I.IHasLibraries, I.IHasLexerToken {
   aliasReferences: OAlias[] = [];
   lexerToken: OLexerToken;
-  uninstantiatedPackageToken: OLexerToken;
-  definitions: OPackage[] = [];
+  uninstantiatedPackage: OReference[] = [];
   genericAssociationList?: OGenericAssociationList;
   referenceLinks: OReference[] = [];
   libraries: OLibrary[] = [];
@@ -255,11 +254,10 @@ export class OInterfacePackage extends OGeneric implements I.IHasReferenceLinks,
   packageDefinitions: OPackage[] = [];
   contextReferences: OContextReference[] = [];
 }
-export class OPackageInstantiation extends ObjectBase implements I.IHasReferenceLinks, I.IHasUseClauses, I.IHasContextReference, I.IHasLibraries, I.IHasLexerToken, I.IHasDefinitions {
+export class OPackageInstantiation extends ObjectBase implements I.IHasReferenceLinks, I.IHasUseClauses, I.IHasContextReference, I.IHasLibraries, I.IHasLexerToken {
   aliasReferences: OAlias[] = [];
   lexerToken: OLexerToken;
-  uninstantiatedPackageToken: OLexerToken;
-  definitions: OPackage[] = [];
+  uninstantiatedPackage: OReference[] = [];
   genericAssociationList?: OGenericAssociationList;
   referenceLinks: OReference[] = [];
   libraries: OLibrary[] = [];

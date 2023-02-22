@@ -207,5 +207,15 @@ export class ElaborateReferences {
     for (const typeDef of typeRefDefinitions) {
       this.elaborateTypeChildren(reference, typeDef);
     }
+
+    const pkgInstantiations = lastPrefix.definitions.filter(def => def instanceof O.OPackageInstantiation || def instanceof O.OInterfacePackage) as (O.OPackageInstantiation | O.OInterfacePackage)[];
+    const packages = pkgInstantiations.flatMap(inst => inst.uninstantiatedPackage[inst.uninstantiatedPackage.length - 1]!.definitions).filter(ref => ref instanceof O.OPackage) as O.OPackage[];
+    for (const pkg of packages) {
+      for (const decl of pkg.declarations) {
+        if (decl.lexerToken.getLText() === reference.referenceToken.getLText()) {
+          this.link(reference, decl);
+        }
+      }
+    }
   }
 }
