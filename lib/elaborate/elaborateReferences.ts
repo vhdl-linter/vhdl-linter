@@ -5,6 +5,10 @@ import { VhdlLinter } from "../vhdlLinter";
 export class ElaborateReferences {
   file: O.OFile;
   private scopeVisibilityMap = new Map<O.ObjectBase, Map<string, O.ObjectBase[]>>();
+  // the fallback map also includes record children and protected type content which usually is not visible
+  // however, we sometimes cannot infer the type correctly (e.g. return type of a function) and then fail to find an object correctly.
+  // Then, we can look in the fallback map and probably find it somewhere.
+  private fallbackVisibilityMap = new Map<O.ObjectBase, Map<string, O.ObjectBase[]>>();
   private projectVisibilityMap?: Map<string, O.ObjectBase[]> = undefined;
 
   private constructor(public vhdlLinter: VhdlLinter) {
@@ -51,77 +55,95 @@ export class ElaborateReferences {
     }
   }
 
+  addHiddenDeclarationsToMap(map: Map<string, O.ObjectBase[]>, obj: O.OType) {
+    for (const decl of obj.declarations) {
+      if (decl instanceof O.ORecord) {
+        this.addObjectsToMap(map, ...decl.children);
+      }
+      if (decl instanceof O.OType && decl.protectedBody) {
+        this.addObjectsToMap(map, ...decl.declarations);
+        this.addHiddenDeclarationsToMap(map, decl);
+      }
+    }
+  }
+
   fillVisibilityMap(parent: O.ObjectBase) {
-    const newMap = new Map<string, O.ObjectBase[]>();
-    this.scopeVisibilityMap.set(parent, newMap);
+    const visibilityMap = new Map<string, O.ObjectBase[]>();
+    const fallbackMap = new Map<string, O.ObjectBase[]>();
+    this.scopeVisibilityMap.set(parent, visibilityMap);
+    this.fallbackVisibilityMap.set(parent, fallbackMap);
     for (const [scopeObj] of O.scope(parent)) {
-      this.addObjectsToMap(newMap, scopeObj);
+      this.addObjectsToMap(visibilityMap, scopeObj);
       if (I.implementsIHasPorts(scopeObj)) {
-        this.addObjectsToMap(newMap, ...scopeObj.ports);
+        this.addObjectsToMap(visibilityMap, ...scopeObj.ports);
       }
       if (I.implementsIHasGenerics(scopeObj)) {
-        this.addObjectsToMap(newMap, ...scopeObj.generics);
+        this.addObjectsToMap(visibilityMap, ...scopeObj.generics);
       }
       if (I.implementsIHasDeclarations(scopeObj)) {
-        this.addObjectsToMap(newMap, ...scopeObj.declarations);
+        this.addObjectsToMap(visibilityMap, ...scopeObj.declarations);
         for (const type of scopeObj.declarations) {
           if (type instanceof O.OType) {
             if (type instanceof O.OEnum) {
-              this.addObjectsToMap(newMap, ...type.literals);
+              this.addObjectsToMap(visibilityMap, ...type.literals);
             }
             if (type.units !== undefined) {
-              this.addObjectsToMap(newMap, ...type.units);
+              this.addObjectsToMap(visibilityMap, ...type.units);
+            }
+            if (type.protected || type.protectedBody) {
+              this.addObjectsToMap(visibilityMap, ...type.declarations);
+              // also search for recursive record and protected types...
+              this.addHiddenDeclarationsToMap(fallbackMap, type);
+            }
+            if (type instanceof O.ORecord) {
+              this.addObjectsToMap(fallbackMap, ...type.declarations);
             }
           }
         }
       }
       if (I.implementsIHasLibraries(scopeObj)) {
-        this.addObjectsToMap(newMap, ...scopeObj.libraries);
+        this.addObjectsToMap(visibilityMap, ...scopeObj.libraries);
       }
     }
   }
 
-  fillProjectMap() {
-    const projectParser = this.vhdlLinter.projectParser;
-    this.projectVisibilityMap = new Map();
-    this.addObjectsToMap(this.projectVisibilityMap, ...projectParser.packages);
-    for (const pkg of projectParser.packages) {
-      this.fillVisibilityMap(pkg);
+  getProjectList(searchText: string) {
+    if (this.projectVisibilityMap === undefined) {
+      const projectParser = this.vhdlLinter.projectParser;
+      this.projectVisibilityMap = new Map();
+      this.addObjectsToMap(this.projectVisibilityMap, ...projectParser.packages);
+      for (const pkg of projectParser.packages) {
+        this.fillVisibilityMap(pkg);
+      }
     }
+    return this.projectVisibilityMap?.get(searchText) ?? [];
   }
 
-  // reference is undefined -> find objects in projectParser
-  // reference is OReference -> find parent with visibility
-  // reference is other ObjectBase -> search this object in visibility map
-  getList(object: O.ObjectBase | O.OReference | undefined, searchText: string) {
-    // find parent with visibility of reference
-    if (object === undefined) {
-      if (this.projectVisibilityMap === undefined) {
-        this.fillProjectMap();
+  getList(reference: O.OReference, fallback = false) {
+    // find parent which has declarations to use as key
+    let key = reference.parent;
+    for (const [p] of O.scope(reference)) {
+      if (I.implementsIHasDeclarations(p)) {
+        key = p;
+        break;
       }
-      return this.projectVisibilityMap?.get(searchText) ?? [];
+    }
+
+    if (!this.scopeVisibilityMap.has(key)) {
+      this.fillVisibilityMap(key);
+    }
+    const list = this.scopeVisibilityMap.get(key);
+    if (list === undefined) {
+      throw new Error('no map found');
+    }
+    const searchText = reference.referenceToken.getLText();
+    if (fallback) {
+      const fallbackList = this.fallbackVisibilityMap.get(key);
+      if (fallbackList === undefined) {
+        throw new Error('no fallback map found');
+      }
+      return (list.get(searchText) ?? []).concat(fallbackList.get(searchText) ?? []);
     } else {
-      // if reference: find parent which has declarations to use as key
-      let key: O.ObjectBase;
-      if (object instanceof O.OReference) {
-        key = object.parent;
-        for (const [p] of O.scope(object)) {
-          if (I.implementsIHasDeclarations(p)) {
-            key = p;
-            break;
-          }
-        }
-      } else {
-        key = object;
-      }
-
-      if (!this.scopeVisibilityMap.has(key)) {
-        this.fillVisibilityMap(key);
-      }
-      const list = this.scopeVisibilityMap.get(key);
-      if (list === undefined) {
-        throw new Error('no map found');
-      }
       return list.get(searchText) ?? [];
     }
   }
@@ -145,11 +167,10 @@ export class ElaborateReferences {
       obj.referenceLinks.push(reference);
     }
     this.castToRead(reference);
-
   }
 
   elaborateReference(reference: O.OReference) {
-    for (const obj of this.getList(reference, reference.referenceToken.getLText())) {
+    for (const obj of this.getList(reference)) {
       // alias doesn't has aliasReferences but still referenceLinks
       if (I.implementsIHasReference(obj) || obj instanceof O.OAlias) {
         this.link(reference, obj);
@@ -196,7 +217,7 @@ export class ElaborateReferences {
     const lastPrefix = reference.prefixTokens[reference.prefixTokens.length - 1]!;
     // last token is library -> expect a package
     if (lastPrefix.definitions.some(def => def instanceof O.OLibrary)) {
-      for (const pkg of this.getList(undefined, reference.referenceToken.getLText())) {
+      for (const pkg of this.getProjectList(reference.referenceToken.getLText())) {
         if (pkg instanceof O.OPackage) {
           this.link(reference, pkg);
         }
@@ -215,6 +236,14 @@ export class ElaborateReferences {
         if (decl.lexerToken.getLText() === reference.referenceToken.getLText()) {
           this.link(reference, decl);
         }
+      }
+    }
+
+    // if nothing was found look in the fallback map
+    for (const obj of this.getList(reference, true)) {
+      // alias doesn't has aliasReferences but still referenceLinks
+      if (I.implementsIHasReference(obj) || obj instanceof O.OAlias) {
+        this.link(reference, obj);
       }
     }
   }
