@@ -1,5 +1,5 @@
 context test_contextA is
-  library test_03_library;
+  library test_library;
 
-  context test_03_library.test_ContextB;
+  context test_library.test_ContextB;
 end context;
