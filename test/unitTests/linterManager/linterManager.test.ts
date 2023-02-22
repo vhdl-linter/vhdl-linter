@@ -7,12 +7,12 @@ import { ProjectParser } from '../../../lib/projectParser';
 import { defaultSettingsGetter } from '../../../lib/settings';
 import * as vhdlModule from '../../../lib/vhdlLinter';
 
-jest.mock('../../../lib/vhdl-linter');
+jest.mock('../../../lib/vhdlLinter');
 jest.mock('../../../lib/elaborate/elaborate');
 beforeEach(() => {
   jest.resetAllMocks();
 });
-jest.mock('../../../lib/project-parser');
+jest.mock('../../../lib/projectParser');
 
 async function triggerWrapper(linterManager: LinterManager, uri: string, text: string, projectParser: ProjectParser, parsedSuccessfully: boolean, delayElaborate?: number) {
   jest.spyOn(Elaborate, 'elaborate').mockImplementationOnce(() => {

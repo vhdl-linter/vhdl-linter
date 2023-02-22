@@ -23,7 +23,7 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 // jest.mock('vscode-languageserver');
-jest.mock('../../../lib/language-server', () => {
+jest.mock('../../../lib/languageServer', () => {
   return {
     documents: {
       get: () => {
@@ -59,8 +59,8 @@ jest.mock('fs', () => {
     }
   };
 });
-jest.mock('../../../lib/project-parser', () => {
-  const originalModule = jest.requireActual('../../../lib/project-parser') as any;
+jest.mock('../../../lib/projectParser', () => {
+  const originalModule = jest.requireActual('../../../lib/projectParser') as any;
   return {
     __esModule: true,
     ...originalModule,
