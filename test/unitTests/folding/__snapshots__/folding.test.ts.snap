@@ -1,5 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`Testing folding ranges of configuration.vhd 1`] = `
+[
+  {
+    "endLine": 3,
+    "startLine": 0,
+  },
+]
+`;
+
 exports[`Testing folding ranges of test_alias.vhd 1`] = `
 [
   {
