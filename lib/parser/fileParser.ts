@@ -113,6 +113,7 @@ export class FileParser extends ParserBase {
     // store use clauses to be attached to the next design unit
     let useClausesPrepare: [OLexerToken, OLexerToken, OLexerToken][] = [];
     const getUseClauses = (parent: ObjectBase) => {
+      // always add `use std.standard.all;`
       return [
         new OUseClause(parent, new OLibraryReference(parent, new OLexerToken('std', new OIRange(this.file, 0, 0), TokenType.implicit, this.file)),
           new OReference(parent, new OLexerToken('standard', new OIRange(this.file, 0, 0), TokenType.implicit, this.file)),

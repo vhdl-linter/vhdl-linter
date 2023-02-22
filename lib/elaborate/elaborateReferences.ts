@@ -123,7 +123,7 @@ export class ElaborateReferences {
     // find parent which has declarations to use as key
     let key = reference.parent;
     for (const [p] of O.scope(reference)) {
-      if (I.implementsIHasDeclarations(p) || I.implementsIHasLabel(p)) {
+      if (I.implementsIHasDeclarations(p) || I.implementsIHasLabel(p) || p instanceof O.OPackageInstantiation) {
         key = p;
         break;
       }
