@@ -17,6 +17,13 @@ export class ElaborateReferences {
   public static elaborate(vhdlLinter: VhdlLinter) {
     const elaborator = new ElaborateReferences(vhdlLinter);
     for (const obj of vhdlLinter.file.objectList) {
+      if (I.implementsIHasUseClause(obj)) {
+        // TODO: first link architectures to entities etc.
+        for (const useClause of obj.useClauses) {
+          elaborator.elaborateUseClause(useClause);
+        }
+      }
+
       if (obj instanceof O.OFormalReference) {
         continue;
       }
@@ -27,9 +34,6 @@ export class ElaborateReferences {
         } else {
           elaborator.elaborateReference(obj);
         }
-      }
-      if (obj instanceof O.OUseClause) {
-        elaborator.elaborateUseClause(obj);
       }
     }
   }
@@ -278,16 +282,18 @@ export class ElaborateReferences {
   elaborateUseClause(useClause: O.OUseClause) {
     // if library is defined, uses a "normal" Package; i.e. not an uninstantiated package
     // or an instantiated package
+    let clearVisibilityMap = false;
     if (useClause.library !== undefined) {
       for (const obj of this.getProjectList(useClause.packageName.referenceToken.getLText())) {
         if (obj instanceof O.OPackage) {
           useClause.parent.packageDefinitions.push(obj);
           useClause.definitions.push(obj);
           obj.referenceLinks.push(useClause);
+          // the scope was magically changed -> clear the visibility map
+          clearVisibilityMap = true;
         }
       }
     } else {
-      let clearVisibilityMap = false;
       for (const obj of this.getList(useClause.packageName)) {
         if (obj instanceof O.OPackageInstantiation || obj instanceof O.OInterfacePackage) {
           const packageDefinitions = obj.uninstantiatedPackage[obj.uninstantiatedPackage.length - 1]!.definitions.filter(ref => ref instanceof O.OPackage) as O.OPackage[];
@@ -298,9 +304,9 @@ export class ElaborateReferences {
           clearVisibilityMap = true;
         }
       }
-      if (clearVisibilityMap) {
-        this.scopeVisibilityMap.clear();
-      }
+    }
+    if (clearVisibilityMap) {
+      this.scopeVisibilityMap.clear();
     }
   }
 }

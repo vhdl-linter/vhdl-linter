@@ -1,9 +1,10 @@
 import { OLexerToken } from '../lexer';
+import { IHasUseClauses } from './interfaces';
 import { ObjectBase, OLibraryReference, OReference, OUseClause } from './objects';
 import { ParserBase, ParserState } from './parserBase';
 
 export class UseClauseParser extends ParserBase {
-  constructor(state: ParserState, private parent: ObjectBase) {
+  constructor(state: ParserState, private parent: ObjectBase & IHasUseClauses) {
     super(state);
     this.debug(`start`);
   }
