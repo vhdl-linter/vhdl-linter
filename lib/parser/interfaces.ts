@@ -117,3 +117,10 @@ export interface IHasStatements {
 export function implementsIHasStatements(obj: O.ObjectBase): obj is O.ObjectBase & IHasStatements {
   return Array.isArray((obj as O.ObjectBase & Partial<IHasStatements>).statements);
 }
+
+export interface IHasUndeclaredHint {
+  notDeclaredHint: string;
+}
+export function implementsIHasUndeclaredHint(obj: O.ObjectBase): obj is O.ObjectBase & IHasUndeclaredHint {
+  return (obj as O.ObjectBase & Partial<IHasUndeclaredHint>).notDeclaredHint !== undefined;
+}

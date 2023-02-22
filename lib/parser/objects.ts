@@ -219,6 +219,8 @@ export class OReference extends ObjectBase implements I.IHasDefinitions, I.IHasR
     super(parent, range ?? referenceToken.range);
   }
 }
+export class OLabelReference extends OReference {
+}
 export class OFormalReference extends OReference {
 
 }
@@ -684,13 +686,6 @@ export class OAssignment extends ObjectBase implements I.IMayHaveLabel {
   references: OReference[] = [];
   postponed = false;
   guarded = false;
-}
-export class OLabelReference extends ObjectBase {
-  definitions: ObjectBase[] = [];
-  lexerToken: undefined;
-  constructor(public parent: ObjectBase, public referenceToken: OLexerToken, range?: OIRange) {
-    super(parent, range ?? referenceToken.range);
-  }
 }
 export class OExit extends ObjectBase implements I.IMayHaveLabel {
   label?: OLexerToken;

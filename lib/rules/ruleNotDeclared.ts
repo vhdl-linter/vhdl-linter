@@ -1,6 +1,6 @@
 import { findBestMatch } from "string-similarity";
 import { CodeAction, CodeActionKind, Command, DiagnosticSeverity, Range, TextEdit } from "vscode-languageserver";
-import { IHasLexerToken, implementsIHasLexerToken } from "../parser/interfaces";
+import { IHasLexerToken, implementsIHasLexerToken, implementsIHasUndeclaredHint as implementsIHasNotDeclaredHint } from "../parser/interfaces";
 import { OArchitecture, OAssociation, OAttributeReference, OComponent, OFormalReference, OInstantiation, OLabelReference, OLibraryReference, OPackageBody, OPort, OReference, OSignal, OUseClause, OVariable, OWrite } from "../parser/objects";
 import { IAddSignalCommandArguments } from "../vhdlLinter";
 import { IRule, RuleBase } from "./rulesBase";
@@ -90,7 +90,7 @@ export class RuleNotDeclared extends RuleBase implements IRule {
       code,
       range: token.range,
       severity: DiagnosticSeverity.Error,
-      message: `signal '${token.referenceToken.text}' is ${token instanceof OWrite ? 'written' : 'referenced'} but not declared`
+      message: implementsIHasNotDeclaredHint(token) ? token.notDeclaredHint : `signal '${token.referenceToken.text}' is ${token instanceof OWrite ? 'written' : 'referenced'} but not declared`
     });
   }
   private pushAssociationError(reference: OReference) {

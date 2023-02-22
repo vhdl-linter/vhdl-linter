@@ -5,10 +5,11 @@ import { VhdlLinter } from "../vhdlLinter";
 export class ElaborateReferences {
   file: O.OFile;
   private scopeVisibilityMap = new Map<O.ObjectBase, Map<string, O.ObjectBase[]>>();
-  // the fallback map also includes record children and protected type content which usually is not visible
+  // the fallback map includes record children and protected type content which usually is not visible
   // however, we sometimes cannot infer the type correctly (e.g. return type of a function) and then fail to find an object correctly.
   // Then, we can look in the fallback map and probably find it somewhere.
   private fallbackVisibilityMap = new Map<O.ObjectBase, Map<string, O.ObjectBase[]>>();
+  // the project visibility map includes packages that are visible in the project
   private projectVisibilityMap?: Map<string, O.ObjectBase[]> = undefined;
 
   private constructor(public vhdlLinter: VhdlLinter) {
@@ -123,7 +124,7 @@ export class ElaborateReferences {
     // find parent which has declarations to use as key
     let key = reference.parent;
     for (const [p] of O.scope(reference)) {
-      if (I.implementsIHasDeclarations(p)) {
+      if (I.implementsIHasDeclarations(p) || I.implementsIHasLabel(p)) {
         key = p;
         break;
       }
@@ -171,8 +172,12 @@ export class ElaborateReferences {
 
   elaborateReference(reference: O.OReference) {
     for (const obj of this.getList(reference)) {
+      // if (obj instanceof O.OPackage) {
+      //   // packages can only be referenced with lib.pkg!
+      //   continue;
+      // }
       // alias doesn't has aliasReferences but still referenceLinks
-      if (I.implementsIHasReference(obj) || obj instanceof O.OAlias) {
+      if (I.implementsIHasReference(obj) || obj instanceof O.OAlias || I.implementsIHasLabel(obj)) {
         this.link(reference, obj);
       }
     }
@@ -199,11 +204,8 @@ export class ElaborateReferences {
         }
       }
       if (found === false) {
-        this.vhdlLinter.addMessage({
-          message: `${selectedName.referenceToken.text} does not exist on ${typeDefinition instanceof O.ORecord ? 'record' : 'protected type'} ${typeDefinition.lexerToken.text}`,
-          range: selectedName.referenceToken.range,
-          severity: DiagnosticSeverity.Error
-        }, 'elaborate');
+        // add a hint for the notDeclared rule to give a more detailed error message
+        (selectedName as O.ObjectBase & Partial<I.IHasUndeclaredHint>).notDeclaredHint = `${selectedName.referenceToken.text} does not exist on ${typeDefinition instanceof O.ORecord ? 'record' : 'protected type'} ${typeDefinition.lexerToken.text}`;
       }
     } else if (typeDefinition instanceof O.OArray) {
       for (const def of typeDefinition.elementType.flatMap(r => r.definitions)) {
