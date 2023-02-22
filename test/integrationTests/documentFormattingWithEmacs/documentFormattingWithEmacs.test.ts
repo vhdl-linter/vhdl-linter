@@ -13,7 +13,7 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 // jest.mock('vscode-languageserver');
-jest.mock('../../../lib/language-server', () => {
+jest.mock('../../../lib/languageServer', () => {
   return {
     documents: {
       get: jest.fn()
