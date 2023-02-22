@@ -24,3 +24,11 @@ Currently working for instantiation of:
 Signature help is not yet supported for calling of functions.
 ![rename](./doc/signature-help.png)
 ![rename2](./doc/signature-help2.png)
+
+## Region Folding
+Fold regions according to the file content:
+- declarations
+- statements
+- useclauses (incl. library)
+- interface lists
+- special blocks like instantiations, association lists, case (generate), types (record and protected)
