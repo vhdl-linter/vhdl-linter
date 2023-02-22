@@ -1,4 +1,5 @@
 module.exports = {
+  ignorePatterns: ["dist/**", '*.js'],
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
@@ -27,8 +28,10 @@ module.exports = {
     '@typescript-eslint/no-non-null-assertion': 'off',
     'check-file/filename-naming-convention': [
       'error',
-      { '*.ts': 'CAMEL_CASE',
-    '*.vhd': 'SNAKE_CASE' },
+      {
+        '**/*.ts': 'CAMEL_CASE',
+        '**/*.vhd': 'SNAKE_CASE'
+      },
       { ignoreMiddleExtensions: true, }],
     'check-file/folder-naming-convention': [
       'error',
@@ -36,7 +39,7 @@ module.exports = {
         'lib/**/': 'CAMEL_CASE',
         'test/**/': 'CAMEL_CASE'
       },
-     ],
+    ],
 
   }
 };
