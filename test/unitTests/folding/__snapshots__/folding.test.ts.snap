@@ -133,12 +133,12 @@ exports[`Testing folding ranges of test_if_else_generate.vhd 1`] = `
     "startLine": 7,
   },
   {
-    "endLine": 24,
+    "endLine": 16,
     "startLine": 9,
   },
   {
-    "endLine": 14,
-    "startLine": 13,
+    "endLine": 12,
+    "startLine": 11,
   },
   {
     "endLine": 0,
@@ -146,8 +146,8 @@ exports[`Testing folding ranges of test_if_else_generate.vhd 1`] = `
     "startLine": Infinity,
   },
   {
-    "endLine": 22,
-    "startLine": 16,
+    "endLine": 14,
+    "startLine": 13,
   },
   {
     "endLine": 0,
@@ -231,20 +231,20 @@ exports[`Testing folding ranges of test_process.vhd 1`] = `
     "startLine": 5,
   },
   {
-    "endLine": 10,
+    "endLine": 11,
     "startLine": 10,
   },
   {
-    "endLine": 19,
-    "startLine": 11,
+    "endLine": 20,
+    "startLine": 12,
   },
   {
-    "endLine": 13,
-    "startLine": 13,
-  },
-  {
-    "endLine": 17,
+    "endLine": 14,
     "startLine": 14,
+  },
+  {
+    "endLine": 18,
+    "startLine": 15,
   },
 ]
 `;
@@ -699,24 +699,6 @@ exports[`Testing folding ranges of test_subprogram.vhd 1`] = `
   {
     "endLine": 11,
     "startLine": 10,
-  },
-]
-`;
-
-exports[`Testing folding ranges of test_subprogramInterface.vhd 1`] = `
-[
-  {
-    "endLine": 8,
-    "startLine": 4,
-  },
-  {
-    "endLine": 2,
-    "kind": "imports",
-    "startLine": 0,
-  },
-  {
-    "endLine": 8,
-    "startLine": 5,
   },
 ]
 `;
