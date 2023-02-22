@@ -2,7 +2,7 @@ import { CompletionItem, CompletionItemKind, Position } from 'vscode-languageser
 import { reservedWords } from '../lexer';
 import { IHasLexerToken, IHasTypeReference, implementsIHasDeclarations, implementsIHasGenerics, implementsIHasPorts, implementsIHasTypeReference } from '../parser/interfaces';
 import { OAlias, OAliasWithSignature, OAttributeSpecification, ObjectBase, OConfiguration, OConstant, OEnum, OFileVariable, OGenericAssociationList, ORecord, OReference, OSelectedNameRead, OSelectedNameWrite, OSignal, OSubprogram, OType, OVariable, scope } from '../parser/objects';
-import { VhdlLinter } from '../vhdl-linter';
+import { VhdlLinter } from '../vhdlLinter';
 import { findObjectFromPosition } from './findObjects';
 import { getTokenFromPosition } from './findReferencesHandler';
 import { findParentInstantiation } from './helper/findParentInstantiation';

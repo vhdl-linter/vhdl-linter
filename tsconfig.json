@@ -12,5 +12,5 @@
         "jsx": "react",
         "lib": ["ES2021", "DOM"]
     },
-    "include": ["lib/**/*", "test/**/*", "generate-settings.ts"]
+    "include": ["lib/**/*", "test/**/*", "generateSettings.ts"]
 }

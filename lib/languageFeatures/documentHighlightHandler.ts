@@ -2,7 +2,7 @@ import { DocumentHighlight, DocumentHighlightKind, TextDocumentPositionParams } 
 import { OLexerToken } from '../lexer';
 import { IHasLexerToken, IHasReferenceToken, implementsIHasLexerToken, implementsIHasReferenceToken } from '../parser/interfaces';
 import { ObjectBase, OWrite } from '../parser/objects';
-import { VhdlLinter } from '../vhdl-linter';
+import { VhdlLinter } from '../vhdlLinter';
 import { findObjectFromPosition } from './findObjects';
 
 export function documentHighlightHandler(linter: VhdlLinter, params: TextDocumentPositionParams): DocumentHighlight[] {
