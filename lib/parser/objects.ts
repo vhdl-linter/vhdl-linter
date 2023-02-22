@@ -258,7 +258,7 @@ export class OInterfacePackage extends OGeneric implements I.IHasReferenceLinks,
 export class OPackageInstantiation extends ObjectBase implements I.IHasReferenceLinks, I.IHasUseClauses, I.IHasContextReference, I.IHasLibraries, I.IHasLexerToken, I.IHasDefinitions {
   aliasReferences: OAlias[] = [];
   lexerToken: OLexerToken;
-  uninstantiatedPackage: OReference[] = [];
+  uninstantiatedPackageToken: OLexerToken;
   definitions: OPackage[] = [];
   genericAssociationList?: OGenericAssociationList;
   referenceLinks: OReference[] = [];
