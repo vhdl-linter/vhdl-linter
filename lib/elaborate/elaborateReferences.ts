@@ -251,6 +251,13 @@ export class ElaborateReferences {
         if (decl.lexerToken.getLText() === reference.referenceToken.getLText()) {
           this.link(reference, decl);
         }
+        if (decl instanceof O.OEnum) {
+          for (const enumLiteral of decl.literals) {
+            if (enumLiteral.lexerToken.getLText() === reference.referenceToken.getLText()) {
+              this.link(reference, enumLiteral);
+            }
+          }
+        }
       }
     }
 
