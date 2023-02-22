@@ -2,7 +2,7 @@ import { Position } from "vscode-languageserver";
 import { OLexerToken } from "../lexer";
 import { implementsIHasEndingLexerToken, implementsIHasLexerToken } from "../parser/interfaces";
 import { OArchitecture, OAssociation, ObjectBase, OComponent, OConfiguration, OInstantiation, OReference, OUseClause } from "../parser/objects";
-import { VhdlLinter } from "../vhdl-linter";
+import { VhdlLinter } from "../vhdlLinter";
 import { SetAdd } from "./findReferencesHandler";
 
 export function findObjectFromPosition(linter: VhdlLinter, position: Position): ObjectBase[] {

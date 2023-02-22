@@ -1,7 +1,7 @@
 import { SemanticTokenModifiers, SemanticTokens, SemanticTokensBuilder, SemanticTokensLegend, SemanticTokenTypes } from "vscode-languageserver";
 import { implementsIHasDefinitions, implementsIHasLexerToken, implementsIHasReferenceToken } from "../parser/interfaces";
 import { ObjectBase, OConstant, OEntity, OEnum, OEnumLiteral, OGeneric, OInstantiation, OIRange, OPort, ORecord, ORecordChild, OSignal, OSubprogram, OType, OVariable, OWrite } from "../parser/objects";
-import { VhdlLinter } from "../vhdl-linter";
+import { VhdlLinter } from "../vhdlLinter";
 
 export const semanticTokensLegend: SemanticTokensLegend = {
   tokenTypes: Object.values(SemanticTokenTypes),

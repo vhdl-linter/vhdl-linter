@@ -1,7 +1,7 @@
 import { DefinitionLink, Position } from "vscode-languageserver";
 import { implementsIHasDefinitions, implementsIHasLexerToken } from "../parser/interfaces";
 import { OArchitecture, ObjectBase, OConfiguration, OPackage, OPackageBody, ORecordChild, OSubprogram } from "../parser/objects";
-import { VhdlLinter } from "../vhdl-linter";
+import { VhdlLinter } from "../vhdlLinter";
 import { findObjectByDesignator } from "./findObjects";
 import { getTokenFromPosition, SetAdd } from "./findReferencesHandler";
 

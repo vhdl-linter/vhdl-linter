@@ -1,7 +1,7 @@
 import { DocumentSymbol, SymbolKind } from 'vscode-languageserver';
 import { implementsIHasDeclarations, implementsIHasStatements } from '../parser/interfaces';
 import { OAlias, OArchitecture, ObjectBase, OBlock, OCase, OCaseGenerate, OConstant, OElseGenerateClause, OEntity, OFile, OForGenerate, OIf, OIfGenerate, OIfGenerateClause, OInstantiation, OPackage, OPackageBody, OProcess, ORecord, OSequentialStatement, OStatementBody, OSubprogram, OType, OWhenClause, OWhenGenerateClause } from '../parser/objects';
-import { VhdlLinter } from '../vhdl-linter';
+import { VhdlLinter } from '../vhdlLinter';
 
 
 export class DocumentSymbols {

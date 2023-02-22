@@ -5,8 +5,8 @@ import {
   ServerOptions,
   TransportKind
 } from 'vscode-languageclient/node';
-import { copy, CopyTypes } from './vhdl-entity-converter';
-import { IAddSignalCommandArguments, IIgnoreLineCommandArguments } from './vhdl-linter';
+import { copy, CopyTypes } from './vhdlEntityConverter';
+import { IAddSignalCommandArguments, IIgnoreLineCommandArguments } from './vhdlLinter';
 
 
 let client: LanguageClient;

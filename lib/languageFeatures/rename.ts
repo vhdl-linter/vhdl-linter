@@ -1,5 +1,5 @@
 import { ErrorCodes, Position, ResponseError, TextEdit } from 'vscode-languageserver';
-import { VhdlLinter } from "../vhdl-linter";
+import { VhdlLinter } from "../vhdlLinter";
 import { findReferenceAndDefinition, getTokenFromPosition } from "./findReferencesHandler";
 
 export function prepareRenameHandler(linter: VhdlLinter, position: Position) {

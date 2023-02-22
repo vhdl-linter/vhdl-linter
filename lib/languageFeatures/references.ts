@@ -1,7 +1,7 @@
 import { Position } from 'vscode';
 import { Location } from 'vscode-languageserver';
 import { OReference } from '../parser/objects';
-import { VhdlLinter } from '../vhdl-linter';
+import { VhdlLinter } from '../vhdlLinter';
 
 export function handleReferences (linter: VhdlLinter, position: Position): Location[] {
 
