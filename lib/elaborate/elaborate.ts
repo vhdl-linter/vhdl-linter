@@ -8,7 +8,6 @@ import { elaborateComponents } from "./elaborateComponents";
 import { elaborateConfigurations } from "./elaborateConfigurations";
 import { elaborateInstantiations } from "./elaborateInstantiations";
 import { ElaborateReferences } from "./elaborateReferences";
-import { elaborateUseClauses } from "./elaborateUseClauses";
 
 export class Elaborate {
   file: OFile;
@@ -87,12 +86,6 @@ export class Elaborate {
 
       }
     }
-    //     console.log(packages);
-    elaborateUseClauses(this.file, this.vhdlLinter.projectParser, this.vhdlLinter);
-    await this.vhdlLinter.handleCanceled();
-    //     console.log(packages);
-    // elaborateReferences(this.file);
-
 
     // console.log(`elaboration: reads for: ${Date.now() - start} ms.`);
     // start = Date.now();

@@ -730,7 +730,7 @@ export class OSelectedName extends OReference {
   }
 }
 export class OUseClause extends OSelectedName implements I.IHasLibraryReference {
-  constructor(public parent: ObjectBase, public library: OLibraryReference | undefined, public packageName: OReference, public suffix: OLexerToken) {
+  constructor(public parent: ObjectBase & I.IHasUseClauses, public library: OLibraryReference | undefined, public packageName: OReference, public suffix: OLexerToken) {
     super(parent, packageName.referenceToken, library ? [library, packageName] : [packageName]);
     if (library) {
       library.parent = this;
