@@ -87,8 +87,8 @@ export class Elaborate {
       }
     }
 
-    // console.log(`elaboration: reads for: ${Date.now() - start} ms.`);
-    // start = Date.now();
+    await this.vhdlLinter.handleCanceled();
+    ElaborateReferences.elaborate(this.vhdlLinter);
     await this.vhdlLinter.handleCanceled();
     elaborateComponents(this.file, this.vhdlLinter.projectParser);
     await this.vhdlLinter.handleCanceled();
@@ -96,21 +96,12 @@ export class Elaborate {
     await this.vhdlLinter.handleCanceled();
     elaborateConfigurations(this.file, this.vhdlLinter.projectParser);
 
-    // console.log(`elaboration: instantiations for: ${Date.now() - start} ms.`);
-    // start = Date.now();
     await this.vhdlLinter.handleCanceled();
 
-    // console.log(`elaboration: components for: ${Date.now() - start} ms.`);
-    // const start = Date.now();
-    await this.vhdlLinter.handleCanceled();
-    ElaborateReferences.elaborate(this.vhdlLinter);
-    // console.log(`elaboration: references: ${Date.now() - start} ms.`);
     await this.vhdlLinter.handleCanceled();
     elaborateAssociations(this.file);
     await this.vhdlLinter.handleCanceled();
     elaborateAliases(this.file);
-    // console.log(`elaboration: associations for: ${Date.now() - start} ms.`);
-    // start = Date.now();
     await this.vhdlLinter.handleCanceled();
 
   }

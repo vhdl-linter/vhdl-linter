@@ -18,10 +18,12 @@ export class ElaborateReferences {
     const elaborator = new ElaborateReferences(vhdlLinter);
     for (const obj of vhdlLinter.file.objectList) {
       if (I.implementsIHasUseClause(obj)) {
-        // TODO: first link architectures to entities etc.
         for (const useClause of obj.useClauses) {
           elaborator.elaborateUseClause(useClause);
         }
+      }
+      if (obj instanceof O.OContextReference) {
+        elaborator.elaborateContextReference(obj);
       }
 
       if (obj instanceof O.OFormalReference) {
@@ -122,6 +124,7 @@ export class ElaborateReferences {
         this.fillVisibilityMap(pkg);
       }
       this.addObjectsToMap(this.projectVisibilityMap, ...projectParser.packageInstantiations);
+      this.addObjectsToMap(this.projectVisibilityMap, ...projectParser.contexts);
     }
     return this.projectVisibilityMap?.get(searchText) ?? [];
   }
@@ -280,8 +283,7 @@ export class ElaborateReferences {
   }
 
   elaborateUseClause(useClause: O.OUseClause) {
-    // if library is defined, uses a "normal" Package; i.e. not an uninstantiated package
-    // or an instantiated package
+    // the scope changes when finding use clause -> clear the visibility map
     let clearVisibilityMap = false;
     if (useClause.library !== undefined) {
       for (const obj of this.getProjectList(useClause.packageName.referenceToken.getLText())) {
@@ -289,7 +291,17 @@ export class ElaborateReferences {
           useClause.parent.packageDefinitions.push(obj);
           useClause.definitions.push(obj);
           obj.referenceLinks.push(useClause);
-          // the scope was magically changed -> clear the visibility map
+          clearVisibilityMap = true;
+        }
+        if (obj instanceof O.OPackageInstantiation) {
+          const uninstantiatedPackage = obj.uninstantiatedPackage[obj.uninstantiatedPackage.length - 1]!;
+          // manually elaborate the uninstantiated package:
+          const packageDefinitions = this.getProjectList(uninstantiatedPackage.referenceToken.getLText()).filter(def => def instanceof O.OPackage) as O.OPackage[];
+          uninstantiatedPackage.definitions = packageDefinitions;
+
+          useClause.parent.packageDefinitions.push(...packageDefinitions);
+          useClause.definitions.push(obj);
+          obj.referenceLinks.push(useClause);
           clearVisibilityMap = true;
         }
       }
@@ -300,9 +312,24 @@ export class ElaborateReferences {
           useClause.parent.packageDefinitions.push(...packageDefinitions);
           useClause.definitions.push(obj);
           obj.referenceLinks.push(useClause);
-          // the scope was magically changed -> clear the visibility map
           clearVisibilityMap = true;
         }
+      }
+    }
+    if (clearVisibilityMap) {
+      this.scopeVisibilityMap.clear();
+    }
+  }
+
+
+  elaborateContextReference(contextRef: O.OContextReference) {
+    // the scope changes when finding context ref -> clear the visibility map
+    let clearVisibilityMap = false;
+    for (const obj of this.getProjectList(contextRef.contextName.referenceToken.getLText())) {
+      if (obj instanceof O.OContext) {
+        contextRef.definitions.push(obj);
+        obj.contextReferences.push(contextRef);
+        clearVisibilityMap = true;
       }
     }
     if (clearVisibilityMap) {

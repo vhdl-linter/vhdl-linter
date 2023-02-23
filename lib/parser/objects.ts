@@ -313,11 +313,12 @@ export class OLibrary extends ObjectBase implements I.IHasLexerToken, I.IHasRefe
 }
 
 export class OContextReference extends ObjectBase implements I.IHasLibraryReference {
-  public library: OLibraryReference;
-  constructor(public parent: OContext | ObjectBase | OFile, range: OIRange, public contextName: string) {
+  constructor(public parent: OContext | ObjectBase | OFile, range: OIRange) {
     super(parent, range);
   }
   definitions: ObjectBase[] = [];
+  library: OLibraryReference;
+  contextName: OReference;
 
 }
 
@@ -852,10 +853,16 @@ export function* scope(startObject: ObjectBase): Generator<[ObjectBase, boolean]
     if (current instanceof OArchitecture && current.correspondingEntity) {
       directlyVisible = false;
       yield [current.correspondingEntity, directlyVisible];
+      for (const packages of current.correspondingEntity.packageDefinitions) {
+        yield [packages, directlyVisible];
+      }
     }
     if (current instanceof OPackageBody && current.correspondingPackage) {
       directlyVisible = false;
       yield [current.correspondingPackage, directlyVisible];
+      for (const packages of current.correspondingPackage.packageDefinitions) {
+        yield [packages, directlyVisible];
+      }
     }
     if (I.implementsIHasUseClause(current)) {
       for (const packages of current.packageDefinitions) {
