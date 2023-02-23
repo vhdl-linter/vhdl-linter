@@ -65,6 +65,8 @@ function pushCorrectToken(buffer: BuilderParams[], obj: O.ObjectBase, definition
     pushToken(buffer, range, SemanticTokenTypes.variable, [...fixedModifiers, ...modifiers]);
   } else if (definition instanceof O.OSubprogram) {
     pushToken(buffer, range, SemanticTokenTypes.function, fixedModifiers);
+  } else if (definition instanceof O.OAttributeDeclaration) {
+    pushToken(buffer, range, SemanticTokenTypes.macro, fixedModifiers);
   } else if (definition instanceof O.OAlias) {
     const aliasDefinition = definition.aliasDefinitions[0];
     if (aliasDefinition) {
