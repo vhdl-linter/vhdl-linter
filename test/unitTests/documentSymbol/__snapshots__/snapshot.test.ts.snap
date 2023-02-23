@@ -452,21 +452,21 @@ exports[`Testing document symbols of test_if_else_generate.vhd 1`] = `
             "range": {
               "end": {
                 "character": 11,
-                "line": 12,
+                "line": 14,
               },
               "start": {
-                "character": 10,
-                "line": 11,
+                "character": 2,
+                "line": 12,
               },
             },
             "selectionRange": {
               "end": {
-                "character": 22,
-                "line": 11,
+                "character": 14,
+                "line": 12,
               },
               "start": {
-                "character": 13,
-                "line": 11,
+                "character": 5,
+                "line": 12,
               },
             },
           },
@@ -478,21 +478,21 @@ exports[`Testing document symbols of test_if_else_generate.vhd 1`] = `
             "range": {
               "end": {
                 "character": 21,
-                "line": 15,
+                "line": 23,
               },
               "start": {
                 "character": 2,
-                "line": 13,
+                "line": 15,
               },
             },
             "selectionRange": {
               "end": {
                 "character": 21,
-                "line": 15,
+                "line": 23,
               },
               "start": {
                 "character": 2,
-                "line": 13,
+                "line": 15,
               },
             },
           },
@@ -503,7 +503,7 @@ exports[`Testing document symbols of test_if_else_generate.vhd 1`] = `
         "range": {
           "end": {
             "character": 0,
-            "line": 17,
+            "line": 25,
           },
           "start": {
             "character": 2,
@@ -528,7 +528,7 @@ exports[`Testing document symbols of test_if_else_generate.vhd 1`] = `
     "range": {
       "end": {
         "character": 9,
-        "line": 17,
+        "line": 25,
       },
       "start": {
         "character": 0,
@@ -807,7 +807,7 @@ exports[`Testing document symbols of test_process.vhd 1`] = `
         "range": {
           "end": {
             "character": 13,
-            "line": 16,
+            "line": 18,
           },
           "start": {
             "character": 2,
@@ -817,7 +817,7 @@ exports[`Testing document symbols of test_process.vhd 1`] = `
         "selectionRange": {
           "end": {
             "character": 13,
-            "line": 16,
+            "line": 18,
           },
           "start": {
             "character": 2,
@@ -832,7 +832,7 @@ exports[`Testing document symbols of test_process.vhd 1`] = `
     "range": {
       "end": {
         "character": 9,
-        "line": 18,
+        "line": 20,
       },
       "start": {
         "character": 0,
@@ -2718,6 +2718,62 @@ exports[`Testing document symbols of test_subprogram.vhd 1`] = `
       "start": {
         "character": 13,
         "line": 8,
+      },
+    },
+  },
+]
+`;
+
+exports[`Testing document symbols of test_subprogramInterface.vhd 1`] = `
+[
+  {
+    "children": [
+      {
+        "kind": 12,
+        "name": "func",
+        "range": {
+          "end": {
+            "character": 18,
+            "line": 8,
+          },
+          "start": {
+            "character": 2,
+            "line": 5,
+          },
+        },
+        "selectionRange": {
+          "end": {
+            "character": 15,
+            "line": 5,
+          },
+          "start": {
+            "character": 11,
+            "line": 5,
+          },
+        },
+      },
+    ],
+    "detail": "package",
+    "kind": 5,
+    "name": "pkg",
+    "range": {
+      "end": {
+        "character": 12,
+        "line": 9,
+      },
+      "start": {
+        "character": 0,
+        "line": 4,
+      },
+    },
+    "selectionRange": {
+      "end": {
+        "character": 11,
+        "line": 4,
+      },
+      "start": {
+        "character": 8,
+        "line": 4,
       },
     },
   },

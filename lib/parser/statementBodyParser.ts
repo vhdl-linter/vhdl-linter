@@ -78,13 +78,14 @@ export class StatementBodyParser extends ParserBase {
       this.expect('is');
     }
 
-    new DeclarativePartParser(this.state, (statementBody as OArchitecture)).parse(structureName !== 'architecture');
-    statementBody.endOfDeclarativePart = this.getToken(-1, true).range.start;
+    new DeclarativePartParser(this.state, statementBody).parse(structureName !== 'architecture');
 
+    statementBody.statementsRange = this.getToken(-1).range.copyExtendEndOfLine();
     while (this.state.pos.isValid()) {
       this.advanceWhitespace();
       const nextToken = this.getToken();
       if (nextToken.getLText() === 'end') {
+        statementBody.statementsRange = statementBody.statementsRange.copyWithNewEnd(this.getToken(-1).range);
         if (structureName === 'generate' || structureName === 'when-generate' || structureName === 'else-generate') {
           // LRM 11.8 Generate statements list an optional end for the generate_statement_body
           if (this.getToken(1, true).getLText() !== 'generate') {
@@ -131,6 +132,10 @@ export class StatementBodyParser extends ParserBase {
         ConcurrentStatementTypes.ProcedureInstantiation,
         ConcurrentStatementTypes.Process
       ], statementBody, structureName === 'when-generate')) {
+        // end of when generate clause
+        if (structureName === 'when-generate') {
+          statementBody.statementsRange = statementBody.statementsRange.copyWithNewEnd(this.getToken(-1).range);
+        }
         break;
       }
     }

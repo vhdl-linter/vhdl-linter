@@ -1,8 +1,9 @@
 import { ExpressionParser } from "./expressionParser";
-import { OAlias, OAliasWithSignature, ObjectBase, OEntity, OIRange, OPackage, OPackageBody, OProcess, OReference, OSelectedName, OStatementBody, OSubprogram, OType, OTypeMark, ParserError, SelectedNamePrefix } from "./objects";
+import { IHasDeclarations } from "./interfaces";
+import { OAlias, OAliasWithSignature, ObjectBase, OIRange, OReference, OSelectedName, OTypeMark, ParserError, SelectedNamePrefix } from "./objects";
 import { ParserBase, ParserState } from "./parserBase";
 export class AliasParser extends ParserBase {
-  constructor(state: ParserState, private parent: OStatementBody | OEntity | OPackage | OPackageBody | OProcess | OSubprogram | OType) {
+  constructor(state: ParserState, private parent: ObjectBase & IHasDeclarations) {
     super(state);
     this.debug('start');
   }

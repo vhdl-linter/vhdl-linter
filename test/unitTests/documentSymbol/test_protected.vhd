@@ -35,13 +35,13 @@ package body pkg is
     procedure Input(data: std_ulogic_vector) is
     begin
       for i in data'length / 8 - 1 downto 0 loop
-          for bit in 0 to 7 loop
-            if crc(31) /= data(i * 8 + bit) then -- reflect input byte
-              crc := (crc sll 1) xor c_crcPol;
-            else
-              crc := crc sll 1;
-            end if;
-          end loop;
+        for bit in 0 to 7 loop
+          if crc(31) /= data(i * 8 + bit) then -- reflect input byte
+            crc := (crc sll 1) xor c_crcPol;
+          else
+            crc := crc sll 1;
+          end if;
+        end loop;
       end loop;
     end procedure;
   

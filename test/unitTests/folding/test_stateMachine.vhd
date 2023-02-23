@@ -6,12 +6,18 @@ entity test_else_generate is
 end test_else_generate;
 
 architecture arch of test_else_generate is
+
+
+-- random comment
+
   type t_state is (idle, working, workingHard, waiting);
   signal state: t_state := idle;
 begin
 
   p_reg : process(all)
   begin
+  
+    --- random comment
     case state is
       when idle =>
         state <= working;

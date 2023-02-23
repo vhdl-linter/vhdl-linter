@@ -1,6 +1,6 @@
 import { InterfaceListParser } from './interfaceListParser';
 import { IHasDeclarations } from './interfaces';
-import { ObjectBase, OComponent, OIRange, ParserError } from './objects';
+import { ObjectBase, OComponent, ParserError } from './objects';
 import { ParserBase, ParserState } from './parserBase';
 
 export class ComponentParser extends ParserBase {
@@ -16,18 +16,15 @@ export class ComponentParser extends ParserBase {
     while (this.state.pos.isValid()) {
       this.advanceWhitespace();
       const nextToken = this.getToken();
-      const savedI = this.state.pos.i;
       if (nextToken.getLText() === 'port') {
         this.consumeToken();
         const interfaceListParser = new InterfaceListParser(this.state, component);
         interfaceListParser.parse(false);
-        component.portRange = new OIRange(component, savedI, this.state.pos.i);
         this.expect(';');
       } else if (nextToken.getLText() === 'generic') {
         this.consumeToken();
         const interfaceListParser = new InterfaceListParser(this.state, component);
         interfaceListParser.parse(true);
-        component.genericRange = new OIRange(component, savedI, this.state.pos.i);
         this.expect(';');
       } else if (nextToken.getLText() === 'end') {
         this.consumeToken();
