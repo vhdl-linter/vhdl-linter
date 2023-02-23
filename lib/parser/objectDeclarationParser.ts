@@ -7,7 +7,7 @@ import { ParserBase, ParserState } from './parserBase';
 
 export class ObjectDeclarationParser extends ParserBase {
 
-  constructor(state: ParserState, private parent: ObjectBase & (IHasDeclarations)) {
+  constructor(state: ParserState, private parent: ObjectBase & IHasDeclarations) {
     super(state);
     this.debug('start');
   }

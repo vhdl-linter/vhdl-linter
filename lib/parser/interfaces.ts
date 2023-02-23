@@ -79,6 +79,7 @@ export function implementsIHasDefinitions(obj: O.ObjectBase): obj is O.ObjectBas
 
 export interface IHasDeclarations {
   declarations: O.ODeclaration[];
+  declarationsRange?: O.OIRange;
 }
 export function implementsIHasDeclarations(obj: O.ObjectBase): obj is O.ObjectBase & IHasDeclarations {
   return (obj as O.ObjectBase & Partial<IHasDeclarations>).declarations !== undefined;
@@ -113,7 +114,9 @@ export function implementsIHasPorts(obj: O.ObjectBase): obj is O.ObjectBase & IH
 }
 export interface IHasStatements {
   statements: (O.OConcurrentStatements | O.OSequentialStatement)[];
+  statementsRange: O.OIRange;
 }
 export function implementsIHasStatements(obj: O.ObjectBase): obj is O.ObjectBase & IHasStatements {
-  return Array.isArray((obj as O.ObjectBase & Partial<IHasStatements>).statements);
+  const o = obj as O.ObjectBase & Partial<IHasStatements>;
+  return Array.isArray(o.statements) && o.statementsRange !== undefined;
 }

@@ -19,6 +19,7 @@ export class InterfaceListParser extends ParserBase {
     let foundElements = 0;
     this.debug('parse');
     const startToken = this.expect('(');
+    const rangeStart = startToken.range;
     const ports: (OPort | OGeneric)[] = [];
     if (generics) {
       if (this.parent instanceof OSubprogram) {
@@ -126,6 +127,12 @@ export class InterfaceListParser extends ParserBase {
         }
       }
 
+    }
+    // errors have been thrown earlier if generics is wrong for the parent type
+    if (generics) {
+      (this.parent as OEntity).genericRange = rangeStart.copyWithNewEnd(this.getToken(-1).range);
+    } else {
+      (this.parent as OEntity).portRange = rangeStart.copyWithNewEnd(this.getToken(-1).range);
     }
     if (foundElements === 0) {
       let startOffset = 0;
