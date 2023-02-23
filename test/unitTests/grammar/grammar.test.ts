@@ -4,6 +4,7 @@ import { readFile } from "fs/promises";
 import path = require("path");
 import oniguruma = require('vscode-oniguruma');
 import vsctm = require('vscode-textmate');
+import { readFileSyncNorm } from '../../readFileSyncNorm';
 
 const wasmBin = readFileSync(path.join(__dirname, './../../../node_modules/vscode-oniguruma/release/onig.wasm')).buffer;
 const vscodeOnigurumaLib = oniguruma.loadWASM(wasmBin).then(() => {
@@ -31,7 +32,7 @@ test('grammar test', async () => {
   if (grammar === null) {
     return;
   }
-  const text = (await readFile(__dirname + `/test_protected.vhd`, {encoding: 'utf-8'})).split('\n');
+  const text =  readFileSyncNorm(__dirname + `/test_protected.vhd`, {encoding: 'utf-8'}).split('\n');
   let ruleStack = vsctm.INITIAL;
   const tokens = text.map(line => {
     const lineTokens = grammar.tokenizeLine(line, ruleStack);
