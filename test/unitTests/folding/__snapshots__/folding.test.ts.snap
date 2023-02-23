@@ -30,6 +30,10 @@ exports[`Testing folding ranges of test_alias.vhd 1`] = `
 exports[`Testing folding ranges of test_block.vhd 1`] = `
 [
   {
+    "endLine": 5,
+    "startLine": 4,
+  },
+  {
     "endLine": 2,
     "kind": "imports",
     "startLine": 0,
@@ -56,6 +60,10 @@ exports[`Testing folding ranges of test_block.vhd 1`] = `
 
 exports[`Testing folding ranges of test_case_generate.vhd 1`] = `
 [
+  {
+    "endLine": 5,
+    "startLine": 4,
+  },
   {
     "endLine": 2,
     "kind": "imports",
@@ -97,6 +105,10 @@ exports[`Testing folding ranges of test_case_generate.vhd 1`] = `
 exports[`Testing folding ranges of test_entity.vhd 1`] = `
 [
   {
+    "endLine": 5,
+    "startLine": 0,
+  },
+  {
     "endLine": 3,
     "startLine": 1,
   },
@@ -105,6 +117,10 @@ exports[`Testing folding ranges of test_entity.vhd 1`] = `
 
 exports[`Testing folding ranges of test_for_generate.vhd 1`] = `
 [
+  {
+    "endLine": 5,
+    "startLine": 4,
+  },
   {
     "endLine": 2,
     "kind": "imports",
@@ -132,6 +148,10 @@ exports[`Testing folding ranges of test_for_generate.vhd 1`] = `
 
 exports[`Testing folding ranges of test_if_else_generate.vhd 1`] = `
 [
+  {
+    "endLine": 5,
+    "startLine": 4,
+  },
   {
     "endLine": 2,
     "kind": "imports",
@@ -169,6 +189,10 @@ exports[`Testing folding ranges of test_if_else_generate.vhd 1`] = `
 exports[`Testing folding ranges of test_if_elsif_generate.vhd 1`] = `
 [
   {
+    "endLine": 5,
+    "startLine": 4,
+  },
+  {
     "endLine": 2,
     "kind": "imports",
     "startLine": 0,
@@ -205,6 +229,10 @@ exports[`Testing folding ranges of test_if_elsif_generate.vhd 1`] = `
 exports[`Testing folding ranges of test_inst.vhd 1`] = `
 [
   {
+    "endLine": 5,
+    "startLine": 4,
+  },
+  {
     "endLine": 2,
     "kind": "imports",
     "startLine": 0,
@@ -230,6 +258,10 @@ exports[`Testing folding ranges of test_inst.vhd 1`] = `
 
 exports[`Testing folding ranges of test_process.vhd 1`] = `
 [
+  {
+    "endLine": 8,
+    "startLine": 4,
+  },
   {
     "endLine": 2,
     "kind": "imports",
@@ -359,7 +391,7 @@ exports[`Testing folding ranges of test_protected.vhd 1`] = `
 exports[`Testing folding ranges of test_record.vhd 1`] = `
 [
   {
-    "endLine": 7,
+    "endLine": 10,
     "startLine": 4,
   },
   {
@@ -368,8 +400,8 @@ exports[`Testing folding ranges of test_record.vhd 1`] = `
     "startLine": 0,
   },
   {
-    "endLine": 7,
-    "startLine": 5,
+    "endLine": 10,
+    "startLine": 8,
   },
 ]
 `;
@@ -377,51 +409,59 @@ exports[`Testing folding ranges of test_record.vhd 1`] = `
 exports[`Testing folding ranges of test_stateMachine.vhd 1`] = `
 [
   {
+    "endLine": 5,
+    "startLine": 4,
+  },
+  {
     "endLine": 2,
     "kind": "imports",
     "startLine": 0,
   },
   {
-    "endLine": 9,
+    "endLine": 13,
     "startLine": 7,
   },
   {
-    "endLine": 25,
-    "startLine": 10,
-  },
-  {
-    "endLine": 12,
-    "startLine": 12,
-  },
-  {
-    "endLine": 23,
-    "startLine": 13,
-  },
-  {
-    "endLine": 23,
+    "endLine": 31,
     "startLine": 14,
   },
   {
     "endLine": 16,
-    "startLine": 15,
+    "startLine": 16,
   },
   {
-    "endLine": 18,
+    "endLine": 29,
     "startLine": 17,
   },
   {
-    "endLine": 20,
-    "startLine": 19,
+    "endLine": 29,
+    "startLine": 20,
   },
   {
     "endLine": 22,
     "startLine": 21,
+  },
+  {
+    "endLine": 24,
+    "startLine": 23,
+  },
+  {
+    "endLine": 26,
+    "startLine": 25,
+  },
+  {
+    "endLine": 28,
+    "startLine": 27,
   },
 ]
 `;
 
 exports[`Testing folding ranges of test_stateMachineCase.vhd 1`] = `
 [
+  {
+    "endLine": 5,
+    "startLine": 4,
+  },
   {
     "endLine": 2,
     "kind": "imports",
@@ -481,6 +521,10 @@ exports[`Testing folding ranges of test_stateMachineCase.vhd 1`] = `
 exports[`Testing folding ranges of test_stateMachineElse.vhd 1`] = `
 [
   {
+    "endLine": 5,
+    "startLine": 4,
+  },
+  {
     "endLine": 2,
     "kind": "imports",
     "startLine": 0,
@@ -534,6 +578,10 @@ exports[`Testing folding ranges of test_stateMachineElse.vhd 1`] = `
 
 exports[`Testing folding ranges of test_stateMachineElsif.vhd 1`] = `
 [
+  {
+    "endLine": 5,
+    "startLine": 4,
+  },
   {
     "endLine": 2,
     "kind": "imports",
@@ -589,6 +637,10 @@ exports[`Testing folding ranges of test_stateMachineElsif.vhd 1`] = `
 exports[`Testing folding ranges of test_stateMachineFor.vhd 1`] = `
 [
   {
+    "endLine": 5,
+    "startLine": 4,
+  },
+  {
     "endLine": 2,
     "kind": "imports",
     "startLine": 0,
@@ -638,6 +690,10 @@ exports[`Testing folding ranges of test_stateMachineFor.vhd 1`] = `
 
 exports[`Testing folding ranges of test_stateMachineIf.vhd 1`] = `
 [
+  {
+    "endLine": 5,
+    "startLine": 4,
+  },
   {
     "endLine": 2,
     "kind": "imports",

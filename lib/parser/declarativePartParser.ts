@@ -18,7 +18,7 @@ export class DeclarativePartParser extends ParserBase {
     this.debug('start');
   }
   parse(optional = false, lastWord = 'begin', consumeLastWord = true) {
-    const start = this.getToken(-1).range;
+    const start = this.getToken(-1, true).range;
     let nextToken = this.getToken();
     while (nextToken.getLText() !== lastWord) {
       if (nextToken.getLText() === 'signal'
