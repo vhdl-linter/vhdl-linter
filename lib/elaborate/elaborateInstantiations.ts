@@ -44,7 +44,7 @@ function getComponents(instantiation: OInstantiation): OComponent[] {
       }
     }
   }
-  const name = instantiation.componentName;
+  const name = instantiation.entityName;
   return components.filter(e => e.lexerToken.getLText() === name.text.toLowerCase());
 }
 export function getEntities(instantiation: OInstantiation | OComponent, projectParser: ProjectParser): OEntity[] {
@@ -75,7 +75,7 @@ export function getEntities(instantiation: OInstantiation | OComponent, projectP
   } else {
     entities.push(...projectEntities);
   }
-  const name = (instantiation instanceof OInstantiation) ? instantiation.componentName : instantiation.lexerToken;
+  const name = (instantiation instanceof OInstantiation) ? instantiation.entityName : instantiation.lexerToken;
   return entities.filter(e => e.lexerToken.getLText() === name.text.toLowerCase());
 }
 export function getConfiguration(instantiation: OInstantiation, projectParser: ProjectParser): OConfiguration[] {
@@ -103,7 +103,7 @@ export function getConfiguration(instantiation: OInstantiation, projectParser: P
   } else {
     configurations.push(...projectConfigurations);
   }
-  return configurations.filter(e => e.lexerToken.getLText() === instantiation.componentName.text.toLowerCase());
+  return configurations.filter(e => e.lexerToken.getLText() === instantiation.entityName.text.toLowerCase());
 
 }
 function getSubprograms(instantiation: OInstantiation, projectParser: ProjectParser): (OSubprogram | OAliasWithSignature)[] {
@@ -139,5 +139,5 @@ function getSubprograms(instantiation: OInstantiation, projectParser: ProjectPar
   if (instantiation.library !== undefined && instantiation.package !== undefined) {
     subprograms.push(...projectParser.packages.filter(pkg => pkg.lexerToken.getLText() === instantiation.package?.text.toLowerCase()).map(pkg => pkg.declarations.filter(a => a instanceof OSubprogram) as OSubprogram[]).flat());
   }
-  return subprograms.filter(e => e.lexerToken.getLText() === instantiation.componentName.getLText());
+  return subprograms.filter(e => e.lexerToken.getLText() === instantiation.entityName.getLText());
 }

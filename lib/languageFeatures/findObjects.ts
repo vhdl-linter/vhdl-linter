@@ -34,7 +34,7 @@ export function findObjectByDesignator(linter: VhdlLinter, token: OLexerToken): 
       }
     }
     if (obj instanceof OInstantiation) {
-      if (obj.componentName === token) {
+      if (obj.entityName === token) {
         foundObjects.add(obj);
       }
     }

@@ -105,8 +105,9 @@ export class TypeParser extends ParserBase {
             }
             (type as ORecord).children.push(...children);
           }
+          this.expect('end');
           this.maybe('record');
-          this.maybe(type.lexerToken.text);
+          (type as ORecord).endingLexerToken = this.maybe(type.lexerToken.text);
           type.range = type.range.copyWithNewEnd(this.state.pos.i);
         } else if (nextToken.getLText() === 'array') {
           Object.setPrototypeOf(type, OArray.prototype);

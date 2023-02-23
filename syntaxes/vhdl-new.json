@@ -15,6 +15,9 @@
     },
     {
       "include": "#literal"
+    },
+    {
+      "include": "#operator"
     }
   ],
   "repository": {
@@ -43,8 +46,20 @@
         {
           "match": "\\b[0-9]*(?i:B|O|X|UB|UO|UX|SB|SO|SX|D)\"[^\"]+\\b",
           "name": "constant.numeric.vhdl"
+        },
+        {
+          "match": "\"(?:[^\"]|(?:\"\"))*\"(?!\")",
+          "name": "string.quoted.double"
         }
 
+      ]
+    },
+    "operator": {
+      "patterns": [
+        {
+          "match": "=>|\\*\\*|:=|\\/=>=|<=|<>|\\?\\?|\\?=|\\?\\/=|\\/=|\\?<|\\?<=|\\?>|\\?>=|<<|>>|&|'|\\(|\\)|\\*|\\+|,|-|\\/|<|=|>|`|\\||\\[|\\]|\\?|@",
+          "name": "keyword.operator"
+        }
       ]
     }
 

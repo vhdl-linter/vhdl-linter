@@ -8,7 +8,7 @@ export function handleOnWorkspaceSymbol(params: WorkspaceSymbolParams, projectPa
   for (const cachedFile of projectParser.cachedFiles) {
     for (const object of cachedFile.linter.file.objectList) {
       if (object instanceof OInstantiation) {
-        symbols.push(SymbolInformation.create(`${object.label?.text ?? ''}: ${object.componentName.text}`, SymbolKind.Object, object.range, cachedFile.uri.toString()));
+        symbols.push(SymbolInformation.create(`${object.label?.text ?? ''}: ${object.entityName.text}`, SymbolKind.Object, object.range, cachedFile.uri.toString()));
       }
       if (object instanceof OProcess) {
         symbols.push(SymbolInformation.create(object.lexerToken?.text ?? '', SymbolKind.Object, object.range, cachedFile.uri.toString()));

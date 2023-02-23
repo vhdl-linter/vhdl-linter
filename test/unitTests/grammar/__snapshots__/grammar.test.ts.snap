@@ -205,11 +205,41 @@ exports[`grammar test 1`] = `
       "startIndex": 4,
     },
     {
-      "endIndex": 46,
+      "endIndex": 19,
       "scopes": [
         "source.vhdl",
       ],
       "startIndex": 13,
+    },
+    {
+      "endIndex": 20,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 19,
+    },
+    {
+      "endIndex": 43,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 20,
+    },
+    {
+      "endIndex": 44,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 43,
+    },
+    {
+      "endIndex": 46,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 44,
     },
   ],
   [
@@ -411,11 +441,19 @@ exports[`grammar test 1`] = `
       "startIndex": 2,
     },
     {
-      "endIndex": 39,
+      "endIndex": 38,
       "scopes": [
         "source.vhdl",
       ],
       "startIndex": 10,
+    },
+    {
+      "endIndex": 39,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 38,
     },
     {
       "endIndex": 41,
@@ -456,11 +494,34 @@ exports[`grammar test 1`] = `
       "startIndex": 49,
     },
     {
+      "endIndex": 51,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 50,
+    },
+    {
+      "endIndex": 52,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 51,
+    },
+    {
+      "endIndex": 54,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 52,
+    },
+    {
       "endIndex": 55,
       "scopes": [
         "source.vhdl",
       ],
-      "startIndex": 50,
+      "startIndex": 54,
     },
     {
       "endIndex": 65,
@@ -504,11 +565,41 @@ exports[`grammar test 1`] = `
       "startIndex": 2,
     },
     {
-      "endIndex": 45,
+      "endIndex": 18,
       "scopes": [
         "source.vhdl",
       ],
       "startIndex": 10,
+    },
+    {
+      "endIndex": 19,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 18,
+    },
+    {
+      "endIndex": 43,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 19,
+    },
+    {
+      "endIndex": 44,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 43,
+    },
+    {
+      "endIndex": 45,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 44,
     },
     {
       "endIndex": 51,
@@ -551,11 +642,34 @@ exports[`grammar test 1`] = `
       "startIndex": 4,
     },
     {
-      "endIndex": 45,
+      "endIndex": 38,
       "scopes": [
         "source.vhdl",
       ],
       "startIndex": 12,
+    },
+    {
+      "endIndex": 39,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 38,
+    },
+    {
+      "endIndex": 44,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 39,
+    },
+    {
+      "endIndex": 45,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 44,
     },
     {
       "endIndex": 50,
@@ -566,11 +680,19 @@ exports[`grammar test 1`] = `
       "startIndex": 45,
     },
     {
+      "endIndex": 51,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 50,
+    },
+    {
       "endIndex": 53,
       "scopes": [
         "source.vhdl",
       ],
-      "startIndex": 50,
+      "startIndex": 51,
     },
   ],
   [
@@ -622,11 +744,19 @@ exports[`grammar test 1`] = `
       "startIndex": 10,
     },
     {
-      "endIndex": 19,
+      "endIndex": 18,
       "scopes": [
         "source.vhdl",
       ],
       "startIndex": 12,
+    },
+    {
+      "endIndex": 19,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 18,
     },
     {
       "endIndex": 24,
@@ -654,11 +784,116 @@ exports[`grammar test 1`] = `
   ],
   [
     {
-      "endIndex": 42,
+      "endIndex": 12,
       "scopes": [
         "source.vhdl",
       ],
       "startIndex": 0,
+    },
+    {
+      "endIndex": 13,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 12,
+    },
+    {
+      "endIndex": 14,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 13,
+    },
+    {
+      "endIndex": 15,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 14,
+    },
+    {
+      "endIndex": 16,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 15,
+    },
+    {
+      "endIndex": 18,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 16,
+    },
+    {
+      "endIndex": 24,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 18,
+    },
+    {
+      "endIndex": 25,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 24,
+    },
+    {
+      "endIndex": 30,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 25,
+    },
+    {
+      "endIndex": 31,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 30,
+    },
+    {
+      "endIndex": 36,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 31,
+    },
+    {
+      "endIndex": 37,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 36,
+    },
+    {
+      "endIndex": 39,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 37,
+    },
+    {
+      "endIndex": 40,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 39,
+    },
+    {
+      "endIndex": 42,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 40,
     },
   ],
   [
@@ -869,11 +1104,19 @@ exports[`grammar test 1`] = `
       "startIndex": 4,
     },
     {
-      "endIndex": 36,
+      "endIndex": 35,
       "scopes": [
         "source.vhdl",
       ],
       "startIndex": 12,
+    },
+    {
+      "endIndex": 36,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 35,
     },
     {
       "endIndex": 38,
@@ -914,11 +1157,42 @@ exports[`grammar test 1`] = `
       "startIndex": 46,
     },
     {
-      "endIndex": 53,
+      "endIndex": 48,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 47,
+    },
+    {
+      "endIndex": 49,
       "scopes": [
         "source.vhdl",
       ],
-      "startIndex": 47,
+      "startIndex": 48,
+    },
+    {
+      "endIndex": 51,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 49,
+    },
+    {
+      "endIndex": 52,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 51,
+    },
+    {
+      "endIndex": 53,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 52,
     },
     {
       "endIndex": 59,
@@ -929,11 +1203,26 @@ exports[`grammar test 1`] = `
       "startIndex": 53,
     },
     {
-      "endIndex": 63,
+      "endIndex": 60,
       "scopes": [
         "source.vhdl",
       ],
       "startIndex": 59,
+    },
+    {
+      "endIndex": 62,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 60,
+    },
+    {
+      "endIndex": 63,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 62,
     },
     {
       "endIndex": 66,
@@ -944,11 +1233,19 @@ exports[`grammar test 1`] = `
       "startIndex": 63,
     },
     {
+      "endIndex": 67,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 66,
+    },
+    {
       "endIndex": 69,
       "scopes": [
         "source.vhdl",
       ],
-      "startIndex": 66,
+      "startIndex": 67,
     },
   ],
   [
@@ -1011,11 +1308,34 @@ exports[`grammar test 1`] = `
   ],
   [
     {
-      "endIndex": 14,
+      "endIndex": 10,
       "scopes": [
         "source.vhdl",
       ],
       "startIndex": 0,
+    },
+    {
+      "endIndex": 12,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 10,
+    },
+    {
+      "endIndex": 13,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 12,
+    },
+    {
+      "endIndex": 14,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 13,
     },
     {
       "endIndex": 20,
@@ -1026,11 +1346,26 @@ exports[`grammar test 1`] = `
       "startIndex": 14,
     },
     {
-      "endIndex": 24,
+      "endIndex": 21,
       "scopes": [
         "source.vhdl",
       ],
       "startIndex": 20,
+    },
+    {
+      "endIndex": 23,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 21,
+    },
+    {
+      "endIndex": 24,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 23,
     },
     {
       "endIndex": 27,
@@ -1041,11 +1376,19 @@ exports[`grammar test 1`] = `
       "startIndex": 24,
     },
     {
+      "endIndex": 28,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 27,
+    },
+    {
       "endIndex": 30,
       "scopes": [
         "source.vhdl",
       ],
-      "startIndex": 27,
+      "startIndex": 28,
     },
   ],
   [
@@ -1113,11 +1456,41 @@ exports[`grammar test 1`] = `
       "startIndex": 4,
     },
     {
-      "endIndex": 45,
+      "endIndex": 19,
       "scopes": [
         "source.vhdl",
       ],
       "startIndex": 13,
+    },
+    {
+      "endIndex": 20,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 19,
+    },
+    {
+      "endIndex": 43,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 20,
+    },
+    {
+      "endIndex": 44,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 43,
+    },
+    {
+      "endIndex": 45,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 44,
     },
     {
       "endIndex": 47,
@@ -1177,11 +1550,41 @@ exports[`grammar test 1`] = `
       "startIndex": 12,
     },
     {
-      "endIndex": 29,
+      "endIndex": 19,
       "scopes": [
         "source.vhdl",
       ],
       "startIndex": 14,
+    },
+    {
+      "endIndex": 20,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 19,
+    },
+    {
+      "endIndex": 27,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 20,
+    },
+    {
+      "endIndex": 28,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 27,
+    },
+    {
+      "endIndex": 29,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 28,
     },
     {
       "endIndex": 30,
@@ -1192,11 +1595,26 @@ exports[`grammar test 1`] = `
       "startIndex": 29,
     },
     {
-      "endIndex": 33,
+      "endIndex": 31,
       "scopes": [
         "source.vhdl",
       ],
       "startIndex": 30,
+    },
+    {
+      "endIndex": 32,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 31,
+    },
+    {
+      "endIndex": 33,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 32,
     },
     {
       "endIndex": 34,
@@ -1361,11 +1779,19 @@ exports[`grammar test 1`] = `
       "startIndex": 12,
     },
     {
-      "endIndex": 19,
+      "endIndex": 18,
       "scopes": [
         "source.vhdl",
       ],
       "startIndex": 14,
+    },
+    {
+      "endIndex": 19,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 18,
     },
     {
       "endIndex": 21,
@@ -1376,11 +1802,64 @@ exports[`grammar test 1`] = `
       "startIndex": 19,
     },
     {
+      "endIndex": 22,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 21,
+    },
+    {
+      "endIndex": 23,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 22,
+    },
+    {
+      "endIndex": 25,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 23,
+    },
+    {
+      "endIndex": 30,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 25,
+    },
+    {
+      "endIndex": 31,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 30,
+    },
+    {
+      "endIndex": 33,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 31,
+    },
+    {
+      "endIndex": 34,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 33,
+    },
+    {
       "endIndex": 35,
       "scopes": [
         "source.vhdl",
       ],
-      "startIndex": 21,
+      "startIndex": 34,
     },
     {
       "endIndex": 36,
@@ -1391,11 +1870,41 @@ exports[`grammar test 1`] = `
       "startIndex": 35,
     },
     {
-      "endIndex": 44,
+      "endIndex": 37,
       "scopes": [
         "source.vhdl",
       ],
       "startIndex": 36,
+    },
+    {
+      "endIndex": 38,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 37,
+    },
+    {
+      "endIndex": 42,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 38,
+    },
+    {
+      "endIndex": 43,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 42,
+    },
+    {
+      "endIndex": 44,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 43,
     },
     {
       "endIndex": 48,
@@ -1423,11 +1932,41 @@ exports[`grammar test 1`] = `
   ],
   [
     {
-      "endIndex": 26,
+      "endIndex": 18,
       "scopes": [
         "source.vhdl",
       ],
       "startIndex": 0,
+    },
+    {
+      "endIndex": 20,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 18,
+    },
+    {
+      "endIndex": 21,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 20,
+    },
+    {
+      "endIndex": 22,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 21,
+    },
+    {
+      "endIndex": 26,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 22,
     },
     {
       "endIndex": 29,
@@ -1453,11 +1992,19 @@ exports[`grammar test 1`] = `
       "startIndex": 30,
     },
     {
+      "endIndex": 32,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 31,
+    },
+    {
       "endIndex": 33,
       "scopes": [
         "source.vhdl",
       ],
-      "startIndex": 31,
+      "startIndex": 32,
     },
     {
       "endIndex": 36,
@@ -1494,11 +2041,26 @@ exports[`grammar test 1`] = `
   ],
   [
     {
-      "endIndex": 25,
+      "endIndex": 18,
       "scopes": [
         "source.vhdl",
       ],
       "startIndex": 0,
+    },
+    {
+      "endIndex": 20,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 18,
+    },
+    {
+      "endIndex": 25,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 20,
     },
     {
       "endIndex": 28,
@@ -1775,11 +2337,19 @@ exports[`grammar test 1`] = `
       "startIndex": 6,
     },
     {
-      "endIndex": 41,
+      "endIndex": 40,
       "scopes": [
         "source.vhdl",
       ],
       "startIndex": 14,
+    },
+    {
+      "endIndex": 41,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 40,
     },
     {
       "endIndex": 43,
@@ -1820,11 +2390,19 @@ exports[`grammar test 1`] = `
       "startIndex": 51,
     },
     {
+      "endIndex": 53,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 52,
+    },
+    {
       "endIndex": 55,
       "scopes": [
         "source.vhdl",
       ],
-      "startIndex": 52,
+      "startIndex": 53,
     },
   ],
   [
@@ -1846,11 +2424,26 @@ exports[`grammar test 1`] = `
   ],
   [
     {
-      "endIndex": 20,
+      "endIndex": 13,
       "scopes": [
         "source.vhdl",
       ],
       "startIndex": 0,
+    },
+    {
+      "endIndex": 15,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 13,
+    },
+    {
+      "endIndex": 20,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 15,
     },
     {
       "endIndex": 23,
@@ -1900,11 +2493,41 @@ exports[`grammar test 1`] = `
       "startIndex": 6,
     },
     {
-      "endIndex": 30,
+      "endIndex": 20,
       "scopes": [
         "source.vhdl",
       ],
       "startIndex": 12,
+    },
+    {
+      "endIndex": 21,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 20,
+    },
+    {
+      "endIndex": 27,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 21,
+    },
+    {
+      "endIndex": 28,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 27,
+    },
+    {
+      "endIndex": 30,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 28,
     },
   ],
   [

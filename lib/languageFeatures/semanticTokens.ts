@@ -1,5 +1,5 @@
 import { SemanticTokenModifiers, SemanticTokens, SemanticTokensBuilder, SemanticTokensLegend, SemanticTokenTypes } from "vscode-languageserver";
-import { implementsIHasDefinitions, implementsIHasLexerToken, implementsIHasReferenceToken } from "../parser/interfaces";
+import { implementsIHasDefinitions, implementsIHasEndingLexerToken, implementsIHasLexerToken, implementsIHasReferenceToken } from "../parser/interfaces";
 import * as O from "../parser/objects";
 import { VhdlLinter } from "../vhdlLinter";
 
@@ -21,12 +21,16 @@ function tokenModifier(modifiers: SemanticTokenModifiers[]) {
   }
   return result;
 }
-
-function pushToken(builder: SemanticTokensBuilder, range: O.OIRange, type: SemanticTokenTypes, modifiers: SemanticTokenModifiers[]) {
+type BuilderParams = [number, number, number, number, number];
+function pushToken(buffer: BuilderParams[], range: O.OIRange, type: SemanticTokenTypes, modifiers: SemanticTokenModifiers[]) {
   const line = range.start.line;
   const char = range.start.character;
   const length = range.end.i - range.start.i;
-  builder.push(line, char, length, tokenType(type), tokenModifier(modifiers));
+  // Ignore tokens without length (this is only some implicit declared libraries etc.)
+  if (length === 0) {
+    return;
+  }
+  buffer.push([line, char, length, tokenType(type), tokenModifier(modifiers)]);
 }
 
 
@@ -36,49 +40,72 @@ function findDefinition(obj: O.ObjectBase) {
   }
 }
 
-function pushCorrectToken(builder: SemanticTokensBuilder, obj: O.ObjectBase, range: O.OIRange, fixedModifiers: SemanticTokenModifiers[]) {
-  if (obj instanceof O.OArchitecture || obj instanceof O.OEntity || obj instanceof O.OPackage || obj instanceof O.OPackageBody || obj instanceof O.OConfiguration) {
-    pushToken(builder, obj.lexerToken.range, SemanticTokenTypes.class, [...fixedModifiers]);
-  } else if (obj instanceof O.OEnum) {
-    pushToken(builder, range, SemanticTokenTypes.enum, [...fixedModifiers, SemanticTokenModifiers.readonly]);
-  } else if (obj instanceof O.ORecord) {
-    pushToken(builder, range, SemanticTokenTypes.struct, [...fixedModifiers, SemanticTokenModifiers.readonly]);
-  } else if (obj instanceof O.ORecordChild) {
-    pushToken(builder, range, SemanticTokenTypes.property, [...fixedModifiers, SemanticTokenModifiers.readonly]);
-  } else if (obj instanceof O.OType) {
-    pushToken(builder, range, SemanticTokenTypes.type, [...fixedModifiers, SemanticTokenModifiers.readonly]);
-  } else if (obj instanceof O.OEnumLiteral) {
-    pushToken(builder, range, SemanticTokenTypes.enumMember, [...fixedModifiers, SemanticTokenModifiers.readonly]);
-  } else if (obj instanceof O.OPort && obj.direction === 'in') {
-    pushToken(builder, range, SemanticTokenTypes.variable, [...fixedModifiers, SemanticTokenModifiers.readonly]);
-  } else if (obj instanceof O.OConstant || obj instanceof O.OGeneric) {
-    pushToken(builder, range, SemanticTokenTypes.parameter, [...fixedModifiers, SemanticTokenModifiers.readonly]);
-  } else if (obj instanceof O.OSignal || obj instanceof O.OVariable) {
+function pushCorrectToken(buffer: BuilderParams[], obj: O.ObjectBase, definition: O.ObjectBase, range: O.OIRange, fixedModifiers: SemanticTokenModifiers[]) {
+  if (definition instanceof O.OArchitecture || definition instanceof O.OEntity || definition instanceof O.OPackage
+    || definition instanceof O.OPackageBody || definition instanceof O.OConfiguration || definition instanceof O.OLibrary) {
+    pushToken(buffer, range, SemanticTokenTypes.class, [...fixedModifiers]);
+  } else if (definition instanceof O.OEnum) {
+    pushToken(buffer, range, SemanticTokenTypes.enum, [...fixedModifiers, SemanticTokenModifiers.readonly]);
+  } else if (definition instanceof O.ORecord) {
+    pushToken(buffer, range, SemanticTokenTypes.struct, [...fixedModifiers, SemanticTokenModifiers.readonly]);
+  } else if (definition instanceof O.ORecordChild) {
+    pushToken(buffer, range, SemanticTokenTypes.property, [...fixedModifiers, SemanticTokenModifiers.readonly]);
+  } else if (definition instanceof O.OType) {
+    pushToken(buffer, range, SemanticTokenTypes.type, [...fixedModifiers, SemanticTokenModifiers.readonly]);
+  } else if (definition instanceof O.OEnumLiteral) {
+    pushToken(buffer, range, SemanticTokenTypes.enumMember, [...fixedModifiers, SemanticTokenModifiers.readonly]);
+  } else if (definition instanceof O.OPort && definition.direction === 'in') {
+    pushToken(buffer, range, SemanticTokenTypes.parameter, [...fixedModifiers, SemanticTokenModifiers.readonly]);
+  } else if (definition instanceof O.OPort) {
+    pushToken(buffer, range, SemanticTokenTypes.parameter, [...fixedModifiers]);
+  } else if (definition instanceof O.OConstant || definition instanceof O.OGeneric) {
+    pushToken(buffer, range, SemanticTokenTypes.parameter, [...fixedModifiers, SemanticTokenModifiers.readonly]);
+  } else if (definition instanceof O.OSignal || definition instanceof O.OVariable) {
     const modifiers = obj instanceof O.OWrite ? [SemanticTokenModifiers.modification] : [];
-    pushToken(builder, range, SemanticTokenTypes.variable, [...fixedModifiers, ...modifiers]);
-  } else if (obj instanceof O.OSubprogram) {
-    pushToken(builder, range, SemanticTokenTypes.function, fixedModifiers);
+    pushToken(buffer, range, SemanticTokenTypes.variable, [...fixedModifiers, ...modifiers]);
+  } else if (definition instanceof O.OSubprogram) {
+    pushToken(buffer, range, SemanticTokenTypes.function, fixedModifiers);
+  } else if (definition instanceof O.OAlias) {
+    const aliasDefinition = definition.aliasDefinitions[0];
+    if (aliasDefinition) {
+      pushCorrectToken(buffer, obj, aliasDefinition, range, fixedModifiers);
+    } else {
+      pushToken(buffer, range, SemanticTokenTypes.interface, [...fixedModifiers, SemanticTokenModifiers.deprecated]);
+
+    }
+  } else {
+    console.log(definition.constructor.name);
   }
+
 }
 
 export function semanticTokens(linter: VhdlLinter): SemanticTokens {
-
-  const tokensBuilder = new SemanticTokensBuilder();
-
+  const buffer: BuilderParams[] = [];
   for (const obj of linter.file.objectList) {
     const definition = findDefinition(obj);
     if (definition !== undefined && implementsIHasReferenceToken(obj)) {
-      pushCorrectToken(tokensBuilder, definition, obj.referenceToken.range, []);
+      pushCorrectToken(buffer, obj, definition, obj.referenceToken.range, []);
     } else if (implementsIHasLexerToken(obj)) { // is the definition itself?
-      pushCorrectToken(tokensBuilder, obj, obj.lexerToken.range, [SemanticTokenModifiers.declaration]);
-    } else if (obj instanceof O.OInstantiation) {
-      if (obj.type === 'subprogram') {
-        pushToken(tokensBuilder, obj.componentName.range, SemanticTokenTypes.function, []);
-      } else {
-        pushToken(tokensBuilder, obj.componentName.range, SemanticTokenTypes.class, []);
+      pushCorrectToken(buffer, obj, obj, obj.lexerToken.range, [SemanticTokenModifiers.declaration]);
+      if (implementsIHasEndingLexerToken(obj)) {
+        pushCorrectToken(buffer, obj, obj, obj.endingLexerToken.range, [SemanticTokenModifiers.declaration]);
       }
     }
+    if (obj instanceof O.OArchitecture || obj instanceof O.OInstantiation) {
+      pushToken(buffer, obj.entityName.range, SemanticTokenTypes.class, []);
+    }
   }
+  // Sort tokens
+  buffer.sort((a, b) => {
+    if (a[0] !== b[0]) {
+      return a[0] - b[0];
+    }
+    return a[1] - b[1];
+  });
+  const tokensBuilder = new SemanticTokensBuilder();
 
+  for (const row of buffer) {
+    tokensBuilder.push(...row);
+  }
   return tokensBuilder.build();
 }
