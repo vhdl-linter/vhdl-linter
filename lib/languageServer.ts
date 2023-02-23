@@ -309,7 +309,10 @@ connection.onDocumentHighlight(async (params, token) => {
   return documentHighlightHandler(linter, params);
 
 });
-connection.onWorkspaceSymbol(params => handleOnWorkspaceSymbol(params, projectParser));
+connection.onWorkspaceSymbol(async params => {
+  await initialization;
+  return handleOnWorkspaceSymbol(params, projectParser);
+});
 connection.onSignatureHelp(async (params, token) => {
   const linter = await linterManager.getLinter(params.textDocument.uri, token);
   return signatureHelp(linter, params.position);

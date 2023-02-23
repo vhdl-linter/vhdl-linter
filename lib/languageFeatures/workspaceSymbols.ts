@@ -1,29 +1,18 @@
-import { SymbolInformation, SymbolKind, WorkspaceSymbolParams } from 'vscode-languageserver';
-import { OEntity, OInstantiation, OPackage, OProcess, OSubprogram } from '../parser/objects';
+import { Location, SymbolInformation, SymbolKind, WorkspaceSymbolParams } from 'vscode-languageserver';
 import { ProjectParser } from '../projectParser';
+import { DocumentSymbols } from './documentSymbol';
 
 export function handleOnWorkspaceSymbol(params: WorkspaceSymbolParams, projectParser: ProjectParser): SymbolInformation[] | null {
 
   const symbols: SymbolInformation[] = [];
+  const queryLower = params.query.toLowerCase();
   for (const cachedFile of projectParser.cachedFiles) {
-    for (const object of cachedFile.linter.file.objectList) {
-      if (object instanceof OInstantiation) {
-        symbols.push(SymbolInformation.create(`${object.label?.text ?? ''}: ${object.componentName.text}`, SymbolKind.Object, object.range, cachedFile.uri.toString()));
-      }
-      if (object instanceof OProcess) {
-        symbols.push(SymbolInformation.create(object.lexerToken?.text ?? '', SymbolKind.Object, object.range, cachedFile.uri.toString()));
-      }
-      if (object instanceof OSubprogram) {
-        symbols.push(SymbolInformation.create(object.lexerToken.text, SymbolKind.Object, object.range, cachedFile.uri.toString()));
-      }
-      if (object instanceof OPackage) {
-        symbols.push(SymbolInformation.create(object.lexerToken.text, SymbolKind.Object, object.range, cachedFile.uri.toString()));
-      }
-      if (object instanceof OEntity) {
-        symbols.push(SymbolInformation.create(object.lexerToken.text, SymbolKind.Object, object.range, cachedFile.uri.toString()));
-      }
-    }
+    symbols.push(...DocumentSymbols.get(cachedFile.linter).filter(symbol => symbol.name.toLowerCase().includes(queryLower))
+      .map(documentSymbol => ({
+        ...documentSymbol,
+        location: Location.create(cachedFile.uri.toString(), documentSymbol.range)
+      })).sort((a, b) => b.location.range.start.line - a.location.range.start.line));
+
   }
-  const symbolsFiltered = symbols.filter(symbol => symbol.name.toLowerCase().includes(params.query.toLowerCase()));
-  return symbolsFiltered;
+  return symbols;
 }
