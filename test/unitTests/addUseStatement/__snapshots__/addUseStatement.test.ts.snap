@@ -4,7 +4,7 @@ exports[`testing add use statement actions for file arch.vhd 1`] = `
 [
   {
     "code": "0;1",
-    "message": "signal 'std_ulogic' is referenced but not declared (not-declared)",
+    "message": "object 'std_ulogic' is referenced but not declared (not-declared)",
     "range": {
       "end": {
         "character": 30,
@@ -106,7 +106,7 @@ exports[`testing add use statement actions for file constant.vhd 1`] = `
 [
   {
     "code": "0;1",
-    "message": "signal 'CopyRightNotice' is referenced but not declared (not-declared)",
+    "message": "object 'CopyRightNotice' is referenced but not declared (not-declared)",
     "range": {
       "end": {
         "character": 26,
@@ -393,7 +393,7 @@ exports[`testing add use statement actions for file entity.vhd 1`] = `
 [
   {
     "code": "0;1",
-    "message": "signal 'std_ulogic' is referenced but not declared (not-declared)",
+    "message": "object 'std_ulogic' is referenced but not declared (not-declared)",
     "range": {
       "end": {
         "character": 22,
@@ -494,7 +494,7 @@ exports[`testing add use statement actions for file entityWithLibrary.vhd 1`] = 
 [
   {
     "code": "0;1",
-    "message": "signal 'std_ulogic' is referenced but not declared (not-declared)",
+    "message": "object 'std_ulogic' is referenced but not declared (not-declared)",
     "range": {
       "end": {
         "character": 22,
@@ -596,7 +596,7 @@ exports[`testing add use statement actions for file function.vhd 1`] = `
 [
   {
     "code": "0;1",
-    "message": "signal 'to_integer' is referenced but not declared (not-declared)",
+    "message": "object 'to_integer' is referenced but not declared (not-declared)",
     "range": {
       "end": {
         "character": 20,
@@ -835,7 +835,7 @@ exports[`testing add use statement actions for file generic_function_call.vhd 1`
 [
   {
     "code": "0;1",
-    "message": "signal 'ceil' is referenced but not declared (not-declared)",
+    "message": "object 'ceil' is referenced but not declared (not-declared)",
     "range": {
       "end": {
         "character": 25,

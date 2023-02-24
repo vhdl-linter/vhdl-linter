@@ -206,7 +206,7 @@ export class ElaborateReferences {
       if (typeDefinition instanceof O.ORecord) {
         for (const child of typeDefinition.children) {
           if (child.lexerToken.getLText() === selectedName.referenceToken.getLText()) {
-            selectedName.definitions.push(child);
+            this.link(selectedName, child);
             found = true;
           }
         }
@@ -214,7 +214,7 @@ export class ElaborateReferences {
         // for protected types (not protected bodies) search subprograms and attributes
         for (const child of typeDefinition.declarations) {
           if (child.lexerToken.getLText() === selectedName.referenceToken.getLText()) {
-            selectedName.definitions.push(child);
+            this.link(selectedName, child);
             found = true;
           }
         }
@@ -269,7 +269,7 @@ export class ElaborateReferences {
     }
 
     // if nothing was found look in the fallback map
-    if (reference.definitions.length === 0) {
+    if (reference.definitions.length === 0 && (reference as O.ObjectBase & Partial<I.IHasUndeclaredHint>).notDeclaredHint === undefined) {
       for (const obj of this.getList(reference, true)) {
         // alias doesn't has aliasReferences but still referenceLinks
         if (I.implementsIHasReference(obj) || obj instanceof O.OAlias) {

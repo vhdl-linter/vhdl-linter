@@ -65,7 +65,7 @@ test.each([
       range: expect.objectContaining({
         start: expect.objectContaining({
           line: 20,
-          character: 11,
+          character: 9,
         }),
         end: expect.objectContaining({
           line: 20,
