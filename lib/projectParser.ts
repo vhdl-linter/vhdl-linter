@@ -51,7 +51,7 @@ export class ProjectParser {
       watcher.on('add', (path) => {
         const handleEvent = async () => {
           const url = pathToFileURL(path);
-          const cachedFile = await (FileCache.create(url, this));
+          const cachedFile = await (FileCache.create(url, this, false));
           this.cachedFiles.push(cachedFile);
           this.flattenProject();
           this.events.emit('change', 'add', url.toString());
@@ -98,7 +98,8 @@ export class ProjectParser {
       files.add(...directories.map(url => url.toString()));
     }));
     const rootDirectory = getRootDirectory();
-    files.add(...(await this.parseDirectory(joinURL(rootDirectory, 'ieee2008'))).map(url => url.toString()));
+    const builtinFiles = (await this.parseDirectory(joinURL(rootDirectory, 'ieee2008'))).map(url => url.toString());
+    files.add(...builtinFiles);
     let index = 0;
     for (const file of files) {
       if (this.progress) {
@@ -106,7 +107,8 @@ export class ProjectParser {
         this.progress.report(index / files.size * 100, `ProjectParser ${percent}% current file: ${basename(fileURLToPath(file))}`);
         index++;
       }
-      const cachedFile = await FileCache.create(new URL(file), this);
+      const builtIn = builtinFiles.includes(file);
+      const cachedFile = await FileCache.create(new URL(file), this, builtIn);
       this.cachedFiles.push(cachedFile);
     }
     this.cachedFiles.sort((a, b) => b.lintingTime - a.lintingTime);
@@ -185,12 +187,12 @@ class FileCache {
   linter: VhdlLinter;
   lintingTime: number;
   // Constructor can not be async. So constructor is private and use factory to create
-  public static async create(uri: URL, projectParser: ProjectParser) {
-    const cache = new FileCache(uri, projectParser);
+  public static async create(uri: URL, projectParser: ProjectParser, builtIn: boolean) {
+    const cache = new FileCache(uri, projectParser, builtIn);
     await cache.parse();
     return cache;
   }
-  private constructor(public uri: URL, public projectParser: ProjectParser) {
+  private constructor(public uri: URL, public projectParser: ProjectParser, public builtIn: boolean) {
   }
   async parse() {
     let text = await promises.readFile(this.uri, { encoding: 'utf8' });
