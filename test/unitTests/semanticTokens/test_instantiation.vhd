@@ -9,10 +9,13 @@ architecture arch of test_instantiation is
   signal b : std_ulogic;
 begin
   inst_test : entity work.test
-  port map (
-    a_in  => a,
-    b_out => b
-  );
-  label1: test_procedure(5);
+    generic map(
+      TEST_GENERIC => 5
+      )
+    port map (
+      a_in  => a,
+      b_out => b
+      );
+  label1 : test_procedure(5);
 
 end architecture;

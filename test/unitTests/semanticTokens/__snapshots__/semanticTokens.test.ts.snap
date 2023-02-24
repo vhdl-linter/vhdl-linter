@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`testing semantic tokens for test.vhd 1`] = `
+exports[`testing semantic tokens for test.vhd direction coloring false 1`] = `
 [
   "       1:9        class                ieee",
   "       2:5        class                ieee",
@@ -8,22 +8,49 @@ exports[`testing semantic tokens for test.vhd 1`] = `
   "       3:5        class                ieee",
   "      3:10        class                numeric_std",
   "       5:8        class                test",
-  "       7:5     variable       readonly a_in",
-  "      7:17         enum       readonly std_ulogic",
-  "       8:5     variable                b_out",
-  "      8:17         enum       readonly std_ulogic",
-  "      10:5        class                test",
-  "     12:14        class                arch",
-  "     12:22        class                test",
-  "     13:10     variable                a",
-  "     13:14         type       readonly integer",
-  "      19:5     variable                b_out",
-  "     19:14     variable       readonly a_in",
-  "      20:5     variable   modification a",
+  "       7:5     variable       readonly TEST_GENERIC",
+  "      7:20         type       readonly integer",
+  "      10:5     variable                a_in",
+  "     10:17         enum       readonly std_ulogic",
+  "      11:5     variable                b_out",
+  "     11:17         enum       readonly std_ulogic",
+  "      13:5        class                test",
+  "     15:14        class                arch",
+  "     15:22        class                test",
+  "     16:10     variable                a",
+  "     16:14         type       readonly integer",
+  "      22:5     variable                b_out",
+  "     22:14     variable                a_in",
+  "      23:5     variable   modification a",
 ]
 `;
 
-exports[`testing semantic tokens for test_instantiation.vhd 1`] = `
+exports[`testing semantic tokens for test.vhd direction coloring true 1`] = `
+[
+  "       1:9        class                ieee",
+  "       2:5        class                ieee",
+  "      2:10        class                std_logic_1164",
+  "       3:5        class                ieee",
+  "      3:10        class                numeric_std",
+  "       5:8        class                test",
+  "       7:5     variable       readonly TEST_GENERIC",
+  "      7:20         type       readonly integer",
+  "      10:5     variable       readonly a_in",
+  "     10:17         enum       readonly std_ulogic",
+  "      11:5     variable                b_out",
+  "     11:17         enum       readonly std_ulogic",
+  "      13:5        class                test",
+  "     15:14        class                arch",
+  "     15:22        class                test",
+  "     16:10     variable                a",
+  "     16:14         type       readonly integer",
+  "      22:5     variable                b_out",
+  "     22:14     variable       readonly a_in",
+  "      23:5     variable   modification a",
+]
+`;
+
+exports[`testing semantic tokens for test_instantiation.vhd direction coloring false 1`] = `
 [
   "       1:9        class                ieee",
   "       2:5        class                ieee",
@@ -40,16 +67,69 @@ exports[`testing semantic tokens for test_instantiation.vhd 1`] = `
   "     11:15        class                entity",
   "     11:22        class                work",
   "     11:27        class                test",
-  "      13:5     variable       readonly a_in",
-  "     13:14     variable                a",
-  "      14:5     variable                b_out",
-  "     14:14     variable   modification b",
-  "     16:11     function                test_procedure",
-  "     16:11        class                test_procedure",
+  "      13:7     variable       readonly TEST_GENERIC",
+  "      16:7     variable                a_in",
+  "     16:16     variable                a",
+  "      17:7     variable                b_out",
+  "     17:16     variable   modification b",
+  "     19:12     function                test_procedure",
+  "     19:12        class                test_procedure",
 ]
 `;
 
-exports[`testing semantic tokens for test_pkg.vhd 1`] = `
+exports[`testing semantic tokens for test_instantiation.vhd direction coloring true 1`] = `
+[
+  "       1:9        class                ieee",
+  "       2:5        class                ieee",
+  "      2:10        class                std_logic_1164",
+  "       3:5        class                work",
+  "      3:10        class                test_pkg",
+  "       4:8        class                test_instantiation",
+  "      7:14        class                arch",
+  "      7:22        class                test_instantiation",
+  "      8:10     variable                a",
+  "      8:14         enum       readonly std_ulogic",
+  "      9:10     variable                b",
+  "      9:14         enum       readonly std_ulogic",
+  "     11:15        class                entity",
+  "     11:22        class                work",
+  "     11:27        class                test",
+  "      13:7     variable       readonly TEST_GENERIC",
+  "      16:7     variable       readonly a_in",
+  "     16:16     variable                a",
+  "      17:7     variable                b_out",
+  "     17:16     variable   modification b",
+  "     19:12     function                test_procedure",
+  "     19:12        class                test_procedure",
+]
+`;
+
+exports[`testing semantic tokens for test_pkg.vhd direction coloring false 1`] = `
+[
+  "       1:9        class                ieee",
+  "       2:5        class                ieee",
+  "      2:10        class                std_logic_1164",
+  "       3:5        class                ieee",
+  "      3:10        class                numeric_std",
+  "       5:9        class                test_pkg",
+  "      6:12     variable       readonly TEST",
+  "      6:19         type       readonly integer",
+  "       7:8       struct       readonly test_record",
+  "       8:5     property       readonly element",
+  "      8:14         type       readonly std_ulogic_vector",
+  "       9:5     property       readonly another_element",
+  "      9:22         type       readonly std_logic_vector",
+  "      9:39     variable       readonly TEST",
+  "      10:5     property       readonly banana",
+  "     10:13         type       readonly integer",
+  "     11:14       struct       readonly test_record",
+  "     12:13     function                test_procedure",
+  "     12:28     variable                foo",
+  "     12:34         type       readonly integer",
+]
+`;
+
+exports[`testing semantic tokens for test_pkg.vhd direction coloring true 1`] = `
 [
   "       1:9        class                ieee",
   "       2:5        class                ieee",
