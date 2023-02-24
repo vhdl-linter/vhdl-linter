@@ -22,8 +22,7 @@ package body pkg is
       variable myRec: rec;
     begin
       var := myRec.child;
-      myRec := fu.child;
-      fu.child := var;
+      myRec.child := fu.child + var;
     end procedure;
 
   end protected body;

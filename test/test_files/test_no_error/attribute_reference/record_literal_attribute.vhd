@@ -3,7 +3,7 @@ use ieee.std_logic_1164.all;
 package record_literal_attribute is
   type t_rec is record
     prop : std_ulogic_vector;
-  end type;
+  end record;
 end package;
 
 package body record_literal_attribute is

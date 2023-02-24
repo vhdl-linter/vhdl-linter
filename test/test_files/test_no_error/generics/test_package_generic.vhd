@@ -5,10 +5,15 @@ generic (
 
   use test_pkg.all;
   
-  variable a : test_pkg.t_testData;
-  variable b : integer := generic_parameter;
+  function a return test_pkg.t_testData;
+  function b return t_testData;
 end package;
 
 package body test_package_generic is 
-  variable b : integer := generic_parameter;
-end body;
+  function a return t_testData is
+  begin
+  end function;
+  function b return t_testData is
+  begin
+  end function;
+end package body;
