@@ -59,7 +59,7 @@ function pushCorrectToken(buffer: BuilderParams[], obj: O.ObjectBase, definition
     pushToken(buffer, range, SemanticTokenTypes.variable, [...fixedModifiers]);
   } else if (definition instanceof O.OConstant || definition instanceof O.OGeneric) {
     pushToken(buffer, range, SemanticTokenTypes.variable, [...fixedModifiers, SemanticTokenModifiers.readonly]);
-  } else if (definition instanceof O.OSignal || definition instanceof O.OVariable) {
+  } else if (definition instanceof O.OSignal || definition instanceof O.OVariable || definition instanceof O.OFileVariable) {
     const modifiers = obj instanceof O.OWrite ? [SemanticTokenModifiers.modification] : [];
     pushToken(buffer, range, SemanticTokenTypes.variable, [...fixedModifiers, ...modifiers]);
   } else if (definition instanceof O.OSubprogram) {
@@ -80,7 +80,7 @@ function pushCorrectToken(buffer: BuilderParams[], obj: O.ObjectBase, definition
 
 }
 
-export function semanticTokens(linter: VhdlLinter, colorInputs: boolean): SemanticTokens {
+export function semanticToken(linter: VhdlLinter, colorInputs: boolean): SemanticTokens {
   const buffer: BuilderParams[] = [];
   for (const obj of linter.file.objectList) {
     const definition = findDefinition(obj);

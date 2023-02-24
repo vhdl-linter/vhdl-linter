@@ -268,7 +268,7 @@
 					"scope": "window",
 					"type": "boolean",
 					"default": false,
-					"description": "Color Inputs differently."
+					"description": "Color inputs differently than outputs."
 				}
 			}
 		}
