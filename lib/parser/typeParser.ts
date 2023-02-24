@@ -2,12 +2,13 @@ import { DiagnosticSeverity } from 'vscode-languageserver-types';
 import { OLexerToken } from '../lexer';
 import { DeclarativePartParser } from './declarativePartParser';
 import { ExpressionParser } from './expressionParser';
-import { OArray, OEntity, OEnum, OEnumLiteral, OIRange, OPackage, OPackageBody, OPort, OProcess, ORecord, ORecordChild, OStatementBody, OSubprogram, OType, OUnit, ParserError } from './objects';
+import { IHasDeclarations } from './interfaces';
+import { OArray, ObjectBase, OEnum, OEnumLiteral, OIRange, OPort, ORecord, ORecordChild, OSubprogram, OType, OUnit, ParserError } from './objects';
 import { ParserBase, ParserState } from './parserBase';
 
 
 export class TypeParser extends ParserBase {
-  constructor(state: ParserState, private parent: OStatementBody | OEntity | OPackage | OPackageBody | OProcess | OSubprogram | OType) {
+  constructor(state: ParserState, private parent: ObjectBase & IHasDeclarations) {
     super(state);
     this.debug('start');
   }
@@ -105,8 +106,9 @@ export class TypeParser extends ParserBase {
             }
             (type as ORecord).children.push(...children);
           }
+          this.expect('end');
           this.maybe('record');
-          this.maybe(type.lexerToken.text);
+          (type as ORecord).endingLexerToken = this.maybe(type.lexerToken.text);
           type.range = type.range.copyWithNewEnd(this.state.pos.i);
         } else if (nextToken.getLText() === 'array') {
           Object.setPrototypeOf(type, OArray.prototype);

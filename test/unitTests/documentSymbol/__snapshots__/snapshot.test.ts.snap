@@ -36,7 +36,7 @@ exports[`Testing document symbols of test_alias.vhd 1`] = `
         "name": "rec",
         "range": {
           "end": {
-            "character": 2,
+            "character": 12,
             "line": 7,
           },
           "start": {
@@ -452,21 +452,21 @@ exports[`Testing document symbols of test_if_else_generate.vhd 1`] = `
             "range": {
               "end": {
                 "character": 11,
-                "line": 12,
+                "line": 14,
               },
               "start": {
-                "character": 10,
-                "line": 11,
+                "character": 2,
+                "line": 12,
               },
             },
             "selectionRange": {
               "end": {
-                "character": 22,
-                "line": 11,
+                "character": 14,
+                "line": 12,
               },
               "start": {
-                "character": 13,
-                "line": 11,
+                "character": 5,
+                "line": 12,
               },
             },
           },
@@ -478,21 +478,21 @@ exports[`Testing document symbols of test_if_else_generate.vhd 1`] = `
             "range": {
               "end": {
                 "character": 21,
-                "line": 15,
+                "line": 23,
               },
               "start": {
                 "character": 2,
-                "line": 13,
+                "line": 15,
               },
             },
             "selectionRange": {
               "end": {
                 "character": 21,
-                "line": 15,
+                "line": 23,
               },
               "start": {
                 "character": 2,
-                "line": 13,
+                "line": 15,
               },
             },
           },
@@ -503,7 +503,7 @@ exports[`Testing document symbols of test_if_else_generate.vhd 1`] = `
         "range": {
           "end": {
             "character": 0,
-            "line": 17,
+            "line": 25,
           },
           "start": {
             "character": 2,
@@ -528,7 +528,7 @@ exports[`Testing document symbols of test_if_else_generate.vhd 1`] = `
     "range": {
       "end": {
         "character": 9,
-        "line": 17,
+        "line": 25,
       },
       "start": {
         "character": 0,
@@ -807,7 +807,7 @@ exports[`Testing document symbols of test_process.vhd 1`] = `
         "range": {
           "end": {
             "character": 13,
-            "line": 16,
+            "line": 18,
           },
           "start": {
             "character": 2,
@@ -817,7 +817,7 @@ exports[`Testing document symbols of test_process.vhd 1`] = `
         "selectionRange": {
           "end": {
             "character": 13,
-            "line": 16,
+            "line": 18,
           },
           "start": {
             "character": 2,
@@ -832,7 +832,7 @@ exports[`Testing document symbols of test_process.vhd 1`] = `
     "range": {
       "end": {
         "character": 9,
-        "line": 18,
+        "line": 20,
       },
       "start": {
         "character": 0,
@@ -1194,7 +1194,7 @@ exports[`Testing document symbols of test_record.vhd 1`] = `
         "name": "rec",
         "range": {
           "end": {
-            "character": 2,
+            "character": 12,
             "line": 7,
           },
           "start": {
@@ -2720,6 +2720,815 @@ exports[`Testing document symbols of test_subprogram.vhd 1`] = `
         "line": 8,
       },
     },
+  },
+]
+`;
+
+exports[`Testing document symbols of test_subprogramInterface.vhd 1`] = `
+[
+  {
+    "children": [
+      {
+        "kind": 12,
+        "name": "func",
+        "range": {
+          "end": {
+            "character": 18,
+            "line": 8,
+          },
+          "start": {
+            "character": 2,
+            "line": 5,
+          },
+        },
+        "selectionRange": {
+          "end": {
+            "character": 15,
+            "line": 5,
+          },
+          "start": {
+            "character": 11,
+            "line": 5,
+          },
+        },
+      },
+    ],
+    "detail": "package",
+    "kind": 5,
+    "name": "pkg",
+    "range": {
+      "end": {
+        "character": 12,
+        "line": 9,
+      },
+      "start": {
+        "character": 0,
+        "line": 4,
+      },
+    },
+    "selectionRange": {
+      "end": {
+        "character": 11,
+        "line": 4,
+      },
+      "start": {
+        "character": 8,
+        "line": 4,
+      },
+    },
+  },
+]
+`;
+
+exports[`Testing workspace symbol 1`] = `
+[
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 12,
+          "line": 12,
+        },
+        "start": {
+          "character": 0,
+          "line": 4,
+        },
+      },
+      "uri": "file:///c/dummy//test_alias.vhd",
+    },
+    "name": "pkg",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 12,
+          "line": 7,
+        },
+        "start": {
+          "character": 2,
+          "line": 5,
+        },
+      },
+      "uri": "file:///c/dummy//test_alias.vhd",
+    },
+    "name": "rec",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 14,
+          "line": 5,
+        },
+        "start": {
+          "character": 0,
+          "line": 4,
+        },
+      },
+      "uri": "file:///c/dummy//test_block.vhd",
+    },
+    "name": "test_block",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 8,
+          "line": 5,
+        },
+        "start": {
+          "character": 0,
+          "line": 4,
+        },
+      },
+      "uri": "file:///c/dummy//test_case_generate.vhd",
+    },
+    "name": "test",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 8,
+          "line": 5,
+        },
+        "start": {
+          "character": 0,
+          "line": 4,
+        },
+      },
+      "uri": "file:///c/dummy//test_for_generate.vhd",
+    },
+    "name": "test",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 8,
+          "line": 5,
+        },
+        "start": {
+          "character": 0,
+          "line": 4,
+        },
+      },
+      "uri": "file:///c/dummy//test_if_else_generate.vhd",
+    },
+    "name": "test",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 8,
+          "line": 5,
+        },
+        "start": {
+          "character": 0,
+          "line": 4,
+        },
+      },
+      "uri": "file:///c/dummy//test_if_elsif_generate.vhd",
+    },
+    "name": "test",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 13,
+          "line": 5,
+        },
+        "start": {
+          "character": 0,
+          "line": 4,
+        },
+      },
+      "uri": "file:///c/dummy//test_inst.vhd",
+    },
+    "name": "test_inst",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 16,
+          "line": 8,
+        },
+        "start": {
+          "character": 0,
+          "line": 4,
+        },
+      },
+      "uri": "file:///c/dummy//test_process.vhd",
+    },
+    "name": "test_process",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 12,
+          "line": 10,
+        },
+        "start": {
+          "character": 0,
+          "line": 4,
+        },
+      },
+      "uri": "file:///c/dummy//test_protected.vhd",
+    },
+    "name": "pkg",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 15,
+          "line": 9,
+        },
+        "start": {
+          "character": 2,
+          "line": 5,
+        },
+      },
+      "uri": "file:///c/dummy//test_protected.vhd",
+    },
+    "name": "CrcCalculator",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 18,
+          "line": 6,
+        },
+        "start": {
+          "character": 4,
+          "line": 6,
+        },
+      },
+      "uri": "file:///c/dummy//test_protected.vhd",
+    },
+    "name": "Init",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 44,
+          "line": 7,
+        },
+        "start": {
+          "character": 4,
+          "line": 7,
+        },
+      },
+      "uri": "file:///c/dummy//test_protected.vhd",
+    },
+    "name": "Input",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 51,
+          "line": 8,
+        },
+        "start": {
+          "character": 4,
+          "line": 8,
+        },
+      },
+      "uri": "file:///c/dummy//test_protected.vhd",
+    },
+    "name": "GetCrc",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 14,
+          "line": 22,
+        },
+        "start": {
+          "character": 2,
+          "line": 15,
+        },
+      },
+      "uri": "file:///c/dummy//test_protected.vhd",
+    },
+    "name": "reflect",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 16,
+          "line": 54,
+        },
+        "start": {
+          "character": 2,
+          "line": 25,
+        },
+      },
+      "uri": "file:///c/dummy//test_protected.vhd",
+    },
+    "name": "CrcCalculator",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 17,
+          "line": 32,
+        },
+        "start": {
+          "character": 4,
+          "line": 29,
+        },
+      },
+      "uri": "file:///c/dummy//test_protected.vhd",
+    },
+    "name": "Init",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 17,
+          "line": 45,
+        },
+        "start": {
+          "character": 4,
+          "line": 34,
+        },
+      },
+      "uri": "file:///c/dummy//test_protected.vhd",
+    },
+    "name": "Input",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 16,
+          "line": 52,
+        },
+        "start": {
+          "character": 4,
+          "line": 47,
+        },
+      },
+      "uri": "file:///c/dummy//test_protected.vhd",
+    },
+    "name": "GetCrc",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 12,
+          "line": 8,
+        },
+        "start": {
+          "character": 0,
+          "line": 4,
+        },
+      },
+      "uri": "file:///c/dummy//test_record.vhd",
+    },
+    "name": "pkg",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 12,
+          "line": 7,
+        },
+        "start": {
+          "character": 2,
+          "line": 5,
+        },
+      },
+      "uri": "file:///c/dummy//test_record.vhd",
+    },
+    "name": "rec",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 22,
+          "line": 5,
+        },
+        "start": {
+          "character": 0,
+          "line": 4,
+        },
+      },
+      "uri": "file:///c/dummy//test_stateMachine.vhd",
+    },
+    "name": "test_else_generate",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 55,
+          "line": 8,
+        },
+        "start": {
+          "character": 2,
+          "line": 8,
+        },
+      },
+      "uri": "file:///c/dummy//test_stateMachine.vhd",
+    },
+    "name": "t_state",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 13,
+          "line": 24,
+        },
+        "start": {
+          "character": 2,
+          "line": 12,
+        },
+      },
+      "uri": "file:///c/dummy//test_stateMachine.vhd",
+    },
+    "name": "p_reg",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 22,
+          "line": 5,
+        },
+        "start": {
+          "character": 0,
+          "line": 4,
+        },
+      },
+      "uri": "file:///c/dummy//test_stateMachineCase.vhd",
+    },
+    "name": "test_else_generate",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 55,
+          "line": 8,
+        },
+        "start": {
+          "character": 2,
+          "line": 8,
+        },
+      },
+      "uri": "file:///c/dummy//test_stateMachineCase.vhd",
+    },
+    "name": "t_state",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 13,
+          "line": 30,
+        },
+        "start": {
+          "character": 2,
+          "line": 13,
+        },
+      },
+      "uri": "file:///c/dummy//test_stateMachineCase.vhd",
+    },
+    "name": "p_reg",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 22,
+          "line": 5,
+        },
+        "start": {
+          "character": 0,
+          "line": 4,
+        },
+      },
+      "uri": "file:///c/dummy//test_stateMachineElse.vhd",
+    },
+    "name": "test_else_generate",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 55,
+          "line": 8,
+        },
+        "start": {
+          "character": 2,
+          "line": 8,
+        },
+      },
+      "uri": "file:///c/dummy//test_stateMachineElse.vhd",
+    },
+    "name": "t_state",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 13,
+          "line": 27,
+        },
+        "start": {
+          "character": 2,
+          "line": 12,
+        },
+      },
+      "uri": "file:///c/dummy//test_stateMachineElse.vhd",
+    },
+    "name": "p_reg",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 22,
+          "line": 5,
+        },
+        "start": {
+          "character": 0,
+          "line": 4,
+        },
+      },
+      "uri": "file:///c/dummy//test_stateMachineElsif.vhd",
+    },
+    "name": "test_else_generate",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 55,
+          "line": 8,
+        },
+        "start": {
+          "character": 2,
+          "line": 8,
+        },
+      },
+      "uri": "file:///c/dummy//test_stateMachineElsif.vhd",
+    },
+    "name": "t_state",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 13,
+          "line": 27,
+        },
+        "start": {
+          "character": 2,
+          "line": 12,
+        },
+      },
+      "uri": "file:///c/dummy//test_stateMachineElsif.vhd",
+    },
+    "name": "p_reg",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 22,
+          "line": 5,
+        },
+        "start": {
+          "character": 0,
+          "line": 4,
+        },
+      },
+      "uri": "file:///c/dummy//test_stateMachineFor.vhd",
+    },
+    "name": "test_else_generate",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 55,
+          "line": 8,
+        },
+        "start": {
+          "character": 2,
+          "line": 8,
+        },
+      },
+      "uri": "file:///c/dummy//test_stateMachineFor.vhd",
+    },
+    "name": "t_state",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 13,
+          "line": 26,
+        },
+        "start": {
+          "character": 2,
+          "line": 12,
+        },
+      },
+      "uri": "file:///c/dummy//test_stateMachineFor.vhd",
+    },
+    "name": "p_reg",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 22,
+          "line": 5,
+        },
+        "start": {
+          "character": 0,
+          "line": 4,
+        },
+      },
+      "uri": "file:///c/dummy//test_stateMachineIf.vhd",
+    },
+    "name": "test_else_generate",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 55,
+          "line": 8,
+        },
+        "start": {
+          "character": 2,
+          "line": 8,
+        },
+      },
+      "uri": "file:///c/dummy//test_stateMachineIf.vhd",
+    },
+    "name": "t_state",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 13,
+          "line": 26,
+        },
+        "start": {
+          "character": 2,
+          "line": 12,
+        },
+      },
+      "uri": "file:///c/dummy//test_stateMachineIf.vhd",
+    },
+    "name": "p_reg",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 12,
+          "line": 6,
+        },
+        "start": {
+          "character": 0,
+          "line": 4,
+        },
+      },
+      "uri": "file:///c/dummy//test_subprogram.vhd",
+    },
+    "name": "pkg",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 30,
+          "line": 5,
+        },
+        "start": {
+          "character": 2,
+          "line": 5,
+        },
+      },
+      "uri": "file:///c/dummy//test_subprogram.vhd",
+    },
+    "name": "func",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 14,
+          "line": 12,
+        },
+        "start": {
+          "character": 2,
+          "line": 9,
+        },
+      },
+      "uri": "file:///c/dummy//test_subprogram.vhd",
+    },
+    "name": "func",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 12,
+          "line": 9,
+        },
+        "start": {
+          "character": 0,
+          "line": 4,
+        },
+      },
+      "uri": "file:///c/dummy//test_subprogramInterface.vhd",
+    },
+    "name": "pkg",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 18,
+          "line": 8,
+        },
+        "start": {
+          "character": 2,
+          "line": 5,
+        },
+      },
+      "uri": "file:///c/dummy//test_subprogramInterface.vhd",
+    },
+    "name": "func",
   },
 ]
 `;

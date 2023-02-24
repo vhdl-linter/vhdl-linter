@@ -34,6 +34,7 @@ export interface ISettings {
     'ignoreRegex': string;
   };
   'semanticTokens': boolean;
+  'semanticTokensDirectionColoring': boolean;
 }
 export const defaultSettings: ISettings = {
   'trace': {
@@ -70,5 +71,6 @@ export const defaultSettings: ISettings = {
     'additional': [],
     'ignoreRegex': '',
   },
-  'semanticTokens': false,
+  'semanticTokens': true,
+  'semanticTokensDirectionColoring': false,
 };

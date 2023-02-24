@@ -14,9 +14,9 @@ import { findDefinitionLinks } from './languageFeatures/findDefinition';
 import { findReferencesHandler } from './languageFeatures/findReferencesHandler';
 import { foldingHandler } from './languageFeatures/folding';
 import { prepareRenameHandler, renameHandler } from './languageFeatures/rename';
-import { semanticTokens, semanticTokensLegend } from './languageFeatures/semanticTokens';
+import { semanticToken, semanticTokensLegend } from './languageFeatures/semanticToken';
 import { signatureHelp } from './languageFeatures/signatureHelp';
-import { handleOnWorkspaceSymbol } from './languageFeatures/workspaceSymbols';
+import { workspaceSymbol } from './languageFeatures/workspaceSymbol';
 import { LinterManager } from './linterManager';
 import { normalizeUri } from './normalizeUri';
 import { ProjectParser } from './projectParser';
@@ -59,18 +59,18 @@ connection.onDidChangeConfiguration((change: { settings: { VhdlLinter?: ISetting
     void validateTextDocument(document);
   }
 });
-export async function getDocumentSettings(resource: URL): Promise<ISettings> {
+export async function getDocumentSettings(resource?: URL): Promise<ISettings> {
   if (!hasConfigurationCapability) {
     return Promise.resolve(globalSettings);
   }
-  let result = documentSettings.get(resource.toString());
+  let result = documentSettings.get(resource?.toString() ?? '');
   if (!result) {
     result = await connection.workspace.getConfiguration({
-      scopeUri: resource.toString(),
+      scopeUri: resource?.toString(),
       section: 'VhdlLinter'
     }) as ISettings;
   }
-  documentSettings.set(resource.toString(), result);
+  documentSettings.set(resource?.toString() ?? '', result);
   return result;
 }
 connection.onInitialize((params: InitializeParams) => {
@@ -309,19 +309,24 @@ connection.onDocumentHighlight(async (params, token) => {
   return documentHighlightHandler(linter, params);
 
 });
-connection.onWorkspaceSymbol(params => handleOnWorkspaceSymbol(params, projectParser));
+connection.onWorkspaceSymbol(async params => {
+  await initialization;
+  const configuration = await getDocumentSettings();
+  return workspaceSymbol(params, projectParser, configuration.paths.additional);
+});
 connection.onSignatureHelp(async (params, token) => {
   const linter = await linterManager.getLinter(params.textDocument.uri, token);
   return signatureHelp(linter, params.position);
 });
 connection.languages.semanticTokens.on(async (params, token) => {
   const linter = await linterManager.getLinter(params.textDocument.uri, token, false);
-  if (!(await getDocumentSettings(new URL(params.textDocument.uri))).semanticTokens) {
+  const settings = await getDocumentSettings(new URL(params.textDocument.uri));
+  if (!settings.semanticTokens) {
     return {
       data: []
     };
   }
-  const tokens = semanticTokens(linter);
+  const tokens = semanticToken(linter, settings.semanticTokensDirectionColoring);
   return tokens;
 });
 documents.listen(connection);

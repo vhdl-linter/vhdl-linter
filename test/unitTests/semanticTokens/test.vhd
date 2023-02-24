@@ -3,6 +3,9 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 entity test is
+  generic (
+    TEST_GENERIC : integer
+  );
   port (
     a_in  : in  std_ulogic;
     b_out : out std_ulogic
@@ -10,6 +13,7 @@ entity test is
 end test;
 
 architecture arch of test is
+  signal a : integer := 5;
 
 begin
 

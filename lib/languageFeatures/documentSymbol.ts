@@ -46,7 +46,7 @@ export class DocumentSymbols {
     for (const statement of statementBody.statements) {
       if (statement instanceof OInstantiation) {
         children.push({
-          name: `${(statement.label !== undefined ? (`${statement.label.text}: `) : '')}${statement.componentName.text}`,
+          name: `${(statement.label !== undefined ? (`${statement.label.text}: `) : '')}${statement.entityName.text}`,
           detail: 'instantiation',
           kind: SymbolKind.Module,
           range: statement.range,

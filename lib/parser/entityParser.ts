@@ -1,7 +1,7 @@
 import { ConcurrentStatementParser, ConcurrentStatementTypes } from './concurrentStatementParser';
 import { DeclarativePartParser } from './declarativePartParser';
 import { InterfaceListParser } from './interfaceListParser';
-import { OArchitecture, OEntity, OIRange, ParserError, OFile } from './objects';
+import { OArchitecture, OEntity, OFile, ParserError } from './objects';
 import { ParserBase, ParserState } from './parserBase';
 
 export class EntityParser extends ParserBase {
@@ -26,18 +26,15 @@ export class EntityParser extends ParserBase {
     while (this.state.pos.isValid()) {
       this.advanceWhitespace();
       const nextToken = this.getToken();
-      const savedI = this.state.pos.i;
       if (nextToken.getLText() === 'port') {
         this.consumeToken();
         const interfaceListParser = new InterfaceListParser(this.state, this.entity);
         interfaceListParser.parse(false);
-        this.entity.portRange = new OIRange(this.entity, savedI, this.state.pos.i);
         this.expect(';');
       } else if (nextToken.getLText() === 'generic') {
         this.consumeToken();
         const interfaceListParser = new InterfaceListParser(this.state, this.entity);
         interfaceListParser.parse(true);
-        this.entity.genericRange = new OIRange(this.entity, savedI, this.state.pos.i);
         this.expect(';');
       } else if (nextToken.getLText() === 'end') {
         this.consumeToken();
@@ -47,6 +44,7 @@ export class EntityParser extends ParserBase {
         this.expect(';');
         break;
       } else if (nextToken.getLText() === 'begin') {
+        const statementStart = this.getToken().range;
         this.consumeToken();
         while (this.getToken().getLText() !== 'end') {
           new ConcurrentStatementParser(this.state, this.entity).parse([
@@ -55,6 +53,7 @@ export class EntityParser extends ParserBase {
             ConcurrentStatementTypes.Process
           ]);
         }
+        this.entity.statementsRange = statementStart.copyWithNewEnd(this.getToken().range);
         this.consumeToken();
         this.maybe('entity');
         this.maybe(this.entity.lexerToken.text);

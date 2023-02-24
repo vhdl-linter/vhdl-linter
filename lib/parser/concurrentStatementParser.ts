@@ -143,6 +143,7 @@ export class ConcurrentStatementParser extends ParserBase {
       }
 
       previousStatementBody.range = previousStatementBody.range.copyWithNewEnd(this.getToken(-1, true).range.end);
+      previousStatementBody.statementsRange = previousStatementBody.statementsRange.copyWithNewEnd(this.getToken(-1).range);
       const elsifGenClauseStart = this.getToken().range;
       this.consumeToken();
       // There is an alternative label possible
@@ -169,6 +170,7 @@ export class ConcurrentStatementParser extends ParserBase {
         throw new ParserError('WTF', this.state.pos.getRangeToEndLine());
       }
       previousStatementBody.range = previousStatementBody.range.copyWithNewEnd(this.getToken(-1, true).range.copyExtendEndOfLine().end);
+      previousStatementBody.statementsRange = previousStatementBody.statementsRange.copyWithNewEnd(this.getToken(-1).range);
       const elseGenClauseStart = this.getToken().range;
       this.consumeToken();
       let alternativeLabel;

@@ -9,11 +9,14 @@ entity test_process is
 end test_process;
 
 architecture arch of test_process is
+  signal a: integer;
 begin
 
   process(all)
   begin
+
     x <= x;
+
   end process;
 
 end arch;

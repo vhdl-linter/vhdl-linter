@@ -63,7 +63,7 @@ export class RuleNotDeclared extends RuleBase implements IRule {
       // If parent is Signal, Port or Variable this reference is in the type reference. So adding signal makes no sense.
       if (token.parent instanceof OSignal === false && token.parent instanceof OPort === false && token.parent instanceof OVariable === false) {
         for (const architecture of this.file.architectures) {
-          const args: IAddSignalCommandArguments = { textDocumentUri, signalName: token.referenceToken.text, position: architecture.endOfDeclarativePart ?? architecture.range.start };
+          const args: IAddSignalCommandArguments = { textDocumentUri, signalName: token.referenceToken.text, position: architecture.declarationsRange.end ?? architecture.range.start };
           actions.push(CodeAction.create(
             'add signal to architecture',
             Command.create('add signal to architecture', 'vhdl-linter:add-signal', args),

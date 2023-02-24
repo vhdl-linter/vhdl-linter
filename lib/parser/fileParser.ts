@@ -230,6 +230,7 @@ export class FileParser extends ParserBase {
           this.consumeToken(true);
         }
         this.file.configurations.push(configuration);
+        configuration.range = configuration.range.copyWithNewEnd(this.getToken().range);
         this.advanceSemicolon();
       } else {
         throw new ParserError(`Unexpected token ${nextToken.text}`, this.getToken().range);

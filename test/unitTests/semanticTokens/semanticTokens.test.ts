@@ -4,7 +4,7 @@ import { join } from 'path';
 import { pathToFileURL } from 'url';
 import { SemanticTokensBuilder } from "vscode-languageserver";
 import { Elaborate } from '../../../lib/elaborate/elaborate';
-import { semanticTokens, semanticTokensLegend } from '../../../lib/languageFeatures/semanticTokens';
+import { semanticToken, semanticTokensLegend } from '../../../lib/languageFeatures/semanticToken';
 import { ProjectParser } from '../../../lib/projectParser';
 import { defaultSettingsGetter } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
@@ -25,14 +25,14 @@ beforeEach(() => {
 const files = readdirSync(__dirname).filter(file => file.endsWith('.vhd'));
 const maxLengthTokenTypes = semanticTokensLegend.tokenTypes.reduce((prev, curr) => Math.max(prev, curr.length), 0);
 const maxLengthTokenModifiers = semanticTokensLegend.tokenModifiers.reduce((prev, curr) => Math.max(prev, curr.length), 0);
-test.each(files)('testing semantic tokens for %s', async (file: string) => {
+test.each(files.flatMap(file => [[file, true], [file, false]]))('testing semantic tokens for %s direction coloring %p', async (file: string, directionColoring: boolean) => {
 
   const path = join(__dirname, file);
   const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }),
     projectParser, defaultSettingsGetter);
   await Elaborate.elaborate(linter);
   // mock.instances is available with automatic mocks:
-  semanticTokens(linter);
+  semanticToken(linter, directionColoring);
   const lines = linter.text.split('\n');
   expect(mockSemanticTokensBuilder.mock.instances).toHaveLength(1);
   expect(mockSemanticTokensBuilder.mock.instances[0]?.push.mock.calls.map(([line, char, length, tokenType, tokenModifier]) => {
