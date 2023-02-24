@@ -1,5 +1,5 @@
 import { SymbolInformation, SymbolKind, WorkspaceSymbolParams } from 'vscode-languageserver';
-import { OInstantiation, OProcess, OSubprogram, OPackage, OEntity, OType, ORecordChild } from '../parser/objects';
+import { OProcess, OSubprogram, OPackage, OEntity, OType, ORecordChild } from '../parser/objects';
 import { ProjectParser } from '../projectParser';
 
 export function workspaceSymbol(params: WorkspaceSymbolParams, projectParser: ProjectParser): SymbolInformation[] | null {
