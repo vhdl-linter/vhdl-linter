@@ -90,7 +90,7 @@ export class RuleNotDeclared extends RuleBase implements IRule {
       code,
       range: token.range,
       severity: DiagnosticSeverity.Error,
-      message: implementsIHasNotDeclaredHint(token) ? token.notDeclaredHint : `signal '${token.referenceToken.text}' is ${token instanceof OWrite ? 'written' : 'referenced'} but not declared`
+      message: implementsIHasNotDeclaredHint(token) ? token.notDeclaredHint : `object '${token.referenceToken.text}' is ${token instanceof OWrite ? 'written' : 'referenced'} but not declared`
     });
   }
   private pushAssociationError(reference: OReference) {

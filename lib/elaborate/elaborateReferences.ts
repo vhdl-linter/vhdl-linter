@@ -103,6 +103,9 @@ export class ElaborateReferences {
           }
         }
       }
+      if (I.implementsIHasStatements(scopeObj)) {
+        this.addObjectsToMap(visibilityMap, ...scopeObj.statements);
+      }
       if (I.implementsIHasLibraries(scopeObj)) {
         this.addObjectsToMap(visibilityMap, ...scopeObj.libraries);
       }
@@ -127,7 +130,7 @@ export class ElaborateReferences {
     // find parent which has declarations to use as key
     let key = reference.parent;
     for (const [p] of O.scope(reference)) {
-      if (I.implementsIHasDeclarations(p) || I.implementsIHasLabel(p) || p instanceof O.OPackageInstantiation || p instanceof O.OContext) {
+      if (I.implementsIHasDeclarations(p) || p instanceof O.OPackageInstantiation || p instanceof O.OContext) {
         key = p;
         break;
       }
