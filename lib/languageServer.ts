@@ -16,7 +16,7 @@ import { foldingHandler } from './languageFeatures/folding';
 import { prepareRenameHandler, renameHandler } from './languageFeatures/rename';
 import { semanticTokens, semanticTokensLegend } from './languageFeatures/semanticTokens';
 import { signatureHelp } from './languageFeatures/signatureHelp';
-import { handleOnWorkspaceSymbol } from './languageFeatures/workspaceSymbols';
+import { workspaceSymbol } from './languageFeatures/workspaceSymbol';
 import { LinterManager } from './linterManager';
 import { normalizeUri } from './normalizeUri';
 import { ProjectParser } from './projectParser';
@@ -311,7 +311,7 @@ connection.onDocumentHighlight(async (params, token) => {
 });
 connection.onWorkspaceSymbol(async params => {
   await initialization;
-  return handleOnWorkspaceSymbol(params, projectParser);
+  return workspaceSymbol(params, projectParser);
 });
 connection.onSignatureHelp(async (params, token) => {
   const linter = await linterManager.getLinter(params.textDocument.uri, token);

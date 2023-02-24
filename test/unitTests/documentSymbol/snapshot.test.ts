@@ -3,6 +3,7 @@ import { readdirSync } from 'fs';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
 import { DocumentSymbols } from '../../../lib/languageFeatures/documentSymbol';
+import { workspaceSymbol } from '../../../lib/languageFeatures/workspaceSymbol';
 import { ProjectParser } from '../../../lib/projectParser';
 import { defaultSettingsGetter } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
@@ -23,5 +24,9 @@ test.each(
   const uri = pathToFileURL(path);
   const linter = new VhdlLinter(uri, readFileSyncNorm(uri, { encoding: 'utf8' }), projectParser, defaultSettingsGetter);
   const symbols = DocumentSymbols.get(linter);
+  expect(symbols).toMatchSnapshot();
+});
+test('Testing workspace symbol', () => {
+  const symbols = workspaceSymbol({query: ''}, projectParser);
   expect(symbols).toMatchSnapshot();
 });
