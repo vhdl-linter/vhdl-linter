@@ -89,15 +89,7 @@ export class ObjectDeclarationParser extends ParserBase {
     for (const object of objects) {
       object.range = object.range.copyWithNewEnd(this.getToken(-1, true).range.end);
     }
-    if (constant) {
-      this.parent.declarations.push(...objects);
-    } else if (variable) {
-      this.parent.declarations.push(...objects);
-    } else if (file) {
-      this.parent.declarations.push(...objects);
-    } else {
-      this.parent.declarations.push(...objects);
-    }
+    return objects;
   }
   readonly NotExpectedDelimiter = ['end', 'file', 'constant', 'variable', 'begin', 'signal', 'is'];
   getType(parent: ObjectBase) {

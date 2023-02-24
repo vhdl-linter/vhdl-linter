@@ -26,23 +26,53 @@ export class DeclarativePartParser extends ParserBase {
         || nextToken.getLText() === 'shared'
         || nextToken.getLText() === 'variable'
         || nextToken.getLText() === 'file') {
-        const objectDeclarationParser = new ObjectDeclarationParser(this.state, this.parent);
-        objectDeclarationParser.parse(nextToken);
+        const objects = new ObjectDeclarationParser(this.state, this.parent).parse(nextToken);
+        this.parent.declarations.push(...objects);
+        if (this.parent instanceof OType && this.parent.protected) {
+          this.state.messages.push({
+            message: `object declarations are not allowed in protected types`,
+            range: objects[0]?.range ?? this.getToken().range
+          });
+        }
       } else if (nextToken.getLText() === 'attribute') {
         const obj = new AttributeParser(this.state, this.parent).parse();
         if (obj instanceof OAttributeDeclaration) {
+          if (this.parent instanceof OType && this.parent.protected) {
+            this.state.messages.push({
+              message: `attribute declarations are not allowed in protected types`,
+              range: obj.range
+            });
+          }
           this.parent.declarations.push(obj);
         } else {
           this.parent.declarations.push(obj);
         }
       } else if (nextToken.getLText() === 'type') {
-        const typeParser = new TypeParser(this.state, this.parent);
-        this.parent.declarations.push(typeParser.parse());
+        const type = new TypeParser(this.state, this.parent).parse();
+        if (this.parent instanceof OType && this.parent.protected) {
+          this.state.messages.push({
+            message: `type declarations are not allowed in protected types`,
+            range: type.range
+          });
+        }
+        this.parent.declarations.push(type);
       } else if (nextToken.getLText() === 'subtype') {
-        const subtypeParser = new SubtypeParser(this.state, this.parent);
-        this.parent.declarations.push(subtypeParser.parse());
+        const subtype = new SubtypeParser(this.state, this.parent).parse();
+        if (this.parent instanceof OType && this.parent.protected) {
+          this.state.messages.push({
+            message: `subtype declarations are not allowed in protected types`,
+            range: subtype.range
+          });
+        }
+        this.parent.declarations.push(subtype);
       } else if (nextToken.getLText() === 'alias') {
         const alias = new AliasParser(this.state, this.parent).parse();
+        if (this.parent instanceof OType && this.parent.protected) {
+          this.state.messages.push({
+            message: `alias declarations are not allowed in protected types`,
+            range: alias.range
+          });
+        }
         this.parent.declarations.push(alias);
       } else if (nextToken.getLText() === 'component') {
         if (this.parent instanceof OEntity) {
@@ -85,8 +115,15 @@ export class DeclarativePartParser extends ParserBase {
         this.expect(';');
       } else if (nextToken.getLText() === 'package') {
         this.consumeToken(); // consume 'package
-        this.parent.declarations.push(new PackageInstantiationParser(this.state, this.parent).parse());
+        const packageInst = new PackageInstantiationParser(this.state, this.parent).parse();
+        this.parent.declarations.push(packageInst);
         this.expect(';');
+        if (this.parent instanceof OType && this.parent.protected) {
+          this.state.messages.push({
+            message: `package instantiations are not allowed in protected types`,
+            range: packageInst.range
+          });
+        }
       } else if (nextToken.getLText() === 'generic') {
         this.advanceSemicolon();
       } else if (nextToken.getLText() === 'disconnect') {
@@ -99,7 +136,7 @@ export class DeclarativePartParser extends ParserBase {
         if (implementsIHasUseClause(this.parent)) {
           this.parent.useClauses.push(useClause);
         } else {
-          this.state.messages.push({ 
+          this.state.messages.push({
             message: 'Use clause is not allowed here',
             range: useClause.range
           });
