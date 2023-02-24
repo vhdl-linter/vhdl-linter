@@ -2804,7 +2804,7 @@ exports[`Testing workspace symbol 1`] = `
     "location": {
       "range": {
         "end": {
-          "character": 2,
+          "character": 12,
           "line": 7,
         },
         "start": {
@@ -3127,7 +3127,7 @@ exports[`Testing workspace symbol 1`] = `
     "location": {
       "range": {
         "end": {
-          "character": 2,
+          "character": 12,
           "line": 7,
         },
         "start": {
