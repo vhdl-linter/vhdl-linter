@@ -303,6 +303,16 @@ export class ElaborateReferences {
       } else {
         for (const obj of this.getList(useClause.packageName)) {
           if (obj instanceof O.OPackageInstantiation || obj instanceof O.OInterfacePackage) {
+            // they are not elaborated yet because the useclauses are always elaborated before anything else.
+            // In this case the packageInstantiation/interfacePackage needs to be elaborated
+            for (const ref of obj.uninstantiatedPackage) {
+              if (ref instanceof O.OSelectedName) {
+                this.elaborateSelectedNames(ref);
+              } else {
+                this.elaborateReference(ref);
+              }
+            }
+
             const packageDefinitions = obj.uninstantiatedPackage[obj.uninstantiatedPackage.length - 1]!.definitions.filter(ref => ref instanceof O.OPackage) as O.OPackage[];
             parent.packageDefinitions.push(...packageDefinitions);
             useClause.definitions.push(obj);
