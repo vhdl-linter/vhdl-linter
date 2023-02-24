@@ -524,7 +524,7 @@ exports[`grammar test 1`] = `
       "startIndex": 54,
     },
     {
-      "endIndex": 65,
+      "endIndex": 66,
       "scopes": [
         "source.vhdl",
         "constant.numeric.vhdl",
@@ -536,7 +536,7 @@ exports[`grammar test 1`] = `
       "scopes": [
         "source.vhdl",
       ],
-      "startIndex": 65,
+      "startIndex": 66,
     },
   ],
   [
@@ -2461,7 +2461,7 @@ exports[`grammar test 1`] = `
       "startIndex": 23,
     },
     {
-      "endIndex": 34,
+      "endIndex": 35,
       "scopes": [
         "source.vhdl",
         "constant.numeric.vhdl",
@@ -2473,7 +2473,7 @@ exports[`grammar test 1`] = `
       "scopes": [
         "source.vhdl",
       ],
-      "startIndex": 34,
+      "startIndex": 35,
     },
   ],
   [
