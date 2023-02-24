@@ -36,7 +36,7 @@ export class ConcurrentInstantiationParser extends ParserBase {
       this.consumeToken();
       nextToken = this.consumeToken();
     }
-    instantiation.componentName = nextToken;
+    instantiation.entityName = nextToken;
     instantiation.label = label;
 
     if (instantiation.type === 'entity' && this.getToken().getLText() === '(') {

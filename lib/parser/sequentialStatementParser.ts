@@ -100,14 +100,14 @@ export class SequentialStatementParser extends ParserBase {
   parseSubprogramCall(parent: OHasSequentialStatements | OIf, label: OLexerToken | undefined) {
     const subprogramCall = new OInstantiation(parent, this.getToken(), 'subprogram');
     subprogramCall.label = label;
-    subprogramCall.componentName = this.consumeToken();
+    subprogramCall.entityName = this.consumeToken();
     while (this.getToken().getLText() === '.') {
       this.expect('.');
       if (subprogramCall.package !== undefined) {
         subprogramCall.library = new OLibraryReference(subprogramCall, subprogramCall.package);
       }
-      subprogramCall.package = subprogramCall.componentName;
-      subprogramCall.componentName = this.consumeToken();
+      subprogramCall.package = subprogramCall.entityName;
+      subprogramCall.entityName = this.consumeToken();
     }
     if (this.getToken().getLText() === '(') {
       subprogramCall.portAssociationList = new AssociationListParser(this.state, subprogramCall).parse();

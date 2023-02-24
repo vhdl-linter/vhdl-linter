@@ -415,8 +415,9 @@ export class OSubType extends OType {
 export class OEnum extends OType {
   literals: OEnumLiteral[] = [];
 }
-export class ORecord extends OType {
+export class ORecord extends OType implements I.IMayHaveEndingLexerToken {
   children: ORecordChild[] = [];
+  endingLexerToken?: OLexerToken;
 }
 export class OArray extends OType {
   elementType: OReference[] = [];
@@ -559,7 +560,7 @@ export class OInstantiation extends OReference implements I.IHasDefinitions, I.I
   }
   definitions: (OEntity | OSubprogram | OComponent | OAliasWithSignature | OConfiguration)[] = [];
   prefix: OLexerToken[] = [];
-  componentName: OLexerToken;
+  entityName: OLexerToken;
   package?: OLexerToken;
   portAssociationList?: OPortAssociationList;
   genericAssociationList?: OGenericAssociationList;

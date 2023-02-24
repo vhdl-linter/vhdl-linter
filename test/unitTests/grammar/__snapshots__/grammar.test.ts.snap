@@ -1,0 +1,2683 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`grammar test 1`] = `
+[
+  [
+    {
+      "endIndex": 7,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 14,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 7,
+    },
+  ],
+  [
+    {
+      "endIndex": 3,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 24,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 3,
+    },
+    {
+      "endIndex": 27,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 24,
+    },
+    {
+      "endIndex": 29,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 27,
+    },
+  ],
+  [
+    {
+      "endIndex": 3,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 21,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 3,
+    },
+    {
+      "endIndex": 24,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 21,
+    },
+    {
+      "endIndex": 26,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 24,
+    },
+  ],
+  [
+    {
+      "endIndex": 1,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+  ],
+  [
+    {
+      "endIndex": 7,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 12,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 7,
+    },
+    {
+      "endIndex": 14,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 12,
+    },
+  ],
+  [
+    {
+      "endIndex": 2,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 6,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 2,
+    },
+    {
+      "endIndex": 21,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 6,
+    },
+    {
+      "endIndex": 23,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 21,
+    },
+    {
+      "endIndex": 24,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 23,
+    },
+    {
+      "endIndex": 33,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 24,
+    },
+  ],
+  [
+    {
+      "endIndex": 4,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 13,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 4,
+    },
+    {
+      "endIndex": 20,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 13,
+    },
+  ],
+  [
+    {
+      "endIndex": 4,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 13,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 4,
+    },
+    {
+      "endIndex": 19,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 13,
+    },
+    {
+      "endIndex": 20,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 19,
+    },
+    {
+      "endIndex": 43,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 20,
+    },
+    {
+      "endIndex": 44,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 43,
+    },
+    {
+      "endIndex": 46,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 44,
+    },
+  ],
+  [
+    {
+      "endIndex": 4,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 10,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 4,
+    },
+    {
+      "endIndex": 11,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 10,
+    },
+    {
+      "endIndex": 19,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 11,
+    },
+    {
+      "endIndex": 27,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 19,
+    },
+    {
+      "endIndex": 33,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 27,
+    },
+    {
+      "endIndex": 53,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 33,
+    },
+  ],
+  [
+    {
+      "endIndex": 2,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 5,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 2,
+    },
+    {
+      "endIndex": 6,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 5,
+    },
+    {
+      "endIndex": 15,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 6,
+    },
+    {
+      "endIndex": 17,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 15,
+    },
+  ],
+  [
+    {
+      "endIndex": 3,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 4,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 3,
+    },
+    {
+      "endIndex": 11,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 4,
+    },
+    {
+      "endIndex": 13,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 11,
+    },
+    {
+      "endIndex": 28,
+      "scopes": [
+        "source.vhdl",
+        "comment.line.double-dash.vhdl",
+      ],
+      "startIndex": 13,
+    },
+  ],
+  [
+    {
+      "endIndex": 1,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+  ],
+  [
+    {
+      "endIndex": 7,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 8,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 7,
+    },
+    {
+      "endIndex": 12,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 8,
+    },
+    {
+      "endIndex": 17,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 12,
+    },
+    {
+      "endIndex": 19,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 17,
+    },
+  ],
+  [
+    {
+      "endIndex": 2,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 10,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 2,
+    },
+    {
+      "endIndex": 38,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 10,
+    },
+    {
+      "endIndex": 39,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 38,
+    },
+    {
+      "endIndex": 41,
+      "scopes": [
+        "source.vhdl",
+        "constant.numeric.vhdl",
+      ],
+      "startIndex": 39,
+    },
+    {
+      "endIndex": 42,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 41,
+    },
+    {
+      "endIndex": 48,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 42,
+    },
+    {
+      "endIndex": 49,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 48,
+    },
+    {
+      "endIndex": 50,
+      "scopes": [
+        "source.vhdl",
+        "constant.numeric.vhdl",
+      ],
+      "startIndex": 49,
+    },
+    {
+      "endIndex": 51,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 50,
+    },
+    {
+      "endIndex": 52,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 51,
+    },
+    {
+      "endIndex": 54,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 52,
+    },
+    {
+      "endIndex": 55,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 54,
+    },
+    {
+      "endIndex": 66,
+      "scopes": [
+        "source.vhdl",
+        "constant.numeric.vhdl",
+      ],
+      "startIndex": 55,
+    },
+    {
+      "endIndex": 68,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 66,
+    },
+  ],
+  [
+    {
+      "endIndex": 1,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+  ],
+  [
+    {
+      "endIndex": 2,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 10,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 2,
+    },
+    {
+      "endIndex": 18,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 10,
+    },
+    {
+      "endIndex": 19,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 18,
+    },
+    {
+      "endIndex": 43,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 19,
+    },
+    {
+      "endIndex": 44,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 43,
+    },
+    {
+      "endIndex": 45,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 44,
+    },
+    {
+      "endIndex": 51,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 45,
+    },
+    {
+      "endIndex": 70,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 51,
+    },
+    {
+      "endIndex": 72,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 70,
+    },
+  ],
+  [
+    {
+      "endIndex": 4,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 12,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 4,
+    },
+    {
+      "endIndex": 38,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 12,
+    },
+    {
+      "endIndex": 39,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 38,
+    },
+    {
+      "endIndex": 44,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 39,
+    },
+    {
+      "endIndex": 45,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 44,
+    },
+    {
+      "endIndex": 50,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 45,
+    },
+    {
+      "endIndex": 51,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 50,
+    },
+    {
+      "endIndex": 53,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 51,
+    },
+  ],
+  [
+    {
+      "endIndex": 2,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 7,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 2,
+    },
+  ],
+  [
+    {
+      "endIndex": 4,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 7,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 4,
+    },
+    {
+      "endIndex": 10,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 7,
+    },
+    {
+      "endIndex": 12,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 10,
+    },
+    {
+      "endIndex": 18,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 12,
+    },
+    {
+      "endIndex": 19,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 18,
+    },
+    {
+      "endIndex": 24,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 19,
+    },
+    {
+      "endIndex": 25,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 24,
+    },
+    {
+      "endIndex": 29,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 25,
+    },
+  ],
+  [
+    {
+      "endIndex": 12,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 13,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 12,
+    },
+    {
+      "endIndex": 14,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 13,
+    },
+    {
+      "endIndex": 15,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 14,
+    },
+    {
+      "endIndex": 16,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 15,
+    },
+    {
+      "endIndex": 18,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 16,
+    },
+    {
+      "endIndex": 24,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 18,
+    },
+    {
+      "endIndex": 25,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 24,
+    },
+    {
+      "endIndex": 30,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 25,
+    },
+    {
+      "endIndex": 31,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 30,
+    },
+    {
+      "endIndex": 36,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 31,
+    },
+    {
+      "endIndex": 37,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 36,
+    },
+    {
+      "endIndex": 39,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 37,
+    },
+    {
+      "endIndex": 40,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 39,
+    },
+    {
+      "endIndex": 42,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 40,
+    },
+  ],
+  [
+    {
+      "endIndex": 4,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 7,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 4,
+    },
+    {
+      "endIndex": 8,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 7,
+    },
+    {
+      "endIndex": 12,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 8,
+    },
+    {
+      "endIndex": 14,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 12,
+    },
+  ],
+  [
+    {
+      "endIndex": 4,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 10,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 4,
+    },
+    {
+      "endIndex": 19,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 10,
+    },
+  ],
+  [
+    {
+      "endIndex": 2,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 5,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 2,
+    },
+    {
+      "endIndex": 6,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 5,
+    },
+    {
+      "endIndex": 14,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 6,
+    },
+    {
+      "endIndex": 16,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 14,
+    },
+  ],
+  [
+    {
+      "endIndex": 1,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+  ],
+  [
+    {
+      "endIndex": 1,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+  ],
+  [
+    {
+      "endIndex": 2,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 6,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 2,
+    },
+    {
+      "endIndex": 21,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 6,
+    },
+    {
+      "endIndex": 23,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 21,
+    },
+    {
+      "endIndex": 24,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 23,
+    },
+    {
+      "endIndex": 33,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 24,
+    },
+    {
+      "endIndex": 34,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 33,
+    },
+    {
+      "endIndex": 38,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 34,
+    },
+  ],
+  [
+    {
+      "endIndex": 1,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+  ],
+  [
+    {
+      "endIndex": 4,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 12,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 4,
+    },
+    {
+      "endIndex": 35,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 12,
+    },
+    {
+      "endIndex": 36,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 35,
+    },
+    {
+      "endIndex": 38,
+      "scopes": [
+        "source.vhdl",
+        "constant.numeric.vhdl",
+      ],
+      "startIndex": 36,
+    },
+    {
+      "endIndex": 39,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 38,
+    },
+    {
+      "endIndex": 45,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 39,
+    },
+    {
+      "endIndex": 46,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 45,
+    },
+    {
+      "endIndex": 47,
+      "scopes": [
+        "source.vhdl",
+        "constant.numeric.vhdl",
+      ],
+      "startIndex": 46,
+    },
+    {
+      "endIndex": 48,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 47,
+    },
+    {
+      "endIndex": 49,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 48,
+    },
+    {
+      "endIndex": 51,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 49,
+    },
+    {
+      "endIndex": 52,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 51,
+    },
+    {
+      "endIndex": 53,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 52,
+    },
+    {
+      "endIndex": 59,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 53,
+    },
+    {
+      "endIndex": 60,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 59,
+    },
+    {
+      "endIndex": 62,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 60,
+    },
+    {
+      "endIndex": 63,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 62,
+    },
+    {
+      "endIndex": 66,
+      "scopes": [
+        "source.vhdl",
+        "constant.character.vhdl",
+      ],
+      "startIndex": 63,
+    },
+    {
+      "endIndex": 67,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 66,
+    },
+    {
+      "endIndex": 69,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 67,
+    },
+  ],
+  [
+    {
+      "endIndex": 1,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+  ],
+  [
+    {
+      "endIndex": 4,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 13,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 4,
+    },
+    {
+      "endIndex": 19,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 13,
+    },
+    {
+      "endIndex": 21,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 19,
+    },
+  ],
+  [
+    {
+      "endIndex": 4,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 9,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 4,
+    },
+  ],
+  [
+    {
+      "endIndex": 10,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 12,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 10,
+    },
+    {
+      "endIndex": 13,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 12,
+    },
+    {
+      "endIndex": 14,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 13,
+    },
+    {
+      "endIndex": 20,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 14,
+    },
+    {
+      "endIndex": 21,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 20,
+    },
+    {
+      "endIndex": 23,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 21,
+    },
+    {
+      "endIndex": 24,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 23,
+    },
+    {
+      "endIndex": 27,
+      "scopes": [
+        "source.vhdl",
+        "constant.character.vhdl",
+      ],
+      "startIndex": 24,
+    },
+    {
+      "endIndex": 28,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 27,
+    },
+    {
+      "endIndex": 30,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 28,
+    },
+  ],
+  [
+    {
+      "endIndex": 4,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 7,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 4,
+    },
+    {
+      "endIndex": 8,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 7,
+    },
+    {
+      "endIndex": 17,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 8,
+    },
+    {
+      "endIndex": 19,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 17,
+    },
+  ],
+  [
+    {
+      "endIndex": 1,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+  ],
+  [
+    {
+      "endIndex": 4,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 13,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 4,
+    },
+    {
+      "endIndex": 19,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 13,
+    },
+    {
+      "endIndex": 20,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 19,
+    },
+    {
+      "endIndex": 43,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 20,
+    },
+    {
+      "endIndex": 44,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 43,
+    },
+    {
+      "endIndex": 45,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 44,
+    },
+    {
+      "endIndex": 47,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 45,
+    },
+  ],
+  [
+    {
+      "endIndex": 4,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 9,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 4,
+    },
+  ],
+  [
+    {
+      "endIndex": 6,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 9,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 6,
+    },
+    {
+      "endIndex": 12,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 9,
+    },
+    {
+      "endIndex": 14,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 12,
+    },
+    {
+      "endIndex": 19,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 14,
+    },
+    {
+      "endIndex": 20,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 19,
+    },
+    {
+      "endIndex": 27,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 20,
+    },
+    {
+      "endIndex": 28,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 27,
+    },
+    {
+      "endIndex": 29,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 28,
+    },
+    {
+      "endIndex": 30,
+      "scopes": [
+        "source.vhdl",
+        "constant.numeric.vhdl",
+      ],
+      "startIndex": 29,
+    },
+    {
+      "endIndex": 31,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 30,
+    },
+    {
+      "endIndex": 32,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 31,
+    },
+    {
+      "endIndex": 33,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 32,
+    },
+    {
+      "endIndex": 34,
+      "scopes": [
+        "source.vhdl",
+        "constant.numeric.vhdl",
+      ],
+      "startIndex": 33,
+    },
+    {
+      "endIndex": 35,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 34,
+    },
+    {
+      "endIndex": 41,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 35,
+    },
+    {
+      "endIndex": 42,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 41,
+    },
+    {
+      "endIndex": 43,
+      "scopes": [
+        "source.vhdl",
+        "constant.numeric.vhdl",
+      ],
+      "startIndex": 42,
+    },
+    {
+      "endIndex": 44,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 43,
+    },
+    {
+      "endIndex": 48,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 44,
+    },
+  ],
+  [
+    {
+      "endIndex": 10,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 13,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 10,
+    },
+    {
+      "endIndex": 18,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 13,
+    },
+    {
+      "endIndex": 20,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 18,
+    },
+    {
+      "endIndex": 21,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 20,
+    },
+    {
+      "endIndex": 22,
+      "scopes": [
+        "source.vhdl",
+        "constant.numeric.vhdl",
+      ],
+      "startIndex": 21,
+    },
+    {
+      "endIndex": 23,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 22,
+    },
+    {
+      "endIndex": 25,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 23,
+    },
+    {
+      "endIndex": 26,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 25,
+    },
+    {
+      "endIndex": 27,
+      "scopes": [
+        "source.vhdl",
+        "constant.numeric.vhdl",
+      ],
+      "startIndex": 26,
+    },
+    {
+      "endIndex": 28,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 27,
+    },
+    {
+      "endIndex": 32,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 28,
+    },
+  ],
+  [
+    {
+      "endIndex": 12,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 14,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 12,
+    },
+    {
+      "endIndex": 18,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 14,
+    },
+    {
+      "endIndex": 19,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 18,
+    },
+    {
+      "endIndex": 21,
+      "scopes": [
+        "source.vhdl",
+        "constant.numeric.vhdl",
+      ],
+      "startIndex": 19,
+    },
+    {
+      "endIndex": 22,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 21,
+    },
+    {
+      "endIndex": 23,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 22,
+    },
+    {
+      "endIndex": 25,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 23,
+    },
+    {
+      "endIndex": 30,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 25,
+    },
+    {
+      "endIndex": 31,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 30,
+    },
+    {
+      "endIndex": 33,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 31,
+    },
+    {
+      "endIndex": 34,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 33,
+    },
+    {
+      "endIndex": 35,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 34,
+    },
+    {
+      "endIndex": 36,
+      "scopes": [
+        "source.vhdl",
+        "constant.numeric.vhdl",
+      ],
+      "startIndex": 35,
+    },
+    {
+      "endIndex": 37,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 36,
+    },
+    {
+      "endIndex": 38,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 37,
+    },
+    {
+      "endIndex": 42,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 38,
+    },
+    {
+      "endIndex": 43,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 42,
+    },
+    {
+      "endIndex": 44,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 43,
+    },
+    {
+      "endIndex": 48,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 44,
+    },
+    {
+      "endIndex": 49,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 48,
+    },
+    {
+      "endIndex": 70,
+      "scopes": [
+        "source.vhdl",
+        "comment.line.double-dash.vhdl",
+      ],
+      "startIndex": 49,
+    },
+  ],
+  [
+    {
+      "endIndex": 18,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 20,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 18,
+    },
+    {
+      "endIndex": 21,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 20,
+    },
+    {
+      "endIndex": 22,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 21,
+    },
+    {
+      "endIndex": 26,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 22,
+    },
+    {
+      "endIndex": 29,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 26,
+    },
+    {
+      "endIndex": 30,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 29,
+    },
+    {
+      "endIndex": 31,
+      "scopes": [
+        "source.vhdl",
+        "constant.numeric.vhdl",
+      ],
+      "startIndex": 30,
+    },
+    {
+      "endIndex": 32,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 31,
+    },
+    {
+      "endIndex": 33,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 32,
+    },
+    {
+      "endIndex": 36,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 33,
+    },
+    {
+      "endIndex": 47,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 36,
+    },
+  ],
+  [
+    {
+      "endIndex": 12,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 16,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 12,
+    },
+  ],
+  [
+    {
+      "endIndex": 18,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 20,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 18,
+    },
+    {
+      "endIndex": 25,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 20,
+    },
+    {
+      "endIndex": 28,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 25,
+    },
+    {
+      "endIndex": 29,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 28,
+    },
+    {
+      "endIndex": 30,
+      "scopes": [
+        "source.vhdl",
+        "constant.numeric.vhdl",
+      ],
+      "startIndex": 29,
+    },
+    {
+      "endIndex": 32,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 30,
+    },
+  ],
+  [
+    {
+      "endIndex": 12,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 15,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 12,
+    },
+    {
+      "endIndex": 16,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 15,
+    },
+    {
+      "endIndex": 18,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 16,
+    },
+    {
+      "endIndex": 20,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 18,
+    },
+  ],
+  [
+    {
+      "endIndex": 10,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 13,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 10,
+    },
+    {
+      "endIndex": 14,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 13,
+    },
+    {
+      "endIndex": 18,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 14,
+    },
+    {
+      "endIndex": 20,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 18,
+    },
+  ],
+  [
+    {
+      "endIndex": 6,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 9,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 6,
+    },
+    {
+      "endIndex": 10,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 9,
+    },
+    {
+      "endIndex": 14,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 10,
+    },
+    {
+      "endIndex": 16,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 14,
+    },
+  ],
+  [
+    {
+      "endIndex": 4,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 7,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 4,
+    },
+    {
+      "endIndex": 8,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 7,
+    },
+    {
+      "endIndex": 17,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 8,
+    },
+    {
+      "endIndex": 19,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 17,
+    },
+  ],
+  [
+    {
+      "endIndex": 1,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+  ],
+  [
+    {
+      "endIndex": 4,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 10,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 4,
+    },
+    {
+      "endIndex": 11,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 10,
+    },
+    {
+      "endIndex": 19,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 11,
+    },
+    {
+      "endIndex": 27,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 19,
+    },
+    {
+      "endIndex": 33,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 27,
+    },
+    {
+      "endIndex": 52,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 33,
+    },
+    {
+      "endIndex": 54,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 52,
+    },
+  ],
+  [
+    {
+      "endIndex": 6,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 14,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 6,
+    },
+    {
+      "endIndex": 40,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 14,
+    },
+    {
+      "endIndex": 41,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 40,
+    },
+    {
+      "endIndex": 43,
+      "scopes": [
+        "source.vhdl",
+        "constant.numeric.vhdl",
+      ],
+      "startIndex": 41,
+    },
+    {
+      "endIndex": 44,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 43,
+    },
+    {
+      "endIndex": 50,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 44,
+    },
+    {
+      "endIndex": 51,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 50,
+    },
+    {
+      "endIndex": 52,
+      "scopes": [
+        "source.vhdl",
+        "constant.numeric.vhdl",
+      ],
+      "startIndex": 51,
+    },
+    {
+      "endIndex": 53,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 52,
+    },
+    {
+      "endIndex": 55,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 53,
+    },
+  ],
+  [
+    {
+      "endIndex": 4,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 9,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 4,
+    },
+  ],
+  [
+    {
+      "endIndex": 13,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 15,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 13,
+    },
+    {
+      "endIndex": 20,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 15,
+    },
+    {
+      "endIndex": 23,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 20,
+    },
+    {
+      "endIndex": 24,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 23,
+    },
+    {
+      "endIndex": 35,
+      "scopes": [
+        "source.vhdl",
+        "constant.numeric.vhdl",
+      ],
+      "startIndex": 24,
+    },
+    {
+      "endIndex": 37,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 35,
+    },
+  ],
+  [
+    {
+      "endIndex": 6,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 12,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 6,
+    },
+    {
+      "endIndex": 20,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 12,
+    },
+    {
+      "endIndex": 21,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 20,
+    },
+    {
+      "endIndex": 27,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 21,
+    },
+    {
+      "endIndex": 28,
+      "scopes": [
+        "source.vhdl",
+        "keyword.operator",
+      ],
+      "startIndex": 27,
+    },
+    {
+      "endIndex": 30,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 28,
+    },
+  ],
+  [
+    {
+      "endIndex": 4,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 7,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 4,
+    },
+    {
+      "endIndex": 8,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 7,
+    },
+    {
+      "endIndex": 16,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 8,
+    },
+    {
+      "endIndex": 18,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 16,
+    },
+  ],
+  [
+    {
+      "endIndex": 1,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+  ],
+  [
+    {
+      "endIndex": 2,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 5,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 2,
+    },
+    {
+      "endIndex": 6,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 5,
+    },
+    {
+      "endIndex": 15,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 6,
+    },
+    {
+      "endIndex": 16,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 15,
+    },
+    {
+      "endIndex": 20,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 16,
+    },
+    {
+      "endIndex": 22,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 20,
+    },
+  ],
+  [
+    {
+      "endIndex": 3,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 0,
+    },
+    {
+      "endIndex": 4,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 3,
+    },
+    {
+      "endIndex": 11,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 4,
+    },
+    {
+      "endIndex": 12,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 11,
+    },
+    {
+      "endIndex": 16,
+      "scopes": [
+        "source.vhdl",
+        "keyword.language.vhdl",
+      ],
+      "startIndex": 12,
+    },
+    {
+      "endIndex": 18,
+      "scopes": [
+        "source.vhdl",
+      ],
+      "startIndex": 16,
+    },
+  ],
+]
+`;

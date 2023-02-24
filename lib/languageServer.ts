@@ -14,7 +14,7 @@ import { findDefinitionLinks } from './languageFeatures/findDefinition';
 import { findReferencesHandler } from './languageFeatures/findReferencesHandler';
 import { foldingHandler } from './languageFeatures/folding';
 import { prepareRenameHandler, renameHandler } from './languageFeatures/rename';
-import { semanticTokens, semanticTokensLegend } from './languageFeatures/semanticTokens';
+import { semanticToken, semanticTokensLegend } from './languageFeatures/semanticToken';
 import { signatureHelp } from './languageFeatures/signatureHelp';
 import { workspaceSymbol } from './languageFeatures/workspaceSymbol';
 import { LinterManager } from './linterManager';
@@ -320,12 +320,13 @@ connection.onSignatureHelp(async (params, token) => {
 });
 connection.languages.semanticTokens.on(async (params, token) => {
   const linter = await linterManager.getLinter(params.textDocument.uri, token, false);
-  if (!(await getDocumentSettings(new URL(params.textDocument.uri))).semanticTokens) {
+  const settings = await getDocumentSettings(new URL(params.textDocument.uri));
+  if (!settings.semanticTokens) {
     return {
       data: []
     };
   }
-  const tokens = semanticTokens(linter);
+  const tokens = semanticToken(linter, settings.semanticTokensDirectionColoring);
   return tokens;
 });
 documents.listen(connection);

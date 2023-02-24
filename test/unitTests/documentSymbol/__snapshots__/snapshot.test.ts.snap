@@ -36,7 +36,7 @@ exports[`Testing document symbols of test_alias.vhd 1`] = `
         "name": "rec",
         "range": {
           "end": {
-            "character": 2,
+            "character": 12,
             "line": 7,
           },
           "start": {
@@ -1194,7 +1194,7 @@ exports[`Testing document symbols of test_record.vhd 1`] = `
         "name": "rec",
         "range": {
           "end": {
-            "character": 2,
+            "character": 12,
             "line": 7,
           },
           "start": {
@@ -2804,7 +2804,7 @@ exports[`Testing workspace symbol 1`] = `
     "location": {
       "range": {
         "end": {
-          "character": 2,
+          "character": 12,
           "line": 7,
         },
         "start": {
@@ -3127,7 +3127,7 @@ exports[`Testing workspace symbol 1`] = `
     "location": {
       "range": {
         "end": {
-          "character": 2,
+          "character": 12,
           "line": 7,
         },
         "start": {
