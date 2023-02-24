@@ -314,13 +314,11 @@ export class OLibrary extends ObjectBase implements I.IHasLexerToken, I.IHasRefe
   aliasReferences: OAlias[] = [];
 }
 
-export class OContextReference extends ObjectBase implements I.IHasLibraryReference {
+export class OContextReference extends ObjectBase {
   constructor(public parent: OContext | ObjectBase | OFile, range: OIRange) {
     super(parent, range);
   }
-  definitions: ObjectBase[] = [];
-  library: OLibraryReference;
-  contextName: OReference;
+  reference: OReference[];
 
 }
 

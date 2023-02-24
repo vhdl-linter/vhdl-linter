@@ -18,14 +18,8 @@ export class ElaborateReferences {
     const elaborator = new ElaborateReferences(vhdlLinter);
     for (const obj of vhdlLinter.file.objectList) {
       if (I.implementsIHasUseClause(obj)) {
-        for (const useClause of obj.useClauses) {
-          elaborator.elaborateUseClause(useClause);
-        }
+        elaborator.elaborateUseClauses(obj, elaborator.getUseClauses(obj));
       }
-      if (obj instanceof O.OContextReference) {
-        elaborator.elaborateContextReference(obj);
-      }
-
       if (obj instanceof O.OFormalReference) {
         continue;
       }
@@ -133,7 +127,7 @@ export class ElaborateReferences {
     // find parent which has declarations to use as key
     let key = reference.parent;
     for (const [p] of O.scope(reference)) {
-      if (I.implementsIHasDeclarations(p) || I.implementsIHasLabel(p) || p instanceof O.OPackageInstantiation) {
+      if (I.implementsIHasDeclarations(p) || I.implementsIHasLabel(p) || p instanceof O.OPackageInstantiation || p instanceof O.OContext) {
         key = p;
         break;
       }
@@ -282,37 +276,39 @@ export class ElaborateReferences {
     }
   }
 
-  elaborateUseClause(useClause: O.OUseClause) {
+  elaborateUseClauses(parent: O.ObjectBase & I.IHasUseClauses, useClauses: O.OUseClause[]) {
     // the scope changes when finding use clause -> clear the visibility map
     let clearVisibilityMap = false;
-    if (useClause.library !== undefined) {
-      for (const obj of this.getProjectList(useClause.packageName.referenceToken.getLText())) {
-        if (obj instanceof O.OPackage) {
-          useClause.parent.packageDefinitions.push(obj);
-          useClause.definitions.push(obj);
-          obj.referenceLinks.push(useClause);
-          clearVisibilityMap = true;
-        }
-        if (obj instanceof O.OPackageInstantiation) {
-          const uninstantiatedPackage = obj.uninstantiatedPackage[obj.uninstantiatedPackage.length - 1]!;
-          // manually elaborate the uninstantiated package:
-          const packageDefinitions = this.getProjectList(uninstantiatedPackage.referenceToken.getLText()).filter(def => def instanceof O.OPackage) as O.OPackage[];
-          uninstantiatedPackage.definitions = packageDefinitions;
+    for (const useClause of useClauses) {
+      if (useClause.library !== undefined) {
+        for (const obj of this.getProjectList(useClause.packageName.referenceToken.getLText())) {
+          if (obj instanceof O.OPackage) {
+            parent.packageDefinitions.push(obj);
+            useClause.definitions.push(obj);
+            obj.referenceLinks.push(useClause);
+            clearVisibilityMap = true;
+          }
+          if (obj instanceof O.OPackageInstantiation) {
+            const uninstantiatedPackage = obj.uninstantiatedPackage[obj.uninstantiatedPackage.length - 1]!;
+            // manually elaborate the uninstantiated package:
+            const packageDefinitions = this.getProjectList(uninstantiatedPackage.referenceToken.getLText()).filter(def => def instanceof O.OPackage) as O.OPackage[];
+            uninstantiatedPackage.definitions = packageDefinitions;
 
-          useClause.parent.packageDefinitions.push(...packageDefinitions);
-          useClause.definitions.push(obj);
-          obj.referenceLinks.push(useClause);
-          clearVisibilityMap = true;
+            parent.packageDefinitions.push(...packageDefinitions);
+            useClause.definitions.push(obj);
+            obj.referenceLinks.push(useClause);
+            clearVisibilityMap = true;
+          }
         }
-      }
-    } else {
-      for (const obj of this.getList(useClause.packageName)) {
-        if (obj instanceof O.OPackageInstantiation || obj instanceof O.OInterfacePackage) {
-          const packageDefinitions = obj.uninstantiatedPackage[obj.uninstantiatedPackage.length - 1]!.definitions.filter(ref => ref instanceof O.OPackage) as O.OPackage[];
-          useClause.parent.packageDefinitions.push(...packageDefinitions);
-          useClause.definitions.push(obj);
-          obj.referenceLinks.push(useClause);
-          clearVisibilityMap = true;
+      } else {
+        for (const obj of this.getList(useClause.packageName)) {
+          if (obj instanceof O.OPackageInstantiation || obj instanceof O.OInterfacePackage) {
+            const packageDefinitions = obj.uninstantiatedPackage[obj.uninstantiatedPackage.length - 1]!.definitions.filter(ref => ref instanceof O.OPackage) as O.OPackage[];
+            parent.packageDefinitions.push(...packageDefinitions);
+            useClause.definitions.push(obj);
+            obj.referenceLinks.push(useClause);
+            clearVisibilityMap = true;
+          }
         }
       }
     }
@@ -321,19 +317,28 @@ export class ElaborateReferences {
     }
   }
 
-
-  elaborateContextReference(contextRef: O.OContextReference) {
-    // the scope changes when finding context ref -> clear the visibility map
-    let clearVisibilityMap = false;
-    for (const obj of this.getProjectList(contextRef.contextName.referenceToken.getLText())) {
-      if (obj instanceof O.OContext) {
-        contextRef.definitions.push(obj);
-        obj.contextReferences.push(contextRef);
-        clearVisibilityMap = true;
+  getUseClauses(parent: O.ObjectBase & (I.IHasUseClauses | I.IHasContextReference)) {
+    const useClauses = I.implementsIHasUseClause(parent) ? parent.useClauses.slice() : [];
+    const contextReferences = I.implementsIHasContextReference(parent) ? parent.contextReferences.slice() : [];
+    if (parent instanceof O.OPackageBody && parent.correspondingPackage) {
+      useClauses.push(...parent.correspondingPackage.useClauses);
+      contextReferences.push(...parent.correspondingPackage.contextReferences);
+    } else if (parent instanceof O.OArchitecture && parent.correspondingEntity) {
+      useClauses.push(...parent.correspondingEntity.useClauses);
+      contextReferences.push(...parent.correspondingEntity.contextReferences);
+    }
+    if (contextReferences.length > 0) {
+      for (const contextRef of contextReferences) {
+        const [lib, context] = contextRef.reference as [O.OReference, O.OReference];
+        this.elaborateReference(lib);
+        for (const obj of this.getProjectList(context.referenceToken.getLText())) {
+          if (obj instanceof O.OContext) {
+            context.definitions.push(obj);
+            useClauses.push(...this.getUseClauses(obj));
+          }
+        }
       }
     }
-    if (clearVisibilityMap) {
-      this.scopeVisibilityMap.clear();
-    }
+    return useClauses;
   }
 }

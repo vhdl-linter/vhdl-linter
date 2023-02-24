@@ -1,4 +1,4 @@
-import { OContext, OContextReference, ObjectBase, OLibraryReference, OFile, OReference } from './objects';
+import { ObjectBase, OContext, OContextReference, OFile } from './objects';
 import { ParserBase, ParserState } from './parserBase';
 
 export class ContextReferenceParser extends ParserBase {
@@ -8,14 +8,18 @@ export class ContextReferenceParser extends ParserBase {
   }
 
   parse() {
-    const prefix = this.consumeToken();
-    this.expect('.');
-    const suffix = this.consumeToken();
+    const contextReference = new OContextReference(this.parent, this.getToken().range);
+    contextReference.reference = this.advanceSelectedName(contextReference);
+    if (contextReference.reference.length > 0) {
+      contextReference.range = contextReference.reference[0]!.range.copyWithNewEnd(contextReference.reference[contextReference.reference.length - 1]!.range);
+    }
+    if (contextReference.reference.length !== 2) {
+      this.state.messages.push({
+        message: `context reference should be a selected name with length 2 (library.context) but got ${contextReference.reference.length}.`,
+        range: contextReference.range
+      });
+    }
     this.expect(';');
-    const contextReference = new OContextReference(this.parent, prefix.range.copyWithNewEnd(suffix.range));
-    contextReference.library = new OLibraryReference(contextReference, prefix);
-    contextReference.contextName = new OReference(contextReference, suffix);
-
     return contextReference;
   }
 }
