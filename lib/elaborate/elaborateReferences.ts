@@ -221,7 +221,7 @@ export class ElaborateReferences {
       }
       if (found === false) {
         // add a hint for the notDeclared rule to give a more detailed error message
-        (selectedName as O.ObjectBase & Partial<I.IHasUndeclaredHint>).notDeclaredHint = `${selectedName.referenceToken.text} does not exist on ${typeDefinition instanceof O.ORecord ? 'record' : 'protected type'} ${typeDefinition.lexerToken.text}`;
+        (selectedName as O.ObjectBase & Partial<I.IHasNotDeclaredHint>).notDeclaredHint = `${selectedName.referenceToken.text} does not exist on ${typeDefinition instanceof O.ORecord ? 'record' : 'protected type'} ${typeDefinition.lexerToken.text}`;
       }
     } else if (typeDefinition instanceof O.OArray) {
       for (const def of typeDefinition.elementType.flatMap(r => r.definitions)) {
@@ -233,6 +233,10 @@ export class ElaborateReferences {
   elaborateSelectedNames(reference: O.OSelectedName | O.OSelectedNameWrite) {
     // all prefix tokens should be elaborated already
     const lastPrefix = reference.prefixTokens[reference.prefixTokens.length - 1]!;
+    if (lastPrefix.definitions.length === 0) {
+      // if the last prefix token was not defined, do not try to look for more
+      return;
+    }
     // privious token is library -> expect a package
     if (lastPrefix.definitions.some(def => def instanceof O.OLibrary)) {
       for (const pkg of this.getProjectList(reference.referenceToken.getLText())) {
@@ -269,7 +273,7 @@ export class ElaborateReferences {
     }
 
     // if nothing was found look in the fallback map
-    if (reference.definitions.length === 0 && (reference as O.ObjectBase & Partial<I.IHasUndeclaredHint>).notDeclaredHint === undefined) {
+    if (reference.definitions.length === 0 && (reference as O.ObjectBase & Partial<I.IHasNotDeclaredHint>).notDeclaredHint === undefined) {
       for (const obj of this.getList(reference, true)) {
         // alias doesn't has aliasReferences but still referenceLinks
         if (I.implementsIHasReference(obj) || obj instanceof O.OAlias) {

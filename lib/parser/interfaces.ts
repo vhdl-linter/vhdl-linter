@@ -121,9 +121,9 @@ export function implementsIHasStatements(obj: O.ObjectBase): obj is O.ObjectBase
   return Array.isArray(o.statements) && o.statementsRange !== undefined;
 }
 
-export interface IHasUndeclaredHint {
+export interface IHasNotDeclaredHint {
   notDeclaredHint: string;
 }
-export function implementsIHasUndeclaredHint(obj: O.ObjectBase): obj is O.ObjectBase & IHasUndeclaredHint {
-  return (obj as O.ObjectBase & Partial<IHasUndeclaredHint>).notDeclaredHint !== undefined;
+export function implementsIHasNotDeclaredHint(obj: O.ObjectBase): obj is O.ObjectBase & IHasNotDeclaredHint {
+  return (obj as O.ObjectBase & Partial<IHasNotDeclaredHint>).notDeclaredHint !== undefined;
 }
