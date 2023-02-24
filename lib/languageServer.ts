@@ -59,18 +59,18 @@ connection.onDidChangeConfiguration((change: { settings: { VhdlLinter?: ISetting
     void validateTextDocument(document);
   }
 });
-export async function getDocumentSettings(resource: URL): Promise<ISettings> {
+export async function getDocumentSettings(resource?: URL): Promise<ISettings> {
   if (!hasConfigurationCapability) {
     return Promise.resolve(globalSettings);
   }
-  let result = documentSettings.get(resource.toString());
+  let result = documentSettings.get(resource?.toString() ?? '');
   if (!result) {
     result = await connection.workspace.getConfiguration({
-      scopeUri: resource.toString(),
+      scopeUri: resource?.toString(),
       section: 'VhdlLinter'
     }) as ISettings;
   }
-  documentSettings.set(resource.toString(), result);
+  documentSettings.set(resource?.toString() ?? '', result);
   return result;
 }
 connection.onInitialize((params: InitializeParams) => {
@@ -311,7 +311,8 @@ connection.onDocumentHighlight(async (params, token) => {
 });
 connection.onWorkspaceSymbol(async params => {
   await initialization;
-  return workspaceSymbol(params, projectParser);
+  const configuration = await getDocumentSettings();
+  return workspaceSymbol(params, projectParser, configuration.paths.additional);
 });
 connection.onSignatureHelp(async (params, token) => {
   const linter = await linterManager.getLinter(params.textDocument.uri, token);

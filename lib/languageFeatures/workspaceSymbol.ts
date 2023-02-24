@@ -1,12 +1,13 @@
+import { fileURLToPath } from 'url';
 import { SymbolInformation, SymbolKind, WorkspaceSymbolParams } from 'vscode-languageserver';
 import { OProcess, OSubprogram, OPackage, OEntity, OType, ORecordChild } from '../parser/objects';
 import { ProjectParser } from '../projectParser';
 
-export function workspaceSymbol(params: WorkspaceSymbolParams, projectParser: ProjectParser): SymbolInformation[] | null {
+export function workspaceSymbol(params: WorkspaceSymbolParams, projectParser: ProjectParser, additionPaths: string[]): SymbolInformation[] | null {
   const start = Date.now();
   const symbols: SymbolInformation[] = [];
   for (const cachedFile of projectParser.cachedFiles) {
-    if (cachedFile.builtIn) {
+    if (cachedFile.builtIn || additionPaths.find(additionalPath => fileURLToPath(cachedFile.uri).startsWith(additionalPath))) {
       continue;
     }
     for (const object of cachedFile.linter.file.objectList) {

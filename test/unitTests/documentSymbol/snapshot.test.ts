@@ -27,7 +27,7 @@ test.each(
   expect(symbols).toMatchSnapshot();
 });
 test('Testing workspace symbol', () => {
-  const symbols = workspaceSymbol({query: ''}, projectParser)?.map(symbol => ({
+  const symbols = workspaceSymbol({query: ''}, projectParser, [])?.map(symbol => ({
     ...symbol,
     location: {
       ...symbol.location,
