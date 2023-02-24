@@ -1,9 +1,10 @@
+import { OLexerToken } from '../lexer';
 import { AliasParser } from './aliasParser';
 import { AttributeParser } from './attributeParser';
 import { ComponentParser } from './componentParser';
 import { IHasDeclarations, implementsIHasUseClause } from './interfaces';
 import { ObjectDeclarationParser } from './objectDeclarationParser';
-import { OAttributeDeclaration, ObjectBase, OEntity, OI, OPackageBody, OProcess, OSubprogram, OType } from './objects';
+import { OAttributeDeclaration, ObjectBase, OEntity, OI, OIRange, OPackageBody, OProcess, OSubprogram, OType } from './objects';
 import { PackageInstantiationParser } from './packageInstantiationParser';
 import { ParserBase, ParserState } from './parserBase';
 import { SubprogramParser } from './subprogramParser';
@@ -28,87 +29,27 @@ export class DeclarativePartParser extends ParserBase {
         || nextToken.getLText() === 'file') {
         const objects = new ObjectDeclarationParser(this.state, this.parent).parse(nextToken);
         this.parent.declarations.push(...objects);
-        if (this.parent instanceof OType && this.parent.protected) {
-          this.state.messages.push({
-            message: `object declarations are not allowed in protected types`,
-            range: objects[0]?.range ?? this.getToken().range
-          });
-        }
       } else if (nextToken.getLText() === 'attribute') {
         const obj = new AttributeParser(this.state, this.parent).parse();
         if (obj instanceof OAttributeDeclaration) {
-          if (this.parent instanceof OType && this.parent.protected) {
-            this.state.messages.push({
-              message: `attribute declarations are not allowed in protected types`,
-              range: obj.range
-            });
-          }
           this.parent.declarations.push(obj);
         } else {
           this.parent.declarations.push(obj);
         }
       } else if (nextToken.getLText() === 'type') {
         const type = new TypeParser(this.state, this.parent).parse();
-        if (this.parent instanceof OType && this.parent.protected) {
-          this.state.messages.push({
-            message: `type declarations are not allowed in protected types`,
-            range: type.range
-          });
-        }
         this.parent.declarations.push(type);
       } else if (nextToken.getLText() === 'subtype') {
         const subtype = new SubtypeParser(this.state, this.parent).parse();
-        if (this.parent instanceof OType && this.parent.protected) {
-          this.state.messages.push({
-            message: `subtype declarations are not allowed in protected types`,
-            range: subtype.range
-          });
-        }
         this.parent.declarations.push(subtype);
       } else if (nextToken.getLText() === 'alias') {
         const alias = new AliasParser(this.state, this.parent).parse();
-        if (this.parent instanceof OType && this.parent.protected) {
-          this.state.messages.push({
-            message: `alias declarations are not allowed in protected types`,
-            range: alias.range
-          });
-        }
         this.parent.declarations.push(alias);
       } else if (nextToken.getLText() === 'component') {
-        if (this.parent instanceof OEntity) {
-          this.state.messages.push({
-            message: `Components are not allowed in entity`,
-            range: this.getToken().range
-          });
-        }
-        if (this.parent instanceof OPackageBody) {
-          this.state.messages.push({
-            message: `Components are not allowed in package body`,
-            range: this.getToken().range
-          });
-        }
-        if (this.parent instanceof OProcess) {
-          this.state.messages.push({
-            message: `Components are not allowed in process`,
-            range: this.getToken().range
-          });
-        }
-        if (this.parent instanceof OSubprogram) {
-          this.state.messages.push({
-            message: `Components are not allowed in subprogram`,
-            range: this.getToken().range
-          });
-        }
-        if (this.parent instanceof OType) {
-          this.state.messages.push({
-            message: `Components are not allowed in type`,
-            range: this.getToken().range
-          });
-        }
         this.consumeToken();
-        const componentParser = new ComponentParser(this.state, this.parent);
-        this.parent.declarations.push(componentParser.parse());
+        const component = new ComponentParser(this.state, this.parent).parse();
         this.expect(';');
+        this.parent.declarations.push(component);
       } else if (nextToken.getLText() === 'procedure' || nextToken.getLText() === 'impure' || nextToken.getLText() === 'pure' || nextToken.getLText() === 'function') {
         const subprogramParser = new SubprogramParser(this.state, this.parent);
         this.parent.declarations.push(subprogramParser.parse());
@@ -118,12 +59,6 @@ export class DeclarativePartParser extends ParserBase {
         const packageInst = new PackageInstantiationParser(this.state, this.parent).parse();
         this.parent.declarations.push(packageInst);
         this.expect(';');
-        if (this.parent instanceof OType && this.parent.protected) {
-          this.state.messages.push({
-            message: `package instantiations are not allowed in protected types`,
-            range: packageInst.range
-          });
-        }
       } else if (nextToken.getLText() === 'generic') {
         this.advanceSemicolon();
       } else if (nextToken.getLText() === 'disconnect') {
