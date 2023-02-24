@@ -29,7 +29,10 @@ test.each(
 test('Testing workspace symbol', () => {
   const symbols = workspaceSymbol({query: ''}, projectParser)?.map(symbol => ({
     ...symbol,
-    uri: symbol.location.uri.replace(pathToFileURL(__dirname).toString(), 'file:///c/dummy/')
+    location: {
+      ...symbol.location,
+      uri: symbol.location.uri.replace(pathToFileURL(__dirname).toString(), 'file:///c/dummy/')
+    }
   }));
   expect(symbols).toMatchSnapshot();
 });
