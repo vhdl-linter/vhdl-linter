@@ -26,38 +26,68 @@ export class RuleNotAllowed extends RuleBase implements IRule {
       if (I.implementsIHasDeclarations(obj)) {
         for (const declaration of obj.declarations) {
           if (declaration instanceof O.OSignal) {
-            if (obj instanceof O.OType && obj.protected) {
-              this.pushNotAllowed(obj, 'object declaration');
+            if (obj instanceof O.OType && (obj.protected || obj.protectedBody)) {
+              this.pushNotAllowed(obj, 'signal declaration');
+            }
+            if (obj instanceof O.OPackageBody || obj instanceof O.OConfiguration || obj instanceof O.OProcess || obj instanceof O.OSubprogram) {
+              this.pushNotAllowed(obj, 'signal declaration');
             }
           } else if (declaration instanceof O.OConstant) {
-            if (obj instanceof O.OType && obj.protected) {
+            if (obj instanceof O.OType && obj.protected ) {
+              this.pushNotAllowed(obj, 'constant declaration');
+            }
+            if (obj instanceof O.OConfiguration) {
               this.pushNotAllowed(obj, 'constant declaration');
             }
           } else if (declaration instanceof O.OVariable) {
             if (obj instanceof O.OType && obj.protected) {
               this.pushNotAllowed(obj, '(shared) variable declaration');
             }
-            if (!declaration.shared && (obj instanceof O.OEntity)) {
+            if (obj instanceof O.OConfiguration) {
+              this.pushNotAllowed(obj, '(shared) variable declaration');
+            }
+            if (!declaration.shared && (obj instanceof O.OEntity || obj instanceof O.OArchitecture)) {
               this.pushNotAllowed(obj, 'variable declaration');
+            }
+            if (declaration.shared && (obj instanceof O.OProcess || obj instanceof O.OSubprogram)) {
+              this.pushNotAllowed(obj, 'shared variable declaration');
+            }
+            if (declaration.shared && obj instanceof O.OType && obj.protectedBody) {
+              this.pushNotAllowed(obj, 'shared variable declaration');
             }
           } else if (declaration instanceof O.OAttributeDeclaration) {
             if (obj instanceof O.OType && obj.protected) {
+              this.pushNotAllowed(obj, 'attribute declaration');
+            }
+            if (obj instanceof O.OConfiguration) {
               this.pushNotAllowed(obj, 'attribute declaration');
             }
           } else if (declaration instanceof O.OType) {
             if (obj instanceof O.OType && obj.protected) {
               this.pushNotAllowed(obj, 'type declaration');
             }
+            if (obj instanceof O.OConfiguration) {
+              this.pushNotAllowed(obj, 'type declaration');
+            }
           } else if (declaration instanceof O.OSubType) {
             if (obj instanceof O.OType && obj.protected) {
+              this.pushNotAllowed(obj, 'subtype declaration');
+            }
+            if (obj instanceof O.OConfiguration) {
               this.pushNotAllowed(obj, 'subtype declaration');
             }
           } else if (declaration instanceof O.OAlias) {
             if (obj instanceof O.OType && obj.protected) {
               this.pushNotAllowed(obj, 'alias declaration');
             }
+            if (obj instanceof O.OConfiguration) {
+              this.pushNotAllowed(obj, 'alias declaration');
+            }
           } else if (declaration instanceof O.OPackageInstantiation) {
             if (obj instanceof O.OType && obj.protected) {
+              this.pushNotAllowed(obj, 'package instantiation');
+            }
+            if (obj instanceof O.OConfiguration) {
               this.pushNotAllowed(obj, 'package instantiation');
             }
           } else if (declaration instanceof O.OComponent) {
@@ -65,15 +95,19 @@ export class RuleNotAllowed extends RuleBase implements IRule {
               || obj instanceof O.OPackageBody
               || obj instanceof O.OProcess
               || obj instanceof O.OSubprogram
+              || obj instanceof O.OConfiguration
               || obj instanceof O.OType) {
               this.pushNotAllowed(obj, 'component declaration');
             }
           } else if (declaration instanceof O.OSubprogram && declaration.hasBody) {
-            if (obj instanceof O.OPackage || (obj instanceof O.OType && obj.protected)) {
+            if (obj instanceof O.OPackage || obj instanceof O.OConfiguration || (obj instanceof O.OType && obj.protected)) {
               this.pushNotAllowed(obj, 'subprogram body');
             }
           } else if (declaration instanceof O.OFileVariable) {
             if (obj instanceof O.OType && obj.protected) {
+              this.pushNotAllowed(obj, 'file variable');
+            }
+            if (obj instanceof O.OConfiguration) {
               this.pushNotAllowed(obj, 'file variable');
             }
           }

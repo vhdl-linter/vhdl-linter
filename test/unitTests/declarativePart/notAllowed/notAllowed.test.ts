@@ -2,7 +2,7 @@ import { afterAll, beforeAll, expect, test } from '@jest/globals';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
 import { ProjectParser } from '../../../../lib/projectParser';
-import { defaultSettingsGetter } from '../../../../lib/settings';
+import { defaultSettingsGetter, defaultSettingsWithOverwrite } from '../../../../lib/settings';
 import { VhdlLinter } from '../../../../lib/vhdlLinter';
 import { readFileSyncNorm } from "../../../readFileSyncNorm";
 
@@ -33,6 +33,7 @@ const possibleDeclarations = {
   'component_declaration': 'component xyz end component;',
   'attribute_declaration': 'attribute attr: string;',
   'attribute_specification': 'procedure p; attribute attr of p: procedure is "stuff";',
+  // 'configuration_specification': '', // TODO: implement configuration specification(§ 7.3.1)
   // 'disconnection_specification': '',
   // 'group_template_declaration': '',
   // 'group_declaration': '',
@@ -99,6 +100,129 @@ const tests: {
         // 'group_declaration',
       ]
     },
+    {
+      file: 'package_body.vhd',
+      allowed: [
+        'subprogram_declaration',
+        'subprogram_body',
+        // 'subprogram_instantiation_declaration',
+        // 'package_declaration',
+        // 'package_body',
+        'package_instantiation_declaration',
+        'type_declaration',
+        'subtype_declaration',
+        'constant_declaration',
+        'variable_declaration',
+        'shared_variable_declaration',
+        'file_declaration',
+        'alias_declaration',
+        'attribute_declaration',
+        'attribute_specification',
+        'use_clause',
+        // 'group_template_declaration',
+        // 'group_declaration',
+      ]
+    },
+    {
+      file: 'architecture.vhd', // is the same as block, generate
+      allowed: [
+        'subprogram_declaration',
+        'subprogram_body',
+        // 'subprogram_instantiation_declaration',
+        // 'package_declaration',
+        // 'package_body',
+        'package_instantiation_declaration',
+        'type_declaration',
+        'subtype_declaration',
+        'constant_declaration',
+        'signal_declaration',
+        'shared_variable_declaration',
+        'file_declaration',
+        'alias_declaration',
+        'component_declaration',
+        'attribute_declaration',
+        'attribute_specification',
+        // 'configuration_specification',
+        // 'disconnection_specification',
+        'use_clause',
+        // 'group_template_declaration',
+        // 'group_declaration',
+      ]
+    },
+    {
+      file: 'process.vhd',
+      allowed: [
+        'subprogram_declaration',
+        'subprogram_body',
+        // 'subprogram_instantiation_declaration',
+        // 'package_declaration',
+        // 'package_body',
+        'package_instantiation_declaration',
+        'type_declaration',
+        'subtype_declaration',
+        'constant_declaration',
+        'variable_declaration',
+        'file_declaration',
+        'alias_declaration',
+        'attribute_declaration',
+        'attribute_specification',
+        'use_clause',
+        // 'group_template_declaration',
+        // 'group_declaration',
+      ]
+    },
+    {
+      file: 'protected_body.vhd',
+      allowed: [
+        'subprogram_declaration',
+        'subprogram_body',
+        // 'subprogram_instantiation_declaration',
+        // 'package_declaration',
+        // 'package_body',
+        'package_instantiation_declaration',
+        'type_declaration',
+        'subtype_declaration',
+        'constant_declaration',
+        'variable_declaration',
+        'file_declaration',
+        'alias_declaration',
+        'attribute_declaration',
+        'attribute_specification',
+        'use_clause',
+        // 'group_template_declaration',
+        // 'group_declaration',
+      ]
+    },
+    {
+      file: 'subprogram.vhd',
+      allowed: [
+        'subprogram_declaration',
+        'subprogram_body',
+        // 'subprogram_instantiation_declaration',
+        // 'package_declaration',
+        // 'package_body',
+        'package_instantiation_declaration',
+        'type_declaration',
+        'subtype_declaration',
+        'constant_declaration',
+        'variable_declaration',
+        'file_declaration',
+        'alias_declaration',
+        'attribute_declaration',
+        'attribute_specification',
+        'use_clause',
+        // 'group_template_declaration',
+        // 'group_declaration',
+      ]
+    },
+    // { // TODO: use declarative part parse for configurations
+    //   file: 'configuration.vhd',
+    //   allowed: [
+    //     'use_clause',
+    //     'attribute_specification',
+    //     // 'group_declaration'
+    //   ]
+    // },
   ];
 
 test.each(
@@ -114,7 +238,11 @@ test.each(
   const uri = pathToFileURL(path);
   const originalText = readFileSyncNorm(uri, { encoding: 'utf8' });
   const actualText = originalText.replace('!declaration', possibleDeclarations[declaration]);
-  const linter = new VhdlLinter(uri, actualText, projectParser, defaultSettingsGetter);
+  const linter = new VhdlLinter(uri, actualText, projectParser, defaultSettingsWithOverwrite({
+    rules: {
+      unused: false
+    }
+  }));
   const messages = await linter.checkAll();
   if (allowed) {
     expect(messages).toHaveLength(0);
