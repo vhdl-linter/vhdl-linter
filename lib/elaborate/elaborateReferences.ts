@@ -127,10 +127,10 @@ export class ElaborateReferences {
   }
 
   getList(reference: O.OReference, fallback = false) {
-    // find parent which has declarations to use as key
+    // find parent which is a scope
     let key = reference.parent;
-    for (const [p] of O.scope(reference)) {
-      if (I.implementsIHasDeclarations(p) || p instanceof O.OPackageInstantiation || p instanceof O.OContext) {
+    for (const [p] of O.scope(key)) {
+      if (I.implementsIHasDeclarations(p) || I.implementsIHasStatements(p) || p instanceof O.OPackageInstantiation || p instanceof O.OContext) {
         key = p;
         break;
       }
@@ -177,7 +177,7 @@ export class ElaborateReferences {
   }
 
   elaborateReference(reference: O.OReference) {
-    for (const obj of this.getList(reference)) {
+    for (const obj of this.getList(reference)) { 
       // if (obj instanceof O.OPackage) {
       //   // packages can only be referenced with lib.pkg!
       //   continue;

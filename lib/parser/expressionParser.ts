@@ -119,7 +119,7 @@ export class ExpressionParser {
       if (this.getNumToken()?.getLText() === '(') {
         const aggregate = this.getNumToken(-1) === undefined;
         this.increaseToken();
-        const maybeFormalNew = this.getNumToken(-2) !== undefined && this.getNumToken(-2)?.getLText() !== '(';
+        const maybeFormalNew = this.getNumToken(-2) !== undefined && this.getNumToken(-2)?.getLText() !== '(' && this.getNumToken(-3)?.isIdentifier() !== true;
         innerReferences = this.inner(maybeFormalNew, aggregate);
         containedBraces = true;
       } else {
