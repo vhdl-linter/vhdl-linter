@@ -58,6 +58,7 @@ export class Lexer {
 
   tokenTypes: { regex: RegExp, tokenType: TokenType }[] = [
     { regex: /^--.*/, tokenType: TokenType.comment },
+    { regex: /^\/\*.*?\*\//s, tokenType: TokenType.comment },
     { regex: /^\s+/i, tokenType: TokenType.whitespace },
     { regex: /^[0-9]+#[0-9a-z][0-9_a-z]*(?:\.[0-9a-z][0-9_a-z]+)?#(?:e[+-]?[0-9_]+)?/i, tokenType: TokenType.decimalLiteral },
     { regex: /^-?[0-9_]+(?:\.[0-9_]+)?(?:e[+-]?[0-9_]+)?/i, tokenType: TokenType.decimalLiteral },

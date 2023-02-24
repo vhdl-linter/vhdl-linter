@@ -32,7 +32,7 @@
 			{
 				"language": "vhdl",
 				"scopeName": "source.vhdl",
-				"path": "./syntaxes/vhdl-new.json"
+				"path": "./syntaxes/vhdl.json"
 			}
 		],
 		"snippets": [

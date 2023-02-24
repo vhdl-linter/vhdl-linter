@@ -26,8 +26,17 @@
       "name": "keyword.language.vhdl"
     },
     "comment": {
-      "match": "--.*",
-      "name": "comment.line.double-dash.vhdl"
+      "patterns": [
+        {
+          "match": "--.*",
+          "name": "comment.line.double-dash.vhdl"
+        },
+        {
+          "begin": "\\/\\*",
+          "end": "\\*\\/",
+          "name": "comment.block"
+        }
+      ]
     },
     "literal": {
       "patterns": [
@@ -36,22 +45,25 @@
           "name": "constant.character.vhdl"
         },
         {
-          "match": "\\b[0-9]+#[0-9a-zA-Z][0-9_a-zA-Z]*(?:\\.[0-9a-zA-Z][0-9_a-zA-Z]+)?#(?i:e[+-]?[0-9_]+)?\\b",
-          "name": "constanta.numeric.vhdl"
-        },
-        {
-          "match": "\\b-?[0-9_]+(?:\\.[0-9_]+)?(?:e[+-]?[0-9_]+)?\\b",
+          "match": "\\b[0-9]+#[0-9a-zA-Z][0-9_a-zA-Z]*(?:\\.[0-9a-zA-Z][0-9_a-zA-Z]+)?#(?:(?:e|E)[+-]?[0-9_]+)?",
           "name": "constant.numeric.vhdl"
         },
         {
-          "match": "\\b[0-9]*(?i:B|O|X|UB|UO|UX|SB|SO|SX|D)\"[^\"]+\\b",
+          "match": "\\b-?[0-9_]+(?:\\.[0-9_]+)?(?:(?:e|E)[+-]?[0-9_]+)?\\b",
+          "name": "constant.numeric.vhdl"
+        },
+        {
+          "match": "\\b[0-9]*(?i:B|O|X|UB|UO|UX|SB|SO|SX|D)\".*?\"",
+          "name": "constant.numeric.vhdl"
+        },
+        {
+          "match": "\"[01]*?\"",
           "name": "constant.numeric.vhdl"
         },
         {
           "match": "\"(?:[^\"]|(?:\"\"))*\"(?!\")",
           "name": "string.quoted.double"
         }
-
       ]
     },
     "operator": {
@@ -62,7 +74,5 @@
         }
       ]
     }
-
-
   }
 }

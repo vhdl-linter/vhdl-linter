@@ -10,7 +10,8 @@ entity test is
 end test;
 
 architecture arch of test is
-  signal a : integer;
+  signal a : integer := 5;
+
 begin
 
   dummy : process(all)

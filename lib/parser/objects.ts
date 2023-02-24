@@ -425,7 +425,7 @@ export class OArray extends OType {
 export class ORecordChild extends OType {
   public parent: ORecord;
 }
-export class OEnumLiteral extends ObjectBase implements I.IHasReferenceLinks, I.IHasLexerToken{
+export class OEnumLiteral extends ObjectBase implements I.IHasReferenceLinks, I.IHasLexerToken {
   referenceLinks: OReference[] = [];
   public parent: OEnum;
   public lexerToken: OLexerToken;

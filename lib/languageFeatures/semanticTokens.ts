@@ -1,8 +1,7 @@
 import { SemanticTokenModifiers, SemanticTokens, SemanticTokensBuilder, SemanticTokensLegend, SemanticTokenTypes } from "vscode-languageserver";
-import { implementsIHasDefinitions, implementsIHasEndingLexerToken, implementsIHasLexerToken, implementsIHasReferenceToken } from "../parser/interfaces";
+import * as I from "../parser/interfaces";
 import * as O from "../parser/objects";
 import { VhdlLinter } from "../vhdlLinter";
-
 export const semanticTokensLegend: SemanticTokensLegend = {
   tokenTypes: Object.values(SemanticTokenTypes),
   tokenModifiers: Object.values(SemanticTokenModifiers)
@@ -35,7 +34,7 @@ function pushToken(buffer: BuilderParams[], range: O.OIRange, type: SemanticToke
 
 
 function findDefinition(obj: O.ObjectBase) {
-  if (implementsIHasDefinitions(obj) && obj.definitions.length > 0) {
+  if (I.implementsIHasDefinitions(obj) && obj.definitions.length > 0) {
     return obj.definitions[0];
   }
 }
@@ -52,14 +51,14 @@ function pushCorrectToken(buffer: BuilderParams[], obj: O.ObjectBase, definition
     pushToken(buffer, range, SemanticTokenTypes.property, [...fixedModifiers, SemanticTokenModifiers.readonly]);
   } else if (definition instanceof O.OType) {
     pushToken(buffer, range, SemanticTokenTypes.type, [...fixedModifiers, SemanticTokenModifiers.readonly]);
-  } else if (definition instanceof O.OEnumLiteral) {
+  } else if (definition instanceof O.OEnumLiteral && definition.lexerToken?.isLiteral() !== true) {
     pushToken(buffer, range, SemanticTokenTypes.enumMember, [...fixedModifiers, SemanticTokenModifiers.readonly]);
   } else if (definition instanceof O.OPort && definition.direction === 'in') {
-    pushToken(buffer, range, SemanticTokenTypes.parameter, [...fixedModifiers, SemanticTokenModifiers.readonly]);
+    pushToken(buffer, range, SemanticTokenTypes.variable, [...fixedModifiers, SemanticTokenModifiers.readonly]);
   } else if (definition instanceof O.OPort) {
-    pushToken(buffer, range, SemanticTokenTypes.parameter, [...fixedModifiers]);
+    pushToken(buffer, range, SemanticTokenTypes.variable, [...fixedModifiers]);
   } else if (definition instanceof O.OConstant || definition instanceof O.OGeneric) {
-    pushToken(buffer, range, SemanticTokenTypes.parameter, [...fixedModifiers, SemanticTokenModifiers.readonly]);
+    pushToken(buffer, range, SemanticTokenTypes.variable, [...fixedModifiers, SemanticTokenModifiers.readonly]);
   } else if (definition instanceof O.OSignal || definition instanceof O.OVariable) {
     const modifiers = obj instanceof O.OWrite ? [SemanticTokenModifiers.modification] : [];
     pushToken(buffer, range, SemanticTokenTypes.variable, [...fixedModifiers, ...modifiers]);
@@ -85,11 +84,11 @@ export function semanticTokens(linter: VhdlLinter): SemanticTokens {
   const buffer: BuilderParams[] = [];
   for (const obj of linter.file.objectList) {
     const definition = findDefinition(obj);
-    if (definition !== undefined && implementsIHasReferenceToken(obj)) {
+    if (definition !== undefined && I.implementsIHasReferenceToken(obj)) {
       pushCorrectToken(buffer, obj, definition, obj.referenceToken.range, []);
-    } else if (implementsIHasLexerToken(obj)) { // is the definition itself?
+    } else if (I.implementsIHasLexerToken(obj)) { // is the definition itself?
       pushCorrectToken(buffer, obj, obj, obj.lexerToken.range, [SemanticTokenModifiers.declaration]);
-      if (implementsIHasEndingLexerToken(obj)) {
+      if (I.implementsIHasEndingLexerToken(obj)) {
         pushCorrectToken(buffer, obj, obj, obj.endingLexerToken.range, [SemanticTokenModifiers.declaration]);
       }
     }
