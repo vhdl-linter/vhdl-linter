@@ -1,10 +1,9 @@
-import { OLexerToken } from '../lexer';
 import { AliasParser } from './aliasParser';
 import { AttributeParser } from './attributeParser';
 import { ComponentParser } from './componentParser';
 import { IHasDeclarations, implementsIHasUseClause } from './interfaces';
 import { ObjectDeclarationParser } from './objectDeclarationParser';
-import { OAttributeDeclaration, ObjectBase, OEntity, OI, OIRange, OPackageBody, OProcess, OSubprogram, OType } from './objects';
+import { OAttributeDeclaration, ObjectBase, OI } from './objects';
 import { PackageInstantiationParser } from './packageInstantiationParser';
 import { ParserBase, ParserState } from './parserBase';
 import { SubprogramParser } from './subprogramParser';
