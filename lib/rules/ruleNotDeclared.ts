@@ -122,9 +122,8 @@ export class RuleNotDeclared extends RuleBase implements IRule {
             message: `attribute '${obj.referenceToken.text}' is referenced but not declared`
           });
         }
-      } else if (obj instanceof OUseClause || obj.parent instanceof OUseClause) {
-        // Do nothing in case of use clause
-        // This is already handled
+      } else if (obj.parent instanceof OUseClause) {
+        // the use clause itself is the reference
       } else if (obj instanceof OArchitecture && obj.correspondingEntity === undefined) {
         this.addMessage({
           range: obj.entityName.range,
