@@ -8,8 +8,7 @@ export class RuleNotAllowed extends RuleBase implements IRule {
   file: O.OFile;
 
   pushNotAllowed(parent: O.ObjectBase, text: string) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    let name: string = Object.getPrototypeOf(parent)?.constructor?.name?.slice(1) ?? 'here';
+        let name: string = (Object.getPrototypeOf(parent) as O.ObjectBase).constructor.name.slice(1) ?? 'here';
     if (parent instanceof O.OType && parent.protected) {
       name = 'protected type';
     } else if (parent instanceof O.OType && parent.protectedBody) {
