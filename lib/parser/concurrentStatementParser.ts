@@ -1,4 +1,5 @@
 import { OLexerToken } from '../lexer';
+import { AssertionParser } from './assertionParser';
 import { AssignmentParser } from './assignmentParser';
 import { ConcurrentInstantiationParser } from './concurrentInstantiationParser';
 import { ExpressionParser } from './expressionParser';
@@ -201,9 +202,8 @@ export class ConcurrentStatementParser extends ParserBase {
       const read = new ORead(assignment, readToken);
       assignment.labelLinks.push(read);
       this.parent.statements.push(assignment);
-    } else if (nextToken.getLText() === 'assert' && allowedStatements.includes(ConcurrentStatementTypes.Assert)) {
-      this.consumeToken();
-      this.advanceSemicolon();
+    } else if ((nextToken.getLText() === 'assert' || nextToken.getLText() === 'postponed') && allowedStatements.includes(ConcurrentStatementTypes.Assert)) {
+      this.parent.statements.push(new AssertionParser(this.state, this.parent).parse(label));
     } else {
       let braceLevel = 0;
       let i = 0;

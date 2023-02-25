@@ -331,7 +331,7 @@ export class OContext extends ObjectBase implements I.IHasUseClauses, I.IHasCont
   contextReferences: OContextReference[] = [];
   libraries: OLibrary[] = [];
 }
-export type OConcurrentStatements = OProcess | OInstantiation | OIfGenerate | OForGenerate | OCaseGenerate | OBlock | OAssignment;
+export type OConcurrentStatements = OProcess | OInstantiation | OIfGenerate | OForGenerate | OCaseGenerate | OBlock | OAssignment | OAssertion;
 export type ODeclaration = OSignal | OAttributeSpecification | OAttributeDeclaration | OVariable | OConstant | OFileVariable | OType
   | OAlias | OSubprogram | OComponent | OPackageInstantiation;
 
@@ -603,7 +603,7 @@ export class OEntity extends ObjectBase implements I.IHasDefinitions, I.IHasDecl
   ports: OPort[] = [];
   genericRange?: OIRange;
   generics: OGeneric[] = [];
-  statements: (OProcess | OAssignment)[] = [];
+  statements: (OProcess | OAssignment | OAssertion)[] = [];
   statementsRange: OIRange;
   definitions: OEntity[] = [];
   correspondingArchitectures: OArchitecture[] = [];
@@ -724,6 +724,7 @@ export class OAssertion extends ObjectBase implements I.IMayHaveLabel {
   references: OReference[] = [];
   label?: OLexerToken;
   labelLinks: OLabelReference[] = [];
+  postponed: boolean;
 }
 
 export class OWrite extends OReference {
