@@ -193,6 +193,12 @@
 					"description": "Enable the rule to check if a signal is driven multiple times (this rule has a lot of false-positives).",
 					"default": false
 				},
+				"VhdlLinter.rules.not-allowed": {
+					"scope": "window",
+					"type": "boolean",
+					"description": "Enable the rule to check if declarations are allowed where they are used.",
+					"default": true
+				},
 				"VhdlLinter.style.preferredLogicTypePort": {
 					"scope": "window",
 					"type": "string",

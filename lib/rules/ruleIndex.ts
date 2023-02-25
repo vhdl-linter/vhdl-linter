@@ -7,6 +7,7 @@ import { RuleLibrary } from "./ruleLibrary";
 import { RuleLibraryReference } from "./ruleLibraryReferences";
 import { RuleMultipleDefinition } from "./ruleMultipleDefinitions";
 import { RuleMultipleDriver } from "./ruleMultipleDriver";
+import { RuleNotAllowed } from "./ruleNotAllowed";
 import { RuleNotDeclared } from "./ruleNotDeclared";
 import { RuleParser } from "./ruleParser";
 import { RulePortDeclaration } from "./rulePortDeclaration";
@@ -29,5 +30,6 @@ export const rules = [
   RuleParser,
   RuleUnits,
   RuleMultipleDriver,
-  RuleConfiguration
+  RuleConfiguration,
+  RuleNotAllowed
 ];
