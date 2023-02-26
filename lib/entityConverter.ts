@@ -44,12 +44,11 @@ export function instanceTemplate(entity: OEntity, settings: ISettings) {
     text += `;\n`;
     return text;
 }
-export function componentTemplate(entity: OEntity, settings: ISettings) {
+export function componentTemplate(entity: OEntity) {
     let text = `component ${entity.lexerToken.text} is`;
     const indentString = '  ';
     if (entity.generics.length > 0) {
         text += `\ngeneric (\n`;
-        const longest = longestInArray(entity.generics);
         for (const generic of entity.generics) {
             text += `${indentString}${generic.range.getText()};\n`;
         }
@@ -60,13 +59,7 @@ export function componentTemplate(entity: OEntity, settings: ISettings) {
 
     if (entity.ports.length > 0) {
         text += `\nport (\n`;
-        const longest = longestInArray(entity.ports);
         for (const port of entity.ports) {
-            let typeText: string | undefined;
-            if (port.typeReference.length > 0) {
-                typeText = port.typeReference[0]!.range.copyWithNewEnd(port.range.end).getText();
-            }
-            const name = port.lexerToken.text.padEnd(longest, ' ');
             text += `${indentString}${port.range.getText()};\n`;
         }
         // Strip the final comma
@@ -149,6 +142,6 @@ export function entityConverter(vhdlLinter: VhdlLinter, type: converterTypes, se
     } else if (type === 'sysverilog') {
         return sysVerilogTemplate(entity, settings);
     } else if (type === 'component') {
-        return componentTemplate(entity, settings);
+        return componentTemplate(entity);
     }
 }
