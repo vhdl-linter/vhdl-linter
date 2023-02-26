@@ -3,7 +3,7 @@ import { ConfigurationDeclarationParser } from './configurationDeclarationParser
 import { ContextParser } from './contextParser';
 import { ContextReferenceParser } from './contextReferenceParser';
 import { EntityParser } from './entityParser';
-import { MagicCommentType, ObjectBase, OConfigurationDeclaration, OFile, OI, OIRange, OLibrary, OLibraryReference, OMagicCommentDisable, OPackageInstantiation, OReference, OUseClause, ParserError } from './objects';
+import { MagicCommentType, ObjectBase, OFile, OI, OIRange, OLibrary, OLibraryReference, OMagicCommentDisable, OPackageInstantiation, OReference, OUseClause, ParserError } from './objects';
 import { PackageInstantiationParser } from './packageInstantiationParser';
 import { PackageParser } from './packageParser';
 import { ParserBase, ParserPosition, ParserState } from './parserBase';

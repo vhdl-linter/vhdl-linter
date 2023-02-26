@@ -1,4 +1,4 @@
-import { ObjectBase, OConfigurationSpecification, OFile } from "./objects";
+import { ObjectBase, OConfigurationSpecification } from "./objects";
 import { ParserBase, ParserState } from "./parserBase";
 
 export class ConfigurationSpecificationParser extends ParserBase {
