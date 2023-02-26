@@ -4,7 +4,7 @@ exports[`testing add signal helper architecture.vhd 1`] = `
 [
   {
     "code": "0;1",
-    "message": "signal 'foo' is written but not declared (not-declared)",
+    "message": "object 'foo' is written but not declared (not-declared)",
     "range": {
       "end": {
         "character": 5,
@@ -99,7 +99,7 @@ exports[`testing add signal helper generic.vhd 1`] = `
 [
   {
     "code": "0;1",
-    "message": "signal 'test' is referenced but not declared (not-declared)",
+    "message": "object 'test' is referenced but not declared (not-declared)",
     "range": {
       "end": {
         "character": 17,

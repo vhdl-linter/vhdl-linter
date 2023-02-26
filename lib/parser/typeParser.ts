@@ -94,7 +94,7 @@ export class TypeParser extends ParserBase {
             const typeTokens = this.advanceSemicolon();
             for (const child of children) {
               if (typeTokens.length > 0) {
-                child.referenceLinks = new ExpressionParser(this.state, child, typeTokens).parse();
+                child.typeReference = new ExpressionParser(this.state, child, typeTokens).parse();
                 child.range = child.range.copyWithNewEnd(typeTokens[typeTokens.length - 1]!.range);
               } else {
                 this.state.messages.push({
