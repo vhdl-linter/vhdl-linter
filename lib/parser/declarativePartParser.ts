@@ -65,7 +65,6 @@ export class DeclarativePartParser extends ParserBase {
       } else if (optional) {
         return;
       } else if (nextToken.getLText() === 'use') {
-        this.consumeToken();
         const useClause = new UseClauseParser(this.state, this.parent).parse();
         if (implementsIHasUseClause(this.parent)) {
           this.parent.useClauses.push(useClause);

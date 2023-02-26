@@ -1,28 +1,29 @@
 import { CodeAction, CodeActionKind, DiagnosticSeverity, TextEdit } from "vscode-languageserver";
-import { implementsIHasDeclarations, implementsIHasPorts } from "../parser/interfaces";
-import { OAlias, OFile, OPackage, OPort, OSignal, OSubType, OType, scope } from "../parser/objects";
+import { implementsIHasDeclarations } from "../parser/interfaces";
+import * as O from "../parser/objects";
 import { IRule, RuleBase } from "./rulesBase";
 
 export class RuleTypeResolved extends RuleBase implements IRule {
   public static readonly ruleName = 'type-resolved';
-  file: OFile;
-  private checkObject(object: OPort | OSignal) {
-    if (object instanceof OPort && this.settings.style.preferredLogicTypePort === 'unresolved'
-      || object instanceof OSignal && this.settings.style.preferredLogicTypeSignal === 'unresolved') {
+  file: O.OFile;
+  private checkObject(object: O.OPort | O.OSignal | O.ORecordChild) {
+    if (object instanceof O.OPort && this.settings.style.preferredLogicTypePort === 'unresolved'
+      || object instanceof O.OSignal && this.settings.style.preferredLogicTypeSignal === 'unresolved'
+      || object instanceof O.ORecordChild && this.settings.style.preferredLogicTypeRecordChild === 'unresolved') {
       const type = object.typeReference[0];
       if (type) {
 
         const definition = type?.definitions[0];
-        if (definition instanceof OSubType && definition.resolved) {
+        if (definition instanceof O.OSubType && definition.resolved) {
           let unresolvedTypes = [definition.superType.referenceToken.text];
           const root = definition.getRootElement();
           for (const alias of root.declarations) { // IEEE defines more convenient aliases. Show them as well
-            if (alias instanceof OAlias && alias.name[0]?.referenceToken.getLText() === definition.superType.referenceToken.getLText()) {
+            if (alias instanceof O.OAlias && alias.name[0]?.referenceToken.getLText() === definition.superType.referenceToken.getLText()) {
               unresolvedTypes.push(alias.lexerToken.text);
             }
           }
           // Handle casing for IEEE packages
-          if (root instanceof OPackage && (root.lexerToken.getLText() === 'std_logic_1164' || root.lexerToken.getLText() === 'numeric_std')) {
+          if (root instanceof O.OPackage && (root.lexerToken.getLText() === 'std_logic_1164' || root.lexerToken.getLText() === 'numeric_std')) {
             if (this.settings.style.ieeeCasing === 'lowercase') {
               unresolvedTypes = unresolvedTypes.map(type => type.toLowerCase());
             } else {
@@ -51,19 +52,20 @@ export class RuleTypeResolved extends RuleBase implements IRule {
         }
       }
 
-    } else if (object instanceof OPort && this.settings.style.preferredLogicTypePort === 'resolved'
-      || object instanceof OSignal && this.settings.style.preferredLogicTypeSignal === 'resolved') {
+    } else if (object instanceof O.OPort && this.settings.style.preferredLogicTypePort === 'resolved'
+      || object instanceof O.OSignal && this.settings.style.preferredLogicTypeSignal === 'resolved'
+      || object instanceof O.ORecordChild && this.settings.style.preferredLogicTypeRecordChild === 'resolved') {
       const type = object.typeReference[0];
       if (type) {
         let definition = type.definitions[0];
         if (definition) {
           // For aliases check find the aliased type
           const alias = [type.referenceToken.getLText()];
-          while (definition instanceof OAlias) {
-            for (const [obj] of scope(definition)) {
+          while (definition instanceof O.OAlias) {
+            for (const [obj] of O.scope(definition)) {
               if (implementsIHasDeclarations(obj)) {
                 for (const typeIter of obj.declarations) {
-                  if (typeIter instanceof OType && typeIter.lexerToken.getLText() === (definition as OAlias).name[0]!.referenceToken.getLText()) {
+                  if (typeIter instanceof O.OType && typeIter.lexerToken.getLText() === (definition as O.OAlias).name[0]!.referenceToken.getLText()) {
                     definition = typeIter;
                     alias.push(typeIter.lexerToken.getLText());
                     break;
@@ -75,7 +77,7 @@ export class RuleTypeResolved extends RuleBase implements IRule {
           }
           let resolved = false;
           // The subtype of as resolved subtype is also resolved. This is not correctly checked here
-          if (definition instanceof OSubType && definition.resolved) {
+          if (definition instanceof O.OSubType && definition.resolved) {
             resolved = true;
           }
           // Type referenced is not resolved. Now try to find resolved subtype of this type or aliases of it
@@ -83,13 +85,13 @@ export class RuleTypeResolved extends RuleBase implements IRule {
             const root = definition.getRootElement();
             let resolvedSubtype: string[] = [];
             for (const subtype of root.declarations) {
-              if (subtype instanceof OSubType && subtype.resolved && alias.includes(subtype.superType.referenceToken.getLText())) {
+              if (subtype instanceof O.OSubType && subtype.resolved && alias.includes(subtype.superType.referenceToken.getLText())) {
                 resolvedSubtype.push(subtype.lexerToken.text);
               }
             }
             if (resolvedSubtype.length > 0) {
               // Handle casing for IEEE packages
-              if (root instanceof OPackage && (root.lexerToken.getLText() === 'std_logic_1164' || root.lexerToken.getLText() === 'numeric_std')) {
+              if (root instanceof O.OPackage && (root.lexerToken.getLText() === 'std_logic_1164' || root.lexerToken.getLText() === 'numeric_std')) {
                 if (this.settings.style.ieeeCasing === 'lowercase') {
                   resolvedSubtype = resolvedSubtype.map(type => type.toLowerCase());
                 } else {
@@ -123,17 +125,14 @@ export class RuleTypeResolved extends RuleBase implements IRule {
   }
   check() {
     for (const object of this.file.objectList) {
-      if (implementsIHasPorts(object)) {
-        for (const port of object.ports) {
-          this.checkObject(port);
-        }
+      if (object instanceof O.OPort) {
+        this.checkObject(object);
       }
-      if (implementsIHasDeclarations(object)) {
-        for (const signal of object.declarations) {
-          if (signal instanceof OSignal) {
-            this.checkObject(signal);
-          }
-        }
+      if (object instanceof O.OSignal) {
+        this.checkObject(object);
+      }
+      if (object instanceof O.ORecordChild) {
+        this.checkObject(object);
       }
     }
   }
