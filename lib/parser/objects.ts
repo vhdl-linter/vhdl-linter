@@ -555,10 +555,11 @@ export class OPortAssociationList extends OAssociationList {
   }
 }
 
-export class OInstantiation extends OReference implements I.IHasDefinitions, I.IHasLibraryReference, I.IMayHaveLabel {
+export class OInstantiation extends OReference implements I.IHasDefinitions, I.IHasLibraryReference, I.IMayHaveLabel, I.IHasPostponed {
   constructor(public parent: OStatementBody | OEntity | OProcess | OLoop | OIf, lexerToken: OLexerToken, public type: 'entity' | 'component' | 'configuration' | 'subprogram' | 'unknown' = 'unknown') {
     super(parent, lexerToken);
   }
+  postponed = false;
   definitions: (OEntity | OSubprogram | OComponent | OAliasWithSignature | OConfiguration)[] = [];
   prefix: OLexerToken[] = [];
   entityName: OLexerToken;
@@ -666,11 +667,11 @@ export class OWhenClause extends OHasSequentialStatements {
   condition: OReference[] = [];
 }
 export class OProcess extends OHasSequentialStatements implements I.IHasDeclarations, I.IHasStatements,
-  I.IHasUseClauses {
+  I.IHasUseClauses, I.IHasPostponed {
   declarations: ODeclaration[] = [];
   declarationsRange?: OIRange;
   label?: OLexerToken;
-
+  postponed = false;
   aliases: OAlias[] = [];
   packageDefinitions: OPackage[] = [];
   useClauses: OUseClause[] = [];
@@ -689,7 +690,7 @@ export class OForLoop extends OLoop implements I.IHasDeclarations {
 export class OWhileLoop extends OLoop {
   condition: OReference[] = [];
 }
-export class OAssignment extends ObjectBase implements I.IMayHaveLabel {
+export class OAssignment extends ObjectBase implements I.IMayHaveLabel, I.IHasPostponed {
   writes: OWrite[] = [];
   label?: OLexerToken;
   labelLinks: OLabelReference[] = [];

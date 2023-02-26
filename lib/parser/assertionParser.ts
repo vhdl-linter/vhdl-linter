@@ -8,16 +8,9 @@ export class AssertionParser extends ParserBase {
     super(state);
     this.debug('start');
   }
-  parse(label?: OLexerToken) {
+  parse(label?: OLexerToken, postponed = false) {
     const assertion = new O.OAssertion(this.parent, this.getToken().range.copyExtendEndOfLine());
-    const postponedToken = this.maybe('postponed');
-    assertion.postponed = postponedToken !== undefined;
-    if (postponedToken && this.parent instanceof O.OStatementBody === false) {
-      this.state.messages.push({
-        range: postponedToken.range,
-        message: 'postponed only allowed in concurrent statement'
-      });
-    }
+    assertion.postponed = postponed;
     this.expect('assert');
     assertion.label = label;
 
