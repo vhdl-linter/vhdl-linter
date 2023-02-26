@@ -234,12 +234,17 @@ export class ElaborateReferences {
       return;
     }
     // previous token is library -> expect a package
-    if (lastPrefix.definitions.some(def => def instanceof O.OLibrary)) {
+    const libraryDefinitions = lastPrefix.definitions.filter(def => def instanceof O.OLibrary);
+    if (libraryDefinitions.length > 0) {
       for (const pkg of this.getProjectList(reference.referenceToken.getLText())) {
         if (pkg instanceof O.OPackage || pkg instanceof O.OPackageInstantiation) {
           this.link(reference, pkg);
         }
       }
+    }
+    // if all definitions are libraries -> do not look further (especially do not look in the fallback map)
+    if (libraryDefinitions.length === lastPrefix.definitions.length) {
+      return;
     }
 
     // previous token is type (e.g. protected or record) -> expect stuff from within
