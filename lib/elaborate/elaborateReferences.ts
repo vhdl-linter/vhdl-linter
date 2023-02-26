@@ -177,11 +177,7 @@ export class ElaborateReferences {
   }
 
   elaborateReference(reference: O.OReference) {
-    for (const obj of this.getList(reference)) { 
-      // if (obj instanceof O.OPackage) {
-      //   // packages can only be referenced with lib.pkg!
-      //   continue;
-      // }
+    for (const obj of this.getList(reference)) {
       // alias doesn't has aliasReferences but still referenceLinks
       if (I.implementsIHasReference(obj) || obj instanceof O.OAlias || I.implementsIHasLabel(obj)) {
         this.link(reference, obj);
@@ -221,7 +217,7 @@ export class ElaborateReferences {
       }
       if (found === false) {
         // add a hint for the notDeclared rule to give a more detailed error message
-        (selectedName as O.ObjectBase & Partial<I.IHasNotDeclaredHint>).notDeclaredHint = `${selectedName.referenceToken.text} does not exist on ${typeDefinition instanceof O.ORecord ? 'record' : 'protected type'} ${typeDefinition.lexerToken.text}`;
+        selectedName.notDeclaredHint = `${selectedName.referenceToken.text} does not exist on ${typeDefinition instanceof O.ORecord ? 'record' : 'protected type'} ${typeDefinition.lexerToken.text}`;
       }
     } else if (typeDefinition instanceof O.OArray) {
       for (const def of typeDefinition.elementType.flatMap(r => r.definitions)) {
@@ -237,7 +233,7 @@ export class ElaborateReferences {
       // if the last prefix token was not defined, do not try to look for more
       return;
     }
-    // privious token is library -> expect a package
+    // previous token is library -> expect a package
     if (lastPrefix.definitions.some(def => def instanceof O.OLibrary)) {
       for (const pkg of this.getProjectList(reference.referenceToken.getLText())) {
         if (pkg instanceof O.OPackage || pkg instanceof O.OPackageInstantiation) {
@@ -273,7 +269,7 @@ export class ElaborateReferences {
     }
 
     // if nothing was found look in the fallback map
-    if (reference.definitions.length === 0 && (reference as O.ObjectBase & Partial<I.IHasNotDeclaredHint>).notDeclaredHint === undefined) {
+    if (reference.definitions.length === 0 && reference.notDeclaredHint === undefined) {
       for (const obj of this.getList(reference, true)) {
         // alias doesn't has aliasReferences but still referenceLinks
         if (I.implementsIHasReference(obj) || obj instanceof O.OAlias) {

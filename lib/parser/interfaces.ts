@@ -2,6 +2,7 @@ import { OLexerToken } from "../lexer";
 import * as O from './objects';
 export interface IHasLabel {
   label: OLexerToken;
+  lexerToken: undefined;
   labelLinks: O.OLabelReference[];
 }
 export interface IMayHaveLabel {
@@ -38,6 +39,7 @@ export interface IHasEndingLexerToken {
 }
 export interface IHasReferenceToken {
   referenceToken: OLexerToken;
+  lexerToken: undefined;
 }
 
 export interface IHasContextReference {
@@ -119,11 +121,4 @@ export interface IHasStatements {
 export function implementsIHasStatements(obj: O.ObjectBase): obj is O.ObjectBase & IHasStatements {
   const o = obj as O.ObjectBase & Partial<IHasStatements>;
   return Array.isArray(o.statements) && o.statementsRange !== undefined;
-}
-
-export interface IHasNotDeclaredHint {
-  notDeclaredHint: string;
-}
-export function implementsIHasNotDeclaredHint(obj: O.ObjectBase): obj is O.ObjectBase & IHasNotDeclaredHint {
-  return (obj as O.ObjectBase & Partial<IHasNotDeclaredHint>).notDeclaredHint !== undefined;
 }

@@ -25,7 +25,7 @@ begin
   b <= a.;
   b <= a.f;
   b <= a.foo.;
-  b <= a.foo.b; 
+  b <= a.foo.b;
   b <= s.;
   b <= s.ap; -- TODO: OSelectedNameRead becomes ORead if lexerToken is defined -> why?
   -- (thats why I test on `s.ap`)

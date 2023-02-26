@@ -18,6 +18,7 @@ export class Elaborate {
 
     const elaborator = new Elaborate(vhdlLinter);
     await elaborator.elaborateAll();
+    vhdlLinter.elaborated = true;
   }
   public static clear(vhdlLinter: VhdlLinter) {
     for (const obj of vhdlLinter.file.objectList) {

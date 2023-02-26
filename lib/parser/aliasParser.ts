@@ -1,6 +1,6 @@
 import { ExpressionParser } from "./expressionParser";
 import { IHasDeclarations } from "./interfaces";
-import { OAlias, OAliasWithSignature, ObjectBase, OIRange, OReference, OSelectedName, OTypeMark, ParserError, SelectedNamePrefix } from "./objects";
+import { OAlias, OAliasWithSignature, ObjectBase, OIRange, OTypeMark } from "./objects";
 import { ParserBase, ParserState } from "./parserBase";
 export class AliasParser extends ParserBase {
   constructor(state: ParserState, private parent: ObjectBase & IHasDeclarations) {
@@ -42,16 +42,19 @@ export class AliasParser extends ParserBase {
     // eslint-disable-next-line no-constant-condition, @typescript-eslint/no-unnecessary-condition
     while (true) {
       if (this.getToken().getLText() !== 'return') {
-        aliasWithSignature.typeMarks.push(new OTypeMark(aliasWithSignature, this.consumeNameReference(aliasWithSignature)));
+        const typeReferences = this.advanceSelectedName(aliasWithSignature);
+        aliasWithSignature.typeMarks.push(new OTypeMark(aliasWithSignature, typeReferences[typeReferences.length - 1]!));
       } else {
         this.expect('return');
-        aliasWithSignature.return = this.consumeNameReference(aliasWithSignature);
+        const typeReferences = this.advanceSelectedName(aliasWithSignature);
+        aliasWithSignature.return = typeReferences[typeReferences.length - 1]!;
       }
       if (this.getToken().getLText() === ',') {
         this.expect(',');
       } else if (this.getToken().getLText() === 'return') {
         this.expect('return');
-        aliasWithSignature.typeMarks.push(new OTypeMark(aliasWithSignature, this.consumeNameReference(aliasWithSignature)));
+        const typeReferences = this.advanceSelectedName(aliasWithSignature);
+        aliasWithSignature.typeMarks.push(new OTypeMark(aliasWithSignature, typeReferences[typeReferences.length - 1]!));
         this.expect(']');
         break;
       } else {
@@ -86,24 +89,5 @@ export class AliasParser extends ParserBase {
     }
     alias.range = alias.range.copyWithNewEnd(semicolon.range);
     return alias;
-  }
-  consumeNameReference(parent: ObjectBase): OReference {
-    const tokens = [];
-    do {
-      tokens.push(this.consumeToken());
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    } while (this.getToken().text === '.' && this.consumeToken());
-    const [firstToken, secondToken] = tokens;
-    if (!firstToken) {
-      throw new ParserError(`expected token`, parent.range);
-    }
-    if (secondToken) {
-      const prefix = [new OReference(parent, firstToken)];
-      for (const token of tokens.slice(1)) {
-        prefix.push(new OSelectedName(parent, token, prefix.slice() as SelectedNamePrefix));
-      }
-      return prefix[prefix.length - 1]!;
-    }
-    return new OReference(parent, firstToken);
   }
 }

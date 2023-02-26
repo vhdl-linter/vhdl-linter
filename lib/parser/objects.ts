@@ -214,6 +214,7 @@ export class OGenericConstant extends OGeneric implements I.IVariableBase, I.IHa
 }
 export class OReference extends ObjectBase implements I.IHasDefinitions, I.IHasReferenceToken {
   definitions: ObjectBase[] = [];
+  notDeclaredHint?: string;
   lexerToken: undefined;
   constructor(public parent: ObjectBase, public referenceToken: OLexerToken, range?: OIRange) {
     super(parent, range ?? referenceToken.range);
@@ -451,7 +452,7 @@ export class OCaseGenerate extends ObjectBase implements I.IHasLabel {
   whenGenerateClauses: OWhenGenerateClause[] = [];
   label: OLexerToken;
   labelLinks: OLabelReference[] = [];
-
+  lexerToken: undefined;
 }
 export class OWhenGenerateClause extends OStatementBody implements I.IMayHaveLabel {
   lexerToken: undefined;
@@ -468,7 +469,7 @@ export class OIfGenerate extends ObjectBase implements I.IHasLabel {
   ifGenerateClauses: OIfGenerateClause[] = [];
   elseGenerateClause?: OElseGenerateClause;
   labelLinks: OLabelReference[] = [];
-
+  lexerToken: undefined;
 }
 export class OIfGenerateClause extends OStatementBody implements I.IMayHaveLabel {
   label?: OLexerToken;

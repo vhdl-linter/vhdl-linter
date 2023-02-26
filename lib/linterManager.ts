@@ -81,7 +81,6 @@ export class LinterManager {
       // Parser success run elaboration
       state.linter = vhdlLinter;
       await Elaborate.elaborate(vhdlLinter);
-      vhdlLinter.elaborated = true;
       if (newSource.token.isCancellationRequested) {
         throw new ResponseError(LSPErrorCodes.RequestCancelled, 'canceled');
       }
