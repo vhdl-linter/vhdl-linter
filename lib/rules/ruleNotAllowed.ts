@@ -116,16 +116,21 @@ export class RuleNotAllowed extends RuleBase implements IRule {
               this.pushNotAllowed(obj, 'file variable', declaration);
             }
           } else if (declaration instanceof O.OConfigurationSpecification) {
-            if (obj instanceof O.OArchitecture === false) {
+            if ((obj instanceof O.OArchitecture) === false) {
               this.pushNotAllowed(obj, 'configuration specification', declaration);
             }
           } else if (declaration instanceof O.OPackage) {
-            if (obj instanceof O.OType && obj.protected) {
+            if (obj instanceof O.OType && obj.protected
+              || obj instanceof O.OConfigurationDeclaration
+              ) {
               this.pushNotAllowed(obj, 'package', declaration);
             }
 
           } else if (declaration instanceof O.OPackageBody) {
-            if (obj instanceof O.OPackage || obj instanceof O.OType && obj.protected) {
+            if (obj instanceof O.OPackage
+              || obj instanceof O.OType && obj.protected
+              || obj instanceof O.OConfigurationDeclaration
+              ) {
               this.pushNotAllowed(obj, 'package body', declaration);
             }
 
