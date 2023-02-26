@@ -8,7 +8,7 @@ export class RuleNotAllowed extends RuleBase implements IRule {
   file: O.OFile;
 
   pushNotAllowed(parent: O.ObjectBase, text: string) {
-        let name: string = (Object.getPrototypeOf(parent) as O.ObjectBase).constructor.name.slice(1) ?? 'here';
+    let name: string = (Object.getPrototypeOf(parent) as O.ObjectBase).constructor.name.slice(1) ?? 'here';
     if (parent instanceof O.OType && parent.protected) {
       name = 'protected type';
     } else if (parent instanceof O.OType && parent.protectedBody) {
@@ -21,6 +21,11 @@ export class RuleNotAllowed extends RuleBase implements IRule {
     });
   }
   check() {
+    this.checkDeclarativePart();
+    this.checkPostponed();
+
+  }
+  checkDeclarativePart() {
     for (const obj of this.file.objectList) {
       if (I.implementsIHasDeclarations(obj)) {
         for (const declaration of obj.declarations) {
@@ -32,7 +37,7 @@ export class RuleNotAllowed extends RuleBase implements IRule {
               this.pushNotAllowed(obj, 'signal declaration');
             }
           } else if (declaration instanceof O.OConstant) {
-            if (obj instanceof O.OType && obj.protected ) {
+            if (obj instanceof O.OType && obj.protected) {
               this.pushNotAllowed(obj, 'constant declaration');
             }
             if (obj instanceof O.OConfiguration) {
@@ -110,6 +115,26 @@ export class RuleNotAllowed extends RuleBase implements IRule {
               this.pushNotAllowed(obj, 'file variable');
             }
           }
+        }
+      }
+    }
+  }
+  checkPostponed() {
+    for (const obj of this.file.objectList) {
+      if (I.implementsIHasPostponed(obj) && obj.postponed) {
+        if (obj.parent instanceof O.OStatementBody !== true) {
+          this.addMessage({
+            message: `postponed only allowed for concurrent statements`,
+            range: (obj.parent as O.ObjectBase).range,
+            severity: DiagnosticSeverity.Error
+          });
+        }
+        if (obj instanceof O.OInstantiation && obj.definitions.find(definition => definition instanceof O.OSubprogram ) === undefined) {
+          this.addMessage({
+            message: `postponed instantiations only allowed for (concurrent) procedure instantiations`,
+            range: obj.range,
+            severity: DiagnosticSeverity.Error
+          });
         }
       }
     }
