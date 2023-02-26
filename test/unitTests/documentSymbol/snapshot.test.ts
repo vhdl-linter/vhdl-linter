@@ -27,12 +27,19 @@ test.each(
   expect(symbols).toMatchSnapshot();
 });
 test('Testing workspace symbol', () => {
-  const symbols = workspaceSymbol({query: ''}, projectParser, [])?.map(symbol => ({
+  const symbols = workspaceSymbol({ query: '' }, projectParser, [])?.map(symbol => ({
     ...symbol,
     location: {
       ...symbol.location,
       uri: symbol.location.uri.replace(pathToFileURL(__dirname).toString(), 'file:///c/dummy/')
     }
   }));
+  symbols?.sort((a, b) => {
+    const lineDifference = b.location.range.start.line - a.location.range.start.line;
+    if (lineDifference !== 0) {
+      return lineDifference;
+    }
+    return b.location.range.start.character - a.location.range.start.character;
+  });
   expect(symbols).toMatchSnapshot();
 });

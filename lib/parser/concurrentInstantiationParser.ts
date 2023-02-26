@@ -9,8 +9,9 @@ export class ConcurrentInstantiationParser extends ParserBase {
     this.debug(`start`);
 
   }
-  parse(nextToken: OLexerToken, label: OLexerToken | undefined): OInstantiation {
+  parse(nextToken: OLexerToken, label?: OLexerToken, postponed = false): OInstantiation {
     const instantiation = new OInstantiation(this.parent, nextToken);
+    instantiation.postponed = postponed;
     if (label !== undefined) {
       instantiation.range = instantiation.range.copyWithNewStart(label.range);
     }

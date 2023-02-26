@@ -8,11 +8,11 @@ export class AssignmentParser extends ParserBase {
     super(state);
     this.debug(`start`);
   }
-  parse(mode: 'concurrent' | 'sequential', label?: OLexerToken): OAssignment {
+  parse(mode: 'concurrent' | 'sequential', label?: OLexerToken, postponed = false): OAssignment {
     this.debug('parse');
 
     const assignment = new OAssignment(this.parent, this.getToken().range.copyExtendEndOfLine());
-    assignment.postponed = this.maybe('postponed') !== undefined;
+    assignment.postponed = postponed;
     assignment.label = label;
     let leftHandSideNum = this.state.pos.num;
     this.findToken(['<=', ':=']);
