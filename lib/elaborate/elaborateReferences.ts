@@ -311,7 +311,7 @@ export class ElaborateReferences {
       } else {
         for (const obj of this.getList(useClause.packageName)) {
           if (obj instanceof O.OPackageInstantiation || obj instanceof O.OInterfacePackage) {
-            // they are not elaborated yet because the useclauses are always elaborated before anything else.
+            // they are not elaborated yet because the useClauses are always elaborated before anything else.
             // In this case the packageInstantiation/interfacePackage needs to be elaborated
             for (const ref of obj.uninstantiatedPackage) {
               if (ref instanceof O.OSelectedName) {
