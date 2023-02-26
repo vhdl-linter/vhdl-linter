@@ -14,17 +14,20 @@ export class ContextParser extends ParserBase {
     context.lexerToken = this.consumeToken();
     this.expect('is');
     while (this.state.pos.isValid()) {
-      const nextToken = this.consumeToken();
+      const nextToken = this.getToken();
       if (nextToken.getLText() === 'end') {
+        this.consumeToken();
         this.maybe('context');
         this.maybe(context.lexerToken.text);
         context.range = context.range.copyWithNewEnd(this.state.pos.i);
         this.expect(';');
         break;
       } else if (nextToken.getLText() === 'context') {
+        this.consumeToken();
         const contextReferenceParser = new ContextReferenceParser(this.state, context);
         context.contextReferences.push(contextReferenceParser.parse());
       } else if (nextToken.getLText() === 'library') {
+        this.consumeToken();
         context.libraries.push(new OLibrary(context, this.consumeToken()));
         this.expect(';');
       } else if (nextToken.getLText() === 'use') {

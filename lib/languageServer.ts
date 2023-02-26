@@ -21,6 +21,7 @@ import { LinterManager } from './linterManager';
 import { normalizeUri } from './normalizeUri';
 import { ProjectParser } from './projectParser';
 import { defaultSettings, ISettings } from './settings';
+import { entityConverter, converterTypes } from './entityConverter';
 
 // Create a connection for the server. The connection auto detected protocol
 // Also include all preview / proposed LSP features.
@@ -329,7 +330,12 @@ connection.languages.semanticTokens.on(async (params, token) => {
   const tokens = semanticToken(linter, settings.semanticTokensDirectionColoring);
   return tokens;
 });
-documents.listen(connection);
+connection.onRequest('vhdl-linter/template', async (params: { textDocument: { uri: string }, type: converterTypes, position?: Position }, token?: CancellationToken) => {
+  const linter = await linterManager.getLinter(params.textDocument.uri, token);
+  const settings = await getDocumentSettings(new URL(params.textDocument.uri));
+  return entityConverter(linter, params.type, settings, params.position);
+});
+  documents.listen(connection);
 
-// Listen on the connection
-connection.listen();
+  // Listen on the connection
+  connection.listen();

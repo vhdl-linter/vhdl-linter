@@ -151,6 +151,7 @@ export class OIRange implements Range {
 }
 
 
+type ORootElements = OArchitecture | OEntity | OPackage | OPackageInstantiation | OPackageBody | OContext | OConfiguration;
 
 export class ObjectBase {
   lexerToken?: OLexerToken;
@@ -168,9 +169,9 @@ export class ObjectBase {
     this.rootFile = p;
     p.objectList.push(this);
   }
-  private rootElement?: OArchitecture | OEntity | OPackage | OPackageBody;
+  private rootElement?: ORootElements;
 
-  getRootElement(): OArchitecture | OEntity | OPackage | OPackageBody {
+  getRootElement(): ORootElements {
     if (this.rootElement) {
       return this.rootElement;
     }
@@ -188,7 +189,7 @@ export class ObjectBase {
       }
       parent = parent.parent;
     }
-    this.rootElement = parent as OArchitecture | OEntity | OPackage | OPackageBody;
+    this.rootElement = parent as OArchitecture | OEntity | OPackage | OPackageInstantiation | OPackageBody | OContext | OConfiguration;
     return this.rootElement;
   }
   lexerTokenEquals(other: ObjectBase) {
@@ -267,6 +268,7 @@ export class OPackageInstantiation extends ObjectBase implements I.IHasReference
   useClauses: OUseClause[] = [];
   packageDefinitions: OPackage[] = [];
   contextReferences: OContextReference[] = [];
+  targetLibrary?: string;
 }
 
 export class OPackage extends ObjectBase implements I.IHasDeclarations, I.IHasUseClauses, I.IHasContextReference, I.IHasLexerToken,
@@ -330,6 +332,7 @@ export class OContext extends ObjectBase implements I.IHasUseClauses, I.IHasCont
   packageDefinitions: OPackage[] = [];
   contextReferences: OContextReference[] = [];
   libraries: OLibrary[] = [];
+  targetLibrary: undefined;
 }
 export type OConcurrentStatements = OProcess | OInstantiation | OIfGenerate | OForGenerate | OCaseGenerate | OBlock | OAssignment | OAssertion;
 // Also includes specifications
@@ -423,7 +426,7 @@ export class ORecord extends OType implements I.IMayHaveEndingLexerToken {
 export class OArray extends OType {
   elementType: OReference[] = [];
 }
-export class ORecordChild extends OType implements I.IHasTypeReference{
+export class ORecordChild extends OType implements I.IHasTypeReference {
   typeReference: OReference[] = [];
   public parent: ORecord;
 }
@@ -572,6 +575,9 @@ export class OInstantiation extends OReference implements I.IHasDefinitions, I.I
   archIdentifier?: OLexerToken;
   label?: OLexerToken;
   labelLinks: OLabelReference[] = [];
+  // getRootElement() {
+  //   return super.getRootElement() as Exclude<ORootElements, OPackageInstantiation | OContext>;
+  // }
 }
 export class OAssociation extends ObjectBase implements I.IHasDefinitions {
   constructor(public parent: OAssociationList, range: OIRange) {
@@ -647,15 +653,15 @@ export class OIf extends ObjectBase implements I.IMayHaveLabel {
   label?: OLexerToken;
   labelLinks: OLabelReference[];
 }
-export class OHasSequentialStatements extends ObjectBase implements I.IMayHaveLabel, I.IHasStatements {
+export class OSequenceOfStatements extends ObjectBase implements I.IMayHaveLabel, I.IHasStatements {
   statements: OSequentialStatement[] = [];
   statementsRange: OIRange;
   labelLinks: OLabelReference[] = [];
   label?: OLexerToken;
 }
-export class OElseClause extends OHasSequentialStatements {
+export class OElseClause extends OSequenceOfStatements {
 }
-export class OIfClause extends OHasSequentialStatements {
+export class OIfClause extends OSequenceOfStatements {
   condition: OReference[] = [];
 }
 export class OCase extends ObjectBase implements I.IMayHaveLabel {
@@ -664,10 +670,10 @@ export class OCase extends ObjectBase implements I.IMayHaveLabel {
   label?: OLexerToken;
   labelLinks: OLabelReference[] = [];
 }
-export class OWhenClause extends OHasSequentialStatements {
+export class OWhenClause extends OSequenceOfStatements {
   condition: OReference[] = [];
 }
-export class OProcess extends OHasSequentialStatements implements I.IHasDeclarations, I.IHasStatements,
+export class OProcess extends OSequenceOfStatements implements I.IHasDeclarations, I.IHasStatements,
   I.IHasUseClauses, I.IHasPostponed {
   declarations: ODeclaration[] = [];
   declarationsRange?: OIRange;
@@ -681,7 +687,7 @@ export class OProcess extends OHasSequentialStatements implements I.IHasDeclarat
 
 }
 
-export class OLoop extends OHasSequentialStatements {
+export class OLoop extends OSequenceOfStatements {
 }
 export class OForLoop extends OLoop implements I.IHasDeclarations {
   declarations: ODeclaration[] = [];
@@ -742,14 +748,8 @@ export class OSelectedName extends OReference {
     super(parent, referenceToken, referenceToken.range.copyWithNewStart(prefixTokens[0].range));
   }
 }
-export class OUseClause extends OSelectedName implements I.IHasLibraryReference {
-  constructor(public parent: ObjectBase & I.IHasUseClauses, public library: OLibraryReference | undefined, public packageName: OReference, public suffix: OLexerToken) {
-    super(parent, packageName.referenceToken, library ? [library, packageName] : [packageName]);
-    if (library) {
-      library.parent = this;
-    }
-    packageName.parent = this;
-  }
+export class OUseClause extends ObjectBase {
+  reference: [OReference, ...OSelectedName[]];
 }
 export class OSelectedNameRead extends ORead {
   constructor(public parent: ObjectBase, public referenceToken: OLexerToken, public prefixTokens: SelectedNamePrefix) {
@@ -790,7 +790,7 @@ export class OMagicCommentDisable extends OMagicComment {
     super(parent, commentType, range, rule);
   }
 }
-export class OSubprogram extends OHasSequentialStatements implements I.IHasReferenceLinks, I.IHasDeclarations, I.IHasPorts,
+export class OSubprogram extends OSequenceOfStatements implements I.IHasReferenceLinks, I.IHasDeclarations, I.IHasPorts,
   I.IHasUseClauses, I.IHasLexerToken, I.IMayHaveEndingLexerToken {
   hasBody = false;
   declarations: ODeclaration[] = [];

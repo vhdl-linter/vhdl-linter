@@ -22,8 +22,15 @@ export interface ISettings {
   'style': {
     'preferredLogicTypePort': 'unresolved'|'resolved'|'ignore';
     'preferredLogicTypeSignal': 'unresolved'|'resolved'|'ignore';
+    'preferredLogicTypeRecordChild': 'unresolved'|'resolved'|'ignore';
     'unusedSignalRegex': string;
     'ieeeCasing': 'lowercase'|'UPPERCASE';
+    'signalPrefix': string;
+    'signalSuffix': string;
+    'genericPrefix': string;
+    'genericSuffix': string;
+    'instantiationLabelPrefix': string;
+    'instantiationLabelSuffix': string;
   };
   'ports': {
     'outRegex': string;
@@ -60,8 +67,15 @@ export const defaultSettings: ISettings = {
   'style': {
     'preferredLogicTypePort': 'unresolved',
     'preferredLogicTypeSignal': 'unresolved',
+    'preferredLogicTypeRecordChild': 'unresolved',
     'unusedSignalRegex': '_unused$',
     'ieeeCasing': 'lowercase',
+    'signalPrefix': '',
+    'signalSuffix': '',
+    'genericPrefix': '',
+    'genericSuffix': '',
+    'instantiationLabelPrefix': '',
+    'instantiationLabelSuffix': '',
   },
   'ports': {
     'outRegex': '^o_',

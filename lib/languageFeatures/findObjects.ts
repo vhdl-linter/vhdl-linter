@@ -1,7 +1,7 @@
 import { Position } from "vscode-languageserver";
 import { OLexerToken } from "../lexer";
 import { implementsIHasEndingLexerToken, implementsIHasLexerToken } from "../parser/interfaces";
-import { OArchitecture, OAssociation, ObjectBase, OComponent, OConfigurationDeclaration, OInstantiation, OReference, OUseClause } from "../parser/objects";
+import { OArchitecture, OAssociation, ObjectBase, OComponent, OInstantiation, OReference } from "../parser/objects";
 import { VhdlLinter } from "../vhdlLinter";
 import { SetAdd } from "./findReferencesHandler";
 
@@ -27,11 +27,7 @@ export function findObjectByDesignator(linter: VhdlLinter, token: OLexerToken): 
   // find all possible definitions for the lexerToken
   for (const obj of linter.file.objectList) {
     if (obj instanceof OReference && obj.referenceToken === token) {
-      if (obj.parent instanceof OUseClause) {
-        foundObjects.add(obj.parent);
-      } else {
-        foundObjects.add(obj);
-      }
+      foundObjects.add(obj);
     }
     if (obj instanceof OInstantiation) {
       if (obj.entityName === token) {

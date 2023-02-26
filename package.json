@@ -2,7 +2,7 @@
 	"name": "vhdl-linter",
 	"publisher": "g0t00",
 	"main": "./dist/lib/vscode.js",
-	"version": "1.5.8",
+	"version": "1.5.9",
 	"description": "A typescript based linter for vhdl",
 	"keywords": [],
 	"repository": "https://github.com/vhdl-linter/vhdl-linter",
@@ -48,6 +48,11 @@
 				"when": "editorLangId == vhdl"
 			},
 			{
+				"key": "ctrl+shift+g ctrl+shift+c",
+				"command": "vhdl-linter:copy-as-component",
+				"when": "editorLangId == vhdl"
+			},
+			{
 				"key": "ctrl+shift+i",
 				"command": "vhdl-linter:copy-as-instance",
 				"when": "editorLangId == vhdl"
@@ -71,6 +76,10 @@
 				{
 					"command": "vhdl-linter:copy-as-signals",
 					"when": "editorLangId == vhdl"
+				},
+				{
+					"command": "vhdl-linter:copy-as-component",
+					"when": "editorLangId == vhdl"
 				}
 			]
 		},
@@ -86,6 +95,10 @@
 			{
 				"command": "vhdl-linter:copy-as-signals",
 				"title": "Copy as Signals"
+			},
+			{
+				"command": "vhdl-linter:copy-as-component",
+				"title": "Copy as Component"
 			}
 		],
 		"configuration": {
@@ -202,7 +215,7 @@
 						"ignore"
 					],
 					"default": "unresolved",
-					"description": "Preferred logic type (resolved/unresolved) to check for on ports (The rule 'type-resolved' can also be ignored)."
+					"description": "Preferred logic type (resolved/unresolved) to check for on ports (The rule 'type-resolved' can also be ignored as a whole)."
 				},
 				"VhdlLinter.style.preferredLogicTypeSignal": {
 					"scope": "window",
@@ -213,7 +226,18 @@
 						"ignore"
 					],
 					"default": "unresolved",
-					"description": "Preferred logic type (resolved/unresolved) to check for on signals (The rule 'type-resolved' can also be ignored)."
+					"description": "Preferred logic type (resolved/unresolved) to check for on signals (The rule 'type-resolved' can also be ignored as a whole)."
+				},
+				"VhdlLinter.style.preferredLogicTypeRecordChild": {
+					"scope": "window",
+					"type": "string",
+					"enum": [
+						"unresolved",
+						"resolved",
+						"ignore"
+					],
+					"default": "unresolved",
+					"description": "Preferred logic type (resolved/unresolved) to check for on record children (The rule 'type-resolved' can also be ignored as a whole)."
 				},
 				"VhdlLinter.style.unusedSignalRegex": {
 					"scope": "window",
@@ -230,6 +254,42 @@
 					],
 					"default": "lowercase",
 					"description": "Default casing for the completion of items of the ieee and standard libraries."
+				},
+				"VhdlLinter.style.signalPrefix": {
+					"scope": "window",
+					"type": "string",
+					"default": "",
+					"description": "Prefix for signals (can be left empty)"
+				},
+				"VhdlLinter.style.signalSuffix": {
+					"scope": "window",
+					"type": "string",
+					"default": "",
+					"description": "Suffix for signals (can be left empty)"
+				},
+				"VhdlLinter.style.genericPrefix": {
+					"scope": "window",
+					"type": "string",
+					"default": "",
+					"description": "Prefix for generics (can be left empty)"
+				},
+				"VhdlLinter.style.genericSuffix": {
+					"scope": "window",
+					"type": "string",
+					"default": "",
+					"description": "Suffix for generics (can be left empty)"
+				},
+				"VhdlLinter.style.instantiationLabelPrefix": {
+					"scope": "window",
+					"type": "string",
+					"default": "",
+					"description": "Prefix for instantiation labels (can be left empty)"
+				},
+				"VhdlLinter.style.instantiationLabelSuffix": {
+					"scope": "window",
+					"type": "string",
+					"default": "",
+					"description": "Suffix for instantiation labels (can be left empty)"
 				},
 				"VhdlLinter.ports.outRegex": {
 					"scope": "window",

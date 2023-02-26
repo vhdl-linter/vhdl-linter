@@ -18,7 +18,7 @@ export class SequentialStatementParser extends ParserBase {
     }
     return this.getToken(i).text === ':';
   }
-  parse(parent: O.OHasSequentialStatements, exitConditions: string[]): O.OSequentialStatement[] {
+  parse(parent: O.OSequenceOfStatements, exitConditions: string[]): O.OSequentialStatement[] {
     const statements: O.OSequentialStatement[] = [];
     const start = this.getToken(-1, true).range;
     while (this.state.pos.isValid()) {
@@ -98,7 +98,7 @@ export class SequentialStatementParser extends ParserBase {
     return false;
   }
 
-  parseSubprogramCall(parent: O.OHasSequentialStatements | O.OIf, label: OLexerToken | undefined) {
+  parseSubprogramCall(parent: O.OSequenceOfStatements | O.OIf, label: OLexerToken | undefined) {
     const subprogramCall = new O.OInstantiation(parent, this.getToken(), 'subprogram');
     subprogramCall.label = label;
     subprogramCall.entityName = this.consumeToken();
@@ -118,7 +118,7 @@ export class SequentialStatementParser extends ParserBase {
     return subprogramCall;
   }
 
-  parseReport(parent: O.OHasSequentialStatements | O.OIf, label?: OLexerToken): O.OReport {
+  parseReport(parent: O.OSequenceOfStatements | O.OIf, label?: OLexerToken): O.OReport {
     this.expect('report');
     const report = new O.OReport(parent, this.getToken().range.copyExtendEndOfLine());
     report.label = label;
@@ -134,7 +134,7 @@ export class SequentialStatementParser extends ParserBase {
     return report;
   }
 
-  parseReturn(parent: O.OHasSequentialStatements | O.OIf, label?: OLexerToken): O.OReport {
+  parseReturn(parent: O.OSequenceOfStatements | O.OIf, label?: OLexerToken): O.OReport {
     this.expect('return');
     const _return = new O.OReturn(parent, this.getToken().range.copyExtendEndOfLine());
     _return.label = label;
@@ -155,7 +155,7 @@ export class SequentialStatementParser extends ParserBase {
     return _return;
   }
 
-  parseWait(parent: O.OHasSequentialStatements | O.OIf, label?: OLexerToken) {
+  parseWait(parent: O.OSequenceOfStatements | O.OIf, label?: OLexerToken) {
     this.expect('wait');
     const assignment = new O.OAssignment(parent, this.getToken().range.copyExtendEndOfLine());
     assignment.label = label;
@@ -182,7 +182,7 @@ export class SequentialStatementParser extends ParserBase {
     this.expect(';');
     return assignment;
   }
-  parseExit(parent: O.OHasSequentialStatements | O.OIf, label?: OLexerToken) {
+  parseExit(parent: O.OSequenceOfStatements | O.OIf, label?: OLexerToken) {
     this.expect('exit');
     const exitStatement = new O.OExit(parent, this.getToken().range.copyExtendEndOfLine());
     exitStatement.label = label;
@@ -199,7 +199,7 @@ export class SequentialStatementParser extends ParserBase {
     this.expect(';');
     return exitStatement;
   }
-  parseWhile(parent: O.OHasSequentialStatements | O.OIf, label?: OLexerToken): O.OWhileLoop {
+  parseWhile(parent: O.OSequenceOfStatements | O.OIf, label?: OLexerToken): O.OWhileLoop {
     const whileLoop = new O.OWhileLoop(parent, this.getToken().range.copyExtendEndOfLine());
     this.expect('while');
     whileLoop.label = label;
@@ -214,7 +214,7 @@ export class SequentialStatementParser extends ParserBase {
     this.expect(';');
     return whileLoop;
   }
-  parseFor(parent: O.OHasSequentialStatements | O.OIf, label?: OLexerToken): O.OForLoop {
+  parseFor(parent: O.OSequenceOfStatements | O.OIf, label?: OLexerToken): O.OForLoop {
     const forLoop = new O.OForLoop(parent, this.getToken().range.copyExtendEndOfLine());
     forLoop.label = label;
     this.expect('for');
@@ -235,7 +235,7 @@ export class SequentialStatementParser extends ParserBase {
     this.expect(';');
     return forLoop;
   }
-  parseIf(parent: O.OHasSequentialStatements | O.OIf, label?: OLexerToken) {
+  parseIf(parent: O.OSequenceOfStatements | O.OIf, label?: OLexerToken) {
     this.debug(`parseIf`);
 
     const if_ = new O.OIf(parent, this.getToken().range.copyExtendEndOfLine());

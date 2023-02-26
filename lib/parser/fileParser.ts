@@ -4,7 +4,7 @@ import { ContextParser } from './contextParser';
 import { ContextReferenceParser } from './contextReferenceParser';
 import { EntityParser } from './entityParser';
 import { IHasUseClauses } from './interfaces';
-import { MagicCommentType, ObjectBase, OFile, OI, OIRange, OLibrary, OLibraryReference, OMagicCommentDisable, OPackageInstantiation, OReference, OUseClause, ParserError } from './objects';
+import { MagicCommentType, ObjectBase, OFile, OI, OIRange, OLibrary, OMagicCommentDisable, OPackageInstantiation, OReference, OSelectedName, OUseClause, ParserError, SelectedNamePrefix } from './objects';
 import { PackageInstantiationParser } from './packageInstantiationParser';
 import { PackageParser } from './packageParser';
 import { ParserBase, ParserPosition, ParserState } from './parserBase';
@@ -38,6 +38,20 @@ export class FileParser extends ParserBase {
     }
     return new OIRange(this.file, new OI(this.file, lineNumber + 1, 0), new OI(this.file, lineNumber + 1, this.originalText.split('\n')[lineNumber + 1]!.length));
   }
+
+  private useClauseFromTokens(parent: ObjectBase & IHasUseClauses, tokens: [OLexerToken, ...OLexerToken[]]) {
+    const newUseClause = new OUseClause(parent, tokens[0].range.copyWithNewEnd(tokens[tokens.length - 1]!.range));
+    newUseClause.reference = [new OReference(newUseClause, tokens[0])];
+    for (const [i, token] of tokens.entries()) {
+      if (i === 0) {
+        continue;
+      } else {
+        newUseClause.reference.push(new OSelectedName(newUseClause, token, newUseClause.reference.slice() as SelectedNamePrefix));
+      }
+    }
+    return newUseClause;
+  }
+
   parse(): OFile {
 
     const disabledRangeStart = new Map<string | undefined, number>();
@@ -116,11 +130,14 @@ export class FileParser extends ParserBase {
     let useClausesPrepare: [OLexerToken, OLexerToken, OLexerToken][] = [];
     const getUseClauses = (parent: ObjectBase & IHasUseClauses) => {
       // always add `use std.standard.all;`
+      const standardUseClause = this.useClauseFromTokens(parent, [
+        new OLexerToken('std', new OIRange(this.file, 0, 0), TokenType.implicit, this.file),
+        new OLexerToken('standard', new OIRange(this.file, 0, 0), TokenType.implicit, this.file),
+        new OLexerToken('all', new OIRange(this.file, 0, 0), TokenType.implicit, this.file)
+      ]);
       return [
-        new OUseClause(parent, new OLibraryReference(parent, new OLexerToken('std', new OIRange(this.file, 0, 0), TokenType.implicit, this.file)),
-          new OReference(parent, new OLexerToken('standard', new OIRange(this.file, 0, 0), TokenType.implicit, this.file)),
-          new OLexerToken('all', new OIRange(this.file, 0, 0), TokenType.implicit, this.file)),
-        ...useClausesPrepare.map(([library, packageName, suffix]) => new OUseClause(parent, new OLibraryReference(parent, library), new OReference(parent, packageName), suffix))
+        standardUseClause,
+        ...useClausesPrepare.map(tokens => this.useClauseFromTokens(parent, tokens))
       ];
     };
     let libraries = defaultLibrary.slice(0);
