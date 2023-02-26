@@ -646,15 +646,15 @@ export class OIf extends ObjectBase implements I.IMayHaveLabel {
   label?: OLexerToken;
   labelLinks: OLabelReference[];
 }
-export class OHasSequentialStatements extends ObjectBase implements I.IMayHaveLabel, I.IHasStatements {
+export class OSequenceOfStatements extends ObjectBase implements I.IMayHaveLabel, I.IHasStatements {
   statements: OSequentialStatement[] = [];
   statementsRange: OIRange;
   labelLinks: OLabelReference[] = [];
   label?: OLexerToken;
 }
-export class OElseClause extends OHasSequentialStatements {
+export class OElseClause extends OSequenceOfStatements {
 }
-export class OIfClause extends OHasSequentialStatements {
+export class OIfClause extends OSequenceOfStatements {
   condition: OReference[] = [];
 }
 export class OCase extends ObjectBase implements I.IMayHaveLabel {
@@ -663,10 +663,10 @@ export class OCase extends ObjectBase implements I.IMayHaveLabel {
   label?: OLexerToken;
   labelLinks: OLabelReference[] = [];
 }
-export class OWhenClause extends OHasSequentialStatements {
+export class OWhenClause extends OSequenceOfStatements {
   condition: OReference[] = [];
 }
-export class OProcess extends OHasSequentialStatements implements I.IHasDeclarations, I.IHasStatements,
+export class OProcess extends OSequenceOfStatements implements I.IHasDeclarations, I.IHasStatements,
   I.IHasUseClauses, I.IHasPostponed {
   declarations: ODeclaration[] = [];
   declarationsRange?: OIRange;
@@ -680,7 +680,7 @@ export class OProcess extends OHasSequentialStatements implements I.IHasDeclarat
 
 }
 
-export class OLoop extends OHasSequentialStatements {
+export class OLoop extends OSequenceOfStatements {
 }
 export class OForLoop extends OLoop implements I.IHasDeclarations {
   declarations: ODeclaration[] = [];
@@ -789,7 +789,7 @@ export class OMagicCommentDisable extends OMagicComment {
     super(parent, commentType, range, rule);
   }
 }
-export class OSubprogram extends OHasSequentialStatements implements I.IHasReferenceLinks, I.IHasDeclarations, I.IHasPorts,
+export class OSubprogram extends OSequenceOfStatements implements I.IHasReferenceLinks, I.IHasDeclarations, I.IHasPorts,
   I.IHasUseClauses, I.IHasLexerToken, I.IMayHaveEndingLexerToken {
   hasBody = false;
   declarations: ODeclaration[] = [];
