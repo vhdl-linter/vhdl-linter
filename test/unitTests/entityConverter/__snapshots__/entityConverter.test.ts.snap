@@ -4,12 +4,13 @@ exports[`Testing entityConverter Testing entity converter for with different con
 "component test_entity is
 generic (
   LENGTH : positive
-)
-port map (
+);
+port (
   a : std_ulogic;
   b : std_ulogic_vector(7 downto 0);
   c : std_ulogic_vector(LENGTH -1 downto 0)
 );
+end component;
 "
 `;
 
@@ -17,12 +18,13 @@ exports[`Testing entityConverter Testing entity converter for with different con
 "component test_entity is
 generic (
   LENGTH : positive
-)
-port map (
+);
+port (
   a : std_ulogic;
   b : std_ulogic_vector(7 downto 0);
   c : std_ulogic_vector(LENGTH -1 downto 0)
 );
+end component;
 "
 `;
 
@@ -30,12 +32,13 @@ exports[`Testing entityConverter Testing entity converter for with different con
 "component test_entity is
 generic (
   LENGTH : positive
-)
-port map (
+);
+port (
   a : std_ulogic;
   b : std_ulogic_vector(7 downto 0);
   c : std_ulogic_vector(LENGTH -1 downto 0)
 );
+end component;
 "
 `;
 
@@ -43,12 +46,13 @@ exports[`Testing entityConverter Testing entity converter for with different con
 "component test_entity is
 generic (
   LENGTH : positive
-)
-port map (
+);
+port (
   a : std_ulogic;
   b : std_ulogic_vector(7 downto 0);
   c : std_ulogic_vector(LENGTH -1 downto 0)
 );
+end component;
 "
 `;
 
@@ -56,12 +60,13 @@ exports[`Testing entityConverter Testing entity converter for with different con
 "component test_entity is
 generic (
   LENGTH : positive
-)
-port map (
+);
+port (
   a : std_ulogic;
   b : std_ulogic_vector(7 downto 0);
   c : std_ulogic_vector(LENGTH -1 downto 0)
 );
+end component;
 "
 `;
 
@@ -69,12 +74,13 @@ exports[`Testing entityConverter Testing entity converter for with different con
 "component test_entity is
 generic (
   LENGTH : positive
-)
-port map (
+);
+port (
   a : std_ulogic;
   b : std_ulogic_vector(7 downto 0);
   c : std_ulogic_vector(LENGTH -1 downto 0)
 );
+end component;
 "
 `;
 
@@ -82,12 +88,13 @@ exports[`Testing entityConverter Testing entity converter for with different con
 "component test_entity is
 generic (
   LENGTH : positive
-)
-port map (
+);
+port (
   a : std_ulogic;
   b : std_ulogic_vector(7 downto 0);
   c : std_ulogic_vector(LENGTH -1 downto 0)
 );
+end component;
 "
 `;
 
