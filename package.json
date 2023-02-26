@@ -202,7 +202,7 @@
 						"ignore"
 					],
 					"default": "unresolved",
-					"description": "Preferred logic type (resolved/unresolved) to check for on ports (The rule 'type-resolved' can also be ignored)."
+					"description": "Preferred logic type (resolved/unresolved) to check for on ports (The rule 'type-resolved' can also be ignored as a whole)."
 				},
 				"VhdlLinter.style.preferredLogicTypeSignal": {
 					"scope": "window",
@@ -213,7 +213,18 @@
 						"ignore"
 					],
 					"default": "unresolved",
-					"description": "Preferred logic type (resolved/unresolved) to check for on signals (The rule 'type-resolved' can also be ignored)."
+					"description": "Preferred logic type (resolved/unresolved) to check for on signals (The rule 'type-resolved' can also be ignored as a whole)."
+				},
+				"VhdlLinter.style.preferredLogicTypeRecordChild": {
+					"scope": "window",
+					"type": "string",
+					"enum": [
+						"unresolved",
+						"resolved",
+						"ignore"
+					],
+					"default": "unresolved",
+					"description": "Preferred logic type (resolved/unresolved) to check for on record children (The rule 'type-resolved' can also be ignored as a whole)."
 				},
 				"VhdlLinter.style.unusedSignalRegex": {
 					"scope": "window",
