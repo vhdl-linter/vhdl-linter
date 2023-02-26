@@ -2,11 +2,13 @@ import { OLexerToken } from "../lexer";
 import * as O from './objects';
 export interface IHasLabel {
   label: OLexerToken;
+  endingLabel?: OLexerToken;
   lexerToken: undefined;
   labelLinks: O.OLabelReference[];
 }
 export interface IMayHaveLabel {
   label?: OLexerToken;
+  endingLabel?: OLexerToken;
   labelLinks: O.OLabelReference[];
 }
 export function implementsIHasLabel(obj: O.ObjectBase): obj is O.ObjectBase & IHasLabel {

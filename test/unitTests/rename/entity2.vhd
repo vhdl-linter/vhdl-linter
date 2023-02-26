@@ -14,5 +14,5 @@ begin
   begin
     report boolean'image(func);
     func(a => 5);
-  end process;  -- identifier
+  end process identifier;
 end architecture;

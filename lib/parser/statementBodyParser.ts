@@ -110,13 +110,13 @@ export class StatementBodyParser extends ParserBase {
           this.maybe(structureName);
         }
 
-        if (structureName === 'architecture' ) {
-          (statementBody as OArchitecture).endingLexerToken = this.maybe((statementBody as OArchitecture).lexerToken.text);
+        if (statementBody instanceof OArchitecture) {
+          statementBody.endingLexerToken = this.maybe(statementBody.lexerToken.text);
         } else {
           if (statementBody instanceof OIfGenerateClause || statementBody instanceof OElseGenerateClause) {
-            this.maybe(statementBody.parent.label);
+            statementBody.endingLabel = this.maybe(statementBody.parent.label);
           } else {
-            this.maybe((statementBody as OBlock | OIfGenerate).label);
+            statementBody.endingLabel = this.maybe((statementBody as OBlock | OIfGenerate).label);
           }
         }
 

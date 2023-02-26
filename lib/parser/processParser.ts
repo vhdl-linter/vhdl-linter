@@ -25,7 +25,7 @@ export class ProcessParser extends ParserBase {
     this.expect('end');
     this.expect('process');
     if (label) {
-      this.maybe(label);
+      process.endingLabel = this.maybe(label);
     }
     process.range = process.range.copyWithNewEnd(this.state.pos.i);
     this.expect(';');

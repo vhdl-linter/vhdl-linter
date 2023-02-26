@@ -1,7 +1,7 @@
 import { ErrorCodes, Location, Position, ResponseError } from 'vscode-languageserver';
 import { Elaborate } from '../elaborate/elaborate';
 import { OLexerToken } from '../lexer';
-import { implementsIHasEndingLexerToken, implementsIHasReference } from '../parser/interfaces';
+import { implementsIHasEndingLexerToken, implementsIHasLabel, implementsIHasReference } from '../parser/interfaces';
 import { OArchitecture, ObjectBase, OComponent, OConfiguration, OEntity, OGeneric, OInstantiation, OPackage, OPackageBody, OPort, OSubprogram, OVariable } from '../parser/objects';
 import { VhdlLinter } from '../vhdlLinter';
 import { findDefinitions } from './findDefinition';
@@ -155,10 +155,15 @@ export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position
         }
       }
     }
-    if (implementsIHasEndingLexerToken(definition)) {
+    if (implementsIHasEndingLexerToken(definition) && definition.endingLexerToken.getLText() === token.getLText() ) {
       referenceTokens.push(definition.endingLexerToken);
     }
-
+    if (implementsIHasLabel(definition) && definition.label.getLText() === token.getLText()) {
+      referenceTokens.push(definition.label);
+      if (definition.endingLabel !== undefined) {
+        referenceTokens.push(definition.endingLabel);
+      }
+    }
   }
   // make sure to only return one reference per range
   const map = new Map<string, OLexerToken>();

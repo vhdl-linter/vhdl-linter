@@ -1,5 +1,5 @@
 import { DefinitionLink, Position } from "vscode-languageserver";
-import { implementsIHasDefinitions, implementsIHasLexerToken } from "../parser/interfaces";
+import { implementsIHasDefinitions, implementsIHasLabel, implementsIHasLexerToken } from "../parser/interfaces";
 import { OArchitecture, ObjectBase, OConfiguration, OPackage, OPackageBody, ORecordChild, OSubprogram } from "../parser/objects";
 import { VhdlLinter } from "../vhdlLinter";
 import { findObjectByDesignator } from "./findObjects";
@@ -18,7 +18,7 @@ export function findDefinitions(linter: VhdlLinter, position: Position): ObjectB
     if (candidate instanceof OConfiguration) {
       // OConfiguration has two thing to rename.
       // The name of the entity and the configuration itself.
-      // We need to add the actual definition of the token(not of the candidation, which only maybe is the same)
+      // We need to add the actual definition of the token (not of the candidate, which only maybe is the same)
       if (candidate.entityName === token) {
         definitions.add(...candidate.definitions);
       } else {
@@ -29,7 +29,7 @@ export function findDefinitions(linter: VhdlLinter, position: Position): ObjectB
     }
     if (candidate instanceof OArchitecture && candidate.correspondingEntity && candidate.entityName === token) {
       definitions.add(candidate.correspondingEntity);
-    } else if (implementsIHasLexerToken(candidate)) {
+    } else if (implementsIHasLexerToken(candidate) || implementsIHasLabel(candidate)) {
       definitions.add(candidate);
     }
   }

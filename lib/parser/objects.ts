@@ -358,6 +358,7 @@ export class OArchitecture extends OStatementBody implements I.IHasLexerToken, I
 }
 export class OBlock extends OStatementBody implements I.IHasLabel {
   label: OLexerToken;
+  endingLabel?: OLexerToken;
   labelLinks: OLabelReference[] = [];
   lexerToken: undefined;
   guardCondition?: OReference[];
@@ -436,6 +437,7 @@ export class OEnumLiteral extends ObjectBase implements I.IHasReferenceLinks, I.
 export class OForGenerate extends OStatementBody implements I.IHasLabel {
   lexerToken: undefined;
   label: OLexerToken;
+  endingLabel?: OLexerToken;
   iterationConstant: OLexerToken;
   iterationRangeTokens: OLexerToken[];
   labelLinks: OLabelReference[] = [];
@@ -451,12 +453,14 @@ export class OCaseGenerate extends ObjectBase implements I.IHasLabel {
   expressionTokens: OLexerToken[] = [];
   whenGenerateClauses: OWhenGenerateClause[] = [];
   label: OLexerToken;
+  endingLabel?: OLexerToken;
   labelLinks: OLabelReference[] = [];
   lexerToken: undefined;
 }
 export class OWhenGenerateClause extends OStatementBody implements I.IMayHaveLabel {
   lexerToken: undefined;
   label?: OLexerToken;
+  endingLabel?: OLexerToken;
   labelLinks: OLabelReference[] = [];
   condition: OReference[] = [];
   conditionTokens: OLexerToken[] = [];
@@ -469,10 +473,12 @@ export class OIfGenerate extends ObjectBase implements I.IHasLabel {
   ifGenerateClauses: OIfGenerateClause[] = [];
   elseGenerateClause?: OElseGenerateClause;
   labelLinks: OLabelReference[] = [];
+  endingLabel?: OLexerToken;
   lexerToken: undefined;
 }
 export class OIfGenerateClause extends OStatementBody implements I.IMayHaveLabel {
   label?: OLexerToken;
+  endingLabel?: OLexerToken;
   labelLinks: OLabelReference[] = [];
   lexerToken: undefined;
   condition: OReference[] = [];
@@ -482,14 +488,11 @@ export class OIfGenerateClause extends OStatementBody implements I.IMayHaveLabel
 }
 export class OElseGenerateClause extends OStatementBody implements I.IMayHaveLabel {
   label?: OLexerToken;
+  endingLabel?: OLexerToken;
   labelLinks: OLabelReference[] = [];
-
   lexerToken: undefined;
   public parent: OIfGenerate;
-
 }
-
-
 
 export class OFileVariable extends ObjectBase implements I.IVariableBase {
   aliasReferences: OAlias[] = [];
@@ -643,13 +646,14 @@ export class OIf extends ObjectBase implements I.IMayHaveLabel {
   clauses: OIfClause[] = [];
   else?: OElseClause;
   label?: OLexerToken;
-  labelLinks: OLabelReference[];
+  labelLinks: OLabelReference[] = [];
 }
 export class OHasSequentialStatements extends ObjectBase implements I.IMayHaveLabel, I.IHasStatements {
   statements: OSequentialStatement[] = [];
   statementsRange: OIRange;
   labelLinks: OLabelReference[] = [];
   label?: OLexerToken;
+  endingLabel?: OLexerToken;
 }
 export class OElseClause extends OHasSequentialStatements {
 }
@@ -665,8 +669,7 @@ export class OCase extends ObjectBase implements I.IMayHaveLabel {
 export class OWhenClause extends OHasSequentialStatements {
   condition: OReference[] = [];
 }
-export class OProcess extends OHasSequentialStatements implements I.IHasDeclarations, I.IHasStatements,
-  I.IHasUseClauses {
+export class OProcess extends OHasSequentialStatements implements I.IHasDeclarations, I.IHasStatements, I.IHasUseClauses {
   declarations: ODeclaration[] = [];
   declarationsRange?: OIRange;
   label?: OLexerToken;

@@ -145,6 +145,19 @@ test.each([
       ],
     description: 'components'
   },
+  {
+    occurrences:
+      [['entity2.vhd', createPrintableRange(13, 3, 13)],
+      ['entity2.vhd', createPrintableRange(17, 15, 25)],
+      ],
+    description: 'process label'
+  },
+  {
+    occurrences:
+      [['component_instantiation.vhd', createPrintableRange(15, 3, 12)],
+      ],
+    description: 'component instantiation label'
+  },
   // The ports/generics of components are currently not linked
   // {
   //   occurrences:

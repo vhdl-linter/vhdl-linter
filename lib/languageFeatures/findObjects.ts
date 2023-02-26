@@ -1,16 +1,16 @@
 import { Position } from "vscode-languageserver";
 import { OLexerToken } from "../lexer";
-import { implementsIHasEndingLexerToken, implementsIHasLexerToken } from "../parser/interfaces";
-import { OArchitecture, OAssociation, ObjectBase, OComponent, OConfiguration, OInstantiation, OReference, OUseClause } from "../parser/objects";
+import * as I from "../parser/interfaces";
+import * as O from "../parser/objects";
 import { VhdlLinter } from "../vhdlLinter";
 import { SetAdd } from "./findReferencesHandler";
 
-export function findObjectFromPosition(linter: VhdlLinter, position: Position): ObjectBase[] {
+export function findObjectFromPosition(linter: VhdlLinter, position: Position): O.ObjectBase[] {
   const startI = linter.getIFromPosition(position);
   let candidates = (linter.file.objectList.filter(object => object.range.start.i <= startI + 1 && startI <= object.range.end.i) ?? [])
     // If the association has no formal part its range is identical to the included reference.
     // But we prefer to get the reference so explicity exclude Association here. (#197)
-    .filter(candidate => candidate instanceof OAssociation === false);
+    .filter(candidate => candidate instanceof O.OAssociation === false);
   candidates.sort((a, b) => (a.range.end.i - a.range.start.i) - (b.range.end.i - b.range.start.i));
   const firstCandidate = candidates[0];
   if (!firstCandidate) {
@@ -21,37 +21,39 @@ export function findObjectFromPosition(linter: VhdlLinter, position: Position): 
   return candidates;
 }
 
-export function findObjectByDesignator(linter: VhdlLinter, token: OLexerToken): ObjectBase[] {
-  // TODO: also find label designators
-  const foundObjects = new SetAdd<ObjectBase>();
+export function findObjectByDesignator(linter: VhdlLinter, token: OLexerToken): O.ObjectBase[] {
+  const foundObjects = new SetAdd<O.ObjectBase>();
   // find all possible definitions for the lexerToken
   for (const obj of linter.file.objectList) {
-    if (obj instanceof OReference && obj.referenceToken === token) {
-      if (obj.parent instanceof OUseClause) {
+    if (obj instanceof O.OReference && obj.referenceToken === token) {
+      if (obj.parent instanceof O.OUseClause) {
         foundObjects.add(obj.parent);
       } else {
         foundObjects.add(obj);
       }
     }
-    if (obj instanceof OInstantiation) {
+    if (I.implementsIHasLabel(obj) && (obj.label.getLText() === token.getLText() || obj.endingLabel?.getLText() === token.getLText())) {
+      foundObjects.add(obj);
+    }
+    if (obj instanceof O.OInstantiation) {
       if (obj.entityName === token) {
         foundObjects.add(obj);
       }
     }
-    if (implementsIHasLexerToken(obj) && obj.lexerToken === token) {
+    if (I.implementsIHasLexerToken(obj) && obj.lexerToken === token) {
       foundObjects.add(obj);
     }
-    if (implementsIHasEndingLexerToken(obj) && obj.endingLexerToken === token) {
+    if (I.implementsIHasEndingLexerToken(obj) && obj.endingLexerToken === token) {
       foundObjects.add(obj);
     }
-    if (obj instanceof OComponent && obj.endingReferenceToken === token) {
+    if (obj instanceof O.OComponent && obj.endingReferenceToken === token) {
       foundObjects.add(obj);
     }
 
-    if (obj instanceof OArchitecture && obj.entityName === token) {
+    if (obj instanceof O.OArchitecture && obj.entityName === token) {
       foundObjects.add(obj);
     }
-    if (obj instanceof OConfiguration && obj.entityName === token) {
+    if (obj instanceof O.OConfiguration && obj.entityName === token) {
       foundObjects.add(obj);
     }
   }
