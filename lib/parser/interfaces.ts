@@ -2,6 +2,7 @@ import { OLexerToken } from "../lexer";
 import * as O from './objects';
 export interface IHasLabel {
   label: OLexerToken;
+  lexerToken: undefined;
   labelLinks: O.OLabelReference[];
 }
 export interface IMayHaveLabel {
@@ -38,6 +39,7 @@ export interface IHasEndingLexerToken {
 }
 export interface IHasReferenceToken {
   referenceToken: OLexerToken;
+  lexerToken: undefined;
 }
 
 export interface IHasContextReference {
