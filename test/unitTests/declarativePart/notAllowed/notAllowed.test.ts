@@ -18,7 +18,7 @@ const possibleDeclarations = {
   'subprogram_declaration': 'procedure x;',
   'subprogram_body': 'procedure x is begin end;',
   // 'subprogram_instantiation_declaration': '', // TODO: implement subprogram instantiation declarations (4.4)
-  'use_clause': 'use ieee.std_logic_1164.all;',
+  'use_clause': 'use work.util.all;',
   // 'package_declaration': 'package p is end;', // TODO: implement package declarations in declarative part
   // 'package_body': 'package body p is end;,
   'package_instantiation_declaration': 'package inst_pkg is new work.generic_pkg generic map (par => 10);',
