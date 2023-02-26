@@ -26,7 +26,7 @@ export class StatementBodyParser extends ParserBase {
     let statementBody;
     if (structureName === 'architecture') {
       statementBody = new OArchitecture(this.parent, this.getToken(-1, true).range.copyExtendEndOfLine());
-      statementBody.targetLibrary = this.state.pos.file.originalText.match(/!\s*@library\s+(\S+)/i)?.[1];
+      statementBody.targetLibrary = this.getTargetLibrary();
     } else if (structureName === 'block') {
       statementBody = new OBlock(this.parent, this.getToken(-1, true).range.copyExtendEndOfLine());
       statementBody.label = this.identifier;

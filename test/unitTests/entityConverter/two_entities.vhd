@@ -22,3 +22,11 @@ entity second_entity is
     f : std_ulogic_vector(LENGTH -1 downto 0)
     );
 end entity;
+architecture arch of first_entity is
+begin
+
+end architecture;
+architecture arch of second_entity is
+begin
+
+end architecture;
