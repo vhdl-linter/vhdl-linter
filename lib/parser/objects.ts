@@ -741,14 +741,8 @@ export class OSelectedName extends OReference {
     super(parent, referenceToken, referenceToken.range.copyWithNewStart(prefixTokens[0].range));
   }
 }
-export class OUseClause extends OSelectedName implements I.IHasLibraryReference {
-  constructor(public parent: ObjectBase & I.IHasUseClauses, public library: OLibraryReference | undefined, public packageName: OReference, public suffix: OLexerToken) {
-    super(parent, packageName.referenceToken, library ? [library, packageName] : [packageName]);
-    if (library) {
-      library.parent = this;
-    }
-    packageName.parent = this;
-  }
+export class OUseClause extends ObjectBase {
+  reference: [OReference, ...OSelectedName[]];
 }
 export class OSelectedNameRead extends ORead {
   constructor(public parent: ObjectBase, public referenceToken: OLexerToken, public prefixTokens: SelectedNamePrefix) {
