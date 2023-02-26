@@ -19,17 +19,26 @@ export class ElaborateReferences {
     for (const obj of vhdlLinter.file.objectList) {
       if (I.implementsIHasUseClause(obj)) {
         elaborator.elaborateUseClauses(obj, elaborator.getUseClauses(obj));
+      } else if (obj instanceof O.OReference) {
+        elaborator.elaborate(obj);
       }
-      if (obj instanceof O.OFormalReference) {
-        continue;
-      }
-      // elaborate all references except instantiations
-      if (obj instanceof O.OReference && obj instanceof O.OInstantiation === false) {
-        if (obj instanceof O.OSelectedName || obj instanceof O.OSelectedNameWrite) {
-          elaborator.elaborateSelectedNames(obj);
-        } else {
-          elaborator.elaborateReference(obj);
-        }
+    }
+  }
+
+  elaborate(ref: O.OReference) {
+    if (ref.definitions.length > 0) {
+      // was already elaborated (e.g. in use clause)
+      return;
+    }
+    if (ref instanceof O.OFormalReference) {
+      return;
+    }
+    // elaborate all references except instantiations
+    if (ref instanceof O.OInstantiation === false) {
+      if (ref instanceof O.OSelectedName || ref instanceof O.OSelectedNameWrite || ref instanceof O.OSelectedNameRead) {
+        this.elaborateSelectedNames(ref);
+      } else {
+        this.elaborateReference(ref);
       }
     }
   }
@@ -75,7 +84,7 @@ export class ElaborateReferences {
     const fallbackMap = new Map<string, O.ObjectBase[]>();
     this.scopeVisibilityMap.set(parent, visibilityMap);
     this.fallbackVisibilityMap.set(parent, fallbackMap);
-    for (const [scopeObj] of O.scope(parent)) {
+    for (const [scopeObj, directlyVisible] of O.scope(parent)) {
       this.addObjectsToMap(visibilityMap, scopeObj);
       if (I.implementsIHasPorts(scopeObj)) {
         this.addObjectsToMap(visibilityMap, ...scopeObj.ports);
@@ -106,7 +115,7 @@ export class ElaborateReferences {
       if (I.implementsIHasStatements(scopeObj)) {
         this.addObjectsToMap(visibilityMap, ...scopeObj.statements);
       }
-      if (I.implementsIHasLibraries(scopeObj)) {
+      if (directlyVisible && I.implementsIHasLibraries(scopeObj)) {
         this.addObjectsToMap(visibilityMap, ...scopeObj.libraries);
       }
     }
@@ -183,7 +192,10 @@ export class ElaborateReferences {
         this.link(reference, obj);
       }
     }
-
+    if (reference.parent instanceof O.OUseClause) {
+      // never look in fallback map for use clauses
+      return;
+    }
     // if nothing was found look in the fallback map
     if (reference.definitions.length === 0) {
       for (const obj of this.getList(reference, true)) {
@@ -273,6 +285,10 @@ export class ElaborateReferences {
       }
     }
 
+    if (reference.parent instanceof O.OUseClause) {
+      // never look in fallback map for use clauses
+      return;
+    }
     // if nothing was found look in the fallback map
     if (reference.definitions.length === 0 && reference.notDeclaredHint === undefined) {
       for (const obj of this.getList(reference, true)) {
@@ -288,12 +304,24 @@ export class ElaborateReferences {
     // the scope changes when finding use clause -> clear the visibility map
     let clearVisibilityMap = false;
     for (const useClause of useClauses) {
-      if (useClause.library !== undefined) {
-        for (const obj of this.getProjectList(useClause.packageName.referenceToken.getLText())) {
+      // elaborate the references (useClause is created before the references of it)
+      for (const ref of useClause.reference) {
+        this.elaborate(ref);
+      }
+      const libraryRef = useClause.reference[0].definitions.some(def => def instanceof O.OLibrary);
+      if (libraryRef) {
+        if (useClause.reference[1] === undefined) {
+          this.vhdlLinter.addMessage({
+            message: 'use clause with library reference expects a package reference.',
+            range: useClause.range
+          }, 'elaborate');
+          return;
+        }
+        const packageRef = useClause.reference[1]!;
+        for (const obj of this.getProjectList(packageRef.referenceToken.getLText())) {
           if (obj instanceof O.OPackage) {
             parent.packageDefinitions.push(obj);
-            useClause.definitions.push(obj);
-            obj.referenceLinks.push(useClause);
+            obj.referenceLinks.push(packageRef);
             clearVisibilityMap = true;
           }
           if (obj instanceof O.OPackageInstantiation) {
@@ -303,28 +331,23 @@ export class ElaborateReferences {
             uninstantiatedPackage.definitions = packageDefinitions;
 
             parent.packageDefinitions.push(...packageDefinitions);
-            useClause.definitions.push(obj);
-            obj.referenceLinks.push(useClause);
+            obj.referenceLinks.push(packageRef);
             clearVisibilityMap = true;
           }
         }
       } else {
-        for (const obj of this.getList(useClause.packageName)) {
+        const packageRef = useClause.reference[0];
+        for (const obj of packageRef.definitions) {
           if (obj instanceof O.OPackageInstantiation || obj instanceof O.OInterfacePackage) {
             // they are not elaborated yet because the useclauses are always elaborated before anything else.
             // In this case the packageInstantiation/interfacePackage needs to be elaborated
             for (const ref of obj.uninstantiatedPackage) {
-              if (ref instanceof O.OSelectedName) {
-                this.elaborateSelectedNames(ref);
-              } else {
-                this.elaborateReference(ref);
-              }
+              this.elaborate(ref);
             }
 
             const packageDefinitions = obj.uninstantiatedPackage[obj.uninstantiatedPackage.length - 1]!.definitions.filter(ref => ref instanceof O.OPackage) as O.OPackage[];
             parent.packageDefinitions.push(...packageDefinitions);
-            useClause.definitions.push(obj);
-            obj.referenceLinks.push(useClause);
+            obj.referenceLinks.push(packageRef);
             clearVisibilityMap = true;
           }
         }

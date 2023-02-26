@@ -1,6 +1,6 @@
 -- --------------------------------------------------------------------
 --
--- Copyright © 2008 by IEEE.
+-- Copyright ï¿½ 2008 by IEEE.
 --
 -- This source file is an essential part of IEEE Std 1076-2008, 
 -- IEEE Standard VHDL Language Reference Manual. Verbatim copies of this 
@@ -39,6 +39,7 @@
 -- --------------------------------------------------------------------
 
 use STD.TEXTIO.all;
+library IEEE;
 use IEEE.std_logic_1164.all;
 
 PACKAGE std_logic_textio IS
