@@ -1,7 +1,7 @@
 import { ConcurrentStatementParser, ConcurrentStatementTypes } from './concurrentStatementParser';
 import { DeclarativePartParser } from './declarativePartParser';
 import { InterfaceListParser } from './interfaceListParser';
-import { OArchitecture, OEntity, OFile, ParserError } from './objects';
+import { OEntity, OFile, ParserError } from './objects';
 import { ParserBase, ParserState } from './parserBase';
 
 export class EntityParser extends ParserBase {
