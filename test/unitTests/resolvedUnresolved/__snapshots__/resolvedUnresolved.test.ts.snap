@@ -144,6 +144,54 @@ exports[`testing type_resolved messages for file test_port_unsigned.vhd with set
 ]
 `;
 
+exports[`testing type_resolved messages for file test_record_std_logic.vhd with setting ignore 1`] = `[]`;
+
+exports[`testing type_resolved messages for file test_record_std_logic.vhd with setting resolved 1`] = `[]`;
+
+exports[`testing type_resolved messages for file test_record_std_logic.vhd with setting unresolved 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "Port is using resolved subtype (std_logic) should use unresolved type std_ulogic  (type-resolved)",
+    "range": {
+      "end": {
+        "character": 20,
+        "line": 5,
+      },
+      "start": {
+        "character": 11,
+        "line": 5,
+      },
+    },
+    "severity": 3,
+  },
+]
+`;
+
+exports[`testing type_resolved messages for file test_record_std_ulogic.vhd with setting ignore 1`] = `[]`;
+
+exports[`testing type_resolved messages for file test_record_std_ulogic.vhd with setting resolved 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "Port is using unresolved type (std_ulogic) should use resolved subtype std_logic or x01 or x01z or ux01 or ux01z  (type-resolved)",
+    "range": {
+      "end": {
+        "character": 21,
+        "line": 5,
+      },
+      "start": {
+        "character": 11,
+        "line": 5,
+      },
+    },
+    "severity": 3,
+  },
+]
+`;
+
+exports[`testing type_resolved messages for file test_record_std_ulogic.vhd with setting unresolved 1`] = `[]`;
+
 exports[`testing type_resolved messages for file test_signal_std_logic.vhd with setting ignore 1`] = `[]`;
 
 exports[`testing type_resolved messages for file test_signal_std_logic.vhd with setting resolved 1`] = `[]`;

@@ -422,7 +422,7 @@ export class ORecord extends OType implements I.IMayHaveEndingLexerToken {
 export class OArray extends OType {
   elementType: OReference[] = [];
 }
-export class ORecordChild extends OType implements I.IHasTypeReference{
+export class ORecordChild extends OType implements I.IHasTypeReference {
   typeReference: OReference[] = [];
   public parent: ORecord;
 }
