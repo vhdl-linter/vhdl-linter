@@ -1,5 +1,5 @@
 import { DiagnosticSeverity } from "vscode-languageserver";
-import { OConfiguration, OFile } from "../parser/objects";
+import { OConfigurationDeclaration, OFile } from "../parser/objects";
 import { IRule, RuleBase } from "./rulesBase";
 
 export class RuleConfiguration extends RuleBase implements IRule {
@@ -8,7 +8,7 @@ export class RuleConfiguration extends RuleBase implements IRule {
 
   check() {
     for (const object of this.file.objectList) {
-      if (object instanceof OConfiguration && object.definitions.length === 0) {
+      if (object instanceof OConfigurationDeclaration && object.definitions.length === 0) {
         this.addMessage({
           range: object.entityName.range,
           severity: DiagnosticSeverity.Warning,

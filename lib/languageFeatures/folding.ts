@@ -11,7 +11,7 @@ export function foldingHandler(linter: VhdlLinter): FoldingRange[] {
     if (I.implementsIHasStatements(obj)) {
       result.push(FoldingRange.create(obj.statementsRange.start.line, obj.statementsRange.end.line - 1));
     }
-    if (obj instanceof O.OInstantiation || obj instanceof O.OAssociationList || obj instanceof O.OCaseGenerate || obj instanceof O.OCase || obj instanceof O.OConfiguration || obj instanceof O.OEntity ||
+    if (obj instanceof O.OInstantiation || obj instanceof O.OAssociationList || obj instanceof O.OCaseGenerate || obj instanceof O.OCase || obj instanceof O.OConfigurationDeclaration || obj instanceof O.OEntity ||
       (obj instanceof O.OType && (obj.protected || obj.protectedBody || obj instanceof O.ORecord))) {
       result.push(FoldingRange.create(obj.range.start.line, obj.range.end.line));
     }

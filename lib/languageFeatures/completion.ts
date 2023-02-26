@@ -1,7 +1,7 @@
 import { CompletionItem, CompletionItemKind, Position } from 'vscode-languageserver';
 import { reservedWords } from '../lexer';
-import { IHasLexerToken, IHasTypeReference, implementsIHasDeclarations, implementsIHasGenerics, implementsIHasPorts, implementsIHasTypeReference } from '../parser/interfaces';
-import { OAlias, OAliasWithSignature, OAttributeSpecification, ObjectBase, OConfiguration, OConstant, OEnum, OFileVariable, OGenericAssociationList, ORecord, OReference, OSelectedNameRead, OSelectedNameWrite, OSignal, OSubprogram, OType, OVariable, scope } from '../parser/objects';
+import { IHasLexerToken, IHasTypeReference, implementsIHasDeclarations, implementsIHasGenerics, implementsIHasLexerToken, implementsIHasPorts, implementsIHasTypeReference } from '../parser/interfaces';
+import { OAlias, OAliasWithSignature, OAttributeSpecification, ObjectBase, OConfigurationDeclaration, OConstant, OEnum, OFileVariable, OGenericAssociationList, ORecord, OReference, OSelectedNameRead, OSelectedNameWrite, OSignal, OSubprogram, OType, OVariable, scope } from '../parser/objects';
 import { VhdlLinter } from '../vhdlLinter';
 import { findObjectFromPosition } from './findObjects';
 import { getTokenFromPosition } from './findReferencesHandler';
@@ -99,7 +99,7 @@ export async function getCompletions(linter: VhdlLinter, position: Position): Pr
           }
         } else if (declaration instanceof OAlias) {
           addCompletion(declaration, CompletionItemKind.Reference);
-        } else {
+        } else if (implementsIHasLexerToken(declaration)) {
           addCompletion(declaration);
         }
       }
@@ -122,7 +122,7 @@ export async function getCompletions(linter: VhdlLinter, position: Position): Pr
   if (result) {
     const [instantiation, associationList] = result;
     for (const definition of instantiation.definitions) {
-      if (definition instanceof OAliasWithSignature || definition instanceof OConfiguration) {
+      if (definition instanceof OAliasWithSignature || definition instanceof OConfigurationDeclaration) {
         // TODO Handle aliases and Configuration for completion
       } else {
         const portsOrGenerics = associationList instanceof OGenericAssociationList && implementsIHasGenerics(definition) ? definition.generics : definition.ports;

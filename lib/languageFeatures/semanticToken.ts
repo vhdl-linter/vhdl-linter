@@ -41,7 +41,7 @@ function findDefinition(obj: O.ObjectBase) {
 
 function pushCorrectToken(buffer: BuilderParams[], obj: O.ObjectBase, definition: O.ObjectBase, range: O.OIRange, fixedModifiers: SemanticTokenModifiers[], colorInputs: boolean) {
   if (definition instanceof O.OArchitecture || definition instanceof O.OEntity || definition instanceof O.OPackage
-    || definition instanceof O.OPackageBody || definition instanceof O.OConfiguration || definition instanceof O.OLibrary) {
+    || definition instanceof O.OPackageBody || definition instanceof O.OConfigurationDeclaration || definition instanceof O.OLibrary) {
     pushToken(buffer, range, SemanticTokenTypes.class, [...fixedModifiers]);
   } else if (definition instanceof O.OEnum) {
     pushToken(buffer, range, SemanticTokenTypes.enum, [...fixedModifiers, SemanticTokenModifiers.readonly]);

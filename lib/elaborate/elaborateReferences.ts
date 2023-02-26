@@ -1,4 +1,4 @@
-import { IHasLexerToken, IHasReferenceLinks, implementsIHasDeclarations, implementsIHasGenerics, implementsIHasLabel, implementsIHasLibraries, implementsIHasPorts, implementsIHasStatements } from "../parser/interfaces";
+import { implementsIHasDeclarations, implementsIHasGenerics, implementsIHasLabel, implementsIHasLexerToken, implementsIHasLibraries, implementsIHasPorts, implementsIHasReferenceLinks, implementsIHasStatements } from "../parser/interfaces";
 import { OArchitecture, OAttributeDeclaration, OAttributeReference, ObjectBase, OComponent, OConcurrentStatements, OEntity, OEnum, OFile, OFormalReference, OHasSequentialStatements, OInstantiation, OInterfacePackage, OLabelReference, OLibrary, OPackage, OPackageBody, OPackageInstantiation, ORead, ORecord, OReference, OSelectedName, OSelectedNameRead, OSelectedNameWrite, OSequentialStatement, OType, OWrite, scope } from "../parser/objects";
 import { VhdlLinter } from "../vhdlLinter";
 export class ElaborateReferences {
@@ -48,14 +48,23 @@ export class ElaborateReferences {
       }
     }
   }
-  evaluateDefinition(reference: OReference, definition: (ObjectBase & IHasReferenceLinks & IHasLexerToken) | (ObjectBase & IHasReferenceLinks & IHasLexerToken)[], enableCastToRead: boolean) {
+  evaluateDefinition(reference: OReference, definition: ObjectBase | ObjectBase[], enableCastToRead: boolean) {
     if (Array.isArray(definition)) {
       for (const def of definition) {
         this.evaluateDefinition(reference, def, enableCastToRead);
       }
-    } else {
-      if (reference instanceof OSelectedName || reference instanceof OSelectedNameWrite) {
-        if (definition.lexerToken.getLText() === reference.prefixTokens[0].referenceToken.getLText()) {
+    } else
+      if (implementsIHasReferenceLinks(definition) && implementsIHasLexerToken(definition)) {
+        if (reference instanceof OSelectedName || reference instanceof OSelectedNameWrite) {
+          if (definition.lexerToken.getLText() === reference.prefixTokens[0].referenceToken.getLText()) {
+            reference.definitions.push(definition);
+            definition.referenceLinks.push(reference);
+            if (enableCastToRead) {
+              this.castToRead(reference);
+            }
+          }
+        }
+        if (definition.lexerToken.getLText() === reference.referenceToken.getLText()) {
           reference.definitions.push(definition);
           definition.referenceLinks.push(reference);
           if (enableCastToRead) {
@@ -63,14 +72,6 @@ export class ElaborateReferences {
           }
         }
       }
-      if (definition.lexerToken.getLText() === reference.referenceToken.getLText()) {
-        reference.definitions.push(definition);
-        definition.referenceLinks.push(reference);
-        if (enableCastToRead) {
-          this.castToRead(reference);
-        }
-      }
-    }
   }
   evaluateLabelDefinition(reference: OReference, definition: OSequentialStatement | OConcurrentStatements | (OSequentialStatement | OConcurrentStatements)[]) {
     if (Array.isArray(definition)) {
@@ -115,7 +116,7 @@ export class ElaborateReferences {
             if (declaration.units !== undefined) {
               this.evaluateDefinition(reference, declaration.units, false);
             }
-          } else if (declaration instanceof OComponent !== true) {
+          } else if (declaration instanceof OComponent !== true && implementsIHasLexerToken(declaration) && implementsIHasReferenceLinks(declaration)) {
             this.evaluateDefinition(reference, declaration, true);
 
           }
@@ -174,7 +175,7 @@ export class ElaborateReferences {
       }
       for (const pkg of packages) {
         for (const declaration of pkg.declarations) {
-          if (declaration.lexerToken.getLText() === reference.referenceToken.getLText()) {
+          if (declaration.lexerToken?.getLText() === reference.referenceToken.getLText()) {
             reference.definitions.push(declaration);
           }
           if (declaration instanceof OType) {

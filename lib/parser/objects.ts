@@ -182,7 +182,7 @@ export class ObjectBase {
       && parent instanceof OPackageInstantiation === false
       && parent instanceof OPackageBody === false
       && parent instanceof OContext === false
-      && parent instanceof OConfiguration === false) {
+      && parent instanceof OConfigurationDeclaration === false) {
       if (parent.parent instanceof OFile) {
         throw new ParserError('Failed to find root element', this.range);
       }
@@ -239,7 +239,7 @@ export class OFile {
   architectures: OArchitecture[] = [];
   packages: (OPackage | OPackageBody)[] = [];
   packageInstantiations: OPackageInstantiation[] = [];
-  configurations: OConfiguration[] = [];
+  configurations: OConfigurationDeclaration[] = [];
   readonly rootFile = this; // Provided as a convenience to equalize to ObjectBase
 }
 
@@ -332,8 +332,9 @@ export class OContext extends ObjectBase implements I.IHasUseClauses, I.IHasCont
   libraries: OLibrary[] = [];
 }
 export type OConcurrentStatements = OProcess | OInstantiation | OIfGenerate | OForGenerate | OCaseGenerate | OBlock | OAssignment;
+// Also includes specifications
 export type ODeclaration = OSignal | OAttributeSpecification | OAttributeDeclaration | OVariable | OConstant | OFileVariable | OType
-  | OAlias | OSubprogram | OComponent | OPackageInstantiation;
+  | OAlias | OSubprogram | OComponent | OPackageInstantiation | OConfigurationSpecification;
 
 export abstract class OStatementBody extends ObjectBase implements I.IHasDeclarations,
   I.IHasUseClauses, I.IHasContextReference, I.IHasLibraries, I.IHasReferenceLinks, I.IHasStatements {
@@ -558,7 +559,7 @@ export class OInstantiation extends OReference implements I.IHasDefinitions, I.I
   constructor(public parent: OStatementBody | OEntity | OProcess | OLoop | OIf, lexerToken: OLexerToken, public type: 'entity' | 'component' | 'configuration' | 'subprogram' | 'unknown' = 'unknown') {
     super(parent, lexerToken);
   }
-  definitions: (OEntity | OSubprogram | OComponent | OAliasWithSignature | OConfiguration)[] = [];
+  definitions: (OEntity | OSubprogram | OComponent | OAliasWithSignature | OConfigurationDeclaration)[] = [];
   prefix: OLexerToken[] = [];
   entityName: OLexerToken;
   package?: OLexerToken;
@@ -589,7 +590,7 @@ export class OEntity extends ObjectBase implements I.IHasDefinitions, I.IHasDecl
   }
   referenceLinks: OReference[] = [];
   referenceComponents: OComponent[] = [];
-  referenceConfigurations: OConfiguration[] = [];
+  referenceConfigurations: OConfigurationDeclaration[] = [];
   libraries: OLibrary[] = [];
   declarations: ODeclaration[] = [];
   declarationsRange?: OIRange;
@@ -820,7 +821,7 @@ export class OTypeMark extends ObjectBase {
 export class OAlias extends ObjectBase implements I.IHasLexerToken, I.IHasReferenceLinks {
   name: OReference[] = []; // The thing being aliased
   referenceLinks: OReference[] = [];
-  aliasReferences: OAlias[]; // Not used. (Because recursive aliases are not allowed)
+  aliasReferences: never[] = []; // Not used. (Because recursive aliases are not allowed)
   aliasDefinitions: ObjectBase[] = [];
   lexerToken: OLexerToken;
   subtypeIndication: OReference[] = []; // subtype_indication
@@ -833,7 +834,7 @@ export class OAliasWithSignature extends OAlias implements I.IHasLexerToken {
   return: OReference;
 }
 
-export class OConfiguration extends ObjectBase implements I.IHasLibraries, I.IHasDefinitions, I.IHasReferenceLinks {
+export class OConfigurationDeclaration extends ObjectBase implements I.IHasLibraries, I.IHasDefinitions, I.IHasReferenceLinks {
   lexerToken: OLexerToken;
   targetLibrary?: string;
   entityName: OLexerToken;
@@ -843,11 +844,12 @@ export class OConfiguration extends ObjectBase implements I.IHasLibraries, I.IHa
   aliasReferences: OAlias[] = [];
 
 }
-export class OAttributeSpecification extends ObjectBase implements I.IHasLexerToken, I.IHasReferenceLinks {
-  lexerToken: OLexerToken;
-  referenceLinks: OReference[] = [];
-  aliasReferences: OAlias[] = [];
-  aliasDefinitions: ObjectBase[] = [];
+export class OConfigurationSpecification extends ObjectBase {
+
+}
+export class OAttributeSpecification extends ObjectBase implements I.IHasReferenceToken, I.IHasDefinitions {
+  referenceToken: OLexerToken;
+  definitions: OAttributeDeclaration[] = [];
   references: OReference[] = [];
   entityClass: OLexerToken;
 }

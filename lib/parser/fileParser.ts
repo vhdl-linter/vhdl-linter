@@ -1,8 +1,9 @@
 import { Lexer, OLexerToken, TokenType } from '../lexer';
+import { ConfigurationDeclarationParser } from './configurationDeclarationParser';
 import { ContextParser } from './contextParser';
 import { ContextReferenceParser } from './contextReferenceParser';
 import { EntityParser } from './entityParser';
-import { MagicCommentType, ObjectBase, OConfiguration, OFile, OI, OIRange, OLibrary, OLibraryReference, OMagicCommentDisable, OPackageInstantiation, OReference, OUseClause, ParserError } from './objects';
+import { MagicCommentType, ObjectBase, OConfigurationDeclaration, OFile, OI, OIRange, OLibrary, OLibraryReference, OMagicCommentDisable, OPackageInstantiation, OReference, OUseClause, ParserError } from './objects';
 import { PackageInstantiationParser } from './packageInstantiationParser';
 import { PackageParser } from './packageParser';
 import { ParserBase, ParserPosition, ParserState } from './parserBase';
@@ -211,25 +212,7 @@ export class FileParser extends ParserBase {
         libraries = defaultLibrary.slice(0);
         useClausesPrepare = [];
       } else if (nextToken.getLText() === 'configuration') {
-        const configuration = new OConfiguration(this.file, this.getToken().range.copyExtendEndOfLine());
-        configuration.targetLibrary = this.file.originalText.match(/!\s*@library\s+(\S+)/i)?.[1];
-        configuration.lexerToken = this.consumeToken();
-        this.expect('of');
-        configuration.entityName = this.consumeToken();
-        while (
-          ((this.getToken(0).getLText() === 'end' && this.getToken(1, true).getLText() === ';')
-            || (this.getToken(0).getLText() === 'end' && this.getToken(1, true).getLText() === 'configuration'
-              && this.getToken(2, true).getLText() === ';')
-            || (this.getToken(0).getLText() === 'end' && this.getToken(1, true).getLText() === 'configuration'
-              && this.getToken(2, true).getLText() === configuration.lexerToken.getLText() && this.getToken(3, true).getLText() === ';')
-            || (this.getToken(0).getLText() === 'end'
-              && this.getToken(1, true).getLText() === configuration.lexerToken.getLText() && this.getToken(2, true).getLText() === ';'))
-          === false) {
-          this.consumeToken(true);
-        }
-        this.file.configurations.push(configuration);
-        configuration.range = configuration.range.copyWithNewEnd(this.getToken().range);
-        this.advanceSemicolon();
+        this.file.configurations.push(new ConfigurationDeclarationParser(this.state, this.file).parse());
       } else {
         throw new ParserError(`Unexpected token ${nextToken.text}`, this.getToken().range);
       }

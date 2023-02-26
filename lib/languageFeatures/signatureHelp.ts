@@ -1,6 +1,6 @@
 import { MarkupKind, Position, SignatureHelp, SignatureInformation } from "vscode-languageserver";
 import { implementsIHasGenerics } from "../parser/interfaces";
-import { OAliasWithSignature, OConfiguration, OGenericAssociationList } from "../parser/objects";
+import { OAliasWithSignature, OConfigurationDeclaration, OGenericAssociationList } from "../parser/objects";
 import { VhdlLinter } from "../vhdlLinter";
 import { findParentInstantiation } from "./helper/findParentInstantiation";
 export function signatureHelp(linter: VhdlLinter, position: Position): SignatureHelp | null {
@@ -14,8 +14,8 @@ export function signatureHelp(linter: VhdlLinter, position: Position): Signature
     if (definition instanceof OAliasWithSignature) {
       // Handle AliasWIthSignatures
     } else {
-      if (definition instanceof OConfiguration) {
-        definition = linter.projectParser.entities.find(e => e.lexerToken.getLText() === (definition as OConfiguration).entityName.getLText())!;
+      if (definition instanceof OConfigurationDeclaration) {
+        definition = linter.projectParser.entities.find(e => e.lexerToken.getLText() === (definition as OConfigurationDeclaration).entityName.getLText())!;
         if (definition === undefined) {
           continue;
         }

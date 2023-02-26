@@ -33,7 +33,7 @@ const possibleDeclarations = {
   'component_declaration': 'component xyz end component;',
   'attribute_declaration': 'attribute attr: string;',
   'attribute_specification': 'procedure p; attribute attr of p: procedure is "stuff";',
-  // 'configuration_specification': '', // TODO: implement configuration specification(§ 7.3.1)
+  'configuration_specification': 'for component_specification ;', // TODO: implement configuration specification(§ 7.3.1)
   // 'disconnection_specification': '',
   // 'group_template_declaration': '',
   // 'group_declaration': '',
@@ -142,7 +142,7 @@ const tests: {
         'component_declaration',
         'attribute_declaration',
         'attribute_specification',
-        // 'configuration_specification',
+        'configuration_specification',
         // 'disconnection_specification',
         'use_clause',
         // 'group_template_declaration',

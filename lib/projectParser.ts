@@ -6,7 +6,7 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import { WorkDoneProgressReporter } from 'vscode-languageserver';
 import { Elaborate } from './elaborate/elaborate';
 import { SetAdd } from './languageFeatures/findReferencesHandler';
-import { OArchitecture, OConfiguration, OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
+import { OArchitecture, OConfigurationDeclaration, OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
 import { SettingsGetter, VhdlLinter } from './vhdlLinter';
 
 export function joinURL(url: URL, ...additional: string[]) {
@@ -32,7 +32,7 @@ export class ProjectParser {
   public packageInstantiations: OPackageInstantiation[] = [];
   public contexts: OContext[] = [];
   public entities: OEntity[] = [];
-  public configurations: OConfiguration[] = [];
+  public configurations: OConfigurationDeclaration[] = [];
   public architectures: OArchitecture[] = [];
   events = new EventEmitter();
   private watchers: FSWatcher[] = [];

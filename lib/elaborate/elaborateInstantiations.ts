@@ -1,5 +1,5 @@
 import { implementsIHasDeclarations } from "../parser/interfaces";
-import { OAliasWithSignature, OComponent, OConfiguration, OEntity, OFile, OInstantiation, OSubprogram, OType, ParserError, scope } from "../parser/objects";
+import { OAliasWithSignature, OComponent, OConfigurationDeclaration, OEntity, OFile, OInstantiation, OSubprogram, OType, ParserError, scope } from "../parser/objects";
 import { ProjectParser } from "../projectParser";
 
 export function elaborateInstantiations(file: OFile, projectParser: ProjectParser) {
@@ -78,8 +78,8 @@ export function getEntities(instantiation: OInstantiation | OComponent, projectP
   const name = (instantiation instanceof OInstantiation) ? instantiation.entityName : instantiation.lexerToken;
   return entities.filter(e => e.lexerToken.getLText() === name.text.toLowerCase());
 }
-export function getConfiguration(instantiation: OInstantiation, projectParser: ProjectParser): OConfiguration[] {
-  const configurations: OConfiguration[] = [];
+export function getConfiguration(instantiation: OInstantiation, projectParser: ProjectParser): OConfigurationDeclaration[] {
+  const configurations: OConfigurationDeclaration[] = [];
   // The selected name for the instantiation gets split up into library{.prefix}.componentName
   // If there is a prefix this is not a valid entity name
   if (instantiation.prefix.length > 0) {

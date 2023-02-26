@@ -1,7 +1,7 @@
 import { findBestMatch } from "string-similarity";
 import { CodeAction, CodeActionKind, DiagnosticSeverity, Range, TextEdit } from "vscode-languageserver";
 import { implementsIHasLexerToken, IHasLexerToken, implementsIHasStatements, implementsIHasPorts, implementsIHasDeclarations } from "../parser/interfaces";
-import { OFile, OPort, OGeneric, OTypeMark, OAssociationList, OIRange, ObjectBase, OInstantiation, OConfiguration, OAliasWithSignature, OComponent, OEntity, OSubprogram, OArchitecture, OIf, OCase, OHasSequentialStatements } from "../parser/objects";
+import { OFile, OPort, OGeneric, OTypeMark, OAssociationList, OIRange, ObjectBase, OInstantiation, OConfigurationDeclaration, OAliasWithSignature, OComponent, OEntity, OSubprogram, OArchitecture, OIf, OCase, OHasSequentialStatements } from "../parser/objects";
 import { IRule, RuleBase } from "./rulesBase";
 
 export class RuleInstantiation extends RuleBase implements IRule {
@@ -133,7 +133,7 @@ export class RuleInstantiation extends RuleBase implements IRule {
         if (instantiation instanceof OInstantiation) {
           let definitions = instantiation.definitions;
           if (instantiation.type === 'configuration') {
-            definitions = definitions.flatMap((definition: OConfiguration) => {
+            definitions = definitions.flatMap((definition: OConfigurationDeclaration) => {
               const entities = this.vhdlLinter.projectParser.entities.filter(e => e.lexerToken.getLText() === definition.entityName.getLText());
               return entities;
             });
@@ -148,7 +148,7 @@ export class RuleInstantiation extends RuleBase implements IRule {
             this.addMessage({
               range: instantiation.range.start.getRangeToEndLine(),
               severity: DiagnosticSeverity.Warning,
-              message: `can not find entity ${(instantiation.definitions as OConfiguration[])[0]!.entityName.text} for configuration instantiation ${instantiation.entityName.text}`
+              message: `can not find entity ${(instantiation.definitions as OConfigurationDeclaration[])[0]!.entityName.text} for configuration instantiation ${instantiation.entityName.text}`
             });
           } else {
             const range = instantiation.range.start.getRangeToEndLine();

@@ -1,5 +1,5 @@
 import { DiagnosticSeverity } from "vscode-languageserver";
-import { implementsIHasReference, implementsIHasTypeReference } from "../parser/interfaces";
+import { implementsIHasReferenceLinks, implementsIHasTypeReference } from "../parser/interfaces";
 import { OArray, ObjectBase, OFile, ORecord, ORecordChild, OSelectedName, OSelectedNameRead, OSelectedNameWrite, OType } from "../parser/objects";
 import { VhdlLinter } from "../vhdlLinter";
 
@@ -27,8 +27,8 @@ export class ElaborateSelectedNames {
       } else {
         // for protected types (not protected bodies) search subprograms and attributes
 
-        for (const child of (typeDefinition.declarations)) {
-          if (child.lexerToken.getLText() === selectedName.referenceToken.getLText()) {
+        for (const child of typeDefinition.declarations) {
+          if (child.lexerToken?.getLText() === selectedName.referenceToken.getLText()) {
             selectedName.definitions.push(child);
             found = true;
           }
@@ -80,12 +80,12 @@ export class ElaborateSelectedNames {
         } else {
           // update the references on this selectedName
           for (const oldDef of oldDefinitions) {
-            if (implementsIHasReference(oldDef)) {
+            if (implementsIHasReferenceLinks(oldDef)) {
               oldDef.referenceLinks = oldDef.referenceLinks.filter(r => r !== selectedName);
             }
           }
           for (const newDef of selectedName.definitions) {
-            if (implementsIHasReference(newDef)) {
+            if (implementsIHasReferenceLinks(newDef)) {
               newDef.referenceLinks.push(selectedName);
             }
           }
