@@ -16,9 +16,11 @@ export class RuleTypeResolved extends RuleBase implements IRule {
         if (definition instanceof OSubType && definition.resolved) {
           let unresolvedTypes = [definition.superType.referenceToken.text];
           const root = definition.getRootElement();
-          for (const alias of root.declarations) { // IEEE defines more convenient aliases. Show them as well
-            if (alias instanceof OAlias && alias.name[0]?.referenceToken.getLText() === definition.superType.referenceToken.getLText()) {
-              unresolvedTypes.push(alias.lexerToken.text);
+          if (implementsIHasDeclarations(root)) {
+            for (const alias of root.declarations) { // IEEE defines more convenient aliases. Show them as well
+              if (alias instanceof OAlias && alias.name[0]?.referenceToken.getLText() === definition.superType.referenceToken.getLText()) {
+                unresolvedTypes.push(alias.lexerToken.text);
+              }
             }
           }
           // Handle casing for IEEE packages
@@ -82,10 +84,13 @@ export class RuleTypeResolved extends RuleBase implements IRule {
           if (!resolved) {
             const root = definition.getRootElement();
             let resolvedSubtype: string[] = [];
-            for (const subtype of root.declarations) {
-              if (subtype instanceof OSubType && subtype.resolved && alias.includes(subtype.superType.referenceToken.getLText())) {
-                resolvedSubtype.push(subtype.lexerToken.text);
+            if (implementsIHasDeclarations(root)) {
+              for (const subtype of root.declarations) {
+                if (subtype instanceof OSubType && subtype.resolved && alias.includes(subtype.superType.referenceToken.getLText())) {
+                  resolvedSubtype.push(subtype.lexerToken.text);
+                }
               }
+
             }
             if (resolvedSubtype.length > 0) {
               // Handle casing for IEEE packages

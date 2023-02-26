@@ -1,0 +1,218 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Testing entityConverter Testing entity converter for with different configurations: type instance overwrite {"style":{"genericPrefix":"genericPrefix_"}} 1`] = `
+"inst_test_entity : entity work.test_entity
+generic map (
+  LENGTH => genericPrefix_LENGTH
+)
+port map (
+  a => a,
+  b => b,
+  c => c
+);
+"
+`;
+
+exports[`Testing entityConverter Testing entity converter for with different configurations: type instance overwrite {"style":{"genericSuffix":"_genericSuffix"}} 1`] = `
+"inst_test_entity : entity work.test_entity
+generic map (
+  LENGTH => LENGTH_genericSuffix
+)
+port map (
+  a => a,
+  b => b,
+  c => c
+);
+"
+`;
+
+exports[`Testing entityConverter Testing entity converter for with different configurations: type instance overwrite {"style":{"instantiationLabelPrefix":""}} 1`] = `
+"test_entity : entity work.test_entity
+generic map (
+  LENGTH => LENGTH
+)
+port map (
+  a => a,
+  b => b,
+  c => c
+);
+"
+`;
+
+exports[`Testing entityConverter Testing entity converter for with different configurations: type instance overwrite {"style":{"instantiationLabelPrefix":"instPrefix_"}} 1`] = `
+"instPrefix_test_entity : entity work.test_entity
+generic map (
+  LENGTH => LENGTH
+)
+port map (
+  a => a,
+  b => b,
+  c => c
+);
+"
+`;
+
+exports[`Testing entityConverter Testing entity converter for with different configurations: type instance overwrite {"style":{"instantiationLabelSuffix":"_instSuffix"}} 1`] = `
+"inst_test_entity_instSuffix : entity work.test_entity
+generic map (
+  LENGTH => LENGTH
+)
+port map (
+  a => a,
+  b => b,
+  c => c
+);
+"
+`;
+
+exports[`Testing entityConverter Testing entity converter for with different configurations: type instance overwrite {"style":{"signalPrefix":"sigPrefix_"}} 1`] = `
+"inst_test_entity : entity work.test_entity
+generic map (
+  LENGTH => LENGTH
+)
+port map (
+  a => sigPrefix_a,
+  b => sigPrefix_b,
+  c => sigPrefix_c
+);
+"
+`;
+
+exports[`Testing entityConverter Testing entity converter for with different configurations: type instance overwrite {"style":{"signalSuffix":"_sigSuffix"}} 1`] = `
+"inst_test_entity : entity work.test_entity
+generic map (
+  LENGTH => LENGTH
+)
+port map (
+  a => a_sigSuffix,
+  b => b_sigSuffix,
+  c => c_sigSuffix
+);
+"
+`;
+
+exports[`Testing entityConverter Testing entity converter for with different configurations: type signals overwrite {"style":{"genericPrefix":"genericPrefix_"}} 1`] = `
+"signal a : std_ulogic;
+signal b : std_ulogic_vector(7 downto 0);
+signal c : std_ulogic_vector(LENGTH -1 downto 0);
+"
+`;
+
+exports[`Testing entityConverter Testing entity converter for with different configurations: type signals overwrite {"style":{"genericSuffix":"_genericSuffix"}} 1`] = `
+"signal a : std_ulogic;
+signal b : std_ulogic_vector(7 downto 0);
+signal c : std_ulogic_vector(LENGTH -1 downto 0);
+"
+`;
+
+exports[`Testing entityConverter Testing entity converter for with different configurations: type signals overwrite {"style":{"instantiationLabelPrefix":""}} 1`] = `
+"signal a : std_ulogic;
+signal b : std_ulogic_vector(7 downto 0);
+signal c : std_ulogic_vector(LENGTH -1 downto 0);
+"
+`;
+
+exports[`Testing entityConverter Testing entity converter for with different configurations: type signals overwrite {"style":{"instantiationLabelPrefix":"instPrefix_"}} 1`] = `
+"signal a : std_ulogic;
+signal b : std_ulogic_vector(7 downto 0);
+signal c : std_ulogic_vector(LENGTH -1 downto 0);
+"
+`;
+
+exports[`Testing entityConverter Testing entity converter for with different configurations: type signals overwrite {"style":{"instantiationLabelSuffix":"_instSuffix"}} 1`] = `
+"signal a : std_ulogic;
+signal b : std_ulogic_vector(7 downto 0);
+signal c : std_ulogic_vector(LENGTH -1 downto 0);
+"
+`;
+
+exports[`Testing entityConverter Testing entity converter for with different configurations: type signals overwrite {"style":{"signalPrefix":"sigPrefix_"}} 1`] = `
+"signal sigPrefix_a : std_ulogic;
+signal sigPrefix_b : std_ulogic_vector(7 downto 0);
+signal sigPrefix_c : std_ulogic_vector(LENGTH -1 downto 0);
+"
+`;
+
+exports[`Testing entityConverter Testing entity converter for with different configurations: type signals overwrite {"style":{"signalSuffix":"_sigSuffix"}} 1`] = `
+"signal a_sigSuffix : std_ulogic;
+signal b_sigSuffix : std_ulogic_vector(7 downto 0);
+signal c_sigSuffix : std_ulogic_vector(LENGTH -1 downto 0);
+"
+`;
+
+exports[`Testing entityConverter Testing entity converter for with different configurations: type sysverilog overwrite {"style":{"genericPrefix":"genericPrefix_"}} 1`] = `
+"test_entity #(
+  .LENGTH(genericPrefix_LENGTH)
+) inst_test_entity (
+  .a(a),
+  .b(b),
+  .c(c)
+);
+"
+`;
+
+exports[`Testing entityConverter Testing entity converter for with different configurations: type sysverilog overwrite {"style":{"genericSuffix":"_genericSuffix"}} 1`] = `
+"test_entity #(
+  .LENGTH(LENGTH_genericSuffix)
+) inst_test_entity (
+  .a(a),
+  .b(b),
+  .c(c)
+);
+"
+`;
+
+exports[`Testing entityConverter Testing entity converter for with different configurations: type sysverilog overwrite {"style":{"instantiationLabelPrefix":""}} 1`] = `
+"test_entity #(
+  .LENGTH(LENGTH)
+) test_entity (
+  .a(a),
+  .b(b),
+  .c(c)
+);
+"
+`;
+
+exports[`Testing entityConverter Testing entity converter for with different configurations: type sysverilog overwrite {"style":{"instantiationLabelPrefix":"instPrefix_"}} 1`] = `
+"test_entity #(
+  .LENGTH(LENGTH)
+) instPrefix_test_entity (
+  .a(a),
+  .b(b),
+  .c(c)
+);
+"
+`;
+
+exports[`Testing entityConverter Testing entity converter for with different configurations: type sysverilog overwrite {"style":{"instantiationLabelSuffix":"_instSuffix"}} 1`] = `
+"test_entity #(
+  .LENGTH(LENGTH)
+) inst_test_entity_instSuffix (
+  .a(a),
+  .b(b),
+  .c(c)
+);
+"
+`;
+
+exports[`Testing entityConverter Testing entity converter for with different configurations: type sysverilog overwrite {"style":{"signalPrefix":"sigPrefix_"}} 1`] = `
+"test_entity #(
+  .LENGTH(LENGTH)
+) inst_test_entity (
+  .a(sigPrefix_a),
+  .b(sigPrefix_b),
+  .c(sigPrefix_c)
+);
+"
+`;
+
+exports[`Testing entityConverter Testing entity converter for with different configurations: type sysverilog overwrite {"style":{"signalSuffix":"_sigSuffix"}} 1`] = `
+"test_entity #(
+  .LENGTH(LENGTH)
+) inst_test_entity (
+  .a(a_sigSuffix),
+  .b(b_sigSuffix),
+  .c(c_sigSuffix)
+);
+"
+`;

@@ -1,11 +1,10 @@
-import { commands, ExtensionContext, Position, window, workspace } from 'vscode';
+import { commands, env, ExtensionContext, Position, window, workspace } from 'vscode';
 import {
   LanguageClient,
   LanguageClientOptions,
   ServerOptions,
   TransportKind
 } from 'vscode-languageclient/node';
-import { copy, CopyTypes } from './vhdlEntityConverter';
 import { IAddSignalCommandArguments, IIgnoreLineCommandArguments } from './vhdlLinter';
 
 
@@ -87,9 +86,41 @@ export async function activate(context: ExtensionContext) {
       editBuilder.insert(new Position(args.range.start.line, lineLength), `  --vhdl-linter-disable-this-line`);
     });
   }));
-  context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-as-instance', () => copy(CopyTypes.Instance)));
-  context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-as-signals', () => copy(CopyTypes.Signals)));
-  context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-as-sysverilog', () => copy(CopyTypes.Signals)));
+  async function getTemplate(type: 'instance' | 'signals' | 'sysverilog') {
+    const editor = window.activeTextEditor;
+    if (!editor) {
+      return undefined;
+    }
+    return await client.sendRequest<string>('vhdl-linter/template', {
+      textDocument: {
+        uri: editor.document.uri.toString()
+      },
+      position: editor.selection.active,
+      type
+    });
+  }
+  context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-as-instance', async () => {
+    const text = await getTemplate('instance');
+    if (text) {
+      await env.clipboard.writeText(text);
+      await window.showInformationMessage(`Instance copied to the clipboard`);
+    }
+  }));
+  context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-as-signals', async () => {
+    const text = await getTemplate('signals');
+    if (text) {
+      await env.clipboard.writeText(text);
+      await window.showInformationMessage(`Signals copied to the clipboard`);
+    }
+  }));
+  context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-as-sysverilog', async () => {
+    const text = await getTemplate('sysverilog');
+    if (text) {
+      await env.clipboard.writeText(text);
+      await window.showInformationMessage(`Instance copied to the clipboard as system verilog`);
+    }
+  }));
+
 
 }
 

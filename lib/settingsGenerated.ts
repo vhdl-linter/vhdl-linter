@@ -24,7 +24,14 @@ export interface ISettings {
     'preferredLogicTypeSignal': 'unresolved'|'resolved'|'ignore';
     'unusedSignalRegex': string;
     'ieeeCasing': 'lowercase'|'UPPERCASE';
+    'signalPrefix': string;
+    'signalSuffix': string;
+    'genericPrefix': string;
+    'genericSuffix': string;
+    'instantiationLabelPrefix': string;
+    'instantiationLabelSuffix': string;
   };
+
   'ports': {
     'outRegex': string;
     'inRegex': string;
@@ -62,6 +69,12 @@ export const defaultSettings: ISettings = {
     'preferredLogicTypeSignal': 'unresolved',
     'unusedSignalRegex': '_unused$',
     'ieeeCasing': 'lowercase',
+    'signalPrefix': '',
+    'signalSuffix': '',
+    'genericPrefix': '',
+    'genericSuffix': '',
+    'instantiationLabelPrefix': 'inst_',
+    'instantiationLabelSuffix': '',
   },
   'ports': {
     'outRegex': '^o_',
