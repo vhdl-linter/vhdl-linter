@@ -1,4 +1,4 @@
-import { ConcurrentStatementParser, ConcurrentStatementTypes } from './concurrentStatementParser';
+import { ConcurrentStatementParser } from './concurrentStatementParser';
 import { DeclarativePartParser } from './declarativePartParser';
 import { InterfaceListParser } from './interfaceListParser';
 import { OArchitecture, OEntity, OFile, ParserError } from './objects';
@@ -47,11 +47,7 @@ export class EntityParser extends ParserBase {
         const statementStart = this.getToken().range;
         this.consumeToken();
         while (this.getToken().getLText() !== 'end') {
-          new ConcurrentStatementParser(this.state, this.entity).parse([
-            ConcurrentStatementTypes.Assert,
-            ConcurrentStatementTypes.ProcedureInstantiation,
-            ConcurrentStatementTypes.Process
-          ]);
+          new ConcurrentStatementParser(this.state, this.entity).parse();
         }
         this.entity.statementsRange = statementStart.copyWithNewEnd(this.getToken().range);
         this.consumeToken();
