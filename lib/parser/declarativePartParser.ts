@@ -3,7 +3,7 @@ import { AttributeParser } from './attributeParser';
 import { ComponentParser } from './componentParser';
 import { IHasDeclarations, IHasUseClauses, implementsIHasUseClause } from './interfaces';
 import { ObjectDeclarationParser } from './objectDeclarationParser';
-import { OAttributeDeclaration, ObjectBase, OEntity, OI, OPackageBody, OProcess, OSubprogram, OType } from './objects';
+import { OAttributeDeclaration, ObjectBase, OI } from './objects';
 import { PackageInstantiationParser } from './packageInstantiationParser';
 import { ParserBase, ParserState } from './parserBase';
 import { SubprogramParser } from './subprogramParser';
@@ -26,8 +26,8 @@ export class DeclarativePartParser extends ParserBase {
         || nextToken.getLText() === 'shared'
         || nextToken.getLText() === 'variable'
         || nextToken.getLText() === 'file') {
-        const objectDeclarationParser = new ObjectDeclarationParser(this.state, this.parent);
-        objectDeclarationParser.parse(nextToken);
+        const objects = new ObjectDeclarationParser(this.state, this.parent).parse(nextToken);
+        this.parent.declarations.push(...objects);
       } else if (nextToken.getLText() === 'attribute') {
         const obj = new AttributeParser(this.state, this.parent).parse();
         if (obj instanceof OAttributeDeclaration) {
@@ -36,56 +36,27 @@ export class DeclarativePartParser extends ParserBase {
           this.parent.declarations.push(obj);
         }
       } else if (nextToken.getLText() === 'type') {
-        const typeParser = new TypeParser(this.state, this.parent);
-        this.parent.declarations.push(typeParser.parse());
+        const type = new TypeParser(this.state, this.parent).parse();
+        this.parent.declarations.push(type);
       } else if (nextToken.getLText() === 'subtype') {
-        const subtypeParser = new SubtypeParser(this.state, this.parent);
-        this.parent.declarations.push(subtypeParser.parse());
+        const subtype = new SubtypeParser(this.state, this.parent).parse();
+        this.parent.declarations.push(subtype);
       } else if (nextToken.getLText() === 'alias') {
         const alias = new AliasParser(this.state, this.parent).parse();
         this.parent.declarations.push(alias);
       } else if (nextToken.getLText() === 'component') {
-        if (this.parent instanceof OEntity) {
-          this.state.messages.push({
-            message: `Components are not allowed in entity`,
-            range: this.getToken().range
-          });
-        }
-        if (this.parent instanceof OPackageBody) {
-          this.state.messages.push({
-            message: `Components are not allowed in package body`,
-            range: this.getToken().range
-          });
-        }
-        if (this.parent instanceof OProcess) {
-          this.state.messages.push({
-            message: `Components are not allowed in process`,
-            range: this.getToken().range
-          });
-        }
-        if (this.parent instanceof OSubprogram) {
-          this.state.messages.push({
-            message: `Components are not allowed in subprogram`,
-            range: this.getToken().range
-          });
-        }
-        if (this.parent instanceof OType) {
-          this.state.messages.push({
-            message: `Components are not allowed in type`,
-            range: this.getToken().range
-          });
-        }
         this.consumeToken();
-        const componentParser = new ComponentParser(this.state, this.parent);
-        this.parent.declarations.push(componentParser.parse());
+        const component = new ComponentParser(this.state, this.parent).parse();
         this.expect(';');
+        this.parent.declarations.push(component);
       } else if (nextToken.getLText() === 'procedure' || nextToken.getLText() === 'impure' || nextToken.getLText() === 'pure' || nextToken.getLText() === 'function') {
         const subprogramParser = new SubprogramParser(this.state, this.parent);
         this.parent.declarations.push(subprogramParser.parse());
         this.expect(';');
       } else if (nextToken.getLText() === 'package') {
         this.consumeToken(); // consume 'package
-        this.parent.declarations.push(new PackageInstantiationParser(this.state, this.parent).parse());
+        const packageInst = new PackageInstantiationParser(this.state, this.parent).parse();
+        this.parent.declarations.push(packageInst);
         this.expect(';');
       } else if (nextToken.getLText() === 'generic') {
         this.advanceSemicolon();
@@ -99,7 +70,7 @@ export class DeclarativePartParser extends ParserBase {
         if (implementsIHasUseClause(this.parent)) {
           this.parent.useClauses.push(useClause);
         } else {
-          this.state.messages.push({ 
+          this.state.messages.push({
             message: 'Use clause is not allowed here',
             range: useClause.range
           });

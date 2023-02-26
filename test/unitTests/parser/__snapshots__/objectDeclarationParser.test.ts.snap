@@ -178,11 +178,11 @@ exports[`Missing semicolon handling 7`] = `
             "newText": ";",
             "range": {
               "end": {
-                "character": 38,
+                "character": 28,
                 "line": 13,
               },
               "start": {
-                "character": 38,
+                "character": 28,
                 "line": 13,
               },
             },
@@ -196,30 +196,3 @@ exports[`Missing semicolon handling 7`] = `
 ]
 `;
 
-exports[`Missing semicolon handling 8`] = `
-[
-  {
-    "edit": {
-      "changes": {
-        "file:///dummy.vhd": [
-          {
-            "newText": ";",
-            "range": {
-              "end": {
-                "character": 28,
-                "line": 14,
-              },
-              "start": {
-                "character": 28,
-                "line": 14,
-              },
-            },
-          },
-        ],
-      },
-    },
-    "kind": "quickfix",
-    "title": "Insert ';'",
-  },
-]
-`;
