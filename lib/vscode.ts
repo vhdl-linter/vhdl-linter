@@ -5,7 +5,7 @@ import {
   ServerOptions,
   TransportKind
 } from 'vscode-languageclient/node';
-import { IAddSignalCommandArguments, IIgnoreLineCommandArguments } from './vhdlLinter';
+import { IAddSignalCommandArguments } from './vhdlLinter';
 
 
 let client: LanguageClient;
@@ -76,16 +76,7 @@ export async function activate(context: ExtensionContext) {
     });
 
   }));
-  context.subscriptions.push(commands.registerCommand('vhdl-linter:ignore-line', async (args: IIgnoreLineCommandArguments) => {
-    const editor = window.activeTextEditor;
-    if (!editor) {
-      return;
-    }
-    await editor.edit(editBuilder => {
-      const lineLength = editor.document.lineAt(args.range.start.line).text.length;
-      editBuilder.insert(new Position(args.range.start.line, lineLength), `  --vhdl-linter-disable-this-line`);
-    });
-  }));
+
   async function getTemplate(type: 'instance' | 'signals' | 'sysverilog') {
     const editor = window.activeTextEditor;
     if (!editor) {

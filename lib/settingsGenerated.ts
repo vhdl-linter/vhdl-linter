@@ -17,7 +17,7 @@ export interface ISettings {
     'constant-write': boolean;
     'parser': boolean;
     'unit': boolean;
-    'multiple-driver': boolean;
+    'not-allowed': boolean;
   };
   'style': {
     'preferredLogicTypePort': 'unresolved'|'resolved'|'ignore';
@@ -62,7 +62,7 @@ export const defaultSettings: ISettings = {
     'constant-write': true,
     'parser': true,
     'unit': true,
-    'multiple-driver': false,
+    'not-allowed': true,
   },
   'style': {
     'preferredLogicTypePort': 'unresolved',
