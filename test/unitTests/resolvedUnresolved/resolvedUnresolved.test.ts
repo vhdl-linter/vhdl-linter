@@ -14,12 +14,15 @@ test.each([
   'test_port_u_unsigned.vhd',
   'test_signal_std_logic.vhd',
   'test_signal_std_ulogic.vhd',
+  'test_record_std_logic.vhd',
+  'test_record_std_ulogic.vhd',
 ].flatMap(file => [[file, 'unresolved'], [file, 'resolved'], [file, 'ignore']]))('testing type_resolved messages for file %s with setting %s', async (file: string, setting: 'unresolved' | 'resolved' | 'ignore') => {
 
   const getter = defaultSettingsWithOverwrite({
     style: {
       preferredLogicTypePort: setting,
-      preferredLogicTypeSignal: setting
+      preferredLogicTypeSignal: setting,
+      preferredLogicTypeRecordChild: setting,
     }
   });
   const path = join(__dirname, file);
