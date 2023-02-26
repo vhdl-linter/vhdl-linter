@@ -8,8 +8,7 @@ export class PackageParser extends ParserBase {
     let nextToken = this.consumeToken();
     if (nextToken.getLText() === 'body') {
       const pkg = new OPackageBody(parent, this.getToken().range);
-      const match = parent.originalText.match(/!\s*@library\s+(\S+)/i);
-      pkg.targetLibrary = match ? match[1] : undefined;
+      pkg.targetLibrary = this.getTargetLibrary();
 
       pkg.lexerToken = this.consumeToken();
       this.expect('is');
@@ -24,8 +23,7 @@ export class PackageParser extends ParserBase {
     } else {
       // package and the identifier have already been consumed. -2 to get the beginning of the package again
       const pkg = new OPackage(parent, this.getToken(-2, true).range);
-      const match = parent.originalText.match(/!\s*@library\s+(\S+)/i);
-      pkg.targetLibrary = match ? match[1] : undefined;
+      pkg.targetLibrary = this.getTargetLibrary();
 
       pkg.lexerToken = nextToken;
       this.expect('is');

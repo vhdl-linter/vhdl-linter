@@ -151,6 +151,7 @@ export class OIRange implements Range {
 }
 
 
+type ORootElements = OArchitecture | OEntity | OPackage | OPackageInstantiation | OPackageBody | OContext | OConfiguration;
 
 export class ObjectBase {
   lexerToken?: OLexerToken;
@@ -168,9 +169,9 @@ export class ObjectBase {
     this.rootFile = p;
     p.objectList.push(this);
   }
-  private rootElement?: OArchitecture | OEntity | OPackage | OPackageBody;
+  private rootElement?: ORootElements;
 
-  getRootElement(): OArchitecture | OEntity | OPackage | OPackageBody {
+  getRootElement(): ORootElements {
     if (this.rootElement) {
       return this.rootElement;
     }
@@ -188,7 +189,7 @@ export class ObjectBase {
       }
       parent = parent.parent;
     }
-    this.rootElement = parent as OArchitecture | OEntity | OPackage | OPackageBody;
+    this.rootElement = parent as OArchitecture | OEntity | OPackage | OPackageInstantiation | OPackageBody | OContext | OConfiguration;
     return this.rootElement;
   }
   lexerTokenEquals(other: ObjectBase) {
@@ -267,6 +268,7 @@ export class OPackageInstantiation extends ObjectBase implements I.IHasReference
   useClauses: OUseClause[] = [];
   packageDefinitions: OPackage[] = [];
   contextReferences: OContextReference[] = [];
+  targetLibrary?: string;
 }
 
 export class OPackage extends ObjectBase implements I.IHasDeclarations, I.IHasUseClauses, I.IHasContextReference, I.IHasLexerToken,
@@ -330,6 +332,7 @@ export class OContext extends ObjectBase implements I.IHasUseClauses, I.IHasCont
   packageDefinitions: OPackage[] = [];
   contextReferences: OContextReference[] = [];
   libraries: OLibrary[] = [];
+  targetLibrary: undefined;
 }
 export type OConcurrentStatements = OProcess | OInstantiation | OIfGenerate | OForGenerate | OCaseGenerate | OBlock | OAssignment | OAssertion;
 export type ODeclaration = OSignal | OAttributeSpecification | OAttributeDeclaration | OVariable | OConstant | OFileVariable | OType
@@ -571,6 +574,9 @@ export class OInstantiation extends OReference implements I.IHasDefinitions, I.I
   archIdentifier?: OLexerToken;
   label?: OLexerToken;
   labelLinks: OLabelReference[] = [];
+  // getRootElement() {
+  //   return super.getRootElement() as Exclude<ORootElements, OPackageInstantiation | OContext>;
+  // }
 }
 export class OAssociation extends ObjectBase implements I.IHasDefinitions {
   constructor(public parent: OAssociationList, range: OIRange) {
