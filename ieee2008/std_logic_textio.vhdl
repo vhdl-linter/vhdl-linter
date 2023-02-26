@@ -1,6 +1,6 @@
 -- --------------------------------------------------------------------
 --
--- Copyright � 2008 by IEEE.
+-- Copyright © 2008 by IEEE.
 --
 -- This source file is an essential part of IEEE Std 1076-2008, 
 -- IEEE Standard VHDL Language Reference Manual. Verbatim copies of this 
