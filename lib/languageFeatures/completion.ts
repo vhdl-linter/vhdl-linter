@@ -1,7 +1,7 @@
 import { CompletionItem, CompletionItemKind, Position } from 'vscode-languageserver';
 import { reservedWords } from '../lexer';
 import { IHasLexerToken, IHasTypeReference, implementsIHasDeclarations, implementsIHasGenerics, implementsIHasPorts, implementsIHasTypeReference } from '../parser/interfaces';
-import { OAlias, OAliasWithSignature, OAttributeSpecification, ObjectBase, OConfiguration, OConstant, OEnum, OFileVariable, OGenericAssociationList, ORecord, OReference, OSelectedNameRead, OSelectedNameWrite, OSignal, OSubprogram, OType, OVariable, scope } from '../parser/objects';
+import { OAlias, OAliasWithSignature, OAttributeSpecification, ObjectBase, OConfiguration, OConstant, OEnum, OFileVariable, OGenericAssociationList, ORecord, OReference, OSelectedName, OSelectedNameRead, OSelectedNameWrite, OSignal, OSubprogram, OType, OVariable, scope } from '../parser/objects';
 import { VhdlLinter } from '../vhdlLinter';
 import { findObjectFromPosition } from './findObjects';
 import { getTokenFromPosition } from './findReferencesHandler';
@@ -58,7 +58,7 @@ export async function getCompletions(linter: VhdlLinter, position: Position): Pr
 
   const token = getTokenFromPosition(linter, position, false);
   // if completing selected name and found a record definition -> only show its elements as completion
-  if (completionObject instanceof OSelectedNameRead || completionObject instanceof OSelectedNameWrite) {
+  if (completionObject instanceof OSelectedNameRead || completionObject instanceof OSelectedNameWrite || completionObject instanceof OSelectedName) {
     // special case: if current token is '.', a new selected name is started -> the completionObject is the actual prefix
     const actualPrefix = token?.text === '.' ? completionObject : completionObject.prefixTokens[completionObject.prefixTokens.length - 1]!;
     const result = getSelectedNameCompletions(actualPrefix);

@@ -83,6 +83,10 @@ function pushCorrectToken(buffer: BuilderParams[], obj: O.ObjectBase, definition
 export function semanticToken(linter: VhdlLinter, colorInputs: boolean): SemanticTokens {
   const buffer: BuilderParams[] = [];
   for (const obj of linter.file.objectList) {
+    if (obj instanceof O.OUseClause) {
+      // the selected name read of the useclause will push the token
+      continue;
+    }
     const definition = findDefinition(obj);
     if (definition !== undefined && I.implementsIHasReferenceToken(obj)) {
       pushCorrectToken(buffer, obj, definition, obj.referenceToken.range, [], colorInputs);

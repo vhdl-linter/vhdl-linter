@@ -35,6 +35,8 @@ export class VhdlLinter {
   file: OFile;
   parser: FileParser;
   parsedSuccessfully = false;
+  elaborated = false;
+
   constructor(public uri: URL, public text: string, public projectParser: ProjectParser,
     public settingsGetter: SettingsGetter,
     public token?: CancellationToken) {
@@ -158,7 +160,6 @@ export class VhdlLinter {
       throw new ResponseError(LSPErrorCodes.RequestCancelled, 'canceled');
     }
   }
-  elaborated = false;
   async checkAll(profiling = false) {
     if (this.parsedSuccessfully === false) {
       return this.messages;
@@ -172,7 +173,6 @@ export class VhdlLinter {
     try {
       if (this.elaborated === false) {
         await Elaborate.elaborate(this);
-        this.elaborated = true;
       }
       if (profiling) {
         console.log(`check ${i++}: ${Date.now() - start}ms`);
