@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Testing entityConverter Testing entity converter for with different configurations: type instance overwrite {"style":{"genericPrefix":"genericPrefix_"}} 1`] = `
-"inst_test_entity : entity work.test_entity
+"test_entity : entity work.test_entity
 generic map (
   LENGTH => genericPrefix_LENGTH
 )
@@ -14,7 +14,7 @@ port map (
 `;
 
 exports[`Testing entityConverter Testing entity converter for with different configurations: type instance overwrite {"style":{"genericSuffix":"_genericSuffix"}} 1`] = `
-"inst_test_entity : entity work.test_entity
+"test_entity : entity work.test_entity
 generic map (
   LENGTH => LENGTH_genericSuffix
 )
@@ -53,7 +53,7 @@ port map (
 `;
 
 exports[`Testing entityConverter Testing entity converter for with different configurations: type instance overwrite {"style":{"instantiationLabelSuffix":"_instSuffix"}} 1`] = `
-"inst_test_entity_instSuffix : entity work.test_entity
+"test_entity_instSuffix : entity work.test_entity
 generic map (
   LENGTH => LENGTH
 )
@@ -66,7 +66,7 @@ port map (
 `;
 
 exports[`Testing entityConverter Testing entity converter for with different configurations: type instance overwrite {"style":{"signalPrefix":"sigPrefix_"}} 1`] = `
-"inst_test_entity : entity work.test_entity
+"test_entity : entity work.test_entity
 generic map (
   LENGTH => LENGTH
 )
@@ -79,7 +79,7 @@ port map (
 `;
 
 exports[`Testing entityConverter Testing entity converter for with different configurations: type instance overwrite {"style":{"signalSuffix":"_sigSuffix"}} 1`] = `
-"inst_test_entity : entity work.test_entity
+"test_entity : entity work.test_entity
 generic map (
   LENGTH => LENGTH
 )
@@ -143,7 +143,7 @@ signal c_sigSuffix : std_ulogic_vector(LENGTH -1 downto 0);
 exports[`Testing entityConverter Testing entity converter for with different configurations: type sysverilog overwrite {"style":{"genericPrefix":"genericPrefix_"}} 1`] = `
 "test_entity #(
   .LENGTH(genericPrefix_LENGTH)
-) inst_test_entity (
+) test_entity (
   .a(a),
   .b(b),
   .c(c)
@@ -154,7 +154,7 @@ exports[`Testing entityConverter Testing entity converter for with different con
 exports[`Testing entityConverter Testing entity converter for with different configurations: type sysverilog overwrite {"style":{"genericSuffix":"_genericSuffix"}} 1`] = `
 "test_entity #(
   .LENGTH(LENGTH_genericSuffix)
-) inst_test_entity (
+) test_entity (
   .a(a),
   .b(b),
   .c(c)
@@ -187,7 +187,7 @@ exports[`Testing entityConverter Testing entity converter for with different con
 exports[`Testing entityConverter Testing entity converter for with different configurations: type sysverilog overwrite {"style":{"instantiationLabelSuffix":"_instSuffix"}} 1`] = `
 "test_entity #(
   .LENGTH(LENGTH)
-) inst_test_entity_instSuffix (
+) test_entity_instSuffix (
   .a(a),
   .b(b),
   .c(c)
@@ -198,7 +198,7 @@ exports[`Testing entityConverter Testing entity converter for with different con
 exports[`Testing entityConverter Testing entity converter for with different configurations: type sysverilog overwrite {"style":{"signalPrefix":"sigPrefix_"}} 1`] = `
 "test_entity #(
   .LENGTH(LENGTH)
-) inst_test_entity (
+) test_entity (
   .a(sigPrefix_a),
   .b(sigPrefix_b),
   .c(sigPrefix_c)
@@ -209,7 +209,7 @@ exports[`Testing entityConverter Testing entity converter for with different con
 exports[`Testing entityConverter Testing entity converter for with different configurations: type sysverilog overwrite {"style":{"signalSuffix":"_sigSuffix"}} 1`] = `
 "test_entity #(
   .LENGTH(LENGTH)
-) inst_test_entity (
+) test_entity (
   .a(a_sigSuffix),
   .b(b_sigSuffix),
   .c(c_sigSuffix)
