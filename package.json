@@ -258,7 +258,7 @@
 				"VhdlLinter.style.instantiationLabelPrefix": {
 					"scope": "window",
 					"type": "string",
-					"default": "inst_",
+					"default": "",
 					"description": "Prefix for instantiation labels (can be left empty)"
 				},
 				"VhdlLinter.style.instantiationLabelSuffix": {

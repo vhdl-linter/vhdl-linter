@@ -14,7 +14,6 @@ function longestInArray(array: OPort[] | OGeneric[]) {
     }
     return longest;
 }
-// TODO: Make the formatting configurable
 export function instanceTemplate(entity: OEntity, settings: ISettings) {
     let text = `${settings.style.instantiationLabelPrefix}${entity.lexerToken.text}${settings.style.instantiationLabelSuffix} : entity work.${entity.lexerToken.text}`;
     const indentString = '  ';

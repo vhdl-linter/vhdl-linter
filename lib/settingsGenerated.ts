@@ -31,7 +31,6 @@ export interface ISettings {
     'instantiationLabelPrefix': string;
     'instantiationLabelSuffix': string;
   };
-
   'ports': {
     'outRegex': string;
     'inRegex': string;
@@ -73,7 +72,7 @@ export const defaultSettings: ISettings = {
     'signalSuffix': '',
     'genericPrefix': '',
     'genericSuffix': '',
-    'instantiationLabelPrefix': 'inst_',
+    'instantiationLabelPrefix': '',
     'instantiationLabelSuffix': '',
   },
   'ports': {
