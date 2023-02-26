@@ -3,6 +3,7 @@ import { ConfigurationDeclarationParser } from './configurationDeclarationParser
 import { ContextParser } from './contextParser';
 import { ContextReferenceParser } from './contextReferenceParser';
 import { EntityParser } from './entityParser';
+import { IHasUseClauses } from './interfaces';
 import { MagicCommentType, ObjectBase, OFile, OI, OIRange, OLibrary, OLibraryReference, OMagicCommentDisable, OPackageInstantiation, OReference, OUseClause, ParserError } from './objects';
 import { PackageInstantiationParser } from './packageInstantiationParser';
 import { PackageParser } from './packageParser';
@@ -113,7 +114,8 @@ export class FileParser extends ParserBase {
     ];
     // store use clauses to be attached to the next design unit
     let useClausesPrepare: [OLexerToken, OLexerToken, OLexerToken][] = [];
-    const getUseClauses = (parent: ObjectBase) => {
+    const getUseClauses = (parent: ObjectBase & IHasUseClauses) => {
+      // always add `use std.standard.all;`
       return [
         new OUseClause(parent, new OLibraryReference(parent, new OLexerToken('std', new OIRange(this.file, 0, 0), TokenType.implicit, this.file)),
           new OReference(parent, new OLexerToken('standard', new OIRange(this.file, 0, 0), TokenType.implicit, this.file)),

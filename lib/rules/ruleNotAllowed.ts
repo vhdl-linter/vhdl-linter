@@ -21,6 +21,11 @@ export class RuleNotAllowed extends RuleBase implements IRule {
     });
   }
   check() {
+    this.checkDeclarativePart();
+    this.checkPostponed();
+
+  }
+  checkDeclarativePart() {
     for (const obj of this.file.objectList) {
       if (I.implementsIHasDeclarations(obj)) {
         for (const declaration of obj.declarations) {
@@ -135,6 +140,26 @@ export class RuleNotAllowed extends RuleBase implements IRule {
             }
 
           }
+        }
+      }
+    }
+  }
+  checkPostponed() {
+    for (const obj of this.file.objectList) {
+      if (I.implementsIHasPostponed(obj) && obj.postponed) {
+        if (obj.parent instanceof O.OStatementBody !== true) {
+          this.addMessage({
+            message: `postponed only allowed for concurrent statements`,
+            range: (obj.parent as O.ObjectBase).range,
+            severity: DiagnosticSeverity.Error
+          });
+        }
+        if (obj instanceof O.OInstantiation && obj.definitions.find(definition => definition instanceof O.OSubprogram ) === undefined) {
+          this.addMessage({
+            message: `postponed instantiations only allowed for (concurrent) procedure instantiations`,
+            range: obj.range,
+            severity: DiagnosticSeverity.Error
+          });
         }
       }
     }

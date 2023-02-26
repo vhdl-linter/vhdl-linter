@@ -8,8 +8,6 @@ import { elaborateComponents } from "./elaborateComponents";
 import { elaborateConfigurations } from "./elaborateConfigurations";
 import { elaborateInstantiations } from "./elaborateInstantiations";
 import { ElaborateReferences } from "./elaborateReferences";
-import { ElaborateSelectedNames } from "./elaborateSelectedNames";
-import { elaborateUseClauses } from "./elaborateUseClauses";
 
 export class Elaborate {
   file: OFile;
@@ -20,6 +18,7 @@ export class Elaborate {
 
     const elaborator = new Elaborate(vhdlLinter);
     await elaborator.elaborateAll();
+    vhdlLinter.elaborated = true;
   }
   public static clear(vhdlLinter: VhdlLinter) {
     for (const obj of vhdlLinter.file.objectList) {
@@ -88,15 +87,9 @@ export class Elaborate {
 
       }
     }
-    //     console.log(packages);
-    elaborateUseClauses(this.file, this.vhdlLinter.projectParser, this.vhdlLinter);
+
     await this.vhdlLinter.handleCanceled();
-    //     console.log(packages);
-    // elaborateReferences(this.file);
-
-
-    // console.log(`elaboration: reads for: ${Date.now() - start} ms.`);
-    // start = Date.now();
+    ElaborateReferences.elaborate(this.vhdlLinter);
     await this.vhdlLinter.handleCanceled();
     elaborateComponents(this.file, this.vhdlLinter.projectParser);
     await this.vhdlLinter.handleCanceled();
@@ -104,22 +97,12 @@ export class Elaborate {
     await this.vhdlLinter.handleCanceled();
     elaborateConfigurations(this.file, this.vhdlLinter.projectParser);
 
-    // console.log(`elaboration: instantiations for: ${Date.now() - start} ms.`);
-    // start = Date.now();
     await this.vhdlLinter.handleCanceled();
 
-    // console.log(`elaboration: components for: ${Date.now() - start} ms.`);
-    // start = Date.now();
-    await this.vhdlLinter.handleCanceled();
-    ElaborateReferences.elaborate(this.vhdlLinter);
     await this.vhdlLinter.handleCanceled();
     elaborateAssociations(this.file);
     await this.vhdlLinter.handleCanceled();
     elaborateAliases(this.file);
-    await this.vhdlLinter.handleCanceled();
-    ElaborateSelectedNames.elaborate(this.vhdlLinter);
-    // console.log(`elaboration: associations for: ${Date.now() - start} ms.`);
-    // start = Date.now();
     await this.vhdlLinter.handleCanceled();
 
   }

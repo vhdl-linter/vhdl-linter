@@ -1,6 +1,6 @@
 import { OLexerToken } from "../lexer";
 import { OAttributeReference, ObjectBase, OFormalReference, OReference, OSelectedName, OSelectedNameWrite, OWrite, SelectedNamePrefix } from "./objects";
-import { ParserBase, ParserState } from "./parserBase";
+import { ParserState } from "./parserBase";
 interface ExpParserState {
   maybeOutput: boolean;
   maybeInOut: boolean;
@@ -10,7 +10,7 @@ interface ExpParserState {
 }
 
 
-export class ExpressionParser extends ParserBase {
+export class ExpressionParser {
   private expState: ExpParserState = {
     num: 0,
     lastFormal: [],
@@ -18,9 +18,7 @@ export class ExpressionParser extends ParserBase {
     maybeOutput: false,
     maybeInOut: false
   };
-  constructor(state: ParserState, private parent: ObjectBase, private tokens: OLexerToken[]) {
-    super(state);
-    this.debug('start');
+  constructor(private state: ParserState, private parent: ObjectBase, private tokens: OLexerToken[]) {
   }
 
   parse(): OReference[] {
@@ -121,12 +119,12 @@ export class ExpressionParser extends ParserBase {
       if (this.getNumToken()?.getLText() === '(') {
         const aggregate = this.getNumToken(-1) === undefined;
         this.increaseToken();
-        const maybeFormalNew = this.getNumToken(-2) !== undefined && this.getNumToken(-2)?.getLText() !== '(';
+        const maybeFormalNew = this.getNumToken(-2) !== undefined && this.getNumToken(-2)?.getLText() !== '(' && this.getNumToken(-3)?.isIdentifier() !== true;
         innerReferences = this.inner(maybeFormalNew, aggregate);
         containedBraces = true;
       } else {
         const breakTokens = [',', '=>',
-          'range', 'to', // range constraints
+          'range', 'to', 'downto', // range constraints
           '*', '/', 'mod', 'rem', // term
           'and', 'or', 'xor', 'nand', 'nor', 'xnor', //logical expression
           "=", "/=", "<", "<=", ">", ">=", "?=", "?/=", "?<", "?<=", "?>", "?>=", //relation

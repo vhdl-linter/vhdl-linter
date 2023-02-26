@@ -2,6 +2,7 @@ import { OLexerToken } from "../lexer";
 import * as O from './objects';
 export interface IHasLabel {
   label: OLexerToken;
+  lexerToken: undefined;
   labelLinks: O.OLabelReference[];
 }
 export interface IMayHaveLabel {
@@ -10,6 +11,12 @@ export interface IMayHaveLabel {
 }
 export function implementsIHasLabel(obj: O.ObjectBase): obj is O.ObjectBase & IHasLabel {
   return (obj as O.ObjectBase & Partial<IHasLabel>).label !== undefined && Array.isArray((obj as O.ObjectBase & IHasLabel).labelLinks);
+}
+export interface IHasPostponed {
+  postponed: boolean;
+}
+export function implementsIHasPostponed(obj: O.ObjectBase): obj is O.ObjectBase & IHasPostponed {
+  return (obj as O.ObjectBase & Partial<IHasPostponed>).postponed !== undefined;
 }
 export interface IHasTypeReference {
   typeReference: O.OReference[];
@@ -38,6 +45,7 @@ export interface IHasEndingLexerToken {
 }
 export interface IHasReferenceToken {
   referenceToken: OLexerToken;
+  lexerToken: undefined;
 }
 
 export interface IHasContextReference {

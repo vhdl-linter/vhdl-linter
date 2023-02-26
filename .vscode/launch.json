@@ -29,8 +29,8 @@
 			"type": "node",
 			"request": "launch",
 			"cwd": "${workspaceFolder}",
-			"runtimeExecutable": "npm",
-			"runtimeArgs": ["run", "test"]
+			"runtimeExecutable": "node",
+			"runtimeArgs": ["dist/test/test.js", "--no-osvvm"]
 		},
     {
       "type": "node",
