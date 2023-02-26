@@ -7,7 +7,7 @@ end test_record;
 
 architecture arch of test_record is
   type test_record is record
-    test_child : std_logic;
+    test_child : std_ulogic;
   end record;
   signal test : test_record;
 begin

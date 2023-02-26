@@ -334,7 +334,7 @@ export class OContext extends ObjectBase implements I.IHasUseClauses, I.IHasCont
   libraries: OLibrary[] = [];
   targetLibrary: undefined;
 }
-export type OConcurrentStatements = OProcess | OInstantiation | OIfGenerate | OForGenerate | OCaseGenerate | OBlock | OAssignment;
+export type OConcurrentStatements = OProcess | OInstantiation | OIfGenerate | OForGenerate | OCaseGenerate | OBlock | OAssignment | OAssertion;
 export type ODeclaration = OSignal | OAttributeSpecification | OAttributeDeclaration | OVariable | OConstant | OFileVariable | OType
   | OAlias | OSubprogram | OComponent | OPackageInstantiation;
 
@@ -425,7 +425,7 @@ export class ORecord extends OType implements I.IMayHaveEndingLexerToken {
 export class OArray extends OType {
   elementType: OReference[] = [];
 }
-export class ORecordChild extends OType implements I.IHasTypeReference{
+export class ORecordChild extends OType implements I.IHasTypeReference {
   typeReference: OReference[] = [];
   public parent: ORecord;
 }
@@ -557,10 +557,12 @@ export class OPortAssociationList extends OAssociationList {
     super(parent, range);
   }
 }
-export class OInstantiation extends OReference implements I.IHasDefinitions, I.IHasLibraryReference, I.IMayHaveLabel {
+
+export class OInstantiation extends OReference implements I.IHasDefinitions, I.IHasLibraryReference, I.IMayHaveLabel, I.IHasPostponed {
   constructor(public parent: OStatementBody | OEntity | OProcess | OLoop | OIf, lexerToken: OLexerToken, public type: 'entity' | 'component' | 'configuration' | 'subprogram' | 'unknown' = 'unknown') {
     super(parent, lexerToken);
   }
+  postponed = false;
   definitions: (OEntity | OSubprogram | OComponent | OAliasWithSignature | OConfiguration)[] = [];
   prefix: OLexerToken[] = [];
   entityName: OLexerToken;
@@ -609,7 +611,7 @@ export class OEntity extends ObjectBase implements I.IHasDefinitions, I.IHasDecl
   ports: OPort[] = [];
   genericRange?: OIRange;
   generics: OGeneric[] = [];
-  statements: (OProcess | OAssignment)[] = [];
+  statements: (OProcess | OAssignment | OAssertion)[] = [];
   statementsRange: OIRange;
   definitions: OEntity[] = [];
   correspondingArchitectures: OArchitecture[] = [];
@@ -650,15 +652,15 @@ export class OIf extends ObjectBase implements I.IMayHaveLabel {
   label?: OLexerToken;
   labelLinks: OLabelReference[];
 }
-export class OHasSequentialStatements extends ObjectBase implements I.IMayHaveLabel, I.IHasStatements {
+export class OSequenceOfStatements extends ObjectBase implements I.IMayHaveLabel, I.IHasStatements {
   statements: OSequentialStatement[] = [];
   statementsRange: OIRange;
   labelLinks: OLabelReference[] = [];
   label?: OLexerToken;
 }
-export class OElseClause extends OHasSequentialStatements {
+export class OElseClause extends OSequenceOfStatements {
 }
-export class OIfClause extends OHasSequentialStatements {
+export class OIfClause extends OSequenceOfStatements {
   condition: OReference[] = [];
 }
 export class OCase extends ObjectBase implements I.IMayHaveLabel {
@@ -667,15 +669,15 @@ export class OCase extends ObjectBase implements I.IMayHaveLabel {
   label?: OLexerToken;
   labelLinks: OLabelReference[] = [];
 }
-export class OWhenClause extends OHasSequentialStatements {
+export class OWhenClause extends OSequenceOfStatements {
   condition: OReference[] = [];
 }
-export class OProcess extends OHasSequentialStatements implements I.IHasDeclarations, I.IHasStatements,
-  I.IHasUseClauses {
+export class OProcess extends OSequenceOfStatements implements I.IHasDeclarations, I.IHasStatements,
+  I.IHasUseClauses, I.IHasPostponed {
   declarations: ODeclaration[] = [];
   declarationsRange?: OIRange;
   label?: OLexerToken;
-
+  postponed = false;
   aliases: OAlias[] = [];
   packageDefinitions: OPackage[] = [];
   useClauses: OUseClause[] = [];
@@ -684,7 +686,7 @@ export class OProcess extends OHasSequentialStatements implements I.IHasDeclarat
 
 }
 
-export class OLoop extends OHasSequentialStatements {
+export class OLoop extends OSequenceOfStatements {
 }
 export class OForLoop extends OLoop implements I.IHasDeclarations {
   declarations: ODeclaration[] = [];
@@ -694,7 +696,7 @@ export class OForLoop extends OLoop implements I.IHasDeclarations {
 export class OWhileLoop extends OLoop {
   condition: OReference[] = [];
 }
-export class OAssignment extends ObjectBase implements I.IMayHaveLabel {
+export class OAssignment extends ObjectBase implements I.IMayHaveLabel, I.IHasPostponed {
   writes: OWrite[] = [];
   label?: OLexerToken;
   labelLinks: OLabelReference[] = [];
@@ -723,6 +725,7 @@ export class OAssertion extends ObjectBase implements I.IMayHaveLabel {
   references: OReference[] = [];
   label?: OLexerToken;
   labelLinks: OLabelReference[] = [];
+  postponed: boolean;
 }
 
 export class OWrite extends OReference {
@@ -744,14 +747,8 @@ export class OSelectedName extends OReference {
     super(parent, referenceToken, referenceToken.range.copyWithNewStart(prefixTokens[0].range));
   }
 }
-export class OUseClause extends OSelectedName implements I.IHasLibraryReference {
-  constructor(public parent: ObjectBase & I.IHasUseClauses, public library: OLibraryReference | undefined, public packageName: OReference, public suffix: OLexerToken) {
-    super(parent, packageName.referenceToken, library ? [library, packageName] : [packageName]);
-    if (library) {
-      library.parent = this;
-    }
-    packageName.parent = this;
-  }
+export class OUseClause extends ObjectBase {
+  reference: [OReference, ...OSelectedName[]];
 }
 export class OSelectedNameRead extends ORead {
   constructor(public parent: ObjectBase, public referenceToken: OLexerToken, public prefixTokens: SelectedNamePrefix) {
@@ -792,7 +789,7 @@ export class OMagicCommentDisable extends OMagicComment {
     super(parent, commentType, range, rule);
   }
 }
-export class OSubprogram extends OHasSequentialStatements implements I.IHasReferenceLinks, I.IHasDeclarations, I.IHasPorts,
+export class OSubprogram extends OSequenceOfStatements implements I.IHasReferenceLinks, I.IHasDeclarations, I.IHasPorts,
   I.IHasUseClauses, I.IHasLexerToken, I.IMayHaveEndingLexerToken {
   hasBody = false;
   declarations: ODeclaration[] = [];

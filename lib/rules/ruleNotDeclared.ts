@@ -122,8 +122,6 @@ export class RuleNotDeclared extends RuleBase implements IRule {
             message: `attribute '${obj.referenceToken.text}' is referenced but not declared`
           });
         }
-      } else if (obj.parent instanceof O.OUseClause) {
-        // the use clause itself is the reference
       } else if (obj instanceof O.OArchitecture && obj.correspondingEntity === undefined) {
         this.addMessage({
           range: obj.entityName.range,
@@ -143,7 +141,7 @@ export class RuleNotDeclared extends RuleBase implements IRule {
       } else if ((obj instanceof O.OReference) && obj.definitions.length === 0 && !(obj instanceof O.OComponent)) {
         if (obj instanceof O.OSelectedName || obj instanceof O.OSelectedNameRead || obj instanceof O.OSelectedNameWrite) {
           const lastPrefix = obj.prefixTokens[obj.prefixTokens.length - 1]!;
-          if (lastPrefix.definitions.length === 0 && !(obj instanceof O.OUseClause)) {
+          if (lastPrefix.definitions.length === 0) {
             // if the last prefix token was not defined, do not push another not declared error
             continue;
           }

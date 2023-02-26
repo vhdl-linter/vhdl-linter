@@ -3,7 +3,7 @@ import { OLexerToken, TokenType } from '../lexer';
 import { OIDiagnosticWithSolution } from '../vhdlLinter';
 import { config } from './config';
 import { ExpressionParser } from './expressionParser';
-import { ObjectBase, OFile, OIRange, OReference, ParserError } from './objects';
+import { ObjectBase, OFile, OIRange, OReference, OSelectedName, ParserError } from './objects';
 
 
 export class ParserPosition {
@@ -101,13 +101,16 @@ export class ParserBase {
 
     }
   }
-  advanceSelectedName(parent: ObjectBase): OReference[] {
+  advanceSelectedName(parent: ObjectBase): [OReference, ...OSelectedName[]] {
     const tokens: OLexerToken[] = [];
-    while (this.getToken().isIdentifier() || this.getToken().getLText() === '.') {
+    while (this.getToken().isIdentifier() || this.getToken().getLText() === '.' || this.getToken().getLText() === 'all') {
       tokens.push(this.getToken());
       this.consumeToken();
     }
-    return new ExpressionParser(this.state, parent, tokens).parse();
+    if (tokens.length === 0) {
+      throw new ParserError('expected a selected name', this.getToken().range);
+    }
+    return new ExpressionParser(this.state, parent, tokens).parse() as [OReference, ...OSelectedName[]];
   }
   consumeToken(advanceWhitespace = true): OLexerToken {
     const token = this.state.pos.lexerTokens[this.state.pos.num];
