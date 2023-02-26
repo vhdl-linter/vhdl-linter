@@ -1,4 +1,5 @@
 import { OLexerToken } from '../lexer';
+import { AssertionParser } from './assertionParser';
 import { AssignmentParser } from './assignmentParser';
 import { ConcurrentInstantiationParser } from './concurrentInstantiationParser';
 import { ExpressionParser } from './expressionParser';
@@ -31,12 +32,14 @@ export class ConcurrentStatementParser extends ParserBase {
       this.advanceWhitespace();
       nextToken = this.getToken();
     }
-
-
+    const postponed = this.maybe('postponed') !== undefined;
+    if (postponed) {
+      nextToken = this.getToken();
+    }
     if (nextToken.getLText() === 'process' && allowedStatements.includes(ConcurrentStatementTypes.Process)) {
       this.consumeToken();
       const processParser = new ProcessParser(this.state, this.parent);
-      this.parent.statements.push(processParser.parse(savedI, label));
+      this.parent.statements.push(processParser.parse(savedI, label, postponed));
     } else if (nextToken.getLText() === 'block' && allowedStatements.includes(ConcurrentStatementTypes.Block)) {
       this.consumeToken();
       this.debug('parse block');
@@ -202,9 +205,9 @@ export class ConcurrentStatementParser extends ParserBase {
       assignment.labelLinks.push(read);
       this.parent.statements.push(assignment);
     } else if (nextToken.getLText() === 'assert' && allowedStatements.includes(ConcurrentStatementTypes.Assert)) {
-      this.consumeToken();
-      this.advanceSemicolon();
+      this.parent.statements.push(new AssertionParser(this.state, this.parent).parse(label, postponed));
     } else {
+
       let braceLevel = 0;
       let i = 0;
       let assignment = false;
@@ -234,7 +237,7 @@ export class ConcurrentStatementParser extends ParserBase {
         }
 
         const assignmentParser = new AssignmentParser(this.state, this.parent);
-        const assignment = assignmentParser.parse('concurrent');
+        const assignment = assignmentParser.parse('concurrent', label,  postponed);
         try {
           this.parent.statements.push(assignment);
         } catch (err) {
@@ -243,7 +246,7 @@ export class ConcurrentStatementParser extends ParserBase {
 
       } else {
         const instantiationParser = new ConcurrentInstantiationParser(this.state, this.parent);
-        (this.parent as OArchitecture).statements.push(instantiationParser.parse(nextToken, label));
+        (this.parent as OArchitecture).statements.push(instantiationParser.parse(nextToken, label, postponed));
       }
     }
     return false;

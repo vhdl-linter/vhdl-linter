@@ -11,8 +11,9 @@ export class ProcessParser extends ParserBase {
     this.debug(`start`);
 
   }
-  parse(startI: number, label?: OLexerToken): OProcess {
+  parse(startI: number, label?: OLexerToken, postponed = false): OProcess {
     const process = new OProcess(this.parent, new OIRange(this.parent, startI, this.getEndOfLineI()));
+    process.postponed = postponed;
     process.label = label;
     if (this.getToken().getLText() === '(') {
       this.expect('(');
@@ -23,6 +24,9 @@ export class ProcessParser extends ParserBase {
     new DeclarativePartParser(this.state, process).parse();
     process.statements = new SequentialStatementParser(this.state).parse(process, ['end']);
     this.expect('end');
+    if (postponed) {
+      this.maybe('postponed');
+    }
     this.expect('process');
     if (label) {
       this.maybe(label);
