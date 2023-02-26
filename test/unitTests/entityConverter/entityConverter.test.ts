@@ -20,7 +20,7 @@ describe('Testing entityConverter', () => {
     const path = join(__dirname, 'test_entity.vhd');
     const uri = pathToFileURL(path);
     const linter = new VhdlLinter(uri, readFileSyncNorm(uri, { encoding: 'utf8' }), projectParser, defaultSettingsGetter);
-    for (const type of ['instance', 'signals', 'sysverilog'] as converterTypes[]) {
+    for (const type of ['instance', 'signals', 'sysverilog', 'component'] as converterTypes[]) {
       const overwritesStyles = {
         instantiationLabelPrefix: ['', 'instPrefix_'],
         instantiationLabelSuffix: ['_instSuffix'],

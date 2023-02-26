@@ -44,6 +44,39 @@ export function instanceTemplate(entity: OEntity, settings: ISettings) {
     text += `;\n`;
     return text;
 }
+export function componentTemplate(entity: OEntity, settings: ISettings) {
+    let text = `component ${entity.lexerToken.text} is`;
+    const indentString = '  ';
+    if (entity.generics.length > 0) {
+        text += `\ngeneric (\n`;
+        const longest = longestInArray(entity.generics);
+        for (const generic of entity.generics) {
+            text += `${indentString}${generic.range.getText()};\n`;
+        }
+        // Strip the final comma
+        text = text.slice(0, -2);
+        text += `\n);`;
+    }
+
+    if (entity.ports.length > 0) {
+        text += `\nport (\n`;
+        const longest = longestInArray(entity.ports);
+        for (const port of entity.ports) {
+            let typeText: string | undefined;
+            if (port.typeReference.length > 0) {
+                typeText = port.typeReference[0]!.range.copyWithNewEnd(port.range.end).getText();
+            }
+            const name = port.lexerToken.text.padEnd(longest, ' ');
+            text += `${indentString}${port.range.getText()};\n`;
+        }
+        // Strip the final comma
+        text = text.slice(0, -2);
+        text += `\n);`;
+    }
+
+    text += `\nend component;\n`;
+    return text;
+}
 
 export function sysVerilogTemplate(entity: OEntity, settings: ISettings) {
     let text = entity.lexerToken.text;
@@ -90,7 +123,7 @@ export function signalsTemplate(entity: OEntity, settings: ISettings) {
     }
     return text;
 }
-export type converterTypes = 'instance' | 'signals' | 'sysverilog';
+export type converterTypes = 'instance' | 'signals' | 'sysverilog' | 'component';
 export function entityConverter(vhdlLinter: VhdlLinter, type: converterTypes, settings: ISettings, position?: Position) {
     let entity;
     if (position === undefined) {
@@ -115,5 +148,7 @@ export function entityConverter(vhdlLinter: VhdlLinter, type: converterTypes, se
         return signalsTemplate(entity, settings);
     } else if (type === 'sysverilog') {
         return sysVerilogTemplate(entity, settings);
+    } else if (type === 'component') {
+        return componentTemplate(entity, settings);
     }
 }

@@ -1,5 +1,96 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`Testing entityConverter Testing entity converter for with different configurations: type component overwrite {"style":{"genericPrefix":"genericPrefix_"}} 1`] = `
+"component test_entity is
+generic (
+  LENGTH : positive
+)
+port map (
+  a : std_ulogic;
+  b : std_ulogic_vector(7 downto 0);
+  c : std_ulogic_vector(LENGTH -1 downto 0)
+);
+"
+`;
+
+exports[`Testing entityConverter Testing entity converter for with different configurations: type component overwrite {"style":{"genericSuffix":"_genericSuffix"}} 1`] = `
+"component test_entity is
+generic (
+  LENGTH : positive
+)
+port map (
+  a : std_ulogic;
+  b : std_ulogic_vector(7 downto 0);
+  c : std_ulogic_vector(LENGTH -1 downto 0)
+);
+"
+`;
+
+exports[`Testing entityConverter Testing entity converter for with different configurations: type component overwrite {"style":{"instantiationLabelPrefix":""}} 1`] = `
+"component test_entity is
+generic (
+  LENGTH : positive
+)
+port map (
+  a : std_ulogic;
+  b : std_ulogic_vector(7 downto 0);
+  c : std_ulogic_vector(LENGTH -1 downto 0)
+);
+"
+`;
+
+exports[`Testing entityConverter Testing entity converter for with different configurations: type component overwrite {"style":{"instantiationLabelPrefix":"instPrefix_"}} 1`] = `
+"component test_entity is
+generic (
+  LENGTH : positive
+)
+port map (
+  a : std_ulogic;
+  b : std_ulogic_vector(7 downto 0);
+  c : std_ulogic_vector(LENGTH -1 downto 0)
+);
+"
+`;
+
+exports[`Testing entityConverter Testing entity converter for with different configurations: type component overwrite {"style":{"instantiationLabelSuffix":"_instSuffix"}} 1`] = `
+"component test_entity is
+generic (
+  LENGTH : positive
+)
+port map (
+  a : std_ulogic;
+  b : std_ulogic_vector(7 downto 0);
+  c : std_ulogic_vector(LENGTH -1 downto 0)
+);
+"
+`;
+
+exports[`Testing entityConverter Testing entity converter for with different configurations: type component overwrite {"style":{"signalPrefix":"sigPrefix_"}} 1`] = `
+"component test_entity is
+generic (
+  LENGTH : positive
+)
+port map (
+  a : std_ulogic;
+  b : std_ulogic_vector(7 downto 0);
+  c : std_ulogic_vector(LENGTH -1 downto 0)
+);
+"
+`;
+
+exports[`Testing entityConverter Testing entity converter for with different configurations: type component overwrite {"style":{"signalSuffix":"_sigSuffix"}} 1`] = `
+"component test_entity is
+generic (
+  LENGTH : positive
+)
+port map (
+  a : std_ulogic;
+  b : std_ulogic_vector(7 downto 0);
+  c : std_ulogic_vector(LENGTH -1 downto 0)
+);
+"
+`;
+
 exports[`Testing entityConverter Testing entity converter for with different configurations: type instance overwrite {"style":{"genericPrefix":"genericPrefix_"}} 1`] = `
 "test_entity : entity work.test_entity
 generic map (

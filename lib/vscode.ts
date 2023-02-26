@@ -5,6 +5,7 @@ import {
   ServerOptions,
   TransportKind
 } from 'vscode-languageclient/node';
+import { converterTypes } from './entityConverter';
 import { IAddSignalCommandArguments } from './vhdlLinter';
 
 
@@ -77,7 +78,7 @@ export async function activate(context: ExtensionContext) {
 
   }));
 
-  async function getTemplate(type: 'instance' | 'signals' | 'sysverilog') {
+  async function getTemplate(type: converterTypes) {
     const editor = window.activeTextEditor;
     if (!editor) {
       return undefined;
@@ -109,6 +110,13 @@ export async function activate(context: ExtensionContext) {
     if (text) {
       await env.clipboard.writeText(text);
       await window.showInformationMessage(`Instance copied to the clipboard as system verilog`);
+    }
+  }));
+  context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-as-component', async () => {
+    const text = await getTemplate('component');
+    if (text) {
+      await env.clipboard.writeText(text);
+      await window.showInformationMessage(`Component copied to the clipboard`);
     }
   }));
 

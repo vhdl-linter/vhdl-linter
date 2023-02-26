@@ -48,6 +48,11 @@
 				"when": "editorLangId == vhdl"
 			},
 			{
+				"key": "ctrl+shift+g ctrl+shift+c",
+				"command": "vhdl-linter:copy-as-component",
+				"when": "editorLangId == vhdl"
+			},
+			{
 				"key": "ctrl+shift+i",
 				"command": "vhdl-linter:copy-as-instance",
 				"when": "editorLangId == vhdl"
@@ -71,6 +76,10 @@
 				{
 					"command": "vhdl-linter:copy-as-signals",
 					"when": "editorLangId == vhdl"
+				},
+				{
+					"command": "vhdl-linter:copy-as-component",
+					"when": "editorLangId == vhdl"
 				}
 			]
 		},
@@ -86,6 +95,10 @@
 			{
 				"command": "vhdl-linter:copy-as-signals",
 				"title": "Copy as Signals"
+			},
+			{
+				"command": "vhdl-linter:copy-as-component",
+				"title": "Copy as Component"
 			}
 		],
 		"configuration": {
