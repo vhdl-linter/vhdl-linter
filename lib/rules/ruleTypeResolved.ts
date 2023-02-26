@@ -1,5 +1,5 @@
 import { CodeAction, CodeActionKind, DiagnosticSeverity, TextEdit } from "vscode-languageserver";
-import { implementsIHasDeclarations, implementsIHasPorts } from "../parser/interfaces";
+import { implementsIHasDeclarations } from "../parser/interfaces";
 import * as O from "../parser/objects";
 import { IRule, RuleBase } from "./rulesBase";
 
