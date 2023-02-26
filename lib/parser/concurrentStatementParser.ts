@@ -21,7 +21,7 @@ export class ConcurrentStatementParser extends ParserBase {
     this.debug('start');
   }
   parse(allowedStatements: ConcurrentStatementTypes[], previousStatementBody?: OStatementBody, returnOnWhen = false) {
-    let nextToken = this. getToken();
+    let nextToken = this.getToken();
 
     let label: OLexerToken | undefined;
     const savedI = this.state.pos.i;
