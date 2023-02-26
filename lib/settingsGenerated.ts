@@ -17,6 +17,7 @@ export interface ISettings {
     'constant-write': boolean;
     'parser': boolean;
     'unit': boolean;
+    'not-allowed': boolean;
   };
   'style': {
     'preferredLogicTypePort': 'unresolved'|'resolved'|'ignore';
@@ -54,6 +55,7 @@ export const defaultSettings: ISettings = {
     'constant-write': true,
     'parser': true,
     'unit': true,
+    'not-allowed': true,
   },
   'style': {
     'preferredLogicTypePort': 'unresolved',

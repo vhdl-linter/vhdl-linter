@@ -25,7 +25,7 @@ test('Missing semicolon handling', async () => {
 
   linter = new VhdlLinter(mockPath as URL, readFileSyncNorm(url, { encoding: 'utf8' }), projectParser, defaultSettingsGetter);
   messages = await linter.checkAll();
-  expect(messages).toHaveLength(8);
+  expect(messages).toHaveLength(7);
   expect(messages).toEqual(expect.not.arrayContaining([
     expect.not.objectContaining({
       message: expect.stringMatching(/Unexpected \w+ in object declaration. Assuming forgotten ';' \(parser\)/)

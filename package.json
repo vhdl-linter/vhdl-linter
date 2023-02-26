@@ -187,6 +187,12 @@
 					"description": "Enable the rule to check if a space is before a unit reference",
 					"default": true
 				},
+				"VhdlLinter.rules.not-allowed": {
+					"scope": "window",
+					"type": "boolean",
+					"description": "Enable the rule to check if declarations are allowed where they are used.",
+					"default": true
+				},
 				"VhdlLinter.style.preferredLogicTypePort": {
 					"scope": "window",
 					"type": "string",
