@@ -1,6 +1,7 @@
 import { AliasParser } from './aliasParser';
 import { AttributeParser } from './attributeParser';
 import { ComponentParser } from './componentParser';
+import { ConfigurationSpecificationParser } from './configurationSpecificationParser';
 import { IHasDeclarations, IHasUseClauses, implementsIHasUseClause } from './interfaces';
 import { ObjectDeclarationParser } from './objectDeclarationParser';
 import { OAttributeDeclaration, ObjectBase, OI } from './objects';

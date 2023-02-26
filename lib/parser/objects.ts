@@ -845,13 +845,14 @@ export class OConfigurationDeclaration extends ObjectBase implements I.IHasLibra
   contextReferences: OContextReference[] = [];
 }
 export class OConfigurationSpecification extends ObjectBase {
-
+  lexerToken: undefined;
 }
 export class OAttributeSpecification extends ObjectBase implements I.IHasReferenceToken, I.IHasDefinitions {
   referenceToken: OLexerToken;
   definitions: OAttributeDeclaration[] = [];
   references: OReference[] = [];
   entityClass: OLexerToken;
+  lexerToken: undefined;
 }
 export class OAttributeDeclaration extends ObjectBase implements I.IHasLexerToken, I.IHasReferenceLinks {
   lexerToken: OLexerToken;

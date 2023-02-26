@@ -19,7 +19,7 @@ export class RuleNotDeclared extends RuleBase implements IRule {
     const pos = root.range.start;
     for (const pkg of this.vhdlLinter.projectParser.packages) {
       for (const type of pkg.declarations) {
-        if (implementsIHasLexerToken(type) && type.lexerToken.getLText() === ref.referenceToken.getLText()) {
+        if (I.implementsIHasLexerToken(type) && type.lexerToken.getLText() === ref.referenceToken.getLText()) {
           let library = pkg.targetLibrary ? pkg.targetLibrary : 'work';
           let pkgName = pkg.lexerToken.text;
           if (library === 'work' && pkg.rootFile.uri.pathname.match(/ieee/i)) {

@@ -210,7 +210,7 @@ export class ElaborateReferences {
       } else {
         // for protected types (not protected bodies) search subprograms and attributes
         for (const child of typeDefinition.declarations) {
-          if (child.lexerToken?.getLText() === selectedName.referenceToken.getLText()) {
+          if (child.lexerToken !== undefined && child.lexerToken.getLText() === selectedName.referenceToken.getLText()) {
             this.link(selectedName, child);
             found = true;
           }
@@ -261,7 +261,7 @@ export class ElaborateReferences {
     packages.push(...pkgInstantiations.flatMap(inst => inst.uninstantiatedPackage[inst.uninstantiatedPackage.length - 1]!.definitions).filter(ref => ref instanceof O.OPackage) as O.OPackage[]);
     for (const pkg of packages) {
       for (const decl of pkg.declarations) {
-        if (decl.lexerToken?.getLText() === reference.referenceToken.getLText()) {
+        if (decl.lexerToken !== undefined && decl.lexerToken.getLText() === reference.referenceToken.getLText()) {
           this.link(reference, decl);
         }
         if (decl instanceof O.OEnum) {
