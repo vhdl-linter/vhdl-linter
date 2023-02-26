@@ -8,7 +8,7 @@ export class RuleNotAllowed extends RuleBase implements IRule {
   file: O.OFile;
 
   pushNotAllowed(parent: O.ObjectBase, text: string, declaration: O.ODeclaration) {
-        let name: string = (Object.getPrototypeOf(parent) as O.ObjectBase).constructor.name.slice(1) ?? 'here';
+    let name: string = (Object.getPrototypeOf(parent) as O.ObjectBase).constructor.name.slice(1) ?? 'here';
     if (parent instanceof O.OType && parent.protected) {
       name = 'protected type';
     } else if (parent instanceof O.OType && parent.protectedBody) {
@@ -32,35 +32,37 @@ export class RuleNotAllowed extends RuleBase implements IRule {
               this.pushNotAllowed(obj, 'signal declaration', declaration);
             }
           } else if (declaration instanceof O.OConstant) {
-            if (obj instanceof O.OType && obj.protected ) {
+            if (obj instanceof O.OType && obj.protected) {
               this.pushNotAllowed(obj, 'constant declaration', declaration);
             }
             if (obj instanceof O.OConfigurationDeclaration) {
               this.pushNotAllowed(obj, 'constant declaration', declaration);
             }
           } else if (declaration instanceof O.OVariable) {
-            if (obj instanceof O.OType && obj.protected) {
-              this.pushNotAllowed(obj, '(shared) variable declaration', declaration);
-            }
-            if (obj instanceof O.OConfigurationDeclaration) {
-              this.pushNotAllowed(obj, '(shared) variable declaration', declaration);
-            }
-            if (!declaration.shared && (obj instanceof O.OEntity || obj instanceof O.OArchitecture)) {
-              this.pushNotAllowed(obj, 'variable declaration', declaration);
-            }
-            if (declaration.shared && (obj instanceof O.OProcess || obj instanceof O.OSubprogram)) {
-              this.pushNotAllowed(obj, 'shared variable declaration', declaration);
-            }
-            if (declaration.shared && obj instanceof O.OType && obj.protectedBody) {
-              this.pushNotAllowed(obj, 'shared variable declaration', declaration);
+            if (declaration.shared) {
+              if (obj instanceof O.OProcess
+                || obj instanceof O.OSubprogram
+                || (obj instanceof O.OType && obj.protectedBody)
+                || (obj instanceof O.OType && obj.protected)
+                || (obj instanceof O.OConfigurationDeclaration)) {
+                this.pushNotAllowed(obj, 'shared variable declaration', declaration);
+              }
+
+            } else {
+              if (obj instanceof O.OType && obj.protected
+                || obj instanceof O.OConfigurationDeclaration
+                || obj instanceof O.OEntity
+                || obj instanceof O.OArchitecture) {
+                this.pushNotAllowed(obj, 'variable declaration', declaration);
+              }
             }
           } else if (declaration instanceof O.OAttributeDeclaration) {
-            if (obj instanceof O.OType && obj.protected) {
+            if ((obj instanceof O.OType && obj.protected)
+              || obj instanceof O.OConfigurationDeclaration
+            ) {
               this.pushNotAllowed(obj, 'attribute declaration', declaration);
             }
-            if (obj instanceof O.OConfigurationDeclaration) {
-              this.pushNotAllowed(obj, 'attribute declaration', declaration);
-            }
+
           } else if (declaration instanceof O.OType) {
             if (obj instanceof O.OType && obj.protected) {
               this.pushNotAllowed(obj, 'type declaration', declaration);
@@ -76,10 +78,8 @@ export class RuleNotAllowed extends RuleBase implements IRule {
               this.pushNotAllowed(obj, 'subtype declaration', declaration);
             }
           } else if (declaration instanceof O.OAlias) {
-            if (obj instanceof O.OType && obj.protected) {
-              this.pushNotAllowed(obj, 'alias declaration', declaration);
-            }
-            if (obj instanceof O.OConfigurationDeclaration) {
+            if (obj instanceof O.OType && obj.protected
+              || obj instanceof O.OConfigurationDeclaration) {
               this.pushNotAllowed(obj, 'alias declaration', declaration);
             }
           } else if (declaration instanceof O.OPackageInstantiation) {
@@ -99,8 +99,14 @@ export class RuleNotAllowed extends RuleBase implements IRule {
               this.pushNotAllowed(obj, 'component declaration', declaration);
             }
           } else if (declaration instanceof O.OSubprogram && declaration.hasBody) {
-            if (obj instanceof O.OPackage || obj instanceof O.OConfigurationDeclaration || (obj instanceof O.OType && obj.protected)) {
+            if (obj instanceof O.OPackage
+              || obj instanceof O.OConfigurationDeclaration
+              || (obj instanceof O.OType && obj.protected)) {
               this.pushNotAllowed(obj, 'subprogram body', declaration);
+            }
+          } else if (declaration instanceof O.OSubprogram) {
+            if (obj instanceof O.OConfigurationDeclaration) {
+              this.pushNotAllowed(obj, 'subprogram', declaration);
             }
           } else if (declaration instanceof O.OFileVariable) {
             if (obj instanceof O.OType && obj.protected) {

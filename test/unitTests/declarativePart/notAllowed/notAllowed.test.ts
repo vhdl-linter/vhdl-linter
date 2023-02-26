@@ -32,7 +32,12 @@ const possibleDeclarations = {
   'alias_declaration': 'alias std_bit is std.standard.bit;',
   'component_declaration': 'component xyz end component;',
   'attribute_declaration': 'attribute attr: string;',
-  'attribute_specification': 'procedure p; attribute attr of p: procedure is "stuff";',
+  'attribute_specification': (filename: string) => {
+    if (filename === 'configuration_declaration.vhd') {
+      return 'attribute attr of conf: configuration is "stuff";  -- vhdl-linter-disable-line not-declared\n';
+    }
+    return 'procedure p; attribute attr of p: procedure is "stuff";';
+  },
   'configuration_specification': 'for component_specification ;',
   // 'disconnection_specification': '',
   // 'group_template_declaration': '',
@@ -215,14 +220,14 @@ const tests: {
         // 'group_declaration',
       ]
     },
-    // { // TODO: use declarative part parse for configurations
-    //   file: 'configuration.vhd',
-    //   allowed: [
-    //     'use_clause',
-    //     'attribute_specification',
-    //     // 'group_declaration'
-    //   ]
-    // },
+    {
+      file: 'configuration_declaration.vhd',
+      allowed: [
+        'use_clause',
+        'attribute_specification',
+        // 'group_declaration'
+      ]
+    },
   ];
 
 test.each(
@@ -237,7 +242,9 @@ test.each(
   const path = join(__dirname, file);
   const uri = pathToFileURL(path);
   const originalText = readFileSyncNorm(uri, { encoding: 'utf8' });
-  const actualText = originalText.replace('!declaration', possibleDeclarations[declaration]);
+  const declarationEntry = possibleDeclarations[declaration];
+  const declarationCode = typeof declarationEntry === 'function' ? declarationEntry(file) : declarationEntry;
+  const actualText = originalText.replace('!declaration', declarationCode);
   const linter = new VhdlLinter(uri, actualText, projectParser, defaultSettingsWithOverwrite({
     rules: {
       unused: false

@@ -212,7 +212,17 @@ export class FileParser extends ParserBase {
         libraries = defaultLibrary.slice(0);
         useClausesPrepare = [];
       } else if (nextToken.getLText() === 'configuration') {
-        this.file.configurations.push(new ConfigurationDeclarationParser(this.state, this.file).parse());
+        const configuration = new ConfigurationDeclarationParser(this.state, this.file).parse();
+        this.file.configurations.push(configuration);
+        configuration.useClauses.push(...getUseClauses(configuration));
+        configuration.libraries.push(...libraries.map(library => new OLibrary(configuration, library)));
+        configuration.contextReferences = contextReferences;
+        for (const contextReference of contextReferences) {
+          contextReference.parent = configuration;
+        }
+        contextReferences = [];
+        libraries = defaultLibrary.slice(0);
+        useClausesPrepare = [];
       } else {
         throw new ParserError(`Unexpected token ${nextToken.text}`, this.getToken().range);
       }

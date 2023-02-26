@@ -834,7 +834,8 @@ export class OAliasWithSignature extends OAlias implements I.IHasLexerToken {
   return: OReference;
 }
 
-export class OConfigurationDeclaration extends ObjectBase implements I.IHasLibraries, I.IHasDefinitions, I.IHasReferenceLinks {
+export class OConfigurationDeclaration extends ObjectBase implements I.IHasLibraries, I.IHasDefinitions, I.IHasReferenceLinks,
+  I.IHasDeclarations, I.IHasUseClauses, I.IHasContextReference {
   lexerToken: OLexerToken;
   targetLibrary?: string;
   entityName: OLexerToken;
@@ -842,7 +843,10 @@ export class OConfigurationDeclaration extends ObjectBase implements I.IHasLibra
   definitions: OEntity[] = [];
   referenceLinks: OInstantiation[] = [];
   aliasReferences: OAlias[] = [];
-
+  declarations: ODeclaration[] = [];
+  useClauses: OUseClause[] = [];
+  packageDefinitions: OPackage[] = [];
+  contextReferences: OContextReference[] = [];
 }
 export class OConfigurationSpecification extends ObjectBase {
 
