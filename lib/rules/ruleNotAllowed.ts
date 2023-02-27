@@ -7,7 +7,7 @@ export class RuleNotAllowed extends RuleBase implements IRule {
   public static readonly ruleName = 'not-allowed';
   file: O.OFile;
 
-  pushNotAllowed(parent: O.ObjectBase, text: string, declaration: O.ODeclaration) {
+  pushNotAllowed(parent: O.ObjectBase, text: string, declaration: O.ObjectBase) {
     let name: string = (Object.getPrototypeOf(parent) as O.ObjectBase).constructor.name.slice(1) ?? 'here';
     if (parent instanceof O.OType && parent.protected) {
       name = 'protected type';
@@ -169,20 +169,20 @@ export class RuleNotAllowed extends RuleBase implements IRule {
     for (const obj of this.file.objectList) {
       if (obj.parent instanceof O.OEntity) {
         if (obj instanceof O.OBlock) {
-          this.pushNotAllowed(obj.parent, 'block statement');
+          this.pushNotAllowed(obj.parent, 'block statement', obj);
 
         }
         if (obj instanceof O.OIfGenerate) {
-          this.pushNotAllowed(obj.parent, 'if generate statement');
+          this.pushNotAllowed(obj.parent, 'if generate statement', obj);
         }
         if (obj instanceof O.OForGenerate) {
-          this.pushNotAllowed(obj.parent, 'for generate statement');
+          this.pushNotAllowed(obj.parent, 'for generate statement', obj);
         }
         if (obj instanceof O.OCaseGenerate) {
-          this.pushNotAllowed(obj.parent, 'case generate statement');
+          this.pushNotAllowed(obj.parent, 'case generate statement', obj);
         }
         if (obj instanceof O.OAssignment) {
-          this.pushNotAllowed(obj.parent, 'assignment statement');
+          this.pushNotAllowed(obj.parent, 'assignment statement', obj);
         }
         if (obj instanceof O.OInstantiation && obj.definitions.find(definition => definition instanceof O.OSubprogram) === undefined) {
           this.addMessage({
