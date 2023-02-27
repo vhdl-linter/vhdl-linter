@@ -154,7 +154,10 @@ export class DocumentSymbols {
     throw new Error('Other statement bodies not implemented.');
   }
   getClause(clause: OWhenClause): DocumentSymbol {
-    const name = clause.whenTokens.filter(token => !token.isWhitespace()).join('');
+    let name = clause.condition.map(read => read.referenceToken.text).join('|');
+    if (name === '') {
+      name = 'others'; // TODO: the condition of a when clause can also be a literal...
+    }
     return {
       name,
       detail: 'when clause',
