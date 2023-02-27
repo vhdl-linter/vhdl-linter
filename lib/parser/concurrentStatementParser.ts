@@ -185,7 +185,6 @@ export class ConcurrentStatementParser extends ParserBase {
     } else if (nextToken.getLText() === 'with') {
       this.expect('with');
       const [expressionTokens] = this.advanceParenthesisAware(['select'], true, true);
-      this.maybe('?');
       const assignmentParser = new AssignmentParser(this.state, this.parent);
       const assignment = assignmentParser.parse('concurrent');
       const references = new ExpressionParser(this.state, assignment, expressionTokens).parse();

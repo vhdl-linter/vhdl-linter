@@ -1,7 +1,7 @@
 import { Position } from "vscode-languageserver";
 import { OLexerToken } from "../lexer";
 import { implementsIHasEndingLexerToken, implementsIHasLexerToken } from "../parser/interfaces";
-import { OArchitecture, OAssociation, ObjectBase, OComponent, OConfiguration, OInstantiation, OReference } from "../parser/objects";
+import { OArchitecture, OAssociation, ObjectBase, OComponent, OConfigurationDeclaration, OInstantiation, OReference } from "../parser/objects";
 import { VhdlLinter } from "../vhdlLinter";
 import { SetAdd } from "./findReferencesHandler";
 
@@ -47,7 +47,7 @@ export function findObjectByDesignator(linter: VhdlLinter, token: OLexerToken): 
     if (obj instanceof OArchitecture && obj.entityName === token) {
       foundObjects.add(obj);
     }
-    if (obj instanceof OConfiguration && obj.entityName === token) {
+    if (obj instanceof OConfigurationDeclaration && obj.entityName === token) {
       foundObjects.add(obj);
     }
   }

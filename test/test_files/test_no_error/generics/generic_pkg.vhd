@@ -8,6 +8,11 @@ package generic_pkg is
     );
 
   type t_testData is record
-    element: std_ulogic_vector(generic_parameter - 1 downto 0);
+    element : std_ulogic_vector(generic_parameter - 1 downto 0);
   end record t_testData;
+end package;
+
+package test_pkg is
+  package identifier is new work.generic_pkg;
+
 end package;

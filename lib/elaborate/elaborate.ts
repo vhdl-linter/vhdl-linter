@@ -1,5 +1,5 @@
 import { DiagnosticSeverity } from "vscode-languageserver/node";
-import { implementsIHasDefinitions, implementsIHasReference } from "../parser/interfaces";
+import { implementsIHasDefinitions, implementsIHasReferenceLinks } from "../parser/interfaces";
 import { OArchitecture, OEntity, OFile, OPackage, OPackageBody } from "../parser/objects";
 import { VhdlLinter } from "../vhdlLinter";
 import { elaborateAliases } from "./elaborateAliases";
@@ -22,7 +22,7 @@ export class Elaborate {
   }
   public static clear(vhdlLinter: VhdlLinter) {
     for (const obj of vhdlLinter.file.objectList) {
-      if (implementsIHasReference(obj)) {
+      if (implementsIHasReferenceLinks(obj)) {
         obj.referenceLinks = [];
         obj.aliasReferences = [];
       }

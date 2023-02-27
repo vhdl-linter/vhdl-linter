@@ -73,7 +73,7 @@ export interface IHasReferenceLinks {
   referenceLinks: O.OReference[];
   aliasReferences: O.OAlias[];
 }
-export function implementsIHasReference(obj: O.ObjectBase): obj is O.ObjectBase & IHasReferenceLinks {
+export function implementsIHasReferenceLinks(obj: O.ObjectBase): obj is O.ObjectBase & IHasReferenceLinks {
   return (obj as O.ObjectBase & Partial<IHasReferenceLinks>).referenceLinks !== undefined
     && (obj as O.ObjectBase & Partial<IHasReferenceLinks>).aliasReferences !== undefined;
 }

@@ -1,7 +1,7 @@
 import { ConcurrentStatementParser } from './concurrentStatementParser';
 import { DeclarativePartParser } from './declarativePartParser';
 import { InterfaceListParser } from './interfaceListParser';
-import { OArchitecture, OEntity, OFile, ParserError } from './objects';
+import { OEntity, OFile, ParserError } from './objects';
 import { ParserBase, ParserState } from './parserBase';
 
 export class EntityParser extends ParserBase {
@@ -13,11 +13,7 @@ export class EntityParser extends ParserBase {
   }
   parse(): OEntity {
     this.entity.lexerToken = this.consumeIdentifier();
-    if (this.parent instanceof OArchitecture) {
-      this.maybe('is');
-    } else {
-      this.expect('is');
-    }
+    this.expect('is');
 
     let lastI;
     while (this.state.pos.isValid()) {
