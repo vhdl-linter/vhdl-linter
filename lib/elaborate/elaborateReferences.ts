@@ -14,9 +14,15 @@ export class ElaborateReferences {
   private constructor(public vhdlLinter: VhdlLinter) {
     this.file = vhdlLinter.file;
   }
-  public static elaborate(vhdlLinter: VhdlLinter) {
+  public static async elaborate(vhdlLinter: VhdlLinter) {
     const elaborator = new ElaborateReferences(vhdlLinter);
+    let lastCancelTime = Date.now();
     for (const obj of vhdlLinter.file.objectList) {
+      const now = Date.now();
+      if (now - lastCancelTime >= 10) {
+        await vhdlLinter.handleCanceled();
+        lastCancelTime = now;
+      }
       if (I.implementsIHasUseClause(obj)) {
         elaborator.elaborateUseClauses(obj, elaborator.getUseClauses(obj));
       } else if (obj instanceof O.OReference) {
