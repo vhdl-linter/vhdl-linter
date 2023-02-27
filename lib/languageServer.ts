@@ -166,12 +166,12 @@ export const initialization = new Promise<void>(resolve => {
         // Revalidate all *other* files. (The file itself gets directly handled.)
         for (const document of documents.all()) {
           if (normalizeUri(document.uri) !== uri) {
-            void validateTextDocument(document, true);
+            validateTextDocumentDebounce(document, true);
           }
         }
       });
       documents.onDidChangeContent(change => {
-        void validateTextDocument(change.document);
+        validateTextDocumentDebounce(change.document);
       });
       progress.done();
       resolve();
@@ -189,6 +189,13 @@ documents.onDidClose(async change => {
 const linterManager = new LinterManager();
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
+const timeoutMap = new Map<string, NodeJS.Timeout>();
+function validateTextDocumentDebounce(textDocument: TextDocument, fromProjectParser = false) {
+  clearTimeout(timeoutMap.get(textDocument.uri));
+  timeoutMap.set(textDocument.uri, setTimeout(() => {
+    void validateTextDocument(textDocument, fromProjectParser);
+  }, 100));
+}
 async function validateTextDocument(textDocument: TextDocument, fromProjectParser = false) {
   console.log('validating', basename(pathToFileURL(textDocument.uri).pathname));
   try {
@@ -335,7 +342,7 @@ connection.onRequest('vhdl-linter/template', async (params: { textDocument: { ur
   const settings = await getDocumentSettings(new URL(params.textDocument.uri));
   return entityConverter(linter, params.type, settings, params.position);
 });
-  documents.listen(connection);
+documents.listen(connection);
 
-  // Listen on the connection
-  connection.listen();
+// Listen on the connection
+connection.listen();
