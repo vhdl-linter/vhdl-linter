@@ -611,7 +611,7 @@ export class OEntity extends ObjectBase implements I.IHasDefinitions, I.IHasDecl
   ports: OPort[] = [];
   genericRange?: OIRange;
   generics: OGeneric[] = [];
-  statements: (OProcess | OAssignment | OAssertion)[] = [];
+  statements: OConcurrentStatements[] = [];
   statementsRange: OIRange;
   definitions: OEntity[] = [];
   correspondingArchitectures: OArchitecture[] = [];

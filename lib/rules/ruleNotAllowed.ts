@@ -23,6 +23,7 @@ export class RuleNotAllowed extends RuleBase implements IRule {
   check() {
     this.checkDeclarativePart();
     this.checkPostponed();
+    this.checkConcurrentStatement();
 
   }
   checkDeclarativePart() {
@@ -129,12 +130,42 @@ export class RuleNotAllowed extends RuleBase implements IRule {
             severity: DiagnosticSeverity.Error
           });
         }
-        if (obj instanceof O.OInstantiation && obj.definitions.find(definition => definition instanceof O.OSubprogram ) === undefined) {
+        if (obj instanceof O.OInstantiation && obj.definitions.find(definition => definition instanceof O.OSubprogram) === undefined) {
           this.addMessage({
             message: `postponed instantiations only allowed for (concurrent) procedure instantiations`,
             range: obj.range,
             severity: DiagnosticSeverity.Error
           });
+        }
+      }
+    }
+  }
+  checkConcurrentStatement() {
+    for (const obj of this.file.objectList) {
+      if (obj.parent instanceof O.OEntity) {
+        if (obj instanceof O.OBlock) {
+          this.pushNotAllowed(obj.parent, 'block statement');
+
+        }
+        if (obj instanceof O.OIfGenerate) {
+          this.pushNotAllowed(obj.parent, 'if generate statement');
+        }
+        if (obj instanceof O.OForGenerate) {
+          this.pushNotAllowed(obj.parent, 'for generate statement');
+        }
+        if (obj instanceof O.OCaseGenerate) {
+          this.pushNotAllowed(obj.parent, 'case generate statement');
+        }
+        if (obj instanceof O.OAssignment) {
+          this.pushNotAllowed(obj.parent, 'assignment statement');
+        }
+        if (obj instanceof O.OInstantiation && obj.definitions.find(definition => definition instanceof O.OSubprogram) === undefined) {
+          this.addMessage({
+            message: `instantiation is not allowed in entity (except for passive concurrent procedure call statement)`,
+            range: obj.range,
+            severity: DiagnosticSeverity.Error
+          });
+
         }
       }
     }
