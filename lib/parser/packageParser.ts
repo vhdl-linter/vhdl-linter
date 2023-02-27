@@ -13,8 +13,7 @@ export class PackageParser extends ParserBase {
   parsePackage(parent: OFile | ObjectBase): OPackage {
     // package and the identifier have already been consumed. -2 to get the beginning of the package again
     const pkg = new OPackage(parent, this.getToken(-1, true).range);
-    const match = this.state.pos.file.originalText.match(/!\s*@library\s+(\S+)/i);
-    pkg.targetLibrary = match ? match[1] : undefined;
+    pkg.targetLibrary = this.getTargetLibrary();
 
     pkg.lexerToken = this.consumeIdentifier();
     this.expect('is');
