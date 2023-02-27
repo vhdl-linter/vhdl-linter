@@ -19,7 +19,7 @@ export class ElaborateReferences {
     let lastCancelTime = Date.now();
     for (const obj of vhdlLinter.file.objectList) {
       const now = Date.now();
-      if (now - lastCancelTime >= 1) {
+      if (now - lastCancelTime >= 10) {
         await vhdlLinter.handleCanceled();
         lastCancelTime = now;
       }
