@@ -10,6 +10,7 @@ export class PackageInstantiationParser extends ParserBase {
   }
   parse(): OPackageInstantiation {
     const inst = new OPackageInstantiation(this.parent, this.state.pos.getRangeToEndLine());
+    inst.targetLibrary = this.getTargetLibrary();
     inst.lexerToken = this.consumeToken();
     this.expect('is');
     this.expect('new');

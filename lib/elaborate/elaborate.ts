@@ -89,7 +89,7 @@ export class Elaborate {
     }
 
     await this.vhdlLinter.handleCanceled();
-    ElaborateReferences.elaborate(this.vhdlLinter);
+    await ElaborateReferences.elaborate(this.vhdlLinter);
     await this.vhdlLinter.handleCanceled();
     elaborateComponents(this.file, this.vhdlLinter.projectParser);
     await this.vhdlLinter.handleCanceled();

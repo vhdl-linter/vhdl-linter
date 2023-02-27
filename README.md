@@ -32,3 +32,11 @@ Fold regions according to the file content:
 - useclauses (incl. library)
 - interface lists
 - special blocks like instantiations, association lists, case (generate), types (record and protected)
+
+## Entity Converter
+Automatically convert entities to a commonly used template:
+- instantiation
+- component
+- SystemVerilog instantiation
+- ports to signals
+![entityConverter](./doc/entityConverter.gif)

@@ -112,7 +112,6 @@ export class ProjectParser {
       this.cachedFiles.push(cachedFile);
     }
     this.cachedFiles.sort((a, b) => b.lintingTime - a.lintingTime);
-    // console.log('Times: \n' + this.cachedFiles.slice(0, 10).map(file => `${file.path}: ${file.lintingTime}ms`).join('\n'));
     this.flattenProject();
     if (!disableWatching) {
       this.addFolders(this.workspaces);
@@ -146,11 +145,12 @@ export class ProjectParser {
     return files;
   }
   flattenProject() {
+    this.entities = [];
+    this.architectures = [];
+    this.configurations = [];
     this.packages = [];
     this.packageInstantiations = [];
-    this.entities = [];
-    this.configurations = [];
-    this.architectures = [];
+    this.contexts = [];
     for (const cachedFile of this.cachedFiles) {
       this.entities.push(...cachedFile.linter.file.entities);
       this.architectures.push(...cachedFile.linter.file.architectures);

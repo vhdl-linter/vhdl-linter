@@ -127,7 +127,6 @@ export async function handleDocumentFormatting(params: DocumentFormattingParams,
   let newText = await promises.readFile(tmpFile, { encoding: 'utf8' });
   if (params.options.insertSpaces === false) {
     const re = /^( +)/gm;
-    console.log(re);
     newText = newText.replaceAll(re,
       match => '\t'.repeat(Math.ceil(match.length / numSpaces))
     );
