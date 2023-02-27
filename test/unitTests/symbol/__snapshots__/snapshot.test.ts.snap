@@ -2787,363 +2787,6 @@ exports[`Testing workspace symbol 1`] = `
     "location": {
       "range": {
         "end": {
-          "character": 16,
-          "line": 52,
-        },
-        "start": {
-          "character": 4,
-          "line": 47,
-        },
-      },
-      "uri": "file:///c/dummy//test_protected.vhd",
-    },
-    "name": "GetCrc",
-  },
-  {
-    "kind": 19,
-    "location": {
-      "range": {
-        "end": {
-          "character": 17,
-          "line": 45,
-        },
-        "start": {
-          "character": 4,
-          "line": 34,
-        },
-      },
-      "uri": "file:///c/dummy//test_protected.vhd",
-    },
-    "name": "Input",
-  },
-  {
-    "kind": 19,
-    "location": {
-      "range": {
-        "end": {
-          "character": 17,
-          "line": 32,
-        },
-        "start": {
-          "character": 4,
-          "line": 29,
-        },
-      },
-      "uri": "file:///c/dummy//test_protected.vhd",
-    },
-    "name": "Init",
-  },
-  {
-    "kind": 19,
-    "location": {
-      "range": {
-        "end": {
-          "character": 16,
-          "line": 54,
-        },
-        "start": {
-          "character": 2,
-          "line": 25,
-        },
-      },
-      "uri": "file:///c/dummy//test_protected.vhd",
-    },
-    "name": "CrcCalculator",
-  },
-  {
-    "kind": 19,
-    "location": {
-      "range": {
-        "end": {
-          "character": 14,
-          "line": 22,
-        },
-        "start": {
-          "character": 2,
-          "line": 15,
-        },
-      },
-      "uri": "file:///c/dummy//test_protected.vhd",
-    },
-    "name": "reflect",
-  },
-  {
-    "kind": 19,
-    "location": {
-      "range": {
-        "end": {
-          "character": 13,
-          "line": 30,
-        },
-        "start": {
-          "character": 2,
-          "line": 13,
-        },
-      },
-      "uri": "file:///c/dummy//test_stateMachineCase.vhd",
-    },
-    "name": "p_reg",
-  },
-  {
-    "kind": 19,
-    "location": {
-      "range": {
-        "end": {
-          "character": 13,
-          "line": 24,
-        },
-        "start": {
-          "character": 2,
-          "line": 12,
-        },
-      },
-      "uri": "file:///c/dummy//test_stateMachine.vhd",
-    },
-    "name": "p_reg",
-  },
-  {
-    "kind": 19,
-    "location": {
-      "range": {
-        "end": {
-          "character": 13,
-          "line": 27,
-        },
-        "start": {
-          "character": 2,
-          "line": 12,
-        },
-      },
-      "uri": "file:///c/dummy//test_stateMachineElse.vhd",
-    },
-    "name": "p_reg",
-  },
-  {
-    "kind": 19,
-    "location": {
-      "range": {
-        "end": {
-          "character": 13,
-          "line": 27,
-        },
-        "start": {
-          "character": 2,
-          "line": 12,
-        },
-      },
-      "uri": "file:///c/dummy//test_stateMachineElsif.vhd",
-    },
-    "name": "p_reg",
-  },
-  {
-    "kind": 19,
-    "location": {
-      "range": {
-        "end": {
-          "character": 13,
-          "line": 26,
-        },
-        "start": {
-          "character": 2,
-          "line": 12,
-        },
-      },
-      "uri": "file:///c/dummy//test_stateMachineFor.vhd",
-    },
-    "name": "p_reg",
-  },
-  {
-    "kind": 19,
-    "location": {
-      "range": {
-        "end": {
-          "character": 13,
-          "line": 26,
-        },
-        "start": {
-          "character": 2,
-          "line": 12,
-        },
-      },
-      "uri": "file:///c/dummy//test_stateMachineIf.vhd",
-    },
-    "name": "p_reg",
-  },
-  {
-    "kind": 19,
-    "location": {
-      "range": {
-        "end": {
-          "character": 14,
-          "line": 12,
-        },
-        "start": {
-          "character": 2,
-          "line": 9,
-        },
-      },
-      "uri": "file:///c/dummy//test_subprogram.vhd",
-    },
-    "name": "func",
-  },
-  {
-    "kind": 19,
-    "location": {
-      "range": {
-        "end": {
-          "character": 51,
-          "line": 8,
-        },
-        "start": {
-          "character": 4,
-          "line": 8,
-        },
-      },
-      "uri": "file:///c/dummy//test_protected.vhd",
-    },
-    "name": "GetCrc",
-  },
-  {
-    "kind": 19,
-    "location": {
-      "range": {
-        "end": {
-          "character": 55,
-          "line": 8,
-        },
-        "start": {
-          "character": 2,
-          "line": 8,
-        },
-      },
-      "uri": "file:///c/dummy//test_stateMachine.vhd",
-    },
-    "name": "t_state",
-  },
-  {
-    "kind": 19,
-    "location": {
-      "range": {
-        "end": {
-          "character": 55,
-          "line": 8,
-        },
-        "start": {
-          "character": 2,
-          "line": 8,
-        },
-      },
-      "uri": "file:///c/dummy//test_stateMachineCase.vhd",
-    },
-    "name": "t_state",
-  },
-  {
-    "kind": 19,
-    "location": {
-      "range": {
-        "end": {
-          "character": 55,
-          "line": 8,
-        },
-        "start": {
-          "character": 2,
-          "line": 8,
-        },
-      },
-      "uri": "file:///c/dummy//test_stateMachineElse.vhd",
-    },
-    "name": "t_state",
-  },
-  {
-    "kind": 19,
-    "location": {
-      "range": {
-        "end": {
-          "character": 55,
-          "line": 8,
-        },
-        "start": {
-          "character": 2,
-          "line": 8,
-        },
-      },
-      "uri": "file:///c/dummy//test_stateMachineElsif.vhd",
-    },
-    "name": "t_state",
-  },
-  {
-    "kind": 19,
-    "location": {
-      "range": {
-        "end": {
-          "character": 55,
-          "line": 8,
-        },
-        "start": {
-          "character": 2,
-          "line": 8,
-        },
-      },
-      "uri": "file:///c/dummy//test_stateMachineFor.vhd",
-    },
-    "name": "t_state",
-  },
-  {
-    "kind": 19,
-    "location": {
-      "range": {
-        "end": {
-          "character": 55,
-          "line": 8,
-        },
-        "start": {
-          "character": 2,
-          "line": 8,
-        },
-      },
-      "uri": "file:///c/dummy//test_stateMachineIf.vhd",
-    },
-    "name": "t_state",
-  },
-  {
-    "kind": 19,
-    "location": {
-      "range": {
-        "end": {
-          "character": 44,
-          "line": 7,
-        },
-        "start": {
-          "character": 4,
-          "line": 7,
-        },
-      },
-      "uri": "file:///c/dummy//test_protected.vhd",
-    },
-    "name": "Input",
-  },
-  {
-    "kind": 19,
-    "location": {
-      "range": {
-        "end": {
-          "character": 18,
-          "line": 6,
-        },
-        "start": {
-          "character": 4,
-          "line": 6,
-        },
-      },
-      "uri": "file:///c/dummy//test_protected.vhd",
-    },
-    "name": "Init",
-  },
-  {
-    "kind": 19,
-    "location": {
-      "range": {
-        "end": {
           "character": 12,
           "line": 7,
         },
@@ -3155,74 +2798,6 @@ exports[`Testing workspace symbol 1`] = `
       "uri": "file:///c/dummy//test_alias.vhd",
     },
     "name": "rec",
-  },
-  {
-    "kind": 19,
-    "location": {
-      "range": {
-        "end": {
-          "character": 15,
-          "line": 9,
-        },
-        "start": {
-          "character": 2,
-          "line": 5,
-        },
-      },
-      "uri": "file:///c/dummy//test_protected.vhd",
-    },
-    "name": "CrcCalculator",
-  },
-  {
-    "kind": 19,
-    "location": {
-      "range": {
-        "end": {
-          "character": 12,
-          "line": 7,
-        },
-        "start": {
-          "character": 2,
-          "line": 5,
-        },
-      },
-      "uri": "file:///c/dummy//test_record.vhd",
-    },
-    "name": "rec",
-  },
-  {
-    "kind": 19,
-    "location": {
-      "range": {
-        "end": {
-          "character": 30,
-          "line": 5,
-        },
-        "start": {
-          "character": 2,
-          "line": 5,
-        },
-      },
-      "uri": "file:///c/dummy//test_subprogram.vhd",
-    },
-    "name": "func",
-  },
-  {
-    "kind": 19,
-    "location": {
-      "range": {
-        "end": {
-          "character": 18,
-          "line": 8,
-        },
-        "start": {
-          "character": 2,
-          "line": 5,
-        },
-      },
-      "uri": "file:///c/dummy//test_subprogramInterface.vhd",
-    },
-    "name": "func",
   },
   {
     "kind": 19,
@@ -3365,6 +2940,159 @@ exports[`Testing workspace symbol 1`] = `
     "location": {
       "range": {
         "end": {
+          "character": 16,
+          "line": 52,
+        },
+        "start": {
+          "character": 4,
+          "line": 47,
+        },
+      },
+      "uri": "file:///c/dummy//test_protected.vhd",
+    },
+    "name": "GetCrc",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 17,
+          "line": 45,
+        },
+        "start": {
+          "character": 4,
+          "line": 34,
+        },
+      },
+      "uri": "file:///c/dummy//test_protected.vhd",
+    },
+    "name": "Input",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 17,
+          "line": 32,
+        },
+        "start": {
+          "character": 4,
+          "line": 29,
+        },
+      },
+      "uri": "file:///c/dummy//test_protected.vhd",
+    },
+    "name": "Init",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 16,
+          "line": 54,
+        },
+        "start": {
+          "character": 2,
+          "line": 25,
+        },
+      },
+      "uri": "file:///c/dummy//test_protected.vhd",
+    },
+    "name": "CrcCalculator",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 14,
+          "line": 22,
+        },
+        "start": {
+          "character": 2,
+          "line": 15,
+        },
+      },
+      "uri": "file:///c/dummy//test_protected.vhd",
+    },
+    "name": "reflect",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 51,
+          "line": 8,
+        },
+        "start": {
+          "character": 4,
+          "line": 8,
+        },
+      },
+      "uri": "file:///c/dummy//test_protected.vhd",
+    },
+    "name": "GetCrc",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 44,
+          "line": 7,
+        },
+        "start": {
+          "character": 4,
+          "line": 7,
+        },
+      },
+      "uri": "file:///c/dummy//test_protected.vhd",
+    },
+    "name": "Input",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 18,
+          "line": 6,
+        },
+        "start": {
+          "character": 4,
+          "line": 6,
+        },
+      },
+      "uri": "file:///c/dummy//test_protected.vhd",
+    },
+    "name": "Init",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 15,
+          "line": 9,
+        },
+        "start": {
+          "character": 2,
+          "line": 5,
+        },
+      },
+      "uri": "file:///c/dummy//test_protected.vhd",
+    },
+    "name": "CrcCalculator",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
           "character": 12,
           "line": 10,
         },
@@ -3376,6 +3104,23 @@ exports[`Testing workspace symbol 1`] = `
       "uri": "file:///c/dummy//test_protected.vhd",
     },
     "name": "pkg",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 12,
+          "line": 7,
+        },
+        "start": {
+          "character": 2,
+          "line": 5,
+        },
+      },
+      "uri": "file:///c/dummy//test_record.vhd",
+    },
+    "name": "rec",
   },
   {
     "kind": 19,
@@ -3399,6 +3144,40 @@ exports[`Testing workspace symbol 1`] = `
     "location": {
       "range": {
         "end": {
+          "character": 13,
+          "line": 24,
+        },
+        "start": {
+          "character": 2,
+          "line": 12,
+        },
+      },
+      "uri": "file:///c/dummy//test_stateMachine.vhd",
+    },
+    "name": "p_reg",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 55,
+          "line": 8,
+        },
+        "start": {
+          "character": 2,
+          "line": 8,
+        },
+      },
+      "uri": "file:///c/dummy//test_stateMachine.vhd",
+    },
+    "name": "t_state",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
           "character": 22,
           "line": 5,
         },
@@ -3410,6 +3189,40 @@ exports[`Testing workspace symbol 1`] = `
       "uri": "file:///c/dummy//test_stateMachine.vhd",
     },
     "name": "test_else_generate",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 13,
+          "line": 30,
+        },
+        "start": {
+          "character": 2,
+          "line": 13,
+        },
+      },
+      "uri": "file:///c/dummy//test_stateMachineCase.vhd",
+    },
+    "name": "p_reg",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 55,
+          "line": 8,
+        },
+        "start": {
+          "character": 2,
+          "line": 8,
+        },
+      },
+      "uri": "file:///c/dummy//test_stateMachineCase.vhd",
+    },
+    "name": "t_state",
   },
   {
     "kind": 19,
@@ -3433,6 +3246,40 @@ exports[`Testing workspace symbol 1`] = `
     "location": {
       "range": {
         "end": {
+          "character": 13,
+          "line": 27,
+        },
+        "start": {
+          "character": 2,
+          "line": 12,
+        },
+      },
+      "uri": "file:///c/dummy//test_stateMachineElse.vhd",
+    },
+    "name": "p_reg",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 55,
+          "line": 8,
+        },
+        "start": {
+          "character": 2,
+          "line": 8,
+        },
+      },
+      "uri": "file:///c/dummy//test_stateMachineElse.vhd",
+    },
+    "name": "t_state",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
           "character": 22,
           "line": 5,
         },
@@ -3444,6 +3291,40 @@ exports[`Testing workspace symbol 1`] = `
       "uri": "file:///c/dummy//test_stateMachineElse.vhd",
     },
     "name": "test_else_generate",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 13,
+          "line": 27,
+        },
+        "start": {
+          "character": 2,
+          "line": 12,
+        },
+      },
+      "uri": "file:///c/dummy//test_stateMachineElsif.vhd",
+    },
+    "name": "p_reg",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 55,
+          "line": 8,
+        },
+        "start": {
+          "character": 2,
+          "line": 8,
+        },
+      },
+      "uri": "file:///c/dummy//test_stateMachineElsif.vhd",
+    },
+    "name": "t_state",
   },
   {
     "kind": 19,
@@ -3467,6 +3348,40 @@ exports[`Testing workspace symbol 1`] = `
     "location": {
       "range": {
         "end": {
+          "character": 13,
+          "line": 26,
+        },
+        "start": {
+          "character": 2,
+          "line": 12,
+        },
+      },
+      "uri": "file:///c/dummy//test_stateMachineFor.vhd",
+    },
+    "name": "p_reg",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 55,
+          "line": 8,
+        },
+        "start": {
+          "character": 2,
+          "line": 8,
+        },
+      },
+      "uri": "file:///c/dummy//test_stateMachineFor.vhd",
+    },
+    "name": "t_state",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
           "character": 22,
           "line": 5,
         },
@@ -3478,6 +3393,40 @@ exports[`Testing workspace symbol 1`] = `
       "uri": "file:///c/dummy//test_stateMachineFor.vhd",
     },
     "name": "test_else_generate",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 13,
+          "line": 26,
+        },
+        "start": {
+          "character": 2,
+          "line": 12,
+        },
+      },
+      "uri": "file:///c/dummy//test_stateMachineIf.vhd",
+    },
+    "name": "p_reg",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 55,
+          "line": 8,
+        },
+        "start": {
+          "character": 2,
+          "line": 8,
+        },
+      },
+      "uri": "file:///c/dummy//test_stateMachineIf.vhd",
+    },
+    "name": "t_state",
   },
   {
     "kind": 19,
@@ -3501,6 +3450,40 @@ exports[`Testing workspace symbol 1`] = `
     "location": {
       "range": {
         "end": {
+          "character": 14,
+          "line": 12,
+        },
+        "start": {
+          "character": 2,
+          "line": 9,
+        },
+      },
+      "uri": "file:///c/dummy//test_subprogram.vhd",
+    },
+    "name": "func",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 30,
+          "line": 5,
+        },
+        "start": {
+          "character": 2,
+          "line": 5,
+        },
+      },
+      "uri": "file:///c/dummy//test_subprogram.vhd",
+    },
+    "name": "func",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
           "character": 12,
           "line": 6,
         },
@@ -3512,6 +3495,23 @@ exports[`Testing workspace symbol 1`] = `
       "uri": "file:///c/dummy//test_subprogram.vhd",
     },
     "name": "pkg",
+  },
+  {
+    "kind": 19,
+    "location": {
+      "range": {
+        "end": {
+          "character": 18,
+          "line": 8,
+        },
+        "start": {
+          "character": 2,
+          "line": 5,
+        },
+      },
+      "uri": "file:///c/dummy//test_subprogramInterface.vhd",
+    },
+    "name": "func",
   },
   {
     "kind": 19,
