@@ -672,6 +672,7 @@ export class OCase extends ObjectBase implements I.IMayHaveLabel {
 }
 export class OWhenClause extends OSequenceOfStatements {
   condition: OReference[] = [];
+  whenTokens: OLexerToken[] = [];
 }
 export class OProcess extends OSequenceOfStatements implements I.IHasDeclarations, I.IHasStatements,
   I.IHasUseClauses, I.IHasPostponed {

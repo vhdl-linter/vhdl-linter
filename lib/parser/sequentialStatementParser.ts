@@ -281,8 +281,9 @@ export class SequentialStatementParser extends ParserBase {
     while (this.getToken().getLText() === 'when') {
       this.debug(`parseWhen`);
       const whenClause = new O.OWhenClause(case_, this.getToken().range.copyExtendEndOfLine());
-      const [whenTokens] = this.advanceParenthesisAware(['=>']);
-      whenClause.condition = new ExpressionParser(this.state, whenClause, whenTokens).parse();
+      this.consumeToken(); // consume 'when'
+      [whenClause.whenTokens] = this.advanceParenthesisAware(['=>']);
+      whenClause.condition = new ExpressionParser(this.state, whenClause, whenClause.whenTokens).parse();
       whenClause.statements = this.parse(whenClause, ['when', 'end']);
       whenClause.range = whenClause.range.copyWithNewEnd(this.getToken(-1, true).range.end);
       case_.whenClauses.push(whenClause);
