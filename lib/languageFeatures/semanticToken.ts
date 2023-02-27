@@ -74,10 +74,7 @@ function pushCorrectToken(buffer: BuilderParams[], obj: O.ObjectBase, definition
       pushToken(buffer, range, SemanticTokenTypes.interface, [...fixedModifiers, SemanticTokenModifiers.deprecated]);
 
     }
-  } else {
-    console.log(definition.constructor.name);
   }
-
 }
 
 export function semanticToken(linter: VhdlLinter, colorInputs: boolean): SemanticTokens {
