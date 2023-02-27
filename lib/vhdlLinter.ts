@@ -33,7 +33,7 @@ type diagnosticCodeActionCallback = (textDocumentUri: string) => CodeAction[];
 export class VhdlLinter {
   messages: Diagnostic[] = [];
   file: OFile;
-  parser: FileParser;
+  parser?: FileParser;
   parsedSuccessfully = false;
   elaborated = false;
 
@@ -65,14 +65,16 @@ export class VhdlLinter {
         }
         // Include the parser messages that did not result in fatal.
         // Normally this is done in RParser. (This rule can not be called here as it needs settings which need to be fetched async and this is constructor)
-        this.messages.push(...this.parser.state.messages);
+        if (this.parser !== undefined) {
+          this.messages.push(...this.parser.state.messages);
+        }
         this.messages.push({
           range: e.range,
           severity: DiagnosticSeverity.Error,
           message: e.message,
           code
         });
-        this.file = new OFile(this.text, this.uri, this.text, this.parser.lexerTokens);
+        this.file = new OFile(this.text, this.uri, this.text, this.parser?.lexerTokens ?? []);
       } else {
         let message = 'Unknown error while parsing';
         if (e instanceof Error) {
