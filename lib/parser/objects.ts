@@ -871,15 +871,15 @@ export function* scope(startObject: ObjectBase): Generator<[ObjectBase, boolean]
   while (true) {
     yield [current, directlyVisible];
     if (current instanceof OArchitecture && current.correspondingEntity) {
-      directlyVisible = false;
       yield [current.correspondingEntity, directlyVisible];
+      directlyVisible = false;
       for (const packages of current.correspondingEntity.packageDefinitions) {
         yield [packages, directlyVisible];
       }
     }
     if (current instanceof OPackageBody && current.correspondingPackage) {
-      directlyVisible = false;
       yield [current.correspondingPackage, directlyVisible];
+      directlyVisible = false;
       for (const packages of current.correspondingPackage.packageDefinitions) {
         yield [packages, directlyVisible];
       }
