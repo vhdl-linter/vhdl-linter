@@ -335,7 +335,7 @@ export class OContext extends ObjectBase implements I.IHasUseClauses, I.IHasCont
   targetLibrary: undefined;
 }
 export type OConcurrentStatements = OProcess | OInstantiation | OIfGenerate | OForGenerate | OCaseGenerate | OBlock | OAssignment | OAssertion;
-// Also includes specifications
+// ODeclaration also includes specifications
 export type ODeclaration = OSignal | OAttributeSpecification | OAttributeDeclaration | OVariable | OConstant | OFileVariable | OType
   | OAlias | OSubprogram | OComponent | OPackageInstantiation | OConfigurationSpecification | OPackage | OPackageBody;
 

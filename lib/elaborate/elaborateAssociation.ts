@@ -1,32 +1,32 @@
 import { implementsIHasReferenceLinks } from "../parser/interfaces";
-import { OAliasWithSignature, OAssociation, OComponent, OConfigurationDeclaration, OEntity, OFile, OGeneric, OGenericAssociationList, OInstantiation, OPort, OPortAssociationList, OTypeMark, OVariable } from "../parser/objects";
+import * as O from "../parser/objects";
 
-export function elaborateAssociations(file: OFile) {
-  for (const association of file.objectList.filter(obj => obj instanceof OAssociation) as OAssociation[]) {
-    if (association.parent instanceof OGenericAssociationList || association.parent instanceof OPortAssociationList) {
-      if (!(association.parent.parent instanceof OInstantiation)) {
+export function elaborateAssociations(file: O.OFile) {
+  for (const association of file.objectList.filter(obj => obj instanceof O.OAssociation) as O.OAssociation[]) {
+    if (association.parent instanceof O.OGenericAssociationList || association.parent instanceof O.OPortAssociationList) {
+      if (!(association.parent.parent instanceof O.OInstantiation)) {
         continue;
       }
       const definitions = association.parent.parent.definitions;
 
-      const possibleFormals: (OPort | OGeneric | OTypeMark)[] = [];
+      const possibleFormals: (O.OPort | O.OGeneric | O.OTypeMark)[] = [];
       possibleFormals.push(...definitions.flatMap(definition => {
-        let elements: (OPort | OGeneric | OTypeMark)[] = [];
-        if (definition instanceof OVariable) {
+        let elements: (O.OPort | O.OGeneric | O.OTypeMark)[] = [];
+        if (definition instanceof O.OVariable) {
           // Protected Type
-        } else if (association.parent instanceof OPortAssociationList) {
-          if (definition instanceof OAliasWithSignature) {
+        } else if (association.parent instanceof O.OPortAssociationList) {
+          if (definition instanceof O.OAliasWithSignature) {
             elements = definition.typeMarks;
-          } else if (definition instanceof OConfigurationDeclaration) {
+          } else if (definition instanceof O.OConfigurationDeclaration) {
             elements = definition.definitions[0]?.ports ?? [];
           } else {
             elements = definition.ports;
           }
-        } else if (definition instanceof OComponent || definition instanceof OEntity) {
+        } else if (definition instanceof O.OComponent || definition instanceof O.OEntity) {
           elements = definition.generics;
         }
         return elements.filter((port, portNumber) => {
-          if (!(port instanceof OTypeMark)) {
+          if (!(port instanceof O.OTypeMark)) {
             const formalMatch = association.formalPart.find(name => name.referenceToken.getLText() === port.lexerToken.getLText());
             if (formalMatch) {
               return true;
@@ -51,8 +51,8 @@ export function elaborateAssociations(file: OFile) {
     }
   }
 }
-function elaborateAssociationMentionables(possibleFormal: OPort | OGeneric | OTypeMark, association: OAssociation, file: OFile) {
-  if (possibleFormal instanceof OPort) {
+function elaborateAssociationMentionables(possibleFormal: O.OPort | O.OGeneric | O.OTypeMark, association: O.OAssociation, file: O.OFile) {
+  if (possibleFormal instanceof O.OPort) {
     if (possibleFormal.direction === 'in') {
       for (const mapping of association.actualIfOutput.flat()) {
         const index = file.objectList.indexOf(mapping);
