@@ -37,8 +37,7 @@ export class PackageParser extends ParserBase {
   parsePackageBody(parent: OFile | ObjectBase): OPackageBody {
     this.expect('body');
     const pkg = new OPackageBody(parent, this.getToken().range);
-    const match = this.state.pos.file.originalText.match(/!\s*@library\s+(\S+)/i);
-    pkg.targetLibrary = match ? match[1] : undefined;
+    pkg.targetLibrary = this.getTargetLibrary();
 
     pkg.lexerToken = this.consumeToken();
     this.expect('is');
