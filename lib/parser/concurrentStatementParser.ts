@@ -51,7 +51,6 @@ export class ConcurrentStatementParser extends ParserBase {
         throw new ParserError('A block needs a label.', block.range);
       }
       block.label = label;
-      //        console.log(generate, generate.constructor.name);
       (this.parent as OArchitecture).statements.push(block);
     } else if (nextToken.getLText() === 'for' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {
       this.consumeToken();

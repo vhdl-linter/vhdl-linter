@@ -112,7 +112,6 @@ export class ProjectParser {
       this.cachedFiles.push(cachedFile);
     }
     this.cachedFiles.sort((a, b) => b.lintingTime - a.lintingTime);
-    // console.log('Times: \n' + this.cachedFiles.slice(0, 10).map(file => `${file.path}: ${file.lintingTime}ms`).join('\n'));
     this.flattenProject();
     if (!disableWatching) {
       this.addFolders(this.workspaces);
