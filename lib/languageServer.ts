@@ -1,5 +1,4 @@
 import { existsSync } from 'fs';
-import { basename } from 'path';
 import { pathToFileURL } from 'url';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import {
