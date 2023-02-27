@@ -145,11 +145,12 @@ export class ProjectParser {
     return files;
   }
   flattenProject() {
+    this.entities = [];
+    this.architectures = [];
+    this.configurations = [];
     this.packages = [];
     this.packageInstantiations = [];
-    this.entities = [];
-    this.configurations = [];
-    this.architectures = [];
+    this.contexts = [];
     for (const cachedFile of this.cachedFiles) {
       this.entities.push(...cachedFile.linter.file.entities);
       this.architectures.push(...cachedFile.linter.file.architectures);
