@@ -1,8 +1,8 @@
 import { ErrorCodes, Location, Position, ResponseError } from 'vscode-languageserver';
 import { Elaborate } from '../elaborate/elaborate';
 import { OLexerToken } from '../lexer';
-import { implementsIHasEndingLexerToken, implementsIHasReference } from '../parser/interfaces';
-import { OArchitecture, ObjectBase, OComponent, OConfiguration, OEntity, OGeneric, OInstantiation, OPackage, OPackageBody, OPort, OSubprogram, OVariable } from '../parser/objects';
+import { implementsIHasEndingLexerToken, implementsIHasReferenceLinks } from '../parser/interfaces';
+import { OArchitecture, ObjectBase, OComponent, OConfigurationDeclaration, OEntity, OGeneric, OInstantiation, OPackage, OPackageBody, OPort, OSubprogram, OVariable } from '../parser/objects';
 import { VhdlLinter } from '../vhdlLinter';
 import { findDefinitions } from './findDefinition';
 export function getTokenFromPosition(linter: VhdlLinter, position: Position, onlyDesignator = true): OLexerToken | undefined {
@@ -73,9 +73,9 @@ export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position
         }
       }
     }
-    if (implementsIHasReference(definition)) {
+    if (implementsIHasReferenceLinks(definition)) {
       if (definition.lexerToken) {
-        if (definition instanceof OConfiguration) {
+        if (definition instanceof OConfigurationDeclaration) {
           // Configuration has lexer token (its identifier) and the name of the entity.
           if (definition.lexerToken.getLText() === token.getLText()) {
             referenceTokens.push(definition.lexerToken);
@@ -96,7 +96,7 @@ export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position
         for (const link of definition.referenceConfigurations) {
           referenceTokens.push(link.entityName);
         }
-      } else if (definition instanceof OConfiguration && token.getLText() === definition.lexerToken.getLText()) {
+      } else if (definition instanceof OConfigurationDeclaration && token.getLText() === definition.lexerToken.getLText()) {
         for (const link of definition.referenceLinks) {
             referenceTokens.push(link.entityName);
         }

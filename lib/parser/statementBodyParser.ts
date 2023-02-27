@@ -1,5 +1,5 @@
 import { OLexerToken, TokenType } from '../lexer';
-import { ConcurrentStatementParser, ConcurrentStatementTypes } from './concurrentStatementParser';
+import { ConcurrentStatementParser } from './concurrentStatementParser';
 import { DeclarativePartParser } from './declarativePartParser';
 import { ExpressionParser } from './expressionParser';
 import { OArchitecture, OBlock, OCaseGenerate, OConstant, OElseGenerateClause, OFile, OForGenerate, OIfGenerate, OIfGenerateClause, ORead, OReference, OWhenGenerateClause, ParserError } from './objects';
@@ -124,14 +124,7 @@ export class StatementBodyParser extends ParserBase {
         this.expect(';');
         break;
       }
-      if (new ConcurrentStatementParser(this.state, statementBody).parse([
-        ConcurrentStatementTypes.Assert,
-        ConcurrentStatementTypes.Assignment,
-        ConcurrentStatementTypes.Generate,
-        ConcurrentStatementTypes.Block,
-        ConcurrentStatementTypes.ProcedureInstantiation,
-        ConcurrentStatementTypes.Process
-      ], statementBody, structureName === 'when-generate')) {
+      if (new ConcurrentStatementParser(this.state, statementBody).parse(statementBody, structureName === 'when-generate')) {
         // end of when generate clause
         if (structureName === 'when-generate') {
           statementBody.statementsRange = statementBody.statementsRange.copyWithNewEnd(this.getToken(-1).range);
