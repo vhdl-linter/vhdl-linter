@@ -89,9 +89,7 @@ export class Elaborate {
     }
 
     await this.vhdlLinter.handleCanceled();
-    const start = Date.now();
     await ElaborateReferences.elaborate(this.vhdlLinter);
-    console.log(`elabReferences: ${Date.now() - start}ms`);
     await this.vhdlLinter.handleCanceled();
     elaborateComponents(this.file, this.vhdlLinter.projectParser);
     await this.vhdlLinter.handleCanceled();
