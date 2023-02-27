@@ -1,5 +1,4 @@
 import { existsSync } from 'fs';
-import { basename } from 'path';
 import { pathToFileURL } from 'url';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import {
@@ -197,7 +196,6 @@ function validateTextDocumentDebounce(textDocument: TextDocument, fromProjectPar
   }, 100));
 }
 async function validateTextDocument(textDocument: TextDocument, fromProjectParser = false) {
-  console.log('validating', basename(pathToFileURL(textDocument.uri).pathname));
   try {
     const vhdlLinter = await linterManager.triggerRefresh(textDocument.uri, textDocument.getText(), projectParser, getDocumentSettings, fromProjectParser);
     const diagnostics = await vhdlLinter.checkAll();
