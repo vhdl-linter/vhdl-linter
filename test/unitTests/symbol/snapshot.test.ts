@@ -35,6 +35,7 @@ test('Testing workspace symbol', () => {
     }
   }));
   symbols?.sort((a, b) => {
+
     const lineDifference = b.location.range.start.line - a.location.range.start.line;
     if (lineDifference !== 0) {
       return lineDifference;
