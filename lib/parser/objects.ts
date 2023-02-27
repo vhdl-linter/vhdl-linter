@@ -151,7 +151,7 @@ export class OIRange implements Range {
 }
 
 
-type ORootElements = OArchitecture | OEntity | OPackage | OPackageInstantiation | OPackageBody | OContext | OConfiguration;
+type ORootElements = OArchitecture | OEntity | OPackage | OPackageInstantiation | OPackageBody | OContext | OConfigurationDeclaration;
 
 export class ObjectBase {
   lexerToken?: OLexerToken;
@@ -189,7 +189,7 @@ export class ObjectBase {
       }
       parent = parent.parent;
     }
-    this.rootElement = parent as OArchitecture | OEntity | OPackage | OPackageInstantiation | OPackageBody | OContext | OConfiguration;
+    this.rootElement = parent as ORootElements;
     return this.rootElement;
   }
   lexerTokenEquals(other: ObjectBase) {

@@ -1,7 +1,7 @@
 import { findBestMatch } from "string-similarity";
 import { CodeAction, CodeActionKind, DiagnosticSeverity, Range, TextEdit } from "vscode-languageserver";
 import { implementsIHasLexerToken, IHasLexerToken, implementsIHasStatements, implementsIHasPorts, implementsIHasDeclarations } from "../parser/interfaces";
-import { OFile, OPort, OGeneric, OTypeMark, OAssociationList, OIRange, ObjectBase, OInstantiation, OConfiguration, OAliasWithSignature, OComponent, OEntity, OSubprogram, OArchitecture, OIf, OCase, OSequenceOfStatements } from "../parser/objects";
+import { OFile, OPort, OGeneric, OTypeMark, OAssociationList, OIRange, ObjectBase, OInstantiation, OAliasWithSignature, OComponent, OEntity, OSubprogram, OArchitecture, OIf, OCase, OSequenceOfStatements, OConfigurationDeclaration } from "../parser/objects";
 import { IRule, RuleBase } from "./rulesBase";
 
 export class RuleInstantiation extends RuleBase implements IRule {
