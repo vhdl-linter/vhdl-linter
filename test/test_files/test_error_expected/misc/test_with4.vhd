@@ -5,7 +5,7 @@ end entity;
 architecture arch of test_with is
 
 	signal a : std_ulogic_vector(2 - 1 downto 0);  -- vhdl-linter-disable-line unused
-	signal b : std_ulogic_vector(4 - 1 downto 0);  -- vhdl-linter-disable-line unused
+	constant b : std_ulogic_vector(4 - 1 downto 0);  -- vhdl-linter-disable-line unused
 
 begin
 
