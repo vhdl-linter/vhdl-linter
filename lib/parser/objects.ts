@@ -220,7 +220,7 @@ export class OName extends ObjectBase implements I.IHasDefinitions, I.IHasRefere
   // Workaround for checking of OWrites in associations. Because of overloading they can not be correctly checked.
   // This avoid false positives
   public inAssociation = false;
-  constructor(public parent: ObjectBase, public referenceToken: OLexerToken, range?: OIRange, public write = false) {
+  constructor(public parent: ObjectBase, public referenceToken: OLexerToken, public write = false, range?: OIRange) {
     super(parent, range ?? referenceToken.range);
   }
 }
@@ -228,7 +228,7 @@ export class OExternalName extends OName {
 
   typeReferences: OName[] = [];
   constructor(public parent: ObjectBase, public path: [OLexerToken], public kind: OLexerToken, range: OIRange) {
-    super(parent, path[0], range);
+    super(parent, path[0], false, range);
   }
 }
 export class OLabelReference extends OName {
@@ -720,7 +720,7 @@ export class OAssertion extends ObjectBase implements I.IMayHaveLabel {
 
 export class OSelectedName extends OName {
   constructor(public parent: ObjectBase, public referenceToken: OLexerToken, public prefixTokens: SelectedNamePrefix, public write = false) {
-    super(parent, referenceToken, referenceToken.range.copyWithNewStart(prefixTokens[0].range), write);
+    super(parent, referenceToken, write, referenceToken.range.copyWithNewStart(prefixTokens[0].range));
   }
 }
 export class OUseClause extends ObjectBase {

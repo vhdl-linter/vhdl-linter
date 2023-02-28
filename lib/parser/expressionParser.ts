@@ -79,14 +79,13 @@ export class ExpressionParser {
   convertToReference(buffer: OLexerToken[], formal: boolean, write: boolean) {
     buffer = buffer.filter(token => token.isDesignator());
     const references: O.OName[] = [];
-    const writes: O.OName[] = [];
     for (const [index, token] of buffer.entries()) {
       if (formal) {
         references.push(new O.OFormalReference(this.parent, token));
       } else if (index > 0) {
         if (write && (this.expState.leftHandSide || this.expState.maybeOutput || this.expState.maybeInOut) ) {
-          const write = new O.OSelectedName(this.parent, token, writes.slice(0, index) as O.SelectedNamePrefix, true);
-          writes.push(write);
+          const write = new O.OSelectedName(this.parent, token, references.slice(0, index) as O.SelectedNamePrefix, true);
+          references.push(write);
           write.inAssociation = this.expState.maybeOutput || this.expState.maybeInOut;
           if (this.expState.maybeInOut) {
             references.push(new O.OSelectedName(this.parent, token, references.slice(0, index) as O.SelectedNamePrefix));
@@ -96,9 +95,9 @@ export class ExpressionParser {
         }
       } else {
         if (write && (this.expState.leftHandSide || this.expState.maybeOutput || this.expState.maybeInOut)) {
-          const write = new O.OName(this.parent, token, undefined, true);
+          const write = new O.OName(this.parent, token, true);
           write.inAssociation = this.expState.maybeOutput || this.expState.maybeInOut;
-          writes.push(write);
+          references.push(write);
           if (this.expState.maybeInOut) {
             references.push(new O.OName(this.parent, token));
           }
@@ -107,7 +106,7 @@ export class ExpressionParser {
         }
       }
     }
-    return references.concat(writes);
+    return references;
   }
   private inner(maybeFormal = false, maybeWrite = false): O.OName[] {
     const references: O.OName[] = [];
