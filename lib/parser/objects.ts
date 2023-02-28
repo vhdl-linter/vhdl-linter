@@ -395,27 +395,6 @@ export class OType extends ObjectBase implements I.IHasReferenceLinks,
   lexerToken: OLexerToken;
   protected = false;
   protectedBody = false;
-  addReadsToMap(map: Map<string, ObjectBase>) {
-    map.set(this.lexerToken.getLText(), this);
-
-    for (const unit of this.units) {
-      map.set(unit.lexerToken.getLText(), this);
-    }
-    if (this instanceof OEnum) {
-      for (const state of this.literals) {
-        map.set(state.lexerToken.getLText(), state);
-      }
-    } else if (this instanceof ORecord) {
-      for (const child of this.children) {
-        map.set(child.lexerToken.getLText(), child);
-      }
-    }
-    for (const subprogram of this.declarations) {
-      if (subprogram instanceof OSubprogram) {
-        map.set(subprogram.lexerToken.getLText(), subprogram);
-      }
-    }
-  }
 
 }
 export class OSubType extends OType {
