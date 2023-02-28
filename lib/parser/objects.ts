@@ -151,7 +151,7 @@ export class OIRange implements Range {
 }
 
 
-type ORootElements = OArchitecture | OEntity | OPackage | OPackageInstantiation | OPackageBody | OContext | OConfiguration;
+type ORootElements = OArchitecture | OEntity | OPackage | OPackageInstantiation | OPackageBody | OContext | OConfigurationDeclaration;
 
 export class ObjectBase {
   lexerToken?: OLexerToken;
@@ -183,13 +183,13 @@ export class ObjectBase {
       && parent instanceof OPackageInstantiation === false
       && parent instanceof OPackageBody === false
       && parent instanceof OContext === false
-      && parent instanceof OConfiguration === false) {
+      && parent instanceof OConfigurationDeclaration === false) {
       if (parent.parent instanceof OFile) {
         throw new ParserError('Failed to find root element', this.range);
       }
       parent = parent.parent;
     }
-    this.rootElement = parent as OArchitecture | OEntity | OPackage | OPackageInstantiation | OPackageBody | OContext | OConfiguration;
+    this.rootElement = parent as ORootElements;
     return this.rootElement;
   }
   lexerTokenEquals(other: ObjectBase) {
@@ -243,7 +243,7 @@ export class OFile {
   architectures: OArchitecture[] = [];
   packages: (OPackage | OPackageBody)[] = [];
   packageInstantiations: OPackageInstantiation[] = [];
-  configurations: OConfiguration[] = [];
+  configurations: OConfigurationDeclaration[] = [];
   readonly rootFile = this; // Provided as a convenience to equalize to ObjectBase
 }
 
@@ -335,8 +335,9 @@ export class OContext extends ObjectBase implements I.IHasUseClauses, I.IHasCont
   targetLibrary: undefined;
 }
 export type OConcurrentStatements = OProcess | OInstantiation | OIfGenerate | OForGenerate | OCaseGenerate | OBlock | OAssignment | OAssertion;
+// ODeclaration also includes specifications
 export type ODeclaration = OSignal | OAttributeSpecification | OAttributeDeclaration | OVariable | OConstant | OFileVariable | OType
-  | OAlias | OSubprogram | OComponent | OPackageInstantiation;
+  | OAlias | OSubprogram | OComponent | OPackageInstantiation | OConfigurationSpecification | OPackage | OPackageBody;
 
 export abstract class OStatementBody extends ObjectBase implements I.IHasDeclarations,
   I.IHasUseClauses, I.IHasContextReference, I.IHasLibraries, I.IHasReferenceLinks, I.IHasStatements {
@@ -563,7 +564,7 @@ export class OInstantiation extends OReference implements I.IHasDefinitions, I.I
     super(parent, lexerToken);
   }
   postponed = false;
-  definitions: (OEntity | OSubprogram | OComponent | OAliasWithSignature | OConfiguration)[] = [];
+  definitions: (OEntity | OSubprogram | OComponent | OAliasWithSignature | OConfigurationDeclaration)[] = [];
   prefix: OLexerToken[] = [];
   entityName: OLexerToken;
   package?: OLexerToken;
@@ -597,7 +598,7 @@ export class OEntity extends ObjectBase implements I.IHasDefinitions, I.IHasDecl
   }
   referenceLinks: OReference[] = [];
   referenceComponents: OComponent[] = [];
-  referenceConfigurations: OConfiguration[] = [];
+  referenceConfigurations: OConfigurationDeclaration[] = [];
   libraries: OLibrary[] = [];
   declarations: ODeclaration[] = [];
   declarationsRange?: OIRange;
@@ -611,7 +612,7 @@ export class OEntity extends ObjectBase implements I.IHasDefinitions, I.IHasDecl
   ports: OPort[] = [];
   genericRange?: OIRange;
   generics: OGeneric[] = [];
-  statements: (OProcess | OAssignment | OAssertion)[] = [];
+  statements: OConcurrentStatements[] = [];
   statementsRange: OIRange;
   definitions: OEntity[] = [];
   correspondingArchitectures: OArchitecture[] = [];
@@ -671,6 +672,7 @@ export class OCase extends ObjectBase implements I.IMayHaveLabel {
 }
 export class OWhenClause extends OSequenceOfStatements {
   condition: OReference[] = [];
+  whenTokens: OLexerToken[] = [];
 }
 export class OProcess extends OSequenceOfStatements implements I.IHasDeclarations, I.IHasStatements,
   I.IHasUseClauses, I.IHasPostponed {
@@ -816,7 +818,7 @@ export class OTypeMark extends ObjectBase {
 export class OAlias extends ObjectBase implements I.IHasLexerToken, I.IHasReferenceLinks {
   name: OReference[] = []; // The thing being aliased
   referenceLinks: OReference[] = [];
-  aliasReferences: OAlias[]; // Not used. (Because recursive aliases are not allowed)
+  aliasReferences: never[] = []; // Not used. (Because recursive aliases are not allowed)
   aliasDefinitions: ObjectBase[] = [];
   lexerToken: OLexerToken;
   subtypeIndication: OReference[] = []; // subtype_indication
@@ -829,7 +831,8 @@ export class OAliasWithSignature extends OAlias implements I.IHasLexerToken {
   return: OReference;
 }
 
-export class OConfiguration extends ObjectBase implements I.IHasLibraries, I.IHasDefinitions, I.IHasReferenceLinks {
+export class OConfigurationDeclaration extends ObjectBase implements I.IHasLibraries, I.IHasDefinitions, I.IHasReferenceLinks,
+  I.IHasDeclarations, I.IHasUseClauses, I.IHasContextReference {
   lexerToken: OLexerToken;
   targetLibrary?: string;
   entityName: OLexerToken;
@@ -837,15 +840,20 @@ export class OConfiguration extends ObjectBase implements I.IHasLibraries, I.IHa
   definitions: OEntity[] = [];
   referenceLinks: OInstantiation[] = [];
   aliasReferences: OAlias[] = [];
-
+  declarations: ODeclaration[] = [];
+  useClauses: OUseClause[] = [];
+  packageDefinitions: OPackage[] = [];
+  contextReferences: OContextReference[] = [];
 }
-export class OAttributeSpecification extends ObjectBase implements I.IHasLexerToken, I.IHasReferenceLinks {
-  lexerToken: OLexerToken;
-  referenceLinks: OReference[] = [];
-  aliasReferences: OAlias[] = [];
-  aliasDefinitions: ObjectBase[] = [];
+export class OConfigurationSpecification extends ObjectBase {
+  lexerToken: undefined;
+}
+export class OAttributeSpecification extends ObjectBase implements I.IHasReferenceToken, I.IHasDefinitions {
+  referenceToken: OLexerToken;
+  definitions: OAttributeDeclaration[] = [];
   references: OReference[] = [];
   entityClass: OLexerToken;
+  lexerToken: undefined;
 }
 export class OAttributeDeclaration extends ObjectBase implements I.IHasLexerToken, I.IHasReferenceLinks {
   lexerToken: OLexerToken;

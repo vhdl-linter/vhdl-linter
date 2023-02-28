@@ -67,7 +67,7 @@ export class AttributeParser extends ParserBase {
       this.consumeToken();
     }
     const attributeSpecification = new OAttributeSpecification(this.parent, attribute.range);
-    attributeSpecification.lexerToken = designator;
+    attributeSpecification.referenceToken = designator;
     if (tokens.length === 1 && (tokens[0]!.getLText() === 'others' || tokens[0]!.getLText() === 'all')) {
       attributeSpecification.references = [];
     } else {
