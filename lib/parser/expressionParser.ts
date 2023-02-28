@@ -1,5 +1,5 @@
 import { OLexerToken } from "../lexer";
-import { OAttributeReference, ObjectBase, OFormalReference, OReference, OSelectedName, OSelectedNameWrite, OWrite, SelectedNamePrefix } from "./objects";
+import * as O from "./objects";
 import { ParserState } from "./parserBase";
 interface ExpParserState {
   maybeOutput: boolean;
@@ -18,10 +18,10 @@ export class ExpressionParser {
     maybeOutput: false,
     maybeInOut: false
   };
-  constructor(private state: ParserState, private parent: ObjectBase, private tokens: OLexerToken[]) {
+  constructor(private state: ParserState, private parent: O.ObjectBase, private tokens: OLexerToken[]) {
   }
 
-  parse(): OReference[] {
+  parse(): O.OReference[] {
     if (this.tokens.length === 0) {
       this.state.messages.push({
         message: 'expression empty',
@@ -41,7 +41,7 @@ export class ExpressionParser {
     }
     return -1;
   }
-  splitBuffer(buffer: OLexerToken[], formal: boolean, write: boolean): OReference[] {
+  splitBuffer(buffer: OLexerToken[], formal: boolean, write: boolean): O.OReference[] {
     const references = [];
     let alternativeIndex = buffer.findIndex(token => token.getLText() === '|');
     while (alternativeIndex > -1) {
@@ -52,12 +52,12 @@ export class ExpressionParser {
     }
 
     let attributeIndex = this.findLastIndex(buffer, token => token.getLText() === '\'');
-    let lastAttributeReference: OAttributeReference | undefined;
+    let lastAttributeReference: O.OAttributeReference | undefined;
     while (attributeIndex > -1) {
       // If there is not a name after ' mark. This is a type designation
       const reference = buffer[attributeIndex + 1];
       if (reference) {
-        const attributeReference = new OAttributeReference(this.parent, reference);
+        const attributeReference = new O.OAttributeReference(this.parent, reference);
         references.push(attributeReference);
         if (lastAttributeReference) {
           attributeReference.prefix = attributeReference;
@@ -78,41 +78,41 @@ export class ExpressionParser {
   }
   convertToReference(buffer: OLexerToken[], formal: boolean, write: boolean) {
     buffer = buffer.filter(token => token.isDesignator());
-    const references: OReference[] = [];
-    const writes: OReference[] = [];
+    const references: O.OReference[] = [];
+    const writes: O.OReference[] = [];
     for (const [index, token] of buffer.entries()) {
       if (formal) {
-        references.push(new OFormalReference(this.parent, token));
+        references.push(new O.OFormalReference(this.parent, token));
       } else if (index > 0) {
         if (write && (this.expState.leftHandSide || this.expState.maybeOutput || this.expState.maybeInOut) ) {
-          const write = new OSelectedNameWrite(this.parent, token, writes.slice(0, index) as SelectedNamePrefix);
+          const write = new O.OSelectedNameWrite(this.parent, token, writes.slice(0, index) as O.SelectedNamePrefix);
           writes.push(write);
           write.inAssociation = this.expState.maybeOutput || this.expState.maybeInOut;
           if (this.expState.maybeInOut) {
-            references.push(new OSelectedName(this.parent, token, references.slice(0, index) as SelectedNamePrefix));
+            references.push(new O.OSelectedName(this.parent, token, references.slice(0, index) as O.SelectedNamePrefix));
           }
         } else {
-          references.push(new OSelectedName(this.parent, token, references.slice(0, index) as SelectedNamePrefix));
+          references.push(new O.OSelectedName(this.parent, token, references.slice(0, index) as O.SelectedNamePrefix));
         }
       } else {
         if (write && (this.expState.leftHandSide || this.expState.maybeOutput || this.expState.maybeInOut)) {
-          const write = new OWrite(this.parent, token);
+          const write = new O.OWrite(this.parent, token);
           write.inAssociation = this.expState.maybeOutput || this.expState.maybeInOut;
           writes.push(write);
           if (this.expState.maybeInOut) {
-            references.push(new OReference(this.parent, token));
+            references.push(new O.OReference(this.parent, token));
           }
         } else {
-          references.push(new OReference(this.parent, token));
+          references.push(new O.OReference(this.parent, token));
         }
       }
     }
     return references.concat(writes);
   }
-  private inner(maybeFormal = false, maybeWrite = false): OReference[] {
-    const references: OReference[] = [];
+  private inner(maybeFormal = false, maybeWrite = false): O.OReference[] {
+    const references: O.OReference[] = [];
     let tokenBuffer: OLexerToken[] = [];
-    let innerReferences: OReference[] | undefined;
+    let innerReferences: O.OReference[] | undefined;
     let containedBraces = false;
     let lastToken: OLexerToken | undefined;
     while (this.expState.num < this.tokens.length && this.getNumToken()?.getLText() !== ')') {
@@ -122,6 +122,11 @@ export class ExpressionParser {
         const maybeFormalNew = this.getNumToken(-2) !== undefined && this.getNumToken(-2)?.getLText() !== '(' && this.getNumToken(-3)?.isIdentifier() !== true;
         innerReferences = this.inner(maybeFormalNew, aggregate);
         containedBraces = true;
+      } else if (this.getNumToken()?.getLText() === '<<') {
+        const externalName = this.parseExternalName();
+        if (externalName) {
+          innerReferences = [externalName];
+        }
       } else {
         const breakTokens = [',', '=>',
           'range', 'to', 'downto', // range constraints
@@ -151,7 +156,7 @@ export class ExpressionParser {
             // This is a bit hacky... When there is a cast in the formal reference side. Assume the last token is the actual formal reference
             // Ie to_integer(unsigned(output)) output would be the actual formal part. ant to_integer and unsigned are normal references
             if (formal && innerReferences.length > 0) {
-              Object.setPrototypeOf(innerReferences[innerReferences.length - 1], OFormalReference.prototype);
+              Object.setPrototypeOf(innerReferences[innerReferences.length - 1], O.OFormalReference.prototype);
             }
             references.push(...innerReferences);
             innerReferences = undefined;
@@ -186,7 +191,7 @@ export class ExpressionParser {
     return references;
 
   }
-  parseTarget(): [OReference[], OWrite[]] {
+  parseTarget(): [O.OReference[], O.OWrite[]] {
     if (this.tokens.length === 0) {
       this.state.messages.push({
         message: 'expression empty',
@@ -199,11 +204,11 @@ export class ExpressionParser {
 
 
     return [
-      result.filter(ref => ref instanceof OWrite === false),
-      result.filter(ref => ref instanceof OWrite) as OWrite[]
+      result.filter(ref => ref instanceof O.OWrite === false),
+      result.filter(ref => ref instanceof O.OWrite) as O.OWrite[]
     ];
   }
-  parseAssociationElement(maybeOutput = false, maybeInOut = false): OReference[] {
+  parseAssociationElement(maybeOutput = false, maybeInOut = false): O.OReference[] {
     if (this.tokens.length === 0) {
       this.state.messages.push({
         message: 'expression empty',
@@ -221,8 +226,46 @@ export class ExpressionParser {
     const result = this.inner(true, maybeOutput || maybeInOut);
     return result;
   }
+  parseExternalName(): O.OExternalName | undefined {
+    // << token
+    const ltToken = this.getNumToken()!;
+    this.increaseToken();
 
+    const kind = this.getNumToken();
+    if (!kind) {
+      return;
+    }
+    this.increaseToken();
+    const path = [];
+    while (this.getNumToken()?.getLText() !== ':') {
+      const token = this.getNumToken();
+      if (!token) {
+        throw new O.ParserError(`: not found in external name`, this.tokens[0]!.range.copyWithNewEnd(this.tokens.at(-1)!.range));
+      }
+      path.push(token);
+      this.increaseToken();
+    }
+    this.increaseToken();
+    const typeTokens = [];
+    while (this.getNumToken()?.getLText() !== '>>') {
+      const token = this.getNumToken();
+      if (!token) {
+        throw new O.ParserError(`Did not find >> for external name`, this.tokens[0]!.range.copyWithNewEnd(this.tokens.at(-1)!.range));
 
+      }
+      typeTokens.push(token);
+      this.increaseToken();
+    }
+    const gtToken = this.getNumToken()!;
+    this.increaseToken();
+    if (path.length === 0) {
+      return;
+    } else {
+      const externalName = new O.OExternalName(this.parent, path as ([OLexerToken]), kind, ltToken.range.copyWithNewEnd(gtToken.range));
+      externalName.typeReferences = new ExpressionParser(this.state, externalName, typeTokens).parse();
+      return externalName;
+    }
+  }
   // // This gets the current Text (for Debugger)
   getTextDebug() {
     return this.tokens.slice(this.expState.num, this.expState.num + 5).join(' ');

@@ -96,6 +96,9 @@ export function semanticToken(linter: VhdlLinter, colorInputs: boolean): Semanti
     if (obj instanceof O.OArchitecture || obj instanceof O.OInstantiation) {
       pushToken(buffer, obj.entityName.range, SemanticTokenTypes.class, []);
     }
+    if (obj instanceof O.OExternalName) {
+      pushToken(buffer, obj.path[0].range.copyWithNewEnd(obj.path.at(-1)!.range), SemanticTokenTypes.namespace, []);
+    }
   }
   // Sort tokens
   buffer.sort((a, b) => {

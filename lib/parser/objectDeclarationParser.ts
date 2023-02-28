@@ -2,7 +2,7 @@ import { TextEdit } from 'vscode-languageserver';
 import { OLexerToken } from '../lexer';
 import { ExpressionParser } from './expressionParser';
 import { IHasDeclarations } from './interfaces';
-import { ObjectBase, OConstant, OFileVariable, ORead, OSignal, OVariable } from './objects';
+import { ObjectBase, OConstant, OFileVariable, OReference, OSignal, OVariable } from './objects';
 import { ParserBase, ParserState } from './parserBase';
 
 export class ObjectDeclarationParser extends ParserBase {
@@ -47,7 +47,7 @@ export class ObjectDeclarationParser extends ParserBase {
     if (file) {
       const typeToken = this.consumeToken();
       for (const file of objects.slice(objects.length - 1) as OFileVariable[]) {
-        const typeRead = new ORead(file, typeToken);
+        const typeRead = new OReference(file, typeToken);
         file.typeReference = [typeRead];
         let tokens, endToken;
         if (this.maybe('open')) {

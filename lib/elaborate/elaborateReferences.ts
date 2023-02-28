@@ -41,7 +41,7 @@ export class ElaborateReferences {
     }
     // elaborate all references except instantiations
     if (ref instanceof O.OInstantiation === false) {
-      if (ref instanceof O.OSelectedName || ref instanceof O.OSelectedNameWrite || ref instanceof O.OSelectedNameRead) {
+      if (ref instanceof O.OSelectedName || ref instanceof O.OSelectedNameWrite) {
         this.elaborateSelectedNames(ref);
       } else {
         this.elaborateReference(ref);
@@ -171,16 +171,6 @@ export class ElaborateReferences {
   }
 
 
-  castToRead(reference: O.OReference) {
-    if (reference instanceof O.OWrite === false) {
-      if (reference instanceof O.OSelectedName) {
-        Object.setPrototypeOf(reference, O.OSelectedNameRead.prototype);
-      } else {
-        Object.setPrototypeOf(reference, O.ORead.prototype);
-      }
-    }
-  }
-
   link(reference: O.OReference, obj: O.ObjectBase & (I.IHasReferenceLinks | I.IHasLabel)) {
     // for attributes: only link attribute references to attribute declarations
     if (obj instanceof O.OAttributeDeclaration && !(reference instanceof O.OAttributeReference)
@@ -193,7 +183,6 @@ export class ElaborateReferences {
     } else {
       obj.referenceLinks.push(reference);
     }
-    this.castToRead(reference);
   }
 
   elaborateReference(reference: O.OReference) {
@@ -219,7 +208,7 @@ export class ElaborateReferences {
   }
 
 
-  private elaborateTypeChildren(selectedName: O.OSelectedName | O.OSelectedNameWrite | O.OSelectedNameRead, typeDefinition: O.ObjectBase) {
+  private elaborateTypeChildren(selectedName: O.OSelectedName | O.OSelectedNameWrite , typeDefinition: O.ObjectBase) {
     if (typeDefinition instanceof O.ORecord || (typeDefinition instanceof O.OType && typeDefinition.protected)) {
       let found = false;
       if (typeDefinition instanceof O.ORecord) {

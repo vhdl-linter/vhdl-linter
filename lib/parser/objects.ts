@@ -221,6 +221,13 @@ export class OReference extends ObjectBase implements I.IHasDefinitions, I.IHasR
     super(parent, range ?? referenceToken.range);
   }
 }
+export class OExternalName extends OReference {
+
+  typeReferences: OReference[] = [];
+  constructor(public parent: ObjectBase, public path: [OLexerToken], public kind: OLexerToken, range: OIRange) {
+    super(parent, path[0], range);
+  }
+}
 export class OLabelReference extends OReference {
 }
 export class OFormalReference extends OReference {
@@ -741,9 +748,6 @@ export class OSelectedNameWrite extends OWrite {
     super(parent, referenceToken, referenceToken.range.copyWithNewStart(prefixTokens[0].range));
   }
 }
-export class ORead extends OReference {
-  private type = 'ORead'; // Make sure typescript type checking does not accept OReference as ORead
-}
 export class OSelectedName extends OReference {
   constructor(public parent: ObjectBase, public referenceToken: OLexerToken, public prefixTokens: SelectedNamePrefix) {
     super(parent, referenceToken, referenceToken.range.copyWithNewStart(prefixTokens[0].range));
@@ -751,11 +755,6 @@ export class OSelectedName extends OReference {
 }
 export class OUseClause extends ObjectBase {
   reference: [OReference, ...OSelectedName[]];
-}
-export class OSelectedNameRead extends ORead {
-  constructor(public parent: ObjectBase, public referenceToken: OLexerToken, public prefixTokens: SelectedNamePrefix) {
-    super(parent, referenceToken, referenceToken.range.copyWithNewStart(prefixTokens[0].range));
-  }
 }
 export type SelectedNamePrefix = [
   first: OReference,

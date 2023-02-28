@@ -139,7 +139,7 @@ export class RuleNotDeclared extends RuleBase implements IRule {
           this.pushAssociationError(obj);
         }
       } else if ((obj instanceof O.OReference) && obj.definitions.length === 0 && !(obj instanceof O.OComponent)) {
-        if (obj instanceof O.OSelectedName || obj instanceof O.OSelectedNameRead || obj instanceof O.OSelectedNameWrite) {
+        if (obj instanceof O.OSelectedName || obj instanceof O.OSelectedName || obj instanceof O.OSelectedNameWrite) {
           const lastPrefix = obj.prefixTokens[obj.prefixTokens.length - 1]!;
           if (lastPrefix.definitions.length === 0) {
             // if the last prefix token was not defined, do not push another not declared error

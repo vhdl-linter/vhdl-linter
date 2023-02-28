@@ -2,7 +2,7 @@ import { afterAll, beforeAll, expect, test } from '@jest/globals';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
 import { Elaborate } from '../../../lib/elaborate/elaborate';
-import { OAssignment, OInstantiation, ORecordChild, OSelectedNameRead, OSelectedNameWrite, OSubprogram } from '../../../lib/parser/objects';
+import { OAssignment, OInstantiation, ORecordChild, OSelectedName, OSelectedNameWrite, OSubprogram } from '../../../lib/parser/objects';
 import { ProjectParser } from '../../../lib/projectParser';
 import { defaultSettingsGetter } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
@@ -26,7 +26,7 @@ test.each([
 
   const assignment = linter.file.architectures[0]?.statements[0] as OAssignment;
   expect(assignment.references).toHaveLength(2);
-  expect(assignment.references[1]).toBeInstanceOf(OSelectedNameRead);
+  expect(assignment.references[1]).toBeInstanceOf(OSelectedName);
   expect(assignment.references[1]?.definitions).toHaveLength(1);
   expect(assignment.references[1]?.definitions[0]).toBeInstanceOf(ORecordChild);
   expect(assignment.references[1]?.definitions[0]?.lexerToken?.getLText()).toBe('apple');
@@ -53,8 +53,8 @@ test.each([
 
   expect(call.portAssociationList?.children).toHaveLength(1);
   expect(call.portAssociationList?.children[0]?.actualIfInput).toHaveLength(2);
-  expect(call.portAssociationList?.children[0]?.actualIfInput[1]).toBeInstanceOf(OSelectedNameRead);
-  expect(call.portAssociationList?.children[0]?.actualIfInput[1]).toBeInstanceOf(OSelectedNameRead);
+  expect(call.portAssociationList?.children[0]?.actualIfInput[1]).toBeInstanceOf(OSelectedName);
+  expect(call.portAssociationList?.children[0]?.actualIfInput[1]).toBeInstanceOf(OSelectedName);
   expect(call.portAssociationList?.children[0]?.actualIfInput[1]?.definitions).toHaveLength(1);
   expect(call.portAssociationList?.children[0]?.actualIfInput[1]?.definitions[0]).toBeInstanceOf(OSubprogram);
   expect(call.portAssociationList?.children[0]?.actualIfInput[1]?.definitions[0]?.lexerToken?.getLText()).toBe('banana');
@@ -102,11 +102,11 @@ test.each([
 
   const assignment = linter.file.architectures[0]?.statements[0] as OAssignment;
   expect(assignment.references).toHaveLength(3);
-  expect(assignment.references[1]).toBeInstanceOf(OSelectedNameRead);
+  expect(assignment.references[1]).toBeInstanceOf(OSelectedName);
   expect(assignment.references[1]?.definitions).toHaveLength(1);
   expect(assignment.references[1]?.definitions[0]).toBeInstanceOf(ORecordChild);
   expect(assignment.references[1]?.definitions[0]?.lexerToken?.getLText()).toBe('banana');
-  expect(assignment.references[2]).toBeInstanceOf(OSelectedNameRead);
+  expect(assignment.references[2]).toBeInstanceOf(OSelectedName);
   expect(assignment.references[2]?.definitions).toHaveLength(1);
   expect(assignment.references[2]?.definitions[0]).toBeInstanceOf(ORecordChild);
   expect(assignment.references[2]?.definitions[0]?.lexerToken?.getLText()).toBe('apple');
