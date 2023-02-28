@@ -81,7 +81,7 @@ export function semanticToken(linter: VhdlLinter, colorInputs: boolean): Semanti
   const buffer: BuilderParams[] = [];
   for (const obj of linter.file.objectList) {
     if (obj instanceof O.OUseClause) {
-      // the selected name read of the useclause will push the token
+      // the selected name read of the use clause will push the token
       continue;
     }
     const definition = findDefinition(obj);
