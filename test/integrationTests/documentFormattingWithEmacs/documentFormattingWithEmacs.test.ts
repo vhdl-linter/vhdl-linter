@@ -33,6 +33,7 @@ jest.mock('../../../lib/languageServer', () => {
 const mockDocuments = jest.mocked(documents);
 
 
+jest.setTimeout(10_000); // increase timeout for slow windows ci
 test('Testing full formatter workflow with emacs', async () => {
   const uri = pathToFileURL(__dirname + '/test_stateMachineCase.vhd');
   const cancellationTokenSource = new CancellationTokenSource();

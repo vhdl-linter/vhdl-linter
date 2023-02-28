@@ -182,7 +182,11 @@ export class ElaborateReferences {
   }
 
   link(reference: O.OReference, obj: O.ObjectBase & (I.IHasReferenceLinks | I.IHasLabel)) {
-
+    // for attributes: only link attribute references to attribute declarations
+    if (obj instanceof O.OAttributeDeclaration && !(reference instanceof O.OAttributeReference)
+    || reference instanceof O.OAttributeReference && !(obj instanceof O.OAttributeDeclaration)) {
+      return;
+    }
     reference.definitions.push(obj);
     if (I.implementsIHasLabel(obj)) {
       obj.labelLinks.push(reference);
