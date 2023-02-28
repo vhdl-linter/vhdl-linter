@@ -233,6 +233,10 @@ export class ExpressionParser {
 
     const kind = this.getNumToken();
     if (!kind) {
+      this.state.messages.push({
+        message: 'empty external name path',
+        range: this.parent.range
+      });
       return;
     }
     this.increaseToken();
