@@ -1,7 +1,7 @@
 import { DocumentHighlight, DocumentHighlightKind, TextDocumentPositionParams } from 'vscode-languageserver';
 import { OLexerToken } from '../lexer';
 import { IHasLexerToken, IHasReferenceToken, implementsIHasLexerToken, implementsIHasReferenceToken } from '../parser/interfaces';
-import { ObjectBase, OWrite } from '../parser/objects';
+import { ObjectBase, OName } from '../parser/objects';
 import { VhdlLinter } from '../vhdlLinter';
 import { findObjectFromPosition } from './findObjects';
 
@@ -37,12 +37,12 @@ export function documentHighlightHandler(linter: VhdlLinter, params: TextDocumen
       if (implementsIHasLexerToken(object) && object.lexerToken.getLText() === name) {
         highlights.push({
           range: object.lexerToken.range,
-          kind: object instanceof OWrite ? DocumentHighlightKind.Write : DocumentHighlightKind.Read
+          kind: DocumentHighlightKind.Read
         });
       } else if (implementsIHasReferenceToken(object) && object.referenceToken.getLText() === name) {
         highlights.push({
           range: object.referenceToken.range,
-          kind: object instanceof OWrite ? DocumentHighlightKind.Write : DocumentHighlightKind.Read
+          kind: object instanceof OName && object.write ? DocumentHighlightKind.Write : DocumentHighlightKind.Read
         });
       }
     }

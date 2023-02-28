@@ -21,7 +21,7 @@ export class ExpressionParser {
   constructor(private state: ParserState, private parent: O.ObjectBase, private tokens: OLexerToken[]) {
   }
 
-  parse(): O.OReference[] {
+  parse(): O.OName[] {
     if (this.tokens.length === 0) {
       this.state.messages.push({
         message: 'expression empty',
@@ -41,7 +41,7 @@ export class ExpressionParser {
     }
     return -1;
   }
-  splitBuffer(buffer: OLexerToken[], formal: boolean, write: boolean): O.OReference[] {
+  splitBuffer(buffer: OLexerToken[], formal: boolean, write: boolean): O.OName[] {
     const references = [];
     let alternativeIndex = buffer.findIndex(token => token.getLText() === '|');
     while (alternativeIndex > -1) {
@@ -78,14 +78,14 @@ export class ExpressionParser {
   }
   convertToReference(buffer: OLexerToken[], formal: boolean, write: boolean) {
     buffer = buffer.filter(token => token.isDesignator());
-    const references: O.OReference[] = [];
-    const writes: O.OReference[] = [];
+    const references: O.OName[] = [];
+    const writes: O.OName[] = [];
     for (const [index, token] of buffer.entries()) {
       if (formal) {
         references.push(new O.OFormalReference(this.parent, token));
       } else if (index > 0) {
         if (write && (this.expState.leftHandSide || this.expState.maybeOutput || this.expState.maybeInOut) ) {
-          const write = new O.OSelectedNameWrite(this.parent, token, writes.slice(0, index) as O.SelectedNamePrefix);
+          const write = new O.OSelectedName(this.parent, token, writes.slice(0, index) as O.SelectedNamePrefix, true);
           writes.push(write);
           write.inAssociation = this.expState.maybeOutput || this.expState.maybeInOut;
           if (this.expState.maybeInOut) {
@@ -96,23 +96,23 @@ export class ExpressionParser {
         }
       } else {
         if (write && (this.expState.leftHandSide || this.expState.maybeOutput || this.expState.maybeInOut)) {
-          const write = new O.OWrite(this.parent, token);
+          const write = new O.OName(this.parent, token, undefined, true);
           write.inAssociation = this.expState.maybeOutput || this.expState.maybeInOut;
           writes.push(write);
           if (this.expState.maybeInOut) {
-            references.push(new O.OReference(this.parent, token));
+            references.push(new O.OName(this.parent, token));
           }
         } else {
-          references.push(new O.OReference(this.parent, token));
+          references.push(new O.OName(this.parent, token));
         }
       }
     }
     return references.concat(writes);
   }
-  private inner(maybeFormal = false, maybeWrite = false): O.OReference[] {
-    const references: O.OReference[] = [];
+  private inner(maybeFormal = false, maybeWrite = false): O.OName[] {
+    const references: O.OName[] = [];
     let tokenBuffer: OLexerToken[] = [];
-    let innerReferences: O.OReference[] | undefined;
+    let innerReferences: O.OName[] | undefined;
     let containedBraces = false;
     let lastToken: OLexerToken | undefined;
     while (this.expState.num < this.tokens.length && this.getNumToken()?.getLText() !== ')') {
@@ -191,24 +191,21 @@ export class ExpressionParser {
     return references;
 
   }
-  parseTarget(): [O.OReference[], O.OWrite[]] {
+  parseTarget(): O.OName[] {
     if (this.tokens.length === 0) {
       this.state.messages.push({
         message: 'expression empty',
         range: this.parent.range
       });
-      return [[], []];
+      return [];
     }
     this.expState.leftHandSide = true;
     const result = this.inner(false, true);
 
 
-    return [
-      result.filter(ref => ref instanceof O.OWrite === false),
-      result.filter(ref => ref instanceof O.OWrite) as O.OWrite[]
-    ];
+    return result;
   }
-  parseAssociationElement(maybeOutput = false, maybeInOut = false): O.OReference[] {
+  parseAssociationElement(maybeOutput = false, maybeInOut = false): O.OName[] {
     if (this.tokens.length === 0) {
       this.state.messages.push({
         message: 'expression empty',

@@ -1,6 +1,6 @@
 import { CodeAction, CodeActionKind, DiagnosticSeverity, TextEdit } from "vscode-languageserver";
 import { TokenType } from "../lexer";
-import { OFile, OReference, OUnit } from "../parser/objects";
+import { OFile, OName, OUnit } from "../parser/objects";
 import { IRule, RuleBase } from "./rulesBase";
 
 export class RuleUnits extends RuleBase implements IRule {
@@ -9,7 +9,7 @@ export class RuleUnits extends RuleBase implements IRule {
 
   check() {
     for (const obj of this.file.objectList) {
-      if (obj instanceof OReference && obj.definitions.some(def => def instanceof OUnit)) {
+      if (obj instanceof OName && obj.definitions.some(def => def instanceof OUnit)) {
         // check if token before unit token is whitespace
         const i = this.file.lexerTokens.findIndex(token => token === obj.referenceToken);
         if (i > 1 && this.file.lexerTokens[i - 1]!.type === TokenType.decimalLiteral) {

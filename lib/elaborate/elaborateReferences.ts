@@ -25,13 +25,13 @@ export class ElaborateReferences {
       }
       if (I.implementsIHasUseClause(obj)) {
         elaborator.elaborateUseClauses(obj, elaborator.getUseClauses(obj));
-      } else if (obj instanceof O.OReference) {
+      } else if (obj instanceof O.OName) {
         elaborator.elaborate(obj);
       }
     }
   }
 
-  elaborate(ref: O.OReference) {
+  elaborate(ref: O.OName) {
     if (ref.definitions.length > 0) {
       // was already elaborated (e.g. in use clause)
       return;
@@ -41,7 +41,7 @@ export class ElaborateReferences {
     }
     // elaborate all references except instantiations
     if (ref instanceof O.OInstantiation === false) {
-      if (ref instanceof O.OSelectedName || ref instanceof O.OSelectedNameWrite) {
+      if (ref instanceof O.OSelectedName) {
         this.elaborateSelectedNames(ref);
       } else {
         this.elaborateReference(ref);
@@ -141,7 +141,7 @@ export class ElaborateReferences {
     return this.projectVisibilityMap?.get(searchText) ?? [];
   }
 
-  getList(reference: O.OReference, fallback = false) {
+  getList(reference: O.OName, fallback = false) {
     // find parent which is a scope
     let key = reference.parent;
     for (const [p] of O.scope(key)) {
@@ -171,7 +171,7 @@ export class ElaborateReferences {
   }
 
 
-  link(reference: O.OReference, obj: O.ObjectBase & (I.IHasReferenceLinks | I.IHasLabel)) {
+  link(reference: O.OName, obj: O.ObjectBase & (I.IHasReferenceLinks | I.IHasLabel)) {
     // for attributes: only link attribute references to attribute declarations
     if (obj instanceof O.OAttributeDeclaration && !(reference instanceof O.OAttributeReference)
     || reference instanceof O.OAttributeReference && !(obj instanceof O.OAttributeDeclaration)) {
@@ -185,7 +185,7 @@ export class ElaborateReferences {
     }
   }
 
-  elaborateReference(reference: O.OReference) {
+  elaborateReference(reference: O.OName) {
     for (const obj of this.getList(reference)) {
       // alias doesn't has aliasReferences but still referenceLinks
       if (I.implementsIHasReferenceLinks(obj) || obj instanceof O.OAlias || I.implementsIHasLabel(obj)) {
@@ -208,7 +208,7 @@ export class ElaborateReferences {
   }
 
 
-  private elaborateTypeChildren(selectedName: O.OSelectedName | O.OSelectedNameWrite , typeDefinition: O.ObjectBase) {
+  private elaborateTypeChildren(selectedName: O.OSelectedName , typeDefinition: O.ObjectBase) {
     if (typeDefinition instanceof O.ORecord || (typeDefinition instanceof O.OType && typeDefinition.protected)) {
       let found = false;
       if (typeDefinition instanceof O.ORecord) {
@@ -238,7 +238,7 @@ export class ElaborateReferences {
     }
   }
 
-  elaborateSelectedNames(reference: O.OSelectedName | O.OSelectedNameWrite) {
+  elaborateSelectedNames(reference: O.OSelectedName) {
     // all prefix tokens should be elaborated already
     const lastPrefix = reference.prefixTokens[reference.prefixTokens.length - 1]!;
     if (lastPrefix.definitions.length === 0) {
@@ -370,7 +370,7 @@ export class ElaborateReferences {
     }
     if (contextReferences.length > 0) {
       for (const contextRef of contextReferences) {
-        const [lib, context] = contextRef.reference as [O.OReference, O.OReference];
+        const [lib, context] = contextRef.reference as [O.OName, O.OName];
         this.elaborateReference(lib);
         for (const obj of this.getProjectList(context.referenceToken.getLText())) {
           if (obj instanceof O.OContext) {

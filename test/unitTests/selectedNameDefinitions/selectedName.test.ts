@@ -2,7 +2,7 @@ import { afterAll, beforeAll, expect, test } from '@jest/globals';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
 import { Elaborate } from '../../../lib/elaborate/elaborate';
-import { OAssignment, OInstantiation, ORecordChild, OSelectedName, OSelectedNameWrite, OSubprogram } from '../../../lib/parser/objects';
+import { OAssignment, OInstantiation, ORecordChild, OSelectedName, OSubprogram } from '../../../lib/parser/objects';
 import { ProjectParser } from '../../../lib/projectParser';
 import { defaultSettingsGetter } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
@@ -25,17 +25,17 @@ test.each([
   await Elaborate.elaborate(linter);
 
   const assignment = linter.file.architectures[0]?.statements[0] as OAssignment;
-  expect(assignment.references).toHaveLength(2);
+  expect(assignment.references).toHaveLength(4);
+  expect(assignment.references[3]).toBeInstanceOf(OSelectedName);
+  expect(assignment.references[3]?.definitions).toHaveLength(1);
+  expect(assignment.references[3]?.definitions[0]).toBeInstanceOf(ORecordChild);
+  expect(assignment.references[3]?.definitions[0]?.lexerToken?.getLText()).toBe('apple');
+
   expect(assignment.references[1]).toBeInstanceOf(OSelectedName);
+  expect(assignment.references[1]?.write).toBe(true);
   expect(assignment.references[1]?.definitions).toHaveLength(1);
   expect(assignment.references[1]?.definitions[0]).toBeInstanceOf(ORecordChild);
-  expect(assignment.references[1]?.definitions[0]?.lexerToken?.getLText()).toBe('apple');
-
-  expect(assignment.writes).toHaveLength(2);
-  expect(assignment.writes[1]).toBeInstanceOf(OSelectedNameWrite);
-  expect(assignment.writes[1]?.definitions).toHaveLength(1);
-  expect(assignment.writes[1]?.definitions[0]).toBeInstanceOf(ORecordChild);
-  expect(assignment.writes[1]?.definitions[0]?.lexerToken?.getLText()).toBe('banana');
+  expect(assignment.references[1]?.definitions[0]?.lexerToken?.getLText()).toBe('banana');
 });
 
 test.each([
@@ -101,19 +101,19 @@ test.each([
   await Elaborate.elaborate(linter);
 
   const assignment = linter.file.architectures[0]?.statements[0] as OAssignment;
-  expect(assignment.references).toHaveLength(3);
+  expect(assignment.references).toHaveLength(5);
+  expect(assignment.references[3]).toBeInstanceOf(OSelectedName);
+  expect(assignment.references[3]?.definitions).toHaveLength(1);
+  expect(assignment.references[3]?.definitions[0]).toBeInstanceOf(ORecordChild);
+  expect(assignment.references[3]?.definitions[0]?.lexerToken?.getLText()).toBe('banana');
+  expect(assignment.references[4]).toBeInstanceOf(OSelectedName);
+  expect(assignment.references[4]?.definitions).toHaveLength(1);
+  expect(assignment.references[4]?.definitions[0]).toBeInstanceOf(ORecordChild);
+  expect(assignment.references[4]?.definitions[0]?.lexerToken?.getLText()).toBe('apple');
+
   expect(assignment.references[1]).toBeInstanceOf(OSelectedName);
+  expect(assignment.references[1]?.write).toBe(true);
   expect(assignment.references[1]?.definitions).toHaveLength(1);
   expect(assignment.references[1]?.definitions[0]).toBeInstanceOf(ORecordChild);
-  expect(assignment.references[1]?.definitions[0]?.lexerToken?.getLText()).toBe('banana');
-  expect(assignment.references[2]).toBeInstanceOf(OSelectedName);
-  expect(assignment.references[2]?.definitions).toHaveLength(1);
-  expect(assignment.references[2]?.definitions[0]).toBeInstanceOf(ORecordChild);
-  expect(assignment.references[2]?.definitions[0]?.lexerToken?.getLText()).toBe('apple');
-
-  expect(assignment.writes).toHaveLength(2);
-  expect(assignment.writes[1]).toBeInstanceOf(OSelectedNameWrite);
-  expect(assignment.writes[1]?.definitions).toHaveLength(1);
-  expect(assignment.writes[1]?.definitions[0]).toBeInstanceOf(ORecordChild);
-  expect(assignment.writes[1]?.definitions[0]?.lexerToken?.getLText()).toBe('apple');
+  expect(assignment.references[1]?.definitions[0]?.lexerToken?.getLText()).toBe('apple');
 });

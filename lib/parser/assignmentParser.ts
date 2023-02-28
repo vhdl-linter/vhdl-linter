@@ -22,7 +22,7 @@ export class AssignmentParser extends ParserBase {
       leftHandSideNum++;
     }
     const expressionParser = new ExpressionParser(this.state, assignment, leftHandSideTokens);
-    [assignment.references, assignment.writes] = expressionParser.parseTarget();
+    assignment.references = expressionParser.parseTarget();
 
 
     this.consumeToken();

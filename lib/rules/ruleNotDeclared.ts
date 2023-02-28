@@ -7,7 +7,7 @@ import { IRule, RuleBase } from "./rulesBase";
 
 export class RuleNotDeclared extends RuleBase implements IRule {
   public static readonly ruleName = 'not-declared';
-  private findUsePackageActions(ref: O.OReference, textDocumentUri: string): CodeAction[] {
+  private findUsePackageActions(ref: O.OName, textDocumentUri: string): CodeAction[] {
     const actions: CodeAction[] = [];
     const proposals = new Set<string>();
     let root = ref.getRootElement();
@@ -56,7 +56,7 @@ export class RuleNotDeclared extends RuleBase implements IRule {
     }
     return actions;
   }
-  private pushNotDeclaredError(reference: O.OReference) {
+  private pushNotDeclaredError(reference: O.OName) {
     const code = this.vhdlLinter.addCodeActionCallback((textDocumentUri: string) => {
       const actions: CodeAction[] = [];
       actions.push(...this.findUsePackageActions(reference, textDocumentUri));
@@ -90,10 +90,10 @@ export class RuleNotDeclared extends RuleBase implements IRule {
       code,
       range: reference.range,
       severity: DiagnosticSeverity.Error,
-      message: reference.notDeclaredHint ?? `object '${reference.referenceToken.text}' is ${reference instanceof O.OWrite ? 'written' : 'referenced'} but not declared`
+      message: reference.notDeclaredHint ?? `object '${reference.referenceToken.text}' is ${reference.write ? 'written' : 'referenced'} but not declared`
     });
   }
-  private pushAssociationError(reference: O.OReference) {
+  private pushAssociationError(reference: O.OName) {
     this.addMessage({
       range: reference.range,
       severity: DiagnosticSeverity.Error,
@@ -128,7 +128,7 @@ export class RuleNotDeclared extends RuleBase implements IRule {
           severity: DiagnosticSeverity.Error,
           message: `Did not find entity for this architecture`
         });
-      } else if (obj instanceof O.OReference && obj.referenceToken.isIdentifier() === false) {
+      } else if (obj instanceof O.OName && obj.referenceToken.isIdentifier() === false) {
         // Do nothing is probably string literal
       } else if (obj instanceof O.OFormalReference
         && obj.parent instanceof O.OAssociation && obj.definitions.length === 0) {
@@ -138,8 +138,8 @@ export class RuleNotDeclared extends RuleBase implements IRule {
         if (instOrPackage instanceof O.OInstantiation && instOrPackage.definitions.length > 0) {
           this.pushAssociationError(obj);
         }
-      } else if ((obj instanceof O.OReference) && obj.definitions.length === 0 && !(obj instanceof O.OComponent)) {
-        if (obj instanceof O.OSelectedName || obj instanceof O.OSelectedName || obj instanceof O.OSelectedNameWrite) {
+      } else if ((obj instanceof O.OName) && obj.definitions.length === 0 && !(obj instanceof O.OComponent)) {
+        if (obj instanceof O.OSelectedName) {
           const lastPrefix = obj.prefixTokens[obj.prefixTokens.length - 1]!;
           if (lastPrefix.definitions.length === 0) {
             // if the last prefix token was not defined, do not push another not declared error

@@ -7,7 +7,7 @@ import { findObjectFromPosition } from './findObjects';
 import { getTokenFromPosition } from './findReferencesHandler';
 import { findParentInstantiation } from './helper/findParentInstantiation';
 
-function getSelectedNameCompletions(prefix: O.OReference) {
+function getSelectedNameCompletions(prefix: O.OName) {
   const result: {
     label: string,
     kind: CompletionItemKind
@@ -58,14 +58,14 @@ export async function getCompletions(linter: VhdlLinter, position: Position): Pr
 
   const token = getTokenFromPosition(linter, position, false);
   // if completing selected name and found a record definition -> only show its elements as completion
-  if (completionObject instanceof O.OSelectedName || completionObject instanceof O.OSelectedNameWrite || completionObject instanceof O.OSelectedName) {
+  if (completionObject instanceof O.OSelectedName  || completionObject instanceof O.OSelectedName) {
     // special case: if current token is '.', a new selected name is started -> the completionObject is the actual prefix
     const actualPrefix = token?.text === '.' ? completionObject : completionObject.prefixTokens[completionObject.prefixTokens.length - 1]!;
     const result = getSelectedNameCompletions(actualPrefix);
     if (result.length > 0) {
       return result;
     }
-  } else if (completionObject instanceof O.OReference && token?.text === '.') {
+  } else if (completionObject instanceof O.OName && token?.text === '.') {
     // special case: if completionObject is O.OReference and current token is '.', a selected name is started -> treat like one
     const result = getSelectedNameCompletions(completionObject);
     if (result) {

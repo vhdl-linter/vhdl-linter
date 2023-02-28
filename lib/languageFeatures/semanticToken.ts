@@ -60,7 +60,7 @@ function pushCorrectToken(buffer: BuilderParams[], obj: O.ObjectBase, definition
   } else if (definition instanceof O.OConstant || definition instanceof O.OGeneric) {
     pushToken(buffer, range, SemanticTokenTypes.variable, [...fixedModifiers, SemanticTokenModifiers.readonly]);
   } else if (definition instanceof O.OSignal || definition instanceof O.OVariable || definition instanceof O.OFileVariable) {
-    const modifiers = obj instanceof O.OWrite ? [SemanticTokenModifiers.modification] : [];
+    const modifiers = (obj as O.OName).write ? [SemanticTokenModifiers.modification] : [];
     pushToken(buffer, range, SemanticTokenTypes.variable, [...fixedModifiers, ...modifiers]);
   } else if (definition instanceof O.OSubprogram) {
     pushToken(buffer, range, SemanticTokenTypes.function, fixedModifiers);

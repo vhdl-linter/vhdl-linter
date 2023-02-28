@@ -2,7 +2,7 @@ import { OLexerToken, TokenType } from '../lexer';
 import { ConcurrentStatementParser } from './concurrentStatementParser';
 import { DeclarativePartParser } from './declarativePartParser';
 import { ExpressionParser } from './expressionParser';
-import { OArchitecture, OBlock, OCaseGenerate, OConstant, OElseGenerateClause, OFile, OForGenerate, OIfGenerate, OIfGenerateClause, OReference, OWhenGenerateClause, ParserError } from './objects';
+import { OArchitecture, OBlock, OCaseGenerate, OConstant, OElseGenerateClause, OFile, OForGenerate, OIfGenerate, OIfGenerateClause, OName, OWhenGenerateClause, ParserError } from './objects';
 import { ParserBase, ParserState } from './parserBase';
 
 export class StatementBodyParser extends ParserBase {
@@ -19,9 +19,9 @@ export class StatementBodyParser extends ParserBase {
   parse(skipStart: boolean, structureName: 'generate', forConstant: undefined, alternativeLabel: OLexerToken | undefined): OIfGenerateClause;
   parse(skipStart: boolean, structureName: 'else-generate', forConstant: undefined, alternativeLabel: OLexerToken | undefined): OElseGenerateClause;
   parse(skipStart: boolean, structureName: 'block'): OBlock;
-  parse(skipStart: boolean, structureName: 'generate', forConstant?: { constantName: OLexerToken, constantRange: OReference[], startPosI: number }): OForGenerate;
+  parse(skipStart: boolean, structureName: 'generate', forConstant?: { constantName: OLexerToken, constantRange: OName[], startPosI: number }): OForGenerate;
   parse(skipStart = false, structureName: 'architecture' | 'generate' | 'block' | 'when-generate' | 'else-generate' = 'architecture',
-    forConstant?: { constantName: OLexerToken, constantRange: OReference[], startPosI: number }, alternativeLabel?: OLexerToken): OArchitecture | OForGenerate | OIfGenerateClause | OWhenGenerateClause | OBlock | OElseGenerateClause {
+    forConstant?: { constantName: OLexerToken, constantRange: OName[], startPosI: number }, alternativeLabel?: OLexerToken): OArchitecture | OForGenerate | OIfGenerateClause | OWhenGenerateClause | OBlock | OElseGenerateClause {
     this.debug(`parse`);
     let statementBody;
     if (structureName === 'architecture') {
@@ -40,7 +40,7 @@ export class StatementBodyParser extends ParserBase {
         const constant = new OConstant(statementBody, guardRange);
         constant.lexerToken = new OLexerToken('GUARD', guardRange, TokenType.basicIdentifier, constant.rootFile);
         // read GUARD constant to avoid 'not read' warning
-        statementBody.guardCondition.push(new OReference(statementBody, constant.lexerToken));
+        statementBody.guardCondition.push(new OName(statementBody, constant.lexerToken));
         statementBody.declarations.push(constant);
       }
       this.maybe('is');

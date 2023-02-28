@@ -1,7 +1,7 @@
 import { DiagnosticSeverity, TextEdit } from "vscode-languageserver";
 import { OLexerToken } from "../lexer";
 import { ExpressionParser } from "./expressionParser";
-import { OAttributeDeclaration, OAttributeSpecification, ObjectBase, OReference, ParserError } from "./objects";
+import { OAttributeDeclaration, OAttributeSpecification, ObjectBase, OName, ParserError } from "./objects";
 import { ParserBase, ParserState } from "./parserBase";
 
 export class AttributeParser extends ParserBase {
@@ -72,7 +72,7 @@ export class AttributeParser extends ParserBase {
       attributeSpecification.references = [];
     } else {
       for (let i = 0; i < tokens.length; i++) {
-        attributeSpecification.references.push(new OReference(attributeSpecification, tokens[i]!));
+        attributeSpecification.references.push(new OName(attributeSpecification, tokens[i]!));
         // This is a signature. Currently not completely handled
         if (tokens[i]?.getLText() === '[') {
           while (tokens[i]?.getLText() !== ']') {

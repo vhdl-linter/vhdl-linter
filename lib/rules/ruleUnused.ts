@@ -1,6 +1,6 @@
 import { CodeAction, CodeActionKind, DiagnosticSeverity, TextEdit } from "vscode-languageserver";
 import { IHasLexerToken, IHasPorts, IHasReferenceToken, implementsIHasDeclarations, implementsIHasGenerics, implementsIHasLexerToken, implementsIHasPorts } from "../parser/interfaces";
-import { ObjectBase, OComponent, OConstant, OEntity, OFile, OPackage, OPackageBody, OSignal, OSubprogram, OType, OVariable, OWrite } from "../parser/objects";
+import { ObjectBase, OComponent, OConstant, OEntity, OFile, OPackage, OPackageBody, OSignal, OSubprogram, OType, OVariable } from "../parser/objects";
 import { IRule, RuleBase } from "./rulesBase";
 
 export class RuleUnused extends RuleBase implements IRule {
@@ -59,11 +59,11 @@ export class RuleUnused extends RuleBase implements IRule {
       }
       const references = port.referenceLinks.slice(0);
       references.push(...port.aliasReferences.flatMap(alias => alias.referenceLinks));
-      if ((port.direction === 'in' || port.direction === 'inout') && references.filter(token => token instanceof OWrite !== true).length === 0) {
+      if ((port.direction === 'in' || port.direction === 'inout') && references.filter(token => token.write !== true).length === 0) {
 
         this.addUnusedMessage(port, `Not reading input port '${port.lexerToken.text}'`);
       }
-      const writes = references.filter(token => token instanceof OWrite);
+      const writes = references.filter(token => token.write);
       if ((port.direction === 'out' || port.direction === 'inout') && writes.length === 0) {
         this.addUnusedMessage(port, `Not writing output port '${port.lexerToken.text}'`);
       }
@@ -79,7 +79,7 @@ export class RuleUnused extends RuleBase implements IRule {
       // ignore generics of components
       if (implementsIHasGenerics(obj) && !(obj instanceof OComponent)) {
         for (const generic of obj.generics) {
-          if (generic.referenceLinks.filter(token => token instanceof OWrite !== true).length === 0) {
+          if (generic.referenceLinks.filter(token => token.write !== true).length === 0) {
             this.addUnusedMessage(generic, `Not reading generic ${generic.lexerToken.text}`);
           }
 
@@ -103,20 +103,20 @@ export class RuleUnused extends RuleBase implements IRule {
 
             const references = declaration.referenceLinks.slice(0);
             references.push(...declaration.aliasReferences.flatMap(alias => alias.referenceLinks));
-            if (references.filter(token => token instanceof OWrite !== true).length === 0) {
+            if (references.filter(token => token.write !== true).length === 0) {
               this.addUnusedMessage(declaration, `Not reading signal ${declaration.lexerToken.text}`);
             }
-            if (references.filter(token => token instanceof OWrite).length === 0) {
+            if (references.filter(token => token.write).length === 0) {
               this.addUnusedMessage(declaration, `Not writing signal ${declaration.lexerToken.text}`);
             }
           }
           if (declaration instanceof OVariable) {
             const references = declaration.referenceLinks.slice(0);
             references.push(...declaration.aliasReferences.flatMap(alias => alias.referenceLinks));
-            if (references.filter(token => token instanceof OWrite !== true).length === 0) {
+            if (references.filter(token => token.write !== true).length === 0) {
               this.addUnusedMessage(declaration, `Not reading variable ${declaration.lexerToken.text}`);
             }
-            if (references.filter(token => token instanceof OWrite).length === 0) {
+            if (references.filter(token => token.write).length === 0) {
               // Assume protected type has side-effect and does not net writing to.
               const type = declaration.typeReference[0]?.definitions?.[0];
               if ((type instanceof OType && (type.protected || type.protectedBody)) === false) {
@@ -127,7 +127,7 @@ export class RuleUnused extends RuleBase implements IRule {
           if (declaration instanceof OConstant) {
             const references = declaration.referenceLinks.slice(0);
             references.push(...declaration.aliasReferences.flatMap(alias => alias.referenceLinks));
-            if (references.filter(token => token instanceof OWrite !== true).length === 0) {
+            if (references.filter(token => token.write !== true).length === 0) {
               this.addUnusedMessage(declaration, `Not reading constant ${declaration.lexerToken.text}`);
             }
           }

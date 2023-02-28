@@ -19,13 +19,13 @@ export function implementsIHasPostponed(obj: O.ObjectBase): obj is O.ObjectBase 
   return (obj as O.ObjectBase & Partial<IHasPostponed>).postponed !== undefined;
 }
 export interface IHasTypeReference {
-  typeReference: O.OReference[];
+  typeReference: O.OName[];
 }
 export function implementsIHasTypeReference(obj: O.ObjectBase): obj is O.ObjectBase & IHasTypeReference {
   return Array.isArray((obj as O.ObjectBase & IHasTypeReference).typeReference);
 }
 export interface IHasDefaultValue {
-  defaultValue?: O.OReference[];
+  defaultValue?: O.OName[];
 }
 export interface IVariableBase extends IHasReferenceLinks, IHasLexerToken, IHasTypeReference, IHasDefaultValue {
   lexerToken: OLexerToken;
@@ -70,7 +70,7 @@ export function implementsIHasContextReference(obj: O.ObjectBase): obj is O.Obje
   return (obj as O.ObjectBase & Partial<IHasContextReference>).contextReferences !== undefined;
 }
 export interface IHasReferenceLinks {
-  referenceLinks: O.OReference[];
+  referenceLinks: O.OName[];
   aliasReferences: O.OAlias[];
 }
 export function implementsIHasReferenceLinks(obj: O.ObjectBase): obj is O.ObjectBase & IHasReferenceLinks {
