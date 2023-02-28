@@ -114,14 +114,14 @@ export class ExpressionParser {
     let innerReferences: O.OName[] | undefined;
     let containedBraces = false;
     let lastToken: OLexerToken | undefined;
-    while (this.expState.num < this.tokens.length && this.getNumToken()?.getLText() !== ')') {
-      if (this.getNumToken()?.getLText() === '(') {
+    while (this.expState.num < this.tokens.length && this.getNumToken()!.getLText() !== ')') {
+      if (this.getNumToken()!.getLText() === '(') {
         const aggregate = this.getNumToken(-1) === undefined;
         this.increaseToken();
-        const maybeFormalNew = this.getNumToken(-2) !== undefined && this.getNumToken(-2)?.getLText() !== '(' && this.getNumToken(-3)?.isIdentifier() !== true;
+        const maybeFormalNew = this.getNumToken(-2) !== undefined && this.getNumToken(-2)!.getLText() !== '(' && this.getNumToken(-3)?.isIdentifier() !== true;
         innerReferences = this.inner(maybeFormalNew, aggregate);
         containedBraces = true;
-      } else if (this.getNumToken()?.getLText() === '<<') {
+      } else if (this.getNumToken()!.getLText() === '<<') {
         const externalName = this.parseExternalName();
         if (externalName) {
           innerReferences = [externalName];
