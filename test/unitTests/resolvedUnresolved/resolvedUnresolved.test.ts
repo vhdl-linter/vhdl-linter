@@ -23,6 +23,7 @@ test.each([
       preferredLogicTypePort: setting,
       preferredLogicTypeSignal: setting,
       preferredLogicTypeRecordChild: setting,
+      unusedSuffix: '_unused'
     }
   });
   const path = join(__dirname, file);

@@ -1,12 +1,11 @@
-import { CodeAction, CodeActionKind, DiagnosticSeverity, TextEdit } from "vscode-languageserver";
+import { DiagnosticSeverity } from "vscode-languageserver";
 import { IHasLexerToken, IHasPorts, IHasReferenceToken, implementsIHasDeclarations, implementsIHasGenerics, implementsIHasLexerToken, implementsIHasPorts } from "../parser/interfaces";
 import { ObjectBase, OComponent, OConstant, OEntity, OFile, OPackage, OPackageBody, ORead, OSignal, OSubprogram, OType, OVariable, OWrite } from "../parser/objects";
-import { IRule, RuleBase } from "./rulesBase";
+import { codeActionFromPrefixSuffix, IRule, RuleBase } from "./rulesBase";
 
 export class RuleUnused extends RuleBase implements IRule {
   public static readonly ruleName = 'unused';
   file: OFile;
-  private unusedSignalRegex: RegExp;
 
   private addUnusedMessage(obj: ObjectBase & (IHasLexerToken | IHasReferenceToken), msg: string) {
     // ignore unused warnings in packages (they are globally visible)
@@ -22,22 +21,13 @@ export class RuleUnused extends RuleBase implements IRule {
       return;
     }
     const token = implementsIHasLexerToken(obj) ? obj.lexerToken : obj.referenceToken;
-    if (this.unusedSignalRegex.exec(token.text) === null) {
+    const code = codeActionFromPrefixSuffix(token, this.settings.style.unusedPrefix, this.settings.style.unusedSuffix, this.vhdlLinter);
+    if (code !== undefined) {
       this.addMessage({
         range: token.range,
         severity: DiagnosticSeverity.Warning,
         message: msg,
-        code: this.vhdlLinter.addCodeActionCallback((textDocumentUri: string) =>
-          this.unusedSignalRegex.exec(token.text + '_unused') !== null ? [CodeAction.create(
-            `Add '_unused' to the name.`,
-            {
-              changes: {
-                [textDocumentUri]: [
-                  TextEdit.insert(token.range.end, `_unused`)]
-              }
-            },
-            CodeActionKind.QuickFix)] : []
-        )
+        code
       });
     }
   }
@@ -70,8 +60,6 @@ export class RuleUnused extends RuleBase implements IRule {
     }
   }
   check() {
-    this.unusedSignalRegex = new RegExp(this.settings.style.unusedSignalRegex);
-
     for (const obj of this.file.objectList) {
       if (implementsIHasPorts(obj)) {
         this.checkUnusedPorts(obj);
