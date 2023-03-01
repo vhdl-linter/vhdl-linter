@@ -38,10 +38,18 @@ async function run_test(url: URL, error_expected: boolean, projectParser?: Proje
       ? defaultSettingsWithOverwrite({
         rules: {
           "type-resolved": false,
-          "unit": false
-        }
+          "unit": false,
+          "naming-style": false
+        },
+        style: {
+          unusedSuffix: '_unused'
+        },
       })
-      : defaultSettingsGetter;
+      : defaultSettingsWithOverwrite({
+        style: {
+          unusedSuffix: '_unused'
+        },
+      });
     if (lstatSync(subPath).isDirectory()) {
       await run_test(subPath, error_expected, projectParser);
     } else if (subPath.pathname.match(/\.vhdl?$/i)) {

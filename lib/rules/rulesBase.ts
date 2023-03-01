@@ -1,5 +1,5 @@
 import { CodeAction, CodeActionKind, TextEdit } from "vscode-languageserver";
-import { OLexerToken } from "../lexer";
+import { OLexerToken, TokenType } from "../lexer";
 import { OFile } from "../parser/objects";
 import { ISettings } from "../settings";
 import { OIDiagnostic, VhdlLinter } from "../vhdlLinter";
@@ -20,7 +20,10 @@ export class RuleBase {
 }
 
 export function codeActionFromPrefixSuffix(token: OLexerToken, prefix: string, suffix: string, linter: VhdlLinter) {
-
+  // ignore implicit tokens
+  if (token.type === TokenType.implicit) {
+    return;
+  }
   let newName = token.text;
   if (prefix.trim().length !== 0 && newName.startsWith(prefix) === false) {
     newName = `${prefix}${newName}`;
