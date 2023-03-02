@@ -3,7 +3,7 @@ import { readdirSync } from 'fs';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
 import { ProjectParser } from '../../../../lib/projectParser';
-import { defaultSettingsGetter } from '../../../../lib/settings';
+import { defaultSettingsGetter, defaultSettingsWithOverwrite } from '../../../../lib/settings';
 import { VhdlLinter } from '../../../../lib/vhdlLinter';
 import { readFileSyncNorm } from "../../../readFileSyncNorm";
 
@@ -20,7 +20,11 @@ test.each(
 )('Testing behavior of missing statements in file %s', async (fileName) => {
   const path = join(__dirname, fileName);
   const uri = pathToFileURL(path);
-  const linter = new VhdlLinter(uri, readFileSyncNorm(uri, { encoding: 'utf8' }), projectParser, defaultSettingsGetter);
+  const linter = new VhdlLinter(uri, readFileSyncNorm(uri, { encoding: 'utf8' }), projectParser, defaultSettingsWithOverwrite({
+    style: {
+      unusedSuffix: '_unused'
+    }
+  }));
   const messages = await linter.checkAll();
   expect(messages).toMatchSnapshot();
 });
