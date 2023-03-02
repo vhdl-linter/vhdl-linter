@@ -207,8 +207,13 @@ export class ElaborateReferences {
           }
         }
       } else if (typeDefinition.access) {
-        for (const subtypeDef of typeDefinition.subtypeIndication.flatMap(sub => sub.definitions)) {
-          this.elaborateTypeChildren(selectedName, subtypeDef);
+        for (const subtype of typeDefinition.subtypeIndication) {
+          if (subtype.rootFile !== selectedName.rootFile) {
+            this.elaborate(subtype);
+          }
+          for (const subtypeDef of subtype.definitions) {
+            this.elaborateTypeChildren(selectedName, subtypeDef);
+          }
         }
       } else {
         // for protected types (not protected bodies) search subprograms and attributes
