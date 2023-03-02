@@ -94,7 +94,7 @@ export class RuleUnused extends RuleBase implements IRule {
               this.addUnusedMessage(declaration, `Not using component ${declaration.lexerToken.text}`);
             }
           } else if (declaration instanceof OSignal || declaration instanceof OVariable) {
-            const typeName = declaration instanceof OSignal ? 'signal' : 'variable;'
+            const typeName = declaration instanceof OSignal ? 'signal' : 'variable;';
             const references = declaration.referenceLinks.slice(0);
             references.push(...declaration.aliasReferences.flatMap(alias => alias.referenceLinks));
             const writes = references.filter(token => token instanceof OWrite);
