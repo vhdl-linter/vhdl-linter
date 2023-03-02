@@ -50,13 +50,20 @@ export class RuleUnused extends RuleBase implements IRule {
       }
       const references = port.referenceLinks.slice(0);
       references.push(...port.aliasReferences.flatMap(alias => alias.referenceLinks));
-      if ((port.direction === 'in' || port.direction === 'inout') && references.filter(token => token instanceof ORead).length === 0) {
-
-        this.addUnusedMessage(port, `Not reading input port '${port.lexerToken.text}'`);
-      }
       const writes = references.filter(token => token instanceof OWrite);
-      if ((port.direction === 'out' || port.direction === 'inout') && writes.length === 0) {
+      const reads = references.filter(token => token instanceof ORead);
+      if (port.direction === 'in' && reads.length === 0) {
+        this.addUnusedMessage(port, `Not reading input port '${port.lexerToken.text}'`);
+      } else if (port.direction === 'out' && writes.length === 0) {
         this.addUnusedMessage(port, `Not writing output port '${port.lexerToken.text}'`);
+      } else if (port.direction === 'inout') {
+        if (references.length === 0) {
+          this.addUnusedMessage(port, `Not using inout port '${port.lexerToken.text}'`);
+        } else if (reads.length === 0) {
+          this.addUnusedMessage(port, `Not reading inout port '${port.lexerToken.text}'`);
+        } else if (writes.length === 0) {
+          this.addUnusedMessage(port, `Not writing inout port '${port.lexerToken.text}'`);
+        }
       }
     }
   }
@@ -82,45 +89,34 @@ export class RuleUnused extends RuleBase implements IRule {
             if (references.length === 0) {
               this.addUnusedMessage(declaration, `Not using type ${declaration.lexerToken.text}`);
             }
-          }
-          if (declaration instanceof OComponent) {
+          } else if (declaration instanceof OComponent) {
             if (declaration.referenceLinks.length === 0) {
               this.addUnusedMessage(declaration, `Not using component ${declaration.lexerToken.text}`);
             }
-          }
-          if (declaration instanceof OSignal) {
-
+          } else if (declaration instanceof OSignal || declaration instanceof OVariable) {
+            const typeName = declaration instanceof OSignal ? 'signal' : 'variable;'
             const references = declaration.referenceLinks.slice(0);
             references.push(...declaration.aliasReferences.flatMap(alias => alias.referenceLinks));
-            if (references.filter(token => token instanceof ORead).length === 0) {
-              this.addUnusedMessage(declaration, `Not reading signal ${declaration.lexerToken.text}`);
-            }
-            if (references.filter(token => token instanceof OWrite).length === 0) {
-              this.addUnusedMessage(declaration, `Not writing signal ${declaration.lexerToken.text}`);
-            }
-          }
-          if (declaration instanceof OVariable) {
-            const references = declaration.referenceLinks.slice(0);
-            references.push(...declaration.aliasReferences.flatMap(alias => alias.referenceLinks));
-            if (references.filter(token => token instanceof ORead).length === 0) {
-              this.addUnusedMessage(declaration, `Not reading variable ${declaration.lexerToken.text}`);
-            }
-            if (references.filter(token => token instanceof OWrite).length === 0) {
+            const writes = references.filter(token => token instanceof OWrite);
+            const reads = references.filter(token => token instanceof ORead);
+            if (references.length === 0) {
+              this.addUnusedMessage(declaration, `Not using ${typeName} '${declaration.lexerToken.text}'`);
+            } else if (reads.length === 0) {
+              this.addUnusedMessage(declaration, `Not reading ${typeName} '${declaration.lexerToken.text}'`);
+            } else if (writes.length === 0) {
               // Assume protected type has side-effect and does not net writing to.
               const type = declaration.typeReference[0]?.definitions?.[0];
               if ((type instanceof OType && (type.protected || type.protectedBody)) === false) {
-                this.addUnusedMessage(declaration, `Not writing variable '${declaration.lexerToken.text}'`);
+                this.addUnusedMessage(declaration, `Not writing ${typeName} '${declaration.lexerToken.text}'`);
               }
             }
-          }
-          if (declaration instanceof OConstant) {
+          } else if (declaration instanceof OConstant) {
             const references = declaration.referenceLinks.slice(0);
             references.push(...declaration.aliasReferences.flatMap(alias => alias.referenceLinks));
             if (references.filter(token => token instanceof ORead).length === 0) {
               this.addUnusedMessage(declaration, `Not reading constant ${declaration.lexerToken.text}`);
             }
-          }
-          if (declaration instanceof OSubprogram) {
+          } else if (declaration instanceof OSubprogram) {
             // Skip implicitly declared deallocate
             if (declaration.lexerToken.getLText() === 'deallocate') {
               continue;
