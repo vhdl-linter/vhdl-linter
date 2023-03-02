@@ -21,8 +21,9 @@ export class RuleUnused extends RuleBase implements IRule {
       return;
     }
     const token = implementsIHasLexerToken(obj) ? obj.lexerToken : obj.referenceToken;
-    const code = codeActionFromPrefixSuffix(token, this.settings.style.unusedPrefix, this.settings.style.unusedSuffix, this.vhdlLinter);
-    if (code !== undefined) {
+    const {unusedPrefix, unusedSuffix} = this.settings.style;
+    const code = codeActionFromPrefixSuffix(token, unusedPrefix, unusedSuffix, this.vhdlLinter);
+    if (code !== undefined || (unusedPrefix.trim() === '' && unusedSuffix.trim() === '')) {
       this.addMessage({
         range: token.range,
         severity: DiagnosticSeverity.Warning,
