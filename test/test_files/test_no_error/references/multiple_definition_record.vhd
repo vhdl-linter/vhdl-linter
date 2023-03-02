@@ -10,5 +10,6 @@ package body multiple_definition_record is
     variable x, y : ListType;
   begin
     x.elem := y.elem;
+    y.elem := x.elem;
   end procedure test;
 end package body;
