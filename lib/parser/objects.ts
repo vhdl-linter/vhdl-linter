@@ -215,6 +215,7 @@ export class OGenericConstant extends OGeneric implements I.IVariableBase, I.IHa
 }
 export class OReference extends ObjectBase implements I.IHasDefinitions, I.IHasReferenceToken {
   definitions: ObjectBase[] = [];
+  aggregate = false; // if this reference is an aggregate
   notDeclaredHint?: string;
   lexerToken: undefined;
   constructor(public parent: ObjectBase, public referenceToken: OLexerToken, range?: OIRange) {
@@ -388,6 +389,8 @@ export class OType extends ObjectBase implements I.IHasReferenceLinks,
   lexerToken: OLexerToken;
   protected = false;
   protectedBody = false;
+  access = false;
+  subtypeIndication: OReference[] = [];
   addReadsToMap(map: Map<string, ObjectBase>) {
     map.set(this.lexerToken.getLText(), this);
 

@@ -4,10 +4,8 @@ import { VhdlLinter } from "../vhdlLinter";
 export class ElaborateReferences {
   file: O.OFile;
   private scopeVisibilityMap = new Map<O.ObjectBase, Map<string, O.ObjectBase[]>>();
-  // the fallback map includes record children and protected type content which usually is not visible
-  // however, we sometimes cannot infer the type correctly (e.g. return type of a function) and then fail to find an object correctly.
-  // Then, we can look in the fallback map and probably find it somewhere.
-  private fallbackVisibilityMap = new Map<O.ObjectBase, Map<string, O.ObjectBase[]>>();
+  // this map only contains the record children and is used for aggregate references
+  private scopeRecordChildMap = new Map<O.ObjectBase, Map<string, O.ObjectBase[]>>();
   // the project visibility map includes packages that are visible in the project
   private projectVisibilityMap?: Map<string, O.ObjectBase[]> = undefined;
 
@@ -87,9 +85,9 @@ export class ElaborateReferences {
 
   fillVisibilityMap(parent: O.ObjectBase) {
     const visibilityMap = new Map<string, O.ObjectBase[]>();
-    const fallbackMap = new Map<string, O.ObjectBase[]>();
+    const recordChildMap = new Map<string, O.ObjectBase[]>();
     this.scopeVisibilityMap.set(parent, visibilityMap);
-    this.fallbackVisibilityMap.set(parent, fallbackMap);
+    this.scopeRecordChildMap.set(parent, recordChildMap);
     for (const [scopeObj, directlyVisible] of O.scope(parent)) {
       this.addObjectsToMap(visibilityMap, scopeObj);
       if (I.implementsIHasPorts(scopeObj)) {
@@ -100,7 +98,6 @@ export class ElaborateReferences {
       }
       if (I.implementsIHasDeclarations(scopeObj)) {
         this.addObjectsToMap(visibilityMap, ...scopeObj.declarations);
-        this.addHiddenDeclarationsToMap(fallbackMap, scopeObj);
         for (const type of scopeObj.declarations) {
           if (type instanceof O.OType) {
             if (type instanceof O.OEnum) {
@@ -113,7 +110,7 @@ export class ElaborateReferences {
               this.addObjectsToMap(visibilityMap, ...type.declarations);
             }
             if (type instanceof O.ORecord) {
-              this.addObjectsToMap(fallbackMap, ...type.declarations);
+              this.addObjectsToMap(recordChildMap, ...type.children);
             }
           }
         }
@@ -141,7 +138,7 @@ export class ElaborateReferences {
     return this.projectVisibilityMap?.get(searchText) ?? [];
   }
 
-  getList(reference: O.OReference, fallback = false) {
+  getList(reference: O.OReference, aggregate: boolean) {
     // find parent which is a scope
     let key = reference.parent;
     for (const [p] of O.scope(key)) {
@@ -150,23 +147,16 @@ export class ElaborateReferences {
         break;
       }
     }
-
     if (!this.scopeVisibilityMap.has(key)) {
       this.fillVisibilityMap(key);
     }
-    const list = this.scopeVisibilityMap.get(key);
-    if (list === undefined) {
-      throw new Error('no map found');
-    }
+    const objMap = this.scopeVisibilityMap.get(key)!;
     const searchText = reference.referenceToken.getLText();
-    if (fallback) {
-      const fallbackList = this.fallbackVisibilityMap.get(key);
-      if (fallbackList === undefined) {
-        throw new Error('no fallback map found');
-      }
-      return (list.get(searchText) ?? []).concat(fallbackList.get(searchText) ?? []);
+    const result = objMap.get(searchText) ?? [];
+    if (aggregate) {
+      return result.concat(this.scopeRecordChildMap.get(key)!.get(searchText) ?? []);
     } else {
-      return list.get(searchText) ?? [];
+      return result;
     }
   }
 
@@ -184,7 +174,7 @@ export class ElaborateReferences {
   link(reference: O.OReference, obj: O.ObjectBase & (I.IHasReferenceLinks | I.IHasLabel)) {
     // for attributes: only link attribute references to attribute declarations
     if (obj instanceof O.OAttributeDeclaration && !(reference instanceof O.OAttributeReference)
-    || reference instanceof O.OAttributeReference && !(obj instanceof O.OAttributeDeclaration)) {
+      || reference instanceof O.OAttributeReference && !(obj instanceof O.OAttributeDeclaration)) {
       return;
     }
     reference.definitions.push(obj);
@@ -197,30 +187,17 @@ export class ElaborateReferences {
   }
 
   elaborateReference(reference: O.OReference) {
-    for (const obj of this.getList(reference)) {
+    for (const obj of this.getList(reference, reference.aggregate)) {
       // alias doesn't has aliasReferences but still referenceLinks
       if (I.implementsIHasReferenceLinks(obj) || obj instanceof O.OAlias || I.implementsIHasLabel(obj)) {
         this.link(reference, obj);
-      }
-    }
-    if (reference.parent instanceof O.OUseClause) {
-      // never look in fallback map for use clauses
-      return;
-    }
-    // if nothing was found look in the fallback map
-    if (reference.definitions.length === 0) {
-      for (const obj of this.getList(reference, true)) {
-        // alias doesn't has aliasReferences but still referenceLinks
-        if (I.implementsIHasReferenceLinks(obj) || obj instanceof O.OAlias) {
-          this.link(reference, obj);
-        }
       }
     }
   }
 
 
   private elaborateTypeChildren(selectedName: O.OSelectedName | O.OSelectedNameWrite | O.OSelectedNameRead, typeDefinition: O.ObjectBase) {
-    if (typeDefinition instanceof O.ORecord || (typeDefinition instanceof O.OType && typeDefinition.protected)) {
+    if (typeDefinition instanceof O.ORecord || (typeDefinition instanceof O.OType && (typeDefinition.protected || typeDefinition.access))) {
       let found = false;
       if (typeDefinition instanceof O.ORecord) {
         for (const child of typeDefinition.children) {
@@ -228,6 +205,10 @@ export class ElaborateReferences {
             this.link(selectedName, child);
             found = true;
           }
+        }
+      } else if (typeDefinition.access) {
+        for (const subtypeDef of typeDefinition.subtypeIndication.flatMap(sub => sub.definitions)) {
+          this.elaborateTypeChildren(selectedName, subtypeDef);
         }
       } else {
         // for protected types (not protected bodies) search subprograms and attributes
@@ -271,7 +252,13 @@ export class ElaborateReferences {
     }
 
     // previous token is type (e.g. protected or record) -> expect stuff from within
-    const typeRefDefinitions = [...new Set(lastPrefix.definitions.flatMap(def => I.implementsIHasTypeReference(def) ? def.typeReference : []).flatMap(typeRef => typeRef.definitions))];
+    const typeRef = lastPrefix.definitions.flatMap(def => I.implementsIHasTypeReference(def) ? def.typeReference : []);
+    for (const ref of typeRef) {
+      if (ref.rootFile !== reference.rootFile) {
+        this.elaborate(ref);
+      }
+    }
+    const typeRefDefinitions =typeRef.flatMap(typeRef => typeRef.definitions);
     for (const typeDef of typeRefDefinitions) {
       this.elaborateTypeChildren(reference, typeDef);
     }
@@ -296,18 +283,16 @@ export class ElaborateReferences {
       }
     }
 
-    if (reference.parent instanceof O.OUseClause) {
-      // never look in fallback map for use clauses
-      return;
+    // previous token is subprogram -> look in the return types
+    const returnReferences = (lastPrefix.definitions.filter(def => def instanceof O.OSubprogram) as O.OSubprogram[]).flatMap(subprogram => subprogram.return);
+    for (const returnType of returnReferences.flatMap(ref => ref.definitions)) {
+      this.elaborateTypeChildren(reference, returnType);
     }
-    // if nothing was found look in the fallback map
-    if (reference.definitions.length === 0 && reference.notDeclaredHint === undefined) {
-      for (const obj of this.getList(reference, true)) {
-        // alias doesn't has aliasReferences but still referenceLinks
-        if (I.implementsIHasReferenceLinks(obj) || obj instanceof O.OAlias) {
-          this.link(reference, obj);
-        }
-      }
+
+    // previous token is alias -> look in the subtypeIndication
+    const aliasSubtypeIndication = (lastPrefix.definitions.filter(def => def instanceof O.OAlias) as O.OAlias[]).flatMap(alias => alias.subtypeIndication);
+    for (const subtype of aliasSubtypeIndication.flatMap(ref => ref.definitions)) {
+      this.elaborateTypeChildren(reference, subtype);
     }
   }
 
