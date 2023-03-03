@@ -11,7 +11,7 @@ architecture arch of test_external_names is
 begin
   process is
   begin
-    report to_string( << signal .test_toplevel.apfel : std_logic_vector(5 downto 0) >> );  -- invalid kind
+    report to_string( << signal .test_toplevel.apfel : std_logic_vector(5 downto 0) >> );
     report to_string( << signal dummy.apfel           : std_logic_vector(5 downto 0) >> );
   end process;
   dummy : entity work.dummy;
