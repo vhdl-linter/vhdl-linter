@@ -215,7 +215,7 @@ export class OGenericConstant extends OGeneric implements I.IVariableBase, I.IHa
 }
 export class OReference extends ObjectBase implements I.IHasDefinitions, I.IHasReferenceToken {
   definitions: ObjectBase[] = [];
-  aggregate = false; // if this reference is an aggregate
+  aggregate = false; // if this reference is a choice of an aggregate association, required to look for record child references when aggregating a record
   notDeclaredHint?: string;
   lexerToken: undefined;
   constructor(public parent: ObjectBase, public referenceToken: OLexerToken, range?: OIRange) {

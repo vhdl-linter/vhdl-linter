@@ -5,7 +5,7 @@ export class ElaborateReferences {
   file: O.OFile;
   private scopeVisibilityMap = new Map<O.ObjectBase, Map<string, O.ObjectBase[]>>();
   // this map only contains the record children and is used for aggregate references
-  private scopeRecordChildMap = new Map<O.ObjectBase, Map<string, O.ObjectBase[]>>();
+  private scopeRecordChildMap = new Map<O.ObjectBase, Map<string, O.ORecordChild[]>>();
   // the project visibility map includes packages that are visible in the project
   private projectVisibilityMap?: Map<string, O.ObjectBase[]> = undefined;
 
@@ -53,14 +53,14 @@ export class ElaborateReferences {
     }
     return obj?.lexerToken?.getLText();
   }
-  addObjectsToMap(map: Map<string, O.ObjectBase[]>, ...objects: O.ObjectBase[]) {
+  addObjectsToMap<T extends O.ObjectBase>(map: Map<string, T[]>, ...objects: T[]) {
     for (const obj of objects) {
       const text = this.getObjectText(obj);
       if (text === undefined) {
         continue;
       }
 
-      let list: O.ObjectBase[];
+      let list: T[];
       if (map.has(text)) {
         list = map.get(text)!;
       } else {
@@ -85,7 +85,7 @@ export class ElaborateReferences {
 
   fillVisibilityMap(parent: O.ObjectBase) {
     const visibilityMap = new Map<string, O.ObjectBase[]>();
-    const recordChildMap = new Map<string, O.ObjectBase[]>();
+    const recordChildMap = new Map<string, O.ORecordChild[]>();
     this.scopeVisibilityMap.set(parent, visibilityMap);
     this.scopeRecordChildMap.set(parent, recordChildMap);
     for (const [scopeObj, directlyVisible] of O.scope(parent)) {
