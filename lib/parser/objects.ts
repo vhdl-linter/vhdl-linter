@@ -218,7 +218,7 @@ export class OName extends ObjectBase implements I.IHasDefinitions, I.IHasRefere
   notDeclaredHint?: string;
   lexerToken: undefined;
   // Workaround for checking of OWrites in associations. Because of overloading they can not be correctly checked.
-  // This avoid false positives
+  // This avoids false positives
   public inAssociation = false;
   constructor(public parent: ObjectBase, public referenceToken: OLexerToken, public write = false, range?: OIRange) {
     super(parent, range ?? referenceToken.range);
