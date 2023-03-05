@@ -4,13 +4,14 @@ entity test_with is
 end entity;
 architecture arch of test_with is
 
-	signal a : std_ulogic_vector(2 - 1 downto 0);  -- vhdl-linter-disable-line unused
+	signal a   : std_ulogic_vector(2 - 1 downto 0);  -- vhdl-linter-disable-line unused
 	constant b : std_ulogic_vector(4 - 1 downto 0);  -- vhdl-linter-disable-line unused
 
 begin
 
 	process is
 	begin
+	-- sequential
 		with a select b <=                  -- constant can not be written
 												"1000" when "00",
 												"0100" when "01",
