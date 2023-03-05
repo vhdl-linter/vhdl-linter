@@ -262,7 +262,7 @@ export class ExpressionParser {
       return;
     } else {
       const externalName = new O.OExternalName(this.parent, path as ([OLexerToken]), kind, ltToken.range.copyWithNewEnd(gtToken.range));
-      externalName.typeReferences = new ExpressionParser(this.state, externalName, typeTokens).parse();
+      externalName.typeNames = new ExpressionParser(this.state, externalName, typeTokens).parse();
       return externalName;
     }
   }

@@ -226,7 +226,7 @@ export class OName extends ObjectBase implements I.IHasDefinitions, I.IHasNameTo
 }
 export class OExternalName extends OName {
 
-  typeReferences: OName[] = [];
+  typeNames: OName[] = [];
   constructor(public parent: ObjectBase, public path: [OLexerToken], public kind: OLexerToken, range: OIRange) {
     super(parent, path[0], false, range);
   }
@@ -690,29 +690,29 @@ export class OWhileLoop extends OLoop {
 export class OAssignment extends ObjectBase implements I.IMayHaveLabel, I.IHasPostponed {
   label?: OLexerToken;
   labelLinks: OLabelName[] = [];
-  references: OName[] = [];
+  names: OName[] = [];
   postponed = false;
   guarded = false;
 }
 export class OExit extends ObjectBase implements I.IMayHaveLabel {
   label?: OLexerToken;
   labelLinks: OLabelName[] = [];
-  references: OName[] = [];
-  labelReference?: OLabelName;
+  names: OName[] = [];
+  labelName?: OLabelName;
 }
 
 export class OReport extends ObjectBase implements I.IMayHaveLabel {
-  references: OName[] = [];
+  names: OName[] = [];
   label?: OLexerToken;
   labelLinks: OLabelName[] = [];
 }
 export class OReturn extends ObjectBase implements I.IMayHaveLabel {
-  references: OName[] = [];
+  names: OName[] = [];
   label?: OLexerToken;
   labelLinks: OLabelName[] = [];
 }
 export class OAssertion extends ObjectBase implements I.IMayHaveLabel {
-  references: OName[] = [];
+  name: OName[] = [];
   label?: OLexerToken;
   labelLinks: OLabelName[] = [];
   postponed: boolean;
@@ -778,8 +778,8 @@ export class OSubprogram extends OSequenceOfStatements implements I.IHasNameLink
   endingLexerToken?: OLexerToken;
 }
 export class OTypeMark extends ObjectBase {
-  constructor(public parent: ObjectBase, public reference: OName) {
-    super(parent, reference.range);
+  constructor(public parent: ObjectBase, public name: OName) {
+    super(parent, name.range);
   }
 }
 
@@ -820,7 +820,7 @@ export class OConfigurationSpecification extends ObjectBase {
 export class OAttributeSpecification extends ObjectBase implements I.IHasNameToken, I.IHasDefinitions {
   nameToken: OLexerToken;
   definitions: OAttributeDeclaration[] = [];
-  references: OName[] = [];
+  names: OName[] = [];
   entityClass: OLexerToken;
   lexerToken: undefined;
 }
@@ -829,7 +829,7 @@ export class OAttributeDeclaration extends ObjectBase implements I.IHasLexerToke
   nameLinks: OName[] = [];
   aliasLinks: OAlias[] = [];
   aliasDefinitions: ObjectBase[] = [];
-  typeReferences: OName[] = [];
+  typeNames: OName[] = [];
 }
 
 // Returns all object visible starting from the startObjects scope.
