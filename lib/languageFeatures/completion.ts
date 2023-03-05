@@ -13,8 +13,8 @@ function getSelectedNameCompletions(prefix: O.OName) {
     kind: CompletionItemKind
   }[] = [];
   // if last prefix's definition is a record or protected type (i.e. its typeReferences contain a record or protected type)
-  const prefixDefinitions = prefix.definitions.filter(def => I.implementsIHasTypeReference(def)) as (O.ObjectBase & I.IHasTypeReference)[];
-  const typeDefinitions = prefixDefinitions.flatMap(def => def.typeReference).flatMap(ref => ref.definitions);
+  const prefixDefinitions = prefix.definitions.filter(def => I.implementsIHasTypeNames(def)) as (O.ObjectBase & I.IHasTypeNames)[];
+  const typeDefinitions = prefixDefinitions.flatMap(def => def.typeNames).flatMap(ref => ref.definitions);
   const recordTypes = typeDefinitions.filter(type => type instanceof O.ORecord) as O.ORecord[];
   result.push(...recordTypes.flatMap(type => type.children.map(child => ({
     label: child.lexerToken.text,
@@ -58,7 +58,7 @@ export async function getCompletions(linter: VhdlLinter, position: Position): Pr
 
   const token = getTokenFromPosition(linter, position, false);
   // if completing selected name and found a record definition -> only show its elements as completion
-  if (completionObject instanceof O.OSelectedName  || completionObject instanceof O.OSelectedName) {
+  if (completionObject instanceof O.OSelectedName) {
     // special case: if current token is '.', a new selected name is started -> the completionObject is the actual prefix
     const actualPrefix = token?.text === '.' ? completionObject : completionObject.prefixTokens[completionObject.prefixTokens.length - 1]!;
     const result = getSelectedNameCompletions(actualPrefix);

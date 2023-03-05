@@ -11,20 +11,20 @@ export class RuleUnits extends RuleBase implements IRule {
     for (const obj of this.file.objectList) {
       if (obj instanceof OName && obj.definitions.some(def => def instanceof OUnit)) {
         // check if token before unit token is whitespace
-        const i = this.file.lexerTokens.findIndex(token => token === obj.referenceToken);
+        const i = this.file.lexerTokens.findIndex(token => token === obj.nameToken);
         if (i > 1 && this.file.lexerTokens[i - 1]!.type === TokenType.decimalLiteral) {
           const code = this.vhdlLinter.addCodeActionCallback((textDocumentUri: string) => {
             return [CodeAction.create(
               `Add space before unit reference`,
               {
                 changes: {
-                  [textDocumentUri]: [TextEdit.insert(obj.referenceToken.range.start, ' ')]
+                  [textDocumentUri]: [TextEdit.insert(obj.nameToken.range.start, ' ')]
                 }
               },
               CodeActionKind.QuickFix)];
           });
           this.addMessage({
-            range: obj.referenceToken.range,
+            range: obj.nameToken.range,
             severity: DiagnosticSeverity.Warning,
             message: `There should be a space before a unit reference.`,
             code

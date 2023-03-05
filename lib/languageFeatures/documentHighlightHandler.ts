@@ -1,6 +1,6 @@
 import { DocumentHighlight, DocumentHighlightKind, TextDocumentPositionParams } from 'vscode-languageserver';
 import { OLexerToken } from '../lexer';
-import { IHasLexerToken, IHasReferenceToken, implementsIHasLexerToken, implementsIHasReferenceToken } from '../parser/interfaces';
+import { IHasLexerToken, IHasNameToken, implementsIHasLexerToken, implementsIHasNameToken } from '../parser/interfaces';
 import { ObjectBase, OName } from '../parser/objects';
 import { VhdlLinter } from '../vhdlLinter';
 import { findObjectFromPosition } from './findObjects';
@@ -16,14 +16,14 @@ export function documentHighlightHandler(linter: VhdlLinter, params: TextDocumen
         if (candidate.lexerToken.range.start.i <= startI && startI <= candidate.lexerToken.range.end.i) {
           return true;
         }
-      } else if (implementsIHasReferenceToken(candidate)) {
-        if (candidate.referenceToken.range.start.i <= startI && startI <= candidate.referenceToken.range.end.i) {
+      } else if (implementsIHasNameToken(candidate)) {
+        if (candidate.nameToken.range.start.i <= startI && startI <= candidate.nameToken.range.end.i) {
           return true;
         }
       }
       return false;
 
-    }) as (ObjectBase & (IHasLexerToken | IHasReferenceToken))[];
+    }) as (ObjectBase & (IHasLexerToken | IHasNameToken))[];
 
   if (candidates.length === 0) {
     return [];
@@ -39,9 +39,9 @@ export function documentHighlightHandler(linter: VhdlLinter, params: TextDocumen
           range: object.lexerToken.range,
           kind: DocumentHighlightKind.Read
         });
-      } else if (implementsIHasReferenceToken(object) && object.referenceToken.getLText() === name) {
+      } else if (implementsIHasNameToken(object) && object.nameToken.getLText() === name) {
         highlights.push({
-          range: object.referenceToken.range,
+          range: object.nameToken.range,
           kind: object instanceof OName && object.write ? DocumentHighlightKind.Write : DocumentHighlightKind.Read
         });
       }
@@ -51,8 +51,8 @@ export function documentHighlightHandler(linter: VhdlLinter, params: TextDocumen
     if (implementsIHasLexerToken(candidate)) {
       searchForToken(candidate.lexerToken);
     }
-    if (implementsIHasReferenceToken(candidate)) {
-      searchForToken(candidate.referenceToken);
+    if (implementsIHasNameToken(candidate)) {
+      searchForToken(candidate.nameToken);
     }
   }
   return highlights;

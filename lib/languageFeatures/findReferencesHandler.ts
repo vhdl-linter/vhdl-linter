@@ -1,7 +1,7 @@
 import { ErrorCodes, Location, Position, ResponseError } from 'vscode-languageserver';
 import { Elaborate } from '../elaborate/elaborate';
 import { OLexerToken } from '../lexer';
-import { implementsIHasEndingLexerToken, implementsIHasReferenceLinks } from '../parser/interfaces';
+import { implementsIHasEndingLexerToken, implementsIHasNameLinks } from '../parser/interfaces';
 import { OArchitecture, ObjectBase, OComponent, OConfigurationDeclaration, OEntity, OGeneric, OInstantiation, OPackage, OPackageBody, OPort, OSubprogram, OVariable } from '../parser/objects';
 import { VhdlLinter } from '../vhdlLinter';
 import { findDefinitions } from './findDefinition';
@@ -69,11 +69,11 @@ export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position
             referenceTokens.push(link.endingReferenceToken);
           }
           referenceTokens.push(link.lexerToken);
-          referenceTokens.push(...link.referenceLinks.flatMap(link => link instanceof OInstantiation ? link.entityName : []));
+          referenceTokens.push(...link.nameLinks.flatMap(link => link instanceof OInstantiation ? link.entityName : []));
         }
       }
     }
-    if (implementsIHasReferenceLinks(definition)) {
+    if (implementsIHasNameLinks(definition)) {
       if (definition.lexerToken) {
         if (definition instanceof OConfigurationDeclaration) {
           // Configuration has lexer token (its identifier) and the name of the entity.
@@ -85,10 +85,10 @@ export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position
 
         }
       }
-      referenceTokens.push(...definition.referenceLinks.map(ref => ref.referenceToken).filter(token => token.getLText() === definition.lexerToken?.getLText()));
+      referenceTokens.push(...definition.nameLinks.map(ref => ref.nameToken).filter(token => token.getLText() === definition.lexerToken?.getLText()));
       if (definition instanceof OEntity) {
         referenceTokens.push(...definition.correspondingArchitectures.map(arch => arch.entityName));
-        for (const link of definition.referenceLinks) {
+        for (const link of definition.nameLinks) {
           if (link instanceof OInstantiation) {
             referenceTokens.push(link.entityName);
           }
@@ -97,7 +97,7 @@ export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position
           referenceTokens.push(link.entityName);
         }
       } else if (definition instanceof OConfigurationDeclaration && token.getLText() === definition.lexerToken.getLText()) {
-        for (const link of definition.referenceLinks) {
+        for (const link of definition.nameLinks) {
             referenceTokens.push(link.entityName);
         }
       }
@@ -107,13 +107,13 @@ export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position
       if (definition instanceof OPort) {
         if (definition.parent instanceof OEntity) {
           for (const configurations of definition.parent.referenceConfigurations) {
-            referenceTokens.push(...configurations.referenceLinks
+            referenceTokens.push(...configurations.nameLinks
               .flatMap(link => {
                 if (link instanceof OInstantiation) {
                   return link.portAssociationList?.children.flatMap(child => {
                     return child.formalPart
-                      .filter(formal => formal.referenceToken.getLText() === definition.lexerToken.getLText())
-                      .map(formal => formal.referenceToken);
+                      .filter(formal => formal.nameToken.getLText() === definition.lexerToken.getLText())
+                      .map(formal => formal.nameToken);
                   }) ?? [];
                 }
                 return [];
@@ -121,26 +121,26 @@ export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position
           }
 
         }
-        referenceTokens.push(...definition.parent.referenceLinks
+        referenceTokens.push(...definition.parent.nameLinks
           .flatMap(link => {
             if (link instanceof OInstantiation) {
               return link.portAssociationList?.children.flatMap(child => {
                 return child.formalPart
-                  .filter(formal => formal.referenceToken.getLText() === definition.lexerToken.getLText())
-                  .map(formal => formal.referenceToken);
+                  .filter(formal => formal.nameToken.getLText() === definition.lexerToken.getLText())
+                  .map(formal => formal.nameToken);
               }) ?? [];
             }
             return [];
           }));
       }
       if (definition instanceof OGeneric) {
-        referenceTokens.push(...definition.parent.referenceLinks
+        referenceTokens.push(...definition.parent.nameLinks
           .flatMap(link => {
             if (link instanceof OInstantiation) {
               return link.genericAssociationList?.children.flatMap(child => {
                 return child.formalPart
-                  .filter(formal => formal.referenceToken.getLText() === definition.lexerToken.getLText())
-                  .map(formal => formal.referenceToken);
+                  .filter(formal => formal.nameToken.getLText() === definition.lexerToken.getLText())
+                  .map(formal => formal.nameToken);
               }) ?? [];
             }
             return [];

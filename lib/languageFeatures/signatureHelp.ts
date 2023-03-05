@@ -41,7 +41,7 @@ export function signatureHelp(linter: VhdlLinter, position: Position): Signature
           if (associationIndex > -1 && association && association.formalPart.length > 0) {
             for (const formal of association.formalPart) {
               for (const [portIndex, port] of portOrGeneric.entries()) {
-                if (port.lexerToken.getLText() === formal.referenceToken.getLText()) {
+                if (port.lexerToken.getLText() === formal.nameToken.getLText()) {
                   activeParameter = portIndex;
                 }
               }

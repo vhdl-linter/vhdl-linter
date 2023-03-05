@@ -105,7 +105,7 @@ export class SequentialStatementParser extends ParserBase {
     while (this.getToken().getLText() === '.') {
       this.expect('.');
       if (subprogramCall.package !== undefined) {
-        subprogramCall.library = new O.OLibraryReference(subprogramCall, subprogramCall.package);
+        subprogramCall.library = new O.OLibraryName(subprogramCall, subprogramCall.package);
       }
       subprogramCall.package = subprogramCall.entityName;
       subprogramCall.entityName = this.consumeToken();
@@ -188,7 +188,7 @@ export class SequentialStatementParser extends ParserBase {
     exitStatement.label = label;
     const labelToken = this.getToken().isIdentifier() ? this.consumeToken() : undefined;
     if (labelToken) {
-      exitStatement.labelReference = new O.OLabelReference(exitStatement, labelToken);
+      exitStatement.labelReference = new O.OLabelName(exitStatement, labelToken);
     }
     const [tokens] = this.advanceParenthesisAware([';'], true, false);
     if (tokens.length > 0) {

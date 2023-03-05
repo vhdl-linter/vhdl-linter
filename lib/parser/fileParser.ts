@@ -41,12 +41,12 @@ export class FileParser extends ParserBase {
 
   private useClauseFromTokens(parent: ObjectBase & IHasUseClauses, tokens: [OLexerToken, ...OLexerToken[]]) {
     const newUseClause = new OUseClause(parent, tokens[0].range.copyWithNewEnd(tokens[tokens.length - 1]!.range));
-    newUseClause.reference = [new OName(newUseClause, tokens[0])];
+    newUseClause.names = [new OName(newUseClause, tokens[0])];
     for (const [i, token] of tokens.entries()) {
       if (i === 0) {
         continue;
       } else {
-        newUseClause.reference.push(new OSelectedName(newUseClause, token, newUseClause.reference.slice() as SelectedNamePrefix));
+        newUseClause.names.push(new OSelectedName(newUseClause, token, newUseClause.names.slice() as SelectedNamePrefix));
       }
     }
     return newUseClause;

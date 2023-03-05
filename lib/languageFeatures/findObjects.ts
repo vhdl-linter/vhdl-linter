@@ -26,7 +26,7 @@ export function findObjectByDesignator(linter: VhdlLinter, token: OLexerToken): 
   const foundObjects = new SetAdd<ObjectBase>();
   // find all possible definitions for the lexerToken
   for (const obj of linter.file.objectList) {
-    if (obj instanceof OName && obj.referenceToken === token) {
+    if (obj instanceof OName && obj.nameToken === token) {
       foundObjects.add(obj);
     }
     if (obj instanceof OInstantiation) {

@@ -52,12 +52,12 @@ export class ExpressionParser {
     }
 
     let attributeIndex = this.findLastIndex(buffer, token => token.getLText() === '\'');
-    let lastAttributeReference: O.OAttributeReference | undefined;
+    let lastAttributeReference: O.OAttributeName | undefined;
     while (attributeIndex > -1) {
       // If there is not a name after ' mark. This is a type designation
       const reference = buffer[attributeIndex + 1];
       if (reference) {
-        const attributeReference = new O.OAttributeReference(this.parent, reference);
+        const attributeReference = new O.OAttributeName(this.parent, reference);
         references.push(attributeReference);
         if (lastAttributeReference) {
           attributeReference.prefix = attributeReference;
@@ -81,7 +81,7 @@ export class ExpressionParser {
     const references: O.OName[] = [];
     for (const [index, token] of buffer.entries()) {
       if (formal) {
-        references.push(new O.OFormalReference(this.parent, token));
+        references.push(new O.OFormalName(this.parent, token));
       } else if (index > 0) {
         if (write && (this.expState.leftHandSide || this.expState.maybeOutput || this.expState.maybeInOut) ) {
           const write = new O.OSelectedName(this.parent, token, references.slice(0, index) as O.SelectedNamePrefix, true);
@@ -155,7 +155,7 @@ export class ExpressionParser {
             // This is a bit hacky... When there is a cast in the formal reference side. Assume the last token is the actual formal reference
             // Ie to_integer(unsigned(output)) output would be the actual formal part. ant to_integer and unsigned are normal references
             if (formal && innerReferences.length > 0) {
-              Object.setPrototypeOf(innerReferences[innerReferences.length - 1], O.OFormalReference.prototype);
+              Object.setPrototypeOf(innerReferences[innerReferences.length - 1], O.OFormalName.prototype);
             }
             references.push(...innerReferences);
             innerReferences = undefined;

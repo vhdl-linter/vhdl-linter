@@ -3,11 +3,11 @@ import * as O from './objects';
 export interface IHasLabel {
   label: OLexerToken;
   lexerToken: undefined;
-  labelLinks: O.OLabelReference[];
+  labelLinks: O.OLabelName[];
 }
 export interface IMayHaveLabel {
   label?: OLexerToken;
-  labelLinks: O.OLabelReference[];
+  labelLinks: O.OLabelName[];
 }
 export function implementsIHasLabel(obj: O.ObjectBase): obj is O.ObjectBase & IHasLabel {
   return (obj as O.ObjectBase & Partial<IHasLabel>).label !== undefined && Array.isArray((obj as O.ObjectBase & IHasLabel).labelLinks);
@@ -18,16 +18,16 @@ export interface IHasPostponed {
 export function implementsIHasPostponed(obj: O.ObjectBase): obj is O.ObjectBase & IHasPostponed {
   return (obj as O.ObjectBase & Partial<IHasPostponed>).postponed !== undefined;
 }
-export interface IHasTypeReference {
-  typeReference: O.OName[];
+export interface IHasTypeNames {
+  typeNames: O.OName[];
 }
-export function implementsIHasTypeReference(obj: O.ObjectBase): obj is O.ObjectBase & IHasTypeReference {
-  return Array.isArray((obj as O.ObjectBase & IHasTypeReference).typeReference);
+export function implementsIHasTypeNames(obj: O.ObjectBase): obj is O.ObjectBase & IHasTypeNames {
+  return Array.isArray((obj as O.ObjectBase & IHasTypeNames).typeNames);
 }
 export interface IHasDefaultValue {
   defaultValue?: O.OName[];
 }
-export interface IVariableBase extends IHasReferenceLinks, IHasLexerToken, IHasTypeReference, IHasDefaultValue {
+export interface IVariableBase extends IHasNameLinks, IHasLexerToken, IHasTypeNames, IHasDefaultValue {
   lexerToken: OLexerToken;
 }
 export interface IHasUseClauses {
@@ -43,8 +43,8 @@ export interface IMayHaveEndingLexerToken {
 export interface IHasEndingLexerToken {
   endingLexerToken: OLexerToken;
 }
-export interface IHasReferenceToken {
-  referenceToken: OLexerToken;
+export interface IHasNameToken {
+  nameToken: OLexerToken;
   lexerToken: undefined;
 }
 
@@ -62,20 +62,20 @@ export function implementsIHasLexerToken(obj: O.ObjectBase): obj is O.ObjectBase
 export function implementsIHasEndingLexerToken(obj: O.ObjectBase): obj is O.ObjectBase & IHasEndingLexerToken {
   return (obj as O.ObjectBase & Partial<IMayHaveEndingLexerToken>).endingLexerToken !== undefined;
 }
-export function implementsIHasReferenceToken(obj: O.ObjectBase): obj is O.ObjectBase & IHasReferenceToken {
-  return (obj as O.ObjectBase & Partial<IHasReferenceToken>).referenceToken !== undefined;
+export function implementsIHasNameToken(obj: O.ObjectBase): obj is O.ObjectBase & IHasNameToken {
+  return (obj as O.ObjectBase & Partial<IHasNameToken>).nameToken !== undefined;
 }
 
 export function implementsIHasContextReference(obj: O.ObjectBase): obj is O.ObjectBase & IHasContextReference {
   return (obj as O.ObjectBase & Partial<IHasContextReference>).contextReferences !== undefined;
 }
-export interface IHasReferenceLinks {
-  referenceLinks: O.OName[];
-  aliasReferences: O.OAlias[];
+export interface IHasNameLinks {
+  nameLinks: O.OName[];
+  aliasLinks: O.OAlias[];
 }
-export function implementsIHasReferenceLinks(obj: O.ObjectBase): obj is O.ObjectBase & IHasReferenceLinks {
-  return (obj as O.ObjectBase & Partial<IHasReferenceLinks>).referenceLinks !== undefined
-    && (obj as O.ObjectBase & Partial<IHasReferenceLinks>).aliasReferences !== undefined;
+export function implementsIHasNameLinks(obj: O.ObjectBase): obj is O.ObjectBase & IHasNameLinks {
+  return (obj as O.ObjectBase & Partial<IHasNameLinks>).nameLinks !== undefined
+    && (obj as O.ObjectBase & Partial<IHasNameLinks>).aliasLinks !== undefined;
 }
 export interface IHasDefinitions {
   definitions: O.ObjectBase[];
@@ -101,7 +101,7 @@ export function implementsIHasLibraries(obj: O.ObjectBase): obj is O.ObjectBase 
 }
 
 export interface IHasLibraryReference {
-  library?: O.OLibraryReference;
+  library?: O.OLibraryName;
 }
 export function implementsIHasLibraryReference(obj: O.ObjectBase): obj is O.ObjectBase & IHasLibraryReference {
   return (obj as O.ObjectBase & Partial<IHasLibraryReference>).library !== undefined;

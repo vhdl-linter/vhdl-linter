@@ -48,7 +48,7 @@ export class ObjectDeclarationParser extends ParserBase {
       const typeToken = this.consumeToken();
       for (const file of objects.slice(objects.length - 1) as OFileVariable[]) {
         const typeRead = new OName(file, typeToken);
-        file.typeReference = [typeRead];
+        file.typeNames = [typeRead];
         let tokens, endToken;
         if (this.maybe('open')) {
           [tokens, endToken] = this.advanceParenthesisAware(['is', ';', ...this.NotExpectedDelimiter], true, false);
@@ -81,7 +81,7 @@ export class ObjectDeclarationParser extends ParserBase {
       // If multiple types have the same type reference (variable a,b : integer) only the last has the text.
       for (const signal of objects.slice(objects.length - 1)) {
         const { typeReads, defaultValueReads } = this.getType(signal);
-        signal.typeReference = typeReads;
+        signal.typeNames = typeReads;
         signal.defaultValue = defaultValueReads;
       }
 

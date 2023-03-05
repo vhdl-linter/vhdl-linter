@@ -62,7 +62,7 @@ export class StatementBodyParser extends ParserBase {
       statementBody = new OForGenerate(this.parent as OArchitecture, this.getToken().range.copyExtendEndOfLine(), constantRange);
       statementBody.label = this.identifier;
       const iterateConstant = new OConstant(statementBody, constantName.range);
-      iterateConstant.typeReference = [];
+      iterateConstant.typeNames = [];
       iterateConstant.lexerToken = constantName;
       statementBody.declarations.push(iterateConstant);
       statementBody.iterationConstant = constantName;

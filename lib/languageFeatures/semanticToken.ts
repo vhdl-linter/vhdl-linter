@@ -85,8 +85,8 @@ export function semanticToken(linter: VhdlLinter, colorInputs: boolean): Semanti
       continue;
     }
     const definition = findDefinition(obj);
-    if (definition !== undefined && I.implementsIHasReferenceToken(obj)) {
-      pushCorrectToken(buffer, obj, definition, obj.referenceToken.range, [], colorInputs);
+    if (definition !== undefined && I.implementsIHasNameToken(obj)) {
+      pushCorrectToken(buffer, obj, definition, obj.nameToken.range, [], colorInputs);
     } else if (I.implementsIHasLexerToken(obj)) { // is the definition itself?
       pushCorrectToken(buffer, obj, obj, obj.lexerToken.range, [SemanticTokenModifiers.declaration], colorInputs);
       if (I.implementsIHasEndingLexerToken(obj)) {
