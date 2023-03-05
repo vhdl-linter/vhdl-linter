@@ -331,7 +331,7 @@ export class OContextReference extends ObjectBase {
   constructor(public parent: OContext | ObjectBase | OFile, range: OIRange) {
     super(parent, range);
   }
-  reference: OName[];
+  names: OName[];
 
 }
 

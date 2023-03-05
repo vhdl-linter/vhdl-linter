@@ -370,7 +370,7 @@ export class ElaborateNames {
     }
     if (contextReferences.length > 0) {
       for (const contextRef of contextReferences) {
-        const [lib, context] = contextRef.reference as [O.OName, O.OName];
+        const [lib, context] = contextRef.names as [O.OName, O.OName];
         this.elaborateName(lib);
         for (const obj of this.getProjectList(context.nameToken.getLText())) {
           if (obj instanceof O.OContext) {
