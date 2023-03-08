@@ -42,16 +42,20 @@ export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position
   if (!linter) {
     throw new ResponseError(ErrorCodes.InvalidRequest, 'Error during find reference operation', 'Error during find reference operation');
   }
+  // use the current cancelation token
+  linter.token = oldLinter.token;
   const token = getTokenFromPosition(linter, position);
   if (!token) {
     // no definitions for something that isn't a token
     return [];
   }
-  await Elaborate.elaborate(linter);
+  if (linter.elaborated === false) {
+    await Elaborate.elaborate(linter);
+  }
   let definitions = findDefinitions(linter, position);
   // if no definitions found or at least one definition is in another file or at least one definition is not private -> elaborate the project and try again
   if (definitions.length === 0 || definitions.some(def => def.rootFile.uri !== linter.file.uri) || definitions.some(def => !isPrivate(def))) {
-    await linter.projectParser.elaborateAll(token.getLText());
+    await linter.projectParser.elaborateAll(token.getLText(), oldLinter.token);
     definitions = findDefinitions(linter, position);
   }
   const compDefinitions = definitions.filter(def => def instanceof OComponent) as OComponent[];
