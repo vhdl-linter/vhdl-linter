@@ -10,3 +10,4 @@ package pkg_record_child_multi is
   constant x : t_testData := (element => 1, this_also_exists => 1);
   constant y : integer := x.this_also_exists;
 end package;
+ 
