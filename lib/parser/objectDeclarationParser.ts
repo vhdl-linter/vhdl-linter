@@ -78,11 +78,10 @@ export class ObjectDeclarationParser extends ParserBase {
         // TODO: Parse optional parts of file definition
       }
     } else {
-      // If multiple types have the same type reference (variable a,b : integer) only the last has the text.
-      for (const signal of objects.slice(objects.length - 1)) {
-        const { typeReads, defaultValueReads } = this.getType(signal);
-        signal.typeNames = typeReads;
-        signal.defaultValue = defaultValueReads;
+      const { typeReads, defaultValueReads } = this.getType(objects[objects.length - 1]!);
+      for (const object of objects) {
+        object.typeNames = typeReads;
+        object.defaultValue = defaultValueReads;
       }
 
     }
