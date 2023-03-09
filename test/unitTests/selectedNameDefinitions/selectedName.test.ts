@@ -126,13 +126,12 @@ test.each([
   await Elaborate.elaborate(linter);
 
   const assignment = (linter.file.architectures[0]?.declarations[3] as OSubprogram)?.statements[0] as OAssignment;
-  expect(assignment.names).toHaveLength(2);
+  expect(assignment.names).toHaveLength(4);
   expect(assignment.names[3]).toBeInstanceOf(OSelectedName);
   expect(assignment.names[3]?.definitions).toHaveLength(1);
   expect(assignment.names[3]?.definitions[0]).toBeInstanceOf(ORecordChild);
   expect(assignment.names[3]?.definitions[0]?.lexerToken?.getLText()).toBe('apple');
 
-  expect(assignment.names).toHaveLength(2);
   expect(assignment.names[1]).toBeInstanceOf(OSelectedName);
   expect(assignment.names[1]?.definitions).toHaveLength(1);
   expect(assignment.names[1]?.definitions[0]).toBeInstanceOf(ORecordChild);

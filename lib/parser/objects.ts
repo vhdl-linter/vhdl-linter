@@ -791,7 +791,7 @@ export class OTypeMark extends ObjectBase {
 export class OAlias extends ObjectBase implements I.IHasLexerToken, I.IHasNameLinks {
   name: OName[] = []; // The thing being aliased
   nameLinks: OName[] = [];
-  aliasLinks: never[] = []; // Not used. (Because recursive aliases are not allowed)
+  aliasLinks: never[] = []; // recursive aliases are not allowed
   aliasDefinitions: ObjectBase[] = [];
   lexerToken: OLexerToken;
   subtypeIndication: OName[] = []; // subtype_indication
