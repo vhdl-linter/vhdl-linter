@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, expect, jest, test } from '@jest/globals';
 import { pathToFileURL } from 'url';
-import { ErrorCodes, Position, Range, ResponseError } from 'vscode-languageserver';
+import { CancellationTokenSource, ErrorCodes, Position, Range, ResponseError } from 'vscode-languageserver';
 import { prepareRenameHandler, renameHandler } from '../../../lib/languageFeatures/rename';
 import { OIRange } from '../../../lib/parser/objects';
 import { ProjectParser } from '../../../lib/projectParser';
@@ -264,4 +264,23 @@ test('testing handling of invalid rename Handler', async () => {
   expect(err).toBeInstanceOf(ResponseError);
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   expect(err.code).toBe(ErrorCodes.InvalidRequest);
+});
+
+test.each([
+  ['signal.vhd', createPrintableRange(13, 21, 27)],
+])('testing rename with simulated cancel token from linterManager', async (name, range) => {
+  const newName = 'foo_bar';
+
+  const path = pathToFileURL(__dirname + `/${name}`);
+
+  // simulate that the cancellationToken of the linter in the project parser has been canceled
+  const oldFile = projectParser.cachedFiles.find(f => f.uri.toString() === path.toString());
+  const cancelSource = new CancellationTokenSource();
+  oldFile!.linter.token = cancelSource.token;
+  cancelSource.cancel();
+
+  const linter = new VhdlLinter(path, readFileSyncNorm(path, { encoding: 'utf8' }),
+    projectParser, defaultSettingsGetter);
+  const response = await renameHandler(linter, range.start, newName);
+  expect(response.changes).toBeDefined();
 });
