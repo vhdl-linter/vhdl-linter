@@ -3,7 +3,7 @@ import { EventEmitter } from 'events';
 import { existsSync, promises } from 'fs';
 import { basename, join, sep } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
-import { WorkDoneProgressReporter } from 'vscode-languageserver';
+import { CancellationToken, WorkDoneProgressReporter } from 'vscode-languageserver';
 import { Elaborate } from './elaborate/elaborate';
 import { SetAdd } from './languageFeatures/findReferencesHandler';
 import { OArchitecture, OConfigurationDeclaration, OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
@@ -162,7 +162,7 @@ export class ProjectParser {
   }
   // Cache the elaboration result. Caution this can get invalid super easy. Therefore it is completely removed on any file change.
   private cachedElaborate: string | undefined = undefined;
-  async elaborateAll(filter: string) {
+  async elaborateAll(filter: string, token?: CancellationToken) {
     if (this.cachedElaborate === filter) {
       return;
     }
@@ -173,6 +173,7 @@ export class ProjectParser {
 
     for (const cachedFile of cachedFiles) {
       if (cachedFile.linter.file.lexerTokens.find(token => token.getLText() === filter)) {
+        cachedFile.linter.token = token;
         await Elaborate.elaborate(cachedFile.linter);
       }
     }
