@@ -23,7 +23,7 @@ export class RuleUnused extends RuleBase implements IRule {
     const token = implementsIHasLexerToken(obj) ? obj.lexerToken : obj.referenceToken;
     const {unusedPrefix, unusedSuffix} = this.settings.style;
     const code = codeActionFromPrefixSuffix(token, unusedPrefix, unusedSuffix, this.vhdlLinter);
-    if (code !== undefined || (unusedPrefix.trim() === '' && unusedSuffix.trim() === '')) {
+    if (code !== undefined || (unusedPrefix === '' && unusedSuffix === '')) {
       this.addMessage({
         range: token.range,
         severity: DiagnosticSeverity.Warning,

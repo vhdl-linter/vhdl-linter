@@ -25,10 +25,10 @@ export function codeActionFromPrefixSuffix(token: OLexerToken, prefix: string, s
     return;
   }
   let newName = token.text;
-  if (prefix.trim().length !== 0 && newName.startsWith(prefix) === false) {
+  if (prefix.length !== 0 && newName.startsWith(prefix) === false) {
     newName = `${prefix}${newName}`;
   }
-  if (suffix.trim().length !== 0 && newName.endsWith(suffix) === false) {
+  if (suffix.length !== 0 && newName.endsWith(suffix) === false) {
     newName = `${newName}${suffix}`;
   }
   if (newName === token.text) {
