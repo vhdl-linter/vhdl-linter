@@ -59,7 +59,7 @@ export class RuleUnused extends RuleBase implements IRule {
       }
       const references = port.nameLinks.slice(0);
       references.push(...port.aliasLinks.flatMap(alias => alias.nameLinks));
-      if ((port.direction === 'in' || port.direction === 'inout') && references.filter(token => token.write !== true).length === 0) {
+      if ((port.direction === 'in' || port.direction === 'inout') && references.filter(token => token.write === false).length === 0) {
 
         this.addUnusedMessage(port, `Not reading input port '${port.lexerToken.text}'`);
       }
@@ -79,7 +79,7 @@ export class RuleUnused extends RuleBase implements IRule {
       // ignore generics of components
       if (implementsIHasGenerics(obj) && !(obj instanceof OComponent)) {
         for (const generic of obj.generics) {
-          if (generic.nameLinks.filter(token => token.write !== true).length === 0) {
+          if (generic.nameLinks.filter(token => token.write === false).length === 0) {
             this.addUnusedMessage(generic, `Not reading generic ${generic.lexerToken.text}`);
           }
 
@@ -103,7 +103,7 @@ export class RuleUnused extends RuleBase implements IRule {
 
             const references = declaration.nameLinks.slice(0);
             references.push(...declaration.aliasLinks.flatMap(alias => alias.nameLinks));
-            if (references.filter(token => token.write !== true).length === 0) {
+            if (references.filter(token => token.write === false).length === 0) {
               this.addUnusedMessage(declaration, `Not reading signal ${declaration.lexerToken.text}`);
             }
             if (references.filter(token => token.write).length === 0) {
@@ -113,7 +113,7 @@ export class RuleUnused extends RuleBase implements IRule {
           if (declaration instanceof OVariable) {
             const references = declaration.nameLinks.slice(0);
             references.push(...declaration.aliasLinks.flatMap(alias => alias.nameLinks));
-            if (references.filter(token => token.write !== true).length === 0) {
+            if (references.filter(token => token.write === false).length === 0) {
               this.addUnusedMessage(declaration, `Not reading variable ${declaration.lexerToken.text}`);
             }
             if (references.filter(token => token.write).length === 0) {
@@ -127,7 +127,7 @@ export class RuleUnused extends RuleBase implements IRule {
           if (declaration instanceof OConstant) {
             const references = declaration.nameLinks.slice(0);
             references.push(...declaration.aliasLinks.flatMap(alias => alias.nameLinks));
-            if (references.filter(token => token.write !== true).length === 0) {
+            if (references.filter(token => token.write === false).length === 0) {
               this.addUnusedMessage(declaration, `Not reading constant ${declaration.lexerToken.text}`);
             }
           }
