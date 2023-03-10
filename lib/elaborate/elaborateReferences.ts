@@ -22,7 +22,7 @@ export class ElaborateNames {
         lastCancelTime = now;
       }
       if (I.implementsIHasUseClause(obj)) {
-        // elaborator.elaborateUseClauses(obj, elaborator.getUseClauses(obj));
+        elaborator.elaborateUseClauses(obj, elaborator.getUseClauses(obj));
       } else if (obj instanceof O.OName) {
         elaborator.elaborate(obj);
       }
@@ -90,13 +90,13 @@ export class ElaborateNames {
     this.scopeRecordChildMap.set(parent, recordChildMap);
     for (const [scopeObj, directlyVisible] of O.scope(parent)) {
       this.addObjectsToMap(visibilityMap, scopeObj);
-      if (I.implementsIHasPorts(scopeObj)) {
+      if (directlyVisible && I.implementsIHasPorts(scopeObj)) {
         this.addObjectsToMap(visibilityMap, ...scopeObj.ports);
       }
-      if (I.implementsIHasGenerics(scopeObj)) {
+      if (directlyVisible && I.implementsIHasGenerics(scopeObj)) {
         this.addObjectsToMap(visibilityMap, ...scopeObj.generics);
       }
-      if (I.implementsIHasDeclarations(scopeObj)) {
+      if (directlyVisible && I.implementsIHasDeclarations(scopeObj)) {
         this.addObjectsToMap(visibilityMap, ...scopeObj.declarations);
         for (const type of scopeObj.declarations) {
           if (type instanceof O.OType) {
@@ -115,7 +115,7 @@ export class ElaborateNames {
           }
         }
       }
-      if (I.implementsIHasStatements(scopeObj)) {
+      if (directlyVisible && I.implementsIHasStatements(scopeObj)) {
         this.addObjectsToMap(visibilityMap, ...scopeObj.statements);
       }
       if (directlyVisible && I.implementsIHasLibraries(scopeObj)) {
@@ -166,8 +166,8 @@ export class ElaborateNames {
 
   link(reference: O.OName, obj: O.ObjectBase & (I.IHasNameLinks | I.IHasLabel)) {
     // for attributes: only link attribute references to attribute declarations
-    if (obj instanceof O.OAttributeDeclaration && !(reference instanceof O.OAttributeName)
-    || reference instanceof O.OAttributeName && !(obj instanceof O.OAttributeDeclaration)) {
+    if (obj instanceof O.OAttributeDeclaration && !(reference instanceof O.OAttributeName) && !(reference.parent instanceof O.OUseClause)
+      || reference instanceof O.OAttributeName && !(obj instanceof O.OAttributeDeclaration)) {
       return;
     }
     reference.definitions.push(obj);
@@ -271,9 +271,16 @@ export class ElaborateNames {
           this.link(name, decl);
         }
         if (decl instanceof O.OEnum) {
-          for (const  enumLiteral of decl.literals) {
-            if (enumLiteral.lexerToken.getLText() === name.nameToken.getLText()) {
+          for (const enumLiteral of decl.literals) {
+            if (enumLiteral.lexerToken.getLText() === name.nameToken.getLText() || name.nameToken.getLText() === 'all') {
               this.link(name, enumLiteral);
+            }
+          }
+        }
+        if (decl instanceof O.OType) {
+          for (const unit of decl.units) {
+            if (unit.lexerToken.getLText() === name.nameToken.getLText() || name.nameToken.getLText() === 'all') {
+              this.link(name, unit);
             }
           }
         }
@@ -302,33 +309,7 @@ export class ElaborateNames {
         this.elaborate(name);
       }
       const libraryRef = useClause.names[0].definitions.some(def => def instanceof O.OLibrary);
-      if (libraryRef) {
-        if (useClause.names[1] === undefined) {
-          this.vhdlLinter.addMessage({
-            message: 'use clause with library reference expects a package reference.',
-            range: useClause.range
-          }, 'elaborate');
-          return;
-        }
-        const packageRef = useClause.names[2]!;
-        for (const obj of this.getProjectList(packageRef.nameToken.getLText())) {
-          if (obj instanceof O.OPackage) {
-            parent.packageDefinitions.push(obj);
-            obj.nameLinks.push(packageRef);
-            clearVisibilityMap = true;
-          }
-          if (obj instanceof O.OPackageInstantiation) {
-            const uninstantiatedPackage = obj.uninstantiatedPackage[obj.uninstantiatedPackage.length - 1]!;
-            // manually elaborate the uninstantiated package:
-            const packageDefinitions = this.getProjectList(uninstantiatedPackage.nameToken.getLText()).filter(def => def instanceof O.OPackage) as O.OPackage[];
-            uninstantiatedPackage.definitions = packageDefinitions;
-
-            parent.packageDefinitions.push(...packageDefinitions);
-            obj.nameLinks.push(packageRef);
-            clearVisibilityMap = true;
-          }
-        }
-      } else {
+      if (libraryRef === false) {
         const packageRef = useClause.names[0];
         for (const obj of packageRef.definitions) {
           if (obj instanceof O.OPackageInstantiation || obj instanceof O.OInterfacePackage) {
@@ -337,9 +318,6 @@ export class ElaborateNames {
             for (const ref of obj.uninstantiatedPackage) {
               this.elaborate(ref);
             }
-
-            const packageDefinitions = obj.uninstantiatedPackage[obj.uninstantiatedPackage.length - 1]!.definitions.filter(ref => ref instanceof O.OPackage) as O.OPackage[];
-            parent.packageDefinitions.push(...packageDefinitions);
             obj.nameLinks.push(packageRef);
             clearVisibilityMap = true;
           }
@@ -349,6 +327,7 @@ export class ElaborateNames {
     if (clearVisibilityMap) {
       this.scopeVisibilityMap.clear();
     }
+    this.scopeVisibilityMap.delete(parent);
   }
 
   getUseClauses(parent: O.ObjectBase & (I.IHasUseClauses | I.IHasContextReference)) {

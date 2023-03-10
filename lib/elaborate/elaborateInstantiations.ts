@@ -36,6 +36,9 @@ function getComponents(instantiation: OInstantiation): OComponent[] {
   }
   // find all defined components in current scope
   for (const [iterator] of scope(instantiation)) {
+    if (iterator instanceof OComponent) {
+      components.push(iterator);
+    }
     if (implementsIHasDeclarations(iterator)) {
       for (const component of iterator.declarations) {
         if (component instanceof OComponent) {

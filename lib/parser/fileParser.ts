@@ -5,7 +5,7 @@ import { ContextReferenceParser } from './contextReferenceParser';
 import { EntityParser } from './entityParser';
 import { ExpressionParser } from './expressionParser';
 import { IHasUseClauses } from './interfaces';
-import { MagicCommentType, ObjectBase, OFile, OI, OIRange, OLibrary, OMagicCommentDisable, OPackageInstantiation, OSelectedName, OUseClause, ParserError } from './objects';
+import { MagicCommentType, ObjectBase, OFile, OI, OIRange, OLibrary, OMagicCommentDisable, OName, OPackageInstantiation, OSelectedName, OUseClause, ParserError } from './objects';
 import { PackageInstantiationParser } from './packageInstantiationParser';
 import { PackageParser } from './packageParser';
 import { ParserBase, ParserPosition, ParserState } from './parserBase';
@@ -42,7 +42,7 @@ export class FileParser extends ParserBase {
 
   private useClauseFromTokens(parent: ObjectBase & IHasUseClauses, tokens: [OLexerToken, ...OLexerToken[]]) {
     const newUseClause = new OUseClause(parent, tokens[0].range.copyWithNewEnd(tokens[tokens.length - 1]!.range));
-    newUseClause.names = new ExpressionParser(this.state, parent, tokens).parse() as [OName, ...OSelectedName[]];
+    newUseClause.names = new ExpressionParser(this.state, newUseClause, tokens).parse() as [OName, ...OSelectedName[]];
     return newUseClause;
   }
 

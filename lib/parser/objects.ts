@@ -295,7 +295,6 @@ export class OPackage extends ObjectBase implements I.IHasDeclarations, I.IHasUs
   genericRange?: OIRange;
   lexerToken: OLexerToken;
   useClauses: OUseClause[] = [];
-  packageDefinitions: OPackage[] = [];
   contextReferences: OContextReference[] = [];
   library?: OLibraryName;
   targetLibrary?: string;
@@ -600,7 +599,6 @@ export class OEntity extends ObjectBase implements I.IHasDefinitions, I.IHasDecl
   lexerToken: OLexerToken;
   endingLexerToken: OLexerToken | undefined;
   useClauses: OUseClause[] = [];
-  packageDefinitions: OPackage[] = [];
   contextReferences: OContextReference[] = [];
   portRange?: OIRange;
   ports: OPort[] = [];
@@ -847,20 +845,24 @@ export function* scope(startObject: ObjectBase): Generator<[ObjectBase, boolean]
     if (current instanceof OArchitecture && current.correspondingEntity) {
       yield [current.correspondingEntity, directlyVisible];
       directlyVisible = false;
-      for (const packages of current.correspondingEntity.packageDefinitions) {
-        yield [packages, directlyVisible];
+      for (const useClause of current.correspondingEntity.useClauses) {
+        for (const definition of useClause.names.at(-1)?.definitions ?? []) {
+          yield [definition, false];
+        }
       }
     }
     if (current instanceof OPackageBody && current.correspondingPackage) {
       yield [current.correspondingPackage, directlyVisible];
       directlyVisible = false;
-      for (const packages of current.correspondingPackage.packageDefinitions) {
-        yield [packages, directlyVisible];
+      for (const useClause of current.correspondingPackage.useClauses) {
+        for (const definition of useClause.names.at(-1)?.definitions ?? []) {
+          yield [definition, false];
+        }
       }
     }
     if (I.implementsIHasUseClause(current)) {
       for (const useClause of current.useClauses) {
-        for (const definition of useClause.reference.at(-1)?.definitions ?? []) {
+        for (const definition of useClause.names.at(-1)?.definitions ?? []) {
           yield [definition, false];
         }
       }

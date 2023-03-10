@@ -1,4 +1,4 @@
-import { OLexerToken } from "../lexer";
+import { OLexerToken, TokenType } from "../lexer";
 import * as O from "./objects";
 import { ParserState } from "./parserBase";
 interface ExpParserState {
@@ -77,7 +77,7 @@ export class ExpressionParser {
     return references;
   }
   convertToReference(buffer: OLexerToken[], formal: boolean, write: boolean, aggregate: boolean, choice: boolean) {
-    buffer = buffer.filter(token => token.isDesignator() || token.getLText() === 'all');
+    buffer = buffer.filter(token => token.isDesignator() || token.getLText() === 'all' || token.type === TokenType.implicit);
     const references: O.OName[] = [];
     const prefixWrite: O.OName[] = [];
     const prefixRead: O.OName[] = [];

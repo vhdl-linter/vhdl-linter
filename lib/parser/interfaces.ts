@@ -32,7 +32,6 @@ export interface IVariableBase extends IHasNameLinks, IHasLexerToken, IHasTypeNa
 }
 export interface IHasUseClauses {
   useClauses: O.OUseClause[];
-  packageDefinitions: O.OPackage[];
 }
 export interface IHasLexerToken {
   lexerToken: OLexerToken;
@@ -50,8 +49,6 @@ export interface IHasNameToken {
 
 export interface IHasContextReference {
   contextReferences: O.OContextReference[];
-  packageDefinitions: O.OPackage[];
-
 }
 export function implementsIHasUseClause(obj: O.ObjectBase): obj is O.ObjectBase & IHasUseClauses {
   return (obj as O.ObjectBase & Partial<IHasUseClauses>).useClauses !== undefined;
