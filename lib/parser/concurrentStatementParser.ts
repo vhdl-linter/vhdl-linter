@@ -3,7 +3,7 @@ import { AssertionParser } from './assertionParser';
 import { AssignmentParser } from './assignmentParser';
 import { ConcurrentInstantiationParser } from './concurrentInstantiationParser';
 import { ExpressionParser } from './expressionParser';
-import { OArchitecture, OCaseGenerate, OEntity, OForGenerate, OIfGenerate, OIfGenerateClause, OName, OStatementBody, ParserError } from './objects';
+import { OStatementBody, OEntity, OArchitecture, ParserError, OForGenerate, OCaseGenerate, OIfGenerate, OIfGenerateClause } from './objects';
 import { ParserBase, ParserState } from './parserBase';
 import { ProcessParser } from './processParser';
 import { StatementBodyParser } from './statementBodyParser';
@@ -183,18 +183,8 @@ export class ConcurrentStatementParser extends ParserBase {
       return true;
 
     } else if (nextToken.getLText() === 'with') {
-      // TODO: use expression parser for concurrent_selected_signal_assignment
-      this.consumeToken();
-      const readToken = this.consumeToken();
-      if (this.getToken().text === '(') {
-        this.consumeToken();
-        this.advanceParenthesisAware([')']);
-      }
-      this.consumeToken();
       const assignmentParser = new AssignmentParser(this.state, this.parent);
       const assignment = assignmentParser.parse('concurrent');
-      const read = new OName(assignment, readToken);
-      assignment.labelLinks.push(read);
       this.parent.statements.push(assignment);
     } else if (nextToken.getLText() === 'assert') {
       this.parent.statements.push(new AssertionParser(this.state, this.parent).parse(label, postponed));
