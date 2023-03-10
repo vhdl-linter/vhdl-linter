@@ -13,6 +13,7 @@ export interface ISettings {
     'port-declaration': boolean;
     'type-resolved': boolean;
     'unused': boolean;
+    'use-clause': boolean;
     'empty': boolean;
     'constant-write': boolean;
     'parser': boolean;
@@ -58,6 +59,7 @@ export const defaultSettings: ISettings = {
     'port-declaration': true,
     'type-resolved': true,
     'unused': true,
+    'use-clause': true,
     'empty': true,
     'constant-write': true,
     'parser': true,

@@ -23,13 +23,22 @@ export class ElaborateNames {
       }
       if (I.implementsIHasUseClause(obj)) {
         elaborator.elaborateUseClauses(obj, elaborator.getUseClauses(obj));
-      } else if (obj instanceof O.OName) {
-        elaborator.elaborate(obj);
+      }
+    }
+    elaborator.scopeVisibilityMap.clear();
+    for (const obj of vhdlLinter.file.objectList) {
+      const now = Date.now();
+      if (now - lastCancelTime >= 10) {
+        await vhdlLinter.handleCanceled();
+        lastCancelTime = now;
+      }
+      if (obj instanceof O.OName) {
+        elaborator.elaborate(obj, false);
       }
     }
   }
 
-  elaborate(name: O.OName) {
+  elaborate(name: O.OName, ignoreMap: boolean) {
     if (name.definitions.length > 0) {
       // was already elaborated (e.g. in use clause)
       return;
@@ -40,9 +49,9 @@ export class ElaborateNames {
     // elaborate all names except instantiations
     if (name instanceof O.OInstantiation === false) {
       if (name instanceof O.OSelectedName) {
-        this.elaborateSelectedName(name);
+        this.elaborateSelectedName(name, ignoreMap);
       } else {
-        this.elaborateName(name);
+        this.elaborateName(name, ignoreMap);
       }
     }
   }
@@ -141,7 +150,8 @@ export class ElaborateNames {
     return this.projectVisibilityMap?.get(searchText) ?? [];
   }
 
-  getList(name: O.OName) {
+  getList(name: O.OName, ignoreMap: boolean) {
+
     // find parent which is a scope
     let key = name.parent;
     for (const [p] of O.scope(key)) {
@@ -150,7 +160,7 @@ export class ElaborateNames {
         break;
       }
     }
-    if (!this.scopeVisibilityMap.has(key)) {
+    if (!this.scopeVisibilityMap.has(key) || ignoreMap) {
       this.fillVisibilityMap(key);
     }
     const objMap = this.scopeVisibilityMap.get(key)!;
@@ -178,8 +188,8 @@ export class ElaborateNames {
     }
   }
 
-  elaborateName(name: O.OName) {
-    for (const obj of this.getList(name)) {
+  elaborateName(name: O.OName, ignoreMap: boolean) {
+    for (const obj of this.getList(name, ignoreMap)) {
       // alias doesn't has aliasReferences but still referenceLinks
       if (I.implementsIHasNameLinks(obj) || obj instanceof O.OAlias || I.implementsIHasLabel(obj)) {
         this.link(name, obj);
@@ -188,7 +198,7 @@ export class ElaborateNames {
   }
 
 
-  private elaborateTypeChildren(selectedName: O.OSelectedName, typeDefinition: O.ObjectBase) {
+  private elaborateTypeChildren(selectedName: O.OSelectedName, typeDefinition: O.ObjectBase, ignoreMap: boolean) {
     if (typeDefinition instanceof O.ORecord || (typeDefinition instanceof O.OType && (typeDefinition.protected || typeDefinition.access))) {
       let found = false;
       if (typeDefinition instanceof O.ORecord) {
@@ -201,10 +211,10 @@ export class ElaborateNames {
       } else if (typeDefinition.access) {
         for (const subtype of typeDefinition.subtypeIndication) {
           if (subtype.rootFile !== selectedName.rootFile) {
-            this.elaborate(subtype);
+            this.elaborate(subtype, ignoreMap);
           }
           for (const subtypeDef of subtype.definitions) {
-            this.elaborateTypeChildren(selectedName, subtypeDef);
+            this.elaborateTypeChildren(selectedName, subtypeDef, ignoreMap);
           }
         }
       } else {
@@ -222,12 +232,12 @@ export class ElaborateNames {
       }
     } else if (typeDefinition instanceof O.OArray) {
       for (const def of typeDefinition.elementType.flatMap(r => r.definitions)) {
-        this.elaborateTypeChildren(selectedName, def);
+        this.elaborateTypeChildren(selectedName, def, ignoreMap);
       }
     }
   }
 
-  elaborateSelectedName(name: O.OSelectedName) {
+  elaborateSelectedName(name: O.OSelectedName, ignoreMap: boolean) {
     // all prefix tokens should be elaborated already
     const lastPrefix = name.prefixTokens.at(-1)!;
     if (lastPrefix.definitions.length === 0) {
@@ -252,20 +262,26 @@ export class ElaborateNames {
     const typeNames = lastPrefix.definitions.flatMap(def => I.implementsIHasTypeNames(def) ? def.typeNames : []);
     for (const typeName of typeNames) {
       if (typeName.rootFile !== name.rootFile) {
-        this.elaborate(typeName);
+        this.elaborate(typeName, ignoreMap);
       }
     }
     const typeRefDefinitions = typeNames.flatMap(typeRef => typeRef.definitions);
     for (const typeDef of typeRefDefinitions) {
-      this.elaborateTypeChildren(name, typeDef);
+      this.elaborateTypeChildren(name, typeDef, ignoreMap);
     }
 
     // previous token is package
     const packages = lastPrefix.definitions.filter(def => def instanceof O.OPackage) as O.OPackage[];
     // previous token is pkg inst or interface pkg -> find stuff from the uninstantiated package
     const pkgInstantiations = lastPrefix.definitions.filter(def => def instanceof O.OPackageInstantiation || def instanceof O.OInterfacePackage) as (O.OPackageInstantiation | O.OInterfacePackage)[];
+    for (const pkgInstantiation of pkgInstantiations) {
+      for (const ref of pkgInstantiation.uninstantiatedPackage) {
+        this.elaborate(ref, true);
+      }
+    }
     packages.push(...pkgInstantiations.flatMap(inst => inst.uninstantiatedPackage[inst.uninstantiatedPackage.length - 1]!.definitions).filter(ref => ref instanceof O.OPackage) as O.OPackage[]);
     for (const pkg of packages) {
+
       for (const decl of pkg.declarations) {
         if (decl.lexerToken !== undefined && (decl.lexerToken.getLText() === name.nameToken.getLText() || name.nameToken.getLText() === 'all')) {
           this.link(name, decl);
@@ -285,18 +301,23 @@ export class ElaborateNames {
           }
         }
       }
+      for (const generic of pkg.generics) {
+        if (generic.lexerToken !== undefined && (generic.lexerToken.getLText() === name.nameToken.getLText() || name.nameToken.getLText() === 'all')) {
+          this.link(name, generic);
+        }
+      }
     }
 
     // previous token is subprogram -> look in the return types
     const returnReferences = (lastPrefix.definitions.filter(def => def instanceof O.OSubprogram) as O.OSubprogram[]).flatMap(subprogram => subprogram.return);
     for (const returnType of returnReferences.flatMap(ref => ref.definitions)) {
-      this.elaborateTypeChildren(name, returnType);
+      this.elaborateTypeChildren(name, returnType, ignoreMap);
     }
 
     // previous token is alias -> look in the subtypeIndication
     const aliasSubtypeIndication = (lastPrefix.definitions.filter(def => def instanceof O.OAlias) as O.OAlias[]).flatMap(alias => alias.subtypeIndication);
     for (const subtype of aliasSubtypeIndication.flatMap(ref => ref.definitions)) {
-      this.elaborateTypeChildren(name, subtype);
+      this.elaborateTypeChildren(name, subtype, ignoreMap);
     }
   }
 
@@ -306,7 +327,7 @@ export class ElaborateNames {
     for (const useClause of useClauses) {
       // elaborate the names (useClause is created before the names of it)
       for (const name of useClause.names) {
-        this.elaborate(name);
+        this.elaborate(name, true);
       }
       const libraryRef = useClause.names[0].definitions.some(def => def instanceof O.OLibrary);
       if (libraryRef === false) {
@@ -316,7 +337,7 @@ export class ElaborateNames {
             // they are not elaborated yet because the useClauses are always elaborated before anything else.
             // In this case the packageInstantiation/interfacePackage needs to be elaborated
             for (const ref of obj.uninstantiatedPackage) {
-              this.elaborate(ref);
+              this.elaborate(ref, true);
             }
             obj.nameLinks.push(packageRef);
             clearVisibilityMap = true;
@@ -343,7 +364,7 @@ export class ElaborateNames {
     if (contextReferences.length > 0) {
       for (const contextRef of contextReferences) {
         const [lib, context] = contextRef.names as [O.OName, O.OName];
-        this.elaborateName(lib);
+        this.elaborateName(lib, true);
         for (const obj of this.getProjectList(context.nameToken.getLText())) {
           if (obj instanceof O.OContext) {
             context.definitions.push(obj);

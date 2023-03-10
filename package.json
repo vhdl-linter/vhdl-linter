@@ -176,6 +176,12 @@
 					"description": "Enable the rule to warn for unused objects.",
 					"default": true
 				},
+				"VhdlLinter.rules.use-clause": {
+					"scope": "window",
+					"type": "boolean",
+					"description": "Enable the rule to check use clauses.",
+					"default": true
+				},
 				"VhdlLinter.rules.empty": {
 					"scope": "window",
 					"type": "boolean",

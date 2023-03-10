@@ -834,7 +834,36 @@ export class OAttributeDeclaration extends ObjectBase implements I.IHasLexerToke
   aliasDefinitions: ObjectBase[] = [];
   typeNames: OName[] = [];
 }
+function* iterateContext(object: ObjectBase & I.IHasContextReference, directlyVisible: boolean): Generator<[ObjectBase, boolean]> {
+  const handleContextReference = (contextReference: OContextReference, recursionLimit: number) => {
+    if (recursionLimit === 0) {
+      throw new Error(`Infinite Recursion`);
+    }
+    const definitions: ObjectBase[] = [];
+    for (const definition of contextReference.names.at(-1)?.definitions ?? []) {
+      definitions.push(definition);
+      if (I.implementsIHasContextReference(definition)) {
+        for (const contextReference of definition.contextReferences) {
+          definitions.push(...handleContextReference(contextReference, recursionLimit - 1));
+        }
+      }
+      if (I.implementsIHasUseClause(definition)) {
+        for (const useClause of definition.useClauses) {
+          for (const definition of useClause.names.at(-1)?.definitions ?? []) {
+            definitions.push(definition);
+          }
+        }
+      }
+    }
+    return definitions;
+  };
 
+  for (const contextReference of object.contextReferences) {
+    for (const definition of handleContextReference(contextReference, 100)) {
+      yield [definition, directlyVisible];
+    }
+  }
+}
 // Returns all object visible starting from the startObjects scope.
 // The second parameter defines if the object is directly visible.
 export function* scope(startObject: ObjectBase): Generator<[ObjectBase, boolean]> {
@@ -850,6 +879,9 @@ export function* scope(startObject: ObjectBase): Generator<[ObjectBase, boolean]
           yield [definition, false];
         }
       }
+      for (const [definition, directlyVisibleInt] of iterateContext(current.correspondingEntity, directlyVisible)) {
+        yield [definition, directlyVisibleInt];
+      }
     }
     if (current instanceof OPackageBody && current.correspondingPackage) {
       yield [current.correspondingPackage, directlyVisible];
@@ -859,6 +891,9 @@ export function* scope(startObject: ObjectBase): Generator<[ObjectBase, boolean]
           yield [definition, false];
         }
       }
+      for (const [definition, directlyVisibleInt] of iterateContext(current.correspondingPackage, directlyVisible)) {
+        yield [definition, directlyVisibleInt];
+      }
     }
     if (I.implementsIHasUseClause(current)) {
       for (const useClause of current.useClauses) {
@@ -866,10 +901,11 @@ export function* scope(startObject: ObjectBase): Generator<[ObjectBase, boolean]
           yield [definition, false];
         }
       }
-      // for (const packages of current.packageDefinitions) {
-      //   directlyVisible = false;
-      //   yield [packages, directlyVisible];
-      // }
+    }
+    if (I.implementsIHasContextReference(current)) {
+      for (const [definition, directlyVisibleInt] of iterateContext(current, directlyVisible)) {
+        yield [definition, directlyVisibleInt];
+      }
     }
     if (current.parent instanceof OFile) {
       break;

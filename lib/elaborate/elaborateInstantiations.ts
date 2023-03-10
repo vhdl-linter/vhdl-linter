@@ -124,6 +124,11 @@ function getSubprograms(instantiation: OInstantiation, projectParser: ProjectPar
   };
 
   for (const [iterator] of scope(instantiation)) {
+    if (iterator instanceof OSubprogram || iterator instanceof OAliasWithSignature) {
+      subprograms.push(iterator);
+    } else if (iterator instanceof OType) {
+      addTypes([iterator], 500);
+    }
     if (implementsIHasDeclarations(iterator)) {
       for (const declaration of iterator.declarations) {
         if (declaration instanceof OSubprogram) {
