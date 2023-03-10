@@ -1,6 +1,6 @@
 import { OLexerToken } from '../lexer';
 import { ExpressionParser } from './expressionParser';
-import { OAssignment, ObjectBase } from './objects';
+import { OAssignment, ObjectBase, OReference } from './objects';
 import { ParserBase, ParserState } from './parserBase';
 
 export class AssignmentParser extends ParserBase {
@@ -12,6 +12,14 @@ export class AssignmentParser extends ParserBase {
     this.debug('parse');
 
     const assignment = new OAssignment(this.parent, this.getToken().range.copyExtendEndOfLine());
+    let withReferences: OReference[] = [];
+    if (this.maybe('with')) {
+      const [expressionTokens] = this.advanceParenthesisAware(['select'], true, true);
+      withReferences = new ExpressionParser(this.state, assignment, expressionTokens).parse();
+
+    }
+
+
     assignment.postponed = postponed;
     assignment.label = label;
     let leftHandSideNum = this.state.pos.num;
@@ -23,7 +31,7 @@ export class AssignmentParser extends ParserBase {
     }
     const expressionParser = new ExpressionParser(this.state, assignment, leftHandSideTokens);
     [assignment.references, assignment.writes] = expressionParser.parseTarget();
-
+    assignment.references.unshift(...withReferences);
 
     this.consumeToken();
     const forceToken = this.maybe('force');

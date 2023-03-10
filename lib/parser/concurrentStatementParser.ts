@@ -183,12 +183,8 @@ export class ConcurrentStatementParser extends ParserBase {
       return true;
 
     } else if (nextToken.getLText() === 'with') {
-      this.expect('with');
-      const [expressionTokens] = this.advanceParenthesisAware(['select'], true, true);
       const assignmentParser = new AssignmentParser(this.state, this.parent);
       const assignment = assignmentParser.parse('concurrent');
-      const references = new ExpressionParser(this.state, assignment, expressionTokens).parse();
-      assignment.references.unshift(...references);
       this.parent.statements.push(assignment);
     } else if (nextToken.getLText() === 'assert') {
       this.parent.statements.push(new AssertionParser(this.state, this.parent).parse(label, postponed));
