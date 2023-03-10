@@ -246,13 +246,13 @@ export class ElaborateNames {
     }
 
     // previous token is type (e.g. protected or record) -> expect stuff from within
-    const typeRef = lastPrefix.definitions.flatMap(def => I.implementsIHasTypeNames(def) ? def.typeNames : []);
-    for (const ref of typeRef) {
-      if (ref.rootFile !== name.rootFile) {
-        this.elaborate(ref);
+    const typeNames = lastPrefix.definitions.flatMap(def => I.implementsIHasTypeNames(def) ? def.typeNames : []);
+    for (const typeName of typeNames) {
+      if (typeName.rootFile !== name.rootFile) {
+        this.elaborate(typeName);
       }
     }
-    const typeRefDefinitions =typeRef.flatMap(typeRef => typeRef.definitions);
+    const typeRefDefinitions = typeNames.flatMap(typeRef => typeRef.definitions);
     for (const typeDef of typeRefDefinitions) {
       this.elaborateTypeChildren(name, typeDef);
     }
