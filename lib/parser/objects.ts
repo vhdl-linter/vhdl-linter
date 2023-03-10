@@ -842,7 +842,6 @@ export class OAttributeDeclaration extends ObjectBase implements I.IHasLexerToke
 export function* scope(startObject: ObjectBase): Generator<[ObjectBase, boolean]> {
   let current = startObject;
   let directlyVisible = true;
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   while (true) {
     yield [current, directlyVisible];
     if (current instanceof OArchitecture && current.correspondingEntity) {
@@ -860,10 +859,15 @@ export function* scope(startObject: ObjectBase): Generator<[ObjectBase, boolean]
       }
     }
     if (I.implementsIHasUseClause(current)) {
-      for (const packages of current.packageDefinitions) {
-        directlyVisible = false;
-        yield [packages, directlyVisible];
+      for (const useClause of current.useClauses) {
+        for (const definition of useClause.reference.at(-1)?.definitions ?? []) {
+          yield [definition, false];
+        }
       }
+      // for (const packages of current.packageDefinitions) {
+      //   directlyVisible = false;
+      //   yield [packages, directlyVisible];
+      // }
     }
     if (current.parent instanceof OFile) {
       break;

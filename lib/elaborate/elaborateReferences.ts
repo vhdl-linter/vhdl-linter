@@ -22,7 +22,7 @@ export class ElaborateNames {
         lastCancelTime = now;
       }
       if (I.implementsIHasUseClause(obj)) {
-        elaborator.elaborateUseClauses(obj, elaborator.getUseClauses(obj));
+        // elaborator.elaborateUseClauses(obj, elaborator.getUseClauses(obj));
       } else if (obj instanceof O.OName) {
         elaborator.elaborate(obj);
       }
@@ -135,6 +135,9 @@ export class ElaborateNames {
       this.addObjectsToMap(this.projectVisibilityMap, ...projectParser.packageInstantiations);
       this.addObjectsToMap(this.projectVisibilityMap, ...projectParser.contexts);
     }
+    if (searchText === 'all') {
+      return [...this.projectVisibilityMap?.values() ?? []].flat();
+    }
     return this.projectVisibilityMap?.get(searchText) ?? [];
   }
 
@@ -226,7 +229,7 @@ export class ElaborateNames {
 
   elaborateSelectedName(name: O.OSelectedName) {
     // all prefix tokens should be elaborated already
-    const lastPrefix = name.prefixTokens[name.prefixTokens.length - 1]!;
+    const lastPrefix = name.prefixTokens.at(-1)!;
     if (lastPrefix.definitions.length === 0) {
       // if the last prefix token was not defined, do not try to look for more
       return;
@@ -264,11 +267,11 @@ export class ElaborateNames {
     packages.push(...pkgInstantiations.flatMap(inst => inst.uninstantiatedPackage[inst.uninstantiatedPackage.length - 1]!.definitions).filter(ref => ref instanceof O.OPackage) as O.OPackage[]);
     for (const pkg of packages) {
       for (const decl of pkg.declarations) {
-        if (decl.lexerToken !== undefined && decl.lexerToken.getLText() === name.nameToken.getLText()) {
+        if (decl.lexerToken !== undefined && (decl.lexerToken.getLText() === name.nameToken.getLText() || name.nameToken.getLText() === 'all')) {
           this.link(name, decl);
         }
         if (decl instanceof O.OEnum) {
-          for (const enumLiteral of decl.literals) {
+          for (const  enumLiteral of decl.literals) {
             if (enumLiteral.lexerToken.getLText() === name.nameToken.getLText()) {
               this.link(name, enumLiteral);
             }
@@ -307,7 +310,7 @@ export class ElaborateNames {
           }, 'elaborate');
           return;
         }
-        const packageRef = useClause.names[1]!;
+        const packageRef = useClause.names[2]!;
         for (const obj of this.getProjectList(packageRef.nameToken.getLText())) {
           if (obj instanceof O.OPackage) {
             parent.packageDefinitions.push(obj);

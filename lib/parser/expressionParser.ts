@@ -77,10 +77,11 @@ export class ExpressionParser {
     return references;
   }
   convertToReference(buffer: OLexerToken[], formal: boolean, write: boolean, aggregate: boolean, choice: boolean) {
-    buffer = buffer.filter(token => token.isDesignator());
-    const references: O.OName[] =  [];
+    buffer = buffer.filter(token => token.isDesignator() || token.getLText() === 'all');
+    const references: O.OName[] = [];
     const prefixWrite: O.OName[] = [];
     const prefixRead: O.OName[] = [];
+
     for (const [index, token] of buffer.entries()) {
       if (choice) {
         references.push(new O.OChoice(this.parent, token));

@@ -102,6 +102,10 @@ export class ParserBase {
     }
   }
   advanceSelectedName(parent: ObjectBase): [OName, ...OSelectedName[]] {
+    const tokens = this.advanceSelectedNameNoParse();
+    return new ExpressionParser(this.state, parent, tokens).parse() as [OName, ...OSelectedName[]];
+  }
+  advanceSelectedNameNoParse(): [OLexerToken, ...OLexerToken[]] {
     const tokens: OLexerToken[] = [];
     while (this.getToken().isIdentifier() || this.getToken().getLText() === '.' || this.getToken().getLText() === 'all') {
       tokens.push(this.getToken());
@@ -110,7 +114,7 @@ export class ParserBase {
     if (tokens.length === 0) {
       throw new ParserError('expected a selected name', this.getToken().range);
     }
-    return new ExpressionParser(this.state, parent, tokens).parse() as [OName, ...OSelectedName[]];
+    return tokens as [OLexerToken, ...OLexerToken[]];
   }
   consumeToken(advanceWhitespace = true): OLexerToken {
     const token = this.state.pos.lexerTokens[this.state.pos.num];
