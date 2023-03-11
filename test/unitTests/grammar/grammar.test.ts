@@ -26,13 +26,15 @@ const registry = new vscodeTextmate.Registry({
     return null;
   }
 });
-
-test('grammar test', async () => {
+test.each([
+  `test_protected.vhd`,
+  'test_literals.vhd'
+])('grammar test on %s', async (filename: string) => {
   const grammar = await registry.loadGrammar('source.vhdl');
   if (grammar === null) {
     return;
   }
-  const text =  readFileSyncNorm(__dirname + `/test_protected.vhd`, {encoding: 'utf-8'}).split('\n');
+  const text = readFileSyncNorm(__dirname + `/${filename}`, { encoding: 'utf-8' }).split('\n');
   let ruleStack = vscodeTextmate.INITIAL;
   const tokens = text.map(line => {
     const lineTokens = grammar.tokenizeLine(line, ruleStack);
