@@ -2,6 +2,9 @@ package layered_recursion is
   type CoverageIDType is record
     ID : integer;
   end record CoverageIDType;
+  type CovPType is protected
+  end protected;
+
 end package;
 package body layered_recursion is
   type CovPType is protected body
@@ -17,8 +20,8 @@ package body layered_recursion is
     BinVal : RangeArrayPtrType;
 
   end record CovBinInternalBaseType;
-  type CovBinPtrType is access CovBinInternalType;
   type CovBinInternalType is array (natural range <>) of CovBinInternalBaseType;
+  type CovBinPtrType is access CovBinInternalType;
 
   type CovStructType is record
     CovBinPtr : CovBinPtrType;
@@ -26,8 +29,9 @@ package body layered_recursion is
   type ItemArrayType is array (integer range <>) of CovStructType;
 
   type ItemArrayPtrType is access ItemArrayType;
+  variable Template : ItemArrayType(1 to 1) := (1 => (CovBinPtr => null));
 
-  variable CovStructPtr : ItemArrayPtrType := new ItemArrayType'();
+  variable CovStructPtr : ItemArrayPtrType := new ItemArrayType'(Template);
 
 
   procedure DeallocateBins(CoverID : CoverageIDType) is
@@ -37,12 +41,6 @@ package body layered_recursion is
     -- Local for a particular CoverageModel
     deallocate(CovStructPtr(Index).CovBinPtr(0).BinVal);
   end procedure;
-  procedure Test is
-    variable CovBinPtr : CovBinPtrType;
-  begin
-    CovBinPtr := CovStructPtr(0).CovBinPtr(0);
-    deallocate(CovBinPtr.BinVal);
 
-  end procedure;
 end protected body;
 end package body;

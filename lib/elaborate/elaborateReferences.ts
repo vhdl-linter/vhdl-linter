@@ -138,7 +138,7 @@ export class ElaborateNames {
     return this.projectVisibilityMap?.get(searchText) ?? [];
   }
 
-  getList(name: O.OName, aggregate: boolean) {
+  getList(name: O.OName) {
     // find parent which is a scope
     let key = name.parent;
     for (const [p] of O.scope(key)) {
@@ -153,7 +153,7 @@ export class ElaborateNames {
     const objMap = this.scopeVisibilityMap.get(key)!;
     const searchText = name.nameToken.getLText();
     const result = objMap.get(searchText) ?? [];
-    if (aggregate) {
+    if (name instanceof O.OChoice) {
       return result.concat(this.scopeRecordChildMap.get(key)!.get(searchText) ?? []);
     } else {
       return result;
@@ -176,7 +176,7 @@ export class ElaborateNames {
   }
 
   elaborateName(name: O.OName) {
-    for (const obj of this.getList(name, name.aggregate)) {
+    for (const obj of this.getList(name)) {
       // alias doesn't has aliasReferences but still referenceLinks
       if (I.implementsIHasNameLinks(obj) || obj instanceof O.OAlias || I.implementsIHasLabel(obj)) {
         this.link(name, obj);

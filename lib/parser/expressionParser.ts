@@ -41,12 +41,12 @@ export class ExpressionParser {
     }
     return -1;
   }
-  splitBuffer(buffer: OLexerToken[], formal: boolean, write: boolean, aggregate: boolean): O.OName[] {
+  splitBuffer(buffer: OLexerToken[], formal: boolean, write: boolean, aggregate: boolean, choice: boolean): O.OName[] {
     const references = [];
     let alternativeIndex = buffer.findIndex(token => token.getLText() === '|');
     while (alternativeIndex > -1) {
       const newBuffer = buffer.slice(0, alternativeIndex);
-      references.push(...this.splitBuffer(newBuffer, formal, false, false));
+      references.push(...this.splitBuffer(newBuffer, formal, false, false, choice));
       buffer = buffer.slice(alternativeIndex + 1);
       alternativeIndex = buffer.findIndex(token => token.getLText() === '|');
     }
@@ -69,44 +69,56 @@ export class ExpressionParser {
 
     }
     if (attributeIndex === -1) {
-      references.push(...this.convertToReference(buffer, formal, write, aggregate));
+      references.push(...this.convertToReference(buffer, formal, write, aggregate, choice));
       if (lastAttributeReference) {
         lastAttributeReference.prefix = references[references.length - 1]!;
       }
     }
     return references;
   }
-  convertToReference(buffer: OLexerToken[], formal: boolean, write: boolean, aggregate: boolean) {
+  convertToReference(buffer: OLexerToken[], formal: boolean, write: boolean, aggregate: boolean, choice: boolean) {
     buffer = buffer.filter(token => token.isDesignator());
-    const references: O.OName[] = [];
+    const references: O.OName[] =  [];
+    const prefixWrite: O.OName[] = [];
+    const prefixRead: O.OName[] = [];
     for (const [index, token] of buffer.entries()) {
-      if (formal) {
+      if (choice) {
+        references.push(new O.OChoice(this.parent, token));
+      } else if (formal) {
         references.push(new O.OFormalName(this.parent, token));
       } else if (index > 0) {
         if (write && (this.expState.leftHandSide || this.expState.maybeOutput || this.expState.maybeInOut) ) {
-          const write = new O.OSelectedName(this.parent, token, references.slice(0, index) as O.SelectedNamePrefix, true);
+          const write = new O.OSelectedName(this.parent, token, prefixWrite.slice(0) as O.SelectedNamePrefix, true);
           references.push(write);
+          prefixWrite.push(write);
           write.inAssociation = this.expState.maybeOutput || this.expState.maybeInOut;
           if (this.expState.maybeInOut) {
-            references.push(new O.OSelectedName(this.parent, token, references.slice(0, index) as O.SelectedNamePrefix));
+            const name = new O.OSelectedName(this.parent, token, prefixRead.slice(0) as O.SelectedNamePrefix);
+            references.push(name);
+            prefixRead.push(name);
+
           }
         } else {
-          references.push(new O.OSelectedName(this.parent, token, references.slice(0, index) as O.SelectedNamePrefix));
+          const name = new O.OSelectedName(this.parent, token, prefixRead.slice(0) as O.SelectedNamePrefix);
+          references.push(name);
+          prefixRead.push(name);
         }
       } else {
         if (write && (this.expState.leftHandSide || this.expState.maybeOutput || this.expState.maybeInOut)) {
           const write = new O.OName(this.parent, token, true);
           write.inAssociation = this.expState.maybeOutput || this.expState.maybeInOut;
           references.push(write);
+          prefixWrite.push(write);
           if (this.expState.maybeInOut) {
             const name = new O.OName(this.parent, token);
-            name.aggregate = aggregate;
             references.push(name);
+            prefixRead.push(name);
           }
         } else {
           const name = new O.OName(this.parent, token);
-          name.aggregate = aggregate;
           references.push(name);
+          prefixRead.push(name);
+
         }
       }
     }
@@ -148,8 +160,9 @@ export class ExpressionParser {
         // Attributes are handled as one block, so check that the break token is not after a attribute ' mark.
         if (breakToken && lastToken?.getLText() !== '\'') {
           const formal = maybeFormal && breakToken === '=>';
+          const choice = aggregate && breakToken === '=>';
           // If braces were contained. This token was a cast on the formal side (so a reference not formal)
-          references.push(...this.splitBuffer(tokenBuffer, formal && containedBraces === false, maybeWrite, aggregate));
+          references.push(...this.splitBuffer(tokenBuffer, formal && containedBraces === false, maybeWrite, aggregate, choice));
 
           // Only the first token can be a write. For example signal.record_element only the signal is written.
           // The exception is in an aggregate all aggregate elements are written. (aggregate elements are separated by ',')
@@ -180,7 +193,7 @@ export class ExpressionParser {
       lastToken = this.getNumToken();
       this.increaseToken();
     }
-    references.push(...this.splitBuffer(tokenBuffer, false, maybeWrite, aggregate));
+    references.push(...this.splitBuffer(tokenBuffer, false, maybeWrite, aggregate, false));
     if (this.expState.lastFormal.length > 0 && tokenBuffer.length === 0) {
       this.state.messages.push({
         message: "The actual part cannot be empty.",

@@ -215,7 +215,6 @@ export class OGenericConstant extends OGeneric implements I.IVariableBase, I.IHa
 }
 export class OName extends ObjectBase implements I.IHasDefinitions, I.IHasNameToken {
   definitions: ObjectBase[] = [];
-  aggregate = false; // if this reference is a choice of an aggregate association, required to look for record child references when aggregating a record
   notDeclaredHint?: string;
   lexerToken: undefined;
   // Workaround for checking of OWrites in associations. Because of overloading they can not be correctly checked.
@@ -224,6 +223,8 @@ export class OName extends ObjectBase implements I.IHasDefinitions, I.IHasNameTo
   constructor(public parent: ObjectBase, public nameToken: OLexerToken, public write = false, range?: OIRange) {
     super(parent, range ?? nameToken.range);
   }
+}
+export class OChoice extends OName {
 }
 export class OExternalName extends OName {
 

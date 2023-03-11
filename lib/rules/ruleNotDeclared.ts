@@ -114,6 +114,10 @@ export class RuleNotDeclared extends RuleBase implements IRule {
         // TODO handle Formal references for function calls in assignments
         continue;
       }
+      if (obj instanceof O.OChoice) {
+        // For choices (aggregates) there is not way to confidently find the definition.
+        // continue;
+      }
       if (obj instanceof O.OAttributeName) {
         if (obj.definitions.length === 0) {
           this.addMessage({

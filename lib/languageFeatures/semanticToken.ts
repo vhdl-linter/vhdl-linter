@@ -99,6 +99,9 @@ export function semanticToken(linter: VhdlLinter, colorInputs: boolean): Semanti
     if (obj instanceof O.OExternalName) {
       pushToken(buffer, obj.path[0].range.copyWithNewEnd(obj.path.at(-1)!.range), SemanticTokenTypes.namespace, []);
     }
+    if (obj instanceof O.OChoice) {
+      pushToken(buffer, obj.nameToken.range, SemanticTokenTypes.property, []);
+    }
   }
   // Sort tokens
   buffer.sort((a, b) => {
