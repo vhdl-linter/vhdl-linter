@@ -1,5 +1,5 @@
 import { DiagnosticSeverity } from "vscode-languageserver/node";
-import { implementsIHasDefinitions, implementsIHasReferenceLinks } from "../parser/interfaces";
+import { implementsIHasDefinitions, implementsIHasNameLinks } from "../parser/interfaces";
 import { OArchitecture, OEntity, OFile, OPackage, OPackageBody } from "../parser/objects";
 import { VhdlLinter } from "../vhdlLinter";
 import { elaborateAliases } from "./elaborateAliases";
@@ -7,7 +7,7 @@ import { elaborateAssociations } from "./elaborateAssociation";
 import { elaborateComponents } from "./elaborateComponents";
 import { elaborateConfigurations } from "./elaborateConfigurations";
 import { elaborateInstantiations } from "./elaborateInstantiations";
-import { ElaborateReferences } from "./elaborateReferences";
+import { ElaborateNames } from "./elaborateReferences";
 
 export class Elaborate {
   file: OFile;
@@ -22,9 +22,9 @@ export class Elaborate {
   }
   public static clear(vhdlLinter: VhdlLinter) {
     for (const obj of vhdlLinter.file.objectList) {
-      if (implementsIHasReferenceLinks(obj)) {
-        obj.referenceLinks = [];
-        obj.aliasReferences = [];
+      if (implementsIHasNameLinks(obj)) {
+        obj.nameLinks = [];
+        obj.aliasLinks = [];
       }
       if (implementsIHasDefinitions(obj)) {
         obj.definitions = [];
@@ -89,7 +89,7 @@ export class Elaborate {
     }
 
     await this.vhdlLinter.handleCanceled();
-    await ElaborateReferences.elaborate(this.vhdlLinter);
+    await ElaborateNames.elaborate(this.vhdlLinter);
     await this.vhdlLinter.handleCanceled();
     elaborateComponents(this.file, this.vhdlLinter.projectParser);
     await this.vhdlLinter.handleCanceled();

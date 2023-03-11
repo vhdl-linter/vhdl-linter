@@ -3,7 +3,7 @@ import { AssertionParser } from './assertionParser';
 import { AssignmentParser } from './assignmentParser';
 import { ConcurrentInstantiationParser } from './concurrentInstantiationParser';
 import { ExpressionParser } from './expressionParser';
-import { OArchitecture, OCaseGenerate, OEntity, OForGenerate, OIfGenerate, OIfGenerateClause, OStatementBody, ParserError } from './objects';
+import { OStatementBody, OEntity, OArchitecture, ParserError, OForGenerate, OCaseGenerate, OIfGenerate, OIfGenerateClause } from './objects';
 import { ParserBase, ParserState } from './parserBase';
 import { ProcessParser } from './processParser';
 import { StatementBodyParser } from './statementBodyParser';

@@ -7,7 +7,7 @@ import { IRule, RuleBase } from "./rulesBase";
 
 export class RuleNotDeclared extends RuleBase implements IRule {
   public static readonly ruleName = 'not-declared';
-  private findUsePackageActions(ref: O.OReference, textDocumentUri: string): CodeAction[] {
+  private findUsePackageActions(ref: O.OName, textDocumentUri: string): CodeAction[] {
     const actions: CodeAction[] = [];
     const proposals = new Set<string>();
     let root = ref.getRootElement();
@@ -19,7 +19,7 @@ export class RuleNotDeclared extends RuleBase implements IRule {
     const pos = root.range.start;
     for (const pkg of this.vhdlLinter.projectParser.packages) {
       for (const type of pkg.declarations) {
-        if (I.implementsIHasLexerToken(type) && type.lexerToken.getLText() === ref.referenceToken.getLText()) {
+        if (I.implementsIHasLexerToken(type) && type.lexerToken.getLText() === ref.nameToken.getLText()) {
           let library = pkg.targetLibrary ? pkg.targetLibrary : 'work';
           let pkgName = pkg.lexerToken.text;
           if (library === 'work' && pkg.rootFile.uri.pathname.match(/ieee/i)) {
@@ -56,14 +56,14 @@ export class RuleNotDeclared extends RuleBase implements IRule {
     }
     return actions;
   }
-  private pushNotDeclaredError(reference: O.OReference) {
+  private pushNotDeclaredError(reference: O.OName) {
     const code = this.vhdlLinter.addCodeActionCallback((textDocumentUri: string) => {
       const actions: CodeAction[] = [];
       actions.push(...this.findUsePackageActions(reference, textDocumentUri));
       // If parent is Signal, Port or Variable this reference is in the type reference. So adding signal makes no sense.
       if (reference.parent instanceof O.OSignal === false && reference.parent instanceof O.OPort === false && reference.parent instanceof O.OVariable === false) {
         for (const architecture of this.file.architectures) {
-          const args: IAddSignalCommandArguments = { textDocumentUri, signalName: reference.referenceToken.text, position: architecture.declarationsRange.end ?? architecture.range.start };
+          const args: IAddSignalCommandArguments = { textDocumentUri, signalName: reference.nameToken.text, position: architecture.declarationsRange.end ?? architecture.range.start };
           actions.push(CodeAction.create(
             'add signal to architecture',
             Command.create('add signal to architecture', 'vhdl-linter:add-signal', args),
@@ -73,7 +73,7 @@ export class RuleNotDeclared extends RuleBase implements IRule {
       const possibleMatches = this.file.objectList
         .filter(obj => typeof obj !== 'undefined' && I.implementsIHasLexerToken(obj))
         .map(obj => (obj as I.IHasLexerToken).lexerToken.text);
-      const bestMatch = findBestMatch(reference.referenceToken.text, possibleMatches);
+      const bestMatch = findBestMatch(reference.nameToken.text, possibleMatches);
       if (bestMatch.bestMatch.rating > 0.5) {
         actions.push(CodeAction.create(
           `Replace with ${bestMatch.bestMatch.target} (score: ${bestMatch.bestMatch.rating})`,
@@ -90,14 +90,14 @@ export class RuleNotDeclared extends RuleBase implements IRule {
       code,
       range: reference.range,
       severity: DiagnosticSeverity.Error,
-      message: reference.notDeclaredHint ?? `object '${reference.referenceToken.text}' is ${reference instanceof O.OWrite ? 'written' : 'referenced'} but not declared`
+      message: reference.notDeclaredHint ?? `object '${reference.nameToken.text}' is ${reference.write ? 'written' : 'referenced'} but not declared`
     });
   }
-  private pushAssociationError(reference: O.OReference) {
+  private pushAssociationError(reference: O.OName) {
     this.addMessage({
       range: reference.range,
       severity: DiagnosticSeverity.Error,
-      message: `port '${reference.referenceToken.text}' does not exist`
+      message: `port '${reference.nameToken.text}' does not exist`
     });
   }
 
@@ -107,19 +107,19 @@ export class RuleNotDeclared extends RuleBase implements IRule {
       if (obj instanceof O.OInstantiation) { // Instantiation handled somewhere else, where?
         continue;
       }
-      if (obj instanceof O.OLibraryReference) { // handled in rules/library-reference
+      if (obj instanceof O.OLibraryName) { // handled in rules/library-reference
         continue;
       }
-      if (obj instanceof O.OFormalReference) { // Formal references handled else where
+      if (obj instanceof O.OFormalName) { // Formal references handled else where
         // TODO handle Formal references for function calls in assignments
         continue;
       }
-      if (obj instanceof O.OAttributeReference) {
+      if (obj instanceof O.OAttributeName) {
         if (obj.definitions.length === 0) {
           this.addMessage({
             range: obj.range,
             severity: DiagnosticSeverity.Error,
-            message: `attribute '${obj.referenceToken.text}' is referenced but not declared`
+            message: `attribute '${obj.nameToken.text}' is referenced but not declared`
           });
         }
       } else if (obj instanceof O.OArchitecture && obj.correspondingEntity === undefined) {
@@ -128,9 +128,9 @@ export class RuleNotDeclared extends RuleBase implements IRule {
           severity: DiagnosticSeverity.Error,
           message: `Did not find entity for this architecture`
         });
-      } else if (obj instanceof O.OReference && obj.referenceToken.isIdentifier() === false) {
+      } else if (obj instanceof O.OName && obj.nameToken.isIdentifier() === false) {
         // Do nothing is probably string literal
-      } else if (obj instanceof O.OFormalReference
+      } else if (obj instanceof O.OFormalName
         && obj.parent instanceof O.OAssociation && obj.definitions.length === 0) {
         // Check for formal references (ie. port names).
         const instOrPackage = obj.parent.parent.parent;
@@ -138,14 +138,14 @@ export class RuleNotDeclared extends RuleBase implements IRule {
         if (instOrPackage instanceof O.OInstantiation && instOrPackage.definitions.length > 0) {
           this.pushAssociationError(obj);
         }
-      } else if ((obj instanceof O.OReference) && obj.definitions.length === 0 && !(obj instanceof O.OComponent)) {
-        if (obj instanceof O.OSelectedName || obj instanceof O.OSelectedNameRead || obj instanceof O.OSelectedNameWrite) {
+      } else if ((obj instanceof O.OName) && obj.definitions.length === 0 && !(obj instanceof O.OComponent)) {
+        if (obj instanceof O.OSelectedName) {
           const lastPrefix = obj.prefixTokens[obj.prefixTokens.length - 1]!;
           if (lastPrefix.definitions.length === 0) {
             // if the last prefix token was not defined, do not push another not declared error
             continue;
           }
-          if (lastPrefix.definitions.some(def => I.implementsIHasLabel(def) && def.label.getLText() === lastPrefix.referenceToken.getLText())) {
+          if (lastPrefix.definitions.some(def => I.implementsIHasLabel(def) && def.label.getLText() === lastPrefix.nameToken.getLText())) {
             // if the last prefix token references a label, we do not look for stuff inside (external names)
             continue;
           }

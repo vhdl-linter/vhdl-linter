@@ -167,7 +167,7 @@ export class DocumentSymbols {
   getSequentialStatement(statement: OSequentialStatement): DocumentSymbol[] {
     if (statement instanceof OCase) {
       return [{
-        name: statement.expression.map(read => read.referenceToken.text).join(' '),
+        name: statement.expression.map(read => read.nameToken.text).join(' '),
         detail: 'case',
         kind: SymbolKind.Enum,
         range: statement.range,

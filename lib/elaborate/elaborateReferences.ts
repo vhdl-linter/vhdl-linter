@@ -1,7 +1,7 @@
 import * as I from "../parser/interfaces";
 import * as O from "../parser/objects";
 import { VhdlLinter } from "../vhdlLinter";
-export class ElaborateReferences {
+export class ElaborateNames {
   file: O.OFile;
   private scopeVisibilityMap = new Map<O.ObjectBase, Map<string, O.ObjectBase[]>>();
   // this map only contains the record children and is used for aggregate references
@@ -13,7 +13,7 @@ export class ElaborateReferences {
     this.file = vhdlLinter.file;
   }
   public static async elaborate(vhdlLinter: VhdlLinter) {
-    const elaborator = new ElaborateReferences(vhdlLinter);
+    const elaborator = new ElaborateNames(vhdlLinter);
     let lastCancelTime = Date.now();
     for (const obj of vhdlLinter.file.objectList) {
       const now = Date.now();
@@ -23,26 +23,26 @@ export class ElaborateReferences {
       }
       if (I.implementsIHasUseClause(obj)) {
         elaborator.elaborateUseClauses(obj, elaborator.getUseClauses(obj));
-      } else if (obj instanceof O.OReference) {
+      } else if (obj instanceof O.OName) {
         elaborator.elaborate(obj);
       }
     }
   }
 
-  elaborate(ref: O.OReference) {
-    if (ref.definitions.length > 0) {
+  elaborate(name: O.OName) {
+    if (name.definitions.length > 0) {
       // was already elaborated (e.g. in use clause)
       return;
     }
-    if (ref instanceof O.OFormalReference) {
+    if (name instanceof O.OFormalName) {
       return;
     }
-    // elaborate all references except instantiations
-    if (ref instanceof O.OInstantiation === false) {
-      if (ref instanceof O.OSelectedName || ref instanceof O.OSelectedNameWrite || ref instanceof O.OSelectedNameRead) {
-        this.elaborateSelectedNames(ref);
+    // elaborate all names except instantiations
+    if (name instanceof O.OInstantiation === false) {
+      if (name instanceof O.OSelectedName) {
+        this.elaborateSelectedName(name);
       } else {
-        this.elaborateReference(ref);
+        this.elaborateName(name);
       }
     }
   }
@@ -138,9 +138,9 @@ export class ElaborateReferences {
     return this.projectVisibilityMap?.get(searchText) ?? [];
   }
 
-  getList(reference: O.OReference, aggregate: boolean) {
+  getList(name: O.OName) {
     // find parent which is a scope
-    let key = reference.parent;
+    let key = name.parent;
     for (const [p] of O.scope(key)) {
       if (I.implementsIHasDeclarations(p) || I.implementsIHasStatements(p) || p instanceof O.OPackageInstantiation || p instanceof O.OContext) {
         key = p;
@@ -151,9 +151,9 @@ export class ElaborateReferences {
       this.fillVisibilityMap(key);
     }
     const objMap = this.scopeVisibilityMap.get(key)!;
-    const searchText = reference.referenceToken.getLText();
+    const searchText = name.nameToken.getLText();
     const result = objMap.get(searchText) ?? [];
-    if (aggregate) {
+    if (name instanceof O.OChoice) {
       return result.concat(this.scopeRecordChildMap.get(key)!.get(searchText) ?? []);
     } else {
       return result;
@@ -161,47 +161,36 @@ export class ElaborateReferences {
   }
 
 
-  castToRead(reference: O.OReference) {
-    if (reference instanceof O.OWrite === false) {
-      if (reference instanceof O.OSelectedName) {
-        Object.setPrototypeOf(reference, O.OSelectedNameRead.prototype);
-      } else {
-        Object.setPrototypeOf(reference, O.ORead.prototype);
-      }
-    }
-  }
-
-  link(reference: O.OReference, obj: O.ObjectBase & (I.IHasReferenceLinks | I.IHasLabel)) {
+  link(reference: O.OName, obj: O.ObjectBase & (I.IHasNameLinks | I.IHasLabel)) {
     // for attributes: only link attribute references to attribute declarations
-    if (obj instanceof O.OAttributeDeclaration && !(reference instanceof O.OAttributeReference)
-      || reference instanceof O.OAttributeReference && !(obj instanceof O.OAttributeDeclaration)) {
+    if (obj instanceof O.OAttributeDeclaration && !(reference instanceof O.OAttributeName)
+    || reference instanceof O.OAttributeName && !(obj instanceof O.OAttributeDeclaration)) {
       return;
     }
     reference.definitions.push(obj);
     if (I.implementsIHasLabel(obj)) {
       obj.labelLinks.push(reference);
     } else {
-      obj.referenceLinks.push(reference);
+      obj.nameLinks.push(reference);
     }
-    this.castToRead(reference);
   }
 
-  elaborateReference(reference: O.OReference) {
-    for (const obj of this.getList(reference, reference.aggregate)) {
+  elaborateName(name: O.OName) {
+    for (const obj of this.getList(name)) {
       // alias doesn't has aliasReferences but still referenceLinks
-      if (I.implementsIHasReferenceLinks(obj) || obj instanceof O.OAlias || I.implementsIHasLabel(obj)) {
-        this.link(reference, obj);
+      if (I.implementsIHasNameLinks(obj) || obj instanceof O.OAlias || I.implementsIHasLabel(obj)) {
+        this.link(name, obj);
       }
     }
   }
 
 
-  private elaborateTypeChildren(selectedName: O.OSelectedName | O.OSelectedNameWrite | O.OSelectedNameRead, typeDefinition: O.ObjectBase) {
+  private elaborateTypeChildren(selectedName: O.OSelectedName, typeDefinition: O.ObjectBase) {
     if (typeDefinition instanceof O.ORecord || (typeDefinition instanceof O.OType && (typeDefinition.protected || typeDefinition.access))) {
       let found = false;
       if (typeDefinition instanceof O.ORecord) {
         for (const child of typeDefinition.children) {
-          if (child.lexerToken.getLText() === selectedName.referenceToken.getLText()) {
+          if (child.lexerToken.getLText() === selectedName.nameToken.getLText()) {
             this.link(selectedName, child);
             found = true;
           }
@@ -218,7 +207,7 @@ export class ElaborateReferences {
       } else {
         // for protected types (not protected bodies) search subprograms and attributes
         for (const child of typeDefinition.declarations) {
-          if (child.lexerToken !== undefined && child.lexerToken.getLText() === selectedName.referenceToken.getLText()) {
+          if (child.lexerToken !== undefined && child.lexerToken.getLText() === selectedName.nameToken.getLText()) {
             this.link(selectedName, child);
             found = true;
           }
@@ -226,7 +215,7 @@ export class ElaborateReferences {
       }
       if (found === false) {
         // add a hint for the notDeclared rule to give a more detailed error message
-        selectedName.notDeclaredHint = `${selectedName.referenceToken.text} does not exist on ${typeDefinition instanceof O.ORecord ? 'record' : 'protected type'} ${typeDefinition.lexerToken.text}`;
+        selectedName.notDeclaredHint = `${selectedName.nameToken.text} does not exist on ${typeDefinition instanceof O.ORecord ? 'record' : 'protected type'} ${typeDefinition.lexerToken.text}`;
       }
     } else if (typeDefinition instanceof O.OArray) {
       for (const def of typeDefinition.elementType.flatMap(r => r.definitions)) {
@@ -235,9 +224,9 @@ export class ElaborateReferences {
     }
   }
 
-  elaborateSelectedNames(reference: O.OSelectedName | O.OSelectedNameWrite) {
+  elaborateSelectedName(name: O.OSelectedName) {
     // all prefix tokens should be elaborated already
-    const lastPrefix = reference.prefixTokens[reference.prefixTokens.length - 1]!;
+    const lastPrefix = name.prefixTokens[name.prefixTokens.length - 1]!;
     if (lastPrefix.definitions.length === 0) {
       // if the last prefix token was not defined, do not try to look for more
       return;
@@ -245,9 +234,9 @@ export class ElaborateReferences {
     // previous token is library -> expect a package
     const libraryDefinitions = lastPrefix.definitions.filter(def => def instanceof O.OLibrary);
     if (libraryDefinitions.length > 0) {
-      for (const pkg of this.getProjectList(reference.referenceToken.getLText())) {
+      for (const pkg of this.getProjectList(name.nameToken.getLText())) {
         if (pkg instanceof O.OPackage || pkg instanceof O.OPackageInstantiation) {
-          this.link(reference, pkg);
+          this.link(name, pkg);
         }
       }
     }
@@ -257,15 +246,15 @@ export class ElaborateReferences {
     }
 
     // previous token is type (e.g. protected or record) -> expect stuff from within
-    const typeRef = lastPrefix.definitions.flatMap(def => I.implementsIHasTypeReference(def) ? def.typeReference : []);
-    for (const ref of typeRef) {
-      if (ref.rootFile !== reference.rootFile) {
-        this.elaborate(ref);
+    const typeNames = lastPrefix.definitions.flatMap(def => I.implementsIHasTypeNames(def) ? def.typeNames : []);
+    for (const typeName of typeNames) {
+      if (typeName.rootFile !== name.rootFile) {
+        this.elaborate(typeName);
       }
     }
-    const typeRefDefinitions =typeRef.flatMap(typeRef => typeRef.definitions);
+    const typeRefDefinitions = typeNames.flatMap(typeRef => typeRef.definitions);
     for (const typeDef of typeRefDefinitions) {
-      this.elaborateTypeChildren(reference, typeDef);
+      this.elaborateTypeChildren(name, typeDef);
     }
 
     // previous token is package
@@ -275,13 +264,13 @@ export class ElaborateReferences {
     packages.push(...pkgInstantiations.flatMap(inst => inst.uninstantiatedPackage[inst.uninstantiatedPackage.length - 1]!.definitions).filter(ref => ref instanceof O.OPackage) as O.OPackage[]);
     for (const pkg of packages) {
       for (const decl of pkg.declarations) {
-        if (decl.lexerToken !== undefined && decl.lexerToken.getLText() === reference.referenceToken.getLText()) {
-          this.link(reference, decl);
+        if (decl.lexerToken !== undefined && decl.lexerToken.getLText() === name.nameToken.getLText()) {
+          this.link(name, decl);
         }
         if (decl instanceof O.OEnum) {
           for (const enumLiteral of decl.literals) {
-            if (enumLiteral.lexerToken.getLText() === reference.referenceToken.getLText()) {
-              this.link(reference, enumLiteral);
+            if (enumLiteral.lexerToken.getLText() === name.nameToken.getLText()) {
+              this.link(name, enumLiteral);
             }
           }
         }
@@ -291,13 +280,13 @@ export class ElaborateReferences {
     // previous token is subprogram -> look in the return types
     const returnReferences = (lastPrefix.definitions.filter(def => def instanceof O.OSubprogram) as O.OSubprogram[]).flatMap(subprogram => subprogram.return);
     for (const returnType of returnReferences.flatMap(ref => ref.definitions)) {
-      this.elaborateTypeChildren(reference, returnType);
+      this.elaborateTypeChildren(name, returnType);
     }
 
     // previous token is alias -> look in the subtypeIndication
     const aliasSubtypeIndication = (lastPrefix.definitions.filter(def => def instanceof O.OAlias) as O.OAlias[]).flatMap(alias => alias.subtypeIndication);
     for (const subtype of aliasSubtypeIndication.flatMap(ref => ref.definitions)) {
-      this.elaborateTypeChildren(reference, subtype);
+      this.elaborateTypeChildren(name, subtype);
     }
   }
 
@@ -305,39 +294,39 @@ export class ElaborateReferences {
     // the scope changes when finding use clause -> clear the visibility map
     let clearVisibilityMap = false;
     for (const useClause of useClauses) {
-      // elaborate the references (useClause is created before the references of it)
-      for (const ref of useClause.reference) {
-        this.elaborate(ref);
+      // elaborate the names (useClause is created before the names of it)
+      for (const name of useClause.names) {
+        this.elaborate(name);
       }
-      const libraryRef = useClause.reference[0].definitions.some(def => def instanceof O.OLibrary);
+      const libraryRef = useClause.names[0].definitions.some(def => def instanceof O.OLibrary);
       if (libraryRef) {
-        if (useClause.reference[1] === undefined) {
+        if (useClause.names[1] === undefined) {
           this.vhdlLinter.addMessage({
             message: 'use clause with library reference expects a package reference.',
             range: useClause.range
           }, 'elaborate');
           return;
         }
-        const packageRef = useClause.reference[1]!;
-        for (const obj of this.getProjectList(packageRef.referenceToken.getLText())) {
+        const packageRef = useClause.names[1]!;
+        for (const obj of this.getProjectList(packageRef.nameToken.getLText())) {
           if (obj instanceof O.OPackage) {
             parent.packageDefinitions.push(obj);
-            obj.referenceLinks.push(packageRef);
+            obj.nameLinks.push(packageRef);
             clearVisibilityMap = true;
           }
           if (obj instanceof O.OPackageInstantiation) {
             const uninstantiatedPackage = obj.uninstantiatedPackage[obj.uninstantiatedPackage.length - 1]!;
             // manually elaborate the uninstantiated package:
-            const packageDefinitions = this.getProjectList(uninstantiatedPackage.referenceToken.getLText()).filter(def => def instanceof O.OPackage) as O.OPackage[];
+            const packageDefinitions = this.getProjectList(uninstantiatedPackage.nameToken.getLText()).filter(def => def instanceof O.OPackage) as O.OPackage[];
             uninstantiatedPackage.definitions = packageDefinitions;
 
             parent.packageDefinitions.push(...packageDefinitions);
-            obj.referenceLinks.push(packageRef);
+            obj.nameLinks.push(packageRef);
             clearVisibilityMap = true;
           }
         }
       } else {
-        const packageRef = useClause.reference[0];
+        const packageRef = useClause.names[0];
         for (const obj of packageRef.definitions) {
           if (obj instanceof O.OPackageInstantiation || obj instanceof O.OInterfacePackage) {
             // they are not elaborated yet because the useClauses are always elaborated before anything else.
@@ -348,7 +337,7 @@ export class ElaborateReferences {
 
             const packageDefinitions = obj.uninstantiatedPackage[obj.uninstantiatedPackage.length - 1]!.definitions.filter(ref => ref instanceof O.OPackage) as O.OPackage[];
             parent.packageDefinitions.push(...packageDefinitions);
-            obj.referenceLinks.push(packageRef);
+            obj.nameLinks.push(packageRef);
             clearVisibilityMap = true;
           }
         }
@@ -371,9 +360,9 @@ export class ElaborateReferences {
     }
     if (contextReferences.length > 0) {
       for (const contextRef of contextReferences) {
-        const [lib, context] = contextRef.reference as [O.OReference, O.OReference];
-        this.elaborateReference(lib);
-        for (const obj of this.getProjectList(context.referenceToken.getLText())) {
+        const [lib, context] = contextRef.names as [O.OName, O.OName];
+        this.elaborateName(lib);
+        for (const obj of this.getProjectList(context.nameToken.getLText())) {
           if (obj instanceof O.OContext) {
             context.definitions.push(obj);
             useClauses.push(...this.getUseClauses(obj));

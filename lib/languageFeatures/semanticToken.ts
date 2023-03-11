@@ -60,7 +60,7 @@ function pushCorrectToken(buffer: BuilderParams[], obj: O.ObjectBase, definition
   } else if (definition instanceof O.OConstant || definition instanceof O.OGeneric) {
     pushToken(buffer, range, SemanticTokenTypes.variable, [...fixedModifiers, SemanticTokenModifiers.readonly]);
   } else if (definition instanceof O.OSignal || definition instanceof O.OVariable || definition instanceof O.OFileVariable) {
-    const modifiers = obj instanceof O.OWrite ? [SemanticTokenModifiers.modification] : [];
+    const modifiers = (obj as O.OName).write ? [SemanticTokenModifiers.modification] : [];
     pushToken(buffer, range, SemanticTokenTypes.variable, [...fixedModifiers, ...modifiers]);
   } else if (definition instanceof O.OSubprogram) {
     pushToken(buffer, range, SemanticTokenTypes.function, fixedModifiers);
@@ -81,12 +81,12 @@ export function semanticToken(linter: VhdlLinter, colorInputs: boolean): Semanti
   const buffer: BuilderParams[] = [];
   for (const obj of linter.file.objectList) {
     if (obj instanceof O.OUseClause) {
-      // the selected name read of the useclause will push the token
+      // the selected name read of the use clause will push the token
       continue;
     }
     const definition = findDefinition(obj);
-    if (definition !== undefined && I.implementsIHasReferenceToken(obj)) {
-      pushCorrectToken(buffer, obj, definition, obj.referenceToken.range, [], colorInputs);
+    if (definition !== undefined && I.implementsIHasNameToken(obj)) {
+      pushCorrectToken(buffer, obj, definition, obj.nameToken.range, [], colorInputs);
     } else if (I.implementsIHasLexerToken(obj)) { // is the definition itself?
       pushCorrectToken(buffer, obj, obj, obj.lexerToken.range, [SemanticTokenModifiers.declaration], colorInputs);
       if (I.implementsIHasEndingLexerToken(obj)) {
@@ -95,6 +95,12 @@ export function semanticToken(linter: VhdlLinter, colorInputs: boolean): Semanti
     }
     if (obj instanceof O.OArchitecture || obj instanceof O.OInstantiation) {
       pushToken(buffer, obj.entityName.range, SemanticTokenTypes.class, []);
+    }
+    if (obj instanceof O.OExternalName) {
+      pushToken(buffer, obj.path[0].range.copyWithNewEnd(obj.path.at(-1)!.range), SemanticTokenTypes.namespace, []);
+    }
+    if (obj instanceof O.OChoice) {
+      pushToken(buffer, obj.nameToken.range, SemanticTokenTypes.property, []);
     }
   }
   // Sort tokens
