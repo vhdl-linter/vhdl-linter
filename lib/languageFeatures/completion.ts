@@ -75,33 +75,30 @@ export async function getCompletions(linter: VhdlLinter, position: Position): Pr
 
 
   for (const [object] of O.scope(completionObject)) {
-    if (I.implementsIHasDeclarations(object)) {
-      for (const declaration of object.declarations) {
-
-        if (declaration instanceof O.OSignal) {
-          addCompletion(declaration, CompletionItemKind.Variable);
-        } else if (declaration instanceof O.OConstant) {
-          addCompletion(declaration, CompletionItemKind.Variable);
-        } else if (declaration instanceof O.OVariable || declaration instanceof O.OFileVariable) {
-          addCompletion(declaration, CompletionItemKind.Variable);
-        } else if (declaration instanceof O.OSubprogram) {
-          addCompletion(declaration, CompletionItemKind.Function);
-        } else if (declaration instanceof O.OType) {
-          addCompletion(declaration, CompletionItemKind.TypeParameter);
-          if (declaration instanceof O.OEnum) {
-            for (const literal of declaration.literals) {
-              addCompletion(literal, CompletionItemKind.EnumMember);
-            }
-          } else if (declaration instanceof O.ORecord) {
-            for (const child of declaration.children) {
-              addCompletion(child, CompletionItemKind.Field);
-            }
+    for (const declaration of [object, ...(object as Partial<I.IHasDeclarations>).declarations ?? []]) {
+      if (declaration instanceof O.OSignal) {
+        addCompletion(declaration, CompletionItemKind.Variable);
+      } else if (declaration instanceof O.OConstant) {
+        addCompletion(declaration, CompletionItemKind.Variable);
+      } else if (declaration instanceof O.OVariable || declaration instanceof O.OFileVariable) {
+        addCompletion(declaration, CompletionItemKind.Variable);
+      } else if (declaration instanceof O.OSubprogram) {
+        addCompletion(declaration, CompletionItemKind.Function);
+      } else if (declaration instanceof O.OType) {
+        addCompletion(declaration, CompletionItemKind.TypeParameter);
+        if (declaration instanceof O.OEnum) {
+          for (const literal of declaration.literals) {
+            addCompletion(literal, CompletionItemKind.EnumMember);
           }
-        } else if (declaration instanceof O.OAlias) {
-          addCompletion(declaration, CompletionItemKind.Reference);
-        } else if (I.implementsIHasLexerToken(declaration)) {
-          addCompletion(declaration);
+        } else if (declaration instanceof O.ORecord) {
+          for (const child of declaration.children) {
+            addCompletion(child, CompletionItemKind.Field);
+          }
         }
+      } else if (declaration instanceof O.OAlias) {
+        addCompletion(declaration, CompletionItemKind.Reference);
+      } else if (I.implementsIHasLexerToken(declaration)) {
+        addCompletion(declaration);
       }
 
       if (I.implementsIHasPorts(object)) {
