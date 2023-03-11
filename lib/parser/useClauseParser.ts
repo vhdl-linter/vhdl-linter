@@ -11,8 +11,8 @@ export class UseClauseParser extends ParserBase {
   parse() {
     this.expect('use');
     const useClause = new OUseClause(this.parent, this.getToken().range);
-    useClause.reference = this.advanceSelectedName(useClause);
-    useClause.range = useClause.range.copyWithNewEnd(useClause.reference[useClause.reference.length - 1]!.range);
+    useClause.names = this.advanceSelectedName(useClause);
+    useClause.range = useClause.range.copyWithNewEnd(useClause.names[useClause.names.length - 1]!.range);
     this.expect(';');
     return useClause;
   }

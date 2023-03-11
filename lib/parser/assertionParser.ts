@@ -14,20 +14,20 @@ export class AssertionParser extends ParserBase {
     this.expect('assert');
     assertion.label = label;
 
-    assertion.references = [];
+    assertion.name = [];
     let assertionTokens = this.advanceSemicolon();
     assertion.range = assertion.range.copyWithNewEnd(this.state.pos.i);
     const reportIndex = assertionTokens.findIndex(token => token.getLText() === 'report');
     if (reportIndex > -1) {
-      assertion.references.push(...new ExpressionParser(this.state, assertion, assertionTokens.slice(0, reportIndex)).parse());
+      assertion.name.push(...new ExpressionParser(this.state, assertion, assertionTokens.slice(0, reportIndex)).parse());
       assertionTokens = assertionTokens.slice(reportIndex + 1);
     }
     const severityIndex = assertionTokens.findIndex(token => token.getLText() === 'severity');
     if (severityIndex > -1) {
-      assertion.references.push(...new ExpressionParser(this.state, assertion, assertionTokens.slice(0, severityIndex)).parse());
+      assertion.name.push(...new ExpressionParser(this.state, assertion, assertionTokens.slice(0, severityIndex)).parse());
       assertionTokens = assertionTokens.slice(severityIndex + 1);
     }
-    assertion.references.push(...new ExpressionParser(this.state, assertion, assertionTokens).parse());
+    assertion.name.push(...new ExpressionParser(this.state, assertion, assertionTokens).parse());
     return assertion;
   }
 }

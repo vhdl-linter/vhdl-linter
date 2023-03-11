@@ -105,7 +105,7 @@ export class SequentialStatementParser extends ParserBase {
     while (this.getToken().getLText() === '.') {
       this.expect('.');
       if (subprogramCall.package !== undefined) {
-        subprogramCall.library = new O.OLibraryReference(subprogramCall, subprogramCall.package);
+        subprogramCall.library = new O.OLibraryName(subprogramCall, subprogramCall.package);
       }
       subprogramCall.package = subprogramCall.entityName;
       subprogramCall.entityName = this.consumeToken();
@@ -123,11 +123,11 @@ export class SequentialStatementParser extends ParserBase {
     const report = new O.OReport(parent, this.getToken().range.copyExtendEndOfLine());
     report.label = label;
     const [tokens, lastToken] = this.advanceParenthesisAware(['severity', ';'], true, true);
-    report.references = new ExpressionParser(this.state, report, tokens).parse();
+    report.names = new ExpressionParser(this.state, report, tokens).parse();
     if (lastToken.getLText() === 'severity') {
       const [tokens] = this.advanceParenthesisAware([';'], true, true);
 
-      report.references.push(...new ExpressionParser(this.state, report, tokens).parse());
+      report.names.push(...new ExpressionParser(this.state, report, tokens).parse());
 
     }
     report.range = report.range.copyWithNewEnd(this.state.pos.i);
@@ -142,7 +142,7 @@ export class SequentialStatementParser extends ParserBase {
     if (tokens.length > 0) {
       const expressionParser = new ExpressionParser(this.state, _return, tokens);
       try {
-        _return.references.push(...expressionParser.parse());
+        _return.names.push(...expressionParser.parse());
       } catch (err) {
         if (err instanceof O.ParserError) {
           this.state.messages.push(err);
@@ -188,13 +188,13 @@ export class SequentialStatementParser extends ParserBase {
     exitStatement.label = label;
     const labelToken = this.getToken().isIdentifier() ? this.consumeToken() : undefined;
     if (labelToken) {
-      exitStatement.labelReference = new O.OLabelReference(exitStatement, labelToken);
+      exitStatement.labelName = new O.OLabelName(exitStatement, labelToken);
     }
     const [tokens] = this.advanceParenthesisAware([';'], true, false);
     if (tokens.length > 0) {
-      exitStatement.references.push(...new ExpressionParser(this.state, exitStatement, tokens).parse());
+      exitStatement.names.push(...new ExpressionParser(this.state, exitStatement, tokens).parse());
     } else {
-      exitStatement.references = [];
+      exitStatement.names = [];
     }
     this.expect(';');
     return exitStatement;

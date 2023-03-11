@@ -1,6 +1,6 @@
 import { DiagnosticSeverity, TextEdit } from 'vscode-languageserver';
 import { ExpressionParser } from './expressionParser';
-import { OAssociation, OFormalReference, OGenericAssociationList, OInstantiation, OPackage, OPackageInstantiation, OPortAssociationList } from './objects';
+import { OAssociation, OFormalName, OGenericAssociationList, OInstantiation, OPackage, OPackageInstantiation, OPortAssociationList } from './objects';
 import { ParserBase, ParserState } from './parserBase';
 
 
@@ -27,22 +27,22 @@ export class AssociationListParser extends ParserBase {
         { // Parse assuming association is input
           const expressionParser = new ExpressionParser(this.state, association, associationTokens);
           const references = expressionParser.parseAssociationElement();
-          association.formalPart = references.filter(reference => reference instanceof OFormalReference);
-          const actualPart = references.filter(reference => reference instanceof OFormalReference === false);
+          association.formalPart = references.filter(reference => reference instanceof OFormalName);
+          const actualPart = references.filter(reference => reference instanceof OFormalName === false);
           association.actualIfInput = actualPart;
         }
         if (type === 'port') { // Parse assuming association is output
           const expressionParser = new ExpressionParser(this.state, association, associationTokens);
           const references = expressionParser.parseAssociationElement(true);
-          association.formalPart = references.filter(reference => reference instanceof OFormalReference);
-          const actualPart = references.filter(reference => reference instanceof OFormalReference === false);
+          association.formalPart = references.filter(reference => reference instanceof OFormalName);
+          const actualPart = references.filter(reference => reference instanceof OFormalName === false);
           association.actualIfOutput = actualPart;
         }
         if (type === 'port') { // Parse assuming association is inout
           const expressionParser = new ExpressionParser(this.state, association, associationTokens);
           const references = expressionParser.parseAssociationElement(false, true);
-          association.formalPart = references.filter(reference => reference instanceof OFormalReference);
-          const actualPart = references.filter(reference => reference instanceof OFormalReference === false);
+          association.formalPart = references.filter(reference => reference instanceof OFormalName);
+          const actualPart = references.filter(reference => reference instanceof OFormalName === false);
 
           association.actualIfInoutput = actualPart;
         }

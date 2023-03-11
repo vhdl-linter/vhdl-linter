@@ -22,7 +22,7 @@ export class RuleInstantiation extends RuleBase implements IRule {
           this.addMessage({
             range: association.range,
             severity: DiagnosticSeverity.Warning,
-            message: `Multiple formal references parsed (${association.formalPart.map(ref => ref.referenceToken.text).join(', ')}). Problem likely`
+            message: `Multiple formal references parsed (${association.formalPart.map(ref => ref.nameToken.text).join(', ')}). Problem likely`
           });
         }
         allElementsWithoutFormal = false;
@@ -31,7 +31,7 @@ export class RuleInstantiation extends RuleBase implements IRule {
             if (port instanceof O.OTypeMark) {
               return false;
             }
-            if (part.referenceToken.getLText() === port.lexerToken.getLText()) {
+            if (part.nameToken.getLText() === port.lexerToken.getLText()) {
               return true;
             }
           }
@@ -42,7 +42,7 @@ export class RuleInstantiation extends RuleBase implements IRule {
           const possibleMatches = availableInterfaceElementsFlat.filter(implementsIHasLexerToken).map(element => (element as IHasLexerToken).lexerToken.text);
           const firstFormal = association.formalPart[0];
           if (possibleMatches.length > 0 && firstFormal) {
-            const bestMatch = findBestMatch(firstFormal.referenceToken.text, possibleMatches);
+            const bestMatch = findBestMatch(firstFormal.nameToken.text, possibleMatches);
             code = this.vhdlLinter.addCodeActionCallback((textDocumentUri: string) => {
               const actions = [];
               actions.push(CodeAction.create(
@@ -60,7 +60,7 @@ export class RuleInstantiation extends RuleBase implements IRule {
           this.addMessage({
             range: association.range,
             severity: DiagnosticSeverity.Error,
-            message: `no ${kind} ${association.formalPart.map(name => name.referenceToken.text).join(', ')} on ${typeName}`,
+            message: `no ${kind} ${association.formalPart.map(name => name.nameToken.text).join(', ')} on ${typeName}`,
             code
           });
         } else {
