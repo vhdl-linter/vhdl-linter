@@ -328,7 +328,7 @@ export class ElaborateNames {
       for (const name of useClause.names) {
         this.elaborate(name);
       }
-      const libraryRef = useClause.names[0].definitions.some(def => def instanceof O.OLibrary);
+      const libraryRef = useClause.names[0]?.definitions.some(def => def instanceof O.OLibrary);
       if (libraryRef === false) {
         const packageRef = useClause.names[0];
         for (const obj of packageRef.definitions) {
