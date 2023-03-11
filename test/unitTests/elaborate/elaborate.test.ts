@@ -25,5 +25,5 @@ test('Testing elaboration of choice', async () => {
   const choice = assignment.names.find(name => name instanceof OChoice);
   expect(choice).toBeDefined();
   expect(choice?.nameToken.text).toBe('ID');
-  expect(choice?.definitions.length).toBeGreaterThan(0);
+  expect(choice?.definitions.length).toBe(1);
 });

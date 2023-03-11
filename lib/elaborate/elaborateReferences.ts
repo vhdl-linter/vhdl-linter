@@ -151,7 +151,6 @@ export class ElaborateNames {
   }
 
   getList(name: O.OName) {
-
     // find parent which is a scope
     let key = name.parent;
     for (const [p] of O.scope(key)) {
