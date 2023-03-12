@@ -1,13 +1,14 @@
 import { readdirSync } from 'fs';
+import { cpus } from 'os';
+import PQueue from 'p-queue';
 import { cwd } from 'process';
 import { pathToFileURL } from 'url';
-import { DiagnosticSeverity } from 'vscode-languageserver';
 import { isMainThread, Worker } from 'worker_threads';
 import { OIRange } from '../lib/parser/objects';
 import { joinURL } from '../lib/projectParser';
 import { OIDiagnostic } from '../lib/vhdlLinter';
-import PQueue from 'p-queue';
-const queue = new PQueue({ concurrency: 8 });
+const threadNum = 4;
+const queue = new PQueue({ concurrency: threadNum });
 export function readDirPath(path: URL) {
   return readdirSync(path).map(file => joinURL(path, file));
 }
@@ -21,26 +22,8 @@ function isOIDiagnostic(obj: unknown): obj is OIDiagnostic {
   }
   return false;
 }
-function getMessageColor(message: OIDiagnostic | { message: string }) {
-  if (isOIDiagnostic(message) && message.severity === DiagnosticSeverity.Error) {
-    return '\u001b[31m';
-  } else if (isOIDiagnostic(message) && message.severity === DiagnosticSeverity.Warning) {
-    return '\u001b[33m';
-  }
-  return '\u001b[34m';
-}
-export function prettyPrintMessages(messages: MessageWrapper[]) {
-  return messages.map(message => {
-    const filename = message.file.replace(cwd(), '');
-    return message.messages.slice(0, 5).map((innerMessage) => {
-      const messageText = `${getMessageColor(innerMessage)}${innerMessage.message}\u001b[0m`;
-      if (isOIDiagnostic(innerMessage)) {
-        return `${filename}:${innerMessage.range.start.line + 1} (r: ${innerMessage.range.start.line}:${innerMessage.range.start.character} - ${innerMessage.range.end.line}:${innerMessage.range.end.character})\n  ${messageText}`; // lines are 0 based in OI
-      }
-      return `${filename}\n  ${messageText}`;
-    }).join('\n') + (message.messages.length > 5 ? `\n\u001b[31m ... and ${message.messages.length - 5} more\u001b[0m` : '');
-  }).join('\n');
-}
+
+
 // Take each directory in path as a project run test on every file
 async function run_test_folder(path: URL, error_expected: boolean): Promise<MessageWrapper[]> {
   const messageWrappers: MessageWrapper[] = [];
@@ -58,13 +41,17 @@ async function run_test(path: URL, error_expected: boolean): Promise<MessageWrap
       worker.on("message", msg => resolve(msg as MessageWrapper[]));
       worker.on("error", err => reject(err));
     });
+  }, {
+    priority: path.toString().includes('OSVVM') ? 1 : 0
   });
 
 
 }
+console.log('Starting tests on test_files');
+console.log(`Running ${threadNum} threads in parallel`);
+
 (async () => {
   if (isMainThread) {
-    console.log('Starting tests on test_files');
     const start = new Date().getTime();
     const promises = [];
     promises.push(run_test_folder(joinURL(pathToFileURL(cwd()), 'test', 'test_files', 'test_error_expected'), true));

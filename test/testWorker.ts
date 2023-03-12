@@ -5,7 +5,7 @@ import { ProjectParser } from "../lib/projectParser";
 import { defaultSettingsGetter, defaultSettingsWithOverwrite } from "../lib/settings";
 import { VhdlLinter } from "../lib/vhdlLinter";
 import { readFileSyncNorm } from "./readFileSyncNorm";
-import { MessageWrapper, prettyPrintMessages, readDirPath } from "./test";
+import { MessageWrapper, prettyPrintMessages, readDirPath } from "./testUtil";
 async function run_test(path: URL, error_expected: boolean, projectParser?: ProjectParser): Promise<MessageWrapper[]> {
   const messageWrappers: MessageWrapper[] = [];
   if (!projectParser) {
