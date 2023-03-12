@@ -6,7 +6,8 @@ import { isMainThread, Worker } from 'worker_threads';
 import { OIRange } from '../lib/parser/objects';
 import { joinURL } from '../lib/projectParser';
 import { OIDiagnostic } from '../lib/vhdlLinter';
-
+import PQueue from 'p-queue';
+const queue = new PQueue({ concurrency: 8 });
 export function readDirPath(path: URL) {
   return readdirSync(path).map(file => joinURL(path, file));
 }
@@ -50,12 +51,15 @@ async function run_test_folder(path: URL, error_expected: boolean): Promise<Mess
 }
 // Take path as a project run test on every file
 async function run_test(path: URL, error_expected: boolean): Promise<MessageWrapper[]> {
-  const worker = new Worker(__dirname + '/testWorker.js', { workerData: { path: path.toString(), error_expected } });
-  return new Promise((resolve, reject) => {
+  return await queue.add(() => {
+    const worker = new Worker(__dirname + '/testWorker.js', { workerData: { path: path.toString(), error_expected } });
+    return new Promise((resolve, reject) => {
 
-    worker.on("message", msg => resolve(msg as MessageWrapper[]));
-    worker.on("error", err => reject(err));
+      worker.on("message", msg => resolve(msg as MessageWrapper[]));
+      worker.on("error", err => reject(err));
+    });
   });
+
 
 }
 (async () => {
