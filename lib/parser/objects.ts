@@ -834,8 +834,9 @@ export class OAttributeDeclaration extends ObjectBase implements I.IHasLexerToke
   aliasDefinitions: ObjectBase[] = [];
   typeNames: OName[] = [];
 }
+// Iterate through all context and use clauses of the object recursively
 function* iterateContext(object: ObjectBase & I.IHasContextReference, directlyVisible: boolean): Generator<[ObjectBase, boolean]> {
-  const handleContextReference = (contextReference: OContextReference, recursionLimit: number) => {
+  const handleContextReference = (contextReference: OContextReference, recursionLimit: number, parentContextReferences: OContextReference[] = []) => {
     if (recursionLimit === 0) {
       throw new Error(`Infinite Recursion`);
     }
@@ -844,7 +845,9 @@ function* iterateContext(object: ObjectBase & I.IHasContextReference, directlyVi
       definitions.push(definition);
       if (I.implementsIHasContextReference(definition)) {
         for (const contextReference of definition.contextReferences) {
-          definitions.push(...handleContextReference(contextReference, recursionLimit - 1));
+          if (parentContextReferences.includes(contextReference) === false) {
+            definitions.push(...handleContextReference(contextReference, recursionLimit - 1, [...parentContextReferences, contextReference]));
+          }
         }
       }
       if (I.implementsIHasUseClause(definition)) {
@@ -859,7 +862,7 @@ function* iterateContext(object: ObjectBase & I.IHasContextReference, directlyVi
   };
 
   for (const contextReference of object.contextReferences) {
-    for (const definition of handleContextReference(contextReference, 100)) {
+    for (const definition of handleContextReference(contextReference, 20)) {
       yield [definition, directlyVisible];
     }
   }

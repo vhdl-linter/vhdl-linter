@@ -1,5 +1,5 @@
 import { ContextReferenceParser } from './contextReferenceParser';
-import { OContext, OFile, OIRange, OLibrary } from './objects';
+import { OContext, OFile, OLibrary } from './objects';
 import { ParserBase, ParserState } from './parserBase';
 import { UseClauseParser } from './useClauseParser';
 
@@ -10,7 +10,7 @@ export class ContextParser extends ParserBase {
   }
 
   parse() {
-    const context = new OContext(this.parent, new OIRange(this.parent, this.state.pos.i, this.state.pos.i));
+    const context = new OContext(this.parent, this.getToken(-1, true).range);
     context.lexerToken = this.consumeToken();
     this.expect('is');
     while (this.state.pos.isValid()) {
@@ -33,6 +33,13 @@ export class ContextParser extends ParserBase {
       } else if (nextToken.getLText() === 'use') {
         const useClauseParser = new UseClauseParser(this.state, context);
         context.useClauses.push(useClauseParser.parse());
+      } else {
+        const tokens = this.advanceSemicolon();
+
+        this.state.messages.push({
+          message: `Unexpected token ${nextToken.text} in context reference.`,
+          range: nextToken.range.copyWithNewEnd(tokens.at(-1)!.range)
+        });
       }
     }
 

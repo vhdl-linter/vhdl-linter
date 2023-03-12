@@ -316,7 +316,7 @@ export class ElaborateNames {
       for (const name of useClause.names) {
         this.elaborate(name);
       }
-      const libraryRef = useClause.names[0]?.definitions.some(def => def instanceof O.OLibrary);
+      const libraryRef = useClause.names[0].definitions.some(def => def instanceof O.OLibrary);
       if (libraryRef === false) {
         const packageRef = useClause.names[0];
         for (const obj of packageRef.definitions) {
@@ -338,8 +338,8 @@ export class ElaborateNames {
     this.scopeVisibilityMap.delete(parent);
   }
 
-  getUseClauses(parent: O.ObjectBase & (I.IHasUseClauses | I.IHasContextReference)) {
-    const useClauses = I.implementsIHasUseClause(parent) ? parent.useClauses.slice() : [];
+  getUseClauses(parent: O.ObjectBase & (I.IHasUseClauses), parentContexts: O.OContext[] = []) {
+    const useClauses =  parent.useClauses.slice();
     const contextReferences = I.implementsIHasContextReference(parent) ? parent.contextReferences.slice() : [];
     if (parent instanceof O.OPackageBody && parent.correspondingPackage) {
       useClauses.push(...parent.correspondingPackage.useClauses);
@@ -350,12 +350,22 @@ export class ElaborateNames {
     }
     if (contextReferences.length > 0) {
       for (const contextRef of contextReferences) {
-        const [lib, context] = contextRef.names as [O.OName, O.OName];
-        this.elaborateName(lib);
-        for (const obj of this.getProjectList(context.nameToken.getLText())) {
-          if (obj instanceof O.OContext) {
-            context.definitions.push(obj);
-            useClauses.push(...this.getUseClauses(obj));
+        const [lib, context] = contextRef.names;
+        if (lib && context) {
+          this.elaborateName(lib);
+          for (const obj of this.getProjectList(context.nameToken.getLText())) {
+            if (obj instanceof O.OContext) {
+              console.log(parentContexts.map(context => context.lexerToken.text));
+              if (parentContexts.includes(obj)) {
+                this.vhdlLinter.addMessage({
+                  message: `Circular dependency in context references ${[...parentContexts, obj].map(context => context.lexerToken.text).join(' -> ')}`,
+                  range: parentContexts[0]!.range
+                }, 'elaborate');
+              } else {
+                context.definitions.push(obj);
+                useClauses.push(...this.getUseClauses(obj, [...parentContexts, obj]));
+              }
+            }
           }
         }
       }
