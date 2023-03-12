@@ -355,7 +355,6 @@ export class ElaborateNames {
           this.elaborateName(lib);
           for (const obj of this.getProjectList(context.nameToken.getLText())) {
             if (obj instanceof O.OContext) {
-              console.log(parentContexts.map(context => context.lexerToken.text));
               if (parentContexts.includes(obj)) {
                 this.vhdlLinter.addMessage({
                   message: `Circular dependency in context references ${[...parentContexts, obj].map(context => context.lexerToken.text).join(' -> ')}`,
