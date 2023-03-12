@@ -60,7 +60,7 @@ export class ElaborateNames {
     if (I.implementsIHasLabel(obj)) {
       return obj.label.getLText();
     }
-    return obj?.lexerToken?.getLText();
+    return obj.lexerToken?.getLText();
   }
   addObjectsToMap<T extends O.ObjectBase>(map: Map<string, T[]>, ...objects: T[]) {
     for (const obj of objects) {
@@ -77,18 +77,6 @@ export class ElaborateNames {
         map.set(text, list);
       }
       list.push(obj);
-    }
-  }
-
-  addHiddenDeclarationsToMap(map: Map<string, O.ObjectBase[]>, obj: O.ObjectBase & I.IHasDeclarations) {
-    for (const decl of obj.declarations) {
-      if (decl instanceof O.ORecord) {
-        this.addObjectsToMap(map, ...decl.children);
-      }
-      if (decl instanceof O.OType && decl.protectedBody) {
-        this.addObjectsToMap(map, ...decl.declarations);
-        this.addHiddenDeclarationsToMap(map, decl);
-      }
     }
   }
 
@@ -145,9 +133,9 @@ export class ElaborateNames {
       this.addObjectsToMap(this.projectVisibilityMap, ...projectParser.contexts);
     }
     if (searchText === 'all') {
-      return [...this.projectVisibilityMap?.values() ?? []].flat();
+      return [...this.projectVisibilityMap.values()].flat();
     }
-    return this.projectVisibilityMap?.get(searchText) ?? [];
+    return this.projectVisibilityMap.get(searchText) ?? [];
   }
 
   getList(name: O.OName) {
