@@ -882,9 +882,7 @@ export function* scope(startObject: ObjectBase): Generator<[ObjectBase, boolean]
           yield [definition, false];
         }
       }
-      for (const [definition, directlyVisibleInt] of iterateContext(current.correspondingEntity, directlyVisible)) {
-        yield [definition, directlyVisibleInt];
-      }
+      yield* iterateContext(current.correspondingEntity, directlyVisible);
     }
     if (current instanceof OPackageBody && current.correspondingPackage) {
       yield [current.correspondingPackage, directlyVisible];
@@ -894,9 +892,7 @@ export function* scope(startObject: ObjectBase): Generator<[ObjectBase, boolean]
           yield [definition, false];
         }
       }
-      for (const [definition, directlyVisibleInt] of iterateContext(current.correspondingPackage, directlyVisible)) {
-        yield [definition, directlyVisibleInt];
-      }
+      yield* iterateContext(current.correspondingPackage, directlyVisible);
     }
     if (I.implementsIHasUseClause(current)) {
       for (const useClause of current.useClauses) {
@@ -906,9 +902,7 @@ export function* scope(startObject: ObjectBase): Generator<[ObjectBase, boolean]
       }
     }
     if (I.implementsIHasContextReference(current)) {
-      for (const [definition, directlyVisibleInt] of iterateContext(current, directlyVisible)) {
-        yield [definition, directlyVisibleInt];
-      }
+      yield* iterateContext(current, directlyVisible);
     }
     if (current.parent instanceof OFile) {
       break;
