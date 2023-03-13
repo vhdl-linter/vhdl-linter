@@ -10,6 +10,7 @@ import { RuleNotAllowed } from "./ruleNotAllowed";
 import { RuleNotDeclared } from "./ruleNotDeclared";
 import { RuleParser } from "./ruleParser";
 import { RulePortDeclaration } from "./rulePortDeclaration";
+import { RuleTypeChecking } from "./ruleTypeChecking";
 import { RuleTypeResolved } from "./ruleTypeResolved";
 import { RuleUnits } from "./ruleUnits";
 import { RuleUnused } from "./ruleUnused";
@@ -29,5 +30,6 @@ export const rules = [
   RuleParser,
   RuleUnits,
   RuleConfiguration,
-  RuleNotAllowed
+  RuleNotAllowed,
+  RuleTypeChecking
 ];

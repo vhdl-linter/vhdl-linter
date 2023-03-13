@@ -164,6 +164,12 @@
 					"description": "Enable the rule to check if ports match the regular expressions given in VhdlLinter.ports.",
 					"default": true
 				},
+				"VhdlLinter.rules.type-checking": {
+					"scope": "window",
+					"type": "boolean",
+					"description": "Enable some basic type checking",
+					"default": true
+				},
 				"VhdlLinter.rules.type-resolved": {
 					"scope": "window",
 					"type": "boolean",

@@ -11,6 +11,7 @@ export interface ISettings {
     'multiple-definition': boolean;
     'not-declared': boolean;
     'port-declaration': boolean;
+    'type-checking': boolean;
     'type-resolved': boolean;
     'unused': boolean;
     'empty': boolean;
@@ -56,6 +57,7 @@ export const defaultSettings: ISettings = {
     'multiple-definition': true,
     'not-declared': true,
     'port-declaration': true,
+    'type-checking': true,
     'type-resolved': true,
     'unused': true,
     'empty': true,
