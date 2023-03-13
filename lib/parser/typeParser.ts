@@ -126,7 +126,7 @@ export class TypeParser extends ParserBase {
 
           }
           this.expect('of');
-          (type as OArray).elementType = new ExpressionParser(this.state, type, this.advanceParenthesisAware([';'], true, false)[0]).parse();
+          (type as OArray).typeNames = new ExpressionParser(this.state, type, this.advanceParenthesisAware([';'], true, false)[0]).parse();
 
         } else if (nextToken.getLText() === 'protected') {
           const protectedBody = this.maybe('body');

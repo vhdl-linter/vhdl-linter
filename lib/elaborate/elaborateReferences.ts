@@ -218,7 +218,7 @@ export class ElaborateNames {
         selectedName.notDeclaredHint = `${selectedName.nameToken.text} does not exist on ${typeDefinition instanceof O.ORecord ? 'record' : 'protected type'} ${typeDefinition.lexerToken.text}`;
       }
     } else if (typeDefinition instanceof O.OArray) {
-      for (const def of typeDefinition.elementType.flatMap(r => r.definitions)) {
+      for (const def of typeDefinition.typeNames.flatMap(r => r.definitions)) {
         this.elaborateTypeChildren(selectedName, def);
       }
     }

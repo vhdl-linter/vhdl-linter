@@ -405,10 +405,9 @@ export class OType extends ObjectBase implements I.IHasNameLinks,
 
 
 }
-export class OSubType extends OType {
-  superType: OName;
+export class OSubType extends OType implements I.IHasTypeNames{
+  typeNames: OName[] = [];
   resolved = false;
-  nameLinks: OName[] = [];
 }
 export class OEnum extends OType {
   literals: OEnumLiteral[] = [];
@@ -417,8 +416,8 @@ export class ORecord extends OType implements I.IMayHaveEndingLexerToken {
   children: ORecordChild[] = [];
   endingLexerToken?: OLexerToken;
 }
-export class OArray extends OType {
-  elementType: OName[] = [];
+export class OArray extends OType implements I.IHasTypeNames {
+  typeNames: OName[] = [];
 }
 export class ORecordChild extends OType implements I.IHasTypeNames {
   typeNames: OName[] = [];

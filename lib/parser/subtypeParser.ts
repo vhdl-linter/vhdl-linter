@@ -1,4 +1,5 @@
-import { ObjectBase, OName, OSubType, OIRange } from './objects';
+import { ExpressionParser } from './expressionParser';
+import { ObjectBase, OSubType, OIRange } from './objects';
 import { ParserBase, ParserState } from './parserBase';
 
 export class SubtypeParser extends ParserBase {
@@ -20,14 +21,16 @@ export class SubtypeParser extends ParserBase {
     if (this.maybe('resolved')) {
       this.subtype.resolved = true;
     }
-    const superType = this.consumeToken();
-    this.subtype.range = this.subtype.range.copyWithNewEnd(this.state.pos.i);
     const tokens = this.advanceSemicolon(true);
     if (tokens.length > 0) {
-      this.subtype.range = this.subtype.range.copyWithNewEnd(tokens[tokens.length - 1]!.range.end.i);
+      this.subtype.typeNames = new ExpressionParser(this.state, this.subtype, tokens).parse();
+      this.subtype.range = this.subtype.range.copyWithNewEnd(tokens.at(-1)!.range);
+    } else {
+      this.state.messages.push({
+        message: 'subtype indication expected',
+        range: this.subtype.range
+      });
     }
-    // const reads = this.extractReads(this.subtype, this.advanceSemicolon(true), startIReads);
-    this.subtype.superType = new OName(this.subtype, superType);
     return this.subtype;
   }
 
