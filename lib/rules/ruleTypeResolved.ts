@@ -92,11 +92,8 @@ export class RuleTypeResolved extends RuleBase implements IRule {
             let resolvedSubtype: string[] = [];
             if (implementsIHasDeclarations(root)) {
               for (const subtype of root.declarations) {
-                if (subtype instanceof O.OSubType && subtype.resolved) {
-                  const subtypeName = subtype.typeNames.at(-1);
-                  if (subtypeName && alias.includes(subtypeName.nameToken.getLText())) {
-                    resolvedSubtype.push(subtype.lexerToken.text);
-                  }
+                if (subtype instanceof O.OSubType && subtype.resolved && alias.find(name => name == subtype.typeNames[0]?.nameToken?.getLText())) {
+                  resolvedSubtype.push(subtype.lexerToken.text);
                 }
               }
             }

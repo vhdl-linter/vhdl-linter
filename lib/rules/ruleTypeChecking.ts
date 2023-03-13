@@ -1,5 +1,5 @@
 import { implementsIHasTypeNames } from "../parser/interfaces";
-import { OInterfacePackage, OLibrary, OName, OPackage, OSelectedName, OUseClause } from "../parser/objects";
+import { OInterfacePackage, OLibrary, OName, OPackage, OSelectedName } from "../parser/objects";
 import { IRule, RuleBase } from "./rulesBase";
 // For select Name array get only the last
 function cleanSelectedName(names: OName[]) {
