@@ -9,8 +9,8 @@ import { RuleMultipleDefinition } from "./ruleMultipleDefinitions";
 import { RuleNotAllowed } from "./ruleNotAllowed";
 import { RuleNotDeclared } from "./ruleNotDeclared";
 import { RuleParser } from "./ruleParser";
-import { RulePortDeclaration } from "./rulePortDeclaration";
 import { RuleTypeChecking } from "./ruleTypeChecking";
+import { RuleNamingStyle } from "./ruleNamingStyle";
 import { RuleTypeResolved } from "./ruleTypeResolved";
 import { RuleUnits } from "./ruleUnits";
 import { RuleUnused } from "./ruleUnused";
@@ -22,7 +22,7 @@ export const rules = [
   RuleLibraryReference,
   RuleMultipleDefinition,
   RuleNotDeclared,
-  RulePortDeclaration,
+  RuleNamingStyle,
   RuleTypeResolved,
   RuleUnused,
   RuleEmpty,

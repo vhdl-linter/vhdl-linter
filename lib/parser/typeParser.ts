@@ -1,4 +1,4 @@
-import { OLexerToken } from '../lexer';
+import { TokenType, OLexerToken } from '../lexer';
 import { DeclarativePartParser } from './declarativePartParser';
 import { ExpressionParser } from './expressionParser';
 import { IHasDeclarations } from './interfaces';
@@ -144,11 +144,12 @@ export class TypeParser extends ParserBase {
           (type as OAccessType).subtypeIndication = new SubtypeIndicationParser(this.state, type as OAccessType).parse();
 
           const deallocateProcedure = new OSubprogram(this.parent, (type as OAccessType).subtypeIndication.range);
-          deallocateProcedure.lexerToken = new OLexerToken('deallocate', type.lexerToken.range, type.lexerToken.type, deallocateProcedure.rootFile);
+          deallocateProcedure.lexerToken = new OLexerToken('deallocate', type.lexerToken.range, TokenType.implicit, deallocateProcedure.rootFile);
           this.parent.declarations.push(deallocateProcedure);
           const port = new OPort(deallocateProcedure, type.lexerToken.range);
           port.subtypeIndication = new OSubtypeIndication(port, port.range);
           port.direction = 'inout';
+          port.lexerToken = new OLexerToken('P', type.lexerToken.range, TokenType.implicit, deallocateProcedure.rootFile);
           deallocateProcedure.ports = [port];
         }
         type.range = type.range.copyWithNewEnd(this.state.pos.i);

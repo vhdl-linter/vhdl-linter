@@ -12,6 +12,7 @@ export interface ISettings {
     'not-declared': boolean;
     'port-declaration': boolean;
     'type-checking': boolean;
+    'naming-style': boolean;
     'type-resolved': boolean;
     'unused': boolean;
     'empty': boolean;
@@ -24,18 +25,25 @@ export interface ISettings {
     'preferredLogicTypePort': 'unresolved'|'resolved'|'ignore';
     'preferredLogicTypeSignal': 'unresolved'|'resolved'|'ignore';
     'preferredLogicTypeRecordChild': 'unresolved'|'resolved'|'ignore';
-    'unusedSignalRegex': string;
     'ieeeCasing': 'lowercase'|'UPPERCASE';
+    'unusedPrefix': string;
+    'unusedSuffix': string;
     'signalPrefix': string;
     'signalSuffix': string;
+    'variablePrefix': string;
+    'variableSuffix': string;
+    'constantPrefix': string;
+    'constantSuffix': string;
     'genericPrefix': string;
     'genericSuffix': string;
+    'outPrefix': string;
+    'outSuffix': string;
+    'inPrefix': string;
+    'inSuffix': string;
+    'inoutPrefix': string;
+    'inoutSuffix': string;
     'instantiationLabelPrefix': string;
     'instantiationLabelSuffix': string;
-  };
-  'ports': {
-    'outRegex': string;
-    'inRegex': string;
   };
   'paths': {
     'additional': string[];
@@ -58,6 +66,7 @@ export const defaultSettings: ISettings = {
     'not-declared': true,
     'port-declaration': true,
     'type-checking': true,
+    'naming-style': true,
     'type-resolved': true,
     'unused': true,
     'empty': true,
@@ -70,18 +79,25 @@ export const defaultSettings: ISettings = {
     'preferredLogicTypePort': 'unresolved',
     'preferredLogicTypeSignal': 'unresolved',
     'preferredLogicTypeRecordChild': 'unresolved',
-    'unusedSignalRegex': '_unused$',
     'ieeeCasing': 'lowercase',
+    'unusedPrefix': '',
+    'unusedSuffix': '_unused',
     'signalPrefix': '',
     'signalSuffix': '',
+    'variablePrefix': '',
+    'variableSuffix': '',
+    'constantPrefix': '',
+    'constantSuffix': '',
     'genericPrefix': '',
     'genericSuffix': '',
+    'outPrefix': '',
+    'outSuffix': '',
+    'inPrefix': '',
+    'inSuffix': '',
+    'inoutPrefix': '',
+    'inoutSuffix': '',
     'instantiationLabelPrefix': '',
     'instantiationLabelSuffix': '',
-  },
-  'ports': {
-    'outRegex': '^o_',
-    'inRegex': '^i_',
   },
   'paths': {
     'additional': [],
