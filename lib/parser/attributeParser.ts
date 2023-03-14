@@ -3,7 +3,6 @@ import { OLexerToken } from "../lexer";
 import { ExpressionParser } from "./expressionParser";
 import { OAttributeDeclaration, OAttributeSpecification, ObjectBase, OName, OSubtypeIndication, ParserError } from "./objects";
 import { ParserBase, ParserState } from "./parserBase";
-import { SubtypeIndicationParser } from "./subtypeIndicationParser";
 
 export class AttributeParser extends ParserBase {
   constructor(state: ParserState, private parent: ObjectBase) {
