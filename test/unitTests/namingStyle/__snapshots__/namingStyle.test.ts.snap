@@ -1,0 +1,351 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`testing naming style for constant with prefix "" and suffix "_suf" 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "apple does not match the style settings for constant (name_suf) (naming-style)",
+    "range": {
+      "end": {
+        "character": 16,
+        "line": 1,
+      },
+      "start": {
+        "character": 11,
+        "line": 1,
+      },
+    },
+    "severity": 2,
+  },
+]
+`;
+
+exports[`testing naming style for constant with prefix "pre_" and suffix "" 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "apple does not match the style settings for constant (pre_name) (naming-style)",
+    "range": {
+      "end": {
+        "character": 16,
+        "line": 1,
+      },
+      "start": {
+        "character": 11,
+        "line": 1,
+      },
+    },
+    "severity": 2,
+  },
+]
+`;
+
+exports[`testing naming style for generic with prefix "" and suffix "_suf" 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "apple does not match the style settings for generic (name_suf) (naming-style)",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 2,
+      },
+      "start": {
+        "character": 4,
+        "line": 2,
+      },
+    },
+    "severity": 2,
+  },
+]
+`;
+
+exports[`testing naming style for generic with prefix "pre_" and suffix "" 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "apple does not match the style settings for generic (pre_name) (naming-style)",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 2,
+      },
+      "start": {
+        "character": 4,
+        "line": 2,
+      },
+    },
+    "severity": 2,
+  },
+]
+`;
+
+exports[`testing naming style for in with prefix "" and suffix "_suf" 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "apple does not match the style settings for input port (name_suf) (naming-style)",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 2,
+      },
+      "start": {
+        "character": 4,
+        "line": 2,
+      },
+    },
+    "severity": 2,
+  },
+]
+`;
+
+exports[`testing naming style for in with prefix "pre_" and suffix "" 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "apple does not match the style settings for input port (pre_name) (naming-style)",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 2,
+      },
+      "start": {
+        "character": 4,
+        "line": 2,
+      },
+    },
+    "severity": 2,
+  },
+]
+`;
+
+exports[`testing naming style for inout with prefix "" and suffix "_suf" 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "apple does not match the style settings for inout port (name_suf) (naming-style)",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 2,
+      },
+      "start": {
+        "character": 4,
+        "line": 2,
+      },
+    },
+    "severity": 2,
+  },
+]
+`;
+
+exports[`testing naming style for inout with prefix "pre_" and suffix "" 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "apple does not match the style settings for inout port (pre_name) (naming-style)",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 2,
+      },
+      "start": {
+        "character": 4,
+        "line": 2,
+      },
+    },
+    "severity": 2,
+  },
+]
+`;
+
+exports[`testing naming style for instantiationLabel with prefix "" and suffix "_suf" 1`] = `
+[
+  {
+    "code": "0",
+    "message": "can not find entity ent (instantiation)",
+    "range": {
+      "end": {
+        "character": 25,
+        "line": 4,
+      },
+      "start": {
+        "character": 2,
+        "line": 4,
+      },
+    },
+    "severity": 2,
+  },
+  {
+    "code": "1;2",
+    "message": "apple does not match the style settings for instantiation label (name_suf) (naming-style)",
+    "range": {
+      "end": {
+        "character": 7,
+        "line": 4,
+      },
+      "start": {
+        "character": 2,
+        "line": 4,
+      },
+    },
+    "severity": 2,
+  },
+]
+`;
+
+exports[`testing naming style for instantiationLabel with prefix "pre_" and suffix "" 1`] = `
+[
+  {
+    "code": "0",
+    "message": "can not find entity ent (instantiation)",
+    "range": {
+      "end": {
+        "character": 25,
+        "line": 4,
+      },
+      "start": {
+        "character": 2,
+        "line": 4,
+      },
+    },
+    "severity": 2,
+  },
+  {
+    "code": "1;2",
+    "message": "apple does not match the style settings for instantiation label (pre_name) (naming-style)",
+    "range": {
+      "end": {
+        "character": 7,
+        "line": 4,
+      },
+      "start": {
+        "character": 2,
+        "line": 4,
+      },
+    },
+    "severity": 2,
+  },
+]
+`;
+
+exports[`testing naming style for out with prefix "" and suffix "_suf" 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "apple does not match the style settings for output port (name_suf) (naming-style)",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 2,
+      },
+      "start": {
+        "character": 4,
+        "line": 2,
+      },
+    },
+    "severity": 2,
+  },
+]
+`;
+
+exports[`testing naming style for out with prefix "pre_" and suffix "" 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "apple does not match the style settings for output port (pre_name) (naming-style)",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 2,
+      },
+      "start": {
+        "character": 4,
+        "line": 2,
+      },
+    },
+    "severity": 2,
+  },
+]
+`;
+
+exports[`testing naming style for signal with prefix "" and suffix "_suf" 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "apple does not match the style settings for signal (name_suf) (naming-style)",
+    "range": {
+      "end": {
+        "character": 14,
+        "line": 3,
+      },
+      "start": {
+        "character": 9,
+        "line": 3,
+      },
+    },
+    "severity": 2,
+  },
+]
+`;
+
+exports[`testing naming style for signal with prefix "pre_" and suffix "" 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "apple does not match the style settings for signal (pre_name) (naming-style)",
+    "range": {
+      "end": {
+        "character": 14,
+        "line": 3,
+      },
+      "start": {
+        "character": 9,
+        "line": 3,
+      },
+    },
+    "severity": 2,
+  },
+]
+`;
+
+exports[`testing naming style for variable with prefix "" and suffix "_suf" 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "apple does not match the style settings for variable (name_suf) (naming-style)",
+    "range": {
+      "end": {
+        "character": 16,
+        "line": 1,
+      },
+      "start": {
+        "character": 11,
+        "line": 1,
+      },
+    },
+    "severity": 2,
+  },
+]
+`;
+
+exports[`testing naming style for variable with prefix "pre_" and suffix "" 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "apple does not match the style settings for variable (pre_name) (naming-style)",
+    "range": {
+      "end": {
+        "character": 16,
+        "line": 1,
+      },
+      "start": {
+        "character": 11,
+        "line": 1,
+      },
+    },
+    "severity": 2,
+  },
+]
+`;

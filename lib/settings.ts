@@ -1,7 +1,16 @@
 import { DeepPartial } from 'utility-types';
-import { defaultSettings, ISettings } from './settingsGenerated';
-export { defaultSettings, ISettings };
+import { defaultSettings as defaultSettingsGenerated, ISettings } from './settingsGenerated';
+export { ISettings };
 
+export const defaultSettings = normalizeSettings(defaultSettingsGenerated);
+
+export function normalizeSettings(settings: ISettings) {
+  const newSettings = JSON.parse(JSON.stringify(settings)) as ISettings;
+  for (const [key, value] of Object.entries(newSettings.style)) {
+    (newSettings.style as Record<string, string>)[key] = value.trim();
+  }
+  return newSettings;
+}
 export function defaultSettingsGetter() {
   return defaultSettings;
 }
@@ -11,7 +20,7 @@ export function defaultSettingsWithOverwrite(overwrite?: DeepPartial<ISettings>)
   if (overwrite) {
     recursiveObjectAssign(newDefault, overwrite);
   }
-  return () => newDefault;
+  return () => normalizeSettings(newDefault);
 }
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function recursiveObjectAssign<T extends Record<string, any>>(target: T, source: DeepPartial<T>) {
