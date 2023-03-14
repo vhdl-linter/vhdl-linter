@@ -17,7 +17,7 @@ export class SubtypeIndicationParser extends ParserBase {
     const buckets: OLexerToken[][] = [];
     let currentBucket: OLexerToken[] = [];
     let lastToken: OLexerToken | undefined;
-    const breakTokens = [',', '=>',
+    const tokensInExpression = [',', '=>', // These tokens are expected inside of an expression also next to identifiers
       'to', 'downto', // range constraints
       '*', '/', 'mod', 'rem', // term
       'abs', 'not', '**', // factor
@@ -27,8 +27,13 @@ export class SubtypeIndicationParser extends ParserBase {
       "+", "-", "&", //adding_operator
       "*", "/", "mod", "rem", //multiplying_operator
     ];
+    // Find parts of the subtype indication
+    // In general identifiers can not follow each other inside of one thing.
+    // So, two successive identifiers mean the next part of the definition starts.
+    // Those parts are split into buckets here and mapped to the LRM definition afterwards.
+    // Stuff in brackets is same bucket always.
     while (endTokens.includes(this.getToken().getLText()) === false) {
-      if ((this.getToken().isIdentifier() || this.getToken().type === TokenType.keyword) && breakTokens.includes(this.getToken().getLText()) === false && (lastToken?.isIdentifier() || lastToken?.getLText() === ')')) {
+      if ((this.getToken().isIdentifier() || this.getToken().type === TokenType.keyword) && tokensInExpression.includes(this.getToken().getLText()) === false && (lastToken?.isIdentifier() || lastToken?.getLText() === ')')) {
         buckets.push(currentBucket);
         lastToken = this.getToken();
         currentBucket = [this.consumeToken()];
