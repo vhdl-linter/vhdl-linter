@@ -104,7 +104,7 @@ export class InterfaceListParser extends ParserBase {
           const { type, defaultValue } = this.getTypeDefinition(port);
           const end = defaultValue?.[defaultValue.length - 1]?.range.end ?? type[type.length - 1]?.range?.end ?? port.range.end;
           port.range = port.range.copyWithNewEnd(end);
-          (port as OGenericConstant).typeReference = new ExpressionParser(this.state, port, type).parse();
+          (port as OGenericConstant).typeNames = new ExpressionParser(this.state, port, type).parse();
 
           (port as OGenericConstant).defaultValue = defaultValue;
           for (const interface_ of multiInterface) {
@@ -113,7 +113,7 @@ export class InterfaceListParser extends ParserBase {
               interface_.directionRange = (port as OPort).directionRange;
             }
             interface_.range = interface_.range.copyWithNewEnd(end);
-            (interface_ as OGenericConstant).typeReference = (port as OGenericConstant).typeReference;
+            (interface_ as OGenericConstant).typeNames = (port as OGenericConstant).typeNames;
             (interface_ as OGenericConstant).defaultValue = (port as OGenericConstant).defaultValue;
             ports.push(interface_);
             foundElements++;

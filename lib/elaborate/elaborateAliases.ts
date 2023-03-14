@@ -1,4 +1,4 @@
-import { implementsIHasReferenceLinks } from "../parser/interfaces";
+import { implementsIHasNameLinks } from "../parser/interfaces";
 import { OAlias, OFile } from "../parser/objects";
 
 export function elaborateAliases(file: OFile) {
@@ -8,8 +8,8 @@ export function elaborateAliases(file: OFile) {
       if (lastName) { // No Name is throwing an an error in parser but no fatal
         alias.aliasDefinitions = lastName.definitions;
         for (const read of lastName.definitions) {
-          if (implementsIHasReferenceLinks(read)) {
-            read.aliasReferences.push(alias);
+          if (implementsIHasNameLinks(read)) {
+            read.aliasLinks.push(alias);
           }
         }
       }

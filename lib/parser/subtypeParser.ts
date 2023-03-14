@@ -1,4 +1,4 @@
-import { ObjectBase, ORead, OSubType, OIRange } from './objects';
+import { ObjectBase, OName, OSubType, OIRange } from './objects';
 import { ParserBase, ParserState } from './parserBase';
 
 export class SubtypeParser extends ParserBase {
@@ -27,7 +27,7 @@ export class SubtypeParser extends ParserBase {
       this.subtype.range = this.subtype.range.copyWithNewEnd(tokens[tokens.length - 1]!.range.end.i);
     }
     // const reads = this.extractReads(this.subtype, this.advanceSemicolon(true), startIReads);
-    this.subtype.superType = new ORead(this.subtype, superType);
+    this.subtype.superType = new OName(this.subtype, superType);
     return this.subtype;
   }
 

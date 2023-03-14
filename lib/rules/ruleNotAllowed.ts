@@ -24,6 +24,7 @@ export class RuleNotAllowed extends RuleBase implements IRule {
     this.checkDeclarativePart();
     this.checkPostponed();
     this.checkConcurrentStatement();
+    this.checkExternalNames();
 
   }
   checkDeclarativePart() {
@@ -191,6 +192,18 @@ export class RuleNotAllowed extends RuleBase implements IRule {
             severity: DiagnosticSeverity.Error
           });
 
+        }
+      }
+    }
+  }
+  checkExternalNames() {
+    for (const obj of this.file.objectList) {
+      if (obj instanceof O.OExternalName) {
+        if (['constant', 'signal', 'variable'].includes(obj.kind.getLText()) === false) {
+          this.addMessage({
+            message: `External name has to be of kind 'constant', 'signal' or 'variable' found ${obj.kind.text}`,
+            range: obj.kind.range,
+          });
         }
       }
     }

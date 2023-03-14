@@ -94,7 +94,7 @@ export class TypeParser extends ParserBase {
             const typeTokens = this.advanceSemicolon();
             for (const child of children) {
               if (typeTokens.length > 0) {
-                child.typeReference = new ExpressionParser(this.state, child, typeTokens).parse();
+                child.typeNames = new ExpressionParser(this.state, child, typeTokens).parse();
                 child.range = child.range.copyWithNewEnd(typeTokens[typeTokens.length - 1]!.range);
               } else {
                 this.state.messages.push({
@@ -117,12 +117,12 @@ export class TypeParser extends ParserBase {
           const unbounded = tokens.find(token => token.getLText() === '<>');
           if (unbounded) {
             do {
-              type.referenceLinks.push(...new ExpressionParser(this.state, type, this.advanceParenthesisAware(['range'], true, true)[0]).parse());
+              type.nameLinks.push(...new ExpressionParser(this.state, type, this.advanceParenthesisAware(['range'], true, true)[0]).parse());
               this.expect('<>');
             } while (this.getToken().getLText() === ',');
             this.expect(')');
           } else {
-            type.referenceLinks.push(...new ExpressionParser(this.state, type, this.advanceParenthesisAware([')'], true, true)[0]).parse());
+            type.nameLinks.push(...new ExpressionParser(this.state, type, this.advanceParenthesisAware([')'], true, true)[0]).parse());
 
           }
           this.expect('of');

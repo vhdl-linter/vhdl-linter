@@ -10,16 +10,16 @@ export class RuleTypeResolved extends RuleBase implements IRule {
     if (object instanceof O.OPort && this.settings.style.preferredLogicTypePort === 'unresolved'
       || object instanceof O.OSignal && this.settings.style.preferredLogicTypeSignal === 'unresolved'
       || object instanceof O.ORecordChild && this.settings.style.preferredLogicTypeRecordChild === 'unresolved') {
-      const type = object.typeReference[0];
+      const type = object.typeNames[0];
       if (type) {
 
         const definition = type?.definitions[0];
         if (definition instanceof O.OSubType && definition.resolved) {
-          let unresolvedTypes = [definition.superType.referenceToken.text];
+          let unresolvedTypes = [definition.superType.nameToken.text];
           const root = definition.getRootElement();
           if (implementsIHasDeclarations(root)) {
             for (const alias of root.declarations) { // IEEE defines more convenient aliases. Show them as well
-              if (alias instanceof O.OAlias && alias.name[0]?.referenceToken.getLText() === definition.superType.referenceToken.getLText()) {
+              if (alias instanceof O.OAlias && alias.name[0]?.nameToken.getLText() === definition.superType.nameToken.getLText()) {
                 unresolvedTypes.push(alias.lexerToken.text);
               }
             }
@@ -48,7 +48,7 @@ export class RuleTypeResolved extends RuleBase implements IRule {
           this.addMessage({
             range: type.range,
             severity: DiagnosticSeverity.Information,
-            message: `Port is using resolved subtype (${type.referenceToken.text}) should use unresolved type ${unresolvedTypes.join(' or ')} `,
+            message: `Port is using resolved subtype (${type.nameToken.text}) should use unresolved type ${unresolvedTypes.join(' or ')} `,
             code
           });
         }
@@ -57,17 +57,17 @@ export class RuleTypeResolved extends RuleBase implements IRule {
     } else if (object instanceof O.OPort && this.settings.style.preferredLogicTypePort === 'resolved'
       || object instanceof O.OSignal && this.settings.style.preferredLogicTypeSignal === 'resolved'
       || object instanceof O.ORecordChild && this.settings.style.preferredLogicTypeRecordChild === 'resolved') {
-      const type = object.typeReference[0];
+      const type = object.typeNames[0];
       if (type) {
         let definition = type.definitions[0];
         if (definition) {
           // For aliases check find the aliased type
-          const alias = [type.referenceToken.getLText()];
+          const alias = [type.nameToken.getLText()];
           while (definition instanceof O.OAlias) {
             for (const [obj] of O.scope(definition)) {
               if (implementsIHasDeclarations(obj)) {
                 for (const typeIter of obj.declarations) {
-                  if (typeIter instanceof O.OType && typeIter.lexerToken.getLText() === (definition as O.OAlias).name[0]!.referenceToken.getLText()) {
+                  if (typeIter instanceof O.OType && typeIter.lexerToken.getLText() === (definition as O.OAlias).name[0]!.nameToken.getLText()) {
                     definition = typeIter;
                     alias.push(typeIter.lexerToken.getLText());
                     break;
@@ -88,7 +88,7 @@ export class RuleTypeResolved extends RuleBase implements IRule {
             let resolvedSubtype: string[] = [];
             if (implementsIHasDeclarations(root)) {
               for (const subtype of root.declarations) {
-                if (subtype instanceof O.OSubType && subtype.resolved && alias.includes(subtype.superType.referenceToken.getLText())) {
+                if (subtype instanceof O.OSubType && subtype.resolved && alias.includes(subtype.superType.nameToken.getLText())) {
                   resolvedSubtype.push(subtype.lexerToken.text);
                 }
               }
@@ -119,7 +119,7 @@ export class RuleTypeResolved extends RuleBase implements IRule {
               this.addMessage({
                 range: type.range,
                 severity: DiagnosticSeverity.Information,
-                message: `Port is using unresolved type (${type.referenceToken.text}) should use resolved subtype ${resolvedSubtype.join(' or ')} `,
+                message: `Port is using unresolved type (${type.nameToken.text}) should use resolved subtype ${resolvedSubtype.join(' or ')} `,
                 code
               });
             }
