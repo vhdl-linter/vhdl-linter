@@ -1,10 +1,8 @@
 import { readdirSync } from 'fs';
-import { cpus } from 'os';
 import PQueue from 'p-queue';
 import { cwd } from 'process';
 import { pathToFileURL } from 'url';
 import { isMainThread, Worker } from 'worker_threads';
-import { OIRange } from '../lib/parser/objects';
 import { joinURL } from '../lib/projectParser';
 import { OIDiagnostic } from '../lib/vhdlLinter';
 const threadNum = 4;
@@ -15,12 +13,6 @@ export function readDirPath(path: URL) {
 export interface MessageWrapper {
   file: string,
   messages: (OIDiagnostic | { message: string })[]
-}
-function isOIDiagnostic(obj: unknown): obj is OIDiagnostic {
-  if ((obj as OIDiagnostic).range instanceof OIRange) {
-    return true;
-  }
-  return false;
 }
 
 
