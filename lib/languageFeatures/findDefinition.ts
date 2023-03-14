@@ -1,6 +1,6 @@
 import { DefinitionLink, Position } from "vscode-languageserver";
 import { implementsIHasDefinitions, implementsIHasLexerToken } from "../parser/interfaces";
-import { OArchitecture, ObjectBase, OConfiguration, OPackage, OPackageBody, ORecordChild, OSubprogram } from "../parser/objects";
+import { OArchitecture, ObjectBase, OConfigurationDeclaration, OPackage, OPackageBody, ORecordChild, OSubprogram } from "../parser/objects";
 import { VhdlLinter } from "../vhdlLinter";
 import { findObjectByDesignator } from "./findObjects";
 import { getTokenFromPosition, SetAdd } from "./findReferencesHandler";
@@ -15,7 +15,7 @@ export function findDefinitions(linter: VhdlLinter, position: Position): ObjectB
   const definitions = new SetAdd<ObjectBase>();
   // find all possible definitions for the lexerToken
   for (const candidate of candidates) {
-    if (candidate instanceof OConfiguration) {
+    if (candidate instanceof OConfigurationDeclaration) {
       // OConfiguration has two thing to rename.
       // The name of the entity and the configuration itself.
       // We need to add the actual definition of the token(not of the candidation, which only maybe is the same)

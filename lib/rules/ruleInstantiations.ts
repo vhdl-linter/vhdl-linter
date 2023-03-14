@@ -1,15 +1,15 @@
 import { findBestMatch } from "string-similarity";
 import { CodeAction, CodeActionKind, DiagnosticSeverity, Range, TextEdit } from "vscode-languageserver";
 import { implementsIHasLexerToken, IHasLexerToken, implementsIHasStatements, implementsIHasPorts, implementsIHasDeclarations } from "../parser/interfaces";
-import { OFile, OPort, OGeneric, OTypeMark, OAssociationList, OIRange, ObjectBase, OInstantiation, OConfiguration, OAliasWithSignature, OComponent, OEntity, OSubprogram, OArchitecture, OIf, OCase, OSequenceOfStatements } from "../parser/objects";
+import * as O from "../parser/objects";
 import { IRule, RuleBase } from "./rulesBase";
 
 export class RuleInstantiation extends RuleBase implements IRule {
   public static readonly ruleName = 'instantiation';
-  file: OFile;
-  checkAssociations(availableInterfaceElements: (OPort | OGeneric | OTypeMark)[][], associationList: OAssociationList | undefined, typeName: string, range: OIRange, kind: 'port' | 'generic') {
+  file: O.OFile;
+  checkAssociations(availableInterfaceElements: (O.OPort | O.OGeneric | O.OTypeMark)[][], associationList: O.OAssociationList | undefined, typeName: string, range: O.OIRange, kind: 'port' | 'generic') {
     const availableInterfaceElementsFlat = availableInterfaceElements.flat().filter((v, i, self) => self.findIndex(o => o.lexerTokenEquals(v)) === i);
-    const foundElements: (OPort | OGeneric | OTypeMark)[] = [];
+    const foundElements: (O.OPort | O.OGeneric | O.OTypeMark)[] = [];
     let elementsWithoutFormal = false;
     let allElementsWithoutFormal = true;
     if (associationList) {
@@ -22,16 +22,16 @@ export class RuleInstantiation extends RuleBase implements IRule {
           this.addMessage({
             range: association.range,
             severity: DiagnosticSeverity.Warning,
-            message: `Multiple formal references parsed (${association.formalPart.map(ref => ref.referenceToken.text).join(', ')}). Problem likely`
+            message: `Multiple formal references parsed (${association.formalPart.map(ref => ref.nameToken.text).join(', ')}). Problem likely`
           });
         }
         allElementsWithoutFormal = false;
         const interfaceElement = availableInterfaceElementsFlat.find(port => {
           for (const part of association.formalPart) {
-            if (port instanceof OTypeMark) {
+            if (port instanceof O.OTypeMark) {
               return false;
             }
-            if (part.referenceToken.getLText() === port.lexerToken.getLText()) {
+            if (part.nameToken.getLText() === port.lexerToken.getLText()) {
               return true;
             }
           }
@@ -42,7 +42,7 @@ export class RuleInstantiation extends RuleBase implements IRule {
           const possibleMatches = availableInterfaceElementsFlat.filter(implementsIHasLexerToken).map(element => (element as IHasLexerToken).lexerToken.text);
           const firstFormal = association.formalPart[0];
           if (possibleMatches.length > 0 && firstFormal) {
-            const bestMatch = findBestMatch(firstFormal.referenceToken.text, possibleMatches);
+            const bestMatch = findBestMatch(firstFormal.nameToken.text, possibleMatches);
             code = this.vhdlLinter.addCodeActionCallback((textDocumentUri: string) => {
               const actions = [];
               actions.push(CodeAction.create(
@@ -60,7 +60,7 @@ export class RuleInstantiation extends RuleBase implements IRule {
           this.addMessage({
             range: association.range,
             severity: DiagnosticSeverity.Error,
-            message: `no ${kind} ${association.formalPart.map(name => name.referenceToken.text).join(', ')} on ${typeName}`,
+            message: `no ${kind} ${association.formalPart.map(name => name.nameToken.text).join(', ')} on ${typeName}`,
             code
           });
         } else {
@@ -73,7 +73,7 @@ export class RuleInstantiation extends RuleBase implements IRule {
         const totalLength = elements.length;
         // TODO: Implement alias function lookup for optional parameters
         // This assumes all SubprogramAlias Parameters are optional. This actually depends on the function definition
-        const withDefault = elements.filter(p => (p instanceof OTypeMark) || (p as OPort).defaultValue !== undefined).length;
+        const withDefault = elements.filter(p => (p instanceof O.OTypeMark) || (p as O.OPort).defaultValue !== undefined).length;
         const result = [];
         for (let i = totalLength; i >= totalLength - withDefault; i--) {
           result.push(i);
@@ -104,11 +104,11 @@ export class RuleInstantiation extends RuleBase implements IRule {
         });
       } else {
         // check which interfaceElements are missing from the different possible interfaces
-        const missingElements: (OPort | OGeneric)[][] = availableInterfaceElements.map(_interface => {
-          const missing: (OPort | OGeneric)[] = [];
+        const missingElements: (O.OPort | O.OGeneric)[][] = availableInterfaceElements.map(_interface => {
+          const missing: (O.OPort | O.OGeneric)[] = [];
           for (const element of _interface) {
-            if (((element instanceof OPort && element.direction === 'in') || element instanceof OGeneric)
-              && typeof (element as OPort).defaultValue === 'undefined'
+            if (((element instanceof O.OPort && element.direction === 'in') || element instanceof O.OGeneric)
+              && typeof (element as O.OPort).defaultValue === 'undefined'
               && typeof foundElements.find(search => search.lexerTokenEquals(element)) === 'undefined') {
               missing.push(element);
             }
@@ -127,13 +127,13 @@ export class RuleInstantiation extends RuleBase implements IRule {
       }
     }
   }
-  checkInstantiations(object: ObjectBase) {
+  checkInstantiations(object: O.ObjectBase) {
     if (implementsIHasStatements(object)) {
       for (const instantiation of object.statements) {
-        if (instantiation instanceof OInstantiation) {
+        if (instantiation instanceof O.OInstantiation) {
           let definitions = instantiation.definitions;
           if (instantiation.type === 'configuration') {
-            definitions = definitions.flatMap((definition: OConfiguration) => {
+            definitions = definitions.flatMap((definition: O.OConfigurationDeclaration) => {
               const entities = this.vhdlLinter.projectParser.entities.filter(e => e.lexerToken.getLText() === definition.entityName.getLText());
               return entities;
             });
@@ -148,7 +148,7 @@ export class RuleInstantiation extends RuleBase implements IRule {
             this.addMessage({
               range: instantiation.range.start.getRangeToEndLine(),
               severity: DiagnosticSeverity.Warning,
-              message: `can not find entity ${(instantiation.definitions as OConfiguration[])[0]!.entityName.text} for configuration instantiation ${instantiation.entityName.text}`
+              message: `can not find entity ${(instantiation.definitions as O.OConfigurationDeclaration[])[0]!.entityName.text} for configuration instantiation ${instantiation.entityName.text}`
             });
           } else {
             const range = instantiation.range.start.getRangeToEndLine();
@@ -156,13 +156,13 @@ export class RuleInstantiation extends RuleBase implements IRule {
               if (implementsIHasPorts(e)) {
                 return e.ports;
               }
-              if (e instanceof OAliasWithSignature) {
+              if (e instanceof O.OAliasWithSignature) {
                 return e.typeMarks;
               }
               return [];
             });
             this.checkAssociations(availablePorts, instantiation.portAssociationList, instantiation.type, range, 'port');
-            const availableGenerics = definitions.map(d => (d instanceof OComponent || d instanceof OEntity) ? d.generics : []);
+            const availableGenerics = definitions.map(d => (d instanceof O.OComponent || d instanceof O.OEntity) ? d.generics : []);
             this.checkAssociations(availableGenerics, instantiation.genericAssociationList, instantiation.type, range, 'generic');
           }
         }
@@ -170,17 +170,17 @@ export class RuleInstantiation extends RuleBase implements IRule {
     }
     if (implementsIHasDeclarations(object)) {
       for (const subprogram of object.declarations) {
-        if (subprogram instanceof OSubprogram) {
+        if (subprogram instanceof O.OSubprogram) {
           this.checkInstantiations(subprogram);
         }
       }
     }
-    if (object instanceof OArchitecture) {
+    if (object instanceof O.OArchitecture) {
       for (const statement of object.statements) {
         this.checkInstantiations(statement);
       }
     }
-    if (object instanceof OIf) {
+    if (object instanceof O.OIf) {
       for (const clause of object.clauses) {
         this.checkInstantiations(clause);
       }
@@ -188,12 +188,12 @@ export class RuleInstantiation extends RuleBase implements IRule {
         this.checkInstantiations(object.else);
       }
     }
-    if (object instanceof OCase) {
+    if (object instanceof O.OCase) {
       for (const clause of object.whenClauses) {
         this.checkInstantiations(clause);
       }
     }
-    if (object instanceof OSequenceOfStatements) {
+    if (object instanceof O.OSequenceOfStatements) {
       for (const statement of object.statements) {
         this.checkInstantiations(statement);
       }

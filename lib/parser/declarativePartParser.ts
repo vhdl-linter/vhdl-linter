@@ -1,10 +1,12 @@
 import { AliasParser } from './aliasParser';
 import { AttributeParser } from './attributeParser';
 import { ComponentParser } from './componentParser';
+import { ConfigurationSpecificationParser } from './configurationSpecificationParser';
 import { IHasDeclarations, IHasUseClauses, implementsIHasUseClause } from './interfaces';
 import { ObjectDeclarationParser } from './objectDeclarationParser';
 import { OAttributeDeclaration, ObjectBase, OI } from './objects';
 import { PackageInstantiationParser } from './packageInstantiationParser';
+import { PackageParser } from './packageParser';
 import { ParserBase, ParserState } from './parserBase';
 import { SubprogramParser } from './subprogramParser';
 import { SubtypeParser } from './subtypeParser';
@@ -25,7 +27,8 @@ export class DeclarativePartParser extends ParserBase {
         || nextToken.getLText() === 'constant'
         || nextToken.getLText() === 'shared'
         || nextToken.getLText() === 'variable'
-        || nextToken.getLText() === 'file') {
+        || nextToken.getLText() === 'file'
+        ) {
         const objects = new ObjectDeclarationParser(this.state, this.parent).parse(nextToken);
         this.parent.declarations.push(...objects);
       } else if (nextToken.getLText() === 'attribute') {
@@ -55,15 +58,19 @@ export class DeclarativePartParser extends ParserBase {
         this.expect(';');
       } else if (nextToken.getLText() === 'package') {
         this.consumeToken(); // consume 'package
-        const packageInst = new PackageInstantiationParser(this.state, this.parent).parse();
-        this.parent.declarations.push(packageInst);
-        this.expect(';');
+        if (this.getToken(2, true).getLText() === 'new') {
+          const packageInst = new PackageInstantiationParser(this.state, this.parent).parse();
+
+          this.parent.declarations.push(packageInst);
+          this.expect(';');
+        } else {
+          this.parent.declarations.push(new PackageParser(this.state).parse(this.parent));
+        }
       } else if (nextToken.getLText() === 'generic') {
         this.advanceSemicolon();
       } else if (nextToken.getLText() === 'disconnect') {
         this.advanceSemicolon();
-      } else if (optional) {
-        return;
+
       } else if (nextToken.getLText() === 'use') {
         const useClause = new UseClauseParser(this.state, this.parent).parse();
         if (implementsIHasUseClause(this.parent)) {
@@ -75,12 +82,9 @@ export class DeclarativePartParser extends ParserBase {
           });
         }
       } else if (nextToken.getLText() === 'for') {
-        // skip simple configurations for now (§ 7.3.1)
-        this.advanceSemicolon(true);
-        // optional `end for;`
-        if (this.getToken(0, true).getLText() == 'end' && this.getToken(1, true).getLText() == 'for') {
-          this.advanceSemicolon();
-        }
+        this.parent.declarations.push(new ConfigurationSpecificationParser(this.state, this.parent).parse());
+      } else if (optional) {
+        return;
       } else {
         this.state.messages.push({
           message: `Unexpected token: '${nextToken.text}' in declarative part. ${lastWord} missing?`,

@@ -94,7 +94,7 @@ export class TypeParser extends ParserBase {
             const typeTokens = this.advanceSemicolon();
             for (const child of children) {
               if (typeTokens.length > 0) {
-                child.typeReference = new ExpressionParser(this.state, child, typeTokens).parse();
+                child.typeNames = new ExpressionParser(this.state, child, typeTokens).parse();
                 child.range = child.range.copyWithNewEnd(typeTokens[typeTokens.length - 1]!.range);
               } else {
                 this.state.messages.push({
@@ -117,12 +117,12 @@ export class TypeParser extends ParserBase {
           const unbounded = tokens.find(token => token.getLText() === '<>');
           if (unbounded) {
             do {
-              type.referenceLinks.push(...new ExpressionParser(this.state, type, this.advanceParenthesisAware(['range'], true, true)[0]).parse());
+              type.nameLinks.push(...new ExpressionParser(this.state, type, this.advanceParenthesisAware(['range'], true, true)[0]).parse());
               this.expect('<>');
             } while (this.getToken().getLText() === ',');
             this.expect(')');
           } else {
-            type.referenceLinks.push(...new ExpressionParser(this.state, type, this.advanceParenthesisAware([')'], true, true)[0]).parse());
+            type.nameLinks.push(...new ExpressionParser(this.state, type, this.advanceParenthesisAware([')'], true, true)[0]).parse());
 
           }
           this.expect('of');
@@ -141,13 +141,14 @@ export class TypeParser extends ParserBase {
         } else if (nextToken.getLText() === 'range') {
           // TODO
         } else if (nextToken.getLText() === 'access') {
-          // Is this a hack, or is it just fantasy/vhdl
           const [typeTokens] = this.advanceParenthesisAware([';'], true, false);
           const firstTypeToken = typeTokens[0];
           const lastTypeToken = typeTokens[typeTokens.length - 1];
           if (!firstTypeToken || !lastTypeToken) {
             throw new ParserError("Invalid access type", nextToken.range.copyExtendEndOfLine());
           }
+          type.access = true;
+          type.subtypeIndication = new ExpressionParser(this.state, this.parent, typeTokens).parse();
           const deallocateProcedure = new OSubprogram(this.parent, new OIRange(this.parent, firstTypeToken.range.start.i, lastTypeToken.range.end.i));
           deallocateProcedure.lexerToken = new OLexerToken('deallocate', type.lexerToken.range, type.lexerToken.type, deallocateProcedure.rootFile);
           this.parent.declarations.push(deallocateProcedure);

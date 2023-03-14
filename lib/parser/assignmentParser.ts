@@ -1,6 +1,6 @@
 import { OLexerToken } from '../lexer';
 import { ExpressionParser } from './expressionParser';
-import { OAssignment, ObjectBase } from './objects';
+import { OAssignment, ObjectBase, OName } from './objects';
 import { ParserBase, ParserState } from './parserBase';
 
 export class AssignmentParser extends ParserBase {
@@ -12,6 +12,14 @@ export class AssignmentParser extends ParserBase {
     this.debug('parse');
 
     const assignment = new OAssignment(this.parent, this.getToken().range.copyExtendEndOfLine());
+    let withNames: OName[] = [];
+    if (this.maybe('with')) {
+      const [expressionTokens] = this.advanceParenthesisAware(['select'], true, true);
+      withNames = new ExpressionParser(this.state, assignment, expressionTokens).parse();
+
+    }
+
+
     assignment.postponed = postponed;
     assignment.label = label;
     let leftHandSideNum = this.state.pos.num;
@@ -22,7 +30,8 @@ export class AssignmentParser extends ParserBase {
       leftHandSideNum++;
     }
     const expressionParser = new ExpressionParser(this.state, assignment, leftHandSideTokens);
-    [assignment.references, assignment.writes] = expressionParser.parseTarget();
+    assignment.names = expressionParser.parseTarget();
+    assignment.names.unshift(...withNames);
 
 
     this.consumeToken();
@@ -37,7 +46,7 @@ export class AssignmentParser extends ParserBase {
       this.maybe(['in', 'out']);
       const [rightHandSide] = this.advanceParenthesisAware([';'], true, true);
       const expressionParser = new ExpressionParser(this.state, assignment, rightHandSide);
-      assignment.references.push(...expressionParser.parse());
+      assignment.names.push(...expressionParser.parse());
       assignment.range = assignment.range.copyWithNewEnd(this.state.pos.i);
       this.debug('parse end');
       return assignment;
@@ -72,7 +81,7 @@ export class AssignmentParser extends ParserBase {
         if (this.maybe('reject')) {
           const [tokens] = this.advanceParenthesisAware(['inertial'], true, false);
           const expressionParser = new ExpressionParser(this.state, assignment, tokens);
-          assignment.references.push(...expressionParser.parse());
+          assignment.names.push(...expressionParser.parse());
         }
         this.expect('inertial');
       }
@@ -93,7 +102,7 @@ export class AssignmentParser extends ParserBase {
         rightHandSide = rightHandSide.slice(0, rightHandSide.length - 1);
       }
       const expressionParser = new ExpressionParser(this.state, assignment, rightHandSide);
-      assignment.references.push(...expressionParser.parse());
+      assignment.names.push(...expressionParser.parse());
       if (unexpectedTokens.includes(endToken.getLText()) === false) {
         this.consumeToken();
       }

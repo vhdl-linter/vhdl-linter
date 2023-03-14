@@ -154,10 +154,7 @@ export class DocumentSymbols {
     throw new Error('Other statement bodies not implemented.');
   }
   getClause(clause: OWhenClause): DocumentSymbol {
-    let name = clause.condition.map(read => read.referenceToken.text).join('|');
-    if (name === '') {
-      name = 'others'; // TODO: the condition of a when clause can also be a literal...
-    }
+    const name = clause.whenTokens.filter(token => !token.isWhitespace()).join('');
     return {
       name,
       detail: 'when clause',
@@ -170,7 +167,7 @@ export class DocumentSymbols {
   getSequentialStatement(statement: OSequentialStatement): DocumentSymbol[] {
     if (statement instanceof OCase) {
       return [{
-        name: statement.expression.map(read => read.referenceToken.text).join(' '),
+        name: statement.expression.map(read => read.nameToken.text).join(' '),
         detail: 'case',
         kind: SymbolKind.Enum,
         range: statement.range,

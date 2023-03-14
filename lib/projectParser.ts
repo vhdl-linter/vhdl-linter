@@ -3,10 +3,10 @@ import { EventEmitter } from 'events';
 import { existsSync, promises } from 'fs';
 import { basename, join, sep } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
-import { WorkDoneProgressReporter } from 'vscode-languageserver';
+import { CancellationToken, WorkDoneProgressReporter } from 'vscode-languageserver';
 import { Elaborate } from './elaborate/elaborate';
 import { SetAdd } from './languageFeatures/findReferencesHandler';
-import { OArchitecture, OConfiguration, OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
+import { OArchitecture, OConfigurationDeclaration, OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
 import { SettingsGetter, VhdlLinter } from './vhdlLinter';
 
 export function joinURL(url: URL, ...additional: string[]) {
@@ -32,7 +32,7 @@ export class ProjectParser {
   public packageInstantiations: OPackageInstantiation[] = [];
   public contexts: OContext[] = [];
   public entities: OEntity[] = [];
-  public configurations: OConfiguration[] = [];
+  public configurations: OConfigurationDeclaration[] = [];
   public architectures: OArchitecture[] = [];
   events = new EventEmitter();
   private watchers: FSWatcher[] = [];
@@ -145,11 +145,12 @@ export class ProjectParser {
     return files;
   }
   flattenProject() {
+    this.entities = [];
+    this.architectures = [];
+    this.configurations = [];
     this.packages = [];
     this.packageInstantiations = [];
-    this.entities = [];
-    this.configurations = [];
-    this.architectures = [];
+    this.contexts = [];
     for (const cachedFile of this.cachedFiles) {
       this.entities.push(...cachedFile.linter.file.entities);
       this.architectures.push(...cachedFile.linter.file.architectures);
@@ -161,7 +162,7 @@ export class ProjectParser {
   }
   // Cache the elaboration result. Caution this can get invalid super easy. Therefore it is completely removed on any file change.
   private cachedElaborate: string | undefined = undefined;
-  async elaborateAll(filter: string) {
+  async elaborateAll(filter: string, token?: CancellationToken) {
     if (this.cachedElaborate === filter) {
       return;
     }
@@ -172,6 +173,7 @@ export class ProjectParser {
 
     for (const cachedFile of cachedFiles) {
       if (cachedFile.linter.file.lexerTokens.find(token => token.getLText() === filter)) {
+        cachedFile.linter.token = token;
         await Elaborate.elaborate(cachedFile.linter);
       }
     }

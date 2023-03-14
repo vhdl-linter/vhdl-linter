@@ -1,7 +1,7 @@
 import { DiagnosticSeverity, TextEdit } from "vscode-languageserver";
 import { OLexerToken } from "../lexer";
 import { ExpressionParser } from "./expressionParser";
-import { OAttributeDeclaration, OAttributeSpecification, ObjectBase, OReference, ParserError } from "./objects";
+import { OAttributeDeclaration, OAttributeSpecification, ObjectBase, OName, ParserError } from "./objects";
 import { ParserBase, ParserState } from "./parserBase";
 
 export class AttributeParser extends ParserBase {
@@ -33,7 +33,7 @@ export class AttributeParser extends ParserBase {
         severity: DiagnosticSeverity.Error
       });
     } else {
-      attributeDeclaration.typeReferences = new ExpressionParser(this.state, attributeDeclaration, tokens).parse();
+      attributeDeclaration.typeNames = new ExpressionParser(this.state, attributeDeclaration, tokens).parse();
     }
 
     return attributeDeclaration;
@@ -67,12 +67,12 @@ export class AttributeParser extends ParserBase {
       this.consumeToken();
     }
     const attributeSpecification = new OAttributeSpecification(this.parent, attribute.range);
-    attributeSpecification.lexerToken = designator;
+    attributeSpecification.nameToken = designator;
     if (tokens.length === 1 && (tokens[0]!.getLText() === 'others' || tokens[0]!.getLText() === 'all')) {
-      attributeSpecification.references = [];
+      attributeSpecification.names = [];
     } else {
       for (let i = 0; i < tokens.length; i++) {
-        attributeSpecification.references.push(new OReference(attributeSpecification, tokens[i]!));
+        attributeSpecification.names.push(new OName(attributeSpecification, tokens[i]!));
         // This is a signature. Currently not completely handled
         if (tokens[i]?.getLText() === '[') {
           while (tokens[i]?.getLText() !== ']') {
@@ -88,7 +88,7 @@ export class AttributeParser extends ParserBase {
     attributeSpecification.entityClass = this.expect(AttributeParser.EntityClasses);
     this.expect('is');
     const [expressionTokens, semicolon] = this.advanceParenthesisAware([';'], true, true);
-    attributeSpecification.references.push(...new ExpressionParser(this.state, attributeSpecification, expressionTokens).parse());
+    attributeSpecification.names.push(...new ExpressionParser(this.state, attributeSpecification, expressionTokens).parse());
     attributeSpecification.range = attributeSpecification.range.copyWithNewEnd(semicolon.range);
     return attributeSpecification;
   }

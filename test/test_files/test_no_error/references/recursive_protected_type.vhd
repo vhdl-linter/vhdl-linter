@@ -1,10 +1,9 @@
-package pkg is
+package recursive_protected_type is
   type myType is protected
-    procedure proc;
   end protected;
 end package;
 
-package body pkg is
+package body recursive_protected_type is
   type myType is protected body
     type rec is record
       child: integer;

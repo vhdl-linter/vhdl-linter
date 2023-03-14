@@ -1,9 +1,10 @@
 import { Lexer, OLexerToken, TokenType } from '../lexer';
+import { ConfigurationDeclarationParser } from './configurationDeclarationParser';
 import { ContextParser } from './contextParser';
 import { ContextReferenceParser } from './contextReferenceParser';
 import { EntityParser } from './entityParser';
 import { IHasUseClauses } from './interfaces';
-import { MagicCommentType, ObjectBase, OConfiguration, OFile, OI, OIRange, OLibrary, OMagicCommentDisable, OPackageInstantiation, OReference, OSelectedName, OUseClause, ParserError, SelectedNamePrefix } from './objects';
+import { MagicCommentType, ObjectBase, OFile, OI, OIRange, OLibrary, OMagicCommentDisable, OPackageInstantiation, OName, OSelectedName, OUseClause, ParserError, SelectedNamePrefix } from './objects';
 import { PackageInstantiationParser } from './packageInstantiationParser';
 import { PackageParser } from './packageParser';
 import { ParserBase, ParserPosition, ParserState } from './parserBase';
@@ -40,12 +41,12 @@ export class FileParser extends ParserBase {
 
   private useClauseFromTokens(parent: ObjectBase & IHasUseClauses, tokens: [OLexerToken, ...OLexerToken[]]) {
     const newUseClause = new OUseClause(parent, tokens[0].range.copyWithNewEnd(tokens[tokens.length - 1]!.range));
-    newUseClause.reference = [new OReference(newUseClause, tokens[0])];
+    newUseClause.names = [new OName(newUseClause, tokens[0])];
     for (const [i, token] of tokens.entries()) {
       if (i === 0) {
         continue;
       } else {
-        newUseClause.reference.push(new OSelectedName(newUseClause, token, newUseClause.reference.slice() as SelectedNamePrefix));
+        newUseClause.names.push(new OSelectedName(newUseClause, token, newUseClause.names.slice() as SelectedNamePrefix));
       }
     }
     return newUseClause;
@@ -230,25 +231,17 @@ export class FileParser extends ParserBase {
         libraries = defaultLibrary.slice(0);
         useClausesPrepare = [];
       } else if (nextToken.getLText() === 'configuration') {
-        const configuration = new OConfiguration(this.file, this.getToken().range.copyExtendEndOfLine());
-        configuration.targetLibrary = this.getTargetLibrary();
-        configuration.lexerToken = this.consumeToken();
-        this.expect('of');
-        configuration.entityName = this.consumeToken();
-        while (
-          ((this.getToken(0).getLText() === 'end' && this.getToken(1, true).getLText() === ';')
-            || (this.getToken(0).getLText() === 'end' && this.getToken(1, true).getLText() === 'configuration'
-              && this.getToken(2, true).getLText() === ';')
-            || (this.getToken(0).getLText() === 'end' && this.getToken(1, true).getLText() === 'configuration'
-              && this.getToken(2, true).getLText() === configuration.lexerToken.getLText() && this.getToken(3, true).getLText() === ';')
-            || (this.getToken(0).getLText() === 'end'
-              && this.getToken(1, true).getLText() === configuration.lexerToken.getLText() && this.getToken(2, true).getLText() === ';'))
-          === false) {
-          this.consumeToken(true);
-        }
+        const configuration = new ConfigurationDeclarationParser(this.state, this.file).parse();
         this.file.configurations.push(configuration);
-        configuration.range = configuration.range.copyWithNewEnd(this.getToken().range);
-        this.advanceSemicolon();
+        configuration.useClauses.push(...getUseClauses(configuration));
+        configuration.libraries.push(...libraries.map(library => new OLibrary(configuration, library)));
+        configuration.contextReferences = contextReferences;
+        for (const contextReference of contextReferences) {
+          contextReference.parent = configuration;
+        }
+        contextReferences = [];
+        libraries = defaultLibrary.slice(0);
+        useClausesPrepare = [];
       } else {
         throw new ParserError(`Unexpected token ${nextToken.text}`, this.getToken().range);
       }

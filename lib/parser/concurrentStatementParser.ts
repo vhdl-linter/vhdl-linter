@@ -3,24 +3,17 @@ import { AssertionParser } from './assertionParser';
 import { AssignmentParser } from './assignmentParser';
 import { ConcurrentInstantiationParser } from './concurrentInstantiationParser';
 import { ExpressionParser } from './expressionParser';
-import { OArchitecture, OCaseGenerate, OEntity, OForGenerate, OIfGenerate, OIfGenerateClause, ORead, OStatementBody, ParserError } from './objects';
+import { OStatementBody, OEntity, OArchitecture, ParserError, OForGenerate, OCaseGenerate, OIfGenerate, OIfGenerateClause } from './objects';
 import { ParserBase, ParserState } from './parserBase';
 import { ProcessParser } from './processParser';
 import { StatementBodyParser } from './statementBodyParser';
-export enum ConcurrentStatementTypes {
-  Process,
-  ProcedureInstantiation,
-  Generate,
-  Assignment,
-  Assert,
-  Block
-}
+
 export class ConcurrentStatementParser extends ParserBase {
   constructor(state: ParserState, private parent: OStatementBody | OEntity) {
     super(state);
     this.debug('start');
   }
-  parse(allowedStatements: ConcurrentStatementTypes[], previousStatementBody?: OStatementBody, returnOnWhen = false) {
+  parse(previousStatementBody?: OStatementBody, returnOnWhen = false) {
     let nextToken = this.getToken();
 
     let label: OLexerToken | undefined;
@@ -36,11 +29,11 @@ export class ConcurrentStatementParser extends ParserBase {
     if (postponed) {
       nextToken = this.getToken();
     }
-    if (nextToken.getLText() === 'process' && allowedStatements.includes(ConcurrentStatementTypes.Process)) {
+    if (nextToken.getLText() === 'process') {
       this.consumeToken();
       const processParser = new ProcessParser(this.state, this.parent);
       this.parent.statements.push(processParser.parse(savedI, label, postponed));
-    } else if (nextToken.getLText() === 'block' && allowedStatements.includes(ConcurrentStatementTypes.Block)) {
+    } else if (nextToken.getLText() === 'block') {
       this.consumeToken();
       this.debug('parse block');
 
@@ -52,7 +45,7 @@ export class ConcurrentStatementParser extends ParserBase {
       }
       block.label = label;
       (this.parent as OArchitecture).statements.push(block);
-    } else if (nextToken.getLText() === 'for' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {
+    } else if (nextToken.getLText() === 'for') {
       this.consumeToken();
       this.debug('parse for generate');
       if (typeof label === 'undefined') {
@@ -74,7 +67,7 @@ export class ConcurrentStatementParser extends ParserBase {
       (this.parent as OArchitecture).statements.push(generate);
     } else if (nextToken.getLText() === 'when' && returnOnWhen) {
       return true;
-    } else if (nextToken.getLText() === 'case' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {
+    } else if (nextToken.getLText() === 'case' ) {
       if (typeof label === 'undefined') {
         throw new ParserError('A case generate needs a label.', this.state.pos.getRangeToEndLine());
       }
@@ -110,7 +103,7 @@ export class ConcurrentStatementParser extends ParserBase {
       caseGenerate.range = caseGenerate.range.copyWithNewEnd(this.state.pos.i);
       this.advanceSemicolon();
       (this.parent as OArchitecture).statements.push(caseGenerate);
-    } else if (nextToken.getLText() === 'if' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {
+    } else if (nextToken.getLText() === 'if') {
       if (typeof label === 'undefined') {
         throw new ParserError('If generate requires a label.', this.state.pos.getRangeToEndLine());
       }
@@ -136,7 +129,7 @@ export class ConcurrentStatementParser extends ParserBase {
       this.reverseWhitespace();
       ifGenerate.range = ifGenerate.range.copyWithNewEnd(this.state.pos.i);
       this.advanceWhitespace();
-    } else if (nextToken.getLText() === 'elsif' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {
+    } else if (nextToken.getLText() === 'elsif') {
       if (!(this.parent instanceof OIfGenerateClause)) {
         throw new ParserError('elsif generate without if generate', this.state.pos.getRangeToEndLine());
       }
@@ -164,7 +157,7 @@ export class ConcurrentStatementParser extends ParserBase {
 
       this.parent.parent.ifGenerateClauses.unshift(ifGenerateClause);
       return true;
-    } else if (nextToken.getLText() === 'else' && allowedStatements.includes(ConcurrentStatementTypes.Generate)) {
+    } else if (nextToken.getLText() === 'else') {
       if (!(this.parent instanceof OIfGenerateClause)) {
         throw new ParserError('else generate without if generate', this.state.pos.getRangeToEndLine());
       }
@@ -189,21 +182,11 @@ export class ConcurrentStatementParser extends ParserBase {
       this.parent.parent.elseGenerateClause = elseGenerateObject;
       return true;
 
-    } else if (nextToken.getLText() === 'with' && allowedStatements.includes(ConcurrentStatementTypes.Assignment)) {
-      // TODO: use expression parser for concurrent_selected_signal_assignment
-      this.consumeToken();
-      const readToken = this.consumeToken();
-      if (this.getToken().text === '(') {
-        this.consumeToken();
-        this.advanceParenthesisAware([')']);
-      }
-      this.consumeToken();
+    } else if (nextToken.getLText() === 'with') {
       const assignmentParser = new AssignmentParser(this.state, this.parent);
       const assignment = assignmentParser.parse('concurrent');
-      const read = new ORead(assignment, readToken);
-      assignment.labelLinks.push(read);
       this.parent.statements.push(assignment);
-    } else if (nextToken.getLText() === 'assert' && allowedStatements.includes(ConcurrentStatementTypes.Assert)) {
+    } else if (nextToken.getLText() === 'assert') {
       this.parent.statements.push(new AssertionParser(this.state, this.parent).parse(label, postponed));
     } else {
 
@@ -231,9 +214,6 @@ export class ConcurrentStatementParser extends ParserBase {
         throw new ParserError(`Missing Semicolon!`, this.getToken(0).range);
       }
       if (assignment) {
-        if (!allowedStatements.includes(ConcurrentStatementTypes.Assignment)) {
-          throw new ParserError(`Unexpected assignment!`, this.getToken(0).range);
-        }
 
         const assignmentParser = new AssignmentParser(this.state, this.parent);
         const assignment = assignmentParser.parse('concurrent', label,  postponed);

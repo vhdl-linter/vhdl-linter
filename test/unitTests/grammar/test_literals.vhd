@@ -20,9 +20,11 @@ architecture arch of test_literals is
     1.34E-12, 1.0E+6, 6.023E+24,
     16#F.FF#E+2
     );
-    /* Multi
-    line
-    comment */
+  /* Multi
+  line
+  comment */
+  signal h : std_ulogic_vector := (64x"00");  -- fixed length
+  signal i : std_ulogic_vector := (64"00");   -- fixed length
 begin
 
 end architecture;

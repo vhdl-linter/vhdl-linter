@@ -1,5 +1,5 @@
 import { implementsIHasDeclarations } from "../parser/interfaces";
-import { OAliasWithSignature, OComponent, OConfiguration, OEntity, OFile, OInstantiation, OSubprogram, OType, ParserError, scope } from "../parser/objects";
+import { OAliasWithSignature, OComponent, OConfigurationDeclaration, OEntity, OFile, OInstantiation, OSubprogram, OType, ParserError, scope } from "../parser/objects";
 import { ProjectParser } from "../projectParser";
 
 export function elaborateInstantiations(file: OFile, projectParser: ProjectParser) {
@@ -25,7 +25,7 @@ export function elaborateInstantiations(file: OFile, projectParser: ProjectParse
         break;
     }
     for (const subprogram of instantiation.definitions) {
-      subprogram.referenceLinks.push(instantiation);
+      subprogram.nameLinks.push(instantiation);
     }
   }
 }
@@ -61,9 +61,9 @@ export function getEntities(instantiation: OInstantiation | OComponent, projectP
   const projectEntities = projectParser.entities;
   if (instantiation instanceof OInstantiation && instantiation.library !== undefined) {
     entities.push(...projectEntities.filter(entity => {
-      if (instantiation.library!.referenceToken.getLText() !== 'work') {
+      if (instantiation.library!.nameToken.getLText() !== 'work') {
         if (typeof entity.targetLibrary !== 'undefined') {
-          return entity.targetLibrary.toLowerCase() === instantiation.library?.referenceToken.getLText() ?? '';
+          return entity.targetLibrary.toLowerCase() === instantiation.library?.nameToken.getLText() ?? '';
         }
       } else if (entity.targetLibrary !== undefined && instantiation.getRootElement().targetLibrary !== undefined) {
         return entity.targetLibrary.toLowerCase() === instantiation.getRootElement().targetLibrary!.toLowerCase();
@@ -78,8 +78,8 @@ export function getEntities(instantiation: OInstantiation | OComponent, projectP
   const name = (instantiation instanceof OInstantiation) ? instantiation.entityName : instantiation.lexerToken;
   return entities.filter(e => e.lexerToken.getLText() === name.text.toLowerCase());
 }
-export function getConfiguration(instantiation: OInstantiation, projectParser: ProjectParser): OConfiguration[] {
-  const configurations: OConfiguration[] = [];
+export function getConfiguration(instantiation: OInstantiation, projectParser: ProjectParser): OConfigurationDeclaration[] {
+  const configurations: OConfigurationDeclaration[] = [];
   // The selected name for the instantiation gets split up into library{.prefix}.componentName
   // If there is a prefix this is not a valid entity name
   if (instantiation.prefix.length > 0) {
@@ -89,9 +89,9 @@ export function getConfiguration(instantiation: OInstantiation, projectParser: P
   const projectConfigurations = projectParser.configurations;
   if (typeof instantiation.library !== 'undefined') {
     configurations.push(...projectConfigurations.filter(configuration => {
-      if (instantiation.library!.referenceToken.getLText() !== 'work') {
+      if (instantiation.library!.nameToken.getLText() !== 'work') {
         if (typeof configuration.targetLibrary !== 'undefined') {
-          return configuration.targetLibrary.toLowerCase() === instantiation.library?.referenceToken.getLText() ?? '';
+          return configuration.targetLibrary.toLowerCase() === instantiation.library?.nameToken.getLText() ?? '';
         }
       } else if (configuration.targetLibrary !== undefined && instantiation.getRootElement().targetLibrary !== undefined) {
         return configuration.targetLibrary.toLowerCase() === instantiation.getRootElement().targetLibrary!.toLowerCase();
