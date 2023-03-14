@@ -66,16 +66,9 @@ async function run_test(path: URL, error_expected: boolean, projectParser?: Proj
           "type-resolved": false,
           "unit": false,
           "naming-style": false
-        },
-        style: {
-          unusedSuffix: '_unused'
-        },
+        }
       })
-      : defaultSettingsWithOverwrite({
-        style: {
-          unusedSuffix: '_unused'
-        },
-      });
+      : defaultSettingsGetter;
     if (lstatSync(subPath).isDirectory()) {
       messageWrappers.push(...await run_test(subPath, error_expected, projectParser));
     } else if (subPath.pathname.match(/\.vhdl?$/i)) {

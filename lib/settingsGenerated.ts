@@ -77,7 +77,7 @@ export const defaultSettings: ISettings = {
     'preferredLogicTypeRecordChild': 'unresolved',
     'ieeeCasing': 'lowercase',
     'unusedPrefix': '',
-    'unusedSuffix': '',
+    'unusedSuffix': '_unused',
     'signalPrefix': '',
     'signalSuffix': '',
     'variablePrefix': '',

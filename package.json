@@ -258,7 +258,7 @@
 				"VhdlLinter.style.unusedSuffix": {
 					"scope": "window",
 					"type": "string",
-					"default": "",
+					"default": "_unused",
 					"description": "Prefix for unused objects (no unused warning is shown for these objects)"
 				},
 				"VhdlLinter.style.signalPrefix": {

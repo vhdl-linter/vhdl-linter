@@ -4,7 +4,7 @@ import { readdirSync } from 'fs';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
 import { ProjectParser } from '../../../lib/projectParser';
-import { defaultSettingsGetter, defaultSettingsWithOverwrite } from '../../../lib/settings';
+import { defaultSettingsGetter } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { readFileSyncNorm } from "../../readFileSyncNorm";
 
@@ -13,11 +13,7 @@ test.each(files)('testing add use statement actions for file %s', async (file: s
   const path = join(__dirname, file);
   const projectParser = await ProjectParser.create([pathToFileURL(__dirname)], '', defaultSettingsGetter);
   const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }),
-    projectParser, defaultSettingsWithOverwrite({
-      style: {
-        unusedSuffix: '_unused'
-      }
-    }));
+    projectParser, defaultSettingsGetter);
   await linter.checkAll();
 
   expect(linter.messages).toMatchSnapshot();

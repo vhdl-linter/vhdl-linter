@@ -3,7 +3,7 @@ import { join } from 'path';
 import { pathToFileURL } from 'url';
 import { Diagnostic } from 'vscode-languageserver';
 import { ProjectParser } from '../../../lib/projectParser';
-import { defaultSettingsGetter, defaultSettingsWithOverwrite } from '../../../lib/settings';
+import { defaultSettingsGetter } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { readFileSyncNorm } from "../../readFileSyncNorm";
 let projectParser: ProjectParser;
@@ -23,11 +23,7 @@ test('Missing semicolon handling', async () => {
   };
   const url = pathToFileURL(join(__dirname, 'object_declaration_parser.vhd'));
 
-  linter = new VhdlLinter(mockPath as URL, readFileSyncNorm(url, { encoding: 'utf8' }), projectParser, defaultSettingsWithOverwrite({
-    style: {
-      unusedSuffix: '_unused'
-    }
-  }));
+  linter = new VhdlLinter(mockPath as URL, readFileSyncNorm(url, { encoding: 'utf8' }), projectParser, defaultSettingsGetter);
   messages = await linter.checkAll();
   expect(messages).toHaveLength(7);
   expect(messages).toEqual(expect.not.arrayContaining([
