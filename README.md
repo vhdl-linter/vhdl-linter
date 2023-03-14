@@ -33,6 +33,10 @@ Fold regions according to the file content:
 - interface lists
 - special blocks like instantiations, association lists, case (generate), types (record and protected)
 
+## Style checking
+Checks custom naming styles:
+![namingStyle](./doc/namingStyle.gif)
+
 ## Entity Converter
 Automatically convert entities to a commonly used template:
 - instantiation
