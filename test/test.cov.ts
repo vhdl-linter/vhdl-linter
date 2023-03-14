@@ -38,7 +38,8 @@ async function run_test(url: URL, error_expected: boolean, projectParser?: Proje
       ? defaultSettingsWithOverwrite({
         rules: {
           "type-resolved": false,
-          "unit": false
+          "unit": false,
+          "naming-style": false
         }
       })
       : defaultSettingsGetter;

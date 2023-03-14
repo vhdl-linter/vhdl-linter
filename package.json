@@ -158,10 +158,10 @@
 					"description": "Enable the rule to check if something is used but not declared",
 					"default": true
 				},
-				"VhdlLinter.rules.port-declaration": {
+				"VhdlLinter.rules.naming-style": {
 					"scope": "window",
 					"type": "boolean",
-					"description": "Enable the rule to check if ports match the regular expressions given in VhdlLinter.ports.",
+					"description": "Enable the rule to check if objects match the prefix/suffix given in VhdlLinter.style.*.",
 					"default": true
 				},
 				"VhdlLinter.rules.type-resolved": {
@@ -245,12 +245,6 @@
 					"default": "unresolved",
 					"description": "Preferred logic type (resolved/unresolved) to check for on record children (The rule 'type-resolved' can also be ignored as a whole)."
 				},
-				"VhdlLinter.style.unusedSignalRegex": {
-					"scope": "window",
-					"type": "string",
-					"default": "_unused$",
-					"description": "Signal names matching this regular expression do not trigger a warning when not write or read to them is found. (Also applies to variables and types)"
-				},
 				"VhdlLinter.style.ieeeCasing": {
 					"scope": "window",
 					"type": "string",
@@ -260,6 +254,18 @@
 					],
 					"default": "lowercase",
 					"description": "Default casing for the completion of items of the ieee and standard libraries."
+				},
+				"VhdlLinter.style.unusedPrefix": {
+					"scope": "window",
+					"type": "string",
+					"default": "",
+					"description": "Prefix for unused objects (no unused warning is shown for these objects)"
+				},
+				"VhdlLinter.style.unusedSuffix": {
+					"scope": "window",
+					"type": "string",
+					"default": "_unused",
+					"description": "Prefix for unused objects (no unused warning is shown for these objects)"
 				},
 				"VhdlLinter.style.signalPrefix": {
 					"scope": "window",
@@ -273,6 +279,30 @@
 					"default": "",
 					"description": "Suffix for signals (can be left empty)"
 				},
+				"VhdlLinter.style.variablePrefix": {
+					"scope": "window",
+					"type": "string",
+					"default": "",
+					"description": "Prefix for variables (can be left empty)"
+				},
+				"VhdlLinter.style.variableSuffix": {
+					"scope": "window",
+					"type": "string",
+					"default": "",
+					"description": "Suffix for variables (can be left empty)"
+				},
+				"VhdlLinter.style.constantPrefix": {
+					"scope": "window",
+					"type": "string",
+					"default": "",
+					"description": "Prefix for constants (can be left empty)"
+				},
+				"VhdlLinter.style.constantSuffix": {
+					"scope": "window",
+					"type": "string",
+					"default": "",
+					"description": "Suffix for constants (can be left empty)"
+				},
 				"VhdlLinter.style.genericPrefix": {
 					"scope": "window",
 					"type": "string",
@@ -285,6 +315,42 @@
 					"default": "",
 					"description": "Suffix for generics (can be left empty)"
 				},
+				"VhdlLinter.style.outPrefix": {
+					"scope": "window",
+					"type": "string",
+					"default": "",
+					"description": "Prefix for outputs (can be left empty)."
+				},
+				"VhdlLinter.style.outSuffix": {
+					"scope": "window",
+					"type": "string",
+					"default": "",
+					"description": "Suffix for outputs (can be left empty)."
+				},
+				"VhdlLinter.style.inPrefix": {
+					"scope": "window",
+					"type": "string",
+					"default": "",
+					"description": "Prefix for inputs (can be left empty)."
+				},
+				"VhdlLinter.style.inSuffix": {
+					"scope": "window",
+					"type": "string",
+					"default": "",
+					"description": "Suffix for inputs (can be left empty)."
+				},
+				"VhdlLinter.style.inoutPrefix": {
+					"scope": "window",
+					"type": "string",
+					"default": "",
+					"description": "A Prefix for inouts (can be left empty)."
+				},
+				"VhdlLinter.style.inoutSuffix": {
+					"scope": "window",
+					"type": "string",
+					"default": "",
+					"description": "Suffix for inouts (can be left empty)."
+				},
 				"VhdlLinter.style.instantiationLabelPrefix": {
 					"scope": "window",
 					"type": "string",
@@ -296,18 +362,6 @@
 					"type": "string",
 					"default": "",
 					"description": "Suffix for instantiation labels (can be left empty)"
-				},
-				"VhdlLinter.ports.outRegex": {
-					"scope": "window",
-					"type": "string",
-					"default": "^o_",
-					"description": "A regular expression to match output ports."
-				},
-				"VhdlLinter.ports.inRegex": {
-					"scope": "window",
-					"type": "string",
-					"default": "^i_",
-					"description": "A regular expression to match input ports."
 				},
 				"VhdlLinter.paths.additional": {
 					"scope": "window",
@@ -373,6 +427,7 @@
 		"eslint": "^8.25.0",
 		"eslint-plugin-check-file": "^1.3.1",
 		"jest": "^29.3.1",
+		"p-queue": "^6.6.2",
 		"ts-jest": "^29.0.3",
 		"typescript": "^4.9.5",
 		"utility-types": "^3.10.0",

@@ -19,7 +19,7 @@ import { workspaceSymbol } from './languageFeatures/workspaceSymbol';
 import { LinterManager } from './linterManager';
 import { normalizeUri } from './normalizeUri';
 import { ProjectParser } from './projectParser';
-import { defaultSettings, ISettings } from './settings';
+import { defaultSettings, ISettings, normalizeSettings } from './settings';
 import { entityConverter, converterTypes } from './entityConverter';
 
 // Create a connection for the server. The connection auto detected protocol
@@ -61,14 +61,14 @@ connection.onDidChangeConfiguration((change: { settings: { VhdlLinter?: ISetting
 });
 export async function getDocumentSettings(resource?: URL): Promise<ISettings> {
   if (!hasConfigurationCapability) {
-    return Promise.resolve(globalSettings);
+    return normalizeSettings(globalSettings);
   }
   let result = documentSettings.get(resource?.toString() ?? '');
   if (!result) {
-    result = await connection.workspace.getConfiguration({
+    result = normalizeSettings(await connection.workspace.getConfiguration({
       scopeUri: resource?.toString(),
       section: 'VhdlLinter'
-    }) as ISettings;
+    }) as ISettings);
   }
   documentSettings.set(resource?.toString() ?? '', result);
   return result;
