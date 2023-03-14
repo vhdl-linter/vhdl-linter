@@ -1,19 +1,12 @@
-import { readdirSync } from 'fs';
+import { cpus } from 'os';
 import PQueue from 'p-queue';
 import { cwd } from 'process';
 import { pathToFileURL } from 'url';
 import { isMainThread, Worker } from 'worker_threads';
 import { joinURL } from '../lib/projectParser';
-import { OIDiagnostic } from '../lib/vhdlLinter';
-const threadNum = 4;
+import { MessageWrapper, readDirPath } from './testUtil';
+const threadNum = cpus().length / 2;
 const queue = new PQueue({ concurrency: threadNum });
-export function readDirPath(path: URL) {
-  return readdirSync(path).map(file => joinURL(path, file));
-}
-export interface MessageWrapper {
-  file: string,
-  messages: (OIDiagnostic | { message: string })[]
-}
 
 
 // Take each directory in path as a project run test on every file
