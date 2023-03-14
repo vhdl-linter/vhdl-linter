@@ -2,6 +2,7 @@ import { ExpressionParser } from "./expressionParser";
 import { IHasDeclarations } from "./interfaces";
 import { OAlias, OAliasWithSignature, ObjectBase, OIRange, OTypeMark } from "./objects";
 import { ParserBase, ParserState } from "./parserBase";
+import { SubtypeIndicationParser } from "./subtypeIndicationParser";
 export class AliasParser extends ParserBase {
   constructor(state: ParserState, private parent: ObjectBase & IHasDeclarations) {
     super(state);
@@ -30,9 +31,7 @@ export class AliasParser extends ParserBase {
     if (this.getToken().getLText() === ':') {
       this.consumeToken();
       this.advanceWhitespace();
-      const [tokens] = this.advanceParenthesisAware([';', 'is'], true, false);
-
-      aliasWithSignature.subtypeIndication.push(...new ExpressionParser(this.state, aliasWithSignature, tokens).parse());
+      aliasWithSignature.subtypeIndication = new SubtypeIndicationParser(this.state, aliasWithSignature).parse();
     }
     this.expect('is');
     const [tokens] = this.advanceParenthesisAware(['['], true, false);
@@ -73,9 +72,8 @@ export class AliasParser extends ParserBase {
     if (this.getToken().getLText() === ':') {
       this.consumeToken();
       this.advanceWhitespace();
-      const [tokens] = this.advanceParenthesisAware([';', 'is'], true, false);
+      alias.subtypeIndication = new SubtypeIndicationParser(this.state, alias).parse();
 
-      alias.subtypeIndication.push(...new ExpressionParser(this.state, alias, tokens).parse());
     }
     const isToken = this.expect('is');
     const [tokens, semicolon] = this.advanceParenthesisAware([';'], true, true);

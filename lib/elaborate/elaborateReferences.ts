@@ -186,7 +186,7 @@ export class ElaborateNames {
 
 
   private elaborateTypeChildren(selectedName: O.OSelectedName, typeDefinition: O.ObjectBase) {
-    if (typeDefinition instanceof O.ORecord || (typeDefinition instanceof O.OType && (typeDefinition.protected || typeDefinition.access))) {
+    if (typeDefinition instanceof O.ORecord || (typeDefinition instanceof O.OType && (typeDefinition.protected || typeDefinition instanceof O.OAccessType))) {
       let found = false;
       if (typeDefinition instanceof O.ORecord) {
         for (const child of typeDefinition.children) {
@@ -195,8 +195,8 @@ export class ElaborateNames {
             found = true;
           }
         }
-      } else if (typeDefinition.access) {
-        for (const subtype of typeDefinition.subtypeIndication) {
+      } else if (typeDefinition instanceof O.OAccessType) {
+        for (const subtype of typeDefinition.subtypeIndication.typeNames) {
           if (subtype.rootFile !== selectedName.rootFile) {
             this.elaborate(subtype);
           }
@@ -218,7 +218,7 @@ export class ElaborateNames {
         selectedName.notDeclaredHint = `${selectedName.nameToken.text} does not exist on ${typeDefinition instanceof O.ORecord ? 'record' : 'protected type'} ${typeDefinition.lexerToken.text}`;
       }
     } else if (typeDefinition instanceof O.OArray) {
-      for (const def of typeDefinition.typeNames.flatMap(r => r.definitions)) {
+      for (const def of typeDefinition.subtypeIndication.typeNames.flatMap(r => r.definitions)) {
         this.elaborateTypeChildren(selectedName, def);
       }
     }
@@ -245,8 +245,8 @@ export class ElaborateNames {
       return;
     }
 
-    // previous token is type (e.g. protected or record) -> expect stuff from within
-    const typeNames = lastPrefix.definitions.flatMap(def => I.implementsIHasTypeNames(def) ? def.typeNames : []);
+    // previous token is type (e.g. protected or record) or alias -> expect stuff from within
+    const typeNames = lastPrefix.definitions.flatMap(def => I.implementsIHasSubTypeIndication(def) ? def.subtypeIndication.typeNames : []);
     for (const typeName of typeNames) {
       if (typeName.rootFile !== name.rootFile) {
         this.elaborate(typeName);
@@ -283,11 +283,6 @@ export class ElaborateNames {
       this.elaborateTypeChildren(name, returnType);
     }
 
-    // previous token is alias -> look in the subtypeIndication
-    const aliasSubtypeIndication = (lastPrefix.definitions.filter(def => def instanceof O.OAlias) as O.OAlias[]).flatMap(alias => alias.subtypeIndication);
-    for (const subtype of aliasSubtypeIndication.flatMap(ref => ref.definitions)) {
-      this.elaborateTypeChildren(name, subtype);
-    }
   }
 
   elaborateUseClauses(parent: O.ObjectBase & I.IHasUseClauses, useClauses: O.OUseClause[]) {

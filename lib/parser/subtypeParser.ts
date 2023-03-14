@@ -1,6 +1,6 @@
-import { ExpressionParser } from './expressionParser';
 import { ObjectBase, OSubType, OIRange } from './objects';
 import { ParserBase, ParserState } from './parserBase';
+import { SubtypeIndicationParser } from './subtypeIndicationParser';
 
 export class SubtypeParser extends ParserBase {
   subtype: OSubType;
@@ -13,24 +13,8 @@ export class SubtypeParser extends ParserBase {
     this.expect('subtype');
     this.subtype.lexerToken = this.consumeToken();
     this.expect('is');
-    if (this.getToken().getLText() === '(') { // funky vhdl stuff
-      this.subtype.resolved = true;
-      this.consumeToken(); // consume the '(' to be able to parseParenthesisAware
-      this.advanceParenthesisAware([')']);
-    }
-    if (this.maybe('resolved')) {
-      this.subtype.resolved = true;
-    }
-    const tokens = this.advanceSemicolon(true);
-    if (tokens.length > 0) {
-      this.subtype.typeNames = new ExpressionParser(this.state, this.subtype, tokens).parse();
-      this.subtype.range = this.subtype.range.copyWithNewEnd(tokens.at(-1)!.range);
-    } else {
-      this.state.messages.push({
-        message: 'subtype indication expected',
-        range: this.subtype.range
-      });
-    }
+    this.subtype.subtypeIndication = new SubtypeIndicationParser(this.state, this.subtype).parse();
+    this.expect(';');
     return this.subtype;
   }
 

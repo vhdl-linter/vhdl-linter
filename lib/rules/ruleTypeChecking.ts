@@ -1,5 +1,5 @@
-import { implementsIHasTypeNames } from "../parser/interfaces";
-import { OInterfacePackage, OLibrary, OName, OPackage, OSelectedName } from "../parser/objects";
+import { implementsIHasSubTypeIndication } from "../parser/interfaces";
+import { OArray, OInterfacePackage, OLibrary, OName, OPackage, OSelectedName } from "../parser/objects";
 import { IRule, RuleBase } from "./rulesBase";
 // For select Name array get only the last
 function cleanSelectedName(names: OName[]) {
@@ -18,8 +18,8 @@ export class RuleTypeChecking extends RuleBase implements IRule {
   }
   check() {
     for (const obj of this.file.objectList) {
-      if (implementsIHasTypeNames(obj)) {
-        const typeNames = cleanSelectedName(obj.typeNames);
+      if (implementsIHasSubTypeIndication(obj)) {
+        const typeNames = cleanSelectedName(obj.subtypeIndication.typeNames);
         if (typeNames.length === 1) { // If there is more found we are not able to resolve
           const typeName = typeNames[0]!;
           if (typeName.definitions.some(definition => definition instanceof OLibrary)) {
@@ -41,6 +41,19 @@ export class RuleTypeChecking extends RuleBase implements IRule {
             });
           }
         }
+      }
+      if (obj instanceof OArray) {
+        const indexNames = cleanSelectedName(obj.indexNames);
+        if (indexNames.length === 1) { // If there is more found we are not able to resolve
+          const indexName = indexNames[0]!;
+          if (indexName.definitions.some(definition => definition instanceof OLibrary)) {
+            this.generateError(indexName, 'library');
+          }
+          if (indexName.definitions.some(definition => definition instanceof OPackage)) {
+            this.generateError(indexName, 'package');
+          }
+        }
+
       }
     }
   }

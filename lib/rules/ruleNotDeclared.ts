@@ -61,7 +61,7 @@ export class RuleNotDeclared extends RuleBase implements IRule {
       const actions: CodeAction[] = [];
       actions.push(...this.findUsePackageActions(reference, textDocumentUri));
       // If parent is Signal, Port or Variable this reference is in the type reference. So adding signal makes no sense.
-      if (reference.parent instanceof O.OSignal === false && reference.parent instanceof O.OPort === false && reference.parent instanceof O.OVariable === false) {
+      if (reference.parent instanceof O.OSubtypeIndication === false) {
         for (const architecture of this.file.architectures) {
           const args: IAddSignalCommandArguments = { textDocumentUri, signalName: reference.nameToken.text, position: architecture.declarationsRange.end ?? architecture.range.start };
           actions.push(CodeAction.create(

@@ -2,7 +2,7 @@ import { OLexerToken, TokenType } from '../lexer';
 import { ConcurrentStatementParser } from './concurrentStatementParser';
 import { DeclarativePartParser } from './declarativePartParser';
 import { ExpressionParser } from './expressionParser';
-import { OArchitecture, OBlock, OCaseGenerate, OConstant, OElseGenerateClause, OFile, OForGenerate, OIfGenerate, OIfGenerateClause, OName, OWhenGenerateClause, ParserError } from './objects';
+import { OArchitecture, OBlock, OCaseGenerate, OConstant, OElseGenerateClause, OFile, OForGenerate, OIfGenerate, OIfGenerateClause, OName, OSubtypeIndication, OWhenGenerateClause, ParserError } from './objects';
 import { ParserBase, ParserState } from './parserBase';
 
 export class StatementBodyParser extends ParserBase {
@@ -62,7 +62,7 @@ export class StatementBodyParser extends ParserBase {
       statementBody = new OForGenerate(this.parent as OArchitecture, this.getToken().range.copyExtendEndOfLine(), constantRange);
       statementBody.label = this.identifier;
       const iterateConstant = new OConstant(statementBody, constantName.range);
-      iterateConstant.typeNames = [];
+      iterateConstant.subtypeIndication = new OSubtypeIndication(iterateConstant, iterateConstant.range);
       iterateConstant.lexerToken = constantName;
       statementBody.declarations.push(iterateConstant);
       statementBody.iterationConstant = constantName;

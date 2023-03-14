@@ -206,10 +206,11 @@ export abstract class OGeneric extends ObjectBase implements I.IHasDefinitions, 
   nameLinks: OName[] = [];
   aliasLinks: OAlias[] = [];
   lexerToken: OLexerToken;
+
 }
-export class OGenericConstant extends OGeneric implements I.IVariableBase, I.IHasTypeNames, I.IHasDefaultValue {
+export class OGenericConstant extends OGeneric implements I.IVariableBase, I.IHasSubtypeIndication, I.IHasDefaultValue {
   definitions: OGenericConstant[] = [];
-  typeNames: OName[] = [];
+  subtypeIndication: OSubtypeIndication;
   defaultValue?: OName[] = [];
 
 }
@@ -400,14 +401,19 @@ export class OType extends ObjectBase implements I.IHasNameLinks,
   lexerToken: OLexerToken;
   protected = false;
   protectedBody = false;
-  access = false;
-  subtypeIndication: OName[] = [];
-
+}
+export class OAccessType extends OType implements I.IHasSubtypeIndication {
+  subtypeIndication: OSubtypeIndication;
 
 }
-export class OSubType extends OType implements I.IHasTypeNames{
+export class OSubType extends OType implements I.IHasSubtypeIndication {
+  subtypeIndication: OSubtypeIndication;
+
+}
+export class OSubtypeIndication extends ObjectBase {
+  resolutionIndication: OName[] = [];
   typeNames: OName[] = [];
-  resolved = false;
+  constraint: OName[] = [];
 }
 export class OEnum extends OType {
   literals: OEnumLiteral[] = [];
@@ -416,12 +422,15 @@ export class ORecord extends OType implements I.IMayHaveEndingLexerToken {
   children: ORecordChild[] = [];
   endingLexerToken?: OLexerToken;
 }
-export class OArray extends OType implements I.IHasTypeNames {
-  typeNames: OName[] = [];
+export class OArray extends OType implements I.IHasSubtypeIndication {
+  indexNames: OName[] = [];
+  subtypeIndication: OSubtypeIndication;
+
 }
-export class ORecordChild extends OType implements I.IHasTypeNames {
-  typeNames: OName[] = [];
+export class ORecordChild extends OType implements I.IHasSubtypeIndication {
   public parent: ORecord;
+  subtypeIndication: OSubtypeIndication;
+
 }
 export class OEnumLiteral extends ObjectBase implements I.IHasNameLinks, I.IHasLexerToken {
   nameLinks: OName[] = [];
@@ -492,7 +501,7 @@ export class OFileVariable extends ObjectBase implements I.IVariableBase {
   aliasLinks: OAlias[] = [];
 
   nameLinks: OName[] = [];
-  typeNames: OName[] = [];
+  subtypeIndication: OSubtypeIndication;
   defaultValue?: OName[] = [];
   lexerToken: OLexerToken;
   openKind?: OName[];
@@ -503,7 +512,7 @@ export class OFileVariable extends ObjectBase implements I.IVariableBase {
 }
 export class OVariable extends ObjectBase implements I.IVariableBase {
   nameLinks: OName[] = [];
-  typeNames: OName[] = [];
+  subtypeIndication: OSubtypeIndication;
   defaultValue?: OName[] = [];
   lexerToken: OLexerToken;
   aliasLinks: OAlias[] = [];
@@ -514,7 +523,7 @@ export class OVariable extends ObjectBase implements I.IVariableBase {
 }
 export class OSignal extends ObjectBase implements I.IVariableBase {
   nameLinks: OName[] = [];
-  typeNames: OName[] = [];
+  subtypeIndication: OSubtypeIndication;
   defaultValue?: OName[] = [];
   lexerToken: OLexerToken;
   aliasLinks: OAlias[] = [];
@@ -525,7 +534,7 @@ export class OSignal extends ObjectBase implements I.IVariableBase {
 }
 export class OConstant extends ObjectBase implements I.IVariableBase {
   nameLinks: OName[] = [];
-  typeNames: OName[] = [];
+  subtypeIndication: OSubtypeIndication;
   defaultValue?: OName[] = [];
   lexerToken: OLexerToken;
   aliasLinks: OAlias[] = [];
@@ -633,7 +642,7 @@ export class OPort extends ObjectBase implements I.IVariableBase, I.IHasDefiniti
   definitions: OPort[] = [];
   lexerToken: OLexerToken;
   nameLinks: OName[] = [];
-  typeNames: OName[] = [];
+  subtypeIndication: OSubtypeIndication;
   defaultValue?: OName[] = [];
   aliasLinks: OAlias[] = [];
   registerProcess?: OProcess;
@@ -788,19 +797,19 @@ export class OTypeMark extends ObjectBase {
 }
 
 
-export class OAlias extends ObjectBase implements I.IHasLexerToken, I.IHasNameLinks {
+export class OAlias extends ObjectBase implements I.IHasLexerToken, I.IHasNameLinks, I.IHasSubtypeIndication {
   name: OName[] = []; // The thing being aliased
   nameLinks: OName[] = [];
   aliasLinks: never[] = []; // recursive aliases are not allowed
   aliasDefinitions: ObjectBase[] = [];
   lexerToken: OLexerToken;
-  subtypeIndication: OName[] = []; // subtype_indication
+  subtypeIndication: OSubtypeIndication; // subtype_indication
 }
-export class OAliasWithSignature extends OAlias implements I.IHasLexerToken {
+export class OAliasWithSignature extends OAlias implements I.IHasLexerToken, I.IHasSubtypeIndication {
   typeMarks: OTypeMark[] = [];
   nameLinks: OName[] = [];
   lexerToken: OLexerToken;
-  subtypeIndication: OName[] = [];
+  subtypeIndication: OSubtypeIndication;
   return: OName;
 }
 
@@ -828,12 +837,12 @@ export class OAttributeSpecification extends ObjectBase implements I.IHasNameTok
   entityClass: OLexerToken;
   lexerToken: undefined;
 }
-export class OAttributeDeclaration extends ObjectBase implements I.IHasLexerToken, I.IHasNameLinks {
+export class OAttributeDeclaration extends ObjectBase implements I.IHasLexerToken, I.IHasNameLinks, I.IHasSubtypeIndication {
   lexerToken: OLexerToken;
   nameLinks: OName[] = [];
   aliasLinks: OAlias[] = [];
   aliasDefinitions: ObjectBase[] = [];
-  typeNames: OName[] = [];
+  subtypeIndication: OSubtypeIndication;
 }
 
 // Returns all object visible starting from the startObjects scope.

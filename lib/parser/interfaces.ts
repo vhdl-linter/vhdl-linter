@@ -18,16 +18,16 @@ export interface IHasPostponed {
 export function implementsIHasPostponed(obj: O.ObjectBase): obj is O.ObjectBase & IHasPostponed {
   return (obj as O.ObjectBase & Partial<IHasPostponed>).postponed !== undefined;
 }
-export interface IHasTypeNames {
-  typeNames: O.OName[];
+export interface IHasSubtypeIndication {
+  subtypeIndication: O.OSubtypeIndication;
 }
-export function implementsIHasTypeNames(obj: O.ObjectBase): obj is O.ObjectBase & IHasTypeNames {
-  return Array.isArray((obj as O.ObjectBase & IHasTypeNames).typeNames);
+export function implementsIHasSubTypeIndication(obj: O.ObjectBase): obj is O.ObjectBase & IHasSubtypeIndication {
+  return (obj as O.ObjectBase & Partial<IHasSubtypeIndication>).subtypeIndication !== undefined;
 }
 export interface IHasDefaultValue {
   defaultValue?: O.OName[];
 }
-export interface IVariableBase extends IHasNameLinks, IHasLexerToken, IHasTypeNames, IHasDefaultValue {
+export interface IVariableBase extends IHasNameLinks, IHasLexerToken, IHasSubtypeIndication, IHasDefaultValue {
   lexerToken: OLexerToken;
 }
 export interface IHasUseClauses {
