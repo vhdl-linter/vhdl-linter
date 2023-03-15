@@ -1,10 +1,11 @@
-import { OComponent, OEntity, OGeneric, OIRange, OPackage, OPort, OSubprogram, OGenericConstant, ParserError } from './objects';
+import { OComponent, OEntity, OGeneric, OIRange, OPackage, OPort, OSubprogram, OGenericConstant, ParserError, OSubtypeIndication } from './objects';
 import { ParserBase, ParserState } from './parserBase';
 import { SubprogramParser } from './subprogramParser';
 import { InterfacePackageParser } from './interfacePackageParser';
 import { OLexerToken } from '../lexer';
 import { TextEdit } from 'vscode-languageserver';
 import { ExpressionParser } from './expressionParser';
+import { SubtypeIndicationParser } from './subtypeIndicationParser';
 
 
 export class InterfaceListParser extends ParserBase {
@@ -70,6 +71,7 @@ export class InterfaceListParser extends ParserBase {
           // }
           this.consumeToken();
           port.lexerToken = this.consumeToken();
+          port.subtypeIndication = new OSubtypeIndication(port, port.range);
           ports.push(port);
           this.maybe(';');
           foundElements++;
@@ -101,10 +103,10 @@ export class InterfaceListParser extends ParserBase {
               this.consumeToken(); // consume direction
             }
           }
-          const { type, defaultValue } = this.getTypeDefinition(port);
-          const end = defaultValue?.[defaultValue.length - 1]?.range.end ?? type[type.length - 1]?.range?.end ?? port.range.end;
+          const { subtypeIndication, defaultValue } = this.getTypeDefinition(port);
+          const end = defaultValue?.[defaultValue.length - 1]?.range.end ?? subtypeIndication.range.end ?? port.range.end;
           port.range = port.range.copyWithNewEnd(end);
-          (port as OGenericConstant).typeNames = new ExpressionParser(this.state, port, type).parse();
+          (port as OGenericConstant).subtypeIndication = subtypeIndication;
 
           (port as OGenericConstant).defaultValue = defaultValue;
           for (const interface_ of multiInterface) {
@@ -113,7 +115,7 @@ export class InterfaceListParser extends ParserBase {
               interface_.directionRange = (port as OPort).directionRange;
             }
             interface_.range = interface_.range.copyWithNewEnd(end);
-            (interface_ as OGenericConstant).typeNames = (port as OGenericConstant).typeNames;
+            (interface_ as OGenericConstant).subtypeIndication = (port as OGenericConstant).subtypeIndication;
             (interface_ as OGenericConstant).defaultValue = (port as OGenericConstant).defaultValue;
             ports.push(interface_);
             foundElements++;
@@ -164,11 +166,11 @@ export class InterfaceListParser extends ParserBase {
     this.debug('parseEnd');
 
   }
-  getTypeDefinition(parent: OGeneric | OPort) {
+  getTypeDefinition(parent: OGenericConstant | OPort) {
     this.debug('getTypeDefinition');
-    const [type, last] = this.advanceParenthesisAware([')', ';', ':='], true, false);
+    const subtypeIndication = new SubtypeIndicationParser(this.state, parent).parse([':=']);
     let defaultValue: OLexerToken[] = [];
-    if (last.getLText() === ':=') {
+    if (this.getToken().getLText() === ':=') {
       this.consumeToken();
       [defaultValue] = this.advanceParenthesisAware([')', ';'], true, false);
     }
@@ -191,13 +193,13 @@ export class InterfaceListParser extends ParserBase {
     }
     if (defaultValue.length === 0) {
       return {
-        type: type,
+        subtypeIndication: subtypeIndication,
 
       };
 
     }
     return {
-      type: type,
+      subtypeIndication: subtypeIndication,
       defaultValue: new ExpressionParser(this.state, parent, defaultValue).parse(),
     };
   }

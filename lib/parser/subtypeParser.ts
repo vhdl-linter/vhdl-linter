@@ -1,5 +1,6 @@
-import { ObjectBase, OName, OSubType, OIRange } from './objects';
+import { ObjectBase, OSubType, OIRange } from './objects';
 import { ParserBase, ParserState } from './parserBase';
+import { SubtypeIndicationParser } from './subtypeIndicationParser';
 
 export class SubtypeParser extends ParserBase {
   subtype: OSubType;
@@ -12,22 +13,8 @@ export class SubtypeParser extends ParserBase {
     this.expect('subtype');
     this.subtype.lexerToken = this.consumeToken();
     this.expect('is');
-    if (this.getToken().getLText() === '(') { // funky vhdl stuff
-      this.subtype.resolved = true;
-      this.consumeToken(); // consume the '(' to be able to parseParenthesisAware
-      this.advanceParenthesisAware([')']);
-    }
-    if (this.maybe('resolved')) {
-      this.subtype.resolved = true;
-    }
-    const superType = this.consumeToken();
-    this.subtype.range = this.subtype.range.copyWithNewEnd(this.state.pos.i);
-    const tokens = this.advanceSemicolon(true);
-    if (tokens.length > 0) {
-      this.subtype.range = this.subtype.range.copyWithNewEnd(tokens[tokens.length - 1]!.range.end.i);
-    }
-    // const reads = this.extractReads(this.subtype, this.advanceSemicolon(true), startIReads);
-    this.subtype.superType = new OName(this.subtype, superType);
+    this.subtype.subtypeIndication = new SubtypeIndicationParser(this.state, this.subtype).parse();
+    this.expect(';');
     return this.subtype;
   }
 

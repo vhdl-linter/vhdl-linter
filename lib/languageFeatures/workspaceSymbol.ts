@@ -6,7 +6,7 @@ import { ProjectParser } from '../projectParser';
 export function workspaceSymbol(params: WorkspaceSymbolParams, projectParser: ProjectParser, additionalPaths: string[]): SymbolInformation[] | null {
   const symbols: SymbolInformation[] = [];
   for (const cachedFile of projectParser.cachedFiles) {
-    if (cachedFile.builtIn || additionalPaths.find(additionalPath => fileURLToPath(cachedFile.uri).startsWith(additionalPath))) {
+    if (cachedFile.builtIn || additionalPaths.some(additionalPath => fileURLToPath(cachedFile.uri).startsWith(additionalPath))) {
       continue;
     }
     for (const object of cachedFile.linter.file.objectList) {

@@ -114,7 +114,7 @@ export class Lexer {
         const match = text.match(tokenType.regex);
         if (match) {
           const firstMatch = match[0];
-          const token = new OLexerToken(match[2] ? match[2] : firstMatch,
+          const token = new OLexerToken(match[2] !== undefined ? match[2] : firstMatch,
             new OIRange(this.file, offset, offset + match[0].length), tokenType.tokenType, file);
 
           this.tokens.push(token);

@@ -186,7 +186,7 @@ export class ElaborateNames {
 
 
   private elaborateTypeChildren(selectedName: O.OSelectedName, typeDefinition: O.ObjectBase) {
-    if (typeDefinition instanceof O.ORecord || (typeDefinition instanceof O.OType && (typeDefinition.protected || typeDefinition.access))) {
+    if (typeDefinition instanceof O.ORecord || (typeDefinition instanceof O.OType && (typeDefinition.protected || typeDefinition instanceof O.OAccessType))) {
       let found = false;
       if (typeDefinition instanceof O.ORecord) {
         for (const child of typeDefinition.children) {
@@ -195,8 +195,8 @@ export class ElaborateNames {
             found = true;
           }
         }
-      } else if (typeDefinition.access) {
-        for (const subtype of typeDefinition.subtypeIndication) {
+      } else if (typeDefinition instanceof O.OAccessType) {
+        for (const subtype of typeDefinition.subtypeIndication.typeNames) {
           if (subtype.rootFile !== selectedName.rootFile) {
             this.elaborate(subtype);
           }
@@ -218,21 +218,21 @@ export class ElaborateNames {
         selectedName.notDeclaredHint = `${selectedName.nameToken.text} does not exist on ${typeDefinition instanceof O.ORecord ? 'record' : 'protected type'} ${typeDefinition.lexerToken.text}`;
       }
     } else if (typeDefinition instanceof O.OArray) {
-      for (const def of typeDefinition.elementType.flatMap(r => r.definitions)) {
+      for (const def of typeDefinition.subtypeIndication.typeNames.flatMap(r => r.definitions)) {
         this.elaborateTypeChildren(selectedName, def);
       }
     }
   }
-  getSignalType(signalOrVariable: O.ObjectBase & I.IHasTypeNames, rootFile: O.OFile) {
+  getSignalType(signalOrVariable: O.ObjectBase & I.IHasSubtypeIndication, rootFile: O.OFile) {
     const resolveArrayAlias = (obj: O.ObjectBase): O.ObjectBase[] => {
       if (obj instanceof O.OAlias) {
-        const name = obj.subtypeIndication.at(-1);
+        const name = obj.subtypeIndication.typeNames.at(-1);
         if (name && name.rootFile !== rootFile) {
           this.elaborate(name);
         }
         return name?.definitions.flatMap(resolveArrayAlias) ?? [];
       } else if (obj instanceof O.OArray) {
-        const name = obj.elementType.at(-1);
+        const name = obj.subtypeIndication.typeNames.at(-1);
         if (name && name.rootFile !== rootFile) {
           this.elaborate(name);
         }
@@ -240,13 +240,14 @@ export class ElaborateNames {
       }
       return [obj];
     };
-    const name = signalOrVariable.typeNames.at(-1);
+    const name = signalOrVariable.subtypeIndication.typeNames.at(-1);
     if (name && name.rootFile !== rootFile) {
       this.elaborate(name);
     }
     const definitions = name?.definitions.flatMap(resolveArrayAlias) ?? [];
     return definitions;
   }
+
   elaborateSelectedName(name: O.OSelectedName) {
 
 
@@ -270,148 +271,145 @@ export class ElaborateNames {
       } else {
 
         // When prefix is of an access type (is used as a dereference of the access/pointer type)
-        if (lastPrefix.definitions.some(signalVariable => I.implementsIHasTypeNames(signalVariable) && this.getSignalType(signalVariable, lastPrefix.rootFile).some(obj => obj instanceof O.OType && obj.access === false))) {
-            this.vhdlLinter.addMessage({
-              message: 'all only allowed when prefix is of access type!',
-              range: name.range
-            }, 'elaborate');
-          }
-          return;
+        if (lastPrefix.definitions.some(signalVariable => I.implementsIHasSubTypeIndication(signalVariable) && this.getSignalType(signalVariable, lastPrefix.rootFile).some(obj => obj instanceof O.OAccessType === false))) {
+          this.vhdlLinter.addMessage({
+            message: 'all only allowed when prefix is of access type!',
+            range: name.range
+          }, 'elaborate');
         }
-      }
-      // previous token is library -> expect a package
-      const libraryDefinitions = lastPrefix.definitions.filter(def => def instanceof O.OLibrary);
-      if (libraryDefinitions.length > 0) {
-        for (const pkg of this.getProjectList(name.nameToken.getLText())) {
-          if (pkg instanceof O.OPackage || pkg instanceof O.OPackageInstantiation) {
-            this.link(name, pkg);
-          }
-        }
-      }
-      // if all definitions are libraries -> do not look further (especially do not look in the fallback map)
-      if (libraryDefinitions.length === lastPrefix.definitions.length) {
         return;
       }
-
-      // previous token is type (e.g. protected or record) -> expect stuff from within
-      const typeNames = lastPrefix.definitions.flatMap(def => I.implementsIHasTypeNames(def) ? def.typeNames : []);
-      for (const typeName of typeNames) {
-        if (typeName.rootFile !== name.rootFile) {
-          this.elaborate(typeName);
+    }
+    // previous token is library -> expect a package
+    const libraryDefinitions = lastPrefix.definitions.filter(def => def instanceof O.OLibrary);
+    if (libraryDefinitions.length > 0) {
+      for (const pkg of this.getProjectList(name.nameToken.getLText())) {
+        if (pkg instanceof O.OPackage || pkg instanceof O.OPackageInstantiation) {
+          this.link(name, pkg);
         }
-      }
-      const typeRefDefinitions = typeNames.flatMap(typeRef => typeRef.definitions);
-      for (const typeDef of typeRefDefinitions) {
-        this.elaborateTypeChildren(name, typeDef);
-      }
-
-      // previous token is package
-      const packages = lastPrefix.definitions.filter(def => def instanceof O.OPackage) as O.OPackage[];
-      // previous token is pkg inst or interface pkg -> find stuff from the uninstantiated package
-      const pkgInstantiations = lastPrefix.definitions.filter(def => def instanceof O.OPackageInstantiation || def instanceof O.OInterfacePackage) as (O.OPackageInstantiation | O.OInterfacePackage)[];
-      for (const pkgInstantiation of pkgInstantiations) {
-        for (const ref of pkgInstantiation.uninstantiatedPackage) {
-          if (ref.rootFile !== name.rootFile) {
-            this.elaborate(ref);
-          }
-        }
-      }
-      packages.push(...pkgInstantiations.flatMap(inst => inst.uninstantiatedPackage[inst.uninstantiatedPackage.length - 1]!.definitions).filter(ref => ref instanceof O.OPackage) as O.OPackage[]);
-      for (const pkg of packages) {
-
-        for (const decl of pkg.declarations) {
-          if (decl.lexerToken !== undefined && (decl.lexerToken.getLText() === name.nameToken.getLText() || name.nameToken.getLText() === 'all')) {
-            this.link(name, decl);
-          }
-          if (decl instanceof O.OEnum) {
-            for (const enumLiteral of decl.literals) {
-              if (enumLiteral.lexerToken.getLText() === name.nameToken.getLText() || name.nameToken.getLText() === 'all') {
-                this.link(name, enumLiteral);
-              }
-            }
-          }
-          if (decl instanceof O.OType) {
-            for (const unit of decl.units) {
-              if (unit.lexerToken.getLText() === name.nameToken.getLText() || name.nameToken.getLText() === 'all') {
-                this.link(name, unit);
-              }
-            }
-          }
-        }
-        for (const generic of pkg.generics) {
-          if (generic.lexerToken !== undefined && (generic.lexerToken.getLText() === name.nameToken.getLText() || name.nameToken.getLText() === 'all')) {
-            this.link(name, generic);
-          }
-        }
-      }
-
-      // previous token is subprogram -> look in the return types
-      const returnReferences = (lastPrefix.definitions.filter(def => def instanceof O.OSubprogram) as O.OSubprogram[]).flatMap(subprogram => subprogram.return);
-      for (const returnType of returnReferences.flatMap(ref => ref.definitions)) {
-        this.elaborateTypeChildren(name, returnType);
-      }
-
-      // previous token is alias -> look in the subtypeIndication
-      const aliasSubtypeIndication = (lastPrefix.definitions.filter(def => def instanceof O.OAlias) as O.OAlias[]).flatMap(alias => alias.subtypeIndication);
-      for (const subtype of aliasSubtypeIndication.flatMap(ref => ref.definitions)) {
-        this.elaborateTypeChildren(name, subtype);
       }
     }
+    // if all definitions are libraries -> do not look further (especially do not look in the fallback map)
+    if (libraryDefinitions.length === lastPrefix.definitions.length) {
+      return;
+    }
 
-    elaborateUseClauses(parent: O.ObjectBase & I.IHasUseClauses, useClauses: O.OUseClause[]) {
-      for (const useClause of useClauses) {
-        // elaborate the names (useClause is created before the names of it)
-        for (const name of useClause.names) {
-          this.elaborate(name);
+    // previous token is type (e.g. protected or record) or alias -> expect stuff from within
+    const typeNames = lastPrefix.definitions.flatMap(def => I.implementsIHasSubTypeIndication(def) ? def.subtypeIndication.typeNames : []);
+    for (const typeName of typeNames) {
+      if (typeName.rootFile !== name.rootFile) {
+        this.elaborate(typeName);
+      }
+    }
+    const typeRefDefinitions = typeNames.flatMap(typeRef => typeRef.definitions);
+    for (const typeDef of typeRefDefinitions) {
+      this.elaborateTypeChildren(name, typeDef);
+    }
+
+    // previous token is package
+    const packages = lastPrefix.definitions.filter(def => def instanceof O.OPackage) as O.OPackage[];
+    // previous token is pkg inst or interface pkg -> find stuff from the uninstantiated package
+    const pkgInstantiations = lastPrefix.definitions.filter(def => def instanceof O.OPackageInstantiation || def instanceof O.OInterfacePackage) as (O.OPackageInstantiation | O.OInterfacePackage)[];
+    for (const pkgInstantiation of pkgInstantiations) {
+      for (const ref of pkgInstantiation.uninstantiatedPackage) {
+        if (ref.rootFile !== name.rootFile) {
+          this.elaborate(ref);
         }
-        const libraryRef = useClause.names[0].definitions.some(def => def instanceof O.OLibrary);
-        if (libraryRef === false) {
-          const packageRef = useClause.names[0];
-          for (const obj of packageRef.definitions) {
-            if (obj instanceof O.OPackageInstantiation || obj instanceof O.OInterfacePackage) {
-              // they are not elaborated yet because the useClauses are always elaborated before anything else.
-              // In this case the packageInstantiation/interfacePackage needs to be elaborated
-              for (const ref of obj.uninstantiatedPackage) {
-                this.elaborate(ref);
-              }
-              obj.nameLinks.push(packageRef);
+      }
+    }
+    packages.push(...pkgInstantiations.flatMap(inst => inst.uninstantiatedPackage[inst.uninstantiatedPackage.length - 1]!.definitions).filter(ref => ref instanceof O.OPackage) as O.OPackage[]);
+    for (const pkg of packages) {
+
+      for (const decl of pkg.declarations) {
+        if (decl.lexerToken !== undefined && (decl.lexerToken.getLText() === name.nameToken.getLText() || name.nameToken.getLText() === 'all')) {
+          this.link(name, decl);
+        }
+        if (decl instanceof O.OEnum) {
+          for (const enumLiteral of decl.literals) {
+            if (enumLiteral.lexerToken.getLText() === name.nameToken.getLText() || name.nameToken.getLText() === 'all') {
+              this.link(name, enumLiteral);
             }
           }
+        }
+        if (decl instanceof O.OType) {
+          for (const unit of decl.units) {
+            if (unit.lexerToken.getLText() === name.nameToken.getLText() || name.nameToken.getLText() === 'all') {
+              this.link(name, unit);
+            }
+          }
+        }
+      }
+      for (const generic of pkg.generics) {
+        if (generic.lexerToken !== undefined && (generic.lexerToken.getLText() === name.nameToken.getLText() || name.nameToken.getLText() === 'all')) {
+          this.link(name, generic);
         }
       }
     }
 
-    getUseClauses(parent: O.ObjectBase & (I.IHasUseClauses), parentContexts: O.OContext[] = []) {
-      const useClauses = parent.useClauses.slice();
-      const contextReferences = I.implementsIHasContextReference(parent) ? parent.contextReferences.slice() : [];
-      if (parent instanceof O.OPackageBody && parent.correspondingPackage) {
-        useClauses.push(...parent.correspondingPackage.useClauses);
-        contextReferences.push(...parent.correspondingPackage.contextReferences);
-      } else if (parent instanceof O.OArchitecture && parent.correspondingEntity) {
-        useClauses.push(...parent.correspondingEntity.useClauses);
-        contextReferences.push(...parent.correspondingEntity.contextReferences);
+    // previous token is subprogram -> look in the return types
+    const returnReferences = (lastPrefix.definitions.filter(def => def instanceof O.OSubprogram) as O.OSubprogram[]).flatMap(subprogram => subprogram.return);
+    for (const returnType of returnReferences.flatMap(ref => ref.definitions)) {
+      this.elaborateTypeChildren(name, returnType);
+    }
+
+
+  }
+
+
+  elaborateUseClauses(parent: O.ObjectBase & I.IHasUseClauses, useClauses: O.OUseClause[]) {
+    for (const useClause of useClauses) {
+      // elaborate the names (useClause is created before the names of it)
+      for (const name of useClause.names) {
+        this.elaborate(name);
       }
-      if (contextReferences.length > 0) {
-        for (const contextRef of contextReferences) {
-          const [lib, context] = contextRef.names;
-          if (lib && context) {
-            this.elaborateName(lib);
-            for (const obj of this.getProjectList(context.nameToken.getLText())) {
-              if (obj instanceof O.OContext) {
-                if (parentContexts.includes(obj)) {
-                  this.vhdlLinter.addMessage({
-                    message: `Circular dependency in context references ${[...parentContexts, obj].map(context => context.lexerToken.text).join(' -> ')}`,
-                    range: parentContexts[0]!.range
-                  }, 'elaborate');
-                } else {
-                  context.definitions.push(obj);
-                  useClauses.push(...this.getUseClauses(obj, [...parentContexts, obj]));
-                }
-              }
+      const libraryRef = useClause.names[0].definitions.some(def => def instanceof O.OLibrary);
+      if (libraryRef === false) {
+        const packageRef = useClause.names[0];
+        for (const obj of packageRef.definitions) {
+          if (obj instanceof O.OPackageInstantiation || obj instanceof O.OInterfacePackage) {
+            // they are not elaborated yet because the useClauses are always elaborated before anything else.
+            // In this case the packageInstantiation/interfacePackage needs to be elaborated
+            for (const ref of obj.uninstantiatedPackage) {
+              this.elaborate(ref);
             }
+            obj.nameLinks.push(packageRef);
           }
         }
       }
-      return useClauses;
     }
   }
+
+  getUseClauses(parent: O.ObjectBase & (I.IHasUseClauses), parentContexts: O.OContext[] = []) {
+    const useClauses = parent.useClauses.slice();
+    const contextReferences = I.implementsIHasContextReference(parent) ? parent.contextReferences.slice() : [];
+    if (parent instanceof O.OPackageBody && parent.correspondingPackage) {
+      useClauses.push(...parent.correspondingPackage.useClauses);
+      contextReferences.push(...parent.correspondingPackage.contextReferences);
+    } else if (parent instanceof O.OArchitecture && parent.correspondingEntity) {
+      useClauses.push(...parent.correspondingEntity.useClauses);
+      contextReferences.push(...parent.correspondingEntity.contextReferences);
+    }
+    if (contextReferences.length > 0) {
+      for (const contextRef of contextReferences) {
+        const [lib, context] = contextRef.names;
+        if (lib && context) {
+          this.elaborateName(lib);
+          for (const obj of this.getProjectList(context.nameToken.getLText())) {
+            if (obj instanceof O.OContext) {
+              if (parentContexts.includes(obj)) {
+                this.vhdlLinter.addMessage({
+                  message: `Circular dependency in context references ${[...parentContexts, obj].map(context => context.lexerToken.text).join(' -> ')}`,
+                  range: parentContexts[0]!.range
+                }, 'elaborate');
+              } else {
+                context.definitions.push(obj);
+                useClauses.push(...this.getUseClauses(obj, [...parentContexts, obj]));
+              }
+            }
+          }
+        }
+      }
+    }
+    return useClauses;
+  }
+}

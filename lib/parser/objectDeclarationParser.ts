@@ -1,9 +1,10 @@
 import { TextEdit } from 'vscode-languageserver';
 import { OLexerToken } from '../lexer';
 import { ExpressionParser } from './expressionParser';
-import { IHasDeclarations } from './interfaces';
+import { IHasDeclarations, IHasSubtypeIndication } from './interfaces';
 import { ObjectBase, OConstant, OFileVariable, OName, OSignal, OVariable } from './objects';
 import { ParserBase, ParserState } from './parserBase';
+import { SubtypeIndicationParser } from './subtypeIndicationParser';
 
 export class ObjectDeclarationParser extends ParserBase {
 
@@ -29,10 +30,10 @@ export class ObjectDeclarationParser extends ParserBase {
       this.maybe(',');
       let object;
       if (variable) {
-        object = new OVariable(this.parent , nextToken.range);
+        object = new OVariable(this.parent, nextToken.range);
         object.shared = shared;
       } else if (constant) {
-        object = new OConstant(this.parent , nextToken.range);
+        object = new OConstant(this.parent, nextToken.range);
       } else if (file) {
         object = new OFileVariable(this.parent, nextToken.range);
       } else {
@@ -45,10 +46,9 @@ export class ObjectDeclarationParser extends ParserBase {
     this.expect(':');
 
     if (file) {
-      const typeToken = this.consumeToken();
+      const subtypeIndication = new SubtypeIndicationParser(this.state, objects[0]!).parse(['open', ...this.NotExpectedDelimiter]);
       for (const file of objects.slice(objects.length - 1) as OFileVariable[]) {
-        const typeRead = new OName(file, typeToken);
-        file.typeNames = [typeRead];
+        file.subtypeIndication = subtypeIndication;
         let tokens, endToken;
         if (this.maybe('open')) {
           [tokens, endToken] = this.advanceParenthesisAware(['is', ';', ...this.NotExpectedDelimiter], true, false);
@@ -78,9 +78,9 @@ export class ObjectDeclarationParser extends ParserBase {
         // TODO: Parse optional parts of file definition
       }
     } else {
-      const { typeReads, defaultValueReads } = this.getType(objects[objects.length - 1]!);
+      const { subtypeIndication, defaultValueReads } = this.getType(objects[objects.length - 1]!);
       for (const object of objects) {
-        object.typeNames = typeReads;
+        object.subtypeIndication = subtypeIndication;
         object.defaultValue = defaultValueReads;
       }
 
@@ -91,13 +91,18 @@ export class ObjectDeclarationParser extends ParserBase {
     return objects;
   }
   readonly NotExpectedDelimiter = ['end', 'file', 'constant', 'variable', 'begin', 'signal', 'is'];
-  getType(parent: ObjectBase) {
-    const [type, endToken] = this.advanceParenthesisAware([';', ...this.NotExpectedDelimiter], true, false);
-    if (this.NotExpectedDelimiter.includes(endToken.getLText())) {
-
+  getType(parent: ObjectBase & IHasSubtypeIndication) {
+    const subtypeIndication = new SubtypeIndicationParser(this.state, parent).parse([...this.NotExpectedDelimiter, ':=']);
+    let defaultValueReads: OName[] | undefined;
+    if (this.getToken().getLText() === ':=') {
+      this.consumeToken();
+      const [tokensDefaultValue] = this.advanceParenthesisAware([';', ...this.NotExpectedDelimiter], true, false);
+      defaultValueReads = new ExpressionParser(this.state, parent, tokensDefaultValue).parse();
+    }
+    if (this.NotExpectedDelimiter.includes(this.getToken().getLText())) {
       this.state.messages.push({
-        message: `Unexpected ${endToken.text} in object declaration. Assuming forgotten ';'`,
-        range: endToken.range,
+        message: `Unexpected ${this.getToken().text} in object declaration. Assuming forgotten ';'`,
+        range: this.getToken().range,
         solution: {
           message: `Insert ';'`,
           edits: [
@@ -108,22 +113,10 @@ export class ObjectDeclarationParser extends ParserBase {
     } else {
       this.expect(';');
     }
-    let defaultValueReads;
-    let typeReads;
-    const index = type.findIndex(token => token.getLText() === ':=');
-    if (index > -1) {
-      const tokensDefaultValue = type.slice(index + 1);
-      const typeTokens = type.slice(0, index);
 
-      defaultValueReads = new ExpressionParser(this.state, parent, tokensDefaultValue).parse();
-      typeReads = new ExpressionParser(this.state, parent, typeTokens).parse();
-    } else {
-      typeReads = new ExpressionParser(this.state, parent, type).parse();
-
-    }
 
     return {
-      typeReads,
+      subtypeIndication,
       defaultValueReads
     };
   }

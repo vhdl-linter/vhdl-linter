@@ -108,8 +108,8 @@ export function signalsTemplate(entity: OEntity, settings: ISettings) {
         for (const port of entity.ports) {
             const name = port.lexerToken.text.padEnd(longest, ' ');
             let typeText: string | undefined;
-            if (port.typeNames.length > 0) {
-                typeText = port.typeNames[0]!.range.copyWithNewEnd(port.range.end).getText();
+            if (port.subtypeIndication.typeNames.length > 0) {
+                typeText = port.subtypeIndication.typeNames[0]!.range.copyWithNewEnd(port.range.end).getText();
             }
             text += `signal ${settings.style.signalPrefix}${name}${settings.style.signalSuffix} : ${typeText ?? 'unknown_type'};\n`;
         }

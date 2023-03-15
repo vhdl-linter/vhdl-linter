@@ -29,7 +29,7 @@ function recursiveObjectAssign<T extends Record<string, any>>(target: T, source:
     const s_val = source[key];
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const t_val = target[key];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/strict-boolean-expressions
     (target as any)[key] = t_val && s_val && typeof t_val === 'object' && typeof s_val === 'object'
       ? recursiveObjectAssign(t_val, s_val)
       : s_val;

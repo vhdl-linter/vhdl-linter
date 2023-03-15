@@ -158,7 +158,9 @@ export class ExpressionParser {
         // The collected tokens up to this point are then split and converted into OReferences and other objects
         const breakToken = breakTokens.find(token => token === (this.getNumToken()?.getLText() ?? ''));
         // Attributes are handled as one block, so check that the break token is not after a attribute ' mark.
-        if (breakToken && lastToken?.getLText() !== '\'') {
+        // Two Identifiers after each other is a bit of a workaround. Normally this should not be possible. It happens if higher level parser splits a bit wrong.
+        // (For example resolution_indication and type_mark are only separated by space and can thus not be easily split)
+        if ((breakToken !== undefined || (this.getNumToken()?.isIdentifier() && this.getNumToken(-1)?.isIdentifier())) && lastToken?.getLText() !== '\'') {
           const formal = maybeFormal && breakToken === '=>';
           const choice = maybeChoice && breakToken === '=>';
           // If braces were contained. This token was a cast on the formal side (so a reference not formal)

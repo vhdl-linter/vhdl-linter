@@ -1,7 +1,7 @@
 import { DiagnosticSeverity, TextEdit } from "vscode-languageserver";
 import { OLexerToken } from "../lexer";
 import { ExpressionParser } from "./expressionParser";
-import { OAttributeDeclaration, OAttributeSpecification, ObjectBase, OName, ParserError } from "./objects";
+import { OAttributeDeclaration, OAttributeSpecification, ObjectBase, OName, OSubtypeIndication, ParserError } from "./objects";
 import { ParserBase, ParserState } from "./parserBase";
 
 export class AttributeParser extends ParserBase {
@@ -33,9 +33,10 @@ export class AttributeParser extends ParserBase {
         severity: DiagnosticSeverity.Error
       });
     } else {
-      attributeDeclaration.typeNames = new ExpressionParser(this.state, attributeDeclaration, tokens).parse();
+      // Attributes in reality do not have a subtype just a type mark. But to simplify a subtype indication only consisting of type mark is created here
+      attributeDeclaration.subtypeIndication = new OSubtypeIndication(attributeDeclaration, tokens.at(0)!.range.copyWithNewEnd(tokens.at(-1)!.range));
+      attributeDeclaration.subtypeIndication.typeNames = new ExpressionParser(this.state, attributeDeclaration, tokens).parse();
     }
-
     return attributeDeclaration;
   }
   static readonly EntityClasses = ['entity', 'architecture', 'configuration', 'procedure', 'function', 'package', 'type',

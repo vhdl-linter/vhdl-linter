@@ -1,10 +1,10 @@
-import { DiagnosticSeverity } from 'vscode-languageserver-types';
-import { TokenType, OLexerToken } from '../lexer';
+import { OLexerToken, TokenType } from '../lexer';
 import { DeclarativePartParser } from './declarativePartParser';
 import { ExpressionParser } from './expressionParser';
 import { IHasDeclarations } from './interfaces';
-import { OArray, ObjectBase, OEnum, OEnumLiteral, OIRange, OPort, ORecord, ORecordChild, OSubprogram, OType, OUnit, ParserError } from './objects';
+import { OAccessType, OArray, ObjectBase, OEnum, OEnumLiteral, OFileType, OPort, ORecord, ORecordChild, OSubprogram, OSubtypeIndication, OType, OUnit, ParserError } from './objects';
 import { ParserBase, ParserState } from './parserBase';
+import { SubtypeIndicationParser } from './subtypeIndicationParser';
 
 
 export class TypeParser extends ParserBase {
@@ -76,6 +76,22 @@ export class TypeParser extends ParserBase {
         this.expect('units');
         type.range = type.range.copyWithNewEnd(this.state.pos.i);
         this.expect(';');
+      } else if (this.getToken().getLText() === 'file') {
+        Object.setPrototypeOf(type, OFileType.prototype);
+
+        this.expect('file');
+        this.expect('of');
+        const tokens = this.advanceSemicolon();
+        if (tokens.length === 0) {
+          this.state.messages.push({
+            message: 'Type_mark expected',
+            range: type.range
+          });
+        } else {
+          (type as OFileType).subtypeIndication = new OSubtypeIndication(type, tokens.at(0)!.range.copyWithNewEnd(tokens.at(-1)!.range));
+          (type as OFileType).subtypeIndication.typeNames = new ExpressionParser(this.state, (type as OFileType).subtypeIndication, tokens).parse();
+        }
+
       } else {
         const nextToken = this.consumeToken();
         if (nextToken.getLText() === 'record') {
@@ -91,18 +107,11 @@ export class TypeParser extends ParserBase {
               children.push(child);
             } while (this.getToken().getLText() === ',');
             this.expect(':');
-            const typeTokens = this.advanceSemicolon();
+            const subtypeIndication = new SubtypeIndicationParser(this.state, children[0]!).parse();
+            this.expect(';');
             for (const child of children) {
-              if (typeTokens.length > 0) {
-                child.typeNames = new ExpressionParser(this.state, child, typeTokens).parse();
-                child.range = child.range.copyWithNewEnd(typeTokens[typeTokens.length - 1]!.range);
-              } else {
-                this.state.messages.push({
-                  message: 'Found no type indication of this record child.',
-                  range: child.range,
-                  severity: DiagnosticSeverity.Error
-                });
-              }
+              child.subtypeIndication = subtypeIndication;
+              child.range = child.range.copyWithNewEnd(subtypeIndication.range);
             }
             (type as ORecord).children.push(...children);
           }
@@ -112,21 +121,22 @@ export class TypeParser extends ParserBase {
           type.range = type.range.copyWithNewEnd(this.state.pos.i);
         } else if (nextToken.getLText() === 'array') {
           Object.setPrototypeOf(type, OArray.prototype);
+          (type as OArray).indexNames = [];
           this.expect('(');
           const [tokens] = this.advanceParenthesisAware([')'], false, false);
           const unbounded = tokens.find(token => token.getLText() === '<>');
           if (unbounded) {
             do {
-              type.nameLinks.push(...new ExpressionParser(this.state, type, this.advanceParenthesisAware(['range'], true, true)[0]).parse());
+              (type as OArray).indexNames.push(...new ExpressionParser(this.state, type, this.advanceParenthesisAware(['range'], true, true)[0]).parse());
               this.expect('<>');
             } while (this.getToken().getLText() === ',');
             this.expect(')');
           } else {
-            type.nameLinks.push(...new ExpressionParser(this.state, type, this.advanceParenthesisAware([')'], true, true)[0]).parse());
+            (type as OArray).indexNames.push(...new ExpressionParser(this.state, type, this.advanceParenthesisAware([')'], true, true)[0]).parse());
 
           }
           this.expect('of');
-          (type as OArray).elementType = new ExpressionParser(this.state, type, this.advanceParenthesisAware([';'], true, false)[0]).parse();
+          (type as OArray).subtypeIndication = new SubtypeIndicationParser(this.state, type as OArray).parse();
 
         } else if (nextToken.getLText() === 'protected') {
           const protectedBody = this.maybe('body');
@@ -141,18 +151,15 @@ export class TypeParser extends ParserBase {
         } else if (nextToken.getLText() === 'range') {
           // TODO
         } else if (nextToken.getLText() === 'access') {
-          const [typeTokens] = this.advanceParenthesisAware([';'], true, false);
-          const firstTypeToken = typeTokens[0];
-          const lastTypeToken = typeTokens[typeTokens.length - 1];
-          if (!firstTypeToken || !lastTypeToken) {
-            throw new ParserError("Invalid access type", nextToken.range.copyExtendEndOfLine());
-          }
-          type.access = true;
-          type.subtypeIndication = new ExpressionParser(this.state, this.parent, typeTokens).parse();
-          const deallocateProcedure = new OSubprogram(this.parent, new OIRange(this.parent, firstTypeToken.range.start.i, lastTypeToken.range.end.i));
+          Object.setPrototypeOf(type, OAccessType.prototype);
+
+          (type as OAccessType).subtypeIndication = new SubtypeIndicationParser(this.state, type as OAccessType).parse();
+
+          const deallocateProcedure = new OSubprogram(this.parent, (type as OAccessType).subtypeIndication.range);
           deallocateProcedure.lexerToken = new OLexerToken('deallocate', type.lexerToken.range, TokenType.implicit, deallocateProcedure.rootFile);
           this.parent.declarations.push(deallocateProcedure);
           const port = new OPort(deallocateProcedure, type.lexerToken.range);
+          port.subtypeIndication = new OSubtypeIndication(port, port.range);
           port.direction = 'inout';
           port.lexerToken = new OLexerToken('P', type.lexerToken.range, TokenType.implicit, deallocateProcedure.rootFile);
           deallocateProcedure.ports = [port];

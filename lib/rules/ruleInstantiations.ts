@@ -84,7 +84,7 @@ export class RuleInstantiation extends RuleBase implements IRule {
       if (!counts.includes(actualCount)) {
         let portCountString: string;
         const last = counts.pop();
-        if (last) {
+        if (last !== undefined) {
           portCountString = `${counts.join(', ')} or ${last}`;
         } else {
           portCountString = String(counts[0]);

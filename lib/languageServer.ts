@@ -77,7 +77,7 @@ connection.onInitialize((params: InitializeParams) => {
   const capabilities = params.capabilities;
   hasWorkspaceFolderCapability =
     capabilities.workspace?.workspaceFolders ?? false;
-  if (params.rootUri) {
+  if (params.rootUri !== null) {
     rootUri = params.rootUri;
   }
   hasConfigurationCapability = capabilities.workspace?.configuration ?? false;
@@ -152,7 +152,7 @@ export const initialization = new Promise<void>(resolve => {
         });
       } else {
         const folders = [];
-        if (rootUri) {
+        if (rootUri !== undefined) {
           folders.push(new URL(rootUri));
         }
         projectParser = await ProjectParser.create(folders, configuration.paths.ignoreRegex, getDocumentSettings, false, progress);

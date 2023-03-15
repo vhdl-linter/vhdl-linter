@@ -11,6 +11,7 @@ export interface ISettings {
     'multiple-definition': boolean;
     'not-declared': boolean;
     'naming-style': boolean;
+    'type-checking': boolean;
     'type-resolved': boolean;
     'unused': boolean;
     'use-clause': boolean;
@@ -64,6 +65,7 @@ export const defaultSettings: ISettings = {
     'multiple-definition': true,
     'not-declared': true,
     'naming-style': true,
+    'type-checking': true,
     'type-resolved': true,
     'unused': true,
     'use-clause': true,

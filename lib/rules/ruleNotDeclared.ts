@@ -20,7 +20,7 @@ export class RuleNotDeclared extends RuleBase implements IRule {
     for (const pkg of this.vhdlLinter.projectParser.packages) {
       for (const type of pkg.declarations) {
         if (I.implementsIHasLexerToken(type) && type.lexerToken.getLText() === ref.nameToken.getLText()) {
-          let library = pkg.targetLibrary ? pkg.targetLibrary : 'work';
+          let library = pkg.targetLibrary ?? 'work';
           let pkgName = pkg.lexerToken.text;
           if (library === 'work' && pkg.rootFile.uri.pathname.match(/ieee/i)) {
             if (this.settings.style.ieeeCasing === 'lowercase') {
@@ -61,7 +61,7 @@ export class RuleNotDeclared extends RuleBase implements IRule {
       const actions: CodeAction[] = [];
       actions.push(...this.findUsePackageActions(reference, textDocumentUri));
       // If parent is Signal, Port or Variable this reference is in the type reference. So adding signal makes no sense.
-      if (reference.parent instanceof O.OSignal === false && reference.parent instanceof O.OPort === false && reference.parent instanceof O.OVariable === false) {
+      if (reference.parent instanceof O.OSubtypeIndication === false) {
         for (const architecture of this.file.architectures) {
           const args: IAddSignalCommandArguments = { textDocumentUri, signalName: reference.nameToken.text, position: architecture.declarationsRange.end ?? architecture.range.start };
           actions.push(CodeAction.create(

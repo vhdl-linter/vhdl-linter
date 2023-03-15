@@ -13,8 +13,8 @@ function getSelectedNameCompletions(prefix: O.OName) {
     kind: CompletionItemKind
   }[] = [];
   // if last prefix's definition is a record or protected type (i.e. its typeReferences contain a record or protected type)
-  const prefixDefinitions = prefix.definitions.filter(def => I.implementsIHasTypeNames(def)) as (O.ObjectBase & I.IHasTypeNames)[];
-  const typeDefinitions = prefixDefinitions.flatMap(def => def.typeNames).flatMap(ref => ref.definitions);
+  const prefixDefinitions = prefix.definitions.filter(I.implementsIHasSubTypeIndication);
+  const typeDefinitions = prefixDefinitions.flatMap(def => def.subtypeIndication.typeNames).flatMap(ref => ref.definitions);
   const recordTypes = typeDefinitions.filter(type => type instanceof O.ORecord) as O.ORecord[];
   result.push(...recordTypes.flatMap(type => type.children.map(child => ({
     label: child.lexerToken.text,
@@ -44,7 +44,9 @@ export async function getCompletions(linter: VhdlLinter, position: Position): Pr
   if (matchUse) {
     for (const pkg of linter.projectParser.packages) {
       addCompletion(pkg);
-      pkg.targetLibrary && completions.push({ label: pkg.targetLibrary });
+      if (pkg.targetLibrary !== undefined) {
+        completions.push({ label: pkg.targetLibrary });
+      }
     }
   }
 
@@ -68,9 +70,7 @@ export async function getCompletions(linter: VhdlLinter, position: Position): Pr
   } else if (completionObject instanceof O.OName && token?.text === '.') {
     // special case: if completionObject is O.OReference and current token is '.', a selected name is started -> treat like one
     const result = getSelectedNameCompletions(completionObject);
-    if (result) {
-      return result;
-    }
+    return result;
   }
 
 

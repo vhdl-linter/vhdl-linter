@@ -10,16 +10,20 @@ export class RuleTypeResolved extends RuleBase implements IRule {
     if (object instanceof O.OPort && this.settings.style.preferredLogicTypePort === 'unresolved'
       || object instanceof O.OSignal && this.settings.style.preferredLogicTypeSignal === 'unresolved'
       || object instanceof O.ORecordChild && this.settings.style.preferredLogicTypeRecordChild === 'unresolved') {
-      const type = object.typeNames[0];
+      const type = object.subtypeIndication.typeNames[0];
       if (type) {
 
         const definition = type?.definitions[0];
-        if (definition instanceof O.OSubType && definition.resolved) {
-          let unresolvedTypes = [definition.superType.nameToken.text];
+        if (definition instanceof O.OSubType && definition.subtypeIndication.resolutionIndication.length > 0) {
+          let unresolvedTypes: string[] = [];
+          const lastTypeName = definition.subtypeIndication.typeNames.at(-1);
+          if (lastTypeName) {
+            unresolvedTypes.push(lastTypeName.nameToken.text);
+          }
           const root = definition.getRootElement();
           if (implementsIHasDeclarations(root)) {
             for (const alias of root.declarations) { // IEEE defines more convenient aliases. Show them as well
-              if (alias instanceof O.OAlias && alias.name[0]?.nameToken.getLText() === definition.superType.nameToken.getLText()) {
+              if (alias instanceof O.OAlias && alias.name[0]?.nameToken.getLText() === definition.subtypeIndication.typeNames.at(-1)?.nameToken.getLText()) {
                 unresolvedTypes.push(alias.lexerToken.text);
               }
             }
@@ -57,7 +61,7 @@ export class RuleTypeResolved extends RuleBase implements IRule {
     } else if (object instanceof O.OPort && this.settings.style.preferredLogicTypePort === 'resolved'
       || object instanceof O.OSignal && this.settings.style.preferredLogicTypeSignal === 'resolved'
       || object instanceof O.ORecordChild && this.settings.style.preferredLogicTypeRecordChild === 'resolved') {
-      const type = object.typeNames[0];
+      const type = object.subtypeIndication.typeNames[0];
       if (type) {
         let definition = type.definitions[0];
         if (definition) {
@@ -79,7 +83,7 @@ export class RuleTypeResolved extends RuleBase implements IRule {
           }
           let resolved = false;
           // The subtype of as resolved subtype is also resolved. This is not correctly checked here
-          if (definition instanceof O.OSubType && definition.resolved) {
+          if (definition instanceof O.OSubType && definition.subtypeIndication.resolutionIndication.length > 0) {
             resolved = true;
           }
           // Type referenced is not resolved. Now try to find resolved subtype of this type or aliases of it
@@ -88,11 +92,10 @@ export class RuleTypeResolved extends RuleBase implements IRule {
             let resolvedSubtype: string[] = [];
             if (implementsIHasDeclarations(root)) {
               for (const subtype of root.declarations) {
-                if (subtype instanceof O.OSubType && subtype.resolved && alias.includes(subtype.superType.nameToken.getLText())) {
+                if (subtype instanceof O.OSubType && subtype.subtypeIndication.resolutionIndication.length > 0 && alias.some(name => name == subtype.subtypeIndication.typeNames[0]?.nameToken?.getLText())) {
                   resolvedSubtype.push(subtype.lexerToken.text);
                 }
               }
-
             }
             if (resolvedSubtype.length > 0) {
               // Handle casing for IEEE packages
