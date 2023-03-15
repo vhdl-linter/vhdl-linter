@@ -1,4 +1,5 @@
 import { readdirSync } from "fs";
+import { cwd } from "process";
 import { DiagnosticSeverity } from "vscode-languageserver";
 import { OIRange } from "../lib/parser/objects";
 import { joinURL } from "../lib/projectParser";
@@ -36,8 +37,4 @@ export function prettyPrintMessages(messages: MessageWrapper[]) {
       return `${filename}\n  ${messageText}`;
     }).join('\n') + (message.messages.length > 5 ? `\n\u001b[31m ... and ${message.messages.length - 5} more\u001b[0m` : '');
   }).join('\n');
-}
-
-function cwd(): { [Symbol.replace](string: string, replaceValue: string): string; } {
-  throw new Error("Function not implemented.");
 }

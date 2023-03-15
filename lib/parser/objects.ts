@@ -835,7 +835,7 @@ export class OAttributeDeclaration extends ObjectBase implements I.IHasLexerToke
   typeNames: OName[] = [];
 }
 // Iterate through all context and use clauses of the object recursively
-function* iterateContext(object: ObjectBase & I.IHasContextReference, directlyVisible: boolean): Generator<[ObjectBase, boolean]> {
+function* iterateContexts(object: ObjectBase & I.IHasContextReference, directlyVisible: boolean): Generator<[ObjectBase, boolean]> {
   const handleContextReference = (contextReference: OContextReference, recursionLimit: number, parentContextReferences: OContextReference[] = []) => {
     if (recursionLimit === 0) {
       throw new Error(`Infinite Recursion`);
@@ -882,7 +882,7 @@ export function* scope(startObject: ObjectBase): Generator<[ObjectBase, boolean]
           yield [definition, false];
         }
       }
-      yield* iterateContext(current.correspondingEntity, directlyVisible);
+      yield* iterateContexts(current.correspondingEntity, directlyVisible);
     }
     if (current instanceof OPackageBody && current.correspondingPackage) {
       yield [current.correspondingPackage, directlyVisible];
@@ -892,7 +892,7 @@ export function* scope(startObject: ObjectBase): Generator<[ObjectBase, boolean]
           yield [definition, false];
         }
       }
-      yield* iterateContext(current.correspondingPackage, directlyVisible);
+      yield* iterateContexts(current.correspondingPackage, directlyVisible);
     }
     if (I.implementsIHasUseClause(current)) {
       for (const useClause of current.useClauses) {
@@ -902,7 +902,7 @@ export function* scope(startObject: ObjectBase): Generator<[ObjectBase, boolean]
       }
     }
     if (I.implementsIHasContextReference(current)) {
-      yield* iterateContext(current, directlyVisible);
+      yield* iterateContexts(current, directlyVisible);
     }
     if (current.parent instanceof OFile) {
       break;
