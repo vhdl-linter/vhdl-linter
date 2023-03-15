@@ -12,7 +12,7 @@ export class RuleTypeChecking extends RuleBase implements IRule {
   public static readonly ruleName = 'type-checking';
   generateError(typeName: OName, type: string) {
     this.addMessage({
-      message: `'${typeName.nameToken.text}'  is a ${type} can not be used as a type`,
+      message: `'${typeName.nameToken.text}' is a ${type} and can not be used as a type.`,
       range: typeName.range
     });
   }
