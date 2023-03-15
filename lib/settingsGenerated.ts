@@ -14,6 +14,7 @@ export interface ISettings {
     'type-checking': boolean;
     'type-resolved': boolean;
     'unused': boolean;
+    'use-clause': boolean;
     'empty': boolean;
     'constant-write': boolean;
     'parser': boolean;
@@ -67,6 +68,7 @@ export const defaultSettings: ISettings = {
     'type-checking': true,
     'type-resolved': true,
     'unused': true,
+    'use-clause': true,
     'empty': true,
     'constant-write': true,
     'parser': true,
