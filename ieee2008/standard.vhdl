@@ -49,7 +49,7 @@ package standard is
   attribute foreign : string;
 
   -- this is a hack!
-  type FT is file of TM;
+  type FT is file of TM; -- vhdl-linter-disable-line not-declared
   function ENDFILE (file F     : FT) return boolean;
   procedure FLUSH (file F      : FT);
   procedure WRITE (file F      : FT; VALUE : in text);
