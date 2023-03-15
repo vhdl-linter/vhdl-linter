@@ -20,7 +20,7 @@ export class RuleNotDeclared extends RuleBase implements IRule {
     for (const pkg of this.vhdlLinter.projectParser.packages) {
       for (const type of pkg.declarations) {
         if (I.implementsIHasLexerToken(type) && type.lexerToken.getLText() === ref.nameToken.getLText()) {
-          let library = pkg.targetLibrary ? pkg.targetLibrary : 'work';
+          let library = pkg.targetLibrary ?? 'work';
           let pkgName = pkg.lexerToken.text;
           if (library === 'work' && pkg.rootFile.uri.pathname.match(/ieee/i)) {
             if (this.settings.style.ieeeCasing === 'lowercase') {

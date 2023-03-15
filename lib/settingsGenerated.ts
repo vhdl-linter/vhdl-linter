@@ -10,9 +10,8 @@ export interface ISettings {
     'library-reference': boolean;
     'multiple-definition': boolean;
     'not-declared': boolean;
-    'port-declaration': boolean;
-    'type-checking': boolean;
     'naming-style': boolean;
+    'type-checking': boolean;
     'type-resolved': boolean;
     'unused': boolean;
     'empty': boolean;
@@ -64,9 +63,8 @@ export const defaultSettings: ISettings = {
     'library-reference': true,
     'multiple-definition': true,
     'not-declared': true,
-    'port-declaration': true,
-    'type-checking': true,
     'naming-style': true,
+    'type-checking': true,
     'type-resolved': true,
     'unused': true,
     'empty': true,

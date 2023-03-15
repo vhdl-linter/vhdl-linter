@@ -26,6 +26,12 @@ module.exports = {
     '@typescript-eslint/no-unnecessary-boolean-literal-compare': 'off',
     '@typescript-eslint/no-unnecessary-condition': 'off',
     '@typescript-eslint/no-non-null-assertion': 'off',
+    "@typescript-eslint/strict-boolean-expressions": ["error",
+      {
+        allowNullableBoolean: true,
+        allowNumber: false,
+        allowString: false
+      }],
     'check-file/filename-naming-convention': [
       'error',
       {

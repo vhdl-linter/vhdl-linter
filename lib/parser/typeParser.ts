@@ -1,8 +1,8 @@
-import { TokenType, OLexerToken } from '../lexer';
+import { OLexerToken, TokenType } from '../lexer';
 import { DeclarativePartParser } from './declarativePartParser';
 import { ExpressionParser } from './expressionParser';
 import { IHasDeclarations } from './interfaces';
-import { OAccessType, OArray, ObjectBase, OEnum, OEnumLiteral, OPort, ORecord, ORecordChild, OSubprogram, OSubtypeIndication, OType, OUnit, ParserError } from './objects';
+import { OAccessType, OArray, ObjectBase, OEnum, OEnumLiteral, OFileType, OPort, ORecord, ORecordChild, OSubprogram, OSubtypeIndication, OType, OUnit, ParserError } from './objects';
 import { ParserBase, ParserState } from './parserBase';
 import { SubtypeIndicationParser } from './subtypeIndicationParser';
 
@@ -77,9 +77,21 @@ export class TypeParser extends ParserBase {
         type.range = type.range.copyWithNewEnd(this.state.pos.i);
         this.expect(';');
       } else if (this.getToken().getLText() === 'file') {
+        Object.setPrototypeOf(type, OFileType.prototype);
+
         this.expect('file');
         this.expect('of');
-        this.advanceSemicolon();
+        const tokens = this.advanceSemicolon();
+        if (tokens.length === 0) {
+          this.state.messages.push({
+            message: 'Type_mark expected',
+            range: type.range
+          });
+        } else {
+          (type as OFileType).subtypeIndication = new OSubtypeIndication(type, tokens.at(0)!.range.copyWithNewEnd(tokens.at(-1)!.range));
+          (type as OFileType).subtypeIndication.typeNames = new ExpressionParser(this.state, (type as OFileType).subtypeIndication, tokens).parse();
+        }
+
       } else {
         const nextToken = this.consumeToken();
         if (nextToken.getLText() === 'record') {

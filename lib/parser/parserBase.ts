@@ -218,7 +218,7 @@ export class ParserBase {
     if (!Array.isArray(expected)) {
       expected = [expected];
     }
-    if (expected.find(exp => exp.toLowerCase() === this.getToken().getLText())) {
+    if (expected.some(exp => exp.toLowerCase() === this.getToken().getLText())) {
       const token = this.consumeToken(false);
       this.advanceWhitespace();
       return token;

@@ -143,7 +143,7 @@ export class VhdlLinter {
       }
       return true;
     }).filter(magicComment => {
-      if (magicComment.rule) {
+      if (magicComment.rule !== undefined) {
         return name === magicComment.rule;
       }
       return true;

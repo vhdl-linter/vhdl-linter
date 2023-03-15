@@ -404,6 +404,9 @@ export class OType extends ObjectBase implements I.IHasNameLinks,
 }
 export class OAccessType extends OType implements I.IHasSubtypeIndication {
   subtypeIndication: OSubtypeIndication;
+}
+export class OFileType extends OType implements I.IHasSubtypeIndication {
+  subtypeIndication: OSubtypeIndication;
 
 }
 export class OSubType extends OType implements I.IHasSubtypeIndication {

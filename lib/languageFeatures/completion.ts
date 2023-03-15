@@ -44,7 +44,9 @@ export async function getCompletions(linter: VhdlLinter, position: Position): Pr
   if (matchUse) {
     for (const pkg of linter.projectParser.packages) {
       addCompletion(pkg);
-      pkg.targetLibrary && completions.push({ label: pkg.targetLibrary });
+      if (pkg.targetLibrary !== undefined) {
+        completions.push({ label: pkg.targetLibrary });
+      }
     }
   }
 
@@ -68,9 +70,7 @@ export async function getCompletions(linter: VhdlLinter, position: Position): Pr
   } else if (completionObject instanceof O.OName && token?.text === '.') {
     // special case: if completionObject is O.OReference and current token is '.', a selected name is started -> treat like one
     const result = getSelectedNameCompletions(completionObject);
-    if (result) {
-      return result;
-    }
+    return result;
   }
 
 

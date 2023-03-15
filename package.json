@@ -164,6 +164,12 @@
 					"description": "Enable the rule to check if objects match the prefix/suffix given in VhdlLinter.style.*.",
 					"default": true
 				},
+				"VhdlLinter.rules.type-checking": {
+					"scope": "window",
+					"type": "boolean",
+					"description": "Enable some basic type checking",
+					"default": true
+				},
 				"VhdlLinter.rules.type-resolved": {
 					"scope": "window",
 					"type": "boolean",

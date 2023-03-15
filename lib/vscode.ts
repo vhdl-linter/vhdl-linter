@@ -63,7 +63,7 @@ export async function activate(context: ExtensionContext) {
       prompt: 'Give Length for ' + args.signalName,
       // validateInput: (value: string) => isNaN(parseInt(value, 10)) ? 'Not a Number' : ''
     });
-    if (!length) {
+    if (length === undefined) {
       return;
     }
     await editor.edit(editBuilder => {
@@ -93,28 +93,28 @@ export async function activate(context: ExtensionContext) {
   }
   context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-as-instance', async () => {
     const text = await getTemplate('instance');
-    if (text) {
+    if (text !== undefined) {
       await env.clipboard.writeText(text);
       await window.showInformationMessage(`Instance copied to the clipboard`);
     }
   }));
   context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-as-signals', async () => {
     const text = await getTemplate('signals');
-    if (text) {
+    if (text !== undefined) {
       await env.clipboard.writeText(text);
       await window.showInformationMessage(`Signals copied to the clipboard`);
     }
   }));
   context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-as-sysverilog', async () => {
     const text = await getTemplate('sysverilog');
-    if (text) {
+    if (text !== undefined) {
       await env.clipboard.writeText(text);
       await window.showInformationMessage(`Instance copied to the clipboard as system verilog`);
     }
   }));
   context.subscriptions.push(commands.registerCommand('vhdl-linter:copy-as-component', async () => {
     const text = await getTemplate('component');
-    if (text) {
+    if (text !== undefined) {
       await env.clipboard.writeText(text);
       await window.showInformationMessage(`Component copied to the clipboard`);
     }

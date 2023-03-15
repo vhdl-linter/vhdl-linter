@@ -39,7 +39,7 @@ test.each(files.flatMap(file => [[file, true], [file, false]]))('testing semanti
     const text = lines[line]?.slice(char, char + length);
     const modifiers: (string | undefined)[] = [];
     for (let index = 0; index <= semanticTokensLegend.tokenModifiers.length; index++) {
-      if (tokenModifier % 2) {
+      if (tokenModifier % 2 === 1) {
         modifiers.push(semanticTokensLegend.tokenModifiers[index]);
       }
       tokenModifier = tokenModifier >> 1;

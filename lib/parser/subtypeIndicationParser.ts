@@ -1,3 +1,4 @@
+import { DiagnosticSeverity } from "vscode-languageserver";
 import { OLexerToken, TokenType } from "../lexer";
 import { ExpressionParser } from "./expressionParser";
 import * as I from "./interfaces";
@@ -51,7 +52,16 @@ export class SubtypeIndicationParser extends ParserBase {
 
     const subtypeIndication = new O.OSubtypeIndication(this.parent, startToken.range.copyWithNewEnd(this.getToken(-1, true).range));
     if (buckets.length === 1) {
-      subtypeIndication.typeNames = new ExpressionParser(this.state, subtypeIndication, buckets[0]!).parse();
+      if (buckets[0]!.length === 0) {
+        this.state.messages.push({
+          message: 'subtype indication expected',
+          range: subtypeIndication.range,
+          severity: DiagnosticSeverity.Error
+        });
+      } else {
+        subtypeIndication.typeNames = new ExpressionParser(this.state, subtypeIndication, buckets[0]!).parse();
+
+      }
     } else if (buckets.length === 2) {
       // TODO: Find a more reliable way to determine which optional is set
       // With two buckets it can now be resolutionIndication + type or type + constraint.
