@@ -186,7 +186,7 @@ export class ElaborateNames {
 
 
   private elaborateTypeChildren(selectedName: O.OSelectedName, typeDefinition: O.ObjectBase) {
-    if (typeDefinition instanceof O.ORecord || (typeDefinition instanceof O.OType && (typeDefinition.protected || typeDefinition instanceof O.OAccessType))) {
+    if (typeDefinition instanceof O.ORecord || (typeDefinition instanceof O.OType && (typeDefinition.protected || typeDefinition instanceof O.OAccessType || typeDefinition instanceof O.OSubType))) {
       let found = false;
       if (typeDefinition instanceof O.ORecord) {
         for (const child of typeDefinition.children) {
@@ -195,7 +195,7 @@ export class ElaborateNames {
             found = true;
           }
         }
-      } else if (typeDefinition instanceof O.OAccessType) {
+      } else if (typeDefinition instanceof O.OAccessType || typeDefinition instanceof O.OSubType) {
         for (const subtype of typeDefinition.subtypeIndication.typeNames) {
           if (subtype.rootFile !== selectedName.rootFile) {
             this.elaborate(subtype);
