@@ -295,7 +295,6 @@ export class OPackage extends ObjectBase implements I.IHasDeclarations, I.IHasUs
   genericRange?: OIRange;
   lexerToken: OLexerToken;
   useClauses: OUseClause[] = [];
-  packageDefinitions: OPackage[] = [];
   contextReferences: OContextReference[] = [];
   library?: OLibraryName;
   targetLibrary?: string;
@@ -600,7 +599,6 @@ export class OEntity extends ObjectBase implements I.IHasDefinitions, I.IHasDecl
   lexerToken: OLexerToken;
   endingLexerToken: OLexerToken | undefined;
   useClauses: OUseClause[] = [];
-  packageDefinitions: OPackage[] = [];
   contextReferences: OContextReference[] = [];
   portRange?: OIRange;
   ports: OPort[] = [];
@@ -836,34 +834,75 @@ export class OAttributeDeclaration extends ObjectBase implements I.IHasLexerToke
   aliasDefinitions: ObjectBase[] = [];
   typeNames: OName[] = [];
 }
+// Iterate through all context and use clauses of the object recursively
+function* iterateContexts(object: ObjectBase & I.IHasContextReference, directlyVisible: boolean): Generator<[ObjectBase, boolean]> {
+  const handleContextReference = (contextReference: OContextReference, recursionLimit: number, parentContextReferences: OContextReference[] = []) => {
+    if (recursionLimit === 0) {
+      throw new Error(`Infinite Recursion`);
+    }
+    const definitions: ObjectBase[] = [];
+    for (const definition of contextReference.names.at(-1)?.definitions ?? []) {
+      definitions.push(definition);
+      if (I.implementsIHasContextReference(definition)) {
+        for (const contextReference of definition.contextReferences) {
+          if (parentContextReferences.includes(contextReference) === false) {
+            definitions.push(...handleContextReference(contextReference, recursionLimit - 1, [...parentContextReferences, contextReference]));
+          }
+        }
+      }
+      if (I.implementsIHasUseClause(definition)) {
+        for (const useClause of definition.useClauses) {
+          for (const definition of useClause.names.at(-1)?.definitions ?? []) {
+            definitions.push(definition);
+          }
+        }
+      }
+    }
+    return definitions;
+  };
 
+  for (const contextReference of object.contextReferences) {
+    for (const definition of handleContextReference(contextReference, 20)) {
+      yield [definition, directlyVisible];
+    }
+  }
+}
 // Returns all object visible starting from the startObjects scope.
 // The second parameter defines if the object is directly visible.
 export function* scope(startObject: ObjectBase): Generator<[ObjectBase, boolean]> {
   let current = startObject;
   let directlyVisible = true;
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   while (true) {
     yield [current, directlyVisible];
     if (current instanceof OArchitecture && current.correspondingEntity) {
       yield [current.correspondingEntity, directlyVisible];
       directlyVisible = false;
-      for (const packages of current.correspondingEntity.packageDefinitions) {
-        yield [packages, directlyVisible];
+      for (const useClause of current.correspondingEntity.useClauses) {
+        for (const definition of useClause.names.at(-1)?.definitions ?? []) {
+          yield [definition, false];
+        }
       }
+      yield* iterateContexts(current.correspondingEntity, directlyVisible);
     }
     if (current instanceof OPackageBody && current.correspondingPackage) {
       yield [current.correspondingPackage, directlyVisible];
       directlyVisible = false;
-      for (const packages of current.correspondingPackage.packageDefinitions) {
-        yield [packages, directlyVisible];
+      for (const useClause of current.correspondingPackage.useClauses) {
+        for (const definition of useClause.names.at(-1)?.definitions ?? []) {
+          yield [definition, false];
+        }
       }
+      yield* iterateContexts(current.correspondingPackage, directlyVisible);
     }
     if (I.implementsIHasUseClause(current)) {
-      for (const packages of current.packageDefinitions) {
-        directlyVisible = false;
-        yield [packages, directlyVisible];
+      for (const useClause of current.useClauses) {
+        for (const definition of useClause.names.at(-1)?.definitions ?? []) {
+          yield [definition, false];
+        }
       }
+    }
+    if (I.implementsIHasContextReference(current)) {
+      yield* iterateContexts(current, directlyVisible);
     }
     if (current.parent instanceof OFile) {
       break;

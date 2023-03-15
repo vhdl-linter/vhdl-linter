@@ -3,8 +3,9 @@ import { ConfigurationDeclarationParser } from './configurationDeclarationParser
 import { ContextParser } from './contextParser';
 import { ContextReferenceParser } from './contextReferenceParser';
 import { EntityParser } from './entityParser';
+import { ExpressionParser } from './expressionParser';
 import { IHasUseClauses } from './interfaces';
-import { MagicCommentType, ObjectBase, OFile, OI, OIRange, OLibrary, OMagicCommentDisable, OPackageInstantiation, OName, OSelectedName, OUseClause, ParserError, SelectedNamePrefix } from './objects';
+import { MagicCommentType, ObjectBase, OFile, OI, OIRange, OLibrary, OMagicCommentDisable, OName, OPackageInstantiation, OSelectedName, OUseClause, ParserError } from './objects';
 import { PackageInstantiationParser } from './packageInstantiationParser';
 import { PackageParser } from './packageParser';
 import { ParserBase, ParserPosition, ParserState } from './parserBase';
@@ -41,14 +42,7 @@ export class FileParser extends ParserBase {
 
   private useClauseFromTokens(parent: ObjectBase & IHasUseClauses, tokens: [OLexerToken, ...OLexerToken[]]) {
     const newUseClause = new OUseClause(parent, tokens[0].range.copyWithNewEnd(tokens[tokens.length - 1]!.range));
-    newUseClause.names = [new OName(newUseClause, tokens[0])];
-    for (const [i, token] of tokens.entries()) {
-      if (i === 0) {
-        continue;
-      } else {
-        newUseClause.names.push(new OSelectedName(newUseClause, token, newUseClause.names.slice() as SelectedNamePrefix));
-      }
-    }
+    newUseClause.names = new ExpressionParser(this.state, newUseClause, tokens).parse() as [OName, ...OSelectedName[]];
     return newUseClause;
   }
 
@@ -127,7 +121,7 @@ export class FileParser extends ParserBase {
       new OLexerToken('work', new OIRange(this.file, 0, 0), TokenType.implicit, this.file),
     ];
     // store use clauses to be attached to the next design unit
-    let useClausesPrepare: [OLexerToken, OLexerToken, OLexerToken][] = [];
+    let useClausesPrepare: [OLexerToken, ...OLexerToken[]][] = [];
     const getUseClauses = (parent: ObjectBase & IHasUseClauses) => {
       // always add `use std.standard.all;`
       const standardUseClause = this.useClauseFromTokens(parent, [
@@ -175,13 +169,9 @@ export class FileParser extends ParserBase {
         this.expect(';');
       } else if (nextToken.getLText() === 'use') {
 
-        const library = this.consumeToken();
-        this.expect('.');
-        const packageName = this.consumeToken();
-        this.expect('.');
-        const suffix = this.consumeToken();
+        useClausesPrepare.push(this.advanceSelectedNameNoParse());
         this.expect(';');
-        useClausesPrepare.push([library, packageName, suffix]);
+
       } else if (nextToken.getLText() === 'entity') {
         const entityParser = new EntityParser(this.state, this.file);
         const entity = entityParser.parse();

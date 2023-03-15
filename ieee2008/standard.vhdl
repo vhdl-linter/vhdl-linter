@@ -1,6 +1,7 @@
 -- related to file hack
 library ieee;
 use ieee.Textio.line;
+use ieee.Textio.text;
 
 package standard is
   type boolean is (false, true);

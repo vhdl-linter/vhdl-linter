@@ -13,6 +13,7 @@ export interface ISettings {
     'naming-style': boolean;
     'type-resolved': boolean;
     'unused': boolean;
+    'use-clause': boolean;
     'empty': boolean;
     'constant-write': boolean;
     'parser': boolean;
@@ -65,6 +66,7 @@ export const defaultSettings: ISettings = {
     'naming-style': true,
     'type-resolved': true,
     'unused': true,
+    'use-clause': true,
     'empty': true,
     'constant-write': true,
     'parser': true,

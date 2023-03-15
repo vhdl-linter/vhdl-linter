@@ -7,7 +7,7 @@ import { elaborateAssociations } from "./elaborateAssociation";
 import { elaborateComponents } from "./elaborateComponents";
 import { elaborateConfigurations } from "./elaborateConfigurations";
 import { elaborateInstantiations } from "./elaborateInstantiations";
-import { ElaborateNames } from "./elaborateReferences";
+import { ElaborateNames } from "./elaborateNames";
 
 export class Elaborate {
   file: OFile;
