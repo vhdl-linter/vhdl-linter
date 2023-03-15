@@ -25,7 +25,7 @@ export class ElaborateNames {
         elaborator.elaborateUseClauses(obj, elaborator.getUseClauses(obj));
       }
     }
-    // elaborator.scopeVisibilityMap.clear();
+    elaborator.scopeVisibilityMap.clear();
     for (const obj of vhdlLinter.file.objectList) {
       const now = Date.now();
       if (now - lastCancelTime >= 10) {
@@ -383,7 +383,6 @@ export class ElaborateNames {
       if (clearVisibilityMap) {
         this.scopeVisibilityMap.clear();
       }
-      this.scopeVisibilityMap.delete(parent);
     }
 
     getUseClauses(parent: O.ObjectBase & (I.IHasUseClauses), parentContexts: O.OContext[] = []) {
