@@ -311,7 +311,9 @@ export class ElaborateNames {
       const pkgInstantiations = lastPrefix.definitions.filter(def => def instanceof O.OPackageInstantiation || def instanceof O.OInterfacePackage) as (O.OPackageInstantiation | O.OInterfacePackage)[];
       for (const pkgInstantiation of pkgInstantiations) {
         for (const ref of pkgInstantiation.uninstantiatedPackage) {
-          this.elaborate(ref);
+          if (ref.rootFile !== name.rootFile) {
+            this.elaborate(ref);
+          }
         }
       }
       packages.push(...pkgInstantiations.flatMap(inst => inst.uninstantiatedPackage[inst.uninstantiatedPackage.length - 1]!.definitions).filter(ref => ref instanceof O.OPackage) as O.OPackage[]);
