@@ -359,8 +359,6 @@ export class ElaborateNames {
     }
 
     elaborateUseClauses(parent: O.ObjectBase & I.IHasUseClauses, useClauses: O.OUseClause[]) {
-      // the scope changes when finding use clause -> clear the visibility map
-      let clearVisibilityMap = false;
       for (const useClause of useClauses) {
         // elaborate the names (useClause is created before the names of it)
         for (const name of useClause.names) {
@@ -377,13 +375,9 @@ export class ElaborateNames {
                 this.elaborate(ref);
               }
               obj.nameLinks.push(packageRef);
-              clearVisibilityMap = true;
             }
           }
         }
-      }
-      if (clearVisibilityMap) {
-        this.scopeVisibilityMap.clear();
       }
     }
 
