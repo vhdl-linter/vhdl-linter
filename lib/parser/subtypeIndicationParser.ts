@@ -47,11 +47,11 @@ export class SubtypeIndicationParser extends ParserBase {
         break;
       } else {
         currentBucket = [];
-        while ((this.getToken().isIdentifier() || this.getToken().type === TokenType.keyword) && ((this.getToken(-1, true).isIdentifier() === false && this.getToken(-1, true).type !== TokenType.keyword))
-          || this.getToken().getLText() === '.'
-          || this.getToken().getLText() === '\'') {
+        do {
           currentBucket.push(this.consumeToken());
-        }
+        } while ((this.getToken().isIdentifier() || this.getToken().type === TokenType.keyword) && ((this.getToken(-1, true).isIdentifier() === false && this.getToken(-1, true).type !== TokenType.keyword))
+        || this.getToken().getLText() === '.'
+          || this.getToken().getLText() === '\'');
         buckets.push(currentBucket);
 
       }
