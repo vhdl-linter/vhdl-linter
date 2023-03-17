@@ -176,6 +176,16 @@ export class ElaborateNames {
   }
 
   elaborateName(name: O.OName) {
+    if (name.parent instanceof O.OSubtypeIndication) {
+      const typeName = name.parent.typeNames.at(-1);
+      if (name.parent.constraint.includes(name) && typeName) {
+        // previous token is type (e.g. protected or record) or alias -> expect stuff from within
+        for (const typeDef of typeName.definitions) {
+          this.elaborateTypeChildren(name, typeDef);
+        }
+
+      }
+    }
     for (const obj of this.getList(name)) {
       // alias doesn't has aliasReferences but still referenceLinks
       if (I.implementsIHasNameLinks(obj) || obj instanceof O.OAlias || I.implementsIHasLabel(obj)) {
@@ -185,7 +195,7 @@ export class ElaborateNames {
   }
 
 
-  private elaborateTypeChildren(selectedName: O.OSelectedName, typeDefinition: O.ObjectBase) {
+  private elaborateTypeChildren(selectedName: O.OName, typeDefinition: O.ObjectBase) {
     if (typeDefinition instanceof O.ORecord || (typeDefinition instanceof O.OType && (typeDefinition.protected || typeDefinition instanceof O.OAccessType || typeDefinition instanceof O.OSubType))) {
       let found = false;
       if (typeDefinition instanceof O.ORecord) {
