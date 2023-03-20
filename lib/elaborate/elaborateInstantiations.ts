@@ -18,6 +18,9 @@ export function elaborateInstantiations(vhdlLinter: VhdlLinter) {
         case 'configuration':
           obj.definitions = defs.filter(def => def instanceof O.OConfigurationDeclaration) as O.OConfigurationDeclaration[];
           break;
+        case 'unknown':
+          obj.definitions = defs.slice(0) as (typeof obj.definitions);
+          break;
       }
     }
   }

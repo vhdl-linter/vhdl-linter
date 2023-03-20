@@ -1,4 +1,4 @@
-import { implementsIHasNameLinks } from "../parser/interfaces";
+import * as I from "../parser/interfaces";
 import * as O from "../parser/objects";
 
 export function elaborateAssociations(file: O.OFile) {
@@ -58,7 +58,7 @@ function elaborateAssociationMentionables(possibleFormal: O.OPort | O.OGeneric |
         const index = file.objectList.indexOf(mapping);
         file.objectList.splice(index, 1);
         for (const mentionable of file.objectList) {
-          if (implementsIHasNameLinks(mentionable)) {
+          if (I.implementsIHasNameLinks(mentionable)) {
             for (const [index, mention] of mentionable.nameLinks.entries()) {
               if (mention === mapping) {
                 mentionable.nameLinks.splice(index, 1);
@@ -72,7 +72,7 @@ function elaborateAssociationMentionables(possibleFormal: O.OPort | O.OGeneric |
         const index = file.objectList.indexOf(mapping);
         file.objectList.splice(index, 1);
         for (const mentionable of file.objectList) {
-          if (implementsIHasNameLinks(mentionable)) {
+          if (I.implementsIHasNameLinks(mentionable)) {
             for (const [index, mention] of mentionable.nameLinks.entries()) {
               if (mention === mapping) {
                 mentionable.nameLinks.splice(index, 1);
@@ -87,7 +87,7 @@ function elaborateAssociationMentionables(possibleFormal: O.OPort | O.OGeneric |
         const index = file.objectList.indexOf(mapping);
         file.objectList.splice(index, 1);
         for (const mentionable of file.objectList) {
-          if (implementsIHasNameLinks(mentionable)) {
+          if (I.implementsIHasNameLinks(mentionable)) {
             for (const [index, mention] of mentionable.nameLinks.entries()) {
               if (mention === mapping) {
                 mentionable.nameLinks.splice(index, 1);
@@ -101,7 +101,7 @@ function elaborateAssociationMentionables(possibleFormal: O.OPort | O.OGeneric |
         const index = file.objectList.indexOf(mapping);
         file.objectList.splice(index, 1);
         for (const mentionable of file.objectList) {
-          if (implementsIHasNameLinks(mentionable)) {
+          if (I.implementsIHasNameLinks(mentionable)) {
             for (const [index, mention] of mentionable.nameLinks.entries()) {
               if (mention === mapping) {
                 mentionable.nameLinks.splice(index, 1);
@@ -116,7 +116,7 @@ function elaborateAssociationMentionables(possibleFormal: O.OPort | O.OGeneric |
         const index = file.objectList.indexOf(mapping);
         file.objectList.splice(index, 1);
         for (const mentionable of file.objectList) {
-          if (implementsIHasNameLinks(mentionable)) {
+          if (I.implementsIHasNameLinks(mentionable)) {
             for (const [index, mention] of mentionable.nameLinks.entries()) {
               if (mention === mapping) {
                 mentionable.nameLinks.splice(index, 1);
@@ -130,7 +130,7 @@ function elaborateAssociationMentionables(possibleFormal: O.OPort | O.OGeneric |
         const index = file.objectList.indexOf(mapping);
         file.objectList.splice(index, 1);
         for (const mentionable of file.objectList) {
-          if (implementsIHasNameLinks(mentionable)) {
+          if (I.implementsIHasNameLinks(mentionable)) {
             for (const [index, mention] of mentionable.nameLinks.entries()) {
               if (mention === mapping) {
                 mentionable.nameLinks.splice(index, 1);

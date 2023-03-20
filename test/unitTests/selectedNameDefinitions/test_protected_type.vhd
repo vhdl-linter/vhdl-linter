@@ -18,6 +18,6 @@ architecture rtl of test_selected_name is
 begin
 
   s.apple(s.banana);
-  s.kiwi(s.orange);
+  s.kiwi(s.banana);
 
 end architecture;

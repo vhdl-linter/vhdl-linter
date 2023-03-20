@@ -74,20 +74,19 @@ test.each([
       }),
       message: expect.stringContaining('orange does not exist on protected type')
     }),
-    // expect this when parsing selectedNames for instantiations
-    // expect.objectContaining({
-    //   range: expect.objectContaining({
-    //     start: expect.objectContaining({
-    //       line: 20,
-    //       character: 4,
-    //     }),
-    //     end: expect.objectContaining({
-    //       line: 20,
-    //       character: 8,
-    //     }),
-    //   }),
-    //   message: expect.stringContaining('kiwi does not exist on protected type')
-    // })
+    expect.objectContaining({
+      range: expect.objectContaining({
+        start: expect.objectContaining({
+          line: 20,
+          character: 4,
+        }),
+        end: expect.objectContaining({
+          line: 20,
+          character: 8,
+        }),
+      }),
+      message: expect.stringContaining('can not find unknown s.kiwi')
+    })
   ]));
 
 });
