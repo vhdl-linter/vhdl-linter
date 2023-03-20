@@ -81,6 +81,9 @@ export function implementsIHasDefinitions(obj: O.ObjectBase): obj is O.ObjectBas
   return (obj as O.ObjectBase & Partial<IHasDefinitions>).definitions !== undefined;
 }
 
+export interface IHasTargetLibrary {
+  targetLibrary?: string;
+}
 
 export interface IHasDeclarations {
   declarations: O.ODeclaration[];
