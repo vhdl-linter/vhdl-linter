@@ -4,7 +4,7 @@ exports[`Testing Port omission 1`] = `
 [
   {
     "code": "0",
-    "message": "Ports omitted (port-omission)",
+    "message": "Omitted ports where found: 'bar'. Please explicitly mark as unconnected by using open. (port-omission)",
     "range": {
       "end": {
         "character": 7,
@@ -18,7 +18,7 @@ exports[`Testing Port omission 1`] = `
   },
   {
     "code": "1",
-    "message": "Ports omitted (port-omission)",
+    "message": "Omitted ports where found: 'foo'. Please explicitly mark as unconnected by using open. (port-omission)",
     "range": {
       "end": {
         "character": 7,
@@ -27,6 +27,20 @@ exports[`Testing Port omission 1`] = `
       "start": {
         "character": 2,
         "line": 27,
+      },
+    },
+  },
+  {
+    "code": "2",
+    "message": "Omitted ports where found: 'foo', 'bar'. Please explicitly mark as unconnected by using open. (port-omission)",
+    "range": {
+      "end": {
+        "character": 28,
+        "line": 32,
+      },
+      "start": {
+        "character": 2,
+        "line": 32,
       },
     },
   },

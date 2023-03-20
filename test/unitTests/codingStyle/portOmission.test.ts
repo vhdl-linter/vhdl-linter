@@ -8,6 +8,6 @@ test('Testing Port omission', async () => {
       'port-omission': true
     }
   }));
-  expect(messages).toHaveLength(2);
+  expect(messages).toHaveLength(3);
   expect(messages).toMatchSnapshot();
 });
