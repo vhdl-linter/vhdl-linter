@@ -15,6 +15,7 @@ export class ElaborateNames {
   public static async elaborate(vhdlLinter: VhdlLinter) {
     const elaborator = new ElaborateNames(vhdlLinter);
     let lastCancelTime = Date.now();
+    // elaborate use clauses
     for (const obj of vhdlLinter.file.objectList) {
       const now = Date.now();
       if (now - lastCancelTime >= 10) {
@@ -26,15 +27,15 @@ export class ElaborateNames {
       }
     }
     elaborator.scopeVisibilityMap.clear();
-    for (const obj of vhdlLinter.file.objectList) {
+    // elaborate ONames
+    const nameList = (vhdlLinter.file.objectList.filter(obj => obj instanceof O.OName) as O.OName[]).sort((a, b) => a.nameToken.range.start.i - b.nameToken.range.start.i);
+    for (const obj of nameList) {
       const now = Date.now();
       if (now - lastCancelTime >= 10) {
         await vhdlLinter.handleCanceled();
         lastCancelTime = now;
       }
-      if (obj instanceof O.OName) {
         elaborator.elaborate(obj);
-      }
     }
   }
 
@@ -176,14 +177,29 @@ export class ElaborateNames {
   }
 
   elaborateName(name: O.OName) {
-    if (name.parent instanceof O.OSubtypeIndication) {
+    if (name.parent instanceof O.OSubtypeIndication && name.parent.constraint.includes(name)) {
       const typeName = name.parent.typeNames.at(-1);
-      if (name.parent.constraint.includes(name) && typeName) {
+      if (typeName) {
+        const braceLevel = (name.braceLevel ?? 0);
         // previous token is type (e.g. protected or record) or alias -> expect stuff from within
-        for (const typeDef of typeName.definitions) {
-          this.elaborateTypeChildren(name, typeDef);
+        if (braceLevel === 1) {
+          // if first brace level -> expect from main type
+          for (const typeDef of typeName.definitions) {
+            this.elaborateTypeChildren(name, typeDef);
+          }
+        } else {
+          // otherwise expect from type of last token of lower braceLevel
+          const index = name.parent.constraint.findIndex(c => c === name);
+          // find last of lower brace level
+          const lastLevel = name.parent.constraint.slice(0, index).reverse().find(c => c.braceLevel === braceLevel - 1);
+          if (lastLevel) {
+            for (const typeRef of lastLevel.definitions.filter(def => I.implementsIHasSubTypeIndication(def)) as (O.ObjectBase & I.IHasSubtypeIndication)[]) {
+              for (const typeDef of typeRef.subtypeIndication.typeNames.flatMap(type => type.definitions)) {
+                this.elaborateTypeChildren(name, typeDef);
+              }
+            }
+          }
         }
-
       }
     }
     for (const obj of this.getList(name)) {

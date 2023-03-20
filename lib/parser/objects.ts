@@ -218,6 +218,7 @@ export class OName extends ObjectBase implements I.IHasDefinitions, I.IHasNameTo
   definitions: ObjectBase[] = [];
   notDeclaredHint?: string;
   lexerToken: undefined;
+  braceLevel?: number; // braceLevel for the expression
   // Workaround for checking of OWrites in associations. Because of overloading they can not be correctly checked.
   // This avoids false positives
   public inAssociation = false;

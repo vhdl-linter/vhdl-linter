@@ -17,17 +17,6 @@ export class SubtypeIndicationParser extends ParserBase {
     const endTokens = ['register', 'bus', ';', ':', ')', 'is', ...notExpectedDelimiter ?? []];
     const buckets: OLexerToken[][] = [];
     let currentBucket: OLexerToken[] = [];
-    let lastToken: OLexerToken | undefined;
-    const tokensInExpression = [',', '=>', // These tokens are expected inside of an expression also next to identifiers
-      'to', 'downto', // range constraints
-      '*', '/', 'mod', 'rem', // term
-      'abs', 'not', '**', // factor
-      'and', 'or', 'xor', 'nand', 'nor', 'xnor', //logical expression
-      "=", "/=", "<", "<=", ">", ">=", "?=", "?/=", "?<", "?<=", "?>", "?>=", //relation
-      "sll", "srl", "sla", "sra", "rol", "ror", //shiftExpression
-      "+", "-", "&", //adding_operator
-      "*", "/", "mod", "rem", //multiplying_operator
-    ];
     // Find parts of the subtype indication
     // In general identifiers can not follow each other inside of one thing.
     // So, two successive identifiers mean the next part of the definition starts.
@@ -36,12 +25,12 @@ export class SubtypeIndicationParser extends ParserBase {
     while (endTokens.includes(this.getToken().getLText()) === false) {
       if (this.getToken().getLText() === '(') {
         currentBucket = [this.consumeToken()];
-        const [tokens, endToken] = this.advanceParenthesisAware([')'], true, true);
+        const [tokens] = this.advanceParenthesisAware([')'], true, true);
         currentBucket.push(...tokens);
         buckets.push(currentBucket);
       } else if (this.getToken().getLText() === 'range') {
         currentBucket = [this.consumeToken()];
-        const [tokens, endToken] = this.advanceParenthesisAware(endTokens, true, false);
+        const [tokens] = this.advanceParenthesisAware(endTokens, true, false);
         currentBucket.push(...tokens);
         buckets.push(currentBucket);
         break;

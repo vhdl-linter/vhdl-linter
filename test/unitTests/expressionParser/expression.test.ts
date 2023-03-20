@@ -5,7 +5,9 @@ import { ExpressionParser } from '../../../lib/parser/expressionParser';
 import { ObjectBase, OFile, OIRange } from '../../../lib/parser/objects';
 import { ParserPosition, ParserState } from '../../../lib/parser/parserBase';
 
-test.each([[`a`, 1],
+test.each([
+['rec1(element0(1 downto 0), element1(1 downto 0), element_rec(element(1 downto 0)))', 5],
+[`a`, 1],
 [`5 + 7`, 0],
 [`5 - a`, 1],
 [`(and a) & a`, 2],
