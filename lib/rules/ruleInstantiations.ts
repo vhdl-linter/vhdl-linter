@@ -120,7 +120,7 @@ export class RuleInstantiation extends RuleBase implements IRule {
           const elementString = [...new Set(missingElements.map(elements => elements.map(e => e.lexerToken.text).join(', ')))].join(') or (');
           this.addMessage({
             range: range,
-            severity: DiagnosticSeverity.Warning,
+            severity: DiagnosticSeverity.Error,
             message: `${kind} map is incomplete: ${kind}s (${elementString}) are missing.`
           });
         }

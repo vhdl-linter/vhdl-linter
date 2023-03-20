@@ -8,10 +8,10 @@ export class RuleCodingStyle extends RuleBase implements IRule {
 
   check() {
     if (this.settings.style.portOmission) {
-      this.checkPortOmmision();
+      this.checkPortOmission();
     }
   }
-  checkPortOmmision() {
+  checkPortOmission() {
     for (const instantiation of this.file.objectList) {
       if (instantiation instanceof OInstantiation) {
         if (instantiation.definitions.length === 1) { // In case of multiple definitions this check will not be run (maybe create separate rule)
@@ -19,7 +19,8 @@ export class RuleCodingStyle extends RuleBase implements IRule {
           if (definition instanceof OEntity) {
             // Check for entity instantiations only for now
             const portsOmitted = definition.ports.filter(port => {
-              return instantiation.portAssociationList?.children.find(child => child.formalPart.some(formalPart => formalPart.definitions.some(def => def === port))) === undefined;
+              return instantiation.portAssociationList?.children.find(child => child.formalPart.some(formalPart => formalPart.definitions.some(def => def === port))) === undefined
+              && port.defaultValue !== undefined; // When there is not default value this is already checked in ruleInstantiation
             });
             if (portsOmitted.length > 0) {
               this.addMessage({
