@@ -164,7 +164,7 @@ exports[`testing naming style for instantiationLabel with prefix "" and suffix "
 [
   {
     "code": "0",
-    "message": "can not find entity ent (instantiation)",
+    "message": "can not find entity work.ent (instantiation)",
     "range": {
       "end": {
         "character": 25,
@@ -199,7 +199,7 @@ exports[`testing naming style for instantiationLabel with prefix "pre_" and suff
 [
   {
     "code": "0",
-    "message": "can not find entity ent (instantiation)",
+    "message": "can not find entity work.ent (instantiation)",
     "range": {
       "end": {
         "character": 25,

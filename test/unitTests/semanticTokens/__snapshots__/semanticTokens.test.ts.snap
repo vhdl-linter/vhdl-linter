@@ -72,7 +72,7 @@ exports[`testing semantic tokens for test_instantiation.vhd direction coloring f
   "      17:7     variable                b_out",
   "     17:16     variable   modification b",
   "     19:12     function                test_procedure",
-  "     19:12        class                test_procedure",
+  "     19:12     function                test_procedure",
 ]
 `;
 
@@ -98,7 +98,7 @@ exports[`testing semantic tokens for test_instantiation.vhd direction coloring t
   "      17:7     variable                b_out",
   "     17:16     variable   modification b",
   "     19:12     function                test_procedure",
-  "     19:12        class                test_procedure",
+  "     19:12     function                test_procedure",
 ]
 `;
 
