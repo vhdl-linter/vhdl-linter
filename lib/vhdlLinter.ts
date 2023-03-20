@@ -28,7 +28,7 @@ export interface IIgnoreLineCommandArguments {
   range: Range;
 }
 export type SettingsGetter = (resource: URL) => Promise<ISettings> | ISettings;
-type diagnosticCodeActionCallback = (textDocumentUri: string) => CodeAction[];
+type diagnosticCodeActionCallback = (textDocumentUri: string) => Promise<CodeAction[]> | CodeAction[];
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export class VhdlLinter {
   messages: Diagnostic[] = [];

@@ -1,4 +1,5 @@
-import { CodeAction, CodeActionKind, TextEdit } from "vscode-languageserver";
+import { CodeAction, CodeActionKind } from "vscode-languageserver";
+import { renameHandler } from "../languageFeatures/rename";
 import { OLexerToken, TokenType } from "../lexer";
 import { OFile } from "../parser/objects";
 import { ISettings } from "../settings";
@@ -34,16 +35,11 @@ export function codeActionFromPrefixSuffix(token: OLexerToken, prefix: string, s
   if (newName === token.text) {
     return;
   }
-  // TODO: do an actual renaming of the object instead of just replacing
-  return linter.addCodeActionCallback((textDocumentUri: string) => {
+  return linter.addCodeActionCallback(async () => {
     return [
       CodeAction.create(
         `Replace with '${newName}'`,
-        {
-          changes: {
-            [textDocumentUri]: [TextEdit.replace(token.range, newName)]
-          }
-        },
+        await renameHandler(linter, token.range.start, newName),
         CodeActionKind.QuickFix)
     ];
   });

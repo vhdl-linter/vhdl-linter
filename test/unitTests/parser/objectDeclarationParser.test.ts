@@ -33,7 +33,7 @@ test('Missing semicolon handling', async () => {
   ]));
   for (const message of messages) {
     const codes = String(message.code ?? '').split(String(';'));
-    const solutions = codes.flatMap(code => linter.diagnosticCodeActionRegistry[parseInt(code)]?.(linter.uri.toString()));
+    const solutions = (await Promise.all(codes.map(async code => await linter.diagnosticCodeActionRegistry[parseInt(code)]?.(linter.uri.toString())))).flat();
     expect(solutions).toEqual(expect.arrayContaining([
       expect.objectContaining({
         title: `Insert ';'`

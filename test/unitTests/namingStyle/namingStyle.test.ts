@@ -14,6 +14,7 @@ test.each([
   'in',
   'inout',
   'instantiationLabel',
+  'unused'
 ].flatMap(file => [[file, 'pre_', ''], [file, '', '_suf']]))('testing naming style for %s with prefix "%s" and suffix "%s"', async (file: string, prefix: string, suffix: string) => {
   const overwrite: Record<string, string> = {};
   overwrite[`${file}Prefix`] = prefix;
@@ -22,11 +23,19 @@ test.each([
     style: overwrite
   });
   const path = join(__dirname, `${file}.vhd`);
+  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)], '', getter);
   const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }),
-    await ProjectParser.create([], '', getter), getter);
+    projectParser, getter);
   await linter.checkAll();
 
   expect(linter.messages).toMatchSnapshot();
+  const codes = linter.messages.filter(message => file ==='unused' ? message.message.includes('(unused)') : message.message.includes('(naming-style)')).map(message => String(message.code ?? '').split(String(';'))).flat();
+  const solutions = (await Promise.all(codes.map(async code => await linter.diagnosticCodeActionRegistry[parseInt(code)]?.(linter.uri.toString())))).flat()
+    .filter(solution => solution?.title.includes('Replace with'));
+  expect(solutions.map(solution => ({
+    ...solution,
+    edit: solution?.edit?.changes?.[pathToFileURL(path).toString()],
 
-
+  }))).toMatchSnapshot();
+  await projectParser.stop();
 });

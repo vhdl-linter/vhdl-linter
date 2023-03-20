@@ -5,6 +5,7 @@ import {
   CancellationToken,
   CodeAction, createConnection, DidChangeConfigurationNotification, InitializeParams, LSPErrorCodes, Position, ProposedFeatures, ResponseError, TextDocuments, TextDocumentSyncKind
 } from 'vscode-languageserver/node';
+import { converterTypes, entityConverter } from './entityConverter';
 import { getCompletions } from './languageFeatures/completion';
 import { handleDocumentFormatting } from './languageFeatures/documentFormatting';
 import { documentHighlightHandler } from './languageFeatures/documentHighlightHandler';
@@ -20,7 +21,6 @@ import { LinterManager } from './linterManager';
 import { normalizeUri } from './normalizeUri';
 import { ProjectParser } from './projectParser';
 import { defaultSettings, ISettings, normalizeSettings } from './settings';
-import { entityConverter, converterTypes } from './entityConverter';
 
 // Create a connection for the server. The connection auto detected protocol
 // Also include all preview / proposed LSP features.
@@ -214,14 +214,14 @@ connection.onCodeAction(async (params, token): Promise<CodeAction[]> => {
     if (typeof diagnostic.code === 'number') {
       const callback = linter.diagnosticCodeActionRegistry[diagnostic.code];
       if (typeof callback === 'function') {
-        actions.push(...callback(params.textDocument.uri));
+        actions.push(...await callback(params.textDocument.uri));
       }
     } else if (typeof diagnostic.code === 'string') {
       const codes = diagnostic.code.split(';').map(a => parseInt(a));
       for (const code of codes) {
         const callback = linter.diagnosticCodeActionRegistry[code];
         if (typeof callback === 'function') {
-          actions.push(...callback(params.textDocument.uri));
+          actions.push(...await callback(params.textDocument.uri));
         }
 
       }
