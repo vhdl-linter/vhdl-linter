@@ -1,0 +1,29 @@
+import { OEntity, OFile, OInstantiation } from "../parser/objects";
+import { IRule, RuleBase } from "./rulesBase";
+
+export class RulePortOmission extends RuleBase implements IRule {
+  public static readonly ruleName = 'port-omission';
+  file: OFile;
+
+  check() {
+    for (const instantiation of this.file.objectList) {
+      if (instantiation instanceof OInstantiation) {
+        if (instantiation.definitions.length === 1) { // In case of multiple definitions this check will not be run (maybe create separate rule)
+          const definition = instantiation.definitions[0];
+          if (definition instanceof OEntity) {
+            // Check for entity instantiations only for now
+            const portsOmitted = definition.ports.filter(port => {
+              return instantiation.portAssociationList?.children.find(child => child.formalPart.some(formalPart => formalPart.definitions.some(def => def === port))) === undefined;
+            });
+            if (portsOmitted.length > 0) {
+              this.addMessage({
+                message: `Omitted ports where found: ${portsOmitted.map(port => `'${port.lexerToken.text}'`).join(', ')}. Please explicitly mark as unconnected by using open.`,
+                range: instantiation.range
+              });
+            }
+          }
+        }
+      }
+    }
+  }
+}

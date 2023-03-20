@@ -116,6 +116,12 @@
 					"default": "off",
 					"description": "Traces the communication between VS Code and the language server."
 				},
+				"VhdlLinter.rules.port-omission": {
+					"scope": "window",
+					"type": "boolean",
+					"description": "Enforce port ommision rule: Ports may not be implicetly left unconnected. Explicit open must be used.",
+					"default": false
+				},
 				"VhdlLinter.rules.component": {
 					"scope": "window",
 					"type": "boolean",

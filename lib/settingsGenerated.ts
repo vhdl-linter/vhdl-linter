@@ -3,6 +3,7 @@ export interface ISettings {
     'server': 'off'|'messages'|'verbose';
   };
   'rules': {
+    'port-omission': boolean;
     'component': boolean;
     'instantiation': boolean;
     'configuration': boolean;
@@ -57,6 +58,7 @@ export const defaultSettings: ISettings = {
     'server': 'off',
   },
   'rules': {
+    'port-omission': false,
     'component': true,
     'instantiation': true,
     'configuration': true,
