@@ -30,7 +30,7 @@ test.each([
 
   expect(linter.messages).toMatchSnapshot();
   const codes = linter.messages.filter(message => file ==='unused' ? message.message.includes('(unused)') : message.message.includes('(naming-style)')).map(message => String(message.code ?? '').split(String(';'))).flat();
-  const solutions = (await Promise.all(codes.map(async code => await linter.diagnosticCodeActionRegistry[parseInt(code)]?.(linter.uri.toString())))).flat()
+  const solutions = (await Promise.all(codes.map(async code => await linter.diagnosticCodeActionResolveRegistry[parseInt(code)]?.(linter.uri.toString())))).flat()
     .filter(solution => solution?.title.includes('Replace with'));
   expect(solutions.map(solution => ({
     ...solution,
