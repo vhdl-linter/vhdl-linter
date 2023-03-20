@@ -9,7 +9,7 @@ export class RuleInstantiation extends RuleBase implements IRule {
   file: O.OFile;
   checkAssociations(availableInterfaceElements: (O.OPort | O.OGeneric | O.OTypeMark)[][], associationList: O.OAssociationList | undefined, typeName: string, range: O.OIRange, kind: 'port' | 'generic') {
     const availableInterfaceElementsFlat = availableInterfaceElements.flat().filter((v, i, self) => self.findIndex(o => o.lexerTokenEquals(v)) === i);
-    const foundElements: (O.OPort | O.OGeneric | O.OTypeMark)[] = [];
+    const foundElementsNotOpen: (O.OPort | O.OGeneric | O.OTypeMark)[] = [];
     let elementsWithoutFormal = false;
     let allElementsWithoutFormal = true;
     if (associationList) {
@@ -63,8 +63,8 @@ export class RuleInstantiation extends RuleBase implements IRule {
             message: `no ${kind} ${association.formalPart.map(name => name.nameToken.text).join(', ')} on ${typeName}`,
             code
           });
-        } else {
-          foundElements.push(interfaceElement);
+        } else if (association.actualIfInput[0]?.nameToken.getLText() !== 'open') {
+          foundElementsNotOpen.push(interfaceElement);
         }
       }
     }
@@ -108,8 +108,8 @@ export class RuleInstantiation extends RuleBase implements IRule {
           const missing: (O.OPort | O.OGeneric)[] = [];
           for (const element of _interface) {
             if (((element instanceof O.OPort && element.direction === 'in') || element instanceof O.OGeneric)
-              && typeof (element as O.OPort).defaultValue === 'undefined'
-              && typeof foundElements.find(search => search.lexerTokenEquals(element)) === 'undefined') {
+              && (element as O.OPort).defaultValue === undefined
+              && foundElementsNotOpen.find(search => search.lexerTokenEquals(element)) === undefined) {
               missing.push(element);
             }
           }
