@@ -78,11 +78,11 @@ test.each([
       range: expect.objectContaining({
         start: expect.objectContaining({
           line: 20,
-          character: 4,
+          character: 2,
         }),
         end: expect.objectContaining({
           line: 20,
-          character: 8,
+          character: 19,
         }),
       }),
       message: expect.stringContaining('can not find unknown s.kiwi')
