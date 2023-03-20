@@ -7,6 +7,7 @@ interface ExpParserState {
   num: number;
   lastFormal: OLexerToken[]; // This is for checking if the actual is empty
   leftHandSide: boolean; // Is this the left hand of an assignment
+  braceLevel: number;
 }
 
 
@@ -16,7 +17,8 @@ export class ExpressionParser {
     lastFormal: [],
     leftHandSide: false,
     maybeOutput: false,
-    maybeInOut: false
+    maybeInOut: false,
+    braceLevel: 0
   };
   constructor(private state: ParserState, private parent: O.ObjectBase, private tokens: OLexerToken[]) {
   }
@@ -69,60 +71,63 @@ export class ExpressionParser {
 
     }
     if (attributeIndex === -1) {
-      references.push(...this.convertToReference(buffer, formal, write, choice));
+      references.push(...this.convertToName(buffer, formal, write, choice));
       if (lastAttributeReference) {
         lastAttributeReference.prefix = references[references.length - 1]!;
       }
     }
     return references;
   }
-  convertToReference(buffer: OLexerToken[], formal: boolean, write: boolean, choice: boolean) {
+  convertToName(buffer: OLexerToken[], formal: boolean, write: boolean, choice: boolean) {
     buffer = buffer.filter(token => token.isDesignator() || token.getLText() === 'all' || token.type === TokenType.implicit);
-    const references: O.OName[] =  [];
+    const names: O.OName[] =  [];
     const prefixWrite: O.OName[] = [];
     const prefixRead: O.OName[] = [];
     for (const [index, token] of buffer.entries()) {
       if (choice) {
-        references.push(new O.OChoice(this.parent, token));
+        names.push(new O.OChoice(this.parent, token));
       } else if (formal) {
-        references.push(new O.OFormalName(this.parent, token));
+        names.push(new O.OFormalName(this.parent, token));
       } else if (index > 0) {
         if (write && (this.expState.leftHandSide || this.expState.maybeOutput || this.expState.maybeInOut) ) {
           const write = new O.OSelectedName(this.parent, token, prefixWrite.slice(0) as O.SelectedNamePrefix, true);
-          references.push(write);
+          names.push(write);
           prefixWrite.push(write);
           write.inAssociation = this.expState.maybeOutput || this.expState.maybeInOut;
           if (this.expState.maybeInOut) {
             const name = new O.OSelectedName(this.parent, token, prefixRead.slice(0) as O.SelectedNamePrefix);
-            references.push(name);
+            names.push(name);
             prefixRead.push(name);
 
           }
         } else {
           const name = new O.OSelectedName(this.parent, token, prefixRead.slice(0) as O.SelectedNamePrefix);
-          references.push(name);
+          names.push(name);
           prefixRead.push(name);
         }
       } else {
         if (write && (this.expState.leftHandSide || this.expState.maybeOutput || this.expState.maybeInOut)) {
           const write = new O.OName(this.parent, token, true);
           write.inAssociation = this.expState.maybeOutput || this.expState.maybeInOut;
-          references.push(write);
+          names.push(write);
           prefixWrite.push(write);
           if (this.expState.maybeInOut) {
             const name = new O.OName(this.parent, token);
-            references.push(name);
+            names.push(name);
             prefixRead.push(name);
           }
         } else {
           const name = new O.OName(this.parent, token);
-          references.push(name);
+          names.push(name);
           prefixRead.push(name);
 
         }
       }
     }
-    return references;
+    for (const name of names) {
+      name.braceLevel = this.expState.braceLevel;
+    }
+    return names;
   }
   private inner(maybeFormal = false, maybeWrite = false, maybeChoice = false): O.OName[] {
     const references: O.OName[] = [];
@@ -132,6 +137,7 @@ export class ExpressionParser {
     let lastToken: OLexerToken | undefined;
     while (this.expState.num < this.tokens.length && this.getNumToken()?.getLText() !== ')') {
       if (this.getNumToken()?.getLText() === '(') {
+        this.expState.braceLevel++;
         const aggregateNew = this.getNumToken(-1) === undefined || this.getNumToken(-1)!.getLText() === '\'';
         this.increaseToken();
         const maybeFormalNew = this.getNumToken(-2) !== undefined && this.getNumToken(-2)?.getLText() !== '(' && this.getNumToken(-3)?.isIdentifier() !== true;
@@ -196,6 +202,9 @@ export class ExpressionParser {
       this.increaseToken();
     }
     references.push(...this.splitBuffer(tokenBuffer, false, maybeWrite, false));
+    if (this.getNumToken()?.getLText() === ')') {
+      this.expState.braceLevel--;
+    }
     if (this.expState.lastFormal.length > 0 && tokenBuffer.length === 0) {
       this.state.messages.push({
         message: "The actual part cannot be empty.",

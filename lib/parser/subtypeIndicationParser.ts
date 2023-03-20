@@ -17,38 +17,34 @@ export class SubtypeIndicationParser extends ParserBase {
     const endTokens = ['register', 'bus', ';', ':', ')', 'is', ...notExpectedDelimiter ?? []];
     const buckets: OLexerToken[][] = [];
     let currentBucket: OLexerToken[] = [];
-    let lastToken: OLexerToken | undefined;
-    const tokensInExpression = [',', '=>', // These tokens are expected inside of an expression also next to identifiers
-      'to', 'downto', // range constraints
-      '*', '/', 'mod', 'rem', // term
-      'abs', 'not', '**', // factor
-      'and', 'or', 'xor', 'nand', 'nor', 'xnor', //logical expression
-      "=", "/=", "<", "<=", ">", ">=", "?=", "?/=", "?<", "?<=", "?>", "?>=", //relation
-      "sll", "srl", "sla", "sra", "rol", "ror", //shiftExpression
-      "+", "-", "&", //adding_operator
-      "*", "/", "mod", "rem", //multiplying_operator
-    ];
     // Find parts of the subtype indication
     // In general identifiers can not follow each other inside of one thing.
     // So, two successive identifiers mean the next part of the definition starts.
     // Those parts are split into buckets here and mapped to the LRM definition afterwards.
     // Stuff in brackets is same bucket always.
     while (endTokens.includes(this.getToken().getLText()) === false) {
-      if ((this.getToken().isIdentifier() || this.getToken().type === TokenType.keyword) && tokensInExpression.includes(this.getToken().getLText()) === false && (lastToken?.isIdentifier() || lastToken?.getLText() === ')')) {
-        buckets.push(currentBucket);
-        lastToken = this.getToken();
+      if (this.getToken().getLText() === '(') {
         currentBucket = [this.consumeToken()];
-      } else if (this.getToken().getLText() === '(') {
-        currentBucket.push(this.consumeToken());
-        const [tokens, endToken] = this.advanceParenthesisAware([')'], true, true);
+        const [tokens] = this.advanceParenthesisAware([')'], true, true);
         currentBucket.push(...tokens);
-        lastToken = endToken;
+        buckets.push(currentBucket);
+      } else if (this.getToken().getLText() === 'range') {
+        currentBucket = [this.consumeToken()];
+        const [tokens] = this.advanceParenthesisAware(endTokens, true, false);
+        currentBucket.push(...tokens);
+        buckets.push(currentBucket);
+        break;
       } else {
-        lastToken = this.getToken();
-        currentBucket.push(this.consumeToken());
+        currentBucket = [];
+        do {
+          currentBucket.push(this.consumeToken());
+        } while ((this.getToken().isIdentifier() || this.getToken().type === TokenType.keyword) && ((this.getToken(-1, true).isIdentifier() === false && this.getToken(-1, true).type !== TokenType.keyword))
+        || this.getToken().getLText() === '.'
+          || this.getToken().getLText() === '\'');
+        buckets.push(currentBucket);
+
       }
     }
-    buckets.push(currentBucket);
 
     const subtypeIndication = new O.OSubtypeIndication(this.parent, startToken.range.copyWithNewEnd(this.getToken(-1, true).range));
     if (buckets.length === 1) {
@@ -65,7 +61,7 @@ export class SubtypeIndicationParser extends ParserBase {
     } else if (buckets.length === 2) {
       // TODO: Find a more reliable way to determine which optional is set
       // With two buckets it can now be resolutionIndication + type or type + constraint.
-      if (buckets[1]!.find(token => token.getLText() === 'range')) {
+      if (buckets[1]!.find(token => token.getLText() === 'range' || token.getLText() === 'downto' || token.getLText() === 'to')) {
         subtypeIndication.typeNames = new ExpressionParser(this.state, subtypeIndication, buckets[0]!).parse();
         subtypeIndication.constraint = new ExpressionParser(this.state, subtypeIndication, buckets[1]!).parse();
       } else {
