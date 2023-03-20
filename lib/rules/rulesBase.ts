@@ -35,12 +35,19 @@ export function codeActionFromPrefixSuffix(token: OLexerToken, prefix: string, s
   if (newName === token.text) {
     return;
   }
-  return linter.addCodeActionCallback(async () => {
+  return linter.addCodeActionCallback(() => {
+    return [
+      CodeAction.create(
+        `Replace with '${newName}'`,
+        CodeActionKind.QuickFix)
+    ];
+  }, async () => {
     return [
       CodeAction.create(
         `Replace with '${newName}'`,
         await renameHandler(linter, token.range.start, newName),
         CodeActionKind.QuickFix)
     ];
+
   });
 }
