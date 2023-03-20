@@ -15,7 +15,7 @@ import { RuleTypeResolved } from "./ruleTypeResolved";
 import { RuleUnits } from "./ruleUnits";
 import { RuleUnused } from "./ruleUnused";
 import { RuleUseClause } from "./ruleUseClause";
-import { RulePortOmission } from "./rulePortOmission";
+import { RuleCodingStyle } from "./rulePortOmission";
 
 export const rules = [
   RuleComponent,
@@ -35,5 +35,5 @@ export const rules = [
   RuleNotAllowed,
   RuleTypeChecking,
   RuleUseClause,
-  RulePortOmission
+  RuleCodingStyle
 ];

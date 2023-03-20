@@ -1,11 +1,17 @@
+import { DiagnosticSeverity } from "vscode-languageserver";
 import { OEntity, OFile, OInstantiation } from "../parser/objects";
 import { IRule, RuleBase } from "./rulesBase";
 
-export class RulePortOmission extends RuleBase implements IRule {
-  public static readonly ruleName = 'port-omission';
+export class RuleCodingStyle extends RuleBase implements IRule {
+  public static readonly ruleName = 'coding-style';
   file: OFile;
 
   check() {
+    if (this.settings.style.portOmission) {
+      this.checkPortOmmision();
+    }
+  }
+  checkPortOmmision() {
     for (const instantiation of this.file.objectList) {
       if (instantiation instanceof OInstantiation) {
         if (instantiation.definitions.length === 1) { // In case of multiple definitions this check will not be run (maybe create separate rule)
@@ -18,7 +24,8 @@ export class RulePortOmission extends RuleBase implements IRule {
             if (portsOmitted.length > 0) {
               this.addMessage({
                 message: `Omitted ports where found: ${portsOmitted.map(port => `'${port.lexerToken.text}'`).join(', ')}. Please explicitly mark as unconnected by using open.`,
-                range: instantiation.range
+                range: instantiation.range,
+                severity: DiagnosticSeverity.Warning
               });
             }
           }

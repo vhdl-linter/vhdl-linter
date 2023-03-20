@@ -101,309 +101,329 @@
 				"title": "Copy as Component"
 			}
 		],
-		"configuration": {
-			"type": "object",
-			"title": "vhdl-linter",
-			"properties": {
-				"VhdlLinter.trace.server": {
-					"scope": "window",
-					"type": "string",
-					"enum": [
-						"off",
-						"messages",
-						"verbose"
-					],
-					"default": "off",
-					"description": "Traces the communication between VS Code and the language server."
-				},
-				"VhdlLinter.rules.port-omission": {
-					"scope": "window",
-					"type": "boolean",
-					"description": "Enforce port ommision rule: Ports may not be implicetly left unconnected. Explicit open must be used.",
-					"default": false
-				},
-				"VhdlLinter.rules.component": {
-					"scope": "window",
-					"type": "boolean",
-					"description": "Enable the rule to check if component declarations are correct.",
-					"default": true
-				},
-				"VhdlLinter.rules.instantiation": {
-					"scope": "window",
-					"type": "boolean",
-					"description": "Enable the rule to check if ports and generics of instantiations are correct.",
-					"default": true
-				},
-				"VhdlLinter.rules.configuration": {
-					"scope": "window",
-					"type": "boolean",
-					"description": "Enable the rule to check if configuration reference existing entity.",
-					"default": true
-				},
-				"VhdlLinter.rules.library": {
-					"scope": "window",
-					"type": "boolean",
-					"description": "Enable the rule to check if each file contains a magic comment stating the library where the file is compiled to.",
-					"default": false
-				},
-				"VhdlLinter.rules.library-reference": {
-					"scope": "window",
-					"type": "boolean",
-					"description": "Enable the rule to check if used libraries are declared.",
-					"default": true
-				},
-				"VhdlLinter.rules.multiple-definition": {
-					"scope": "window",
-					"type": "boolean",
-					"description": "Enable the rule to check if something is defined multiple times.",
-					"default": true
-				},
-				"VhdlLinter.rules.not-declared": {
-					"scope": "window",
-					"type": "boolean",
-					"description": "Enable the rule to check if something is used but not declared",
-					"default": true
-				},
-				"VhdlLinter.rules.naming-style": {
-					"scope": "window",
-					"type": "boolean",
-					"description": "Enable the rule to check if objects match the prefix/suffix given in VhdlLinter.style.*.",
-					"default": true
-				},
-				"VhdlLinter.rules.type-checking": {
-					"scope": "window",
-					"type": "boolean",
-					"description": "Enable some basic type checking",
-					"default": true
-				},
-				"VhdlLinter.rules.type-resolved": {
-					"scope": "window",
-					"type": "boolean",
-					"description": "Enable the rule to check if ports and signals have the resolved/unresolved type given in VhdlLinter.style.preferredLogicType*.",
-					"default": true
-				},
-				"VhdlLinter.rules.unused": {
-					"scope": "window",
-					"type": "boolean",
-					"description": "Enable the rule to warn for unused objects.",
-					"default": true
-				},
-				"VhdlLinter.rules.use-clause": {
-					"scope": "window",
-					"type": "boolean",
-					"description": "Enable the rule to check use clauses.",
-					"default": true
-				},
-				"VhdlLinter.rules.empty": {
-					"scope": "window",
-					"type": "boolean",
-					"description": "Enable the rule to warn for empty files.",
-					"default": true
-				},
-				"VhdlLinter.rules.constant-write": {
-					"scope": "window",
-					"type": "boolean",
-					"description": "Enable the rule to warn when writing a constant value.",
-					"default": true
-				},
-				"VhdlLinter.rules.parser": {
-					"scope": "window",
-					"type": "boolean",
-					"description": "Enable displaying parser errors.",
-					"default": true
-				},
-				"VhdlLinter.rules.unit": {
-					"scope": "window",
-					"type": "boolean",
-					"description": "Enable the rule to check if a space is before a unit reference",
-					"default": true
-				},
-				"VhdlLinter.rules.not-allowed": {
-					"scope": "window",
-					"type": "boolean",
-					"description": "Enable the rule to check if declarations are allowed where they are used.",
-					"default": true
-				},
-				"VhdlLinter.style.preferredLogicTypePort": {
-					"scope": "window",
-					"type": "string",
-					"enum": [
-						"unresolved",
-						"resolved",
-						"ignore"
-					],
-					"default": "unresolved",
-					"description": "Preferred logic type (resolved/unresolved) to check for on ports (The rule 'type-resolved' can also be ignored as a whole)."
-				},
-				"VhdlLinter.style.preferredLogicTypeSignal": {
-					"scope": "window",
-					"type": "string",
-					"enum": [
-						"unresolved",
-						"resolved",
-						"ignore"
-					],
-					"default": "unresolved",
-					"description": "Preferred logic type (resolved/unresolved) to check for on signals (The rule 'type-resolved' can also be ignored as a whole)."
-				},
-				"VhdlLinter.style.preferredLogicTypeRecordChild": {
-					"scope": "window",
-					"type": "string",
-					"enum": [
-						"unresolved",
-						"resolved",
-						"ignore"
-					],
-					"default": "unresolved",
-					"description": "Preferred logic type (resolved/unresolved) to check for on record children (The rule 'type-resolved' can also be ignored as a whole)."
-				},
-				"VhdlLinter.style.ieeeCasing": {
-					"scope": "window",
-					"type": "string",
-					"enum": [
-						"lowercase",
-						"UPPERCASE"
-					],
-					"default": "lowercase",
-					"description": "Default casing for the completion of items of the ieee and standard libraries."
-				},
-				"VhdlLinter.style.unusedPrefix": {
-					"scope": "window",
-					"type": "string",
-					"default": "",
-					"description": "Prefix for unused objects (no unused warning is shown for these objects)"
-				},
-				"VhdlLinter.style.unusedSuffix": {
-					"scope": "window",
-					"type": "string",
-					"default": "_unused",
-					"description": "Prefix for unused objects (no unused warning is shown for these objects)"
-				},
-				"VhdlLinter.style.signalPrefix": {
-					"scope": "window",
-					"type": "string",
-					"default": "",
-					"description": "Prefix for signals (can be left empty)"
-				},
-				"VhdlLinter.style.signalSuffix": {
-					"scope": "window",
-					"type": "string",
-					"default": "",
-					"description": "Suffix for signals (can be left empty)"
-				},
-				"VhdlLinter.style.variablePrefix": {
-					"scope": "window",
-					"type": "string",
-					"default": "",
-					"description": "Prefix for variables (can be left empty)"
-				},
-				"VhdlLinter.style.variableSuffix": {
-					"scope": "window",
-					"type": "string",
-					"default": "",
-					"description": "Suffix for variables (can be left empty)"
-				},
-				"VhdlLinter.style.constantPrefix": {
-					"scope": "window",
-					"type": "string",
-					"default": "",
-					"description": "Prefix for constants (can be left empty)"
-				},
-				"VhdlLinter.style.constantSuffix": {
-					"scope": "window",
-					"type": "string",
-					"default": "",
-					"description": "Suffix for constants (can be left empty)"
-				},
-				"VhdlLinter.style.genericPrefix": {
-					"scope": "window",
-					"type": "string",
-					"default": "",
-					"description": "Prefix for generics (can be left empty)"
-				},
-				"VhdlLinter.style.genericSuffix": {
-					"scope": "window",
-					"type": "string",
-					"default": "",
-					"description": "Suffix for generics (can be left empty)"
-				},
-				"VhdlLinter.style.outPrefix": {
-					"scope": "window",
-					"type": "string",
-					"default": "",
-					"description": "Prefix for outputs (can be left empty)."
-				},
-				"VhdlLinter.style.outSuffix": {
-					"scope": "window",
-					"type": "string",
-					"default": "",
-					"description": "Suffix for outputs (can be left empty)."
-				},
-				"VhdlLinter.style.inPrefix": {
-					"scope": "window",
-					"type": "string",
-					"default": "",
-					"description": "Prefix for inputs (can be left empty)."
-				},
-				"VhdlLinter.style.inSuffix": {
-					"scope": "window",
-					"type": "string",
-					"default": "",
-					"description": "Suffix for inputs (can be left empty)."
-				},
-				"VhdlLinter.style.inoutPrefix": {
-					"scope": "window",
-					"type": "string",
-					"default": "",
-					"description": "A Prefix for inouts (can be left empty)."
-				},
-				"VhdlLinter.style.inoutSuffix": {
-					"scope": "window",
-					"type": "string",
-					"default": "",
-					"description": "Suffix for inouts (can be left empty)."
-				},
-				"VhdlLinter.style.instantiationLabelPrefix": {
-					"scope": "window",
-					"type": "string",
-					"default": "",
-					"description": "Prefix for instantiation labels (can be left empty)"
-				},
-				"VhdlLinter.style.instantiationLabelSuffix": {
-					"scope": "window",
-					"type": "string",
-					"default": "",
-					"description": "Suffix for instantiation labels (can be left empty)"
-				},
-				"VhdlLinter.paths.additional": {
-					"scope": "window",
-					"type": "array",
-					"items": {
-						"type": "string"
+		"configuration": [
+			{
+				"type": "object",
+				"title": "vhdl-linter",
+				"properties": {
+					"VhdlLinter.trace.server": {
+						"scope": "window",
+						"type": "string",
+						"enum": [
+							"off",
+							"messages",
+							"verbose"
+						],
+						"default": "off",
+						"description": "Traces the communication between VS Code and the language server."
 					},
-					"default": [],
-					"description": "Additional Paths to be included (for verification library etc.)"
-				},
-				"VhdlLinter.paths.ignoreRegex": {
-					"scope": "window",
-					"type": "string",
-					"default": "",
-					"description": "Regex for files to be ignored by the Project Parser"
-				},
-				"VhdlLinter.semanticTokens": {
-					"scope": "window",
-					"type": "boolean",
-					"default": true,
-					"description": "Enable semantic tokens which enhance syntax highlighting. "
-				},
-				"VhdlLinter.semanticTokensDirectionColoring": {
-					"scope": "window",
-					"type": "boolean",
-					"default": false,
-					"description": "Color inputs differently than outputs."
+					"VhdlLinter.paths.additional": {
+						"scope": "window",
+						"type": "array",
+						"items": {
+							"type": "string"
+						},
+						"default": [],
+						"description": "Additional Paths to be included (for verification library etc.)"
+					},
+					"VhdlLinter.paths.ignoreRegex": {
+						"scope": "window",
+						"type": "string",
+						"default": "",
+						"description": "Regex for files to be ignored by the Project Parser"
+					},
+					"VhdlLinter.semanticTokens": {
+						"scope": "window",
+						"type": "boolean",
+						"default": true,
+						"description": "Enable semantic tokens which enhance syntax highlighting. "
+					},
+					"VhdlLinter.semanticTokensDirectionColoring": {
+						"scope": "window",
+						"type": "boolean",
+						"default": false,
+						"description": "Color inputs differently than outputs."
+					}
+				}
+			},
+			{
+				"type": "object",
+				"title": "Rules",
+				"properties": {
+					"VhdlLinter.rules.coding-style": {
+						"scope": "window",
+						"type": "boolean",
+						"description": "Enforce rules for enforcing coding style.",
+						"default": true
+					},
+					"VhdlLinter.rules.component": {
+						"scope": "window",
+						"type": "boolean",
+						"description": "Enable the rule to check if component declarations are correct.",
+						"default": true
+					},
+					"VhdlLinter.rules.instantiation": {
+						"scope": "window",
+						"type": "boolean",
+						"description": "Enable the rule to check if ports and generics of instantiations are correct.",
+						"default": true
+					},
+					"VhdlLinter.rules.configuration": {
+						"scope": "window",
+						"type": "boolean",
+						"description": "Enable the rule to check if configuration reference existing entity.",
+						"default": true
+					},
+					"VhdlLinter.rules.library": {
+						"scope": "window",
+						"type": "boolean",
+						"description": "Enable the rule to check if each file contains a magic comment stating the library where the file is compiled to.",
+						"default": false
+					},
+					"VhdlLinter.rules.library-reference": {
+						"scope": "window",
+						"type": "boolean",
+						"description": "Enable the rule to check if used libraries are declared.",
+						"default": true
+					},
+					"VhdlLinter.rules.multiple-definition": {
+						"scope": "window",
+						"type": "boolean",
+						"description": "Enable the rule to check if something is defined multiple times.",
+						"default": true
+					},
+					"VhdlLinter.rules.not-declared": {
+						"scope": "window",
+						"type": "boolean",
+						"description": "Enable the rule to check if something is used but not declared",
+						"default": true
+					},
+					"VhdlLinter.rules.naming-style": {
+						"scope": "window",
+						"type": "boolean",
+						"description": "Enable the rule to check if objects match the prefix/suffix given in VhdlLinter.style.*.",
+						"default": true
+					},
+					"VhdlLinter.rules.type-checking": {
+						"scope": "window",
+						"type": "boolean",
+						"description": "Enable some basic type checking",
+						"default": true
+					},
+					"VhdlLinter.rules.type-resolved": {
+						"scope": "window",
+						"type": "boolean",
+						"description": "Enable the rule to check if ports and signals have the resolved/unresolved type given in VhdlLinter.style.preferredLogicType*.",
+						"default": true
+					},
+					"VhdlLinter.rules.unused": {
+						"scope": "window",
+						"type": "boolean",
+						"description": "Enable the rule to warn for unused objects.",
+						"default": true
+					},
+					"VhdlLinter.rules.use-clause": {
+						"scope": "window",
+						"type": "boolean",
+						"description": "Enable the rule to check use clauses.",
+						"default": true
+					},
+					"VhdlLinter.rules.empty": {
+						"scope": "window",
+						"type": "boolean",
+						"description": "Enable the rule to warn for empty files.",
+						"default": true
+					},
+					"VhdlLinter.rules.constant-write": {
+						"scope": "window",
+						"type": "boolean",
+						"description": "Enable the rule to warn when writing a constant value.",
+						"default": true
+					},
+					"VhdlLinter.rules.parser": {
+						"scope": "window",
+						"type": "boolean",
+						"description": "Enable displaying parser errors.",
+						"default": true
+					},
+					"VhdlLinter.rules.unit": {
+						"scope": "window",
+						"type": "boolean",
+						"description": "Enable the rule to check if a space is before a unit reference",
+						"default": true
+					},
+					"VhdlLinter.rules.not-allowed": {
+						"scope": "window",
+						"type": "boolean",
+						"description": "Enable the rule to check if declarations are allowed where they are used.",
+						"default": true
+					}
+				}
+			},
+			{
+				"type": "object",
+				"title": "Style",
+				"properties": {
+					"VhdlLinter.style.preferredLogicTypePort": {
+						"scope": "window",
+						"type": "string",
+						"enum": [
+							"unresolved",
+							"resolved",
+							"ignore"
+						],
+						"default": "unresolved",
+						"description": "Preferred logic type (resolved/unresolved) to check for on ports (The rule 'type-resolved' can also be ignored as a whole)."
+					},
+					"VhdlLinter.style.preferredLogicTypeSignal": {
+						"scope": "window",
+						"type": "string",
+						"enum": [
+							"unresolved",
+							"resolved",
+							"ignore"
+						],
+						"default": "unresolved",
+						"description": "Preferred logic type (resolved/unresolved) to check for on signals (The rule 'type-resolved' can also be ignored as a whole)."
+					},
+					"VhdlLinter.style.preferredLogicTypeRecordChild": {
+						"scope": "window",
+						"type": "string",
+						"enum": [
+							"unresolved",
+							"resolved",
+							"ignore"
+						],
+						"default": "unresolved",
+						"description": "Preferred logic type (resolved/unresolved) to check for on record children (The rule 'type-resolved' can also be ignored as a whole)."
+					},
+					"VhdlLinter.style.ieeeCasing": {
+						"scope": "window",
+						"type": "string",
+						"enum": [
+							"lowercase",
+							"UPPERCASE"
+						],
+						"default": "lowercase",
+						"description": "Default casing for the completion of items of the ieee and standard libraries."
+					},
+					"VhdlLinter.style.unusedPrefix": {
+						"scope": "window",
+						"type": "string",
+						"default": "",
+						"description": "Prefix for unused objects (no unused warning is shown for these objects)"
+					},
+					"VhdlLinter.style.unusedSuffix": {
+						"scope": "window",
+						"type": "string",
+						"default": "_unused",
+						"description": "Prefix for unused objects (no unused warning is shown for these objects)"
+					},
+					"VhdlLinter.style.signalPrefix": {
+						"scope": "window",
+						"type": "string",
+						"default": "",
+						"description": "Prefix for signals (can be left empty)"
+					},
+					"VhdlLinter.style.signalSuffix": {
+						"scope": "window",
+						"type": "string",
+						"default": "",
+						"description": "Suffix for signals (can be left empty)"
+					},
+					"VhdlLinter.style.variablePrefix": {
+						"scope": "window",
+						"type": "string",
+						"default": "",
+						"description": "Prefix for variables (can be left empty)"
+					},
+					"VhdlLinter.style.variableSuffix": {
+						"scope": "window",
+						"type": "string",
+						"default": "",
+						"description": "Suffix for variables (can be left empty)"
+					},
+					"VhdlLinter.style.constantPrefix": {
+						"scope": "window",
+						"type": "string",
+						"default": "",
+						"description": "Prefix for constants (can be left empty)"
+					},
+					"VhdlLinter.style.constantSuffix": {
+						"scope": "window",
+						"type": "string",
+						"default": "",
+						"description": "Suffix for constants (can be left empty)"
+					},
+					"VhdlLinter.style.genericPrefix": {
+						"scope": "window",
+						"type": "string",
+						"default": "",
+						"description": "Prefix for generics (can be left empty)"
+					},
+					"VhdlLinter.style.genericSuffix": {
+						"scope": "window",
+						"type": "string",
+						"default": "",
+						"description": "Suffix for generics (can be left empty)"
+					},
+					"VhdlLinter.style.outPrefix": {
+						"scope": "window",
+						"type": "string",
+						"default": "",
+						"description": "Prefix for outputs (can be left empty)."
+					},
+					"VhdlLinter.style.outSuffix": {
+						"scope": "window",
+						"type": "string",
+						"default": "",
+						"description": "Suffix for outputs (can be left empty)."
+					},
+					"VhdlLinter.style.inPrefix": {
+						"scope": "window",
+						"type": "string",
+						"default": "",
+						"description": "Prefix for inputs (can be left empty)."
+					},
+					"VhdlLinter.style.inSuffix": {
+						"scope": "window",
+						"type": "string",
+						"default": "",
+						"description": "Suffix for inputs (can be left empty)."
+					},
+					"VhdlLinter.style.inoutPrefix": {
+						"scope": "window",
+						"type": "string",
+						"default": "",
+						"description": "A Prefix for inouts (can be left empty)."
+					},
+					"VhdlLinter.style.inoutSuffix": {
+						"scope": "window",
+						"type": "string",
+						"default": "",
+						"description": "Suffix for inouts (can be left empty)."
+					},
+					"VhdlLinter.style.instantiationLabelPrefix": {
+						"scope": "window",
+						"type": "string",
+						"default": "",
+						"description": "Prefix for instantiation labels (can be left empty)"
+					},
+					"VhdlLinter.style.instantiationLabelSuffix": {
+						"scope": "window",
+						"type": "string",
+						"default": "",
+						"description": "Suffix for instantiation labels (can be left empty)"
+					},
+					"VhdlLinter.style.portOmission": {
+						"scope": "window",
+						"type": "boolean",
+						"default": false,
+						"description": "Enforce port ommision rule: Ports may not be implicetly left unconnected. Explicit open must be used."
+					}
 				}
 			}
-		}
+		]
 	},
 	"activationEvents": [],
 	"scripts": {

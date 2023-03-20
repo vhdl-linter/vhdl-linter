@@ -4,8 +4,8 @@ import { runLinterGetMessages } from "../../helper";
 
 test('Testing Port omission', async () => {
   const messages = await runLinterGetMessages(__dirname, 'file.vhd', defaultSettingsWithOverwrite({
-    rules: {
-      'port-omission': true
+    style: {
+      portOmission: true
     }
   }));
   expect(messages).toHaveLength(3);
