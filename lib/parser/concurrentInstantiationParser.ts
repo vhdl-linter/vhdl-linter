@@ -1,5 +1,5 @@
 import { AssociationListParser } from './associationListParser';
-import { OEntity, OInstantiation, OLibraryName, OStatementBody, ParserError } from './objects';
+import { OEntity, OInstantiation, OStatementBody, ParserError } from './objects';
 import { ParserBase, ParserState } from './parserBase';
 import { OLexerToken } from '../lexer';
 
@@ -15,30 +15,13 @@ export class ConcurrentInstantiationParser extends ParserBase {
     if (label !== undefined) {
       instantiation.range = instantiation.range.copyWithNewStart(label.range);
     }
-    if (nextToken.getLText() === 'entity') {
+    const type = nextToken.getLText();
+    if (type === 'entity' || type === 'configuration' || type === 'component') {
+      instantiation.type = type;
       this.consumeToken();
-      instantiation.type = 'entity';
-      instantiation.library = new OLibraryName(instantiation, this.consumeToken());
-      this.expect('.');
-    } else if (nextToken.getLText() === 'configuration') {
-      this.consumeToken();
-      instantiation.type = 'configuration';
-      instantiation.library = new OLibraryName(instantiation, this.consumeToken());
-      this.expect('.');
-    } else if (nextToken.getLText() === 'component') {
-      this.consumeToken();
-      instantiation.type = 'component';
     }
-    // all names may have multiple '.' in them...
-    // TODO: parse selectedNames for concurrent instantiations
-    nextToken = this.consumeToken();
-    while (this.getToken().text === '.') {
-      instantiation.prefix.push(nextToken);
-      this.consumeToken();
-      nextToken = this.consumeToken();
-    }
-    instantiation.entityName = nextToken;
     instantiation.label = label;
+    instantiation.instantiatedUnit = this.advanceSelectedName(instantiation);
 
     if (instantiation.type === 'entity' && this.getToken().getLText() === '(') {
       this.expect('(');

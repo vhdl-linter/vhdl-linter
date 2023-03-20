@@ -91,9 +91,9 @@ export class Elaborate {
     await this.vhdlLinter.handleCanceled();
     await ElaborateNames.elaborate(this.vhdlLinter);
     await this.vhdlLinter.handleCanceled();
-    elaborateComponents(this.file, this.vhdlLinter.projectParser);
+    elaborateComponents(this.vhdlLinter);
     await this.vhdlLinter.handleCanceled();
-    elaborateInstantiations(this.file, this.vhdlLinter.projectParser);
+    elaborateInstantiations(this.vhdlLinter);
     await this.vhdlLinter.handleCanceled();
     elaborateConfigurations(this.file, this.vhdlLinter.projectParser);
 

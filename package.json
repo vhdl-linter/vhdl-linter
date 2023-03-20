@@ -140,12 +140,6 @@
 					"description": "Enable the rule to check if each file contains a magic comment stating the library where the file is compiled to.",
 					"default": false
 				},
-				"VhdlLinter.rules.library-reference": {
-					"scope": "window",
-					"type": "boolean",
-					"description": "Enable the rule to check if used libraries are declared.",
-					"default": true
-				},
 				"VhdlLinter.rules.multiple-definition": {
 					"scope": "window",
 					"type": "boolean",

@@ -238,10 +238,6 @@ export class OExternalName extends OName {
 export class OLabelName extends OName {
 }
 export class OFormalName extends OName {
-
-}
-export class OLibraryName extends OName {
-  type = 'library'; // for ts
 }
 export class OFile {
   parserMessages: OIDiagnosticWithSolution[] = [];
@@ -286,7 +282,7 @@ export class OPackageInstantiation extends ObjectBase implements I.IHasNameLinks
 }
 
 export class OPackage extends ObjectBase implements I.IHasDeclarations, I.IHasUseClauses, I.IHasContextReference, I.IHasLexerToken,
-  I.IHasLibraries, I.IHasLibraryReference, I.IHasGenerics, I.IHasNameLinks, I.IMayHaveEndingLexerToken {
+  I.IHasLibraries, I.IHasGenerics, I.IHasNameLinks, I.IMayHaveEndingLexerToken {
   nameLinks: OName[] = [];
   aliasLinks: OAlias[] = [];
   declarations: ODeclaration[] = [];
@@ -298,7 +294,6 @@ export class OPackage extends ObjectBase implements I.IHasDeclarations, I.IHasUs
   lexerToken: OLexerToken;
   useClauses: OUseClause[] = [];
   contextReferences: OContextReference[] = [];
-  library?: OLibraryName;
   targetLibrary?: string;
   endingLexerToken?: OLexerToken;
   correspondingPackageBodies: OPackageBody[] = [];
@@ -564,25 +559,20 @@ export class OPortAssociationList extends OAssociationList {
   }
 }
 
-export class OInstantiation extends OName implements I.IHasDefinitions, I.IHasLibraryReference, I.IMayHaveLabel, I.IHasPostponed {
+export class OInstantiation extends OName implements I.IHasDefinitions, I.IMayHaveLabel, I.IHasPostponed {
   constructor(public parent: OStatementBody | OEntity | OProcess | OLoop | OIf, lexerToken: OLexerToken, public type: 'entity' | 'component' | 'configuration' | 'subprogram' | 'unknown' = 'unknown') {
     super(parent, lexerToken);
   }
   postponed = false;
   definitions: (OEntity | OSubprogram | OComponent | OAliasWithSignature | OConfigurationDeclaration)[] = [];
-  prefix: OLexerToken[] = [];
-  entityName: OLexerToken;
+  instantiatedUnit: [OName, ...OSelectedName[]];
   package?: OLexerToken;
   portAssociationList?: OPortAssociationList;
   genericAssociationList?: OGenericAssociationList;
 
-  library?: OLibraryName;
   archIdentifier?: OLexerToken;
   label?: OLexerToken;
   labelLinks: OLabelName[] = [];
-  // getRootElement() {
-  //   return super.getRootElement() as Exclude<ORootElements, OPackageInstantiation | OContext>;
-  // }
 }
 export class OAssociation extends ObjectBase implements I.IHasDefinitions {
   constructor(public parent: OAssociationList, range: OIRange) {

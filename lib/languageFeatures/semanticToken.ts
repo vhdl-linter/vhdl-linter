@@ -93,7 +93,7 @@ export function semanticToken(linter: VhdlLinter, colorInputs: boolean): Semanti
         pushCorrectToken(buffer, obj, obj, obj.endingLexerToken.range, [SemanticTokenModifiers.declaration], colorInputs);
       }
     }
-    if (obj instanceof O.OArchitecture || obj instanceof O.OInstantiation) {
+    if (obj instanceof O.OArchitecture) {
       pushToken(buffer, obj.entityName.range, SemanticTokenTypes.class, []);
     }
     if (obj instanceof O.OExternalName) {

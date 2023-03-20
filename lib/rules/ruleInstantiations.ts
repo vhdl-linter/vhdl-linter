@@ -142,13 +142,13 @@ export class RuleInstantiation extends RuleBase implements IRule {
             this.addMessage({
               range: instantiation.range.start.getRangeToEndLine(),
               severity: DiagnosticSeverity.Warning,
-              message: `can not find ${instantiation.type} ${instantiation.entityName.text}`
+              message: `can not find ${instantiation.type} ${instantiation.instantiatedUnit.map(name => name.nameToken.text).join('.')}`
             });
           } else if (instantiation.type === 'configuration' && definitions.length === 0) {
             this.addMessage({
               range: instantiation.range.start.getRangeToEndLine(),
               severity: DiagnosticSeverity.Warning,
-              message: `can not find entity ${(instantiation.definitions as O.OConfigurationDeclaration[])[0]!.entityName.text} for configuration instantiation ${instantiation.entityName.text}`
+              message: `can not find entity ${(instantiation.definitions as O.OConfigurationDeclaration[])[0]!.entityName.text} for configuration instantiation ${instantiation.instantiatedUnit.map(name => name.nameToken.text).join('.') }`
             });
           } else {
             const range = instantiation.range.start.getRangeToEndLine();

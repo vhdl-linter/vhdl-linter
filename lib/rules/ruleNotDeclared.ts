@@ -104,10 +104,7 @@ export class RuleNotDeclared extends RuleBase implements IRule {
   check() {
 
     for (const obj of this.file.objectList) {
-      if (obj instanceof O.OInstantiation) { // Instantiation handled somewhere else, where?
-        continue;
-      }
-      if (obj instanceof O.OLibraryName) { // handled in rules/library-reference
+      if (obj instanceof O.OInstantiation || obj.parent instanceof O.OInstantiation) { // Instantiation handled in ruleInstantiations
         continue;
       }
       if (obj instanceof O.OFormalName) { // Formal references handled else where

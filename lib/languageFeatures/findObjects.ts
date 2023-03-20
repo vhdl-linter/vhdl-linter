@@ -29,11 +29,6 @@ export function findObjectByDesignator(linter: VhdlLinter, token: OLexerToken): 
     if (obj instanceof OName && obj.nameToken === token) {
       foundObjects.add(obj);
     }
-    if (obj instanceof OInstantiation) {
-      if (obj.entityName === token) {
-        foundObjects.add(obj);
-      }
-    }
     if (implementsIHasLexerToken(obj) && obj.lexerToken === token) {
       foundObjects.add(obj);
     }

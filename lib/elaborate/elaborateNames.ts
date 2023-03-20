@@ -47,13 +47,10 @@ export class ElaborateNames {
     if (name instanceof O.OFormalName) {
       return;
     }
-    // elaborate all names except instantiations
-    if (name instanceof O.OInstantiation === false) {
-      if (name instanceof O.OSelectedName) {
-        this.elaborateSelectedName(name);
-      } else {
-        this.elaborateName(name);
-      }
+    if (name instanceof O.OSelectedName) {
+      this.elaborateSelectedName(name);
+    } else {
+      this.elaborateName(name);
     }
   }
 
@@ -126,12 +123,14 @@ export class ElaborateNames {
     if (this.projectVisibilityMap === undefined) {
       const projectParser = this.vhdlLinter.projectParser;
       this.projectVisibilityMap = new Map();
+      this.addObjectsToMap(this.projectVisibilityMap, ...projectParser.entities);
       this.addObjectsToMap(this.projectVisibilityMap, ...projectParser.packages);
       for (const pkg of projectParser.packages) {
         this.fillVisibilityMap(pkg);
       }
       this.addObjectsToMap(this.projectVisibilityMap, ...projectParser.packageInstantiations);
       this.addObjectsToMap(this.projectVisibilityMap, ...projectParser.contexts);
+      this.addObjectsToMap(this.projectVisibilityMap, ...projectParser.configurations);
     }
     if (searchText === 'all') {
       return [...this.projectVisibilityMap.values()].flat();
@@ -306,12 +305,12 @@ export class ElaborateNames {
         return;
       }
     }
-    // previous token is library -> expect a package
+    // previous token is library -> expect a package, entity or configuration
     const libraryDefinitions = lastPrefix.definitions.filter(def => def instanceof O.OLibrary);
     if (libraryDefinitions.length > 0) {
-      for (const pkg of this.getProjectList(name.nameToken.getLText())) {
-        if (pkg instanceof O.OPackage || pkg instanceof O.OPackageInstantiation) {
-          this.link(name, pkg);
+      for (const obj of this.getProjectList(name.nameToken.getLText())) {
+        if (obj instanceof O.OPackage || obj instanceof O.OPackageInstantiation || obj instanceof O.OEntity || obj instanceof O.OConfigurationDeclaration) {
+          this.link(name, obj);
         }
       }
     }
