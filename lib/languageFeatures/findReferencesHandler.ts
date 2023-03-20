@@ -101,7 +101,7 @@ export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position
           referenceTokens.push(link.entityName);
         }
       } else if (definition instanceof OConfigurationDeclaration && token.getLText() === definition.lexerToken.getLText()) {
-        for (const link of definition.nameLinks) {
+        for (const link of definition.nameLinks.filter(link => link instanceof OInstantiation)) {
           referenceTokens.push(link.instantiatedUnit.at(-1)!.nameToken);
         }
       }

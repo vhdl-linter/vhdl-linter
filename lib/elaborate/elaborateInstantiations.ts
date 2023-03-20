@@ -22,6 +22,9 @@ export function elaborateInstantiations(vhdlLinter: VhdlLinter) {
           obj.definitions = defs.slice(0) as (typeof obj.definitions);
           break;
       }
+      for (const def of obj.definitions) {
+        def.nameLinks.push(obj);
+      }
     }
   }
 }
