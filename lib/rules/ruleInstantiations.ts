@@ -121,7 +121,7 @@ export class RuleInstantiation extends RuleBase implements IRule {
           this.addMessage({
             range: range,
             severity: DiagnosticSeverity.Error,
-            message: `${kind} map is incomplete: ${kind}s (${elementString}) are missing.`
+            message: `${kind} map is incomplete: ${kind}s (${elementString}) are missing or open.`
           });
         }
       }
