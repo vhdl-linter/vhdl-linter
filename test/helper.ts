@@ -52,5 +52,10 @@ export function sanitizeActions(actions: CodeAction[]) {
       // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
       delete action.edit!.changes![key];
     }
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    if (typeof action.command?.arguments?.[0].textDocumentUri === 'string') {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+      action.command.arguments[0].textDocumentUri = (action.command.arguments[0].textDocumentUri as string).split('/').at(-1);
+    }
   }
 }

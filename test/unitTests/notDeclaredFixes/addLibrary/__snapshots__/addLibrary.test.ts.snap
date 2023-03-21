@@ -31,7 +31,7 @@ exports[`testing add signal helper architecture.vhd 2`] = `
             "line": 2,
           },
           "signalName": "apple",
-          "textDocumentUri": "file:///architecture.vhd",
+          "textDocumentUri": "architecture.vhd",
         },
       ],
       "command": "vhdl-linter:add-signal",
