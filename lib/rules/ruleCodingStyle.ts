@@ -1,5 +1,5 @@
 import { DiagnosticSeverity } from "vscode-languageserver";
-import { OComponent, OConfigurationDeclaration, OConfigurationSpecification, OEntity, OFile, OInstantiation } from "../parser/objects";
+import { OComponent, OConfigurationSpecification, OEntity, OFile, OInstantiation } from "../parser/objects";
 import { IRule, RuleBase } from "./rulesBase";
 
 export class RuleCodingStyle extends RuleBase implements IRule {
