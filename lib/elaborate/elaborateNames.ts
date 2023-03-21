@@ -7,7 +7,7 @@ export class ElaborateNames {
   // this map only contains the record children and is used for aggregate references
   private scopeRecordChildMap = new Map<O.ObjectBase, Map<string, O.ORecordChild[]>>();
   // the project visibility map includes packages that are visible in the project
-  private projectVisibilityMap?: Map<string, O.ObjectBase[]> = undefined;
+  private projectVisibilityMap?: Map<string, (O.ObjectBase & I.IHasTargetLibrary)[]> = undefined;
 
   private constructor(public vhdlLinter: VhdlLinter) {
     this.file = vhdlLinter.file;
@@ -47,13 +47,10 @@ export class ElaborateNames {
     if (name instanceof O.OFormalName) {
       return;
     }
-    // elaborate all names except instantiations
-    if (name instanceof O.OInstantiation === false) {
-      if (name instanceof O.OSelectedName) {
-        this.elaborateSelectedName(name);
-      } else {
-        this.elaborateName(name);
-      }
+    if (name instanceof O.OSelectedName) {
+      this.elaborateSelectedName(name);
+    } else {
+      this.elaborateName(name);
     }
   }
 
@@ -122,21 +119,34 @@ export class ElaborateNames {
     }
   }
 
-  getProjectList(searchText: string) {
+  getProjectList(searchName: O.OName, libraries: O.OLibrary[]) {
     if (this.projectVisibilityMap === undefined) {
       const projectParser = this.vhdlLinter.projectParser;
       this.projectVisibilityMap = new Map();
+      this.addObjectsToMap(this.projectVisibilityMap, ...projectParser.entities);
       this.addObjectsToMap(this.projectVisibilityMap, ...projectParser.packages);
       for (const pkg of projectParser.packages) {
         this.fillVisibilityMap(pkg);
       }
       this.addObjectsToMap(this.projectVisibilityMap, ...projectParser.packageInstantiations);
       this.addObjectsToMap(this.projectVisibilityMap, ...projectParser.contexts);
+      this.addObjectsToMap(this.projectVisibilityMap, ...projectParser.configurations);
     }
-    if (searchText === 'all') {
-      return [...this.projectVisibilityMap.values()].flat();
+    const result: (O.ObjectBase & I.IHasTargetLibrary)[] = [];
+    if (searchName.nameToken.getLText() === 'all') {
+      result.push(...[...this.projectVisibilityMap.values()].flat());
+    } else {
+      result.push(...this.projectVisibilityMap.get(searchName.nameToken.getLText()) ?? []);
     }
-    return this.projectVisibilityMap.get(searchText) ?? [];
+    return result.filter(obj => {
+      if (obj.targetLibrary === undefined) {
+        return true;
+      }
+      if (libraries.some(lib => lib.lexerToken.getLText() === 'work')) {
+        return obj.targetLibrary === searchName.getRootElement().targetLibrary || searchName.getRootElement().targetLibrary === undefined;
+      }
+      return libraries.some(lib => lib.lexerToken.getLText() === obj.targetLibrary!.toLowerCase());
+    });
   }
 
   getList(name: O.OName) {
@@ -306,12 +316,12 @@ export class ElaborateNames {
         return;
       }
     }
-    // previous token is library -> expect a package
-    const libraryDefinitions = lastPrefix.definitions.filter(def => def instanceof O.OLibrary);
+    // previous token is library -> expect a package, entity or configuration
+    const libraryDefinitions = lastPrefix.definitions.filter(def => def instanceof O.OLibrary) as O.OLibrary[];
     if (libraryDefinitions.length > 0) {
-      for (const pkg of this.getProjectList(name.nameToken.getLText())) {
-        if (pkg instanceof O.OPackage || pkg instanceof O.OPackageInstantiation) {
-          this.link(name, pkg);
+      for (const obj of this.getProjectList(name, libraryDefinitions)) {
+        if (obj instanceof O.OPackage || obj instanceof O.OPackageInstantiation || obj instanceof O.OEntity || obj instanceof O.OConfigurationDeclaration) {
+          this.link(name, obj);
         }
       }
     }
@@ -420,7 +430,8 @@ export class ElaborateNames {
         const [lib, context] = contextRef.names;
         if (lib && context) {
           this.elaborateName(lib);
-          for (const obj of this.getProjectList(context.nameToken.getLText())) {
+          const libraryDefinitions = lib.definitions.filter(def => def instanceof O.OLibrary) as O.OLibrary[];
+          for (const obj of this.getProjectList(context, libraryDefinitions)) {
             if (obj instanceof O.OContext) {
               if (parentContexts.includes(obj)) {
                 this.vhdlLinter.addMessage({

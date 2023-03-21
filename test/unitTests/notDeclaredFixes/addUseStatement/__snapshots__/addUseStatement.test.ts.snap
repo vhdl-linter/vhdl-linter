@@ -1,0 +1,952 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`testing add use statement actions for file arch.vhd 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "object 'std_ulogic' is referenced but not declared (not-declared)",
+    "range": {
+      "end": {
+        "character": 30,
+        "line": 5,
+      },
+      "start": {
+        "character": 20,
+        "line": 5,
+      },
+    },
+    "severity": 1,
+  },
+]
+`;
+
+exports[`testing add use statement actions for file arch.vhd 2`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "dummy.vhd": [
+          {
+            "newText": "library ieee;
+use ieee.std_logic_1164.all;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add use statement for ieee.std_logic_1164",
+  },
+]
+`;
+
+exports[`testing add use statement actions for file arch.vhd 3`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "dummy.vhd": [
+          {
+            "newText": " -- vhdl-linter-disable-line not-declared",
+            "range": {
+              "end": {
+                "character": 1000,
+                "line": 5,
+              },
+              "start": {
+                "character": 1000,
+                "line": 5,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared on this line.",
+  },
+  {
+    "edit": {
+      "changes": {
+        "dummy.vhd": [
+          {
+            "newText": "-- vhdl-linter-disable not-declared
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared for this file.",
+  },
+]
+`;
+
+exports[`testing add use statement actions for file constant.vhd 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "object 'CopyRightNotice' is referenced but not declared (not-declared)",
+    "range": {
+      "end": {
+        "character": 26,
+        "line": 8,
+      },
+      "start": {
+        "character": 11,
+        "line": 8,
+      },
+    },
+    "severity": 1,
+  },
+]
+`;
+
+exports[`testing add use statement actions for file constant.vhd 2`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "dummy.vhd": [
+          {
+            "newText": "use ieee.fixed_generic_pkg.all;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 1,
+              },
+              "start": {
+                "character": 0,
+                "line": 1,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add use statement for ieee.fixed_generic_pkg",
+  },
+  {
+    "edit": {
+      "changes": {
+        "dummy.vhd": [
+          {
+            "newText": "use ieee.float_generic_pkg.all;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 1,
+              },
+              "start": {
+                "character": 0,
+                "line": 1,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add use statement for ieee.float_generic_pkg",
+  },
+  {
+    "edit": {
+      "changes": {
+        "dummy.vhd": [
+          {
+            "newText": "use ieee.math_complex.all;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 1,
+              },
+              "start": {
+                "character": 0,
+                "line": 1,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add use statement for ieee.math_complex",
+  },
+  {
+    "edit": {
+      "changes": {
+        "dummy.vhd": [
+          {
+            "newText": "use ieee.math_real.all;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 1,
+              },
+              "start": {
+                "character": 0,
+                "line": 1,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add use statement for ieee.math_real",
+  },
+  {
+    "edit": {
+      "changes": {
+        "dummy.vhd": [
+          {
+            "newText": "use ieee.numeric_bit.all;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 1,
+              },
+              "start": {
+                "character": 0,
+                "line": 1,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add use statement for ieee.numeric_bit",
+  },
+  {
+    "edit": {
+      "changes": {
+        "dummy.vhd": [
+          {
+            "newText": "use ieee.numeric_bit_unsigned.all;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 1,
+              },
+              "start": {
+                "character": 0,
+                "line": 1,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add use statement for ieee.numeric_bit_unsigned",
+  },
+  {
+    "edit": {
+      "changes": {
+        "dummy.vhd": [
+          {
+            "newText": "use ieee.numeric_std.all;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 1,
+              },
+              "start": {
+                "character": 0,
+                "line": 1,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add use statement for ieee.numeric_std",
+  },
+  {
+    "edit": {
+      "changes": {
+        "dummy.vhd": [
+          {
+            "newText": "use ieee.numeric_std_unsigned.all;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 1,
+              },
+              "start": {
+                "character": 0,
+                "line": 1,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add use statement for ieee.numeric_std_unsigned",
+  },
+  {
+    "command": {
+      "arguments": [
+        {
+          "position": {
+            "character": 0,
+            "line": 5,
+          },
+          "signalName": "CopyRightNotice",
+          "textDocumentUri": "dummy.vhd",
+        },
+      ],
+      "command": "vhdl-linter:add-signal",
+      "title": "add CopyRightNotice as signal to architecture",
+    },
+    "kind": "quickfix",
+    "title": "add CopyRightNotice as signal to architecture",
+  },
+]
+`;
+
+exports[`testing add use statement actions for file constant.vhd 3`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "dummy.vhd": [
+          {
+            "newText": " -- vhdl-linter-disable-line not-declared",
+            "range": {
+              "end": {
+                "character": 1000,
+                "line": 8,
+              },
+              "start": {
+                "character": 1000,
+                "line": 8,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared on this line.",
+  },
+  {
+    "edit": {
+      "changes": {
+        "dummy.vhd": [
+          {
+            "newText": "-- vhdl-linter-disable not-declared
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared for this file.",
+  },
+]
+`;
+
+exports[`testing add use statement actions for file entity.vhd 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "object 'std_ulogic' is referenced but not declared (not-declared)",
+    "range": {
+      "end": {
+        "character": 22,
+        "line": 3,
+      },
+      "start": {
+        "character": 12,
+        "line": 3,
+      },
+    },
+    "severity": 1,
+  },
+]
+`;
+
+exports[`testing add use statement actions for file entity.vhd 2`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "dummy.vhd": [
+          {
+            "newText": "use ieee.std_logic_1164.all;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 1,
+              },
+              "start": {
+                "character": 0,
+                "line": 1,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add use statement for ieee.std_logic_1164",
+  },
+]
+`;
+
+exports[`testing add use statement actions for file entity.vhd 3`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "dummy.vhd": [
+          {
+            "newText": " -- vhdl-linter-disable-line not-declared",
+            "range": {
+              "end": {
+                "character": 1000,
+                "line": 3,
+              },
+              "start": {
+                "character": 1000,
+                "line": 3,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared on this line.",
+  },
+  {
+    "edit": {
+      "changes": {
+        "dummy.vhd": [
+          {
+            "newText": "-- vhdl-linter-disable not-declared
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared for this file.",
+  },
+]
+`;
+
+exports[`testing add use statement actions for file entityWithLibrary.vhd 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "object 'std_ulogic' is referenced but not declared (not-declared)",
+    "range": {
+      "end": {
+        "character": 22,
+        "line": 2,
+      },
+      "start": {
+        "character": 12,
+        "line": 2,
+      },
+    },
+    "severity": 1,
+  },
+]
+`;
+
+exports[`testing add use statement actions for file entityWithLibrary.vhd 2`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "dummy.vhd": [
+          {
+            "newText": "library ieee;
+use ieee.std_logic_1164.all;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add use statement for ieee.std_logic_1164",
+  },
+]
+`;
+
+exports[`testing add use statement actions for file entityWithLibrary.vhd 3`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "dummy.vhd": [
+          {
+            "newText": " -- vhdl-linter-disable-line not-declared",
+            "range": {
+              "end": {
+                "character": 1000,
+                "line": 2,
+              },
+              "start": {
+                "character": 1000,
+                "line": 2,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared on this line.",
+  },
+  {
+    "edit": {
+      "changes": {
+        "dummy.vhd": [
+          {
+            "newText": "-- vhdl-linter-disable not-declared
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared for this file.",
+  },
+]
+`;
+
+exports[`testing add use statement actions for file function.vhd 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "object 'to_integer' is referenced but not declared (not-declared)",
+    "range": {
+      "end": {
+        "character": 20,
+        "line": 8,
+      },
+      "start": {
+        "character": 10,
+        "line": 8,
+      },
+    },
+    "severity": 1,
+  },
+]
+`;
+
+exports[`testing add use statement actions for file function.vhd 2`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "dummy.vhd": [
+          {
+            "newText": "use ieee.fixed_generic_pkg.all;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 1,
+              },
+              "start": {
+                "character": 0,
+                "line": 1,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add use statement for ieee.fixed_generic_pkg",
+  },
+  {
+    "edit": {
+      "changes": {
+        "dummy.vhd": [
+          {
+            "newText": "use ieee.float_generic_pkg.all;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 1,
+              },
+              "start": {
+                "character": 0,
+                "line": 1,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add use statement for ieee.float_generic_pkg",
+  },
+  {
+    "edit": {
+      "changes": {
+        "dummy.vhd": [
+          {
+            "newText": "use ieee.numeric_bit.all;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 1,
+              },
+              "start": {
+                "character": 0,
+                "line": 1,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add use statement for ieee.numeric_bit",
+  },
+  {
+    "edit": {
+      "changes": {
+        "dummy.vhd": [
+          {
+            "newText": "use ieee.numeric_bit_unsigned.all;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 1,
+              },
+              "start": {
+                "character": 0,
+                "line": 1,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add use statement for ieee.numeric_bit_unsigned",
+  },
+  {
+    "edit": {
+      "changes": {
+        "dummy.vhd": [
+          {
+            "newText": "use ieee.numeric_std.all;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 1,
+              },
+              "start": {
+                "character": 0,
+                "line": 1,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add use statement for ieee.numeric_std",
+  },
+  {
+    "edit": {
+      "changes": {
+        "dummy.vhd": [
+          {
+            "newText": "use ieee.numeric_std_unsigned.all;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 1,
+              },
+              "start": {
+                "character": 0,
+                "line": 1,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add use statement for ieee.numeric_std_unsigned",
+  },
+  {
+    "command": {
+      "arguments": [
+        {
+          "position": {
+            "character": 0,
+            "line": 7,
+          },
+          "signalName": "to_integer",
+          "textDocumentUri": "dummy.vhd",
+        },
+      ],
+      "command": "vhdl-linter:add-signal",
+      "title": "add to_integer as signal to architecture",
+    },
+    "kind": "quickfix",
+    "title": "add to_integer as signal to architecture",
+  },
+]
+`;
+
+exports[`testing add use statement actions for file function.vhd 3`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "dummy.vhd": [
+          {
+            "newText": " -- vhdl-linter-disable-line not-declared",
+            "range": {
+              "end": {
+                "character": 1000,
+                "line": 8,
+              },
+              "start": {
+                "character": 1000,
+                "line": 8,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared on this line.",
+  },
+  {
+    "edit": {
+      "changes": {
+        "dummy.vhd": [
+          {
+            "newText": "-- vhdl-linter-disable not-declared
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared for this file.",
+  },
+]
+`;
+
+exports[`testing add use statement actions for file generic_function_call.vhd 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "object 'ceil' is referenced but not declared (not-declared)",
+    "range": {
+      "end": {
+        "character": 25,
+        "line": 17,
+      },
+      "start": {
+        "character": 21,
+        "line": 17,
+      },
+    },
+    "severity": 1,
+  },
+]
+`;
+
+exports[`testing add use statement actions for file generic_function_call.vhd 2`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "dummy.vhd": [
+          {
+            "newText": "library ieee;
+use ieee.math_real.all;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 9,
+              },
+              "start": {
+                "character": 0,
+                "line": 9,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add use statement for ieee.math_real",
+  },
+  {
+    "command": {
+      "arguments": [
+        {
+          "position": {
+            "character": 0,
+            "line": 14,
+          },
+          "signalName": "ceil",
+          "textDocumentUri": "dummy.vhd",
+        },
+      ],
+      "command": "vhdl-linter:add-signal",
+      "title": "add ceil as signal to architecture",
+    },
+    "kind": "quickfix",
+    "title": "add ceil as signal to architecture",
+  },
+]
+`;
+
+exports[`testing add use statement actions for file generic_function_call.vhd 3`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "dummy.vhd": [
+          {
+            "newText": " -- vhdl-linter-disable-line not-declared",
+            "range": {
+              "end": {
+                "character": 1000,
+                "line": 17,
+              },
+              "start": {
+                "character": 1000,
+                "line": 17,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared on this line.",
+  },
+  {
+    "edit": {
+      "changes": {
+        "dummy.vhd": [
+          {
+            "newText": "-- vhdl-linter-disable not-declared
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared for this file.",
+  },
+]
+`;

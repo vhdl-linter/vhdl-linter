@@ -1,0 +1,122 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`testing add signal helper architecture.vhd 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "object 'apple' is referenced but not declared (not-declared)",
+    "range": {
+      "end": {
+        "character": 7,
+        "line": 3,
+      },
+      "start": {
+        "character": 2,
+        "line": 3,
+      },
+    },
+    "severity": 1,
+  },
+]
+`;
+
+exports[`testing add signal helper architecture.vhd 2`] = `
+[
+  {
+    "command": {
+      "arguments": [
+        {
+          "position": {
+            "character": 0,
+            "line": 2,
+          },
+          "signalName": "apple",
+          "textDocumentUri": "architecture.vhd",
+        },
+      ],
+      "command": "vhdl-linter:add-signal",
+      "title": "add apple as signal to architecture",
+    },
+    "kind": "quickfix",
+    "title": "add apple as signal to architecture",
+  },
+  {
+    "edit": {
+      "changes": {
+        "entity.vhd": [
+          {
+            "newText": "library apple;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add library declaration for apple",
+  },
+]
+`;
+
+exports[`testing add signal helper architecture.vhd 3`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "architecture.vhd": [
+          {
+            "newText": " -- vhdl-linter-disable-line not-declared",
+            "range": {
+              "end": {
+                "character": 1000,
+                "line": 3,
+              },
+              "start": {
+                "character": 1000,
+                "line": 3,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared on this line.",
+  },
+  {
+    "edit": {
+      "changes": {
+        "architecture.vhd": [
+          {
+            "newText": "-- vhdl-linter-disable not-declared
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared for this file.",
+  },
+]
+`;
+
+exports[`testing add signal helper entity.vhd 1`] = `[]`;

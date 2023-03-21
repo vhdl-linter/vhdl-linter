@@ -3,7 +3,7 @@ import { OConfigurationDeclaration, OFile } from "../parser/objects";
 import { IRule, RuleBase } from "./rulesBase";
 
 export class RuleConfiguration extends RuleBase implements IRule {
-  public static readonly ruleName = 'library-reference';
+  public static readonly ruleName = 'configuration';
   file: OFile;
 
   check() {

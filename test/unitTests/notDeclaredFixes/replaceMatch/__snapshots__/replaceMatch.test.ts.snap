@@ -1,18 +1,78 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`testing add use statement actions for file arch.vhd 1`] = `
+exports[`testing add signal helper protected.vhd 1`] = `
 [
   {
     "code": "0;1",
-    "message": "object 'std_ulogic' is referenced but not declared (not-declared)",
+    "message": "appl does not exist on protected type prot (not-declared)",
     "range": {
       "end": {
-        "character": 30,
-        "line": 5,
+        "character": 11,
+        "line": 9,
       },
       "start": {
-        "character": 20,
-        "line": 5,
+        "character": 2,
+        "line": 9,
+      },
+    },
+    "severity": 1,
+  },
+  {
+    "code": "2;3",
+    "message": "object 'tes' is referenced but not declared (not-declared)",
+    "range": {
+      "end": {
+        "character": 15,
+        "line": 9,
+      },
+      "start": {
+        "character": 12,
+        "line": 9,
+      },
+    },
+    "severity": 1,
+  },
+  {
+    "code": "4;5",
+    "message": "object 'tes' is written but not declared (not-declared)",
+    "range": {
+      "end": {
+        "character": 15,
+        "line": 9,
+      },
+      "start": {
+        "character": 12,
+        "line": 9,
+      },
+    },
+    "severity": 1,
+  },
+  {
+    "code": "6;7",
+    "message": "object 'tes' is written but not declared (not-declared)",
+    "range": {
+      "end": {
+        "character": 15,
+        "line": 9,
+      },
+      "start": {
+        "character": 12,
+        "line": 9,
+      },
+    },
+    "severity": 1,
+  },
+  {
+    "code": "8;9",
+    "message": "object 'tes' is referenced but not declared (not-declared)",
+    "range": {
+      "end": {
+        "character": 15,
+        "line": 9,
+      },
+      "start": {
+        "character": 12,
+        "line": 9,
       },
     },
     "severity": 1,
@@ -20,24 +80,22 @@ exports[`testing add use statement actions for file arch.vhd 1`] = `
 ]
 `;
 
-exports[`testing add use statement actions for file arch.vhd 2`] = `
+exports[`testing add signal helper protected.vhd 2`] = `
 [
   {
     "edit": {
       "changes": {
-        "file://dummy.vhd": [
+        "protected.vhd": [
           {
-            "newText": "library ieee;
-use ieee.std_logic_1164.all;
-",
+            "newText": "apple",
             "range": {
               "end": {
-                "character": 0,
-                "line": 0,
+                "character": 11,
+                "line": 9,
               },
               "start": {
-                "character": 0,
-                "line": 0,
+                "character": 7,
+                "line": 9,
               },
             },
           },
@@ -45,27 +103,27 @@ use ieee.std_logic_1164.all;
       },
     },
     "kind": "quickfix",
-    "title": "add use statement for ieee.std_logic_1164",
+    "title": "Replace with apple (score: 0.8571428571428571)",
   },
 ]
 `;
 
-exports[`testing add use statement actions for file arch.vhd 3`] = `
+exports[`testing add signal helper protected.vhd 3`] = `
 [
   {
     "edit": {
       "changes": {
-        "file://dummy.vhd": [
+        "protected.vhd": [
           {
             "newText": " -- vhdl-linter-disable-line not-declared",
             "range": {
               "end": {
                 "character": 1000,
-                "line": 5,
+                "line": 9,
               },
               "start": {
                 "character": 1000,
-                "line": 5,
+                "line": 9,
               },
             },
           },
@@ -78,7 +136,7 @@ exports[`testing add use statement actions for file arch.vhd 3`] = `
   {
     "edit": {
       "changes": {
-        "file://dummy.vhd": [
+        "protected.vhd": [
           {
             "newText": "-- vhdl-linter-disable not-declared
 ",
@@ -102,247 +160,563 @@ exports[`testing add use statement actions for file arch.vhd 3`] = `
 ]
 `;
 
-exports[`testing add use statement actions for file constant.vhd 1`] = `
+exports[`testing add signal helper protected.vhd 4`] = `
 [
-  {
-    "code": "0;1",
-    "message": "object 'CopyRightNotice' is referenced but not declared (not-declared)",
-    "range": {
-      "end": {
-        "character": 26,
-        "line": 8,
-      },
-      "start": {
-        "character": 11,
-        "line": 8,
-      },
-    },
-    "severity": 1,
-  },
-]
-`;
-
-exports[`testing add use statement actions for file constant.vhd 2`] = `
-[
-  {
-    "edit": {
-      "changes": {
-        "file://dummy.vhd": [
-          {
-            "newText": "use ieee.fixed_generic_pkg.all;
-",
-            "range": {
-              "end": {
-                "character": 0,
-                "line": 1,
-              },
-              "start": {
-                "character": 0,
-                "line": 1,
-              },
-            },
-          },
-        ],
-      },
-    },
-    "kind": "quickfix",
-    "title": "add use statement for ieee.fixed_generic_pkg",
-  },
-  {
-    "edit": {
-      "changes": {
-        "file://dummy.vhd": [
-          {
-            "newText": "use ieee.float_generic_pkg.all;
-",
-            "range": {
-              "end": {
-                "character": 0,
-                "line": 1,
-              },
-              "start": {
-                "character": 0,
-                "line": 1,
-              },
-            },
-          },
-        ],
-      },
-    },
-    "kind": "quickfix",
-    "title": "add use statement for ieee.float_generic_pkg",
-  },
-  {
-    "edit": {
-      "changes": {
-        "file://dummy.vhd": [
-          {
-            "newText": "use ieee.math_complex.all;
-",
-            "range": {
-              "end": {
-                "character": 0,
-                "line": 1,
-              },
-              "start": {
-                "character": 0,
-                "line": 1,
-              },
-            },
-          },
-        ],
-      },
-    },
-    "kind": "quickfix",
-    "title": "add use statement for ieee.math_complex",
-  },
-  {
-    "edit": {
-      "changes": {
-        "file://dummy.vhd": [
-          {
-            "newText": "use ieee.math_real.all;
-",
-            "range": {
-              "end": {
-                "character": 0,
-                "line": 1,
-              },
-              "start": {
-                "character": 0,
-                "line": 1,
-              },
-            },
-          },
-        ],
-      },
-    },
-    "kind": "quickfix",
-    "title": "add use statement for ieee.math_real",
-  },
-  {
-    "edit": {
-      "changes": {
-        "file://dummy.vhd": [
-          {
-            "newText": "use ieee.numeric_bit.all;
-",
-            "range": {
-              "end": {
-                "character": 0,
-                "line": 1,
-              },
-              "start": {
-                "character": 0,
-                "line": 1,
-              },
-            },
-          },
-        ],
-      },
-    },
-    "kind": "quickfix",
-    "title": "add use statement for ieee.numeric_bit",
-  },
-  {
-    "edit": {
-      "changes": {
-        "file://dummy.vhd": [
-          {
-            "newText": "use ieee.numeric_bit_unsigned.all;
-",
-            "range": {
-              "end": {
-                "character": 0,
-                "line": 1,
-              },
-              "start": {
-                "character": 0,
-                "line": 1,
-              },
-            },
-          },
-        ],
-      },
-    },
-    "kind": "quickfix",
-    "title": "add use statement for ieee.numeric_bit_unsigned",
-  },
-  {
-    "edit": {
-      "changes": {
-        "file://dummy.vhd": [
-          {
-            "newText": "use ieee.numeric_std.all;
-",
-            "range": {
-              "end": {
-                "character": 0,
-                "line": 1,
-              },
-              "start": {
-                "character": 0,
-                "line": 1,
-              },
-            },
-          },
-        ],
-      },
-    },
-    "kind": "quickfix",
-    "title": "add use statement for ieee.numeric_std",
-  },
-  {
-    "edit": {
-      "changes": {
-        "file://dummy.vhd": [
-          {
-            "newText": "use ieee.numeric_std_unsigned.all;
-",
-            "range": {
-              "end": {
-                "character": 0,
-                "line": 1,
-              },
-              "start": {
-                "character": 0,
-                "line": 1,
-              },
-            },
-          },
-        ],
-      },
-    },
-    "kind": "quickfix",
-    "title": "add use statement for ieee.numeric_std_unsigned",
-  },
   {
     "command": {
       "arguments": [
         {
           "position": {
             "character": 0,
-            "line": 5,
+            "line": 8,
           },
-          "signalName": "CopyRightNotice",
-          "textDocumentUri": "file://dummy.vhd",
+          "signalName": "tes",
+          "textDocumentUri": "protected.vhd",
         },
       ],
       "command": "vhdl-linter:add-signal",
-      "title": "add signal to architecture",
+      "title": "add tes as signal to architecture",
     },
     "kind": "quickfix",
-    "title": "add signal to architecture",
+    "title": "add tes as signal to architecture",
+  },
+  {
+    "edit": {
+      "changes": {
+        "protected.vhd": [
+          {
+            "newText": "library tes;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add library declaration for tes",
+  },
+  {
+    "edit": {
+      "changes": {
+        "protected.vhd": [
+          {
+            "newText": "test",
+            "range": {
+              "end": {
+                "character": 15,
+                "line": 9,
+              },
+              "start": {
+                "character": 12,
+                "line": 9,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Replace with test (score: 0.8)",
   },
 ]
 `;
 
-exports[`testing add use statement actions for file constant.vhd 3`] = `
+exports[`testing add signal helper protected.vhd 5`] = `
 [
   {
     "edit": {
       "changes": {
-        "file://dummy.vhd": [
+        "protected.vhd": [
+          {
+            "newText": " -- vhdl-linter-disable-line not-declared",
+            "range": {
+              "end": {
+                "character": 1000,
+                "line": 9,
+              },
+              "start": {
+                "character": 1000,
+                "line": 9,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared on this line.",
+  },
+  {
+    "edit": {
+      "changes": {
+        "protected.vhd": [
+          {
+            "newText": "-- vhdl-linter-disable not-declared
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared for this file.",
+  },
+]
+`;
+
+exports[`testing add signal helper protected.vhd 6`] = `
+[
+  {
+    "command": {
+      "arguments": [
+        {
+          "position": {
+            "character": 0,
+            "line": 8,
+          },
+          "signalName": "tes",
+          "textDocumentUri": "protected.vhd",
+        },
+      ],
+      "command": "vhdl-linter:add-signal",
+      "title": "add tes as signal to architecture",
+    },
+    "kind": "quickfix",
+    "title": "add tes as signal to architecture",
+  },
+  {
+    "edit": {
+      "changes": {
+        "protected.vhd": [
+          {
+            "newText": "library tes;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add library declaration for tes",
+  },
+  {
+    "edit": {
+      "changes": {
+        "protected.vhd": [
+          {
+            "newText": "test",
+            "range": {
+              "end": {
+                "character": 15,
+                "line": 9,
+              },
+              "start": {
+                "character": 12,
+                "line": 9,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Replace with test (score: 0.8)",
+  },
+]
+`;
+
+exports[`testing add signal helper protected.vhd 7`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "protected.vhd": [
+          {
+            "newText": " -- vhdl-linter-disable-line not-declared",
+            "range": {
+              "end": {
+                "character": 1000,
+                "line": 9,
+              },
+              "start": {
+                "character": 1000,
+                "line": 9,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared on this line.",
+  },
+  {
+    "edit": {
+      "changes": {
+        "protected.vhd": [
+          {
+            "newText": "-- vhdl-linter-disable not-declared
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared for this file.",
+  },
+]
+`;
+
+exports[`testing add signal helper protected.vhd 8`] = `
+[
+  {
+    "command": {
+      "arguments": [
+        {
+          "position": {
+            "character": 0,
+            "line": 8,
+          },
+          "signalName": "tes",
+          "textDocumentUri": "protected.vhd",
+        },
+      ],
+      "command": "vhdl-linter:add-signal",
+      "title": "add tes as signal to architecture",
+    },
+    "kind": "quickfix",
+    "title": "add tes as signal to architecture",
+  },
+  {
+    "edit": {
+      "changes": {
+        "protected.vhd": [
+          {
+            "newText": "library tes;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add library declaration for tes",
+  },
+  {
+    "edit": {
+      "changes": {
+        "protected.vhd": [
+          {
+            "newText": "test",
+            "range": {
+              "end": {
+                "character": 15,
+                "line": 9,
+              },
+              "start": {
+                "character": 12,
+                "line": 9,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Replace with test (score: 0.8)",
+  },
+]
+`;
+
+exports[`testing add signal helper protected.vhd 9`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "protected.vhd": [
+          {
+            "newText": " -- vhdl-linter-disable-line not-declared",
+            "range": {
+              "end": {
+                "character": 1000,
+                "line": 9,
+              },
+              "start": {
+                "character": 1000,
+                "line": 9,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared on this line.",
+  },
+  {
+    "edit": {
+      "changes": {
+        "protected.vhd": [
+          {
+            "newText": "-- vhdl-linter-disable not-declared
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared for this file.",
+  },
+]
+`;
+
+exports[`testing add signal helper protected.vhd 10`] = `
+[
+  {
+    "command": {
+      "arguments": [
+        {
+          "position": {
+            "character": 0,
+            "line": 8,
+          },
+          "signalName": "tes",
+          "textDocumentUri": "protected.vhd",
+        },
+      ],
+      "command": "vhdl-linter:add-signal",
+      "title": "add tes as signal to architecture",
+    },
+    "kind": "quickfix",
+    "title": "add tes as signal to architecture",
+  },
+  {
+    "edit": {
+      "changes": {
+        "protected.vhd": [
+          {
+            "newText": "library tes;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add library declaration for tes",
+  },
+  {
+    "edit": {
+      "changes": {
+        "protected.vhd": [
+          {
+            "newText": "test",
+            "range": {
+              "end": {
+                "character": 15,
+                "line": 9,
+              },
+              "start": {
+                "character": 12,
+                "line": 9,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Replace with test (score: 0.8)",
+  },
+]
+`;
+
+exports[`testing add signal helper protected.vhd 11`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "protected.vhd": [
+          {
+            "newText": " -- vhdl-linter-disable-line not-declared",
+            "range": {
+              "end": {
+                "character": 1000,
+                "line": 9,
+              },
+              "start": {
+                "character": 1000,
+                "line": 9,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared on this line.",
+  },
+  {
+    "edit": {
+      "changes": {
+        "protected.vhd": [
+          {
+            "newText": "-- vhdl-linter-disable not-declared
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared for this file.",
+  },
+]
+`;
+
+exports[`testing add signal helper record.vhd 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "appl does not exist on record rec (not-declared)",
+    "range": {
+      "end": {
+        "character": 11,
+        "line": 8,
+      },
+      "start": {
+        "character": 2,
+        "line": 8,
+      },
+    },
+    "severity": 1,
+  },
+  {
+    "code": "2;3",
+    "message": "object 'tes' is referenced but not declared (not-declared)",
+    "range": {
+      "end": {
+        "character": 18,
+        "line": 8,
+      },
+      "start": {
+        "character": 15,
+        "line": 8,
+      },
+    },
+    "severity": 1,
+  },
+]
+`;
+
+exports[`testing add signal helper record.vhd 2`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "record.vhd": [
+          {
+            "newText": "apple",
+            "range": {
+              "end": {
+                "character": 11,
+                "line": 8,
+              },
+              "start": {
+                "character": 7,
+                "line": 8,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Replace with apple (score: 0.8571428571428571)",
+  },
+]
+`;
+
+exports[`testing add signal helper record.vhd 3`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "record.vhd": [
           {
             "newText": " -- vhdl-linter-disable-line not-declared",
             "range": {
@@ -365,7 +739,7 @@ exports[`testing add use statement actions for file constant.vhd 3`] = `
   {
     "edit": {
       "changes": {
-        "file://dummy.vhd": [
+        "record.vhd": [
           {
             "newText": "-- vhdl-linter-disable not-declared
 ",
@@ -389,375 +763,8 @@ exports[`testing add use statement actions for file constant.vhd 3`] = `
 ]
 `;
 
-exports[`testing add use statement actions for file entity.vhd 1`] = `
+exports[`testing add signal helper record.vhd 4`] = `
 [
-  {
-    "code": "0;1",
-    "message": "object 'std_ulogic' is referenced but not declared (not-declared)",
-    "range": {
-      "end": {
-        "character": 22,
-        "line": 3,
-      },
-      "start": {
-        "character": 12,
-        "line": 3,
-      },
-    },
-    "severity": 1,
-  },
-]
-`;
-
-exports[`testing add use statement actions for file entity.vhd 2`] = `
-[
-  {
-    "edit": {
-      "changes": {
-        "file://dummy.vhd": [
-          {
-            "newText": "use ieee.std_logic_1164.all;
-",
-            "range": {
-              "end": {
-                "character": 0,
-                "line": 1,
-              },
-              "start": {
-                "character": 0,
-                "line": 1,
-              },
-            },
-          },
-        ],
-      },
-    },
-    "kind": "quickfix",
-    "title": "add use statement for ieee.std_logic_1164",
-  },
-]
-`;
-
-exports[`testing add use statement actions for file entity.vhd 3`] = `
-[
-  {
-    "edit": {
-      "changes": {
-        "file://dummy.vhd": [
-          {
-            "newText": " -- vhdl-linter-disable-line not-declared",
-            "range": {
-              "end": {
-                "character": 1000,
-                "line": 3,
-              },
-              "start": {
-                "character": 1000,
-                "line": 3,
-              },
-            },
-          },
-        ],
-      },
-    },
-    "kind": "quickfix",
-    "title": "Ignore not-declared on this line.",
-  },
-  {
-    "edit": {
-      "changes": {
-        "file://dummy.vhd": [
-          {
-            "newText": "-- vhdl-linter-disable not-declared
-",
-            "range": {
-              "end": {
-                "character": 0,
-                "line": 0,
-              },
-              "start": {
-                "character": 0,
-                "line": 0,
-              },
-            },
-          },
-        ],
-      },
-    },
-    "kind": "quickfix",
-    "title": "Ignore not-declared for this file.",
-  },
-]
-`;
-
-exports[`testing add use statement actions for file entityWithLibrary.vhd 1`] = `
-[
-  {
-    "code": "0;1",
-    "message": "object 'std_ulogic' is referenced but not declared (not-declared)",
-    "range": {
-      "end": {
-        "character": 22,
-        "line": 2,
-      },
-      "start": {
-        "character": 12,
-        "line": 2,
-      },
-    },
-    "severity": 1,
-  },
-]
-`;
-
-exports[`testing add use statement actions for file entityWithLibrary.vhd 2`] = `
-[
-  {
-    "edit": {
-      "changes": {
-        "file://dummy.vhd": [
-          {
-            "newText": "library ieee;
-use ieee.std_logic_1164.all;
-",
-            "range": {
-              "end": {
-                "character": 0,
-                "line": 0,
-              },
-              "start": {
-                "character": 0,
-                "line": 0,
-              },
-            },
-          },
-        ],
-      },
-    },
-    "kind": "quickfix",
-    "title": "add use statement for ieee.std_logic_1164",
-  },
-]
-`;
-
-exports[`testing add use statement actions for file entityWithLibrary.vhd 3`] = `
-[
-  {
-    "edit": {
-      "changes": {
-        "file://dummy.vhd": [
-          {
-            "newText": " -- vhdl-linter-disable-line not-declared",
-            "range": {
-              "end": {
-                "character": 1000,
-                "line": 2,
-              },
-              "start": {
-                "character": 1000,
-                "line": 2,
-              },
-            },
-          },
-        ],
-      },
-    },
-    "kind": "quickfix",
-    "title": "Ignore not-declared on this line.",
-  },
-  {
-    "edit": {
-      "changes": {
-        "file://dummy.vhd": [
-          {
-            "newText": "-- vhdl-linter-disable not-declared
-",
-            "range": {
-              "end": {
-                "character": 0,
-                "line": 0,
-              },
-              "start": {
-                "character": 0,
-                "line": 0,
-              },
-            },
-          },
-        ],
-      },
-    },
-    "kind": "quickfix",
-    "title": "Ignore not-declared for this file.",
-  },
-]
-`;
-
-exports[`testing add use statement actions for file function.vhd 1`] = `
-[
-  {
-    "code": "0;1",
-    "message": "object 'to_integer' is referenced but not declared (not-declared)",
-    "range": {
-      "end": {
-        "character": 20,
-        "line": 8,
-      },
-      "start": {
-        "character": 10,
-        "line": 8,
-      },
-    },
-    "severity": 1,
-  },
-]
-`;
-
-exports[`testing add use statement actions for file function.vhd 2`] = `
-[
-  {
-    "edit": {
-      "changes": {
-        "file://dummy.vhd": [
-          {
-            "newText": "use ieee.fixed_generic_pkg.all;
-",
-            "range": {
-              "end": {
-                "character": 0,
-                "line": 1,
-              },
-              "start": {
-                "character": 0,
-                "line": 1,
-              },
-            },
-          },
-        ],
-      },
-    },
-    "kind": "quickfix",
-    "title": "add use statement for ieee.fixed_generic_pkg",
-  },
-  {
-    "edit": {
-      "changes": {
-        "file://dummy.vhd": [
-          {
-            "newText": "use ieee.float_generic_pkg.all;
-",
-            "range": {
-              "end": {
-                "character": 0,
-                "line": 1,
-              },
-              "start": {
-                "character": 0,
-                "line": 1,
-              },
-            },
-          },
-        ],
-      },
-    },
-    "kind": "quickfix",
-    "title": "add use statement for ieee.float_generic_pkg",
-  },
-  {
-    "edit": {
-      "changes": {
-        "file://dummy.vhd": [
-          {
-            "newText": "use ieee.numeric_bit.all;
-",
-            "range": {
-              "end": {
-                "character": 0,
-                "line": 1,
-              },
-              "start": {
-                "character": 0,
-                "line": 1,
-              },
-            },
-          },
-        ],
-      },
-    },
-    "kind": "quickfix",
-    "title": "add use statement for ieee.numeric_bit",
-  },
-  {
-    "edit": {
-      "changes": {
-        "file://dummy.vhd": [
-          {
-            "newText": "use ieee.numeric_bit_unsigned.all;
-",
-            "range": {
-              "end": {
-                "character": 0,
-                "line": 1,
-              },
-              "start": {
-                "character": 0,
-                "line": 1,
-              },
-            },
-          },
-        ],
-      },
-    },
-    "kind": "quickfix",
-    "title": "add use statement for ieee.numeric_bit_unsigned",
-  },
-  {
-    "edit": {
-      "changes": {
-        "file://dummy.vhd": [
-          {
-            "newText": "use ieee.numeric_std.all;
-",
-            "range": {
-              "end": {
-                "character": 0,
-                "line": 1,
-              },
-              "start": {
-                "character": 0,
-                "line": 1,
-              },
-            },
-          },
-        ],
-      },
-    },
-    "kind": "quickfix",
-    "title": "add use statement for ieee.numeric_std",
-  },
-  {
-    "edit": {
-      "changes": {
-        "file://dummy.vhd": [
-          {
-            "newText": "use ieee.numeric_std_unsigned.all;
-",
-            "range": {
-              "end": {
-                "character": 0,
-                "line": 1,
-              },
-              "start": {
-                "character": 0,
-                "line": 1,
-              },
-            },
-          },
-        ],
-      },
-    },
-    "kind": "quickfix",
-    "title": "add use statement for ieee.numeric_std_unsigned",
-  },
   {
     "command": {
       "arguments": [
@@ -766,25 +773,72 @@ exports[`testing add use statement actions for file function.vhd 2`] = `
             "character": 0,
             "line": 7,
           },
-          "signalName": "to_integer",
-          "textDocumentUri": "file://dummy.vhd",
+          "signalName": "tes",
+          "textDocumentUri": "record.vhd",
         },
       ],
       "command": "vhdl-linter:add-signal",
-      "title": "add signal to architecture",
+      "title": "add tes as signal to architecture",
     },
     "kind": "quickfix",
-    "title": "add signal to architecture",
+    "title": "add tes as signal to architecture",
+  },
+  {
+    "edit": {
+      "changes": {
+        "record.vhd": [
+          {
+            "newText": "library tes;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add library declaration for tes",
+  },
+  {
+    "edit": {
+      "changes": {
+        "record.vhd": [
+          {
+            "newText": "test",
+            "range": {
+              "end": {
+                "character": 18,
+                "line": 8,
+              },
+              "start": {
+                "character": 15,
+                "line": 8,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Replace with test (score: 0.8)",
   },
 ]
 `;
 
-exports[`testing add use statement actions for file function.vhd 3`] = `
+exports[`testing add signal helper record.vhd 5`] = `
 [
   {
     "edit": {
       "changes": {
-        "file://dummy.vhd": [
+        "record.vhd": [
           {
             "newText": " -- vhdl-linter-disable-line not-declared",
             "range": {
@@ -807,7 +861,7 @@ exports[`testing add use statement actions for file function.vhd 3`] = `
   {
     "edit": {
       "changes": {
-        "file://dummy.vhd": [
+        "record.vhd": [
           {
             "newText": "-- vhdl-linter-disable not-declared
 ",
@@ -831,19 +885,19 @@ exports[`testing add use statement actions for file function.vhd 3`] = `
 ]
 `;
 
-exports[`testing add use statement actions for file generic_function_call.vhd 1`] = `
+exports[`testing add signal helper simple_signal.vhd 1`] = `
 [
   {
     "code": "0;1",
-    "message": "object 'ceil' is referenced but not declared (not-declared)",
+    "message": "object 'appl' is written but not declared (not-declared)",
     "range": {
       "end": {
-        "character": 25,
-        "line": 17,
+        "character": 6,
+        "line": 5,
       },
       "start": {
-        "character": 21,
-        "line": 17,
+        "character": 2,
+        "line": 5,
       },
     },
     "severity": 1,
@@ -851,24 +905,40 @@ exports[`testing add use statement actions for file generic_function_call.vhd 1`
 ]
 `;
 
-exports[`testing add use statement actions for file generic_function_call.vhd 2`] = `
+exports[`testing add signal helper simple_signal.vhd 2`] = `
 [
+  {
+    "command": {
+      "arguments": [
+        {
+          "position": {
+            "character": 0,
+            "line": 4,
+          },
+          "signalName": "appl",
+          "textDocumentUri": "simple_signal.vhd",
+        },
+      ],
+      "command": "vhdl-linter:add-signal",
+      "title": "add appl as signal to architecture",
+    },
+    "kind": "quickfix",
+    "title": "add appl as signal to architecture",
+  },
   {
     "edit": {
       "changes": {
-        "file://dummy.vhd": [
+        "simple_signal.vhd": [
           {
-            "newText": "library ieee;
-use ieee.math_real.all;
-",
+            "newText": "apple",
             "range": {
               "end": {
-                "character": 0,
-                "line": 9,
+                "character": 6,
+                "line": 5,
               },
               "start": {
-                "character": 0,
-                "line": 9,
+                "character": 2,
+                "line": 5,
               },
             },
           },
@@ -876,45 +946,27 @@ use ieee.math_real.all;
       },
     },
     "kind": "quickfix",
-    "title": "add use statement for ieee.math_real",
-  },
-  {
-    "command": {
-      "arguments": [
-        {
-          "position": {
-            "character": 0,
-            "line": 14,
-          },
-          "signalName": "ceil",
-          "textDocumentUri": "file://dummy.vhd",
-        },
-      ],
-      "command": "vhdl-linter:add-signal",
-      "title": "add signal to architecture",
-    },
-    "kind": "quickfix",
-    "title": "add signal to architecture",
+    "title": "Replace with apple (score: 0.8571428571428571)",
   },
 ]
 `;
 
-exports[`testing add use statement actions for file generic_function_call.vhd 3`] = `
+exports[`testing add signal helper simple_signal.vhd 3`] = `
 [
   {
     "edit": {
       "changes": {
-        "file://dummy.vhd": [
+        "simple_signal.vhd": [
           {
             "newText": " -- vhdl-linter-disable-line not-declared",
             "range": {
               "end": {
                 "character": 1000,
-                "line": 17,
+                "line": 5,
               },
               "start": {
                 "character": 1000,
-                "line": 17,
+                "line": 5,
               },
             },
           },
@@ -927,7 +979,7 @@ exports[`testing add use statement actions for file generic_function_call.vhd 3`
   {
     "edit": {
       "changes": {
-        "file://dummy.vhd": [
+        "simple_signal.vhd": [
           {
             "newText": "-- vhdl-linter-disable not-declared
 ",

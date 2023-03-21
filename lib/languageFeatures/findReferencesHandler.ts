@@ -73,7 +73,7 @@ export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position
             referenceTokens.push(link.endingReferenceToken);
           }
           referenceTokens.push(link.lexerToken);
-          referenceTokens.push(...link.nameLinks.flatMap(link => link instanceof OInstantiation ? link.entityName : []));
+          referenceTokens.push(...link.nameLinks.flatMap(link => link instanceof OInstantiation ? link.instantiatedUnit.at(-1)!.nameToken : []));
         }
       }
     }
@@ -94,15 +94,15 @@ export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position
         referenceTokens.push(...definition.correspondingArchitectures.map(arch => arch.entityName));
         for (const link of definition.nameLinks) {
           if (link instanceof OInstantiation) {
-            referenceTokens.push(link.entityName);
+            referenceTokens.push(link.instantiatedUnit.at(-1)!.nameToken);
           }
         }
         for (const link of definition.referenceConfigurations) {
           referenceTokens.push(link.entityName);
         }
       } else if (definition instanceof OConfigurationDeclaration && token.getLText() === definition.lexerToken.getLText()) {
-        for (const link of definition.nameLinks) {
-            referenceTokens.push(link.entityName);
+        for (const link of definition.nameLinks.filter(link => link instanceof OInstantiation)) {
+          referenceTokens.push(link.instantiatedUnit.at(-1)!.nameToken);
         }
       }
       if (definition instanceof OComponent && definition.endingReferenceToken) {
