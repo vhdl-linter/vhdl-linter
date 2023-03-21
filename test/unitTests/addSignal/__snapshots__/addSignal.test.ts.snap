@@ -35,10 +35,10 @@ exports[`testing add signal helper architecture.vhd 2`] = `
         },
       ],
       "command": "vhdl-linter:add-signal",
-      "title": "add signal to architecture",
+      "title": "add foo as signal to architecture",
     },
     "kind": "quickfix",
-    "title": "add signal to architecture",
+    "title": "add foo as signal to architecture",
   },
 ]
 `;
@@ -130,10 +130,10 @@ exports[`testing add signal helper generic.vhd 2`] = `
         },
       ],
       "command": "vhdl-linter:add-signal",
-      "title": "add signal to architecture",
+      "title": "add test as signal to architecture",
     },
     "kind": "quickfix",
-    "title": "add signal to architecture",
+    "title": "add test as signal to architecture",
   },
 ]
 `;

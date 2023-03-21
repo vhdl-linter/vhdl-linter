@@ -329,10 +329,10 @@ exports[`testing add use statement actions for file constant.vhd 2`] = `
         },
       ],
       "command": "vhdl-linter:add-signal",
-      "title": "add signal to architecture",
+      "title": "add CopyRightNotice as signal to architecture",
     },
     "kind": "quickfix",
-    "title": "add signal to architecture",
+    "title": "add CopyRightNotice as signal to architecture",
   },
 ]
 `;
@@ -771,10 +771,10 @@ exports[`testing add use statement actions for file function.vhd 2`] = `
         },
       ],
       "command": "vhdl-linter:add-signal",
-      "title": "add signal to architecture",
+      "title": "add to_integer as signal to architecture",
     },
     "kind": "quickfix",
-    "title": "add signal to architecture",
+    "title": "add to_integer as signal to architecture",
   },
 ]
 `;
@@ -891,10 +891,10 @@ use ieee.math_real.all;
         },
       ],
       "command": "vhdl-linter:add-signal",
-      "title": "add signal to architecture",
+      "title": "add ceil as signal to architecture",
     },
     "kind": "quickfix",
-    "title": "add signal to architecture",
+    "title": "add ceil as signal to architecture",
   },
 ]
 `;

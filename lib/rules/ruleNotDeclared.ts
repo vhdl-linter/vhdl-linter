@@ -30,13 +30,10 @@ export class RuleNotDeclared extends RuleBase implements IRule {
               library = 'IEEE';
             }
           }
-
           proposals.add(`${library}.${pkgName}`);
-
         }
       }
     }
-
     for (const proposal of [...proposals].sort()) {
       const [library, pkgName] = proposal.split('.') as [string, string];
       let newText = `use ${library}.${pkgName}.all;\n`;
@@ -56,34 +53,94 @@ export class RuleNotDeclared extends RuleBase implements IRule {
     }
     return actions;
   }
-  private pushNotDeclaredError(reference: O.OName) {
-    const code = this.vhdlLinter.addCodeActionCallback((textDocumentUri: string) => {
-      const actions: CodeAction[] = [];
-      actions.push(...this.findUsePackageActions(reference, textDocumentUri));
-      // If parent is Signal, Port or Variable this reference is in the type reference. So adding signal makes no sense.
-      if (reference.parent instanceof O.OSubtypeIndication === false) {
-        for (const architecture of this.file.architectures) {
-          const args: IAddSignalCommandArguments = { textDocumentUri, signalName: reference.nameToken.text, position: architecture.declarationsRange.end ?? architecture.range.start };
-          actions.push(CodeAction.create(
-            'add signal to architecture',
-            Command.create('add signal to architecture', 'vhdl-linter:add-signal', args),
-            CodeActionKind.QuickFix));
+  private isPrefixOfSelectedName(ref: O.OName) {
+    if (ref instanceof O.OSelectedName === false) {
+      for (const obj of this.file.objectList) {
+        if (obj instanceof O.OSelectedName && obj.prefixTokens[0] === ref) {
+          return true;
         }
       }
-      const possibleMatches = this.file.objectList
-        .filter(obj => typeof obj !== 'undefined' && I.implementsIHasLexerToken(obj))
-        .map(obj => (obj as I.IHasLexerToken).lexerToken.text);
-      const bestMatch = findBestMatch(reference.nameToken.text, possibleMatches);
-      if (bestMatch.bestMatch.rating > 0.5) {
-        actions.push(CodeAction.create(
-          `Replace with ${bestMatch.bestMatch.target} (score: ${bestMatch.bestMatch.rating})`,
-          {
-            changes: {
-              [textDocumentUri]: [TextEdit.replace(Range.create(reference.range.start, reference.range.end), bestMatch.bestMatch.target)]
-            }
-          },
-          CodeActionKind.QuickFix));
+    }
+    return false;
+  }
+  private findAddLibraryActions(ref: O.OName, textDocumentUri: string): CodeAction[] {
+    const actions: CodeAction[] = [];
+    let root = ref.getRootElement();
+    if (root instanceof O.OArchitecture && root.correspondingEntity) {
+      root = root.correspondingEntity;
+    } else if (root instanceof O.OPackageBody && root.correspondingPackage) {
+      root = root.correspondingPackage;
+    }
+    // Only prefix of a selected name
+    if (this.isPrefixOfSelectedName(ref)) {
+      actions.push(CodeAction.create(
+        `add library declaration for ${ref.nameToken.text}`,
+        {
+          changes: {
+            [textDocumentUri]: [TextEdit.insert(root.range.start, `library ${ref.nameToken.text};\n`)]
+          }
+        },
+        CodeActionKind.QuickFix
+      ));
+    }
+    return actions;
+  }
+  private findAddSignalActions(ref: O.OName, textDocumentUri: string): CodeAction[] {
+    const actions: CodeAction[] = [];
+    const root = ref.getRootElement();
+    // Only when in arch and not part of subtypeIndication
+    if (root instanceof O.OArchitecture && ref.parent instanceof O.OSubtypeIndication === false && ref instanceof O.OSelectedName === false) {
+      const args: IAddSignalCommandArguments = { textDocumentUri, signalName: ref.nameToken.text, position: root.declarationsRange.end };
+      actions.push(CodeAction.create(
+        `add ${ref.nameToken.text} as signal to architecture`,
+        Command.create(`add ${ref.nameToken.text} as signal to architecture`, 'vhdl-linter:add-signal', args),
+        CodeActionKind.QuickFix));
+    }
+    return actions;
+  }
+  private findReplacementActions(ref: O.OName, textDocumentUri: string): CodeAction[] {
+    const actions: CodeAction[] = [];
+    const possibleMatches: (O.ODeclaration|O.ORecordChild)[] = [];
+    if (ref instanceof O.OSelectedName) {
+      const defs = ref.prefixTokens.at(-1)!.definitions.filter(def => I.implementsIHasSubTypeIndication(def)) as (O.ObjectBase & I.IHasSubtypeIndication)[];
+      for (const typeDef of defs.flatMap(def => def.subtypeIndication.typeNames).flatMap(name => name.definitions)) {
+        if (I.implementsIHasDeclarations(typeDef)) {
+          possibleMatches.push(...typeDef.declarations);
+        }
+        if (typeDef instanceof O.ORecord) {
+          possibleMatches.push(...typeDef.children);
+        }
       }
+    } else {
+      for (const [obj] of O.scope(ref)) {
+        if (I.implementsIHasDeclarations(obj)) {
+          possibleMatches.push(...obj.declarations);
+        }
+      }
+    }
+    const stringMatches = possibleMatches.filter(m => I.implementsIHasLexerToken(m)).map(m => m.lexerToken!.text);
+    if (stringMatches.length === 0) {
+      return actions;
+    }
+    const bestMatch = findBestMatch(ref.nameToken.text, stringMatches);
+    if (bestMatch.bestMatch.rating > 0.5) {
+      actions.push(CodeAction.create(
+        `Replace with ${bestMatch.bestMatch.target} (score: ${bestMatch.bestMatch.rating})`,
+        {
+          changes: {
+            [textDocumentUri]: [TextEdit.replace(Range.create(ref.nameToken.range.start, ref.nameToken.range.end), bestMatch.bestMatch.target)]
+          }
+        },
+        CodeActionKind.QuickFix));
+    }
+    return actions;
+  }
+  private pushNotDeclaredError(reference: O.OName) {
+    const code = this.vhdlLinter.addCodeActionCallback((textDocumentUri: string) => {
+      const actions = this.findUsePackageActions(reference, textDocumentUri);
+      actions.push(...this.findAddSignalActions(reference, textDocumentUri));
+      actions.push(...this.findAddLibraryActions(reference, textDocumentUri));
+      actions.push(...this.findReplacementActions(reference, textDocumentUri));
       return actions;
     });
     this.addMessage({
