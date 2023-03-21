@@ -1,0 +1,1004 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`testing add signal helper protected.vhd 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "appl does not exist on protected type prot (not-declared)",
+    "range": {
+      "end": {
+        "character": 11,
+        "line": 9,
+      },
+      "start": {
+        "character": 2,
+        "line": 9,
+      },
+    },
+    "severity": 1,
+  },
+  {
+    "code": "2;3",
+    "message": "object 'tes' is referenced but not declared (not-declared)",
+    "range": {
+      "end": {
+        "character": 15,
+        "line": 9,
+      },
+      "start": {
+        "character": 12,
+        "line": 9,
+      },
+    },
+    "severity": 1,
+  },
+  {
+    "code": "4;5",
+    "message": "object 'tes' is written but not declared (not-declared)",
+    "range": {
+      "end": {
+        "character": 15,
+        "line": 9,
+      },
+      "start": {
+        "character": 12,
+        "line": 9,
+      },
+    },
+    "severity": 1,
+  },
+  {
+    "code": "6;7",
+    "message": "object 'tes' is written but not declared (not-declared)",
+    "range": {
+      "end": {
+        "character": 15,
+        "line": 9,
+      },
+      "start": {
+        "character": 12,
+        "line": 9,
+      },
+    },
+    "severity": 1,
+  },
+  {
+    "code": "8;9",
+    "message": "object 'tes' is referenced but not declared (not-declared)",
+    "range": {
+      "end": {
+        "character": 15,
+        "line": 9,
+      },
+      "start": {
+        "character": 12,
+        "line": 9,
+      },
+    },
+    "severity": 1,
+  },
+]
+`;
+
+exports[`testing add signal helper protected.vhd 2`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file:///protected.vhd": [
+          {
+            "newText": "apple",
+            "range": {
+              "end": {
+                "character": 11,
+                "line": 9,
+              },
+              "start": {
+                "character": 7,
+                "line": 9,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Replace with apple (score: 0.8571428571428571)",
+  },
+]
+`;
+
+exports[`testing add signal helper protected.vhd 3`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file://protected.vhd": [
+          {
+            "newText": " -- vhdl-linter-disable-line not-declared",
+            "range": {
+              "end": {
+                "character": 1000,
+                "line": 9,
+              },
+              "start": {
+                "character": 1000,
+                "line": 9,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared on this line.",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file://protected.vhd": [
+          {
+            "newText": "-- vhdl-linter-disable not-declared
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared for this file.",
+  },
+]
+`;
+
+exports[`testing add signal helper protected.vhd 4`] = `
+[
+  {
+    "command": {
+      "arguments": [
+        {
+          "position": {
+            "character": 0,
+            "line": 8,
+          },
+          "signalName": "tes",
+          "textDocumentUri": "file:///protected.vhd",
+        },
+      ],
+      "command": "vhdl-linter:add-signal",
+      "title": "add tes as signal to architecture",
+    },
+    "kind": "quickfix",
+    "title": "add tes as signal to architecture",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file:///protected.vhd": [
+          {
+            "newText": "library tes;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add library declaration for tes",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file:///protected.vhd": [
+          {
+            "newText": "test",
+            "range": {
+              "end": {
+                "character": 15,
+                "line": 9,
+              },
+              "start": {
+                "character": 12,
+                "line": 9,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Replace with test (score: 0.8)",
+  },
+]
+`;
+
+exports[`testing add signal helper protected.vhd 5`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file://protected.vhd": [
+          {
+            "newText": " -- vhdl-linter-disable-line not-declared",
+            "range": {
+              "end": {
+                "character": 1000,
+                "line": 9,
+              },
+              "start": {
+                "character": 1000,
+                "line": 9,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared on this line.",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file://protected.vhd": [
+          {
+            "newText": "-- vhdl-linter-disable not-declared
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared for this file.",
+  },
+]
+`;
+
+exports[`testing add signal helper protected.vhd 6`] = `
+[
+  {
+    "command": {
+      "arguments": [
+        {
+          "position": {
+            "character": 0,
+            "line": 8,
+          },
+          "signalName": "tes",
+          "textDocumentUri": "file:///protected.vhd",
+        },
+      ],
+      "command": "vhdl-linter:add-signal",
+      "title": "add tes as signal to architecture",
+    },
+    "kind": "quickfix",
+    "title": "add tes as signal to architecture",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file:///protected.vhd": [
+          {
+            "newText": "library tes;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add library declaration for tes",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file:///protected.vhd": [
+          {
+            "newText": "test",
+            "range": {
+              "end": {
+                "character": 15,
+                "line": 9,
+              },
+              "start": {
+                "character": 12,
+                "line": 9,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Replace with test (score: 0.8)",
+  },
+]
+`;
+
+exports[`testing add signal helper protected.vhd 7`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file://protected.vhd": [
+          {
+            "newText": " -- vhdl-linter-disable-line not-declared",
+            "range": {
+              "end": {
+                "character": 1000,
+                "line": 9,
+              },
+              "start": {
+                "character": 1000,
+                "line": 9,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared on this line.",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file://protected.vhd": [
+          {
+            "newText": "-- vhdl-linter-disable not-declared
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared for this file.",
+  },
+]
+`;
+
+exports[`testing add signal helper protected.vhd 8`] = `
+[
+  {
+    "command": {
+      "arguments": [
+        {
+          "position": {
+            "character": 0,
+            "line": 8,
+          },
+          "signalName": "tes",
+          "textDocumentUri": "file:///protected.vhd",
+        },
+      ],
+      "command": "vhdl-linter:add-signal",
+      "title": "add tes as signal to architecture",
+    },
+    "kind": "quickfix",
+    "title": "add tes as signal to architecture",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file:///protected.vhd": [
+          {
+            "newText": "library tes;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add library declaration for tes",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file:///protected.vhd": [
+          {
+            "newText": "test",
+            "range": {
+              "end": {
+                "character": 15,
+                "line": 9,
+              },
+              "start": {
+                "character": 12,
+                "line": 9,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Replace with test (score: 0.8)",
+  },
+]
+`;
+
+exports[`testing add signal helper protected.vhd 9`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file://protected.vhd": [
+          {
+            "newText": " -- vhdl-linter-disable-line not-declared",
+            "range": {
+              "end": {
+                "character": 1000,
+                "line": 9,
+              },
+              "start": {
+                "character": 1000,
+                "line": 9,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared on this line.",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file://protected.vhd": [
+          {
+            "newText": "-- vhdl-linter-disable not-declared
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared for this file.",
+  },
+]
+`;
+
+exports[`testing add signal helper protected.vhd 10`] = `
+[
+  {
+    "command": {
+      "arguments": [
+        {
+          "position": {
+            "character": 0,
+            "line": 8,
+          },
+          "signalName": "tes",
+          "textDocumentUri": "file:///protected.vhd",
+        },
+      ],
+      "command": "vhdl-linter:add-signal",
+      "title": "add tes as signal to architecture",
+    },
+    "kind": "quickfix",
+    "title": "add tes as signal to architecture",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file:///protected.vhd": [
+          {
+            "newText": "library tes;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add library declaration for tes",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file:///protected.vhd": [
+          {
+            "newText": "test",
+            "range": {
+              "end": {
+                "character": 15,
+                "line": 9,
+              },
+              "start": {
+                "character": 12,
+                "line": 9,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Replace with test (score: 0.8)",
+  },
+]
+`;
+
+exports[`testing add signal helper protected.vhd 11`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file://protected.vhd": [
+          {
+            "newText": " -- vhdl-linter-disable-line not-declared",
+            "range": {
+              "end": {
+                "character": 1000,
+                "line": 9,
+              },
+              "start": {
+                "character": 1000,
+                "line": 9,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared on this line.",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file://protected.vhd": [
+          {
+            "newText": "-- vhdl-linter-disable not-declared
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared for this file.",
+  },
+]
+`;
+
+exports[`testing add signal helper record.vhd 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "appl does not exist on record rec (not-declared)",
+    "range": {
+      "end": {
+        "character": 11,
+        "line": 8,
+      },
+      "start": {
+        "character": 2,
+        "line": 8,
+      },
+    },
+    "severity": 1,
+  },
+  {
+    "code": "2;3",
+    "message": "object 'tes' is referenced but not declared (not-declared)",
+    "range": {
+      "end": {
+        "character": 18,
+        "line": 8,
+      },
+      "start": {
+        "character": 15,
+        "line": 8,
+      },
+    },
+    "severity": 1,
+  },
+]
+`;
+
+exports[`testing add signal helper record.vhd 2`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file:///record.vhd": [
+          {
+            "newText": "apple",
+            "range": {
+              "end": {
+                "character": 11,
+                "line": 8,
+              },
+              "start": {
+                "character": 7,
+                "line": 8,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Replace with apple (score: 0.8571428571428571)",
+  },
+]
+`;
+
+exports[`testing add signal helper record.vhd 3`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file://record.vhd": [
+          {
+            "newText": " -- vhdl-linter-disable-line not-declared",
+            "range": {
+              "end": {
+                "character": 1000,
+                "line": 8,
+              },
+              "start": {
+                "character": 1000,
+                "line": 8,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared on this line.",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file://record.vhd": [
+          {
+            "newText": "-- vhdl-linter-disable not-declared
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared for this file.",
+  },
+]
+`;
+
+exports[`testing add signal helper record.vhd 4`] = `
+[
+  {
+    "command": {
+      "arguments": [
+        {
+          "position": {
+            "character": 0,
+            "line": 7,
+          },
+          "signalName": "tes",
+          "textDocumentUri": "file:///record.vhd",
+        },
+      ],
+      "command": "vhdl-linter:add-signal",
+      "title": "add tes as signal to architecture",
+    },
+    "kind": "quickfix",
+    "title": "add tes as signal to architecture",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file:///record.vhd": [
+          {
+            "newText": "library tes;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "add library declaration for tes",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file:///record.vhd": [
+          {
+            "newText": "test",
+            "range": {
+              "end": {
+                "character": 18,
+                "line": 8,
+              },
+              "start": {
+                "character": 15,
+                "line": 8,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Replace with test (score: 0.8)",
+  },
+]
+`;
+
+exports[`testing add signal helper record.vhd 5`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file://record.vhd": [
+          {
+            "newText": " -- vhdl-linter-disable-line not-declared",
+            "range": {
+              "end": {
+                "character": 1000,
+                "line": 8,
+              },
+              "start": {
+                "character": 1000,
+                "line": 8,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared on this line.",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file://record.vhd": [
+          {
+            "newText": "-- vhdl-linter-disable not-declared
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared for this file.",
+  },
+]
+`;
+
+exports[`testing add signal helper simple_signal.vhd 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "object 'appl' is written but not declared (not-declared)",
+    "range": {
+      "end": {
+        "character": 6,
+        "line": 5,
+      },
+      "start": {
+        "character": 2,
+        "line": 5,
+      },
+    },
+    "severity": 1,
+  },
+]
+`;
+
+exports[`testing add signal helper simple_signal.vhd 2`] = `
+[
+  {
+    "command": {
+      "arguments": [
+        {
+          "position": {
+            "character": 0,
+            "line": 4,
+          },
+          "signalName": "appl",
+          "textDocumentUri": "file:///simple_signal.vhd",
+        },
+      ],
+      "command": "vhdl-linter:add-signal",
+      "title": "add appl as signal to architecture",
+    },
+    "kind": "quickfix",
+    "title": "add appl as signal to architecture",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file:///simple_signal.vhd": [
+          {
+            "newText": "apple",
+            "range": {
+              "end": {
+                "character": 6,
+                "line": 5,
+              },
+              "start": {
+                "character": 2,
+                "line": 5,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Replace with apple (score: 0.8571428571428571)",
+  },
+]
+`;
+
+exports[`testing add signal helper simple_signal.vhd 3`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "file://simple_signal.vhd": [
+          {
+            "newText": " -- vhdl-linter-disable-line not-declared",
+            "range": {
+              "end": {
+                "character": 1000,
+                "line": 5,
+              },
+              "start": {
+                "character": 1000,
+                "line": 5,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared on this line.",
+  },
+  {
+    "edit": {
+      "changes": {
+        "file://simple_signal.vhd": [
+          {
+            "newText": "-- vhdl-linter-disable not-declared
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared for this file.",
+  },
+]
+`;

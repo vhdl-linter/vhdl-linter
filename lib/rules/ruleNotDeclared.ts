@@ -7,7 +7,7 @@ import { IRule, RuleBase } from "./rulesBase";
 
 export class RuleNotDeclared extends RuleBase implements IRule {
   public static readonly ruleName = 'not-declared';
-  private findUsePackageActions(ref: O.OName, textDocumentUri: string): CodeAction[] {
+  private findUsePackageActions(ref: O.OName): CodeAction[] {
     const actions: CodeAction[] = [];
     const proposals = new Set<string>();
     let root = ref.getRootElement();
@@ -44,7 +44,7 @@ export class RuleNotDeclared extends RuleBase implements IRule {
         `add use statement for ${library}.${pkgName}`,
         {
           changes: {
-            [textDocumentUri]: [TextEdit.insert(pos, newText)]
+            [root.rootFile.uri.toString()]: [TextEdit.insert(pos, newText)]
           }
         },
         CodeActionKind.QuickFix
@@ -63,7 +63,7 @@ export class RuleNotDeclared extends RuleBase implements IRule {
     }
     return false;
   }
-  private findAddLibraryActions(ref: O.OName, textDocumentUri: string): CodeAction[] {
+  private findAddLibraryActions(ref: O.OName): CodeAction[] {
     const actions: CodeAction[] = [];
     let root = ref.getRootElement();
     if (root instanceof O.OArchitecture && root.correspondingEntity) {
@@ -77,7 +77,7 @@ export class RuleNotDeclared extends RuleBase implements IRule {
         `add library declaration for ${ref.nameToken.text}`,
         {
           changes: {
-            [textDocumentUri]: [TextEdit.insert(root.range.start, `library ${ref.nameToken.text};\n`)]
+            [root.rootFile.uri.toString()]: [TextEdit.insert(root.range.start, `library ${ref.nameToken.text};\n`)]
           }
         },
         CodeActionKind.QuickFix
@@ -85,12 +85,16 @@ export class RuleNotDeclared extends RuleBase implements IRule {
     }
     return actions;
   }
-  private findAddSignalActions(ref: O.OName, textDocumentUri: string): CodeAction[] {
+  private findAddSignalActions(ref: O.OName): CodeAction[] {
     const actions: CodeAction[] = [];
     const root = ref.getRootElement();
     // Only when in arch and not part of subtypeIndication
     if (root instanceof O.OArchitecture && ref.parent instanceof O.OSubtypeIndication === false && ref instanceof O.OSelectedName === false) {
-      const args: IAddSignalCommandArguments = { textDocumentUri, signalName: ref.nameToken.text, position: root.declarationsRange.end };
+      const args: IAddSignalCommandArguments = {
+        textDocumentUri: root.rootFile.uri.toString(),
+        signalName: ref.nameToken.text,
+        position: root.declarationsRange.end
+      };
       actions.push(CodeAction.create(
         `add ${ref.nameToken.text} as signal to architecture`,
         Command.create(`add ${ref.nameToken.text} as signal to architecture`, 'vhdl-linter:add-signal', args),
@@ -98,7 +102,7 @@ export class RuleNotDeclared extends RuleBase implements IRule {
     }
     return actions;
   }
-  private findReplacementActions(ref: O.OName, textDocumentUri: string): CodeAction[] {
+  private findReplacementActions(ref: O.OName): CodeAction[] {
     const actions: CodeAction[] = [];
     const possibleMatches: (O.ODeclaration|O.ORecordChild)[] = [];
     if (ref instanceof O.OSelectedName) {
@@ -128,7 +132,7 @@ export class RuleNotDeclared extends RuleBase implements IRule {
         `Replace with ${bestMatch.bestMatch.target} (score: ${bestMatch.bestMatch.rating})`,
         {
           changes: {
-            [textDocumentUri]: [TextEdit.replace(Range.create(ref.nameToken.range.start, ref.nameToken.range.end), bestMatch.bestMatch.target)]
+            [ref.rootFile.uri.toString()]: [TextEdit.replace(Range.create(ref.nameToken.range.start, ref.nameToken.range.end), bestMatch.bestMatch.target)]
           }
         },
         CodeActionKind.QuickFix));
@@ -136,11 +140,11 @@ export class RuleNotDeclared extends RuleBase implements IRule {
     return actions;
   }
   private pushNotDeclaredError(reference: O.OName) {
-    const code = this.vhdlLinter.addCodeActionCallback((textDocumentUri: string) => {
-      const actions = this.findUsePackageActions(reference, textDocumentUri);
-      actions.push(...this.findAddSignalActions(reference, textDocumentUri));
-      actions.push(...this.findAddLibraryActions(reference, textDocumentUri));
-      actions.push(...this.findReplacementActions(reference, textDocumentUri));
+    const code = this.vhdlLinter.addCodeActionCallback(() => {
+      const actions = this.findUsePackageActions(reference);
+      actions.push(...this.findAddSignalActions(reference));
+      actions.push(...this.findAddLibraryActions(reference));
+      actions.push(...this.findReplacementActions(reference));
       return actions;
     });
     this.addMessage({

@@ -31,7 +31,7 @@ exports[`testing add signal helper architecture.vhd 2`] = `
             "line": 9,
           },
           "signalName": "foo",
-          "textDocumentUri": "file://architecture.vhd",
+          "textDocumentUri": "file:///architecture.vhd",
         },
       ],
       "command": "vhdl-linter:add-signal",
@@ -48,7 +48,7 @@ exports[`testing add signal helper architecture.vhd 3`] = `
   {
     "edit": {
       "changes": {
-        "file://architecture.vhd": [
+        "file:///architecture.vhd": [
           {
             "newText": " -- vhdl-linter-disable-line not-declared",
             "range": {
@@ -71,7 +71,7 @@ exports[`testing add signal helper architecture.vhd 3`] = `
   {
     "edit": {
       "changes": {
-        "file://architecture.vhd": [
+        "file:///architecture.vhd": [
           {
             "newText": "-- vhdl-linter-disable not-declared
 ",
@@ -126,7 +126,7 @@ exports[`testing add signal helper generic.vhd 2`] = `
             "line": 15,
           },
           "signalName": "test",
-          "textDocumentUri": "file://generic.vhd",
+          "textDocumentUri": "file:///generic.vhd",
         },
       ],
       "command": "vhdl-linter:add-signal",
@@ -143,7 +143,7 @@ exports[`testing add signal helper generic.vhd 3`] = `
   {
     "edit": {
       "changes": {
-        "file://generic.vhd": [
+        "file:///generic.vhd": [
           {
             "newText": " -- vhdl-linter-disable-line not-declared",
             "range": {
@@ -166,7 +166,7 @@ exports[`testing add signal helper generic.vhd 3`] = `
   {
     "edit": {
       "changes": {
-        "file://generic.vhd": [
+        "file:///generic.vhd": [
           {
             "newText": "-- vhdl-linter-disable not-declared
 ",
