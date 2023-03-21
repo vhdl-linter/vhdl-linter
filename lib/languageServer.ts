@@ -5,6 +5,7 @@ import {
   CancellationToken,
   CodeAction, createConnection, DidChangeConfigurationNotification, InitializeParams, LSPErrorCodes, Position, ProposedFeatures, ResponseError, TextDocuments, TextDocumentSyncKind
 } from 'vscode-languageserver/node';
+import { converterTypes, entityConverter } from './entityConverter';
 import { getCompletions } from './languageFeatures/completion';
 import { handleDocumentFormatting } from './languageFeatures/documentFormatting';
 import { documentHighlightHandler } from './languageFeatures/documentHighlightHandler';
@@ -20,7 +21,6 @@ import { LinterManager } from './linterManager';
 import { normalizeUri } from './normalizeUri';
 import { ProjectParser } from './projectParser';
 import { defaultSettings, ISettings, normalizeSettings } from './settings';
-import { entityConverter, converterTypes } from './entityConverter';
 
 // Create a connection for the server. The connection auto detected protocol
 // Also include all preview / proposed LSP features.
@@ -84,7 +84,9 @@ connection.onInitialize((params: InitializeParams) => {
   return {
     capabilities: {
       textDocumentSync: TextDocumentSyncKind.Full,
-      codeActionProvider: true,
+      codeActionProvider: {
+        resolveProvider: true
+      },
       // Tell the client that the server supports code completion
       completionProvider: {
         resolveProvider: false
@@ -206,28 +208,51 @@ connection.onDidChangeWatchedFiles(() => {
   // Monitored files have change in VS Code
   connection.console.log('We received an file change event');
 });
+interface CodeActionData {
+  uri: string;
+  code: number;
+  index: number;
+}
 connection.onCodeAction(async (params, token): Promise<CodeAction[]> => {
   const linter = await linterManager.getLinter(params.textDocument.uri, token);
   // linter.codeActionEvent.emit()
-  const actions = [];
+  const actions: CodeAction[] = [];
   for (const diagnostic of params.context.diagnostics) {
+    const codes: number[] = [];
     if (typeof diagnostic.code === 'number') {
-      const callback = linter.diagnosticCodeActionRegistry[diagnostic.code];
-      if (typeof callback === 'function') {
-        actions.push(...callback(params.textDocument.uri));
-      }
+      codes.push(diagnostic.code);
     } else if (typeof diagnostic.code === 'string') {
-      const codes = diagnostic.code.split(';').map(a => parseInt(a));
-      for (const code of codes) {
-        const callback = linter.diagnosticCodeActionRegistry[code];
-        if (typeof callback === 'function') {
-          actions.push(...callback(params.textDocument.uri));
-        }
+      codes.push(...diagnostic.code.split(';').map(a => parseInt(a)));
+    }
+    for (const code of codes) {
+      const callback = linter.diagnosticCodeActionRegistry[code];
+      if (typeof callback === 'function') {
+        actions.push(...(await callback(params.textDocument.uri)).map((action, index) => ({
+          ...action,
+          data: {
+            uri: linter.uri.toString(),
+            code,
+            index
+          }
+        })));
 
       }
+
     }
   }
   return actions;
+});
+connection.onCodeActionResolve(async (codeAction, token) => {
+  if ((codeAction?.data as CodeActionData)?.uri !== undefined && (codeAction?.data as CodeActionData)?.code !== undefined
+    && (codeAction?.data as CodeActionData)?.index !== undefined) {
+    const data = (codeAction?.data as CodeActionData);
+    const linter = await linterManager.getLinter(data.uri, token);
+
+    const callback = linter.diagnosticCodeActionResolveRegistry[data.code];
+    if (typeof callback === 'function') {
+      return (await callback(data.uri))[data.index];
+    }
+  }
 });
 connection.onDocumentSymbol(async (params, token) => {
   const linter = await linterManager.getLinter(params.textDocument.uri, token);
@@ -333,7 +358,7 @@ connection.onRequest('vhdl-linter/template', async (params: { textDocument: { ur
   const settings = await getDocumentSettings(new URL(params.textDocument.uri));
   return entityConverter(linter, params.type, settings, params.position);
 });
-  documents.listen(connection);
+documents.listen(connection);
 
-  // Listen on the connection
-  connection.listen();
+// Listen on the connection
+connection.listen();

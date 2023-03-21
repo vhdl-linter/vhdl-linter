@@ -28,7 +28,7 @@ export interface IIgnoreLineCommandArguments {
   range: Range;
 }
 export type SettingsGetter = (resource: URL) => Promise<ISettings> | ISettings;
-type diagnosticCodeActionCallback = (textDocumentUri: string) => CodeAction[];
+type diagnosticCodeActionCallback = (textDocumentUri: string) => Promise<CodeAction[]> | CodeAction[];
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export class VhdlLinter {
   messages: Diagnostic[] = [];
@@ -51,16 +51,14 @@ export class VhdlLinter {
         let code;
         if (solution) {
           code = this.addCodeActionCallback((textDocumentUri: string) => {
-            const actions = [];
-            actions.push(CodeAction.create(
+            return [CodeAction.create(
               solution.message,
               {
                 changes: {
                   [textDocumentUri]: solution.edits
                 }
               },
-              CodeActionKind.QuickFix));
-            return actions;
+              CodeActionKind.QuickFix)];
           });
         }
         // Include the parser messages that did not result in fatal.
@@ -94,8 +92,14 @@ export class VhdlLinter {
   }
 
   diagnosticCodeActionRegistry: diagnosticCodeActionCallback[] = [];
-  addCodeActionCallback(handler: diagnosticCodeActionCallback): number {
-    return this.diagnosticCodeActionRegistry.push(handler) - 1;
+  diagnosticCodeActionResolveRegistry: Record<number, diagnosticCodeActionCallback> = {};
+
+  addCodeActionCallback(handler: diagnosticCodeActionCallback, resolveHandler?: diagnosticCodeActionCallback): number {
+    const index =  this.diagnosticCodeActionRegistry.push(handler) - 1;
+    if (resolveHandler) {
+      this.diagnosticCodeActionResolveRegistry[index] = resolveHandler;
+    }
+    return index;
   }
 
   addMessage(diagnostic: OIDiagnostic, name: string): void {

@@ -47,8 +47,8 @@ test.each([
   const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }),
     await ProjectParser.create([], '', defaultSettingsGetter), defaultSettingsGetter);
   await linter.checkAll();
-  const changes = linter.diagnosticCodeActionRegistry
-    .map(callback => callback(path)).flat()
+  const changes = (await Promise.all(linter.diagnosticCodeActionRegistry
+    .map(async callback => await callback(path)))).flat()
     .map(actions => {
       return Object.values(actions.edit?.changes ?? {});
     }).flat(2)
