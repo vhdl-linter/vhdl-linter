@@ -11,7 +11,7 @@ begin
 
   inst_test_else_generate : test_else_generate
     port map (
-      i_clk => '0'
+      i_clk => '0' 
       );
 
 

@@ -50,6 +50,28 @@ exports[`testing semantic tokens for test.vhd direction coloring true 1`] = `
 ]
 `;
 
+exports[`testing semantic tokens for test_comp_inst.vhd direction coloring false 1`] = `
+[
+  "       1:8        class                test_component_inst",
+  "      3:14        class                arch",
+  "      3:22        class                test_component_inst",
+  "      4:12        class                test_instantiation",
+  "      7:29        class                test_instantiation",
+  "      7:29        class                test_instantiation",
+]
+`;
+
+exports[`testing semantic tokens for test_comp_inst.vhd direction coloring true 1`] = `
+[
+  "       1:8        class                test_component_inst",
+  "      3:14        class                arch",
+  "      3:22        class                test_component_inst",
+  "      4:12        class                test_instantiation",
+  "      7:29        class                test_instantiation",
+  "      7:29        class                test_instantiation",
+]
+`;
+
 exports[`testing semantic tokens for test_instantiation.vhd direction coloring false 1`] = `
 [
   "       1:9        class                ieee",
