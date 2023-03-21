@@ -1,15 +1,23 @@
 import { readFileSync, writeFileSync } from "fs";
 import { rules } from './lib/rules/ruleIndex';
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
+const settings: Record<string, {
+  type: string;
+  enum?: string[];
+  items?: {
+    type: string
+  };
+  default?: string | boolean | string[];
+}> = {};
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-const settings = JSON.parse(readFileSync('package.json', { encoding: 'utf8' })).contributes.configuration.properties as Record<string, {
-    type: string;
-    enum?: string[];
-    items?: {
-      type: string
-    };
-    default?: string | boolean | string[];
-  }>;
+for (const configuration of JSON.parse(readFileSync('package.json', { encoding: 'utf8' })).contributes.configuration) {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+  for (const [key, object] of Object.entries(configuration.properties)) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+    settings[key] = object as any;
+  }
+}
 interface ISettings {
   [key: string]: ISettings | string | boolean | string[];
 }

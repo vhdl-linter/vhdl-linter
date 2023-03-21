@@ -1,4 +1,10 @@
+import { join } from "path";
+import { pathToFileURL } from "url";
 import { Position, Range } from "vscode-languageserver";
+import { ProjectParser } from "../lib/projectParser";
+import { defaultSettingsGetter } from "../lib/settings";
+import { VhdlLinter } from "../lib/vhdlLinter";
+import { readFileSyncNorm } from "./readFileSyncNorm";
 
 export function makeRangePrintable(range: Range) {
   return `${range.start.line + 1}:${range.start.character + 1} - ${range.end.line + 1}:${range.end.character + 1}`;
@@ -29,4 +35,12 @@ export function createPrintablePosition(onesLine: number, onesCharacter: number)
     toString: () => makePositionPrintable(position)
   };
   return position;
+}
+export async function runLinterGetMessages(folder: string, file: string, settingsGetter = defaultSettingsGetter) {
+
+  const projectParser = await ProjectParser.create([pathToFileURL(folder)], '', settingsGetter);
+  const linter = new VhdlLinter(pathToFileURL(join(folder, file)), readFileSyncNorm(join(folder, file), {encoding: 'utf8'}), projectParser, settingsGetter);
+  const messages = await linter.checkAll();
+  await projectParser.stop();
+  return messages;
 }

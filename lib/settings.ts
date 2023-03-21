@@ -7,7 +7,9 @@ export const defaultSettings = normalizeSettings(defaultSettingsGenerated);
 export function normalizeSettings(settings: ISettings) {
   const newSettings = JSON.parse(JSON.stringify(settings)) as ISettings;
   for (const [key, value] of Object.entries(newSettings.style)) {
-    (newSettings.style as Record<string, string>)[key] = value.trim();
+    if (typeof (newSettings.style as Record<string, unknown>)[key] === 'string') {
+      (newSettings.style as Record<string, unknown>)[key] = (value as string).trim();
+    }
   }
   return newSettings;
 }

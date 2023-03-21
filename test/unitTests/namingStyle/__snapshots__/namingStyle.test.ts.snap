@@ -20,6 +20,30 @@ exports[`testing naming style for constant with prefix "" and suffix "_suf" 1`] 
 ]
 `;
 
+exports[`testing naming style for constant with prefix "" and suffix "_suf" 2`] = `
+[
+  {
+    "edit": [
+      {
+        "newText": "apple_suf",
+        "range": {
+          "end": {
+            "character": 16,
+            "line": 1,
+          },
+          "start": {
+            "character": 11,
+            "line": 1,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'apple_suf'",
+  },
+]
+`;
+
 exports[`testing naming style for constant with prefix "pre_" and suffix "" 1`] = `
 [
   {
@@ -36,6 +60,30 @@ exports[`testing naming style for constant with prefix "pre_" and suffix "" 1`] 
       },
     },
     "severity": 2,
+  },
+]
+`;
+
+exports[`testing naming style for constant with prefix "pre_" and suffix "" 2`] = `
+[
+  {
+    "edit": [
+      {
+        "newText": "pre_apple",
+        "range": {
+          "end": {
+            "character": 16,
+            "line": 1,
+          },
+          "start": {
+            "character": 11,
+            "line": 1,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'pre_apple'",
   },
 ]
 `;
@@ -60,6 +108,43 @@ exports[`testing naming style for generic with prefix "" and suffix "_suf" 1`] =
 ]
 `;
 
+exports[`testing naming style for generic with prefix "" and suffix "_suf" 2`] = `
+[
+  {
+    "edit": [
+      {
+        "newText": "apple_suf",
+        "range": {
+          "end": {
+            "character": 9,
+            "line": 2,
+          },
+          "start": {
+            "character": 4,
+            "line": 2,
+          },
+        },
+      },
+      {
+        "newText": "apple_suf",
+        "range": {
+          "end": {
+            "character": 30,
+            "line": 9,
+          },
+          "start": {
+            "character": 25,
+            "line": 9,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'apple_suf'",
+  },
+]
+`;
+
 exports[`testing naming style for generic with prefix "pre_" and suffix "" 1`] = `
 [
   {
@@ -76,6 +161,43 @@ exports[`testing naming style for generic with prefix "pre_" and suffix "" 1`] =
       },
     },
     "severity": 2,
+  },
+]
+`;
+
+exports[`testing naming style for generic with prefix "pre_" and suffix "" 2`] = `
+[
+  {
+    "edit": [
+      {
+        "newText": "pre_apple",
+        "range": {
+          "end": {
+            "character": 9,
+            "line": 2,
+          },
+          "start": {
+            "character": 4,
+            "line": 2,
+          },
+        },
+      },
+      {
+        "newText": "pre_apple",
+        "range": {
+          "end": {
+            "character": 30,
+            "line": 9,
+          },
+          "start": {
+            "character": 25,
+            "line": 9,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'pre_apple'",
   },
 ]
 `;
@@ -100,6 +222,30 @@ exports[`testing naming style for in with prefix "" and suffix "_suf" 1`] = `
 ]
 `;
 
+exports[`testing naming style for in with prefix "" and suffix "_suf" 2`] = `
+[
+  {
+    "edit": [
+      {
+        "newText": "apple_suf",
+        "range": {
+          "end": {
+            "character": 9,
+            "line": 2,
+          },
+          "start": {
+            "character": 4,
+            "line": 2,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'apple_suf'",
+  },
+]
+`;
+
 exports[`testing naming style for in with prefix "pre_" and suffix "" 1`] = `
 [
   {
@@ -116,6 +262,30 @@ exports[`testing naming style for in with prefix "pre_" and suffix "" 1`] = `
       },
     },
     "severity": 2,
+  },
+]
+`;
+
+exports[`testing naming style for in with prefix "pre_" and suffix "" 2`] = `
+[
+  {
+    "edit": [
+      {
+        "newText": "pre_apple",
+        "range": {
+          "end": {
+            "character": 9,
+            "line": 2,
+          },
+          "start": {
+            "character": 4,
+            "line": 2,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'pre_apple'",
   },
 ]
 `;
@@ -140,6 +310,30 @@ exports[`testing naming style for inout with prefix "" and suffix "_suf" 1`] = `
 ]
 `;
 
+exports[`testing naming style for inout with prefix "" and suffix "_suf" 2`] = `
+[
+  {
+    "edit": [
+      {
+        "newText": "apple_suf",
+        "range": {
+          "end": {
+            "character": 9,
+            "line": 2,
+          },
+          "start": {
+            "character": 4,
+            "line": 2,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'apple_suf'",
+  },
+]
+`;
+
 exports[`testing naming style for inout with prefix "pre_" and suffix "" 1`] = `
 [
   {
@@ -160,25 +354,34 @@ exports[`testing naming style for inout with prefix "pre_" and suffix "" 1`] = `
 ]
 `;
 
+exports[`testing naming style for inout with prefix "pre_" and suffix "" 2`] = `
+[
+  {
+    "edit": [
+      {
+        "newText": "pre_apple",
+        "range": {
+          "end": {
+            "character": 9,
+            "line": 2,
+          },
+          "start": {
+            "character": 4,
+            "line": 2,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'pre_apple'",
+  },
+]
+`;
+
 exports[`testing naming style for instantiationLabel with prefix "" and suffix "_suf" 1`] = `
 [
   {
-    "code": "0",
-    "message": "can not find entity work.ent (instantiation)",
-    "range": {
-      "end": {
-        "character": 25,
-        "line": 4,
-      },
-      "start": {
-        "character": 2,
-        "line": 4,
-      },
-    },
-    "severity": 2,
-  },
-  {
-    "code": "1;2",
+    "code": "0;1",
     "message": "apple does not match the style settings for instantiation label (name_suf) (naming-style)",
     "range": {
       "end": {
@@ -195,25 +398,20 @@ exports[`testing naming style for instantiationLabel with prefix "" and suffix "
 ]
 `;
 
+exports[`testing naming style for instantiationLabel with prefix "" and suffix "_suf" 2`] = `
+[
+  {
+    "edit": undefined,
+    "kind": "quickfix",
+    "title": "Replace with 'apple_suf'",
+  },
+]
+`;
+
 exports[`testing naming style for instantiationLabel with prefix "pre_" and suffix "" 1`] = `
 [
   {
-    "code": "0",
-    "message": "can not find entity work.ent (instantiation)",
-    "range": {
-      "end": {
-        "character": 25,
-        "line": 4,
-      },
-      "start": {
-        "character": 2,
-        "line": 4,
-      },
-    },
-    "severity": 2,
-  },
-  {
-    "code": "1;2",
+    "code": "0;1",
     "message": "apple does not match the style settings for instantiation label (pre_name) (naming-style)",
     "range": {
       "end": {
@@ -226,6 +424,16 @@ exports[`testing naming style for instantiationLabel with prefix "pre_" and suff
       },
     },
     "severity": 2,
+  },
+]
+`;
+
+exports[`testing naming style for instantiationLabel with prefix "pre_" and suffix "" 2`] = `
+[
+  {
+    "edit": undefined,
+    "kind": "quickfix",
+    "title": "Replace with 'pre_apple'",
   },
 ]
 `;
@@ -250,6 +458,30 @@ exports[`testing naming style for out with prefix "" and suffix "_suf" 1`] = `
 ]
 `;
 
+exports[`testing naming style for out with prefix "" and suffix "_suf" 2`] = `
+[
+  {
+    "edit": [
+      {
+        "newText": "apple_suf",
+        "range": {
+          "end": {
+            "character": 9,
+            "line": 2,
+          },
+          "start": {
+            "character": 4,
+            "line": 2,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'apple_suf'",
+  },
+]
+`;
+
 exports[`testing naming style for out with prefix "pre_" and suffix "" 1`] = `
 [
   {
@@ -266,6 +498,30 @@ exports[`testing naming style for out with prefix "pre_" and suffix "" 1`] = `
       },
     },
     "severity": 2,
+  },
+]
+`;
+
+exports[`testing naming style for out with prefix "pre_" and suffix "" 2`] = `
+[
+  {
+    "edit": [
+      {
+        "newText": "pre_apple",
+        "range": {
+          "end": {
+            "character": 9,
+            "line": 2,
+          },
+          "start": {
+            "character": 4,
+            "line": 2,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'pre_apple'",
   },
 ]
 `;
@@ -290,6 +546,30 @@ exports[`testing naming style for signal with prefix "" and suffix "_suf" 1`] = 
 ]
 `;
 
+exports[`testing naming style for signal with prefix "" and suffix "_suf" 2`] = `
+[
+  {
+    "edit": [
+      {
+        "newText": "apple_suf",
+        "range": {
+          "end": {
+            "character": 14,
+            "line": 3,
+          },
+          "start": {
+            "character": 9,
+            "line": 3,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'apple_suf'",
+  },
+]
+`;
+
 exports[`testing naming style for signal with prefix "pre_" and suffix "" 1`] = `
 [
   {
@@ -306,6 +586,144 @@ exports[`testing naming style for signal with prefix "pre_" and suffix "" 1`] = 
       },
     },
     "severity": 2,
+  },
+]
+`;
+
+exports[`testing naming style for signal with prefix "pre_" and suffix "" 2`] = `
+[
+  {
+    "edit": [
+      {
+        "newText": "pre_apple",
+        "range": {
+          "end": {
+            "character": 14,
+            "line": 3,
+          },
+          "start": {
+            "character": 9,
+            "line": 3,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'pre_apple'",
+  },
+]
+`;
+
+exports[`testing naming style for unused with prefix "" and suffix "_suf" 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "Not writing signal 'apple' (unused)",
+    "range": {
+      "end": {
+        "character": 14,
+        "line": 3,
+      },
+      "start": {
+        "character": 9,
+        "line": 3,
+      },
+    },
+    "severity": 2,
+  },
+]
+`;
+
+exports[`testing naming style for unused with prefix "" and suffix "_suf" 2`] = `
+[
+  {
+    "edit": [
+      {
+        "newText": "apple_suf",
+        "range": {
+          "end": {
+            "character": 14,
+            "line": 3,
+          },
+          "start": {
+            "character": 9,
+            "line": 3,
+          },
+        },
+      },
+      {
+        "newText": "apple_suf",
+        "range": {
+          "end": {
+            "character": 30,
+            "line": 7,
+          },
+          "start": {
+            "character": 25,
+            "line": 7,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'apple_suf'",
+  },
+]
+`;
+
+exports[`testing naming style for unused with prefix "pre_" and suffix "" 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "Not writing signal 'apple' (unused)",
+    "range": {
+      "end": {
+        "character": 14,
+        "line": 3,
+      },
+      "start": {
+        "character": 9,
+        "line": 3,
+      },
+    },
+    "severity": 2,
+  },
+]
+`;
+
+exports[`testing naming style for unused with prefix "pre_" and suffix "" 2`] = `
+[
+  {
+    "edit": [
+      {
+        "newText": "pre_apple",
+        "range": {
+          "end": {
+            "character": 14,
+            "line": 3,
+          },
+          "start": {
+            "character": 9,
+            "line": 3,
+          },
+        },
+      },
+      {
+        "newText": "pre_apple",
+        "range": {
+          "end": {
+            "character": 30,
+            "line": 7,
+          },
+          "start": {
+            "character": 25,
+            "line": 7,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'pre_apple'",
   },
 ]
 `;
@@ -330,6 +748,30 @@ exports[`testing naming style for variable with prefix "" and suffix "_suf" 1`] 
 ]
 `;
 
+exports[`testing naming style for variable with prefix "" and suffix "_suf" 2`] = `
+[
+  {
+    "edit": [
+      {
+        "newText": "apple_suf",
+        "range": {
+          "end": {
+            "character": 16,
+            "line": 1,
+          },
+          "start": {
+            "character": 11,
+            "line": 1,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'apple_suf'",
+  },
+]
+`;
+
 exports[`testing naming style for variable with prefix "pre_" and suffix "" 1`] = `
 [
   {
@@ -346,6 +788,30 @@ exports[`testing naming style for variable with prefix "pre_" and suffix "" 1`] 
       },
     },
     "severity": 2,
+  },
+]
+`;
+
+exports[`testing naming style for variable with prefix "pre_" and suffix "" 2`] = `
+[
+  {
+    "edit": [
+      {
+        "newText": "pre_apple",
+        "range": {
+          "end": {
+            "character": 16,
+            "line": 1,
+          },
+          "start": {
+            "character": 11,
+            "line": 1,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'pre_apple'",
   },
 ]
 `;
