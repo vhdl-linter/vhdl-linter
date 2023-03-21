@@ -25,7 +25,7 @@ exports[`testing add use statement actions for file arch.vhd 2`] = `
   {
     "edit": {
       "changes": {
-        "file:///dummy.vhd": [
+        "dummy.vhd": [
           {
             "newText": "library ieee;
 use ieee.std_logic_1164.all;
@@ -55,7 +55,7 @@ exports[`testing add use statement actions for file arch.vhd 3`] = `
   {
     "edit": {
       "changes": {
-        "file:///dummy.vhd": [
+        "dummy.vhd": [
           {
             "newText": " -- vhdl-linter-disable-line not-declared",
             "range": {
@@ -78,7 +78,7 @@ exports[`testing add use statement actions for file arch.vhd 3`] = `
   {
     "edit": {
       "changes": {
-        "file:///dummy.vhd": [
+        "dummy.vhd": [
           {
             "newText": "-- vhdl-linter-disable not-declared
 ",
@@ -127,7 +127,7 @@ exports[`testing add use statement actions for file constant.vhd 2`] = `
   {
     "edit": {
       "changes": {
-        "file:///dummy.vhd": [
+        "dummy.vhd": [
           {
             "newText": "use ieee.fixed_generic_pkg.all;
 ",
@@ -151,7 +151,7 @@ exports[`testing add use statement actions for file constant.vhd 2`] = `
   {
     "edit": {
       "changes": {
-        "file:///dummy.vhd": [
+        "dummy.vhd": [
           {
             "newText": "use ieee.float_generic_pkg.all;
 ",
@@ -175,7 +175,7 @@ exports[`testing add use statement actions for file constant.vhd 2`] = `
   {
     "edit": {
       "changes": {
-        "file:///dummy.vhd": [
+        "dummy.vhd": [
           {
             "newText": "use ieee.math_complex.all;
 ",
@@ -199,7 +199,7 @@ exports[`testing add use statement actions for file constant.vhd 2`] = `
   {
     "edit": {
       "changes": {
-        "file:///dummy.vhd": [
+        "dummy.vhd": [
           {
             "newText": "use ieee.math_real.all;
 ",
@@ -223,7 +223,7 @@ exports[`testing add use statement actions for file constant.vhd 2`] = `
   {
     "edit": {
       "changes": {
-        "file:///dummy.vhd": [
+        "dummy.vhd": [
           {
             "newText": "use ieee.numeric_bit.all;
 ",
@@ -247,7 +247,7 @@ exports[`testing add use statement actions for file constant.vhd 2`] = `
   {
     "edit": {
       "changes": {
-        "file:///dummy.vhd": [
+        "dummy.vhd": [
           {
             "newText": "use ieee.numeric_bit_unsigned.all;
 ",
@@ -271,7 +271,7 @@ exports[`testing add use statement actions for file constant.vhd 2`] = `
   {
     "edit": {
       "changes": {
-        "file:///dummy.vhd": [
+        "dummy.vhd": [
           {
             "newText": "use ieee.numeric_std.all;
 ",
@@ -295,7 +295,7 @@ exports[`testing add use statement actions for file constant.vhd 2`] = `
   {
     "edit": {
       "changes": {
-        "file:///dummy.vhd": [
+        "dummy.vhd": [
           {
             "newText": "use ieee.numeric_std_unsigned.all;
 ",
@@ -342,7 +342,7 @@ exports[`testing add use statement actions for file constant.vhd 3`] = `
   {
     "edit": {
       "changes": {
-        "file:///dummy.vhd": [
+        "dummy.vhd": [
           {
             "newText": " -- vhdl-linter-disable-line not-declared",
             "range": {
@@ -365,7 +365,7 @@ exports[`testing add use statement actions for file constant.vhd 3`] = `
   {
     "edit": {
       "changes": {
-        "file:///dummy.vhd": [
+        "dummy.vhd": [
           {
             "newText": "-- vhdl-linter-disable not-declared
 ",
@@ -414,7 +414,7 @@ exports[`testing add use statement actions for file entity.vhd 2`] = `
   {
     "edit": {
       "changes": {
-        "file:///dummy.vhd": [
+        "dummy.vhd": [
           {
             "newText": "use ieee.std_logic_1164.all;
 ",
@@ -443,7 +443,7 @@ exports[`testing add use statement actions for file entity.vhd 3`] = `
   {
     "edit": {
       "changes": {
-        "file:///dummy.vhd": [
+        "dummy.vhd": [
           {
             "newText": " -- vhdl-linter-disable-line not-declared",
             "range": {
@@ -466,7 +466,7 @@ exports[`testing add use statement actions for file entity.vhd 3`] = `
   {
     "edit": {
       "changes": {
-        "file:///dummy.vhd": [
+        "dummy.vhd": [
           {
             "newText": "-- vhdl-linter-disable not-declared
 ",
@@ -515,7 +515,7 @@ exports[`testing add use statement actions for file entityWithLibrary.vhd 2`] = 
   {
     "edit": {
       "changes": {
-        "file:///dummy.vhd": [
+        "dummy.vhd": [
           {
             "newText": "library ieee;
 use ieee.std_logic_1164.all;
@@ -545,7 +545,7 @@ exports[`testing add use statement actions for file entityWithLibrary.vhd 3`] = 
   {
     "edit": {
       "changes": {
-        "file:///dummy.vhd": [
+        "dummy.vhd": [
           {
             "newText": " -- vhdl-linter-disable-line not-declared",
             "range": {
@@ -568,7 +568,7 @@ exports[`testing add use statement actions for file entityWithLibrary.vhd 3`] = 
   {
     "edit": {
       "changes": {
-        "file:///dummy.vhd": [
+        "dummy.vhd": [
           {
             "newText": "-- vhdl-linter-disable not-declared
 ",
@@ -617,7 +617,7 @@ exports[`testing add use statement actions for file function.vhd 2`] = `
   {
     "edit": {
       "changes": {
-        "file:///dummy.vhd": [
+        "dummy.vhd": [
           {
             "newText": "use ieee.fixed_generic_pkg.all;
 ",
@@ -641,7 +641,7 @@ exports[`testing add use statement actions for file function.vhd 2`] = `
   {
     "edit": {
       "changes": {
-        "file:///dummy.vhd": [
+        "dummy.vhd": [
           {
             "newText": "use ieee.float_generic_pkg.all;
 ",
@@ -665,7 +665,7 @@ exports[`testing add use statement actions for file function.vhd 2`] = `
   {
     "edit": {
       "changes": {
-        "file:///dummy.vhd": [
+        "dummy.vhd": [
           {
             "newText": "use ieee.numeric_bit.all;
 ",
@@ -689,7 +689,7 @@ exports[`testing add use statement actions for file function.vhd 2`] = `
   {
     "edit": {
       "changes": {
-        "file:///dummy.vhd": [
+        "dummy.vhd": [
           {
             "newText": "use ieee.numeric_bit_unsigned.all;
 ",
@@ -713,7 +713,7 @@ exports[`testing add use statement actions for file function.vhd 2`] = `
   {
     "edit": {
       "changes": {
-        "file:///dummy.vhd": [
+        "dummy.vhd": [
           {
             "newText": "use ieee.numeric_std.all;
 ",
@@ -737,7 +737,7 @@ exports[`testing add use statement actions for file function.vhd 2`] = `
   {
     "edit": {
       "changes": {
-        "file:///dummy.vhd": [
+        "dummy.vhd": [
           {
             "newText": "use ieee.numeric_std_unsigned.all;
 ",
@@ -784,7 +784,7 @@ exports[`testing add use statement actions for file function.vhd 3`] = `
   {
     "edit": {
       "changes": {
-        "file:///dummy.vhd": [
+        "dummy.vhd": [
           {
             "newText": " -- vhdl-linter-disable-line not-declared",
             "range": {
@@ -807,7 +807,7 @@ exports[`testing add use statement actions for file function.vhd 3`] = `
   {
     "edit": {
       "changes": {
-        "file:///dummy.vhd": [
+        "dummy.vhd": [
           {
             "newText": "-- vhdl-linter-disable not-declared
 ",
@@ -856,7 +856,7 @@ exports[`testing add use statement actions for file generic_function_call.vhd 2`
   {
     "edit": {
       "changes": {
-        "file:///dummy.vhd": [
+        "dummy.vhd": [
           {
             "newText": "library ieee;
 use ieee.math_real.all;
@@ -904,7 +904,7 @@ exports[`testing add use statement actions for file generic_function_call.vhd 3`
   {
     "edit": {
       "changes": {
-        "file:///dummy.vhd": [
+        "dummy.vhd": [
           {
             "newText": " -- vhdl-linter-disable-line not-declared",
             "range": {
@@ -927,7 +927,7 @@ exports[`testing add use statement actions for file generic_function_call.vhd 3`
   {
     "edit": {
       "changes": {
-        "file:///dummy.vhd": [
+        "dummy.vhd": [
           {
             "newText": "-- vhdl-linter-disable not-declared
 ",

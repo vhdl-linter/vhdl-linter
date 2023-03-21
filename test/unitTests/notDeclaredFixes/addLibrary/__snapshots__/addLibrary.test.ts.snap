@@ -43,7 +43,7 @@ exports[`testing add signal helper architecture.vhd 2`] = `
   {
     "edit": {
       "changes": {
-        "file:///entity.vhd": [
+        "entity.vhd": [
           {
             "newText": "library apple;
 ",
@@ -72,7 +72,7 @@ exports[`testing add signal helper architecture.vhd 3`] = `
   {
     "edit": {
       "changes": {
-        "file:///architecture.vhd": [
+        "architecture.vhd": [
           {
             "newText": " -- vhdl-linter-disable-line not-declared",
             "range": {
@@ -95,7 +95,7 @@ exports[`testing add signal helper architecture.vhd 3`] = `
   {
     "edit": {
       "changes": {
-        "file:///architecture.vhd": [
+        "architecture.vhd": [
           {
             "newText": "-- vhdl-linter-disable not-declared
 ",

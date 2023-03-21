@@ -6,6 +6,7 @@ import { pathToFileURL } from 'url';
 import { ProjectParser } from '../../../../lib/projectParser';
 import { defaultSettingsGetter } from '../../../../lib/settings';
 import { VhdlLinter } from '../../../../lib/vhdlLinter';
+import { sanitizeActions } from '../../../helper';
 import { readFileSyncNorm } from "../../../readFileSyncNorm";
 
 const files = readdirSync(__dirname).filter(file => file.endsWith('.vhd'));
@@ -22,7 +23,8 @@ test.each(files)('testing add signal helper %s', async (file: string) => {
   for (const message of linter.messages) {
     if (typeof message.code === 'string') {
       for (const action of message.code.split(';')) {
-        const actions = linter.diagnosticCodeActionRegistry[parseInt(action)]?.(`file://${file}`);
+        const actions = await Promise.all(await linter.diagnosticCodeActionRegistry[parseInt(action)]?.(`file://${file}`) ?? []);
+        sanitizeActions(actions);
         expect(actions).toMatchSnapshot();
 
       }

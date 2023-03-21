@@ -85,7 +85,7 @@ exports[`testing add signal helper protected.vhd 2`] = `
   {
     "edit": {
       "changes": {
-        "file:///protected.vhd": [
+        "protected.vhd": [
           {
             "newText": "apple",
             "range": {
@@ -113,7 +113,7 @@ exports[`testing add signal helper protected.vhd 3`] = `
   {
     "edit": {
       "changes": {
-        "file://protected.vhd": [
+        "protected.vhd": [
           {
             "newText": " -- vhdl-linter-disable-line not-declared",
             "range": {
@@ -136,7 +136,7 @@ exports[`testing add signal helper protected.vhd 3`] = `
   {
     "edit": {
       "changes": {
-        "file://protected.vhd": [
+        "protected.vhd": [
           {
             "newText": "-- vhdl-linter-disable not-declared
 ",
@@ -183,7 +183,7 @@ exports[`testing add signal helper protected.vhd 4`] = `
   {
     "edit": {
       "changes": {
-        "file:///protected.vhd": [
+        "protected.vhd": [
           {
             "newText": "library tes;
 ",
@@ -207,7 +207,7 @@ exports[`testing add signal helper protected.vhd 4`] = `
   {
     "edit": {
       "changes": {
-        "file:///protected.vhd": [
+        "protected.vhd": [
           {
             "newText": "test",
             "range": {
@@ -235,7 +235,7 @@ exports[`testing add signal helper protected.vhd 5`] = `
   {
     "edit": {
       "changes": {
-        "file://protected.vhd": [
+        "protected.vhd": [
           {
             "newText": " -- vhdl-linter-disable-line not-declared",
             "range": {
@@ -258,7 +258,7 @@ exports[`testing add signal helper protected.vhd 5`] = `
   {
     "edit": {
       "changes": {
-        "file://protected.vhd": [
+        "protected.vhd": [
           {
             "newText": "-- vhdl-linter-disable not-declared
 ",
@@ -305,7 +305,7 @@ exports[`testing add signal helper protected.vhd 6`] = `
   {
     "edit": {
       "changes": {
-        "file:///protected.vhd": [
+        "protected.vhd": [
           {
             "newText": "library tes;
 ",
@@ -329,7 +329,7 @@ exports[`testing add signal helper protected.vhd 6`] = `
   {
     "edit": {
       "changes": {
-        "file:///protected.vhd": [
+        "protected.vhd": [
           {
             "newText": "test",
             "range": {
@@ -357,7 +357,7 @@ exports[`testing add signal helper protected.vhd 7`] = `
   {
     "edit": {
       "changes": {
-        "file://protected.vhd": [
+        "protected.vhd": [
           {
             "newText": " -- vhdl-linter-disable-line not-declared",
             "range": {
@@ -380,7 +380,7 @@ exports[`testing add signal helper protected.vhd 7`] = `
   {
     "edit": {
       "changes": {
-        "file://protected.vhd": [
+        "protected.vhd": [
           {
             "newText": "-- vhdl-linter-disable not-declared
 ",
@@ -427,7 +427,7 @@ exports[`testing add signal helper protected.vhd 8`] = `
   {
     "edit": {
       "changes": {
-        "file:///protected.vhd": [
+        "protected.vhd": [
           {
             "newText": "library tes;
 ",
@@ -451,7 +451,7 @@ exports[`testing add signal helper protected.vhd 8`] = `
   {
     "edit": {
       "changes": {
-        "file:///protected.vhd": [
+        "protected.vhd": [
           {
             "newText": "test",
             "range": {
@@ -479,7 +479,7 @@ exports[`testing add signal helper protected.vhd 9`] = `
   {
     "edit": {
       "changes": {
-        "file://protected.vhd": [
+        "protected.vhd": [
           {
             "newText": " -- vhdl-linter-disable-line not-declared",
             "range": {
@@ -502,7 +502,7 @@ exports[`testing add signal helper protected.vhd 9`] = `
   {
     "edit": {
       "changes": {
-        "file://protected.vhd": [
+        "protected.vhd": [
           {
             "newText": "-- vhdl-linter-disable not-declared
 ",
@@ -549,7 +549,7 @@ exports[`testing add signal helper protected.vhd 10`] = `
   {
     "edit": {
       "changes": {
-        "file:///protected.vhd": [
+        "protected.vhd": [
           {
             "newText": "library tes;
 ",
@@ -573,7 +573,7 @@ exports[`testing add signal helper protected.vhd 10`] = `
   {
     "edit": {
       "changes": {
-        "file:///protected.vhd": [
+        "protected.vhd": [
           {
             "newText": "test",
             "range": {
@@ -601,7 +601,7 @@ exports[`testing add signal helper protected.vhd 11`] = `
   {
     "edit": {
       "changes": {
-        "file://protected.vhd": [
+        "protected.vhd": [
           {
             "newText": " -- vhdl-linter-disable-line not-declared",
             "range": {
@@ -624,7 +624,7 @@ exports[`testing add signal helper protected.vhd 11`] = `
   {
     "edit": {
       "changes": {
-        "file://protected.vhd": [
+        "protected.vhd": [
           {
             "newText": "-- vhdl-linter-disable not-declared
 ",
@@ -688,7 +688,7 @@ exports[`testing add signal helper record.vhd 2`] = `
   {
     "edit": {
       "changes": {
-        "file:///record.vhd": [
+        "record.vhd": [
           {
             "newText": "apple",
             "range": {
@@ -716,7 +716,7 @@ exports[`testing add signal helper record.vhd 3`] = `
   {
     "edit": {
       "changes": {
-        "file://record.vhd": [
+        "record.vhd": [
           {
             "newText": " -- vhdl-linter-disable-line not-declared",
             "range": {
@@ -739,7 +739,7 @@ exports[`testing add signal helper record.vhd 3`] = `
   {
     "edit": {
       "changes": {
-        "file://record.vhd": [
+        "record.vhd": [
           {
             "newText": "-- vhdl-linter-disable not-declared
 ",
@@ -786,7 +786,7 @@ exports[`testing add signal helper record.vhd 4`] = `
   {
     "edit": {
       "changes": {
-        "file:///record.vhd": [
+        "record.vhd": [
           {
             "newText": "library tes;
 ",
@@ -810,7 +810,7 @@ exports[`testing add signal helper record.vhd 4`] = `
   {
     "edit": {
       "changes": {
-        "file:///record.vhd": [
+        "record.vhd": [
           {
             "newText": "test",
             "range": {
@@ -838,7 +838,7 @@ exports[`testing add signal helper record.vhd 5`] = `
   {
     "edit": {
       "changes": {
-        "file://record.vhd": [
+        "record.vhd": [
           {
             "newText": " -- vhdl-linter-disable-line not-declared",
             "range": {
@@ -861,7 +861,7 @@ exports[`testing add signal helper record.vhd 5`] = `
   {
     "edit": {
       "changes": {
-        "file://record.vhd": [
+        "record.vhd": [
           {
             "newText": "-- vhdl-linter-disable not-declared
 ",
@@ -928,7 +928,7 @@ exports[`testing add signal helper simple_signal.vhd 2`] = `
   {
     "edit": {
       "changes": {
-        "file:///simple_signal.vhd": [
+        "simple_signal.vhd": [
           {
             "newText": "apple",
             "range": {
@@ -956,7 +956,7 @@ exports[`testing add signal helper simple_signal.vhd 3`] = `
   {
     "edit": {
       "changes": {
-        "file://simple_signal.vhd": [
+        "simple_signal.vhd": [
           {
             "newText": " -- vhdl-linter-disable-line not-declared",
             "range": {
@@ -979,7 +979,7 @@ exports[`testing add signal helper simple_signal.vhd 3`] = `
   {
     "edit": {
       "changes": {
-        "file://simple_signal.vhd": [
+        "simple_signal.vhd": [
           {
             "newText": "-- vhdl-linter-disable not-declared
 ",

@@ -48,7 +48,7 @@ exports[`testing add signal helper architecture.vhd 3`] = `
   {
     "edit": {
       "changes": {
-        "file:///architecture.vhd": [
+        "architecture.vhd": [
           {
             "newText": " -- vhdl-linter-disable-line not-declared",
             "range": {
@@ -71,7 +71,7 @@ exports[`testing add signal helper architecture.vhd 3`] = `
   {
     "edit": {
       "changes": {
-        "file:///architecture.vhd": [
+        "architecture.vhd": [
           {
             "newText": "-- vhdl-linter-disable not-declared
 ",
@@ -143,7 +143,7 @@ exports[`testing add signal helper generic.vhd 3`] = `
   {
     "edit": {
       "changes": {
-        "file:///generic.vhd": [
+        "generic.vhd": [
           {
             "newText": " -- vhdl-linter-disable-line not-declared",
             "range": {
@@ -166,7 +166,7 @@ exports[`testing add signal helper generic.vhd 3`] = `
   {
     "edit": {
       "changes": {
-        "file:///generic.vhd": [
+        "generic.vhd": [
           {
             "newText": "-- vhdl-linter-disable not-declared
 ",
