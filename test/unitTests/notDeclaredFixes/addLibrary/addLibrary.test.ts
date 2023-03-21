@@ -3,6 +3,7 @@ import { expect, test } from '@jest/globals';
 import { readdirSync } from 'fs';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
+import { TextEdit } from 'vscode-languageserver';
 import { ProjectParser } from '../../../../lib/projectParser';
 import { defaultSettingsGetter } from '../../../../lib/settings';
 import { VhdlLinter } from '../../../../lib/vhdlLinter';
@@ -27,9 +28,9 @@ test.each(files)('testing add signal helper %s', async (file: string) => {
         if (actions) {
           for (const action of await actions) {
             if (action.edit?.changes !== undefined) {
-              const newChanges: Record<string, any> = {};
+              const newChanges: Record<string, TextEdit[]> = {};
               for (const [key, value] of Object.entries(action.edit.changes)) {
-                const newKey = `file:///${key.split('/').at(-1)}`;
+                const newKey = `file:///${key.split('/').at(-1)!}`;
                 newChanges[newKey] = value;
               }
               action.edit.changes = newChanges;
