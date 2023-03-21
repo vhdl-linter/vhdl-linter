@@ -72,7 +72,7 @@ test.each([
           character: 17,
         }),
       }),
-      message: expect.stringContaining('orange does not exist on protected type')
+      message: expect.stringContaining('orange does not exist on protected type t1')
     }),
     expect.objectContaining({
       range: expect.objectContaining({
@@ -82,10 +82,10 @@ test.each([
         }),
         end: expect.objectContaining({
           line: 20,
-          character: 19,
+          character: 8,
         }),
       }),
-      message: expect.stringContaining('can not find unknown s.kiwi')
+      message: expect.stringContaining('kiwi does not exist on protected type t1')
     })
   ]));
 
