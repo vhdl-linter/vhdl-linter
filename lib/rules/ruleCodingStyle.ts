@@ -17,7 +17,7 @@ export class RuleCodingStyle extends RuleBase implements IRule {
         if (instantiation.definitions.length === 1) { // In case of multiple definitions this check will not be run (maybe create separate rule)
           const definition = instantiation.definitions[0];
           if (definition instanceof OEntity || definition instanceof OComponent || definition instanceof OConfigurationSpecification) {
-            // Check for entity instantiations only for now
+            // Ignore subprograms as these normally have less parameters, and its harder to miss connections. (Which this rule tries to prevent)
             const portsOmitted = definition.ports.filter(port => {
               return instantiation.portAssociationList?.children.find(child => child.formalPart.some(formalPart => formalPart.definitions.some(def => def === port))) === undefined
               && port.defaultValue !== undefined; // When there is not default value this is already checked in ruleInstantiation
