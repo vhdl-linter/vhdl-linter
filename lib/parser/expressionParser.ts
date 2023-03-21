@@ -79,7 +79,7 @@ export class ExpressionParser {
     return references;
   }
   convertToName(buffer: OLexerToken[], formal: boolean, write: boolean, choice: boolean) {
-    buffer = buffer.filter(token => token.isDesignator() || token.getLText() === 'all' || token.type === TokenType.implicit);
+    buffer = buffer.filter(token => token.isDesignator() || token.getLText() === 'all' || token.type === TokenType.implicit || token.type === TokenType.keyword);
     const names: O.OName[] =  [];
     const prefixWrite: O.OName[] = [];
     const prefixRead: O.OName[] = [];

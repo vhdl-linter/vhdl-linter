@@ -2,7 +2,14 @@ export interface ISettings {
   'trace': {
     'server': 'off'|'messages'|'verbose';
   };
+  'paths': {
+    'additional': string[];
+    'ignoreRegex': string;
+  };
+  'semanticTokens': boolean;
+  'semanticTokensDirectionColoring': boolean;
   'rules': {
+    'coding-style': boolean;
     'component': boolean;
     'instantiation': boolean;
     'configuration': boolean;
@@ -44,19 +51,21 @@ export interface ISettings {
     'inoutSuffix': string;
     'instantiationLabelPrefix': string;
     'instantiationLabelSuffix': string;
+    'portOmission': boolean;
   };
-  'paths': {
-    'additional': string[];
-    'ignoreRegex': string;
-  };
-  'semanticTokens': boolean;
-  'semanticTokensDirectionColoring': boolean;
 }
 export const defaultSettings: ISettings = {
   'trace': {
     'server': 'off',
   },
+  'paths': {
+    'additional': [],
+    'ignoreRegex': '',
+  },
+  'semanticTokens': true,
+  'semanticTokensDirectionColoring': false,
   'rules': {
+    'coding-style': true,
     'component': true,
     'instantiation': true,
     'configuration': true,
@@ -98,11 +107,6 @@ export const defaultSettings: ISettings = {
     'inoutSuffix': '',
     'instantiationLabelPrefix': '',
     'instantiationLabelSuffix': '',
+    'portOmission': false,
   },
-  'paths': {
-    'additional': [],
-    'ignoreRegex': '',
-  },
-  'semanticTokens': true,
-  'semanticTokensDirectionColoring': false,
 };

@@ -1,0 +1,66 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Testing Port omission 1`] = `
+[
+  {
+    "code": "0",
+    "message": "port map is incomplete: ports (loo) are missing or open. (instantiation)",
+    "range": {
+      "end": {
+        "character": 28,
+        "line": 41,
+      },
+      "start": {
+        "character": 2,
+        "line": 41,
+      },
+    },
+    "severity": 1,
+  },
+  {
+    "code": "1",
+    "message": "Omitted ports where found: 'bar'. Please explicitly mark as unconnected by using open. (coding-style)",
+    "range": {
+      "end": {
+        "character": 13,
+        "line": 26,
+      },
+      "start": {
+        "character": 2,
+        "line": 25,
+      },
+    },
+    "severity": 2,
+  },
+  {
+    "code": "2",
+    "message": "Omitted ports where found: 'foo'. Please explicitly mark as unconnected by using open. (coding-style)",
+    "range": {
+      "end": {
+        "character": 13,
+        "line": 32,
+      },
+      "start": {
+        "character": 2,
+        "line": 31,
+      },
+    },
+    "severity": 2,
+  },
+  {
+    "code": "3",
+    "message": "Omitted ports where found: 'foo', 'bar'. Please explicitly mark as unconnected by using open. (coding-style)",
+    "range": {
+      "end": {
+        "character": 22,
+        "line": 38,
+      },
+      "start": {
+        "character": 2,
+        "line": 37,
+      },
+    },
+    "severity": 2,
+  },
+]
+`;
