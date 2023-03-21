@@ -22,8 +22,8 @@ exports[`Testing Port omission 1`] = `
     "message": "Omitted ports where found: 'bar'. Please explicitly mark as unconnected by using open. (coding-style)",
     "range": {
       "end": {
-        "character": 7,
-        "line": 29,
+        "character": 13,
+        "line": 26,
       },
       "start": {
         "character": 2,
@@ -37,8 +37,8 @@ exports[`Testing Port omission 1`] = `
     "message": "Omitted ports where found: 'foo'. Please explicitly mark as unconnected by using open. (coding-style)",
     "range": {
       "end": {
-        "character": 7,
-        "line": 35,
+        "character": 13,
+        "line": 32,
       },
       "start": {
         "character": 2,
