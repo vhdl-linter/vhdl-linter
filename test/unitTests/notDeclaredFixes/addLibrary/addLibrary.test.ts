@@ -23,6 +23,19 @@ test.each(files)('testing add signal helper %s', async (file: string) => {
     if (typeof message.code === 'string') {
       for (const action of message.code.split(';')) {
         const actions = linter.diagnosticCodeActionRegistry[parseInt(action)]?.(`file://${file}`);
+        // replace absolute uris...
+        if (actions) {
+          for (const action of await actions) {
+            if (action.edit?.changes !== undefined) {
+              const newChanges: Record<string, any> = {};
+              for (const [key, value] of Object.entries(action.edit.changes)) {
+                const newKey = `file:///${key.split('/').at(-1)}`;
+                newChanges[newKey] = value;
+              }
+              action.edit.changes = newChanges;
+            }
+          }
+        }
         expect(actions).toMatchSnapshot();
 
       }
