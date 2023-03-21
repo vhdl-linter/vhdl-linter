@@ -4,7 +4,7 @@ exports[`Testing Port omission 1`] = `
 [
   {
     "code": "0",
-    "message": "port map is incomplete: ports (loo) are missing. (instantiation)",
+    "message": "port map is incomplete: ports (loo) are missing or open. (instantiation)",
     "range": {
       "end": {
         "character": 28,
