@@ -1,6 +1,6 @@
 import { join } from "path";
 import { pathToFileURL } from "url";
-import { Position, Range } from "vscode-languageserver";
+import { CodeAction, Position, Range } from "vscode-languageserver";
 import { ProjectParser } from "../lib/projectParser";
 import { defaultSettingsGetter } from "../lib/settings";
 import { VhdlLinter } from "../lib/vhdlLinter";
@@ -43,4 +43,19 @@ export async function runLinterGetMessages(folder: string, file: string, setting
   const messages = await linter.checkAll();
   await projectParser.stop();
   return messages;
+}
+export function sanitizeActions(actions: CodeAction[]) {
+  for (const action of actions) {
+    for (const key of Object.keys(action.edit?.changes ?? {})) {
+      const newKey = key.split('/').at(-1)!;
+      action.edit!.changes![newKey] = action.edit!.changes![key]!;
+      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+      delete action.edit!.changes![key];
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    if (typeof action.command?.arguments?.[0].textDocumentUri === 'string') {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+      action.command.arguments[0].textDocumentUri = (action.command.arguments[0].textDocumentUri as string).split('/').at(-1);
+    }
+  }
 }

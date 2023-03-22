@@ -238,10 +238,6 @@ export class OExternalName extends OName {
 export class OLabelName extends OName {
 }
 export class OFormalName extends OName {
-
-}
-export class OLibraryName extends OName {
-  type = 'library'; // for ts
 }
 export class OFile {
   parserMessages: OIDiagnosticWithSolution[] = [];
@@ -272,7 +268,7 @@ export class OInterfacePackage extends OGeneric implements I.IHasNameLinks, I.IH
   packageDefinitions: OPackage[] = [];
   contextReferences: OContextReference[] = [];
 }
-export class OPackageInstantiation extends ObjectBase implements I.IHasNameLinks, I.IHasUseClauses, I.IHasContextReference, I.IHasLibraries, I.IHasLexerToken {
+export class OPackageInstantiation extends ObjectBase implements I.IHasTargetLibrary, I.IHasNameLinks, I.IHasUseClauses, I.IHasContextReference, I.IHasLibraries, I.IHasLexerToken {
   aliasLinks: OAlias[] = [];
   lexerToken: OLexerToken;
   uninstantiatedPackage: OName[] = [];
@@ -285,8 +281,8 @@ export class OPackageInstantiation extends ObjectBase implements I.IHasNameLinks
   targetLibrary?: string;
 }
 
-export class OPackage extends ObjectBase implements I.IHasDeclarations, I.IHasUseClauses, I.IHasContextReference, I.IHasLexerToken,
-  I.IHasLibraries, I.IHasLibraryReference, I.IHasGenerics, I.IHasNameLinks, I.IMayHaveEndingLexerToken {
+export class OPackage extends ObjectBase implements I.IHasTargetLibrary, I.IHasDeclarations, I.IHasUseClauses, I.IHasContextReference, I.IHasLexerToken,
+  I.IHasLibraries, I.IHasGenerics, I.IHasNameLinks, I.IMayHaveEndingLexerToken {
   nameLinks: OName[] = [];
   aliasLinks: OAlias[] = [];
   declarations: ODeclaration[] = [];
@@ -298,13 +294,12 @@ export class OPackage extends ObjectBase implements I.IHasDeclarations, I.IHasUs
   lexerToken: OLexerToken;
   useClauses: OUseClause[] = [];
   contextReferences: OContextReference[] = [];
-  library?: OLibraryName;
   targetLibrary?: string;
   endingLexerToken?: OLexerToken;
   correspondingPackageBodies: OPackageBody[] = [];
 }
 
-export class OPackageBody extends ObjectBase implements I.IHasUseClauses, I.IHasContextReference, I.IHasLexerToken, I.IHasLibraries,
+export class OPackageBody extends ObjectBase implements I.IHasTargetLibrary, I.IHasUseClauses, I.IHasContextReference, I.IHasLexerToken, I.IHasLibraries,
   I.IHasNameLinks, I.IMayHaveEndingLexerToken, I.IHasDeclarations {
   declarations: ODeclaration[] = [];
   declarationsRange?: OIRange;
@@ -338,7 +333,7 @@ export class OContextReference extends ObjectBase {
 
 }
 
-export class OContext extends ObjectBase implements I.IHasUseClauses, I.IHasContextReference, I.IHasLexerToken, I.IHasLibraries {
+export class OContext extends ObjectBase implements I.IHasTargetLibrary, I.IHasUseClauses, I.IHasContextReference, I.IHasLexerToken, I.IHasLibraries {
   parent: OFile;
   lexerToken: OLexerToken;
   useClauses: OUseClause[] = [];
@@ -366,7 +361,7 @@ export abstract class OStatementBody extends ObjectBase implements I.IHasDeclara
   statementsRange: OIRange;
   correspondingEntity?: OEntity;
 }
-export class OArchitecture extends OStatementBody implements I.IHasLexerToken, I.IMayHaveEndingLexerToken {
+export class OArchitecture extends OStatementBody implements I.IHasTargetLibrary, I.IHasLexerToken, I.IMayHaveEndingLexerToken {
   lexerToken: OLexerToken;
   entityName: OLexerToken;
   declarationsRange: OIRange;
@@ -564,25 +559,20 @@ export class OPortAssociationList extends OAssociationList {
   }
 }
 
-export class OInstantiation extends OName implements I.IHasDefinitions, I.IHasLibraryReference, I.IMayHaveLabel, I.IHasPostponed {
+export class OInstantiation extends OName implements I.IHasDefinitions, I.IMayHaveLabel, I.IHasPostponed {
   constructor(public parent: OStatementBody | OEntity | OProcess | OLoop | OIf, lexerToken: OLexerToken, public type: 'entity' | 'component' | 'configuration' | 'subprogram' | 'unknown' = 'unknown') {
     super(parent, lexerToken);
   }
   postponed = false;
   definitions: (OEntity | OSubprogram | OComponent | OAliasWithSignature | OConfigurationDeclaration)[] = [];
-  prefix: OLexerToken[] = [];
-  entityName: OLexerToken;
+  instantiatedUnit: [OName, ...OSelectedName[]];
   package?: OLexerToken;
   portAssociationList?: OPortAssociationList;
   genericAssociationList?: OGenericAssociationList;
 
-  library?: OLibraryName;
   archIdentifier?: OLexerToken;
   label?: OLexerToken;
   labelLinks: OLabelName[] = [];
-  // getRootElement() {
-  //   return super.getRootElement() as Exclude<ORootElements, OPackageInstantiation | OContext>;
-  // }
 }
 export class OAssociation extends ObjectBase implements I.IHasDefinitions {
   constructor(public parent: OAssociationList, range: OIRange) {
@@ -595,7 +585,7 @@ export class OAssociation extends ObjectBase implements I.IHasDefinitions {
   actualIfInoutput: OName[] = [];
 }
 
-export class OEntity extends ObjectBase implements I.IHasDefinitions, I.IHasDeclarations,
+export class OEntity extends ObjectBase implements I.IHasTargetLibrary, I.IHasDefinitions, I.IHasDeclarations,
   I.IHasUseClauses, I.IHasContextReference, I.IHasLexerToken,
   I.IHasLibraries, I.IHasGenerics, I.IHasPorts, I.IHasNameLinks, I.IMayHaveEndingLexerToken, I.IHasStatements {
   constructor(public parent: OFile, range: OIRange, public targetLibrary?: string) {
@@ -815,7 +805,7 @@ export class OAliasWithSignature extends OAlias implements I.IHasLexerToken, I.I
   return: OName;
 }
 
-export class OConfigurationDeclaration extends ObjectBase implements I.IHasLibraries, I.IHasDefinitions, I.IHasNameLinks,
+export class OConfigurationDeclaration extends ObjectBase implements I.IHasTargetLibrary, I.IHasLibraries, I.IHasDefinitions, I.IHasNameLinks,
   I.IHasDeclarations, I.IHasUseClauses, I.IHasContextReference {
   lexerToken: OLexerToken;
   targetLibrary?: string;

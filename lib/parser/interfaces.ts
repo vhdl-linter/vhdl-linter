@@ -81,6 +81,9 @@ export function implementsIHasDefinitions(obj: O.ObjectBase): obj is O.ObjectBas
   return (obj as O.ObjectBase & Partial<IHasDefinitions>).definitions !== undefined;
 }
 
+export interface IHasTargetLibrary {
+  targetLibrary?: string;
+}
 
 export interface IHasDeclarations {
   declarations: O.ODeclaration[];
@@ -95,13 +98,6 @@ export interface IHasLibraries {
 }
 export function implementsIHasLibraries(obj: O.ObjectBase): obj is O.ObjectBase & IHasLibraries {
   return (obj as O.ObjectBase & Partial<IHasLibraries>).libraries !== undefined;
-}
-
-export interface IHasLibraryReference {
-  library?: O.OLibraryName;
-}
-export function implementsIHasLibraryReference(obj: O.ObjectBase): obj is O.ObjectBase & IHasLibraryReference {
-  return (obj as O.ObjectBase & Partial<IHasLibraryReference>).library !== undefined;
 }
 export interface IHasGenerics {
   generics: O.OGeneric[];

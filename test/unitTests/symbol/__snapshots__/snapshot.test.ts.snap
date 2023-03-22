@@ -719,7 +719,7 @@ exports[`Testing document symbols of test_inst.vhd 1`] = `
       {
         "detail": "instantiation",
         "kind": 2,
-        "name": "inst_test_process: test_process",
+        "name": "inst_test_process: work.test_process",
         "range": {
           "end": {
             "character": 7,

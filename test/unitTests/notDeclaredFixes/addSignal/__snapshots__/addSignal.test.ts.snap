@@ -31,14 +31,14 @@ exports[`testing add signal helper architecture.vhd 2`] = `
             "line": 9,
           },
           "signalName": "foo",
-          "textDocumentUri": "file://architecture.vhd",
+          "textDocumentUri": "architecture.vhd",
         },
       ],
       "command": "vhdl-linter:add-signal",
-      "title": "add signal to architecture",
+      "title": "add foo as signal to architecture",
     },
     "kind": "quickfix",
-    "title": "add signal to architecture",
+    "title": "add foo as signal to architecture",
   },
 ]
 `;
@@ -48,7 +48,7 @@ exports[`testing add signal helper architecture.vhd 3`] = `
   {
     "edit": {
       "changes": {
-        "file://architecture.vhd": [
+        "architecture.vhd": [
           {
             "newText": " -- vhdl-linter-disable-line not-declared",
             "range": {
@@ -71,7 +71,7 @@ exports[`testing add signal helper architecture.vhd 3`] = `
   {
     "edit": {
       "changes": {
-        "file://architecture.vhd": [
+        "architecture.vhd": [
           {
             "newText": "-- vhdl-linter-disable not-declared
 ",
@@ -126,14 +126,14 @@ exports[`testing add signal helper generic.vhd 2`] = `
             "line": 15,
           },
           "signalName": "test",
-          "textDocumentUri": "file://generic.vhd",
+          "textDocumentUri": "generic.vhd",
         },
       ],
       "command": "vhdl-linter:add-signal",
-      "title": "add signal to architecture",
+      "title": "add test as signal to architecture",
     },
     "kind": "quickfix",
-    "title": "add signal to architecture",
+    "title": "add test as signal to architecture",
   },
 ]
 `;
@@ -143,7 +143,7 @@ exports[`testing add signal helper generic.vhd 3`] = `
   {
     "edit": {
       "changes": {
-        "file://generic.vhd": [
+        "generic.vhd": [
           {
             "newText": " -- vhdl-linter-disable-line not-declared",
             "range": {
@@ -166,7 +166,7 @@ exports[`testing add signal helper generic.vhd 3`] = `
   {
     "edit": {
       "changes": {
-        "file://generic.vhd": [
+        "generic.vhd": [
           {
             "newText": "-- vhdl-linter-disable not-declared
 ",

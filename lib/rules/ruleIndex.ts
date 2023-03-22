@@ -4,7 +4,6 @@ import { RuleConstantWrite } from "./ruleConstantWrite";
 import { RuleEmpty } from "./ruleEmpty";
 import { RuleInstantiation } from "./ruleInstantiations";
 import { RuleLibrary } from "./ruleLibrary";
-import { RuleLibraryReference } from "./ruleLibraryReferences";
 import { RuleMultipleDefinition } from "./ruleMultipleDefinitions";
 import { RuleNotAllowed } from "./ruleNotAllowed";
 import { RuleNotDeclared } from "./ruleNotDeclared";
@@ -21,7 +20,6 @@ export const rules = [
   RuleComponent,
   RuleInstantiation,
   RuleLibrary,
-  RuleLibraryReference,
   RuleMultipleDefinition,
   RuleNotDeclared,
   RuleNamingStyle,

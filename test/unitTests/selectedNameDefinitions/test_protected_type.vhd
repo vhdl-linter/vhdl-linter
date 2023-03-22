@@ -5,7 +5,7 @@ entity test_selected_name is
 end entity;
 
 architecture rtl of test_selected_name is
-  type t is protected
+  type t1 is protected
     procedure apple(i: integer);
     function banana return integer;
   end protected;
@@ -14,7 +14,7 @@ architecture rtl of test_selected_name is
     function orange return integer;
   end protected;
 
-  signal s : t;
+  signal s : t1;
 begin
 
   s.apple(s.banana);
