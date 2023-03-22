@@ -22,7 +22,7 @@ export class InterfacePackageParser extends ParserBase {
         this.expect('<>');
         this.expect(')');
       } else {
-        inst.genericAssociationList = new AssociationListParser(this.state, inst).parse('generic');
+        inst.genericAssociationList = new AssociationListParser(this.state, inst).parseGenericAssociations();
       }
     }
 

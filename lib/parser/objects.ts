@@ -222,7 +222,7 @@ export class OName extends ObjectBase implements I.IHasDefinitions, I.IHasNameTo
   // Workaround for checking of OWrites in associations. Because of overloading they can not be correctly checked.
   // This avoids false positives
   public inAssociation = false;
-  constructor(public parent: ObjectBase, public nameToken: OLexerToken, public write = false, range?: OIRange) {
+  constructor(public parent: ObjectBase | OFile, public nameToken: OLexerToken, public write = false, range?: OIRange) {
     super(parent, range ?? nameToken.range);
   }
 }
@@ -268,9 +268,9 @@ export class OInterfacePackage extends OGeneric implements I.IHasNameLinks, I.IH
   packageDefinitions: OPackage[] = [];
   contextReferences: OContextReference[] = [];
 }
-export class OPackageInstantiation extends ObjectBase implements I.IHasTargetLibrary, I.IHasNameLinks, I.IHasUseClauses, I.IHasContextReference, I.IHasLibraries, I.IHasLexerToken {
+export class OPackageInstantiation extends OName implements I.IHasDefinitions, I.IHasTargetLibrary, I.IHasNameLinks, I.IHasUseClauses, I.IHasContextReference, I.IHasLibraries {
+  definitions: OPackage[] = [];
   aliasLinks: OAlias[] = [];
-  lexerToken: OLexerToken;
   uninstantiatedPackage: OName[] = [];
   genericAssociationList?: OGenericAssociationList;
   nameLinks: OName[] = [];
@@ -282,7 +282,7 @@ export class OPackageInstantiation extends ObjectBase implements I.IHasTargetLib
 }
 
 export class OPackage extends ObjectBase implements I.IHasTargetLibrary, I.IHasDeclarations, I.IHasUseClauses, I.IHasContextReference, I.IHasLexerToken,
-  I.IHasLibraries, I.IHasGenerics, I.IHasNameLinks, I.IMayHaveEndingLexerToken {
+  I.IHasLibraries, I.IHasGenerics, I.IHasNameLinks, I.IMayHaveEndingLexerToken, I.IHasGenerics {
   nameLinks: OName[] = [];
   aliasLinks: OAlias[] = [];
   declarations: ODeclaration[] = [];
@@ -542,19 +542,19 @@ export class OConstant extends ObjectBase implements I.IVariableBase {
   }
 }
 export class OAssociationList extends ObjectBase {
-  constructor(public parent: OInstantiation | OPackage | OPackageInstantiation, range: OIRange) {
+  constructor(public parent: OInstantiation | OPackage | OPackageInstantiation | OInterfacePackage, range: OIRange) {
     super(parent, range);
   }
   public children: OAssociation[] = [];
 
 }
 export class OGenericAssociationList extends OAssociationList {
-  constructor(public parent: OInstantiation | OPackage | OPackageInstantiation, range: OIRange) {
+  constructor(public parent: OInstantiation | OPackageInstantiation | OInterfacePackage, range: OIRange) {
     super(parent, range);
   }
 }
 export class OPortAssociationList extends OAssociationList {
-  constructor(public parent: OInstantiation | OPackage | OPackageInstantiation, range: OIRange) {
+  constructor(public parent: OInstantiation, range: OIRange) {
     super(parent, range);
   }
 }
