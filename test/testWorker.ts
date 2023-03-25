@@ -1,5 +1,4 @@
 import { lstatSync } from "fs";
-import { argv } from "process";
 import { parentPort, workerData } from "worker_threads";
 import { ProjectParser } from "../lib/projectParser";
 import { defaultSettingsGetter, defaultSettingsWithOverwrite } from "../lib/settings";
@@ -12,9 +11,6 @@ async function run_test(path: URL, error_expected: boolean, projectParser?: Proj
     projectParser = await ProjectParser.create([path], '', defaultSettingsGetter);
   }
   for (const subPath of readDirPath(path)) {
-    if (argv.includes('--no-osvvm') && subPath.pathname.match(/OSVVM/i)) {
-      continue;
-    }
     // Exclude OSVVM and IEEE from some checker
     const getter = subPath.pathname.match(/OSVVM/i) || subPath.pathname.match(/ieee/i)
       ? defaultSettingsWithOverwrite({

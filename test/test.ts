@@ -1,6 +1,6 @@
 import { cpus } from 'os';
 import PQueue from 'p-queue';
-import { cwd } from 'process';
+import { argv, cwd } from 'process';
 import { pathToFileURL } from 'url';
 import { isMainThread, Worker } from 'worker_threads';
 import { joinURL } from '../lib/projectParser';
@@ -19,6 +19,9 @@ async function run_test_folder(path: URL, error_expected: boolean): Promise<Mess
 }
 // Take path as a project run test on every file
 async function run_test(path: URL, error_expected: boolean): Promise<MessageWrapper[]> {
+  if (argv.includes('--no-osvvm') && path.toString().includes('OSVVM')) {
+    return [];
+  }
   return await queue.add(() => {
     const worker = new Worker(__dirname + '/testWorker.js', { workerData: { path: path.toString(), error_expected } });
     return new Promise((resolve, reject) => {
