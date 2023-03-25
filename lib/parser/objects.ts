@@ -201,7 +201,7 @@ export class ObjectBase {
 
 
 export abstract class OGeneric extends ObjectBase implements I.IHasDefinitions, I.IHasNameLinks {
-  parent: OEntity;
+  parent: OEntity | OPackage;
   definitions: (OGeneric | OPackage)[] = [];
   nameLinks: OName[] = [];
   aliasLinks: OAlias[] = [];
@@ -766,7 +766,7 @@ export class OMagicCommentDisable extends OMagicComment {
   }
 }
 export class OSubprogram extends OSequenceOfStatements implements I.IHasNameLinks, I.IHasDeclarations, I.IHasPorts,
-  I.IHasUseClauses, I.IHasLexerToken, I.IMayHaveEndingLexerToken {
+  I.IHasUseClauses, I.IHasLexerToken, I.IMayHaveEndingLexerToken, I.IHasDefinitions {
   hasBody = false;
   declarations: ODeclaration[] = [];
   declarationsRange?: OIRange;
@@ -781,6 +781,7 @@ export class OSubprogram extends OSequenceOfStatements implements I.IHasNameLink
   return: OName[] = [];
   lexerToken: OLexerToken;
   endingLexerToken?: OLexerToken;
+  definitions: OSubprogram[] = [];
 }
 export class OTypeMark extends ObjectBase {
   constructor(public parent: ObjectBase, public name: OName) {

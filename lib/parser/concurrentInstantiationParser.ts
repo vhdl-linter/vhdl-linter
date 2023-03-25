@@ -1,7 +1,7 @@
-import { AssociationListParser } from './associationListParser';
-import { OEntity, OGenericAssociationList, OInstantiation, OStatementBody, ParserError } from './objects';
-import { ParserBase, ParserState } from './parserBase';
 import { OLexerToken } from '../lexer';
+import { AssociationListParser } from './associationListParser';
+import { OEntity, OInstantiation, OStatementBody, ParserError } from './objects';
+import { ParserBase, ParserState } from './parserBase';
 
 export class ConcurrentInstantiationParser extends ParserBase {
   constructor(state: ParserState, private parent: OStatementBody | OEntity) {

@@ -115,7 +115,7 @@ export class RuleInstantiation extends RuleBase implements IRule {
           }
           return missing;
         });
-        // if one interface has no missing elements, don't add a message
+        // if one interface has no missing elements, skip adding a message
         if (!missingElements.find(elements => elements.length === 0)) {
           const elementString = [...new Set(missingElements.map(elements => elements.map(e => e.lexerToken.text).join(', ')))].join(') or (');
           this.addMessage({
@@ -131,6 +131,10 @@ export class RuleInstantiation extends RuleBase implements IRule {
     for (const instantiation of this.file.objectList) {
       if (instantiation instanceof O.OInstantiation) {
         let definitions = instantiation.definitions;
+        // TODO: Extends checking of instantiations to Subprograms
+        if (definitions.some(def => def instanceof O.OSubprogram || def instanceof O.OAliasWithSignature)) {
+          continue; // skip functions
+        }
         if (instantiation.type === 'configuration') {
           definitions = definitions.flatMap((definition: O.OConfigurationDeclaration) => {
             const entities = this.vhdlLinter.projectParser.entities.filter(e => e.lexerToken.getLText() === definition.entityName.getLText());

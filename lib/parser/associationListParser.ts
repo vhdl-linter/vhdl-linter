@@ -16,6 +16,7 @@ export class AssociationListParser extends ParserBase {
   parseGenericAssociations() {
     return this.parse('generic') as O.OGenericAssociationList;
   }
+
   private parse(type: 'port' | 'generic') {
     const braceToken = this.expect('(');
     if (type === 'port' && this.parent instanceof O.OPackageInstantiation) {
@@ -25,8 +26,7 @@ export class AssociationListParser extends ParserBase {
 
     while (this.state.pos.isValid()) {
       // let associationString = this.advancePast(/[,)]/, {returnMatch: true});
-      // eslint-disable-next-line prefer-const
-      let [associationTokens, lastChar] = this.advanceParenthesisAware([',', ')']);
+      const [associationTokens, lastChar] = this.advanceParenthesisAware([',', ')']);
       if (associationTokens.length > 0) {
         const combinedRange = associationTokens[0]!.range.copyWithNewEnd(associationTokens[associationTokens.length - 1]!.range);
         const association = new O.OAssociation(list, combinedRange);

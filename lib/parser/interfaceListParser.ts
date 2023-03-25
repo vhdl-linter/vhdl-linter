@@ -57,7 +57,7 @@ export class InterfaceListParser extends ParserBase {
           throw new ParserError('Port list may only contain signal interface declarations', nextToken.range);
         }
         const subprogramParser = new SubprogramParser(this.state, this.parent);
-        this.parent.declarations.push(subprogramParser.parse());
+        ports.push(subprogramParser.parse());
         this.maybe(';');
         foundElements++;
       } else {
