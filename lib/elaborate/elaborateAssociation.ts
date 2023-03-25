@@ -11,12 +11,12 @@ export function elaborateAssociations(file: O.OFile) {
         let elements: (O.OPort | O.OGeneric | O.OTypeMark)[] = [];
         if (definition instanceof O.OVariable) {
           // Protected Type
-        } else if (association.parent instanceof O.OPortAssociationList && I.implementsIHasPorts(definition)) {
+        } else if (association.parent instanceof O.OPortAssociationList) {
           if (definition instanceof O.OAliasWithSignature) {
             elements = definition.typeMarks;
           } else if (definition instanceof O.OConfigurationDeclaration) {
             elements = definition.definitions[0]?.ports ?? [];
-          } else {
+          } else if (I.implementsIHasPorts(definition)) {
             elements = definition.ports;
           }
         } else if (I.implementsIHasGenerics(definition)) {
