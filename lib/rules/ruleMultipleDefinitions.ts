@@ -45,7 +45,7 @@ export class RuleMultipleDefinition extends RuleBase implements IRule {
           || declaration instanceof OVariable
           || declaration instanceof OConstant
           || declaration instanceof OAttributeDeclaration
-          ) {
+        ) {
           objList.push(declaration);
         }
       }

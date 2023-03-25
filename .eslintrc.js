@@ -22,6 +22,7 @@ module.exports = {
       'warn', {
         disallowTemplateShorthand: true
       }],
+    "indent": ["error", 2],
     '@typescript-eslint/no-base-to-string': 'error',
     '@typescript-eslint/no-unnecessary-boolean-literal-compare': 'off',
     '@typescript-eslint/no-unnecessary-condition': 'off',

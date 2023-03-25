@@ -35,7 +35,7 @@ export class ElaborateNames {
         await vhdlLinter.handleCanceled();
         lastCancelTime = now;
       }
-        elaborator.elaborate(obj);
+      elaborator.elaborate(obj);
     }
   }
 

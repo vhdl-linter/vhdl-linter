@@ -110,7 +110,7 @@ test.each([
   expect(assignment.names[4]?.definitions[0]).toBeInstanceOf(ORecordChild);
   expect(assignment.names[4]?.definitions[0]?.lexerToken?.getLText()).toBe('apple');
 
-   expect(assignment.names[1]).toBeInstanceOf(OSelectedName);
+  expect(assignment.names[1]).toBeInstanceOf(OSelectedName);
   expect(assignment.names[1]?.write).toBe(true);
   expect(assignment.names[1]?.definitions).toHaveLength(1);
   expect(assignment.names[1]?.definitions[0]).toBeInstanceOf(ORecordChild);
