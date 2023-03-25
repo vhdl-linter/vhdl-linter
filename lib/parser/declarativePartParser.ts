@@ -28,7 +28,7 @@ export class DeclarativePartParser extends ParserBase {
         || nextToken.getLText() === 'shared'
         || nextToken.getLText() === 'variable'
         || nextToken.getLText() === 'file'
-        ) {
+      ) {
         const objects = new ObjectDeclarationParser(this.state, this.parent).parse(nextToken);
         this.parent.declarations.push(...objects);
       } else if (nextToken.getLText() === 'attribute') {

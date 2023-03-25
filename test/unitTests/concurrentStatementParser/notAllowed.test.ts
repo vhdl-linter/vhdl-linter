@@ -28,27 +28,27 @@ const tests: {
   file: string;
   allowed: (keyof (typeof possibleStatements))[]
 }[] = [
-    {
-      file: 'architecture.vhd',
-      allowed: [
-        'block_statement',
-        'process_statement',
-        'concurrent_procedure_call_statement',
-        'concurrent_assertion_statement',
-        'concurrent_signal_assignment_statement',
-        'component_instantiation_statement',
-        'generate_statement',
-      ]
-    },
-    {
-      file: 'entity.vhd',
-      allowed: [
-        'concurrent_assertion_statement',
-        'concurrent_procedure_call_statement',
-        'process_statement',
-      ]
-    },
-  ];
+  {
+    file: 'architecture.vhd',
+    allowed: [
+      'block_statement',
+      'process_statement',
+      'concurrent_procedure_call_statement',
+      'concurrent_assertion_statement',
+      'concurrent_signal_assignment_statement',
+      'component_instantiation_statement',
+      'generate_statement',
+    ]
+  },
+  {
+    file: 'entity.vhd',
+    allowed: [
+      'concurrent_assertion_statement',
+      'concurrent_procedure_call_statement',
+      'process_statement',
+    ]
+  },
+];
 test.each(
   tests.flatMap(test => {
     const testsForFile: [string, keyof (typeof possibleStatements), boolean][] = [];
