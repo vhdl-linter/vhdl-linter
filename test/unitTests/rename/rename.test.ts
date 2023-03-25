@@ -30,9 +30,9 @@ test.each([
   {
     occurrences:
       [['entity.vhd', createPrintableRange(5, 8, 19)],
-      ['entity.vhd', createPrintableRange(6, 5, 16)],
-      ['entity.vhd', createPrintableRange(8, 22, 33)],
-      ['entity.vhd', createPrintableRange(13, 34, 45)],
+        ['entity.vhd', createPrintableRange(6, 5, 16)],
+        ['entity.vhd', createPrintableRange(8, 22, 33)],
+        ['entity.vhd', createPrintableRange(13, 34, 45)],
 
       ],
     description: 'four occurrences of entity name(test_entity)'
@@ -40,7 +40,7 @@ test.each([
   {
     occurrences:
       [['entity.vhd', createPrintableRange(8, 14, 18)],
-      ['entity.vhd', createPrintableRange(11, 18, 22)],
+        ['entity.vhd', createPrintableRange(11, 18, 22)],
 
       ],
     description: 'two occurrences of architecture name (arch)'
@@ -48,21 +48,21 @@ test.each([
   {
     occurrences:
       [['entity.vhd', createPrintableRange(13, 15, 30)],
-      ['entity.vhd', createPrintableRange(24, 31, 46)],
+        ['entity.vhd', createPrintableRange(24, 31, 46)],
       ],
     description: 'two occurrences of configuration name (arch)'
   },
   {
     occurrences:
       [['signal.vhd', createPrintableRange(11, 10, 13)],
-      ['signal.vhd', createPrintableRange(16, 3, 6)],
-      ['signal.vhd', createPrintableRange(17, 24, 27)]],
+        ['signal.vhd', createPrintableRange(16, 3, 6)],
+        ['signal.vhd', createPrintableRange(17, 24, 27)]],
     description: 'three occurrences of the signal name foo'
   },
   {
     occurrences: [['signal.vhd', createPrintableRange(13, 21, 27)],
-    ['package.vhd', createPrintableRange(5, 8, 14)],
-    ['package.vhd', createPrintableRange(9, 15, 21)]],
+      ['package.vhd', createPrintableRange(5, 8, 14)],
+      ['package.vhd', createPrintableRange(9, 15, 21)]],
     description: '3 occurrences of t_enum'
   },
   {
@@ -74,74 +74,74 @@ test.each([
   {
     occurrences:
       [['signal.vhd', createPrintableRange(19, 12, 20)],
-      ['package.vhd', createPrintableRange(9, 5, 13)]],
+        ['package.vhd', createPrintableRange(9, 5, 13)]],
     description: '2 occurrences of element1 of t_record'
   },
   {
     occurrences:
       [['package.vhd', createPrintableRange(4, 9, 17)],
-      ['signal.vhd', createPrintableRange(4, 10, 18)], // also expect renaming in signal.vhd:4
-      ['package.vhd', createPrintableRange(12, 13, 21)],
-      ['package.vhd', createPrintableRange(13, 14, 22)],
-      ['package.vhd', createPrintableRange(14, 18, 26)]],
+        ['signal.vhd', createPrintableRange(4, 10, 18)], // also expect renaming in signal.vhd:4
+        ['package.vhd', createPrintableRange(12, 13, 21)],
+        ['package.vhd', createPrintableRange(13, 14, 22)],
+        ['package.vhd', createPrintableRange(14, 18, 26)]],
     description: '5 occurrences of package name (test_pkg)'
   },
   {
     occurrences:
       [['entity_split.vhd', createPrintableRange(2, 8, 25)],
-      ['entity_split.vhd', createPrintableRange(6, 5, 22)],
-      ['architecture_split.vhd', createPrintableRange(1, 22, 39)],
-      ['instantiation.vhd', createPrintableRange(10, 32, 49)],
-      ['instantiation.vhd', createPrintableRange(1, 40, 57)],
+        ['entity_split.vhd', createPrintableRange(6, 5, 22)],
+        ['architecture_split.vhd', createPrintableRange(1, 22, 39)],
+        ['instantiation.vhd', createPrintableRange(10, 32, 49)],
+        ['instantiation.vhd', createPrintableRange(1, 40, 57)],
       ],
     description: 'split entity and architecture file'
   },
   {
     occurrences:
       [['entity_split.vhd', createPrintableRange(4, 5, 8)],
-      ['architecture_split.vhd', createPrintableRange(5, 10, 13)],
-      ['instantiation.vhd', createPrintableRange(11, 10, 13)],
-      ['instantiation.vhd', createPrintableRange(13, 10, 13)],
+        ['architecture_split.vhd', createPrintableRange(5, 10, 13)],
+        ['instantiation.vhd', createPrintableRange(11, 10, 13)],
+        ['instantiation.vhd', createPrintableRange(13, 10, 13)],
       ],
     description: 'port name'
   },
   {
     occurrences:
       [['entity2.vhd', createPrintableRange(11, 25, 29)],
-      ['entity2.vhd', createPrintableRange(15, 26, 30)],
-      ['entity2.vhd', createPrintableRange(16, 5, 9)],
-      ['package2.vhd', createPrintableRange(5, 12, 16)],
-      ['package2.vhd', createPrintableRange(6, 12, 16)],
-      ['package2.vhd', createPrintableRange(7, 12, 16)],
-      ['package2.vhd', createPrintableRange(10, 12, 16)],
-      ['package2.vhd', createPrintableRange(13, 16, 20)],
-      ['package2.vhd', createPrintableRange(14, 12, 16)],
-      ['package2.vhd', createPrintableRange(17, 16, 20)],
+        ['entity2.vhd', createPrintableRange(15, 26, 30)],
+        ['entity2.vhd', createPrintableRange(16, 5, 9)],
+        ['package2.vhd', createPrintableRange(5, 12, 16)],
+        ['package2.vhd', createPrintableRange(6, 12, 16)],
+        ['package2.vhd', createPrintableRange(7, 12, 16)],
+        ['package2.vhd', createPrintableRange(10, 12, 16)],
+        ['package2.vhd', createPrintableRange(13, 16, 20)],
+        ['package2.vhd', createPrintableRange(14, 12, 16)],
+        ['package2.vhd', createPrintableRange(17, 16, 20)],
       ],
     description: 'function split over files'
   },
   {
     occurrences:
       [['entity2.vhd', createPrintableRange(16, 10, 11)],
-      ['package2.vhd', createPrintableRange(7, 17, 18)],
+        ['package2.vhd', createPrintableRange(7, 17, 18)],
       ],
     description: 'function parameter name'
   },
   {
     occurrences:
       [['generic_entity.vhd', createPrintableRange(3, 5, 17)],
-      ['generic_instantiation.vhd', createPrintableRange(11, 7, 19)],
+        ['generic_instantiation.vhd', createPrintableRange(11, 7, 19)],
       ],
     description: 'function parameter name'
   },
   {
     occurrences:
       [['component_entity.vhd', createPrintableRange(1, 8, 24)],
-      ['component_entity.vhd', createPrintableRange(5, 12, 28)],
-      ['component_instantiation.vhd', createPrintableRange(6, 13, 29)],
-      ['component_instantiation.vhd', createPrintableRange(10, 17, 33)],
-      ['component_instantiation.vhd', createPrintableRange(15, 15, 31)],
-      ['component_instantiation.vhd', createPrintableRange(20, 26, 42)],
+        ['component_entity.vhd', createPrintableRange(5, 12, 28)],
+        ['component_instantiation.vhd', createPrintableRange(6, 13, 29)],
+        ['component_instantiation.vhd', createPrintableRange(10, 17, 33)],
+        ['component_instantiation.vhd', createPrintableRange(15, 15, 31)],
+        ['component_instantiation.vhd', createPrintableRange(20, 26, 42)],
       ],
     description: 'components'
   },

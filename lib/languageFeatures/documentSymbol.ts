@@ -236,7 +236,7 @@ export class DocumentSymbols {
         if (decl instanceof OType) {
           children.push(this.getType(decl));
         }
-         if (decl instanceof OSubprogram) {
+        if (decl instanceof OSubprogram) {
           children.push({
             name: decl.lexerToken.text,
             kind: SymbolKind.Function,
@@ -244,7 +244,7 @@ export class DocumentSymbols {
             selectionRange: decl.lexerToken.range
           });
         }
-         if (decl instanceof OConstant) {
+        if (decl instanceof OConstant) {
           children.push({
             name: decl.lexerToken.text,
             kind: SymbolKind.Constant,
@@ -252,7 +252,7 @@ export class DocumentSymbols {
             selectionRange: decl.lexerToken.range
           });
         }
-         if (decl instanceof OAlias) {
+        if (decl instanceof OAlias) {
           children.push({
             name: decl.lexerToken.text,
             kind: SymbolKind.Field,
@@ -263,13 +263,13 @@ export class DocumentSymbols {
       }
     }
     if (obj instanceof ORecord) {
-     children.push(...obj.children.map(child => ({
-       name: child.lexerToken.text,
-       kind: SymbolKind.Field,
-       range: child.range,
-       selectionRange: child.lexerToken.range
-     })));
-   }
+      children.push(...obj.children.map(child => ({
+        name: child.lexerToken.text,
+        kind: SymbolKind.Field,
+        range: child.range,
+        selectionRange: child.lexerToken.range
+      })));
+    }
 
     if (children.length > 0) {
       return children;

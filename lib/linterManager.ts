@@ -30,7 +30,7 @@ export class LinterManager {
         reject(new ResponseError(LSPErrorCodes.RequestCancelled, 'canceled'));
       });
       this.emitter.once(uri, resolve);
-     });
+    });
   }
   async getLinter(uri: string, token?: CancellationToken, preferOldOverWaiting = true) {
     uri = normalizeUri(uri);

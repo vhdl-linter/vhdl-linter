@@ -28,7 +28,7 @@ for (const targetLibrary of targetLibraries) {
 use ${instantiationLibrary}.test_package.all;
 entity dummy is
 end entity;` :
-`entity test_instantiation is
+        `entity test_instantiation is
 end entity;
 architecture arch of test_instantiation is
   begin
