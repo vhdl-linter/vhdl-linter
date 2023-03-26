@@ -257,7 +257,8 @@ export class OFile {
   readonly rootFile = this; // Provided as a convenience to equalize to ObjectBase
 }
 
-export class OInterfacePackage extends OGeneric implements I.IHasNameLinks, I.IHasUseClauses, I.IHasContextReference, I.IHasLibraries, I.IHasLexerToken {
+export class OInterfacePackage extends OGeneric implements I.IHasNameLinks, I.IHasUseClauses, I.IHasContextReference, I.IHasLibraries,
+  I.IHasLexerToken, I.IMayHaveGenericAssociationList {
   aliasLinks: OAlias[] = [];
   lexerToken: OLexerToken;
   uninstantiatedPackage: OName[] = [];
@@ -267,8 +268,11 @@ export class OInterfacePackage extends OGeneric implements I.IHasNameLinks, I.IH
   useClauses: OUseClause[] = [];
   packageDefinitions: OPackage[] = [];
   contextReferences: OContextReference[] = [];
+  box: boolean;
+
 }
-export class OPackageInstantiation extends OName implements I.IHasDefinitions, I.IHasTargetLibrary, I.IHasNameLinks, I.IHasUseClauses, I.IHasContextReference, I.IHasLibraries {
+export class OPackageInstantiation extends ObjectBase implements I.IHasDefinitions, I.IHasTargetLibrary, I.IHasNameLinks,
+  I.IHasUseClauses, I.IHasContextReference, I.IHasLibraries, I.IMayHaveGenericAssociationList {
   definitions: OPackage[] = [];
   aliasLinks: OAlias[] = [];
   uninstantiatedPackage: OName[] = [];

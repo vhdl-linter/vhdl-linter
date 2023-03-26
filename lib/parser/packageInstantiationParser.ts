@@ -9,7 +9,9 @@ export class PackageInstantiationParser extends ParserBase {
 
   }
   parse(): OPackageInstantiation {
-    const inst = new OPackageInstantiation(this.parent, this.consumeToken());
+    const lexerToken = this.consumeToken();
+    const inst = new OPackageInstantiation(this.parent, lexerToken.range);
+    inst.lexerToken = lexerToken;
     inst.targetLibrary = this.getTargetLibrary();
     this.expect('is');
     this.expect('new');

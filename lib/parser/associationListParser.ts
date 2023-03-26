@@ -19,7 +19,7 @@ export class AssociationListParser extends ParserBase {
 
   private parse(type: 'port' | 'generic') {
     const braceToken = this.expect('(');
-    if (type === 'port' && this.parent instanceof O.OPackageInstantiation) {
+    if (type === 'port' && (this.parent instanceof O.OPackageInstantiation || this.parent instanceof O.OInterfacePackage)) {
       throw new O.ParserError('port association list is not allowed for package instantiations.', this.getToken().range);
     }
     const list = type === 'generic' ? new O.OGenericAssociationList(this.parent, braceToken.range) : new O.OPortAssociationList(this.parent as O.OInstantiation, braceToken.range);
