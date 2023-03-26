@@ -24,7 +24,9 @@ export function elaborateAssociations(file: O.OFile) {
         }
         return elements.filter((port, portNumber) => {
           if (!(port instanceof O.OTypeMark)) {
-            const formalMatch = association.formalPart.find(name => name.nameToken.getLText() === port.lexerToken.getLText());
+            // Handle Casting
+            const formalPartChildren = association.formalPart.map(O.getTheInnermostNameChildren);
+            const formalMatch = formalPartChildren.find(name => name.nameToken.getLText() === port.lexerToken.getLText());
             if (formalMatch) {
               return true;
             }

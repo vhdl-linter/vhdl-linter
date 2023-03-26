@@ -135,6 +135,7 @@ export class ExpressionParser {
     let innerReferences: O.OName[] | undefined;
     let containedBraces = false;
     let lastToken: OLexerToken | undefined;
+    let parent : O.OName | undefined;
     while (this.expState.num < this.tokens.length && this.getNumToken()?.getLText() !== ')') {
       if (this.getNumToken()?.getLText() === '(') {
         this.expState.braceLevel++;
@@ -181,9 +182,13 @@ export class ExpressionParser {
             // This is a bit hacky... When there is a cast in the formal reference side. Assume the last token is the actual formal reference
             // Ie to_integer(unsigned(output)) output would be the actual formal part. ant to_integer and unsigned are normal references
             if (formal && innerReferences.length > 0) {
-              Object.setPrototypeOf(innerReferences[innerReferences.length - 1], O.OFormalName.prototype);
+              Object.setPrototypeOf(O.getTheInnermostNameChildren(innerReferences.at(-1)!), O.OFormalName.prototype);
             }
-            references.push(...innerReferences);
+            if (parent) {
+              parent.children.push(...innerReferences);
+            } else {
+              references.push(...innerReferences);
+            }
             innerReferences = undefined;
           }
           if (formal) {
@@ -191,6 +196,8 @@ export class ExpressionParser {
           }
           tokenBuffer = [];
           containedBraces = false;
+          parent = undefined;
+
         } else {
           const token = this.getNumToken();
           if (token) {
@@ -201,7 +208,11 @@ export class ExpressionParser {
       lastToken = this.getNumToken();
       this.increaseToken();
     }
-    references.push(...this.splitBuffer(tokenBuffer, false, maybeWrite, false));
+    const newReferences = this.splitBuffer(tokenBuffer, false, maybeWrite, false);
+    if (newReferences.length > 0) {
+      parent = newReferences.at(-1);
+    }
+    references.push(...newReferences);
     if (this.getNumToken()?.getLText() === ')') {
       this.expState.braceLevel--;
     }
@@ -212,7 +223,11 @@ export class ExpressionParser {
       });
     }
     if (innerReferences !== undefined) {
-      references.push(...innerReferences);
+      if (parent) {
+        parent.children.push(...innerReferences);
+      } else {
+        references.push(...innerReferences);
+      }
       innerReferences = undefined;
     }
     this.expState.lastFormal = [];

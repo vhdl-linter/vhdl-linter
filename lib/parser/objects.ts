@@ -225,6 +225,7 @@ export class OName extends ObjectBase implements I.IHasDefinitions, I.IHasNameTo
   constructor(public parent: ObjectBase | OFile, public nameToken: OLexerToken, public write = false, range?: OIRange) {
     super(parent, range ?? nameToken.range);
   }
+  children: OName[] = [];
 }
 export class OChoice extends OName {
 }
@@ -916,4 +917,11 @@ export function* scope(startObject: ObjectBase): Generator<[ObjectBase, boolean]
     }
     current = current.parent;
   }
+}
+export function getTheInnermostNameChildren(name: OName) {
+  let nameChild = name;
+  while (nameChild.children.length > 0) {
+    nameChild = nameChild.children.at(-1)!;
+  }
+  return nameChild;
 }
