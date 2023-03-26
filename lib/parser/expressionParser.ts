@@ -186,6 +186,9 @@ export class ExpressionParser {
             }
             if (parent) {
               parent.children.push(...innerReferences);
+              for (const innerReference of innerReferences) {
+                innerReference.parent = parent;
+              }
             } else {
               references.push(...innerReferences);
             }
@@ -225,6 +228,9 @@ export class ExpressionParser {
     if (innerReferences !== undefined) {
       if (parent) {
         parent.children.push(...innerReferences);
+        for (const innerReference of innerReferences) {
+          innerReference.parent = parent;
+        }
       } else {
         references.push(...innerReferences);
       }
