@@ -21,7 +21,7 @@ export class RuleUnused extends RuleBase implements IRule {
       return;
     }
     const token = implementsIHasLexerToken(obj) ? obj.lexerToken : obj.nameToken;
-    const {unusedPrefix, unusedSuffix} = this.settings.style;
+    const { unusedPrefix, unusedSuffix } = this.settings.style;
     const code = codeActionFromPrefixSuffix(token, unusedPrefix, unusedSuffix, this.vhdlLinter);
     if (code !== undefined || (unusedPrefix === '' && unusedSuffix === '')) {
       this.addMessage({
@@ -94,7 +94,7 @@ export class RuleUnused extends RuleBase implements IRule {
             }
           } else if (declaration instanceof OPackageInstantiation) {
             if (declaration.nameLinks.length === 0) {
-              this.addUnusedMessage(declaration, `Not using package instantiation ${declaration.nameToken.text}`);
+              this.addUnusedMessage(declaration, `Not using package instantiation ${declaration.lexerToken.text}`);
             }
           } else if (declaration instanceof OSignal || declaration instanceof OVariable) {
             const typeName = declaration instanceof OSignal ? 'signal' : 'variable;';
