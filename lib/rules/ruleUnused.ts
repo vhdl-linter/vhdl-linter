@@ -1,6 +1,6 @@
 import { DiagnosticSeverity } from "vscode-languageserver";
 import { IHasLexerToken, IHasNameToken, IHasPorts, implementsIHasDeclarations, implementsIHasGenerics, implementsIHasLexerToken, implementsIHasPorts } from "../parser/interfaces";
-import { ObjectBase, OComponent, OConstant, OEntity, OFile, OPackage, OPackageBody, OSignal, OSubprogram, OType, OVariable } from "../parser/objects";
+import { ObjectBase, OComponent, OConstant, OEntity, OFile, OPackage, OPackageBody, OPackageInstantiation, OSignal, OSubprogram, OType, OVariable } from "../parser/objects";
 import { codeActionFromPrefixSuffix, IRule, RuleBase } from "./rulesBase";
 
 export class RuleUnused extends RuleBase implements IRule {
@@ -78,7 +78,6 @@ export class RuleUnused extends RuleBase implements IRule {
           if (generic.nameLinks.filter(token => token.write === false).length === 0) {
             this.addUnusedMessage(generic, `Not reading generic ${generic.lexerToken.text}`);
           }
-
         }
       }
       if (implementsIHasDeclarations(obj)) {
@@ -92,6 +91,10 @@ export class RuleUnused extends RuleBase implements IRule {
           } else if (declaration instanceof OComponent) {
             if (declaration.nameLinks.length === 0) {
               this.addUnusedMessage(declaration, `Not using component ${declaration.lexerToken.text}`);
+            }
+          } else if (declaration instanceof OPackageInstantiation) {
+            if (declaration.nameLinks.length === 0) {
+              this.addUnusedMessage(declaration, `Not using package instantiation ${declaration.nameToken.text}`);
             }
           } else if (declaration instanceof OSignal || declaration instanceof OVariable) {
             const typeName = declaration instanceof OSignal ? 'signal' : 'variable;';
