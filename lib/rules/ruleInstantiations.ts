@@ -1,6 +1,6 @@
 import { findBestMatch } from "string-similarity";
 import { CodeAction, CodeActionKind, DiagnosticSeverity, Range, TextEdit } from "vscode-languageserver";
-import { implementsIHasLexerToken, IHasLexerToken, implementsIHasStatements, implementsIHasPorts, implementsIHasDeclarations } from "../parser/interfaces";
+import * as I from "../parser/interfaces";
 import * as O from "../parser/objects";
 import { IRule, RuleBase } from "./rulesBase";
 
@@ -39,7 +39,7 @@ export class RuleInstantiation extends RuleBase implements IRule {
         });
         if (!interfaceElement) {
           let code: number | undefined = undefined;
-          const possibleMatches = availableInterfaceElementsFlat.filter(implementsIHasLexerToken).map(element => (element as IHasLexerToken).lexerToken.text);
+          const possibleMatches = availableInterfaceElementsFlat.filter(I.implementsIHasLexerToken).map(element => (element as I.IHasLexerToken).lexerToken.text);
           const firstFormal = association.formalPart[0];
           if (possibleMatches.length > 0 && firstFormal) {
             const bestMatch = findBestMatch(firstFormal.nameToken.text, possibleMatches);
@@ -115,7 +115,7 @@ export class RuleInstantiation extends RuleBase implements IRule {
           }
           return missing;
         });
-        // if one interface has no missing elements, don't add a message
+        // if one interface has no missing elements, skip adding a message
         if (!missingElements.find(elements => elements.length === 0)) {
           const elementString = [...new Set(missingElements.map(elements => elements.map(e => e.lexerToken.text).join(', ')))].join(') or (');
           this.addMessage({
@@ -127,72 +127,43 @@ export class RuleInstantiation extends RuleBase implements IRule {
       }
     }
   }
-  checkInstantiations(object: O.ObjectBase) {
-    if (implementsIHasStatements(object)) {
-      for (const instantiation of object.statements) {
-        if (instantiation instanceof O.OInstantiation) {
-          let definitions = instantiation.definitions;
-          if (instantiation.type === 'configuration') {
-            definitions = definitions.flatMap((definition: O.OConfigurationDeclaration) => {
-              const entities = this.vhdlLinter.projectParser.entities.filter(e => e.lexerToken.getLText() === definition.entityName.getLText());
-              return entities;
-            });
-          }
-          if (definitions.length > 0) {
-            const range = instantiation.range.start.getRangeToEndLine();
-            const availablePorts = definitions.map(e => {
-              if (implementsIHasPorts(e)) {
-                return e.ports;
-              }
-              if (e instanceof O.OAliasWithSignature) {
-                return e.typeMarks;
-              }
-              return [];
-            });
-            this.checkAssociations(availablePorts, instantiation.portAssociationList, instantiation.type, range, 'port');
-            const availableGenerics = definitions.map(d => (d instanceof O.OComponent || d instanceof O.OEntity) ? d.generics : []);
-            this.checkAssociations(availableGenerics, instantiation.genericAssociationList, instantiation.type, range, 'generic');
-          }
-        }
-      }
-    }
-    if (implementsIHasDeclarations(object)) {
-      for (const subprogram of object.declarations) {
-        if (subprogram instanceof O.OSubprogram) {
-          this.checkInstantiations(subprogram);
-        }
-      }
-    }
-    if (object instanceof O.OArchitecture) {
-      for (const statement of object.statements) {
-        this.checkInstantiations(statement);
-      }
-    }
-    if (object instanceof O.OIf) {
-      for (const clause of object.clauses) {
-        this.checkInstantiations(clause);
-      }
-      if (object.else) {
-        this.checkInstantiations(object.else);
-      }
-    }
-    if (object instanceof O.OCase) {
-      for (const clause of object.whenClauses) {
-        this.checkInstantiations(clause);
-      }
-    }
-    if (object instanceof O.OSequenceOfStatements) {
-      for (const statement of object.statements) {
-        this.checkInstantiations(statement);
-      }
-    }
-  }
   check() {
-    for (const architecture of this.file.architectures) {
-      this.checkInstantiations(architecture);
-    }
-    for (const pkg of this.file.packages) {
-      this.checkInstantiations(pkg);
+    for (const instantiation of this.file.objectList) {
+      if (instantiation instanceof O.OInstantiation) {
+        let definitions = instantiation.definitions;
+        // TODO: Extends checking of instantiations to Subprograms
+        if (definitions.some(def => def instanceof O.OSubprogram || def instanceof O.OAliasWithSignature)) {
+          continue; // skip functions
+        }
+        if (instantiation.type === 'configuration') {
+          definitions = definitions.flatMap((definition: O.OConfigurationDeclaration) => {
+            const entities = this.vhdlLinter.projectParser.entities.filter(e => e.lexerToken.getLText() === definition.entityName.getLText());
+            return entities;
+          });
+        }
+        if (definitions.length > 0) {
+          const range = instantiation.range.start.getRangeToEndLine();
+          const availablePorts = definitions.map(e => {
+            if (I.implementsIHasPorts(e)) {
+              return e.ports;
+            }
+            if (e instanceof O.OAliasWithSignature) {
+              return e.typeMarks;
+            }
+            return [];
+          });
+          this.checkAssociations(availablePorts, instantiation.portAssociationList, instantiation.type, range, 'port');
+          const availableGenerics = definitions.map(d => (I.implementsIHasGenerics(d)) ? d.generics : []);
+          this.checkAssociations(availableGenerics, instantiation.genericAssociationList, instantiation.type, range, 'generic');
+        }
+      }
+      if (instantiation instanceof O.OPackageInstantiation || instantiation instanceof O.OInterfacePackage) {
+        if (instantiation.definitions.length > 0) {
+          const range = instantiation.range.start.getRangeToEndLine();
+          const availableGenerics = instantiation.definitions.map(d => (I.implementsIHasGenerics(d)) ? d.generics : []);
+          this.checkAssociations(availableGenerics, instantiation.genericAssociationList, 'package', range, 'generic');
+        }
+      }
     }
   }
 }

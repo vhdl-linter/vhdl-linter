@@ -103,7 +103,7 @@ export class SequentialStatementParser extends ParserBase {
     subprogramCall.label = label;
     subprogramCall.instantiatedUnit = this.advanceSelectedName(subprogramCall);
     if (this.getToken().getLText() === '(') {
-      subprogramCall.portAssociationList = new AssociationListParser(this.state, subprogramCall).parse();
+      subprogramCall.portAssociationList = new AssociationListParser(this.state, subprogramCall).parsePortAssociations();
     }
     subprogramCall.range = subprogramCall.range.copyWithNewEnd(this.state.pos.i);
     this.expect(';');

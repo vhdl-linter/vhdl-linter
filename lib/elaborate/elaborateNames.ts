@@ -58,6 +58,10 @@ export class ElaborateNames {
     if (I.implementsIHasLabel(obj)) {
       return obj.label.getLText();
     }
+    // packageInstantiations are OName
+    if (obj instanceof O.OName) {
+      return obj.nameToken.getLText();
+    }
     return obj.lexerToken?.getLText();
   }
   addObjectsToMap<T extends O.ObjectBase>(map: Map<string, T[]>, ...objects: T[]) {
@@ -151,7 +155,7 @@ export class ElaborateNames {
 
   getList(name: O.OName) {
     // find parent which is a scope
-    let key = name.parent;
+    let key: O.ObjectBase = name;
     for (const [p] of O.scope(key)) {
       if (I.implementsIHasDeclarations(p) || I.implementsIHasStatements(p) || p instanceof O.OPackageInstantiation || p instanceof O.OContext) {
         key = p;

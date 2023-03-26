@@ -4,9 +4,6 @@ import * as O from "../parser/objects";
 export function elaborateAssociations(file: O.OFile) {
   for (const association of file.objectList.filter(obj => obj instanceof O.OAssociation) as O.OAssociation[]) {
     if (association.parent instanceof O.OGenericAssociationList || association.parent instanceof O.OPortAssociationList) {
-      if (!(association.parent.parent instanceof O.OInstantiation)) {
-        continue;
-      }
       const definitions = association.parent.parent.definitions;
 
       const possibleFormals: (O.OPort | O.OGeneric | O.OTypeMark)[] = [];
@@ -19,10 +16,10 @@ export function elaborateAssociations(file: O.OFile) {
             elements = definition.typeMarks;
           } else if (definition instanceof O.OConfigurationDeclaration) {
             elements = definition.definitions[0]?.ports ?? [];
-          } else {
+          } else if (I.implementsIHasPorts(definition)) {
             elements = definition.ports;
           }
-        } else if (definition instanceof O.OComponent || definition instanceof O.OEntity) {
+        } else if (I.implementsIHasGenerics(definition)) {
           elements = definition.generics;
         }
         return elements.filter((port, portNumber) => {

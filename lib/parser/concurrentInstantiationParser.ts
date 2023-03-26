@@ -1,7 +1,7 @@
+import { OLexerToken } from '../lexer';
 import { AssociationListParser } from './associationListParser';
 import { OEntity, OInstantiation, OStatementBody, ParserError } from './objects';
 import { ParserBase, ParserState } from './parserBase';
-import { OLexerToken } from '../lexer';
 
 export class ConcurrentInstantiationParser extends ParserBase {
   constructor(state: ParserState, private parent: OStatementBody | OEntity) {
@@ -41,7 +41,7 @@ export class ConcurrentInstantiationParser extends ParserBase {
         hasPortMap = true;
         this.consumeToken();
         this.expect('map');
-        instantiation.portAssociationList = new AssociationListParser(this.state, instantiation).parse();
+        instantiation.portAssociationList = new AssociationListParser(this.state, instantiation).parsePortAssociations();
 
       } else if (nextToken.getLText() === 'generic' && instantiation.type !== 'subprogram') {
         if (instantiation.type === 'unknown') {
@@ -50,9 +50,9 @@ export class ConcurrentInstantiationParser extends ParserBase {
         hasGenericMap = true;
         this.consumeToken();
         this.expect('map');
-        instantiation.genericAssociationList = new AssociationListParser(this.state, instantiation).parse('generic');
+        instantiation.genericAssociationList = new AssociationListParser(this.state, instantiation).parseGenericAssociations();
       } else if (nextToken.getLText() === '(' && !hasGenericMap && !hasPortMap) { // is subprogram call
-        instantiation.portAssociationList = new AssociationListParser(this.state, instantiation).parse();
+        instantiation.portAssociationList = new AssociationListParser(this.state, instantiation).parsePortAssociations();
       }
 
       if (lastI === this.state.pos.i) {
