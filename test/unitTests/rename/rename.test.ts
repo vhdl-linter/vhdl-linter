@@ -145,6 +145,22 @@ test.each([
       ],
     description: 'components'
   },
+  {
+    occurrences:
+      [['generic_pkg.vhd', createPrintableRange(1, 9, 20)],
+        ['generic_pkg.vhd', createPrintableRange(15, 14, 25)],
+        ['generic_pkg.vhd', createPrintableRange(23, 14, 25)],
+      ],
+    description: 'generic package instantiation'
+  },
+  {
+    occurrences:
+      [['generic_pkg.vhd', createPrintableRange(3, 5, 22)],
+        ['generic_pkg.vhd', createPrintableRange(16, 20, 37)],
+        ['generic_pkg.vhd', createPrintableRange(24, 20, 37)],
+      ],
+    description: 'generic association in generic package instantiation'
+  },
   // The ports/generics of components are currently not linked
   // {
   //   occurrences:

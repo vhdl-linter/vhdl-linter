@@ -2,7 +2,7 @@ import { ErrorCodes, Location, Position, ResponseError } from 'vscode-languagese
 import { Elaborate } from '../elaborate/elaborate';
 import { OLexerToken } from '../lexer';
 import { implementsIHasEndingLexerToken, implementsIHasNameLinks } from '../parser/interfaces';
-import { OArchitecture, ObjectBase, OComponent, OConfigurationDeclaration, OEntity, OGeneric, OInstantiation, OPackage, OPackageBody, OPort, OSubprogram, OVariable } from '../parser/objects';
+import { OArchitecture, ObjectBase, OComponent, OConfigurationDeclaration, OEntity, OGeneric, OInstantiation, OPackage, OPackageBody, OPackageInstantiation, OPort, OSubprogram, OVariable } from '../parser/objects';
 import { VhdlLinter } from '../vhdlLinter';
 import { findDefinitions } from './findDefinition';
 export function getTokenFromPosition(linter: VhdlLinter, position: Position, onlyDesignator = true): OLexerToken | undefined {
@@ -140,7 +140,7 @@ export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position
       if (definition instanceof OGeneric) {
         referenceTokens.push(...definition.parent.nameLinks
           .flatMap(link => {
-            if (link instanceof OInstantiation) {
+            if (link instanceof OInstantiation || link instanceof OPackageInstantiation) {
               return link.genericAssociationList?.children.flatMap(child => {
                 return child.formalPart
                   .filter(formal => formal.nameToken.getLText() === definition.lexerToken.getLText())
