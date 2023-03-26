@@ -58,10 +58,6 @@ export class ElaborateNames {
     if (I.implementsIHasLabel(obj)) {
       return obj.label.getLText();
     }
-    // packageInstantiations are OName
-    if (obj instanceof O.OName) {
-      return obj.nameToken.getLText();
-    }
     return obj.lexerToken?.getLText();
   }
   addObjectsToMap<T extends O.ObjectBase>(map: Map<string, T[]>, ...objects: T[]) {

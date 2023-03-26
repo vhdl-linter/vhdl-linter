@@ -39,6 +39,9 @@ export interface IHasLexerToken {
 export interface IMayHaveEndingLexerToken {
   endingLexerToken?: OLexerToken;
 }
+export interface IMayHaveGenericAssociationList {
+  genericAssociationList?: O.OGenericAssociationList;
+}
 export interface IHasEndingLexerToken {
   endingLexerToken: OLexerToken;
 }

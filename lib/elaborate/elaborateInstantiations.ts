@@ -25,11 +25,11 @@ export function elaborateInstantiations(vhdlLinter: VhdlLinter) {
       for (const def of obj.definitions) {
         def.nameLinks.push(obj);
       }
-    } else if (obj instanceof O.OPackageInstantiation) {
+    } else if (obj instanceof O.OPackageInstantiation || obj instanceof O.OInterfacePackage) {
       const defs = obj.uninstantiatedPackage.at(-1)!.definitions;
       obj.definitions = defs.filter(def => def instanceof O.OPackage) as O.OPackage[];
       for (const def of obj.definitions) {
-        def.nameLinks.push(obj);
+        def.nameLinks.push(obj.uninstantiatedPackage.at(-1)!);
       }
     }
   }
