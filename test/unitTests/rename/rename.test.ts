@@ -159,6 +159,7 @@ test.each([
       [['generic_pkg.vhd', createPrintableRange(3, 5, 22)],
         ['generic_pkg.vhd', createPrintableRange(13, 20, 37)],
         ['generic_pkg.vhd', createPrintableRange(20, 20, 37)],
+        ['generic_pkg.vhd', createPrintableRange(20, 63, 80)],
         ['generic_pkg.vhd', createPrintableRange(28, 20, 37)],
       ],
     description: 'generic association in generic package instantiation'

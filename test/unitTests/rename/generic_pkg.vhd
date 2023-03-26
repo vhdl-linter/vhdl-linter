@@ -17,10 +17,10 @@ end test_instances_no_use;
 architecture arch of test_instances_no_use is
   package pkg_instanceInArch is
     new work.generic_pkg
-      generic map (generic_parameter => 16);
+      generic map (generic_parameter => pkg_instanceInGeneric.generic_parameter);
   begin
 
-  end architecture;
+end architecture;
 
 
   package instantiated_pkg is
