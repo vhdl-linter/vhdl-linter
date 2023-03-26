@@ -21,6 +21,7 @@ export class InterfacePackageParser extends ParserBase {
         this.expect('(');
         this.expect('<>');
         this.expect(')');
+        inst.box = true;
       } else {
         inst.genericAssociationList = new AssociationListParser(this.state, inst).parseGenericAssociations();
       }

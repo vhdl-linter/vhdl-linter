@@ -158,6 +158,9 @@ export class RuleInstantiation extends RuleBase implements IRule {
         }
       }
       if (instantiation instanceof O.OPackageInstantiation || instantiation instanceof O.OInterfacePackage) {
+        if (instantiation instanceof O.OInterfacePackage && instantiation.box) { // LRM 6.5.5 Box symbol is used
+          continue;
+        }
         if (instantiation.definitions.length > 0) {
           const range = instantiation.range.start.getRangeToEndLine();
           const availableGenerics = instantiation.definitions.map(d => (I.implementsIHasGenerics(d)) ? d.generics : []);

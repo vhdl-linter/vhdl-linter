@@ -268,8 +268,7 @@ export class OInterfacePackage extends OGeneric implements I.IHasNameLinks, I.IH
   useClauses: OUseClause[] = [];
   packageDefinitions: OPackage[] = [];
   contextReferences: OContextReference[] = [];
-  // Make compatible to OName
-  inAssociation = false;
+  box: boolean;
 
 }
 export class OPackageInstantiation extends ObjectBase implements I.IHasDefinitions, I.IHasTargetLibrary, I.IHasNameLinks,
