@@ -78,6 +78,7 @@ export class RuleInstantiation extends RuleBase implements IRule {
         }
         return missingPortsThis;
       }, incompleteInterfaceElements[0]!);
+
       this.addMessage({
         range: range,
         severity: DiagnosticSeverity.Error,
@@ -86,6 +87,9 @@ export class RuleInstantiation extends RuleBase implements IRule {
     } else {
       const availableInterfaceElementsFlat = availableInterfaceElements.flat().filter((v, i, self) => self.findIndex(o => o.lexerTokenEquals(v)) === i);
       for (const association of associationList?.children ?? []) {
+        if (association.formalPart.length === 0) {
+          continue;
+        }
         const interfaceElement = availableInterfaceElementsFlat.find(port => {
           for (const part of association.formalPart) {
             if (port instanceof O.OTypeMark) {
@@ -124,6 +128,14 @@ export class RuleInstantiation extends RuleBase implements IRule {
             code
           });
         }
+      }
+      const longestAvailable = availableInterfaceElements.reduce((prev, curr) => Math.max(prev, curr.length), 0);
+      if (associationList && longestAvailable < associationList.children.length) {
+        this.addMessage({
+          range: associationList.range,
+          severity: DiagnosticSeverity.Error,
+          message: `To many associations, was expecting at most ${longestAvailable}`
+        });
       }
     }
   }

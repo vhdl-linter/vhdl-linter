@@ -226,6 +226,10 @@ export class OName extends ObjectBase implements I.IHasDefinitions, I.IHasNameTo
     super(parent, range ?? nameToken.range);
   }
   children: OName[] = [];
+  afterComma = false;
+}
+export class OAggregate extends OName {
+
 }
 export class OChoice extends OName {
 }
@@ -578,6 +582,7 @@ export class OInstantiation extends OName implements I.IHasDefinitions, I.IMayHa
   archIdentifier?: OLexerToken;
   label?: OLexerToken;
   labelLinks: OLabelName[] = [];
+  convertedInstantiation = false;
 }
 export class OAssociation extends ObjectBase implements I.IHasDefinitions {
   constructor(public parent: OAssociationList, range: OIRange) {
@@ -920,8 +925,24 @@ export function* scope(startObject: ObjectBase): Generator<[ObjectBase, boolean]
 }
 export function getTheInnermostNameChildren(name: OName) {
   let nameChild = name;
+  let recursionLimit = 1000;
   while (nameChild.children.length > 0) {
     nameChild = nameChild.children.at(-1)!;
+    if (recursionLimit-- <= 0) {
+      throw new Error("Infinite Recursion");
+    }
   }
   return nameChild;
+}
+export function getNameParent(name: OName) {
+  let nameParent: ObjectBase = name;
+  let recursionLimit = 1000;
+  while (nameParent instanceof OName) {
+    nameParent = nameParent.parent as OName;
+    if (recursionLimit-- <= 0) {
+      throw new Error("Infinite Recursion");
+    }
+  }
+  return nameParent;
+
 }

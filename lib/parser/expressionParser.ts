@@ -43,12 +43,12 @@ export class ExpressionParser {
     }
     return -1;
   }
-  splitBuffer(buffer: OLexerToken[], formal: boolean, write: boolean, choice: boolean): O.OName[] {
+  splitBuffer(buffer: OLexerToken[], formal: boolean, write: boolean, choice: boolean, afterComma: boolean): O.OName[] {
     const references = [];
     let alternativeIndex = buffer.findIndex(token => token.getLText() === '|');
     while (alternativeIndex > -1) {
       const newBuffer = buffer.slice(0, alternativeIndex);
-      references.push(...this.splitBuffer(newBuffer, formal, false, choice));
+      references.push(...this.splitBuffer(newBuffer, formal, false, choice, afterComma));
       buffer = buffer.slice(alternativeIndex + 1);
       alternativeIndex = buffer.findIndex(token => token.getLText() === '|');
     }
@@ -71,15 +71,16 @@ export class ExpressionParser {
 
     }
     if (attributeIndex === -1) {
-      references.push(...this.convertToName(buffer, formal, write, choice));
+      references.push(...this.convertToName(buffer, formal, write, choice, afterComma));
       if (lastAttributeReference) {
         lastAttributeReference.prefix = references[references.length - 1]!;
       }
     }
     return references;
   }
-  convertToName(buffer: OLexerToken[], formal: boolean, write: boolean, choice: boolean) {
-    buffer = buffer.filter(token => token.isDesignator() || token.getLText() === 'all' || token.type === TokenType.implicit || token.type === TokenType.keyword);
+  convertToName(buffer: OLexerToken[], formal: boolean, write: boolean, choice: boolean, afterComma: boolean) {
+    buffer = buffer.filter(token => token.isDesignator() || token.getLText() === 'all' || token.type === TokenType.implicit
+    || token.type === TokenType.keyword || token.isLiteral()) ;
     const names: O.OName[] =  [];
     const prefixWrite: O.OName[] = [];
     const prefixRead: O.OName[] = [];
@@ -127,6 +128,9 @@ export class ExpressionParser {
     for (const name of names) {
       name.braceLevel = this.expState.braceLevel;
     }
+    if (afterComma && names[0]) {
+      names[0].afterComma = true;
+    }
     return names;
   }
   private inner(maybeFormal = false, maybeWrite = false, maybeChoice = false): O.OName[] {
@@ -136,6 +140,7 @@ export class ExpressionParser {
     let containedBraces = false;
     let lastToken: OLexerToken | undefined;
     let parent : O.OName | undefined;
+    let afterComma = false;
     while (this.expState.num < this.tokens.length && this.getNumToken()?.getLText() !== ')') {
       if (this.getNumToken()?.getLText() === '(') {
         this.expState.braceLevel++;
@@ -171,7 +176,11 @@ export class ExpressionParser {
           const formal = maybeFormal && breakToken === '=>';
           const choice = maybeChoice && breakToken === '=>';
           // If braces were contained. This token was a cast on the formal side (so a reference not formal)
-          references.push(...this.splitBuffer(tokenBuffer, formal && containedBraces === false, maybeWrite, choice));
+          const newReferences = this.splitBuffer(tokenBuffer, formal && containedBraces === false, maybeWrite, choice, afterComma);
+          afterComma = breakToken === ',';
+          references.push(...newReferences);
+          parent = newReferences.at(-1);
+
 
           // Only the first token can be a write. For example signal.record_element only the signal is written.
           // The exception is in an aggregate all aggregate elements are written. (aggregate elements are separated by ',')
@@ -190,7 +199,14 @@ export class ExpressionParser {
                 innerReference.parent = parent;
               }
             } else {
-              references.push(...innerReferences);
+              if (innerReferences.length > 0) {
+                const aggregate = new O.OAggregate(this.parent, new OLexerToken('', innerReferences[0]!.range, TokenType.implicit, innerReferences[0]!.rootFile));
+                aggregate.children = innerReferences;
+                for (const innerReference of innerReferences) {
+                  innerReference.parent = aggregate;
+                }
+                references.push(aggregate);
+              }
             }
             innerReferences = undefined;
           }
@@ -211,7 +227,7 @@ export class ExpressionParser {
       lastToken = this.getNumToken();
       this.increaseToken();
     }
-    const newReferences = this.splitBuffer(tokenBuffer, false, maybeWrite, false);
+    const newReferences = this.splitBuffer(tokenBuffer, false, maybeWrite, false, afterComma);
     if (newReferences.length > 0) {
       parent = newReferences.at(-1);
     }
@@ -232,7 +248,14 @@ export class ExpressionParser {
           innerReference.parent = parent;
         }
       } else {
-        references.push(...innerReferences);
+        if (innerReferences.length > 0) {
+          const aggregate = new O.OAggregate(this.parent, new OLexerToken('', innerReferences[0]!.range, TokenType.implicit, innerReferences[0]!.rootFile));
+          aggregate.children = innerReferences;
+          for (const innerReference of innerReferences) {
+            innerReference.parent = aggregate;
+          }
+          references.push(aggregate);
+        }
       }
       innerReferences = undefined;
     }

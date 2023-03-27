@@ -5,17 +5,17 @@ architecture arch of test_instantiation is
   procedure getBar(a, b, c, d : integer) is
   begin
   end procedure;
-  procedure getFoo(a : integer; b : integer := 5) is
+  procedure getFoo(a          : integer; b : integer := 5) is
   begin
   end procedure;
-  procedure getFoobar(a : integer; b : integer := 5; c : integer) is
+  procedure getFoobar(a       : integer; b : integer := 5; c : integer) is
   begin
   end procedure;
-  signal apfel : integer;
+  signal apfel                : integer;
 begin
   p_label : process is
   begin
-    getBar(0, 1, 2, 3);
+    getBar(apfel, apfel, apfel, apfel);
     getBar(a          => 0, b => 1, c => 2, d => 3);
     getBar(0, b       => 1, c => 2, d => 3);
     getBar(0, 1, c    => 2, d => 3);
