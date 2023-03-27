@@ -206,12 +206,12 @@ export abstract class OGeneric extends ObjectBase implements I.IHasDefinitions, 
   nameLinks: OName[] = [];
   aliasLinks: OAlias[] = [];
   lexerToken: OLexerToken;
-
+  defaultValue?: ObjectBase[];
 }
 export class OGenericConstant extends OGeneric implements I.IVariableBase, I.IHasSubtypeIndication, I.IHasDefaultValue {
   definitions: OGenericConstant[] = [];
   subtypeIndication: OSubtypeIndication;
-  defaultValue?: OName[] = [];
+  defaultValue?: OName[];
 
 }
 export class OName extends ObjectBase implements I.IHasDefinitions, I.IHasNameToken {
