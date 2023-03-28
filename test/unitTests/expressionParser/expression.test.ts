@@ -35,7 +35,7 @@ test.each([
     const lexerTokens: OLexerToken[] = [];
     const file = new OFile('', pathToFileURL('/tmp/test'), '', lexerTokens);
     const parent = new ObjectBase(file, new OIRange(file, 0, 0));
-    lexerTokens.push(...(new Lexer(expression, file).lex(file)));
+    lexerTokens.push(...(new Lexer(expression, file).lex()));
     const expressionParser = new ExpressionParser(new ParserState(new ParserPosition, pathToFileURL('/tmp/test')), parent, lexerTokens);
     const references = expressionParser.parse();
     expect(references.length).toBe(numberOfReferences);

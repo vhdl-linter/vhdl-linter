@@ -9,7 +9,7 @@ export class RuleUnits extends RuleBase implements IRule {
 
   check() {
     for (const obj of this.file.objectList) {
-      if (obj instanceof OName && obj.definitions.some(def => def instanceof OUnit)) {
+      if (obj instanceof OName && obj.nameToken.getLText() !== 'all' && obj.definitions.some(def => def instanceof OUnit)) {
         // check if token before unit token is whitespace
         const i = this.file.lexerTokens.findIndex(token => token === obj.nameToken);
         if (i > 1 && this.file.lexerTokens[i - 1]!.type === TokenType.decimalLiteral) {

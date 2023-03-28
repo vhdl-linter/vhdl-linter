@@ -109,4 +109,29 @@ package standard is
   attribute simple_name       : t;
   attribute instance_name       : t;
   attribute path_name       : t;
+
+
+
+    -- Predefined TO_STRING operations on scalar types
+  function TO_STRING (VALUE: BOOLEAN) return STRING;
+  function TO_STRING (VALUE: BIT) return STRING;
+  function TO_STRING (VALUE: CHARACTER) return STRING;
+  function TO_STRING (VALUE: SEVERITY_LEVEL) return STRING;
+  function TO_STRING (VALUE: universal_integer) return STRING;
+  function TO_STRING (VALUE: universal_real) return STRING;
+  function TO_STRING (VALUE: INTEGER) return STRING;
+  function TO_STRING (VALUE: REAL) return STRING;
+  function TO_STRING (VALUE: TIME) return STRING;
+  function TO_STRING (VALUE: STRING) return STRING;
+  function TO_STRING (VALUE: BOOLEAN_VECTOR) return STRING;
+  function TO_STRING (VALUE: INTEGER_VECTOR) return STRING;
+  function TO_STRING (VALUE: REAL_VECTOR) return STRING;
+  function TO_STRING (VALUE: TIME_VECTOR) return STRING;
+  function TO_STRING (VALUE: FILE_OPEN_KIND) return STRING;
+  function TO_STRING (VALUE: FILE_OPEN_STATUS) return STRING;
+  -- Predefined overloaded TO_STRING operations
+  function TO_STRING (VALUE: REAL; DIGITS: NATURAL) return STRING;
+  function TO_STRING (VALUE: REAL; FORMAT: STRING) return STRING;
+  function TO_STRING (VALUE: TIME; UNIT: TIME) return STRING;
+
 end;

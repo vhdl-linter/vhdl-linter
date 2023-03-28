@@ -28,7 +28,7 @@ export class FileParser extends ParserBase {
     const lexerTokens: [] = [];
     this.file = new OFile(this.text, this.state.fileUri, this.originalText, lexerTokens);
     const lexer = new Lexer(this.originalText, this.file, lexerTokens);
-    this.file.lexerTokens = lexer.lex(this.file);
+    this.file.lexerTokens = lexer.lex();
     this.lexerTokens = this.file.lexerTokens;
     this.state.pos.lexerTokens = this.lexerTokens;
     this.state.pos.file = this.file;
@@ -126,7 +126,9 @@ export class FileParser extends ParserBase {
       // always add `use std.standard.all;`
       const standardUseClause = this.useClauseFromTokens(parent, [
         new OLexerToken('std', new OIRange(this.file, 0, 0), TokenType.implicit, this.file),
+        new OLexerToken('.', new OIRange(this.file, 0, 0), TokenType.implicit, this.file),
         new OLexerToken('standard', new OIRange(this.file, 0, 0), TokenType.implicit, this.file),
+        new OLexerToken('.', new OIRange(this.file, 0, 0), TokenType.implicit, this.file),
         new OLexerToken('all', new OIRange(this.file, 0, 0), TokenType.implicit, this.file)
       ]);
       return [

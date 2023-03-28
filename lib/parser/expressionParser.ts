@@ -35,7 +35,7 @@ export class ExpressionParser {
     return result;
   }
   // Shim, until supported by ESNEXT
-  private findLastIndex<T>(array: T[], callback: (a: T) => boolean ) {
+  private findLastIndex<T>(array: T[], callback: (a: T) => boolean) {
     for (let i = array.length - 1; i >= 0; i--) {
       if (callback(array[i]!)) {
         return i;
@@ -43,7 +43,7 @@ export class ExpressionParser {
     }
     return -1;
   }
-  splitBuffer(buffer: OLexerToken[], formal: boolean, write: boolean, choice: boolean, afterComma: boolean): O.OName[] {
+  splitBuffer(buffer: OLexerToken[], formal: boolean, write: boolean, choice: boolean, afterComma: boolean, selectedNamePrefix?: O.OName): O.OName[] {
     const references = [];
     let alternativeIndex = buffer.findIndex(token => token.getLText() === '|');
     while (alternativeIndex > -1) {
@@ -51,6 +51,24 @@ export class ExpressionParser {
       references.push(...this.splitBuffer(newBuffer, formal, false, choice, afterComma));
       buffer = buffer.slice(alternativeIndex + 1);
       alternativeIndex = buffer.findIndex(token => token.getLText() === '|');
+    }
+    // Split literals
+    let literalIndex = buffer.findIndex(token => token.isLiteral());
+    while (literalIndex > -1 && literalIndex < buffer.length - 1) {
+      const newBuffer = buffer.slice(0, alternativeIndex);
+      references.push(...this.splitBuffer(newBuffer, formal, false, choice, afterComma, selectedNamePrefix));
+      selectedNamePrefix = undefined;
+      afterComma = false;
+      buffer = buffer.slice(literalIndex + 1);
+      literalIndex = buffer.findIndex(token => token.isLiteral());
+    }
+    // Split new
+    const newIndex = buffer.findIndex(token => token.getLText() === 'new');
+    if (newIndex > -1 && newIndex < buffer.length - 1) {
+      const newBuffer = buffer.slice(0, alternativeIndex);
+      references.push(...this.splitBuffer(newBuffer, formal, false, choice, afterComma, selectedNamePrefix));
+      selectedNamePrefix = undefined;
+      buffer = buffer.slice(newIndex + 1);
     }
 
     let attributeIndex = this.findLastIndex(buffer, token => token.getLText() === '\'');
@@ -71,41 +89,53 @@ export class ExpressionParser {
 
     }
     if (attributeIndex === -1) {
-      references.push(...this.convertToName(buffer, formal, write, choice, afterComma));
+      references.push(...this.convertToName(buffer, formal, write, choice, afterComma, selectedNamePrefix));
       if (lastAttributeReference) {
         lastAttributeReference.prefix = references[references.length - 1]!;
       }
     }
     return references;
   }
-  convertToName(buffer: OLexerToken[], formal: boolean, write: boolean, choice: boolean, afterComma: boolean) {
+  convertToName(buffer: OLexerToken[], formal: boolean, write: boolean, choice: boolean, afterComma: boolean, selectedNamePrefix?: O.OName) {
     buffer = buffer.filter(token => token.isDesignator() || token.getLText() === 'all' || token.type === TokenType.implicit
-    || token.type === TokenType.keyword || token.isLiteral()) ;
-    const names: O.OName[] =  [];
+      || token.type === TokenType.keyword || token.isLiteral());
+    const names: O.OName[] = [];
     const prefixWrite: O.OName[] = [];
     const prefixRead: O.OName[] = [];
-    for (const [index, token] of buffer.entries()) {
+    if (buffer.length > 1) {
+      this.state.messages.push({
+        message: "Args.",
+        range: buffer[0]!.range.copyWithNewEnd(buffer.at(-1)!.range)
+      });
+    }
+    for (const token of buffer) {
       if (choice) {
         names.push(new O.OChoice(this.parent, token));
       } else if (formal) {
         names.push(new O.OFormalName(this.parent, token));
-      } else if (index > 0) {
-        if (write && (this.expState.leftHandSide || this.expState.maybeOutput || this.expState.maybeInOut) ) {
-          const write = new O.OSelectedName(this.parent, token, prefixWrite.slice(0) as O.SelectedNamePrefix, true);
+      } else if (selectedNamePrefix) {
+        if (write && (this.expState.leftHandSide || this.expState.maybeOutput || this.expState.maybeInOut)) {
+          const prefixList = [selectedNamePrefix];
+          if (selectedNamePrefix instanceof O.OSelectedName) {
+            prefixList.unshift(...selectedNamePrefix.prefixTokens);
+          }
+
+          const write = new O.OSelectedName(this.parent, token, [selectedNamePrefix], true);
           names.push(write);
           prefixWrite.push(write);
           write.inAssociation = this.expState.maybeOutput || this.expState.maybeInOut;
           if (this.expState.maybeInOut) {
-            const name = new O.OSelectedName(this.parent, token, prefixRead.slice(0) as O.SelectedNamePrefix);
+            const name = new O.OSelectedName(this.parent, token, [selectedNamePrefix]);
             names.push(name);
             prefixRead.push(name);
 
           }
         } else {
-          const name = new O.OSelectedName(this.parent, token, prefixRead.slice(0) as O.SelectedNamePrefix);
+          const name = new O.OSelectedName(this.parent, token, [selectedNamePrefix]);
           names.push(name);
           prefixRead.push(name);
         }
+
       } else {
         if (write && (this.expState.leftHandSide || this.expState.maybeOutput || this.expState.maybeInOut)) {
           const write = new O.OName(this.parent, token, true);
@@ -139,8 +169,9 @@ export class ExpressionParser {
     let innerReferences: O.OName[] | undefined;
     let containedBraces = false;
     let lastToken: OLexerToken | undefined;
-    let parent : O.OName | undefined;
+    let parent: O.OName | undefined;
     let afterComma = false;
+    let selectedNamePrefix: O.OName | undefined;
     while (this.expState.num < this.tokens.length && this.getNumToken()?.getLText() !== ')') {
       if (this.getNumToken()?.getLText() === '(') {
         this.expState.braceLevel++;
@@ -164,6 +195,7 @@ export class ExpressionParser {
           "sll", "srl", "sla", "sra", "rol", "ror", //shiftExpression
           "+", "-", "&", //adding_operator
           "*", "/", "mod", "rem", //multiplying_operator
+          "." //Selected Name
         ];
 
         // If the token is one of the break tokens a new name/selected name or combined identifier starts.
@@ -175,11 +207,19 @@ export class ExpressionParser {
         if ((breakToken !== undefined || (this.getNumToken()?.isIdentifier() && this.getNumToken(-1)?.isIdentifier())) && lastToken?.getLText() !== '\'') {
           const formal = maybeFormal && breakToken === '=>';
           const choice = maybeChoice && breakToken === '=>';
+          const selectedName = breakToken === '.';
           // If braces were contained. This token was a cast on the formal side (so a reference not formal)
-          const newReferences = this.splitBuffer(tokenBuffer, formal && containedBraces === false, maybeWrite, choice, afterComma);
-          afterComma = breakToken === ',';
+          const newReferences = this.splitBuffer(tokenBuffer, formal && containedBraces === false, maybeWrite, choice, afterComma, selectedNamePrefix);
           references.push(...newReferences);
+          if (newReferences.length > 0) {
+            afterComma = false;
+          }
           parent = newReferences.at(-1);
+          if (selectedName) {
+            selectedNamePrefix = newReferences.at(-1);
+          } else {
+            selectedNamePrefix = undefined;
+          }
 
 
           // Only the first token can be a write. For example signal.record_element only the signal is written.
@@ -201,6 +241,7 @@ export class ExpressionParser {
             } else {
               if (innerReferences.length > 0) {
                 const aggregate = new O.OAggregate(this.parent, new OLexerToken('', innerReferences[0]!.range, TokenType.implicit, innerReferences[0]!.rootFile));
+                aggregate.afterComma = afterComma;
                 aggregate.children = innerReferences;
                 for (const innerReference of innerReferences) {
                   innerReference.parent = aggregate;
@@ -214,6 +255,9 @@ export class ExpressionParser {
             this.expState.lastFormal = tokenBuffer;
           }
           tokenBuffer = [];
+          // After Comma state must be stayed over minus sign in case it is used as a sign
+          afterComma = breakToken === ',' || (afterComma && breakToken === '-');
+
           containedBraces = false;
           parent = undefined;
 
@@ -227,7 +271,7 @@ export class ExpressionParser {
       lastToken = this.getNumToken();
       this.increaseToken();
     }
-    const newReferences = this.splitBuffer(tokenBuffer, false, maybeWrite, false, afterComma);
+    const newReferences = this.splitBuffer(tokenBuffer, false, maybeWrite, false, afterComma, selectedNamePrefix);
     if (newReferences.length > 0) {
       parent = newReferences.at(-1);
     }
@@ -251,6 +295,8 @@ export class ExpressionParser {
         if (innerReferences.length > 0) {
           const aggregate = new O.OAggregate(this.parent, new OLexerToken('', innerReferences[0]!.range, TokenType.implicit, innerReferences[0]!.rootFile));
           aggregate.children = innerReferences;
+          aggregate.afterComma = afterComma;
+
           for (const innerReference of innerReferences) {
             innerReference.parent = aggregate;
           }
