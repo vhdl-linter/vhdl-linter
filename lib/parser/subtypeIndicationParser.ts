@@ -63,7 +63,7 @@ export class SubtypeIndicationParser extends ParserBase {
       // With two buckets it can now be resolutionIndication + type or type + constraint.
       if (buckets[1]!.find(token => token.getLText() === 'range' || token.getLText() === 'downto' || token.getLText() === 'to')) {
         subtypeIndication.typeNames = new ExpressionParser(this.state, subtypeIndication, buckets[0]!).parse();
-        subtypeIndication.constraint = new ExpressionParser(this.state, subtypeIndication, buckets[1]!).parse();
+        subtypeIndication.constraint = new ExpressionParser(this.state, subtypeIndication, buckets[1]!).parse(true);
       } else {
         subtypeIndication.resolutionIndication = new ExpressionParser(this.state, subtypeIndication, buckets[0]!).parse();
         subtypeIndication.typeNames = new ExpressionParser(this.state, subtypeIndication, buckets[1]!).parse();
@@ -72,7 +72,7 @@ export class SubtypeIndicationParser extends ParserBase {
     } else if (buckets.length === 3) {
       subtypeIndication.resolutionIndication = new ExpressionParser(this.state, subtypeIndication, buckets[0]!).parse();
       subtypeIndication.typeNames = new ExpressionParser(this.state, subtypeIndication, buckets[1]!).parse();
-      subtypeIndication.constraint = new ExpressionParser(this.state, subtypeIndication, buckets[2]!).parse();
+      subtypeIndication.constraint = new ExpressionParser(this.state, subtypeIndication, buckets[2]!).parse(true);
     } else {
       throw new O.ParserError(`Error while parsing subtype indication. Was expecting 1 - 3 buckets found ${buckets.length}`, subtypeIndication.range);
     }

@@ -221,6 +221,7 @@ export class OName extends ObjectBase implements I.IHasDefinitions, I.IHasNameTo
   braceLevel?: number; // braceLevel for the expression
   // Workaround for checking of OWrites in associations. Because of overloading they can not be correctly checked.
   // This avoids false positives
+  constraint = false;
   public inAssociation = false;
   constructor(public parent: ObjectBase | OFile, public nameToken: OLexerToken, public write = false, range?: OIRange) {
     super(parent, range ?? nameToken.range);
