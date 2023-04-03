@@ -31,8 +31,8 @@ test.each([
   expect(assignment.names[3]?.definitions[0]).toBeInstanceOf(ORecordChild);
   expect(assignment.names[3]?.definitions[0]?.lexerToken?.getLText()).toBe('apple');
 
+  expect(assignment.names[0]?.write).toBe(true);
   expect(assignment.names[1]).toBeInstanceOf(OSelectedName);
-  expect(assignment.names[1]?.write).toBe(true);
   expect(assignment.names[1]?.definitions).toHaveLength(1);
   expect(assignment.names[1]?.definitions[0]).toBeInstanceOf(ORecordChild);
   expect(assignment.names[1]?.definitions[0]?.lexerToken?.getLText()).toBe('banana');
@@ -110,8 +110,9 @@ test.each([
   expect(assignment.names[4]?.definitions[0]).toBeInstanceOf(ORecordChild);
   expect(assignment.names[4]?.definitions[0]?.lexerToken?.getLText()).toBe('apple');
 
+  expect(assignment.names[0]?.write).toBe(true);
+  expect(assignment.names[0]?.definitions[0]?.lexerToken?.getLText()).toBe('s1');
   expect(assignment.names[1]).toBeInstanceOf(OSelectedName);
-  expect(assignment.names[1]?.write).toBe(true);
   expect(assignment.names[1]?.definitions).toHaveLength(1);
   expect(assignment.names[1]?.definitions[0]).toBeInstanceOf(ORecordChild);
   expect(assignment.names[1]?.definitions[0]?.lexerToken?.getLText()).toBe('apple');

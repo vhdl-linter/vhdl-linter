@@ -22,7 +22,7 @@ test('Testing elaboration of choice', async () => {
   await Elaborate.elaborate(linter);
 
   const assignment = linter.file.architectures[0]?.statements[0] as OAssignment;
-  const choice = assignment.names.find(name => name instanceof OChoice);
+  const choice = assignment.names[1]?.children.find(name => name instanceof OChoice);
   expect(choice).toBeDefined();
   expect(choice?.nameToken.text).toBe('ID');
   expect(choice?.definitions.length).toBe(1);
