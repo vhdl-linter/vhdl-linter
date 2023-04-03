@@ -9,7 +9,7 @@ architecture arch of test_instantiation_funky2 is
   procedure birne(a : string) is
   begin
   end procedure;
-  signal mango      : string;
+  signal mango      : string(5 downto 0);
 begin
   p_label : process is
 

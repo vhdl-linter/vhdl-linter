@@ -13,10 +13,10 @@ architecture arch of test_instantiation_funky is
   function  pflaume(A, B : integer) return integer is
   begin
   end function;
-  function bar (min, Max : time; Unit : time := ns) return time is
+  function bar (min, Max : time; Unit : time := ns) return integer is
     variable DataInt, A, B, C: integer;
   begin
-    DataInt := mango(10.0, -100, 100);
+    DataInt := mango(10.0, -100.0, 100.0);
     DataInt := pflaume(A, B - C);
     return foo(0, (Max - min)/Unit);
   end function bar;
