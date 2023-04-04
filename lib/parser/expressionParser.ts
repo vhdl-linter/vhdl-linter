@@ -109,10 +109,7 @@ export class ExpressionParser {
     const prefixWrite: O.OName[] = [];
     const prefixRead: O.OName[] = [];
     if (buffer.length > 1) {
-      this.state.messages.push({
-        message: "Args.",
-        range: buffer[0]!.range.copyWithNewEnd(buffer.at(-1)!.range)
-      });
+      throw new O.ParserError(`Internal Error: convertName expected one token only gotten ${buffer.length}`, buffer[0]!.range.copyWithNewEnd(buffer.at(-1)!.range));
     }
     for (const token of buffer) {
       if (choice) {
@@ -160,9 +157,6 @@ export class ExpressionParser {
 
         }
       }
-    }
-    for (const name of names) {
-      name.braceLevel = this.expState.braceLevel;
     }
     if (afterComma && names[0]) {
       names[0].afterComma = true;

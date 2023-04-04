@@ -2,18 +2,18 @@
 entity test_instantiation_funky2 is
 end entity;
 architecture arch of test_instantiation_funky2 is
-  function banane(a, b : string) return string is
+  function banana(a, b : string) return string is
   begin
     return "aa";
   end function;
-  procedure birne(a : string) is
+  procedure pear(a : string) is
   begin
   end procedure;
-  signal mango      : string(5 downto 0);
+  signal mango      : string(5 downto 1);
 begin
   p_label : process is
 
   begin
-    birne(banane(a => "a", b => "b") & "asd");
+    pear(banana(a => "a", b => "b") & "asd");
   end process;
 end architecture;

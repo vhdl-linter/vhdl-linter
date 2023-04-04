@@ -215,17 +215,16 @@ export class OGenericConstant extends OGeneric implements I.IVariableBase, I.IHa
 
 }
 export class OName extends ObjectBase implements I.IHasDefinitions, I.IHasNameToken {
-  definitions: ObjectBase[] = [];
-  notDeclaredHint?: string;
-  lexerToken: undefined;
-  braceLevel?: number; // braceLevel for the expression
-  // Workaround for checking of OWrites in associations. Because of overloading they can not be correctly checked.
-  // This avoids false positives
-  constraint = false;
-  public inAssociation = false;
   constructor(public parent: ObjectBase | OFile, public nameToken: OLexerToken, public write = false, range?: OIRange) {
     super(parent, range ?? nameToken.range);
   }
+  definitions: ObjectBase[] = [];
+  notDeclaredHint?: string;
+  lexerToken: undefined;
+  constraint = false;
+  // Workaround for checking of OWrites in associations. Because of overloading they can not be correctly checked.
+  // This avoids false positives
+  public inAssociation = false;
   children: OName[] = [];
   afterComma = false;
 }
