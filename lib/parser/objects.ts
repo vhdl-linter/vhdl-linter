@@ -226,6 +226,7 @@ export class OName extends ObjectBase implements I.IHasDefinitions, I.IHasNameTo
   // This avoids false positives
   public inAssociation = false;
   children: OName[] = [];
+  // OName was found in expression after a comma. is used in elaborate to split different actuals when an OName is converted to an OInstantiation
   afterComma = false;
 }
 export class OAggregate extends OName {

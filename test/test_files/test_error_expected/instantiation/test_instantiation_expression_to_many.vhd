@@ -7,5 +7,5 @@ architecture arch of test_instantiation_expression_to_many is
   end function;
   signal apfel, banana, birne: integer; -- vhdl-linter-disable-line unused
 begin
-  apfel <= foo(banana, birne);
+  apfel <= foo(banana, birne); -- error: to many actuals
 end architecture;

@@ -7,5 +7,5 @@ architecture arch of test_instantiation_expression is
   end function;
   signal apfel, banana : integer; -- vhdl-linter-disable-line unused
 begin
-  apfel <= foo(banana);
+  apfel <= foo(banana);  -- to few actuals
 end architecture;

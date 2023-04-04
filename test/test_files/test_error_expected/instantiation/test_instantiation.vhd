@@ -15,6 +15,6 @@ architecture arch of test_instantiation is
 begin
   p_label : process is
   begin
-    getBar(0, b => 1, 2, 3);
+    getBar(0, b => 1, 2, 3); -- using positional arguments after named arguments is not allowed
   end process;
 end architecture;

@@ -6,5 +6,5 @@ architecture arch of test_instantiation_to_many is
   end procedure;
   signal apfel, banana, birne : integer;  -- vhdl-linter-disable-line unused
 begin
-  foo(banana, birne);
+  foo(banana, birne); -- error: to many actuals
 end architecture;
