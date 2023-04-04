@@ -182,11 +182,18 @@ export class SequentialStatementParser extends ParserBase {
     if (labelToken) {
       exitStatement.labelName = new O.OLabelName(exitStatement, labelToken);
     }
-    const [tokens] = this.advanceParenthesisAware([';'], true, false);
-    if (tokens.length > 0) {
-      exitStatement.names.push(...new ExpressionParser(this.state, exitStatement, tokens).parse());
-    } else {
-      exitStatement.names = [];
+    const  whenToken = this.maybe('when');
+    if (whenToken) {
+      const [tokens] = this.advanceParenthesisAware([';'], true, false);
+      if (tokens.length > 0) {
+        exitStatement.names.push(...new ExpressionParser(this.state, exitStatement, tokens).parse());
+      } else {
+        this.state.messages.push({
+          message: 'Condition expected',
+          range: whenToken.range.copyExtendEndOfLine()
+        });
+        exitStatement.names = [];
+      }
     }
     this.expect(';');
     return exitStatement;

@@ -8,24 +8,88 @@ export class RuleInstantiation extends RuleBase implements IRule {
   public static readonly ruleName = 'instantiation';
   file: O.OFile;
   checkAssociations(availableInterfaceElements: (O.OPort | O.OGeneric | O.OTypeMark)[][], associationList: O.OAssociationList | undefined, typeName: string, range: O.OIRange, kind: 'port' | 'generic') {
-    const availableInterfaceElementsFlat = availableInterfaceElements.flat().filter((v, i, self) => self.findIndex(o => o.lexerTokenEquals(v)) === i);
-    const foundElementsNotOpen: (O.OPort | O.OGeneric | O.OTypeMark)[] = [];
-    let elementsWithoutFormal = false;
-    let allElementsWithoutFormal = true;
+
+    const numberedArguments = [];
+    const namedArguments: Record<string, O.OAssociation> = {};
     if (associationList) {
       for (const association of associationList.children) {
         if (association.formalPart.length === 0) {
-          elementsWithoutFormal = true;
+          if (Object.keys(namedArguments).length > 0) {
+            this.addMessage({
+              message: 'Positional argument after named argument',
+              range: association.range
+            });
+            return;
+          }
+          numberedArguments.push(association);
+        } else {
+          if (association.formalPart.length > 1) {
+            throw new O.ParserError('Multiple Formals', association.range);
+          }
+          namedArguments[association.formalPart[0]!.nameToken.getLText()] = association;
+
+        }
+      }
+    }
+    // Filter all interface Elements
+    const fittingInterfaceElements = [];
+    const incompleteInterfaceElements = [];
+    for (const interfaceElement of availableInterfaceElements) {
+      let valid = Object.keys(namedArguments).every(argument => interfaceElement.some(port => port.lexerToken?.getLText() === argument));
+      if (interfaceElement.length - Object.keys(namedArguments).length < numberedArguments.length) {
+        valid = false;
+      }
+      if (valid === false) {
+        continue;
+      }
+      const missingPorts = [];
+      for (const port of interfaceElement.slice(numberedArguments.length)) {
+        if (port instanceof O.OTypeMark || port.defaultValue) {
           continue;
         }
-        if (association.formalPart.length > 1) {
+        if (Object.keys(namedArguments).includes(port.lexerToken.getLText()) === false) {
+          missingPorts.push(port);
+        }
+      }
+      if (missingPorts.length > 0) {
+        incompleteInterfaceElements.push(missingPorts);
+      } else {
+        fittingInterfaceElements.push(interfaceElement);
+      }
+    }
+    if (fittingInterfaceElements.length > 0) { // No error some are fitting
+      // Check for open without default
+      for (const association of associationList?.children ?? []) {
+        if (association.actualIfInput.length === 1 && association.actualIfInput[0]!.nameToken.getLText() === 'open'
+          && association.definitions.every(def => (def instanceof O.OPort && def.direction === 'in' && def.defaultValue === undefined || def instanceof O.OGenericConstant && def.defaultValue === undefined))) {
           this.addMessage({
             range: association.range,
-            severity: DiagnosticSeverity.Warning,
-            message: `Multiple formal references parsed (${association.formalPart.map(ref => ref.nameToken.text).join(', ')}). Problem likely`
+            severity: DiagnosticSeverity.Error,
+            message: association.parent instanceof O.OPortAssociationList ?
+              `port ${association.formalPart[0]?.nameToken.text ?? 'unknown'} is an input without default value and must not be open.` :
+              `generic ${association.formalPart[0]?.nameToken.text ?? 'unknown'} has no default value and must not be open.`
           });
         }
-        allElementsWithoutFormal = false;
+      }
+    } else if (incompleteInterfaceElements.length > 0) {
+      const shortestMissing = incompleteInterfaceElements.reduce((ports, missingPortsThis) => {
+        if (ports.length < missingPortsThis.length) {
+          return ports;
+        }
+        return missingPortsThis;
+      }, incompleteInterfaceElements[0]!);
+
+      this.addMessage({
+        range: range,
+        severity: DiagnosticSeverity.Error,
+        message: `Missing connection for ${shortestMissing[0] instanceof O.OPort ? 'ports' : 'generics'} ${shortestMissing.map(port => `'${port.lexerToken.text}'`).join(', ')}`
+      });
+    } else {
+      const availableInterfaceElementsFlat = availableInterfaceElements.flat().filter((v, i, self) => self.findIndex(o => o.lexerTokenEquals(v)) === i);
+      for (const association of associationList?.children ?? []) {
+        if (association.formalPart.length === 0) {
+          continue;
+        }
         const interfaceElement = availableInterfaceElementsFlat.find(port => {
           for (const part of association.formalPart) {
             if (port instanceof O.OTypeMark) {
@@ -63,67 +127,15 @@ export class RuleInstantiation extends RuleBase implements IRule {
             message: `no ${kind} ${association.formalPart.map(name => name.nameToken.text).join(', ')} on ${typeName}`,
             code
           });
-        } else if (association.actualIfInput[0]?.nameToken.getLText() !== 'open') {
-          foundElementsNotOpen.push(interfaceElement);
         }
       }
-    }
-    if (allElementsWithoutFormal) {
-      const counts = [...new Set(availableInterfaceElements.flatMap(elements => {
-        const totalLength = elements.length;
-        // TODO: Implement alias function lookup for optional parameters
-        // This assumes all SubprogramAlias Parameters are optional. This actually depends on the function definition
-        const withDefault = elements.filter(p => (p instanceof O.OTypeMark) || (p as O.OPort).defaultValue !== undefined).length;
-        const result = [];
-        for (let i = totalLength; i >= totalLength - withDefault; i--) {
-          result.push(i);
-        }
-        return result;
-      }))].sort((a, b) => a - b);
-      const actualCount = associationList?.children.length ?? 0;
-      if (!counts.includes(actualCount)) {
-        let portCountString: string;
-        const last = counts.pop();
-        if (last !== undefined) {
-          portCountString = `${counts.join(', ')} or ${last}`;
-        } else {
-          portCountString = String(counts[0]);
-        }
+      const longestAvailable = availableInterfaceElements.reduce((prev, curr) => Math.max(prev, curr.length), 0);
+      if (associationList && longestAvailable < associationList.children.length) {
         this.addMessage({
-          range: range,
+          range: associationList.range,
           severity: DiagnosticSeverity.Error,
-          message: `Got ${actualCount} ${kind}s but expected ${portCountString} ${kind}s.`
+          message: `To many associations, was expecting at most ${longestAvailable}`
         });
-      }
-    } else {
-      if (elementsWithoutFormal) {
-        this.addMessage({
-          range: range,
-          severity: DiagnosticSeverity.Warning,
-          message: `some ${kind}s have no formal part while others have. Associations are not verified accurately.`
-        });
-      } else {
-        // check which interfaceElements are missing from the different possible interfaces
-        const missingElements: (O.OPort | O.OGeneric)[][] = availableInterfaceElements.map(_interface => {
-          const missing: (O.OPort | O.OGeneric)[] = [];
-          for (const element of _interface) {
-            if (((element instanceof O.OPort && element.direction === 'in') || element instanceof O.OGeneric)
-              && (element as O.OPort).defaultValue === undefined
-              && foundElementsNotOpen.find(search => search.lexerTokenEquals(element)) === undefined) {
-              missing.push(element);
-            }
-          }
-          return missing;
-        });
-        // if one interface has no missing elements, skip adding a message
-        if (!missingElements.find(elements => elements.length === 0)) {
-          const elementString = [...new Set(missingElements.map(elements => elements.map(e => e.lexerToken.text).join(', ')))].join(') or (');
-          this.addMessage({
-            range: range,
-            severity: DiagnosticSeverity.Error,
-            message: `${kind} map is incomplete: ${kind}s (${elementString}) are missing or open.`
-          });
-        }
       }
     }
   }
@@ -131,10 +143,6 @@ export class RuleInstantiation extends RuleBase implements IRule {
     for (const instantiation of this.file.objectList) {
       if (instantiation instanceof O.OInstantiation) {
         let definitions = instantiation.definitions;
-        // TODO: Extends checking of instantiations to Subprograms
-        if (definitions.some(def => def instanceof O.OSubprogram || def instanceof O.OAliasWithSignature)) {
-          continue; // skip functions
-        }
         if (instantiation.type === 'configuration') {
           definitions = definitions.flatMap((definition: O.OConfigurationDeclaration) => {
             const entities = this.vhdlLinter.projectParser.entities.filter(e => e.lexerToken.getLText() === definition.entityName.getLText());

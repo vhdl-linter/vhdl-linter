@@ -1,5 +1,6 @@
 import * as I from "../parser/interfaces";
 import * as O from "../parser/objects";
+import { OSubtypeIndication } from "../parser/objects";
 import { VhdlLinter } from "../vhdlLinter";
 export class ElaborateNames {
   file: O.OFile;
@@ -38,6 +39,7 @@ export class ElaborateNames {
       }
       elaborator.elaborate(obj);
     }
+
   }
   elaboratedList = new WeakSet<O.OName>();
   elaborate(name: O.OName) {
@@ -189,22 +191,20 @@ export class ElaborateNames {
   }
 
   elaborateName(name: O.OName) {
-    if (name.parent instanceof O.OSubtypeIndication && name.parent.constraint.includes(name)) {
-      const typeName = name.parent.typeNames.at(-1);
+    if (name.constraint) {
+      const subtypeIndication = O.getNameParent(name) as OSubtypeIndication;
+      const typeName = subtypeIndication.typeNames.at(-1);
       if (typeName) {
-        const braceLevel = (name.braceLevel ?? 0);
-        // previous token is type (e.g. protected or record) or alias -> expect stuff from within
-        if (braceLevel === 1) {
+        // parent is type (e.g. protected or record) or alias -> expect stuff from within
+        if (name.parent instanceof O.OName && name.parent.parent instanceof OSubtypeIndication) {
           // if first brace level -> expect from main type
           for (const typeDef of typeName.definitions) {
             this.elaborateTypeChildren(name, typeDef);
           }
         } else {
           // otherwise expect from type of last token of lower braceLevel
-          const index = name.parent.constraint.findIndex(c => c === name);
-          // find last of lower brace level
-          const lastLevel = name.parent.constraint.slice(0, index).reverse().find(c => c.braceLevel === braceLevel - 1);
-          if (lastLevel) {
+          const lastLevel = name.parent;
+          if (lastLevel instanceof O.OName) {
             for (const typeRef of lastLevel.definitions.filter(def => I.implementsIHasSubTypeIndication(def)) as (O.ObjectBase & I.IHasSubtypeIndication)[]) {
               for (const typeDef of typeRef.subtypeIndication.typeNames.flatMap(type => type.definitions)) {
                 this.elaborateTypeChildren(name, typeDef);

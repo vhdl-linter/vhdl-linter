@@ -6,6 +6,7 @@ import { elaborateAliases } from "./elaborateAliases";
 import { elaborateAssociations } from "./elaborateAssociation";
 import { elaborateComponents } from "./elaborateComponents";
 import { elaborateConfigurations } from "./elaborateConfigurations";
+import { elaborateExpressionInstantiations } from "./elaborateExpressionInstantiations";
 import { elaborateInstantiations } from "./elaborateInstantiations";
 import { ElaborateNames } from "./elaborateNames";
 
@@ -90,6 +91,7 @@ export class Elaborate {
 
     await this.vhdlLinter.handleCanceled();
     await ElaborateNames.elaborate(this.vhdlLinter);
+    elaborateExpressionInstantiations(this.vhdlLinter.file);
     await this.vhdlLinter.handleCanceled();
     elaborateComponents(this.vhdlLinter);
     await this.vhdlLinter.handleCanceled();

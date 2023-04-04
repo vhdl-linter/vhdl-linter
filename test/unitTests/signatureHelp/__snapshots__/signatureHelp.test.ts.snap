@@ -11,7 +11,7 @@ exports[`Signature help snapshot generic 1`] = `
           "documentation": {
             "kind": "markdown",
             "value": "\`\`\`vhdl
-GENERIC_A : integer
+GENERIC_A : integer := 5
 \`\`\`",
           },
           "label": "GENERIC_A",
@@ -20,7 +20,7 @@ GENERIC_A : integer
           "documentation": {
             "kind": "markdown",
             "value": "\`\`\`vhdl
-GENERIC_B : integer
+GENERIC_B : integer := 5
 \`\`\`",
           },
           "label": "GENERIC_B",

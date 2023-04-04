@@ -20,5 +20,5 @@ package body function_record_return is
     x.elem1 := withParam(par).elem0;
     return x;
   end function;
-  
+
 end package body;
