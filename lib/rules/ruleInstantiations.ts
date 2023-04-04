@@ -44,7 +44,7 @@ export class RuleInstantiation extends RuleBase implements IRule {
       }
       const missingPorts = [];
       for (const port of interfaceElement.slice(numberedArguments.length)) {
-        if (port instanceof O.OTypeMark || port.defaultValue) {
+        if (port instanceof O.OTypeMark || port.defaultValue || (port instanceof O.OPort && port.direction === 'out')) {
           continue;
         }
         if (Object.keys(namedArguments).includes(port.lexerToken.getLText()) === false) {
