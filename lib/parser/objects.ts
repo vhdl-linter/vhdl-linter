@@ -225,6 +225,7 @@ export class OName extends ObjectBase implements I.IHasDefinitions, I.IHasNameTo
   constructor(public parent: ObjectBase | OFile, public nameToken: OLexerToken, public write = false, range?: OIRange) {
     super(parent, range ?? nameToken.range);
   }
+  elaborated = false;
 }
 export class OChoice extends OName {
 }
