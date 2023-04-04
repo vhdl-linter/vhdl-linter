@@ -206,25 +206,31 @@ export abstract class OGeneric extends ObjectBase implements I.IHasDefinitions, 
   nameLinks: OName[] = [];
   aliasLinks: OAlias[] = [];
   lexerToken: OLexerToken;
-
+  defaultValue?: ObjectBase[];
 }
 export class OGenericConstant extends OGeneric implements I.IVariableBase, I.IHasSubtypeIndication, I.IHasDefaultValue {
   definitions: OGenericConstant[] = [];
   subtypeIndication: OSubtypeIndication;
-  defaultValue?: OName[] = [];
+  defaultValue?: OName[];
 
 }
 export class OName extends ObjectBase implements I.IHasDefinitions, I.IHasNameToken {
-  definitions: ObjectBase[] = [];
-  notDeclaredHint?: string;
-  lexerToken: undefined;
-  braceLevel?: number; // braceLevel for the expression
-  // Workaround for checking of OWrites in associations. Because of overloading they can not be correctly checked.
-  // This avoids false positives
-  public inAssociation = false;
   constructor(public parent: ObjectBase | OFile, public nameToken: OLexerToken, public write = false, range?: OIRange) {
     super(parent, range ?? nameToken.range);
   }
+  definitions: ObjectBase[] = [];
+  notDeclaredHint?: string;
+  lexerToken: undefined;
+  constraint = false;
+  // Workaround for checking of OWrites in associations. Because of overloading they can not be correctly checked.
+  // This avoids false positives
+  public inAssociation = false;
+  children: OName[] = [];
+  // OName was found in expression after a comma. is used in elaborate to split different actuals when an OName is converted to an OInstantiation
+  afterComma = false;
+}
+export class OAggregate extends OName {
+
 }
 export class OChoice extends OName {
 }
@@ -578,6 +584,7 @@ export class OInstantiation extends OName implements I.IHasDefinitions, I.IMayHa
   archIdentifier?: OLexerToken;
   label?: OLexerToken;
   labelLinks: OLabelName[] = [];
+  convertedInstantiation = false;
 }
 export class OAssociation extends ObjectBase implements I.IHasDefinitions {
   constructor(public parent: OAssociationList, range: OIRange) {
@@ -917,4 +924,27 @@ export function* scope(startObject: ObjectBase): Generator<[ObjectBase, boolean]
     }
     current = current.parent;
   }
+}
+export function getTheInnermostNameChildren(name: OName) {
+  let nameChild = name;
+  let recursionLimit = 1000;
+  while (nameChild.children.length > 0) {
+    nameChild = nameChild.children.at(-1)!;
+    if (recursionLimit-- <= 0) {
+      throw new Error("Infinite Recursion");
+    }
+  }
+  return nameChild;
+}
+export function getNameParent(name: OName) {
+  let nameParent: ObjectBase = name;
+  let recursionLimit = 1000;
+  while (nameParent instanceof OName) {
+    nameParent = nameParent.parent as OName;
+    if (recursionLimit-- <= 0) {
+      throw new Error("Infinite Recursion");
+    }
+  }
+  return nameParent;
+
 }

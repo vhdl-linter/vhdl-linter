@@ -1,8 +1,12 @@
 import * as I from "../parser/interfaces";
 import * as O from "../parser/objects";
-
+// elaborate association deletes the wrong actualIfInput/actualIfOutput/actualIfInOut
 export function elaborateAssociations(file: O.OFile) {
   for (const association of file.objectList.filter(obj => obj instanceof O.OAssociation) as O.OAssociation[]) {
+    // converted instantiations are always functions therefore have only inputs
+    if (association.parent.parent instanceof O.OInstantiation && association.parent.parent.convertedInstantiation) {
+      continue;
+    }
     if (association.parent instanceof O.OGenericAssociationList || association.parent instanceof O.OPortAssociationList) {
       const definitions = association.parent.parent.definitions;
 
@@ -24,7 +28,9 @@ export function elaborateAssociations(file: O.OFile) {
         }
         return elements.filter((port, portNumber) => {
           if (!(port instanceof O.OTypeMark)) {
-            const formalMatch = association.formalPart.find(name => name.nameToken.getLText() === port.lexerToken.getLText());
+            // Handle Casting
+            const formalPartChildren = association.formalPart.map(O.getTheInnermostNameChildren);
+            const formalMatch = formalPartChildren.find(name => name.nameToken.getLText() === port.lexerToken.getLText());
             if (formalMatch) {
               return true;
             }

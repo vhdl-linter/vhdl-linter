@@ -429,30 +429,6 @@ exports[`testing add signal helper protected.vhd 8`] = `
       "changes": {
         "protected.vhd": [
           {
-            "newText": "library tes;
-",
-            "range": {
-              "end": {
-                "character": 0,
-                "line": 0,
-              },
-              "start": {
-                "character": 0,
-                "line": 0,
-              },
-            },
-          },
-        ],
-      },
-    },
-    "kind": "quickfix",
-    "title": "add library declaration for tes",
-  },
-  {
-    "edit": {
-      "changes": {
-        "protected.vhd": [
-          {
             "newText": "test",
             "range": {
               "end": {
