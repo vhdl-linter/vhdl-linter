@@ -200,6 +200,7 @@ export class ElaborateNames {
             this.elaborateTypeChildren(name, typeDef);
           }
         } else {
+          // otherwise expect from type of last token of lower braceLevel
           const lastLevel = name.parent;
           if (lastLevel instanceof O.OName) {
             for (const typeRef of lastLevel.definitions.filter(def => I.implementsIHasSubTypeIndication(def)) as (O.ObjectBase & I.IHasSubtypeIndication)[]) {
