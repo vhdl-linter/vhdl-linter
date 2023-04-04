@@ -82,7 +82,7 @@ export class RuleInstantiation extends RuleBase implements IRule {
       this.addMessage({
         range: range,
         severity: DiagnosticSeverity.Error,
-        message: `Missing connection for ${incompleteInterfaceElements[0] instanceof O.OPort ? 'ports' : 'generics'} ${shortestMissing.map(port => `'${port.lexerToken.text}'`).join(', ')}`
+        message: `Missing connection for ${shortestMissing[0] instanceof O.OPort ? 'ports' : 'generics'} ${shortestMissing.map(port => `'${port.lexerToken.text}'`).join(', ')}`
       });
     } else {
       const availableInterfaceElementsFlat = availableInterfaceElements.flat().filter((v, i, self) => self.findIndex(o => o.lexerTokenEquals(v)) === i);
