@@ -15,7 +15,7 @@ export class SubtypeIndicationParser extends ParserBase {
   parse(notExpectedDelimiter?: string[]): O.OSubtypeIndication {
     const startToken = this.getToken();
     const endTokens = ['register', 'bus', ';', ':', ')', 'is', ...notExpectedDelimiter ?? []];
-    const buckets: OLexerToken[][] = [];
+    let buckets: OLexerToken[][] = [];
     let currentBucket: OLexerToken[] = [];
     // Find parts of the subtype indication
     // In general identifiers can not follow each other inside of one thing.
@@ -45,7 +45,13 @@ export class SubtypeIndicationParser extends ParserBase {
 
       }
     }
-
+    if (buckets.length > 3) {
+      buckets = [
+        buckets[0]!,
+        buckets[1]!,
+        buckets.slice(2).flat()
+      ];
+    }
     const subtypeIndication = new O.OSubtypeIndication(this.parent, startToken.range.copyWithNewEnd(this.getToken(-1, true).range));
     if (buckets.length === 1) {
       if (buckets[0]!.length === 0) {
@@ -70,9 +76,14 @@ export class SubtypeIndicationParser extends ParserBase {
       }
 
     } else if (buckets.length === 3) {
-      subtypeIndication.resolutionIndication = new ExpressionParser(this.state, subtypeIndication, buckets[0]!).parse();
-      subtypeIndication.typeNames = new ExpressionParser(this.state, subtypeIndication, buckets[1]!).parse();
-      subtypeIndication.constraint = new ExpressionParser(this.state, subtypeIndication, buckets[2]!).parse(true);
+      if (buckets[1]![0]?.getLText() === '(') {
+        subtypeIndication.typeNames = new ExpressionParser(this.state, subtypeIndication, buckets[0]!).parse();
+        subtypeIndication.constraint = new ExpressionParser(this.state, subtypeIndication, buckets.slice(1).flat()).parse(true);
+      } else {
+        subtypeIndication.resolutionIndication = new ExpressionParser(this.state, subtypeIndication, buckets[0]!).parse();
+        subtypeIndication.typeNames = new ExpressionParser(this.state, subtypeIndication, buckets[1]!).parse();
+        subtypeIndication.constraint = new ExpressionParser(this.state, subtypeIndication, buckets[2]!).parse(true);
+      }
     } else {
       throw new O.ParserError(`Error while parsing subtype indication. Was expecting 1 - 3 buckets found ${buckets.length}`, subtypeIndication.range);
     }
