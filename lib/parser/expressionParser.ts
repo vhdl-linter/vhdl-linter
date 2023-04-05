@@ -174,7 +174,6 @@ export class ExpressionParser {
     const references: O.OName[] = [];
     let tokenBuffer: OLexerToken[] = [];
     let innerReferences: O.OName[] | undefined;
-    let containedBraces = false;
     let lastToken: OLexerToken | undefined;
     let parent: O.OName | undefined;
     let afterComma = false;
@@ -186,7 +185,6 @@ export class ExpressionParser {
         this.increaseToken();
         const maybeFormalNew = this.getNumToken(-2) !== undefined && this.getNumToken(-2)?.getLText() !== '(' && this.getNumToken(-3)?.isIdentifier() !== true;
         innerReferences = this.inner(maybeFormalNew, aggregateNew, aggregateNew);
-        containedBraces = true;
       } else if (this.getNumToken()!.getLText() === '<<') {
         const externalName = this.parseExternalName();
         if (externalName) {
@@ -265,7 +263,6 @@ export class ExpressionParser {
           // After Comma state must be stayed over minus sign in case it is used as a sign
           afterComma = breakToken === ',' || (afterComma && breakToken === '-');
 
-          containedBraces = false;
           parent = undefined;
 
         } else {
