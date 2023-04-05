@@ -35,22 +35,22 @@ export class AssociationListParser extends ParserBase {
         { // Parse assuming association is input
           const expressionParser = new ExpressionParser(this.state, association, associationTokens);
           const references = expressionParser.parseAssociationElement();
-          association.formalPart = references.filter(reference => reference instanceof O.OFormalName);
-          const actualPart = references.filter(reference => reference instanceof O.OFormalName === false);
+          association.formalPart = references.filter(reference => reference.maybeFormal);
+          const actualPart = references.filter(reference => reference.maybeFormal === false);
           association.actualIfInput = actualPart;
         }
         if (type === 'port') { // Parse assuming association is output
           const expressionParser = new ExpressionParser(this.state, association, associationTokens);
           const references = expressionParser.parseAssociationElement(true);
-          association.formalPart = references.filter(reference => reference instanceof O.OFormalName);
-          const actualPart = references.filter(reference => reference instanceof O.OFormalName === false);
+          association.formalPart = references.filter(reference => reference.maybeFormal);
+          const actualPart = references.filter(reference => reference.maybeFormal === false);
           association.actualIfOutput = actualPart;
         }
         if (type === 'port') { // Parse assuming association is inout
           const expressionParser = new ExpressionParser(this.state, association, associationTokens);
           const references = expressionParser.parseAssociationElement(false, true);
-          association.formalPart = references.filter(reference => reference instanceof O.OFormalName);
-          const actualPart = references.filter(reference => reference instanceof O.OFormalName === false);
+          association.formalPart = references.filter(reference => reference.maybeFormal);
+          const actualPart = references.filter(reference => reference.maybeFormal === false);
 
           association.actualIfInoutput = actualPart;
         }

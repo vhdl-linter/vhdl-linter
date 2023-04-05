@@ -115,7 +115,9 @@ export class ExpressionParser {
       if (choice) {
         names.push(new O.OChoice(this.parent, token));
       } else if (formal) {
-        names.push(new O.OFormalName(this.parent, token));
+        const name = new O.OName(this.parent, token);
+        name.maybeFormal = true;
+        names.push(name);
       } else if (selectedNamePrefix) {
         if (write && (this.expState.leftHandSide || this.expState.maybeOutput || this.expState.maybeInOut)) {
           const prefixList = [selectedNamePrefix];
@@ -214,7 +216,7 @@ export class ExpressionParser {
           const choice = maybeChoice && breakToken === '=>';
           const selectedName = breakToken === '.';
           // If braces were contained. This token was a cast on the formal side (so a reference not formal)
-          const newReferences = this.splitBuffer(tokenBuffer, formal && containedBraces === false, maybeWrite, choice, afterComma, selectedNamePrefix);
+          const newReferences = this.splitBuffer(tokenBuffer, formal, maybeWrite, choice, afterComma, selectedNamePrefix);
           references.push(...newReferences);
           if (newReferences.length > 0) {
             afterComma = false;

@@ -228,6 +228,7 @@ export class OName extends ObjectBase implements I.IHasDefinitions, I.IHasNameTo
   children: OName[] = [];
   // OName was found in expression after a comma. is used in elaborate to split different actuals when an OName is converted to an OInstantiation
   afterComma = false;
+  maybeFormal = false;
 }
 export class OAggregate extends OName {
 

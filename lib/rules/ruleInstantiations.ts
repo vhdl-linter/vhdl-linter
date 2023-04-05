@@ -87,11 +87,12 @@ export class RuleInstantiation extends RuleBase implements IRule {
     } else {
       const availableInterfaceElementsFlat = availableInterfaceElements.flat().filter((v, i, self) => self.findIndex(o => o.lexerTokenEquals(v)) === i);
       for (const association of associationList?.children ?? []) {
-        if (association.formalPart.length === 0) {
+        const formals = association.formalPart.map(formal => formal instanceof O.OFormalName === false && formal.children[0] ? formal.children[0] : formal);
+        if (formals.length === 0) {
           continue;
         }
         const interfaceElement = availableInterfaceElementsFlat.find(port => {
-          for (const part of association.formalPart) {
+          for (const part of formals) {
             if (port instanceof O.OTypeMark) {
               return false;
             }
@@ -104,7 +105,7 @@ export class RuleInstantiation extends RuleBase implements IRule {
         if (!interfaceElement) {
           let code: number | undefined = undefined;
           const possibleMatches = availableInterfaceElementsFlat.filter(I.implementsIHasLexerToken).map(element => (element as I.IHasLexerToken).lexerToken.text);
-          const firstFormal = association.formalPart[0];
+          const firstFormal = formals[0];
           if (possibleMatches.length > 0 && firstFormal) {
             const bestMatch = findBestMatch(firstFormal.nameToken.text, possibleMatches);
             code = this.vhdlLinter.addCodeActionCallback((textDocumentUri: string) => {
@@ -113,7 +114,7 @@ export class RuleInstantiation extends RuleBase implements IRule {
                 `Replace with ${bestMatch.bestMatch.target} (score: ${bestMatch.bestMatch.rating})`,
                 {
                   changes: {
-                    [textDocumentUri]: [TextEdit.replace(Range.create(firstFormal.range.start, association.formalPart[association.formalPart.length - 1]!.range.end)
+                    [textDocumentUri]: [TextEdit.replace(Range.create(firstFormal.range.start, formals[association.formalPart.length - 1]!.range.end)
                       , bestMatch.bestMatch.target)]
                   }
                 },
@@ -124,7 +125,7 @@ export class RuleInstantiation extends RuleBase implements IRule {
           this.addMessage({
             range: association.range,
             severity: DiagnosticSeverity.Error,
-            message: `no ${kind} ${association.formalPart.map(name => name.nameToken.text).join(', ')} on ${typeName}`,
+            message: `no ${kind} ${formals.map(name => name.nameToken.text).join(', ')} on ${typeName}`,
             code
           });
         }
