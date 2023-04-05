@@ -28,6 +28,7 @@ export class ElaborateNames {
       }
     }
     elaborator.scopeVisibilityMap.clear();
+    elaborator.elaboratedList = new WeakSet();
     // elaborate ONames
     const nameList = (vhdlLinter.file.objectList.filter(obj => obj instanceof O.OName) as O.OName[]).sort((a, b) => a.nameToken.range.start.i - b.nameToken.range.start.i);
     for (const obj of nameList) {
@@ -40,9 +41,9 @@ export class ElaborateNames {
     }
 
   }
-
+  elaboratedList = new WeakSet<O.OName>();
   elaborate(name: O.OName) {
-    if (name.definitions.length > 0) {
+    if (this.elaboratedList.has(name)) {
       // was already elaborated (e.g. in use clause)
       return;
     }
@@ -54,6 +55,7 @@ export class ElaborateNames {
     } else {
       this.elaborateName(name);
     }
+    this.elaboratedList.add(name);
   }
 
   getObjectText(obj: O.ObjectBase) {
@@ -233,9 +235,7 @@ export class ElaborateNames {
         }
       } else if (typeDefinition instanceof O.OAccessType || typeDefinition instanceof O.OSubType) {
         for (const subtype of typeDefinition.subtypeIndication.typeNames) {
-          if (subtype.rootFile !== selectedName.rootFile) {
-            this.elaborate(subtype);
-          }
+          this.elaborate(subtype);
           for (const subtypeDef of subtype.definitions) {
             this.elaborateTypeChildren(selectedName, subtypeDef);
           }
@@ -254,22 +254,25 @@ export class ElaborateNames {
         selectedName.notDeclaredHint = `${selectedName.nameToken.text} does not exist on ${typeDefinition instanceof O.ORecord ? 'record' : 'protected type'} ${typeDefinition.lexerToken.text}`;
       }
     } else if (typeDefinition instanceof O.OArray) {
-      for (const def of typeDefinition.subtypeIndication.typeNames.flatMap(r => r.definitions)) {
+      for (const def of typeDefinition.subtypeIndication.typeNames.flatMap(r => {
+        this.elaborate(r);
+        return r.definitions;
+      })) {
         this.elaborateTypeChildren(selectedName, def);
       }
     }
   }
-  getSignalType(signalOrVariable: O.ObjectBase & I.IHasSubtypeIndication, rootFile: O.OFile) {
+  getSignalType(signalOrVariable: O.ObjectBase & I.IHasSubtypeIndication) {
     const resolveArrayAlias = (obj: O.ObjectBase): O.ObjectBase[] => {
       if (obj instanceof O.OAlias) {
         const name = obj.subtypeIndication.typeNames.at(-1);
-        if (name && name.rootFile !== rootFile) {
+        if (name) {
           this.elaborate(name);
         }
         return name?.definitions.flatMap(resolveArrayAlias) ?? [];
       } else if (obj instanceof O.OArray) {
         const name = obj.subtypeIndication.typeNames.at(-1);
-        if (name && name.rootFile !== rootFile) {
+        if (name) {
           this.elaborate(name);
         }
         return name?.definitions.flatMap(resolveArrayAlias) ?? [];
@@ -277,7 +280,7 @@ export class ElaborateNames {
       return [obj];
     };
     const name = signalOrVariable.subtypeIndication.typeNames.at(-1);
-    if (name && name.rootFile !== rootFile) {
+    if (name) {
       this.elaborate(name);
     }
     const definitions = name?.definitions.flatMap(resolveArrayAlias) ?? [];
@@ -307,7 +310,7 @@ export class ElaborateNames {
       } else {
 
         // When prefix is of an access type (is used as a dereference of the access/pointer type)
-        if (lastPrefix.definitions.some(signalVariable => I.implementsIHasSubTypeIndication(signalVariable) && this.getSignalType(signalVariable, lastPrefix.rootFile).some(obj => obj instanceof O.OAccessType === false))) {
+        if (lastPrefix.definitions.some(signalVariable => I.implementsIHasSubTypeIndication(signalVariable) && this.getSignalType(signalVariable).some(obj => obj instanceof O.OAccessType === false))) {
           this.vhdlLinter.addMessage({
             message: 'all only allowed when prefix is of access type!',
             range: name.range
@@ -333,9 +336,7 @@ export class ElaborateNames {
     // previous token is type (e.g. protected or record) or alias -> expect stuff from within
     const typeNames = lastPrefix.definitions.flatMap(def => I.implementsIHasSubTypeIndication(def) ? def.subtypeIndication.typeNames : []);
     for (const typeName of typeNames) {
-      if (typeName.rootFile !== name.rootFile) {
-        this.elaborate(typeName);
-      }
+      this.elaborate(typeName);
     }
     const typeRefDefinitions = typeNames.flatMap(typeRef => typeRef.definitions);
     for (const typeDef of typeRefDefinitions) {
@@ -348,9 +349,7 @@ export class ElaborateNames {
     const pkgInstantiations = lastPrefix.definitions.filter(def => def instanceof O.OPackageInstantiation || def instanceof O.OInterfacePackage) as (O.OPackageInstantiation | O.OInterfacePackage)[];
     for (const pkgInstantiation of pkgInstantiations) {
       for (const ref of pkgInstantiation.uninstantiatedPackage) {
-        if (ref.rootFile !== name.rootFile) {
-          this.elaborate(ref);
-        }
+        this.elaborate(ref);
       }
     }
     packages.push(...pkgInstantiations.flatMap(inst => inst.uninstantiatedPackage[inst.uninstantiatedPackage.length - 1]!.definitions).filter(ref => ref instanceof O.OPackage) as O.OPackage[]);
@@ -429,7 +428,7 @@ export class ElaborateNames {
       for (const contextRef of contextReferences) {
         const [lib, context] = contextRef.names;
         if (lib && context) {
-          this.elaborateName(lib);
+          this.elaborate(lib);
           const libraryDefinitions = lib.definitions.filter(def => def instanceof O.OLibrary) as O.OLibrary[];
           for (const obj of this.getProjectList(context, libraryDefinitions)) {
             if (obj instanceof O.OContext) {
