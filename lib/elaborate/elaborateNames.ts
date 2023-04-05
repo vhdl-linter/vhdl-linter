@@ -336,9 +336,7 @@ export class ElaborateNames {
     // previous token is type (e.g. protected or record) or alias -> expect stuff from within
     const typeNames = lastPrefix.definitions.flatMap(def => I.implementsIHasSubTypeIndication(def) ? def.subtypeIndication.typeNames : []);
     for (const typeName of typeNames) {
-      if (typeName.rootFile !== name.rootFile) {
-        this.elaborate(typeName);
-      }
+      this.elaborate(typeName);
     }
     const typeRefDefinitions = typeNames.flatMap(typeRef => typeRef.definitions);
     for (const typeDef of typeRefDefinitions) {
@@ -351,9 +349,7 @@ export class ElaborateNames {
     const pkgInstantiations = lastPrefix.definitions.filter(def => def instanceof O.OPackageInstantiation || def instanceof O.OInterfacePackage) as (O.OPackageInstantiation | O.OInterfacePackage)[];
     for (const pkgInstantiation of pkgInstantiations) {
       for (const ref of pkgInstantiation.uninstantiatedPackage) {
-        if (ref.rootFile !== name.rootFile) {
-          this.elaborate(ref);
-        }
+        this.elaborate(ref);
       }
     }
     packages.push(...pkgInstantiations.flatMap(inst => inst.uninstantiatedPackage[inst.uninstantiatedPackage.length - 1]!.definitions).filter(ref => ref instanceof O.OPackage) as O.OPackage[]);
