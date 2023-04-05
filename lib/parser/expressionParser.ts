@@ -115,7 +115,9 @@ export class ExpressionParser {
       if (choice) {
         names.push(new O.OChoice(this.parent, token));
       } else if (formal) {
-        names.push(new O.OFormalName(this.parent, token));
+        const name = new O.OName(this.parent, token);
+        name.maybeFormal = true;
+        names.push(name);
       } else if (selectedNamePrefix) {
         if (write && (this.expState.leftHandSide || this.expState.maybeOutput || this.expState.maybeInOut)) {
           const prefixList = [selectedNamePrefix];
@@ -172,7 +174,6 @@ export class ExpressionParser {
     const references: O.OName[] = [];
     let tokenBuffer: OLexerToken[] = [];
     let innerReferences: O.OName[] | undefined;
-    let containedBraces = false;
     let lastToken: OLexerToken | undefined;
     let parent: O.OName | undefined;
     let afterComma = false;
@@ -184,7 +185,6 @@ export class ExpressionParser {
         this.increaseToken();
         const maybeFormalNew = this.getNumToken(-2) !== undefined && this.getNumToken(-2)?.getLText() !== '(' && this.getNumToken(-3)?.isIdentifier() !== true;
         innerReferences = this.inner(maybeFormalNew, aggregateNew, aggregateNew);
-        containedBraces = true;
       } else if (this.getNumToken()!.getLText() === '<<') {
         const externalName = this.parseExternalName();
         if (externalName) {
@@ -214,7 +214,7 @@ export class ExpressionParser {
           const choice = maybeChoice && breakToken === '=>';
           const selectedName = breakToken === '.';
           // If braces were contained. This token was a cast on the formal side (so a reference not formal)
-          const newReferences = this.splitBuffer(tokenBuffer, formal && containedBraces === false, maybeWrite, choice, afterComma, selectedNamePrefix);
+          const newReferences = this.splitBuffer(tokenBuffer, formal, maybeWrite, choice, afterComma, selectedNamePrefix);
           references.push(...newReferences);
           if (newReferences.length > 0) {
             afterComma = false;
@@ -263,7 +263,6 @@ export class ExpressionParser {
           // After Comma state must be stayed over minus sign in case it is used as a sign
           afterComma = breakToken === ',' || (afterComma && breakToken === '-');
 
-          containedBraces = false;
           parent = undefined;
 
         } else {

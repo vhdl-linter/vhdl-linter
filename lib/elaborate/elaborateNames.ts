@@ -47,8 +47,15 @@ export class ElaborateNames {
       // was already elaborated (e.g. in use clause)
       return;
     }
-    if (name instanceof O.OFormalName) {
-      return;
+    // Handle formals LRM 6.5.7.1 General
+    // As formal can be function_name(formal_designator) type_mark(formal_designator) or formal_designator we need to differentiate based on elab results
+    if (name.maybeFormal) {
+      const objects = this.getList(name).filter(obj => obj instanceof O.OType || obj instanceof O.OSubType || obj instanceof O.OSubprogram);
+      if (objects.length === 0) {
+        Object.setPrototypeOf(name, O.OFormalName.prototype);
+        return;
+
+      }
     }
     if (name instanceof O.OSelectedName) {
       this.elaborateSelectedName(name);
