@@ -26,7 +26,7 @@ export class ExpressionParser {
 
   }
 
-  parse(constraint = false): O.OName[] {
+  parse(): O.OName[] {
     if (this.tokens.length === 0) {
       this.state.messages.push({
         message: 'expression empty',
@@ -34,9 +34,7 @@ export class ExpressionParser {
       });
       return [];
     }
-    if (constraint) {
-      this.expState.constraint = true;
-    }
+
     const result = this.inner();
     return result;
   }
@@ -392,6 +390,54 @@ export class ExpressionParser {
   // // This gets the current Text (for Debugger)
   getTextDebug() {
     return this.tokens.slice(this.expState.num, this.expState.num + 5).join(' ');
+  }
+  parseConstraint() {
+    if (this.tokens.length === 0) {
+      this.state.messages.push({
+        message: 'expression empty',
+        range: this.parent.range
+      });
+      return [];
+    }
+    if (this.tokens[0]!.getLText() === 'range') {
+      return this.parse();
+    }
+    const result = [];
+    while (this.getNumToken()?.getLText() === '(') {
+      this.increaseToken();
+      const aggregate = new O.OAggregate(this.parent, new OLexerToken('', this.tokens[0]!.range, TokenType.implicit, this.parent.rootFile));
+
+      result.push(...this.innerConstraint(aggregate));
+
+    }
+    return result;
+  }
+  innerConstraint(parent: O.OName ) {
+    const names: O.OName[] = [];
+    while (this.expState.num < this.tokens.length && this.getNumToken()?.getLText() !== ')') {
+      if (this.getNumToken()?.getLText() === '(') {
+        const elementParent = names.length > 0 ? names.at(-1)! :
+          new O.OAggregate(this.parent, new OLexerToken('', this.tokens[0]!.range, TokenType.implicit, this.parent.rootFile));
+
+        this.increaseToken();
+        const innerNames = this.innerConstraint(names.at(-1)!);
+        for (const innerName of innerNames) {
+          innerName.parent = elementParent;
+          elementParent.children.push(innerName);
+        }
+      } else if (this.getNumToken()?.getLText() !== ',') {
+
+        const name = new O.OName(parent, this.getNumToken()!);
+        name.constraint = true;
+        if (parent instanceof O.OName) {
+          parent.children.push(name);
+        }
+        names.push(name);
+      }
+      this.increaseToken();
+    }
+    this.increaseToken();
+    return names;
   }
 
 
