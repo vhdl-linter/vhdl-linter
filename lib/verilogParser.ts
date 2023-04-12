@@ -17,18 +17,19 @@ export class VerilogParser {
     public settingsGetter: SettingsGetter,
   ) {
     const originalText = this.text;
-    if (this.text.length > 500 * 1024) {
-      this.file = new OFile('', this.uri, '', []);
-      return;
-      // throw new O.ParserError('this.file too large', new O.OIRange(this.file), 0, 100));
-    }
+
     this.text = this.text.replaceAll(/\/\*(.*?)\*\//g, match => match.replaceAll(/[^\n]/g, ' '));
     this.text = this.text.replaceAll(/\/\/.*/g, match => ' '.repeat(match.length));
     let match;
     this.file = new OFile(this.text, this.uri, originalText, []);
 
+    let iterationCounter = 100;
     // eslint-disable-next-line no-cond-assign
     while (match = this.text.substring(this.pos).match(/(module\s+)(\w+)/s)) {
+      if ((iterationCounter-- === 0)) {
+        console.log(`Infinite loop in ${uri.toString()}`);
+        return;
+      }
       const moduleName = new OLexerToken(match[2]!, new O.OIRange(this.file, this.pos + match.index! + match[1]!.length, this.pos + match.index! + match[2]!.length), TokenType.implicit, this.file);
       const module = new OEntity(this.file, new O.OIRange(this.file, this.pos + match.index!, 0));
       this.pos = match.index! + match[0].length;
@@ -72,11 +73,13 @@ export class VerilogParser {
           offset += portString.length + 1;
         }
       }
-      match = this.text.substring(this.pos).match(/endmodule;/);
+      match = this.text.substring(this.pos).match(/endmodule/);
       module.lexerToken = moduleName;
       if (match) {
         module.range = module.range.copyWithNewEnd(new O.OI(this.file, this.pos + match.index!));
+        this.pos += match.index! + match[0].length;
       }
+
       this.file.entities.push(module);
     }
   }

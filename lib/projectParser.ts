@@ -231,8 +231,15 @@ class FileCacheVerilog {
   private constructor(public uri: URL, public projectParser: ProjectParser, public builtIn: boolean) {
   }
   async parse() {
-    let text = await promises.readFile(this.uri, { encoding: 'utf8' });
-    text = text.replaceAll('\r\n', '\n');
+    const stat = await promises.stat(this.uri)
+    let text;
+    if (stat.size > 50 * 1024) {
+      text = '';
+      // throw new O.ParserError('this.file too large', new O.OIRange(this.file), 0, 100));
+    } else {
+      text = await promises.readFile(this.uri, { encoding: 'utf8' });
+      text = text.replaceAll('\r\n', '\n');
+    }
     this.parser = new VerilogParser(this.uri, text, this.projectParser, this.projectParser.settingsGetter);
   }
 

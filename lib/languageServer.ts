@@ -192,10 +192,12 @@ const linterManager = new LinterManager();
 // when the text document first opened or when its content has changed.
 async function validateTextDocument(textDocument: TextDocument, fromProjectParser = false) {
   try {
-    const vhdlLinter = await linterManager.triggerRefresh(textDocument.uri, textDocument.getText(), projectParser, getDocumentSettings, fromProjectParser);
-    const diagnostics = await vhdlLinter.checkAll();
-    diagnostics.forEach((diag) => diag.source = 'vhdl-linter');
-    await connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+    if (projectParser !== undefined) {
+      const vhdlLinter = await linterManager.triggerRefresh(textDocument.uri, textDocument.getText(), projectParser, getDocumentSettings, fromProjectParser);
+      const diagnostics = await vhdlLinter.checkAll();
+      diagnostics.forEach((diag) => diag.source = 'vhdl-linter');
+      await connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+    }
   } catch (err) {
     // Ignore cancelled
     if (!(err instanceof ResponseError && err.code === LSPErrorCodes.RequestCancelled)) {
