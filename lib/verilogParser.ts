@@ -60,6 +60,13 @@ export class VerilogParser {
           if (portMatch) {
             const port = new O.OPort(module, new O.OIRange(this.file, portMatch[2]!.length + offset, portMatch[0]!.length + offset) );
             port.lexerToken = new OLexerToken(portMatch[7]!, new O.OIRange(this.file, offset + portMatch[2]!.length , offset + portMatch[2]!.length + portMatch[7]!.length), TokenType.implicit, this.file);
+            if (portMatch[3] === 'input') {
+              port.direction = 'in';
+            } else if (portMatch[3] === 'output') {
+              port.direction = 'out';
+            } else if (portMatch[3] === 'inout') {
+              port.direction = 'inout';
+            }
             module.ports.push(port);
           }
           offset += portString.length + 1;
