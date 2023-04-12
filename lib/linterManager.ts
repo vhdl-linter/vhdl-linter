@@ -3,7 +3,7 @@ import { EventEmitter } from "stream";
 import { CancellationToken, CancellationTokenSource, LSPErrorCodes, ResponseError } from "vscode-languageserver";
 import { Elaborate } from "./elaborate/elaborate";
 import { normalizeUri } from "./normalizeUri";
-import { ProjectParser } from "./projectParser";
+import { FileCacheVhdl, ProjectParser } from "./projectParser";
 import { SettingsGetter, VhdlLinter } from "./vhdlLinter";
 
 interface ILinterState {
@@ -106,7 +106,9 @@ export class LinterManager {
         const cachedFile = platform === 'win32'
           ? projectParser.cachedFiles.find(cachedFile => cachedFile.uri.toString().toLowerCase() === uri.toLowerCase())
           : projectParser.cachedFiles.find(cachedFile => cachedFile.uri.toString() === uri);
-        cachedFile?.replaceLinter(vhdlLinter);
+        if (cachedFile instanceof FileCacheVhdl) {
+          cachedFile.replaceLinter(vhdlLinter);
+        }
         projectParser.flattenProject();
         try {
           projectParser.events.emit('change', 'change', uri);

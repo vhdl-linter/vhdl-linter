@@ -8,6 +8,7 @@ import { Elaborate } from './elaborate/elaborate';
 import { SetAdd } from './languageFeatures/findReferencesHandler';
 import { OArchitecture, OConfigurationDeclaration, OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
 import { SettingsGetter, VhdlLinter } from './vhdlLinter';
+import { VerilogParser } from './verilogParser';
 
 export function joinURL(url: URL, ...additional: string[]) {
   const path = join(fileURLToPath(url), ...additional);
@@ -27,7 +28,7 @@ export function getRootDirectory() {
 }
 export class ProjectParser {
 
-  public cachedFiles: FileCache[] = [];
+  public cachedFiles: (FileCacheVhdl | FileCacheVerilog)[] = [];
   public packages: OPackage[] = [];
   public packageInstantiations: OPackageInstantiation[] = [];
   public contexts: OContext[] = [];
@@ -47,11 +48,14 @@ export class ProjectParser {
   public addFolders(urls: URL[]) {
     for (const url of urls) {
       // Chokidar does not accept win style line endings
-      const watcher = watch(fileURLToPath(url).replaceAll(sep, '/') + '/**/*.vhd?(l)', { ignoreInitial: true });
+      const watcher = watch([
+        fileURLToPath(url).replaceAll(sep, '/') + '/**/*.vhd?(l)',
+        fileURLToPath(url).replaceAll(sep, '/') + '/**/*.?(s)v',
+      ], { ignoreInitial: true });
       watcher.on('add', (path) => {
         const handleEvent = async () => {
           const url = pathToFileURL(path);
-          const cachedFile = await (FileCache.create(url, this, false));
+          const cachedFile = await (FileCacheVhdl.create(url, this, false));
           this.cachedFiles.push(cachedFile);
           this.flattenProject();
           this.events.emit('change', 'add', url.toString());
@@ -108,8 +112,13 @@ export class ProjectParser {
         index++;
       }
       const builtIn = builtinFiles.includes(file);
-      const cachedFile = await FileCache.create(new URL(file), this, builtIn);
-      this.cachedFiles.push(cachedFile);
+      if (file.match(/\.s?v$/i)) {
+        const cachedFile = await FileCacheVerilog.create(new URL(file), this, builtIn);
+        this.cachedFiles.push(cachedFile);
+      } else {
+        const cachedFile = await FileCacheVhdl.create(new URL(file), this, builtIn);
+        this.cachedFiles.push(cachedFile);
+      }
     }
     this.cachedFiles.sort((a, b) => b.lintingTime - a.lintingTime);
     this.flattenProject();
@@ -132,7 +141,7 @@ export class ProjectParser {
         const filePath = joinURL(directory, entry);
         const fileStat = await promises.stat(filePath);
         if (fileStat.isFile()) {
-          if (entry.match(/\.vhdl?$/i) && (ignoreRegex === null || !filePath.pathname.match(ignoreRegex))) {
+          if ((entry.match(/\.vhdl?$/i) || entry.match(/\.s?v$/i)) && (ignoreRegex === null || !filePath.pathname.match(ignoreRegex))) {
             files.push(filePath);
           }
         } else if (fileStat.isDirectory()) {
@@ -152,12 +161,16 @@ export class ProjectParser {
     this.packageInstantiations = [];
     this.contexts = [];
     for (const cachedFile of this.cachedFiles) {
-      this.entities.push(...cachedFile.linter.file.entities);
-      this.architectures.push(...cachedFile.linter.file.architectures);
-      this.configurations.push(...cachedFile.linter.file.configurations);
-      this.packages.push(...cachedFile.linter.file.packages.filter(pkg => pkg instanceof OPackage) as OPackage[]);
-      this.packageInstantiations.push(...cachedFile.linter.file.packageInstantiations);
-      this.contexts.push(...cachedFile.linter.file.contexts);
+      if (cachedFile instanceof FileCacheVhdl) {
+        this.entities.push(...cachedFile.linter.file.entities);
+        this.architectures.push(...cachedFile.linter.file.architectures);
+        this.configurations.push(...cachedFile.linter.file.configurations);
+        this.packages.push(...cachedFile.linter.file.packages.filter(pkg => pkg instanceof OPackage) as OPackage[]);
+        this.packageInstantiations.push(...cachedFile.linter.file.packageInstantiations);
+        this.contexts.push(...cachedFile.linter.file.contexts);
+      } else {
+        this.entities.push(...cachedFile.parser.file.entities);
+      }
     }
   }
   // Cache the elaboration result. Caution this can get invalid super easy. Therefore it is completely removed on any file change.
@@ -166,7 +179,7 @@ export class ProjectParser {
     if (this.cachedElaborate === filter) {
       return;
     }
-    const cachedFiles = this.cachedFiles.filter(cachedFile => cachedFile.linter.file.lexerTokens.find(token => token.getLText() === filter));
+    const cachedFiles = this.cachedFiles.filter(cachedFile => cachedFile instanceof FileCacheVhdl && cachedFile.linter.file.lexerTokens.find(token => token.getLText() === filter)) as FileCacheVhdl[];
     for (const cachedFile of cachedFiles) {
       Elaborate.clear(cachedFile.linter);
     }
@@ -182,14 +195,14 @@ export class ProjectParser {
   }
 }
 
-class FileCache {
+export class FileCacheVhdl {
   contexts: OContext[] = [];
   entities: OEntity[] = [];
   linter: VhdlLinter;
   lintingTime: number;
   // Constructor can not be async. So constructor is private and use factory to create
   public static async create(uri: URL, projectParser: ProjectParser, builtIn: boolean) {
-    const cache = new FileCache(uri, projectParser, builtIn);
+    const cache = new FileCacheVhdl(uri, projectParser, builtIn);
     await cache.parse();
     return cache;
   }
@@ -203,6 +216,24 @@ class FileCache {
   }
   replaceLinter(vhdlLinter: VhdlLinter) {
     this.linter = vhdlLinter;
+  }
+
+}
+class FileCacheVerilog {
+  lintingTime: number;
+  parser: VerilogParser;
+  // Constructor can not be async. So constructor is private and use factory to create
+  public static async create(uri: URL, projectParser: ProjectParser, builtIn: boolean) {
+    const cache = new FileCacheVerilog(uri, projectParser, builtIn);
+    await cache.parse();
+    return cache;
+  }
+  private constructor(public uri: URL, public projectParser: ProjectParser, public builtIn: boolean) {
+  }
+  async parse() {
+    let text = await promises.readFile(this.uri, { encoding: 'utf8' });
+    text = text.replaceAll('\r\n', '\n');
+    this.parser = new VerilogParser(this.uri, text, this.projectParser, this.projectParser.settingsGetter);
   }
 
 }
