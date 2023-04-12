@@ -18,4 +18,12 @@ begin
       out_bit_2  => out_bit_2,
       out_byte_2 => out_byte_2,
       in_byte_2  => in_byte_2);
+  inst_test_module2 : entity work.test_module2
+    port map (
+      in_bit     => in_bit,
+      out_bit    => out_bit,
+      in_bit_2   => in_bit_2,
+      out_bit_2  => out_bit_2,
+      out_byte_2 => out_byte_2,
+      in_byte_2  => in_byte_2);
 end architecture;
