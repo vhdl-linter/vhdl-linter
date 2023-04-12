@@ -17,6 +17,11 @@ export class VerilogParser {
     public settingsGetter: SettingsGetter,
   ) {
     const originalText = this.text;
+    if (this.text.length > 500 * 1024) {
+      this.file = new OFile('', this.uri, '', []);
+      return;
+      // throw new O.ParserError('this.file too large', new O.OIRange(this.file), 0, 100));
+    }
     this.text = this.text.replaceAll(/\/\*(.*?)\*\//g, match => match.replaceAll(/[^\n]/g, ' '));
     this.text = this.text.replaceAll(/\/\/.*/g, match => ' '.repeat(match.length));
     let match;
