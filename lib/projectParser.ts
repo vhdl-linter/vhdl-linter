@@ -231,7 +231,7 @@ class FileCacheVerilog {
   private constructor(public uri: URL, public projectParser: ProjectParser, public builtIn: boolean) {
   }
   async parse() {
-    const stat = await promises.stat(this.uri)
+    const stat = await promises.stat(this.uri);
     let text;
     if (stat.size > 50 * 1024) {
       text = '';
