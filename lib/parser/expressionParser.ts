@@ -412,7 +412,14 @@ export class ExpressionParser {
     }
     return result;
   }
+
   innerConstraint(parent: O.OName ) {
+    // Search for direction (to|downto) than this is range (5.2.1) and is parsed as an expression
+    const tokens = this.scanInnerConstraint();
+    if (tokens) {
+      this.expState.num += tokens.length;
+      return new ExpressionParser(this.state, parent, tokens).parse();
+    }
     const names: O.OName[] = [];
     while (this.expState.num < this.tokens.length && this.getNumToken()?.getLText() !== ')') {
       if (this.getNumToken()?.getLText() === '(') {
@@ -426,8 +433,13 @@ export class ExpressionParser {
           elementParent.children.push(innerName);
         }
       } else if (this.getNumToken()?.getLText() !== ',') {
+        let name;
+        if (this.getNumToken(-1)?.getLText() === '\'') {
+          name = new O.OAttributeName(parent, this.getNumToken()!);
+        } else {
+          name = new O.OName(parent, this.getNumToken()!);
 
-        const name = new O.OName(parent, this.getNumToken()!);
+        }
         name.constraint = true;
         if (parent instanceof O.OName) {
           parent.children.push(name);
@@ -439,7 +451,36 @@ export class ExpressionParser {
     this.increaseToken();
     return names;
   }
+  scanInnerConstraint() {
+    const tokens = [];
+    let adder = 0;
+    while (this.expState.num + adder < this.tokens.length && this.getNumToken(adder)?.getLText() !== ')') {
+      if (this.getNumToken(adder)?.getLText() === '(') { // skip brace
+        let braceIndex = 0;
+        while (this.expState.num + adder < this.tokens.length) {
+          if (this.getNumToken(adder)?.getLText() === '(') {
+            braceIndex++;
+          } else if (this.getNumToken(adder)?.getLText() === ')') {
+            if (braceIndex === 0) {
+              adder++;
+              break;
+            }
+            braceIndex--;
+          }
+          adder++;
+        }
 
+      } else {
+        tokens.push(this.getNumToken(adder)!);
+      }
+      adder++;
+    }
+    if (tokens.some(token => token.getLText() === "downto" || token.getLText() === 'to')) {
+      return tokens;
+    }
+    return undefined;
+
+  }
 
   private getNumToken(diffToken = 0): OLexerToken | undefined {
     let diff = 0;

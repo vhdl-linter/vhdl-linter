@@ -83,7 +83,7 @@ export class SubtypeIndicationParser extends ParserBase {
       } else {
         subtypeIndication.resolutionIndication = new ExpressionParser(this.state, subtypeIndication, buckets[0]!).parse();
         subtypeIndication.typeNames = new ExpressionParser(this.state, subtypeIndication, buckets[1]!).parse();
-        subtypeIndication.constraint = new ExpressionParser(this.state, subtypeIndication, buckets[2]!).parseConstraint()
+        subtypeIndication.constraint = new ExpressionParser(this.state, subtypeIndication, buckets[2]!).parseConstraint();
       }
     } else {
       throw new O.ParserError(`Error while parsing subtype indication. Was expecting 1 - 3 buckets found ${buckets.length}`, subtypeIndication.range);
