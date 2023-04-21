@@ -21,7 +21,7 @@ test.each(
 )('Testing folding ranges of %s', (fileName) => {
   const path = join(__dirname, fileName);
   const uri = pathToFileURL(path);
-  const linter = new VhdlLinter(uri, readFileSyncNorm(uri, { encoding: 'utf8' }), projectParser, defaultSettingsGetter);
+  const linter = new VhdlLinter(uri, readFileSyncNorm(uri, { encoding: 'utf8' }), projectParser, defaultSettingsGetter());
   const symbols = foldingHandler(linter);
   expect(symbols).toMatchSnapshot();
 });

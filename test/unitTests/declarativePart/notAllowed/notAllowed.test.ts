@@ -249,7 +249,7 @@ test.each(
     rules: {
       unused: false
     }
-  }));
+  })());
   const messages = await linter.checkAll();
   if (file === 'configuration_declaration.vhd' && declaration === 'configuration_specification') {
     // Declarative part parser can not distinguish between configuration specification and the configuration within the declaration.

@@ -126,6 +126,13 @@
 						"default": [],
 						"description": "Additional Paths to be included (for verification library etc.)"
 					},
+					"VhdlLinter.analysis.conditionalAnalysis": {
+						"scope": "window",
+						"type": "object",
+						"properties": {},
+						"default": {},
+						"description": "Settings for conditional analysis (vhdl 2019)"
+					},
 					"VhdlLinter.paths.ignoreRegex": {
 						"scope": "window",
 						"type": "string",

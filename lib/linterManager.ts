@@ -72,7 +72,8 @@ export class LinterManager {
     }
     // Mark File as currently being worked on
     state.done = false;
-    const vhdlLinter = new VhdlLinter(url, text, projectParser, settingsGetter, newSource.token);
+    const settings = await settingsGetter(url);
+    const vhdlLinter = new VhdlLinter(url, text, projectParser, settings, newSource.token);
     if (vhdlLinter.parsedSuccessfully === false) {
       // If parsed unsuccessfully mark this file as invalid.
       // (But old linter is kept for language-features that do not care for having the newest data)

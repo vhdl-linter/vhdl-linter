@@ -28,9 +28,9 @@ function getSelectedNameCompletions(prefix: O.OName) {
   return result;
 }
 
-export async function getCompletions(linter: VhdlLinter, position: Position): Promise<CompletionItem[]> {
+export function getCompletions(linter: VhdlLinter, position: Position): CompletionItem[] {
   const completions: CompletionItem[] = [];
-  const ieeeCasingLowercase = (await linter.settingsGetter(linter.uri)).style.ieeeCasing === 'lowercase';
+  const ieeeCasingLowercase = linter.settings.style.ieeeCasing === 'lowercase';
   const addCompletion = (item: O.ObjectBase & I.IHasLexerToken, kind?: CompletionItemKind) => {
     const lowercase = item.rootFile.uri.toString().match(/ieee2008/) && ieeeCasingLowercase;
     completions.push({ label: lowercase ? item.lexerToken.getLText() : item.lexerToken.text, kind });

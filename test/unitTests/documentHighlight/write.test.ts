@@ -13,7 +13,7 @@ test('testing document highlight snapshot write', async () => {
 
   const url = pathToFileURL(join(__dirname, 'test_highlight.vhd'));
   const linter = new VhdlLinter(url, readFileSyncNorm(url, { encoding: 'utf8' }),
-    await ProjectParser.create([], '', defaultSettingsGetter), defaultSettingsGetter);
+    await ProjectParser.create([], '', defaultSettingsGetter), defaultSettingsGetter());
   await Elaborate.elaborate(linter);
   const highlights = documentHighlightHandler(linter, {
     textDocument: {
@@ -32,7 +32,7 @@ test('testing document highlight on keyword', async () => {
   const url = pathToFileURL(join(__dirname, 'test_highlight.vhd'));
 
   const linter = new VhdlLinter(url, readFileSyncNorm(url, { encoding: 'utf8' }),
-    await ProjectParser.create([], '', defaultSettingsGetter), defaultSettingsGetter);
+    await ProjectParser.create([], '', defaultSettingsGetter), defaultSettingsGetter());
   await Elaborate.elaborate(linter);
   const highlights = documentHighlightHandler(linter, {
     textDocument: {

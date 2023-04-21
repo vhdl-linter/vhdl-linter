@@ -29,7 +29,7 @@ test.each(files.flatMap(file => [[file, true], [file, false]]))('testing semanti
 
   const path = join(__dirname, file);
   const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }),
-    projectParser, defaultSettingsGetter);
+    projectParser, defaultSettingsGetter());
   await Elaborate.elaborate(linter);
   // mock.instances is available with automatic mocks:
   semanticToken(linter, directionColoring);

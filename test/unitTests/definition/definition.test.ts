@@ -13,7 +13,7 @@ beforeAll(async () => {
   projectParser = await ProjectParser.create([pathToFileURL(__dirname)], '', defaultSettingsGetter);
   const URL = pathToFileURL(__dirname + '/definition.vhd');
   linter = new VhdlLinter(URL, readFileSyncNorm(URL, { encoding: 'utf8' }),
-    projectParser, defaultSettingsGetter);
+    projectParser, defaultSettingsGetter());
   await Elaborate.elaborate(linter);
   await projectParser.stop();
 });

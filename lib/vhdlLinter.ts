@@ -38,10 +38,10 @@ export class VhdlLinter {
   elaborated = false;
 
   constructor(public uri: URL, public text: string, public projectParser: ProjectParser,
-    public settingsGetter: SettingsGetter,
+    public settings: ISettings,
     public token?: CancellationToken) {
     try {
-      this.parser = new FileParser(text, this.uri);
+      this.parser = new FileParser(text, this.uri, settings);
       this.file = this.parser.parse();
       this.parsedSuccessfully = true;
       this.file.parserMessages = this.parser.state.messages;
@@ -95,7 +95,7 @@ export class VhdlLinter {
   diagnosticCodeActionResolveRegistry: Record<number, diagnosticCodeActionCallback> = {};
 
   addCodeActionCallback(handler: diagnosticCodeActionCallback, resolveHandler?: diagnosticCodeActionCallback): number {
-    const index =  this.diagnosticCodeActionRegistry.push(handler) - 1;
+    const index = this.diagnosticCodeActionRegistry.push(handler) - 1;
     if (resolveHandler) {
       this.diagnosticCodeActionResolveRegistry[index] = resolveHandler;
     }
@@ -191,10 +191,9 @@ export class VhdlLinter {
       }
       await this.handleCanceled();
 
-      const settings = await this.settingsGetter(this.uri);
       for (const checkerClass of rules) {
-        if ((settings.rules as Record<string, boolean>)[checkerClass.ruleName]) {
-          const checker = new checkerClass(this, settings);
+        if ((this.settings.rules as Record<string, boolean>)[checkerClass.ruleName]) {
+          const checker = new checkerClass(this, this.settings);
           checker.check();
           if (profiling) {
             console.log(`check ${checkerClass.ruleName}: ${Date.now() - start}ms`);

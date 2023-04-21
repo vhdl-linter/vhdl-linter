@@ -15,7 +15,7 @@ test.each(files)('testing add signal helper %s', async (file: string) => {
   const projectParser = await ProjectParser.create([pathToFileURL(__dirname)], '', defaultSettingsGetter);
 
   const linter = new VhdlLinter(pathToFileURL(`/${file}`), readFileSyncNorm(path, { encoding: 'utf8' }),
-    projectParser, defaultSettingsGetter);
+    projectParser, defaultSettingsGetter());
   await linter.checkAll();
 
   expect(linter.messages).toMatchSnapshot();

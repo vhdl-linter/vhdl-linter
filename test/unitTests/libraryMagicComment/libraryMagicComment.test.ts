@@ -53,7 +53,7 @@ afterAll(async () => {
 test.each(testSet)('Testing magic comments on file %s should not Error %p', async (filename, shouldNotError) => {
 
   const path = join(__dirname, filename);
-  const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser, defaultSettingsGetter);
+  const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser, defaultSettingsGetter());
   const messages = await linter.checkAll();
   if (shouldNotError) {
     expect(messages.length).toBe(0);
