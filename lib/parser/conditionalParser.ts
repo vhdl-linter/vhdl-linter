@@ -1,15 +1,28 @@
+import { DiagnosticSeverity } from "vscode-languageserver";
 import { OLexerToken, TokenType } from "../lexer";
 import { ISettings } from "../settingsGenerated";
 import { ParserError } from "./objects";
+import { ParserState } from "./parserBase";
 
 export class ConditionalParser {
-  constructor(public tokens: OLexerToken[], public i: number, public settings: ISettings) {
+  constructor(public tokens: OLexerToken[], public i: number, public settings: ISettings, public state: ParserState) {
     while (this.i < this.tokens.length) {
       if (this.getToken()?.getLText() === '`') {
         this.mask();
         if (this.getToken()?.getLText() === 'if') {
           this.mask();
           this.handleIf();
+        } else {
+          this.state.messages.push({
+            message: `Unexpected tool directive '${this.getToken()?.text ?? ''}'`,
+            range: this.getToken()!.range,
+            severity: DiagnosticSeverity.Information
+          });
+          while (this.getToken()?.getLText() !== '`') {
+            this.mask();
+          }
+          this.expect('`');
+
         }
       }
       this.increment();
@@ -69,7 +82,15 @@ export class ConditionalParser {
         }
         this.expect('`');
       } else {
-        throw new ParserError(`Unexpected token directive ${this.getToken()?.text ?? ''}`, this.getToken()!.range);
+        this.state.messages.push({
+          message: `Unexpected tool directive '${this.getToken()?.text ?? ''}'`,
+          range: this.getToken()!.range,
+          severity: DiagnosticSeverity.Information
+        });
+        while (this.getToken()?.getLText() !== '`') {
+          this.mask();
+        }
+        this.expect('`');
       }
     }
     this.expect('end');

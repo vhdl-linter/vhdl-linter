@@ -32,7 +32,7 @@ export class FileParser extends ParserBase {
     const lexer = new Lexer(this.originalText, this.file, lexerTokens);
     this.file.lexerTokens = lexer.lex();
     this.lexerTokens = this.file.lexerTokens;
-    new ConditionalParser(this.lexerTokens, 0, settings);
+    new ConditionalParser(this.lexerTokens, 0, settings, this.state);
     this.state.pos.lexerTokens = this.lexerTokens;
     this.state.pos.file = this.file;
   }
