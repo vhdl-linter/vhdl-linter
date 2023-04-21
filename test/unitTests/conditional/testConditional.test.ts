@@ -1,7 +1,6 @@
 import { afterAll, beforeAll, expect, test } from '@jest/globals';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
-import { Elaborate } from '../../../lib/elaborate/elaborate';
 import { ProjectParser } from '../../../lib/projectParser';
 import { defaultSettingsGetter, defaultSettingsWithOverwrite } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
