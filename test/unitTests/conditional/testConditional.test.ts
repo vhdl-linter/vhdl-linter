@@ -33,3 +33,22 @@ test('Testing conditional analysis true not set', async () => {
   await linter.checkAll();
   expect(linter.messages).toHaveLength(1);
 });
+test('Testing conditional analysis conditions', async () => {
+  const path = join(__dirname, 'test_conditional2.vhd');
+  const text = readFileSyncNorm(path, { encoding: 'utf8' });
+  const linter = new VhdlLinter(pathToFileURL(path), text,
+    projectParser, defaultSettingsWithOverwrite({
+      analysis: {
+        conditionalAnalysis: {
+          VALUE5: "5",
+          VALUE6: "6"
+        }
+      }
+    })());
+
+  const matches = [...text.matchAll(/TRUE/ig)];
+  await linter.checkAll();
+  expect(linter.messages).toHaveLength(matches.length);
+  const wrongMessages = linter.messages.filter(message => message.message.includes('TRUE') === false || message.message.includes('FALSE'));
+  expect(wrongMessages).toHaveLength(0);
+});

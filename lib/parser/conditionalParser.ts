@@ -7,26 +7,30 @@ import { ParserState } from "./parserBase";
 export class ConditionalParser {
   constructor(public tokens: OLexerToken[], public i: number, public settings: ISettings, public state: ParserState) {
     while (this.i < this.tokens.length) {
-      if (this.getToken()?.getLText() === '`') {
+      if (this.getToken().getLText() === '`') {
         this.mask();
-        if (this.getToken()?.getLText() === 'if') {
+        if (this.getToken().getLText() === 'if') {
           this.mask();
           this.handleIf();
+        } else if (['error', 'warning'].includes(this.getToken().getLText())) {
+          this.handleWarningError();
         } else {
-          this.state.messages.push({
-            message: `Unexpected tool directive '${this.getToken()?.text ?? ''}'`,
-            range: this.getToken()!.range,
-            severity: DiagnosticSeverity.Information
-          });
-          while (this.getToken()?.getLText() !== '`') {
-            this.mask();
-          }
-          this.expect('`');
-
+          this.handleUnknown();
         }
+      } else {
+        this.increment();
       }
-      this.increment();
     }
+  }
+  seekToolDirective(mask: boolean) {
+    while (this.getToken().getLText() !== '`') {
+      if (mask) {
+        this.mask();
+      } else {
+        this.increment();
+      }
+    }
+    this.mask();
   }
   handleIf() {
     let conditionWasTrue = false;
@@ -35,100 +39,97 @@ export class ConditionalParser {
       conditionWasTrue = true;
     }
     this.expect('then');
-    while (this.getToken()?.getLText() !== '`') {
-      if (condition === false) {
-        this.mask();
-      } else {
-        this.increment();
-      }
-    }
-    this.mask();
-    while (this.getToken()?.getLText() !== 'end') {
-      if (this.getToken()?.getLText() === 'if') {
+    this.seekToolDirective(!condition);
+    while (this.getToken().getLText() !== 'end') {
+      if (this.getToken().getLText() === 'if') {
         this.mask();
         this.handleIf();
-        while (this.getToken()?.getLText() !== '`') {
-          if (condition === false) {
-            this.mask();
-          } else {
-            this.increment();
-          }
-        }
-        this.mask();
-      } else if (this.getToken()?.getLText() === 'elsif') {
+        this.seekToolDirective(!condition);
+      } else if (this.getToken().getLText() === 'elsif') {
         this.mask();
         const condition = this.conditionalAnalysisExpression() && conditionWasTrue === false;
         if (condition) {
           conditionWasTrue = true;
         }
         this.expect('then');
-        while (this.getToken()?.getLText() !== '`') {
-          if (condition === false) {
-            this.mask();
-          } else {
-            this.increment();
-          }
-        }
-        this.expect('`');
-
-      } else if (this.getToken()?.getLText() === 'else') {
+        this.seekToolDirective(!condition);
+      } else if (this.getToken().getLText() === 'else') {
         this.mask();
-        while (this.getToken()?.getLText() !== '`') {
-          if (conditionWasTrue === false) {
-            this.increment();
-          } else {
-            this.mask();
-          }
-        }
-        this.expect('`');
+        this.seekToolDirective(conditionWasTrue);
+      } else if (['error', 'warning'].includes(this.getToken().getLText())) {
+        this.handleWarningError(!condition);
+        this.seekToolDirective(!condition);
       } else {
-        this.state.messages.push({
-          message: `Unexpected tool directive '${this.getToken()?.text ?? ''}'`,
-          range: this.getToken()!.range,
-          severity: DiagnosticSeverity.Information
-        });
-        while (this.getToken()?.getLText() !== '`') {
-          this.mask();
-        }
-        this.expect('`');
+        this.handleUnknown();
+        this.seekToolDirective(true);
+
       }
     }
     this.expect('end');
     this.maybe('if');
   }
+  handleWarningError(masked = false) {
+    const severityToken = this.getToken();
+    const severityTokenText = this.getToken().text;
+    const severity = severityToken.getLText() === 'error' ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning;
+    this.mask();
+    const messageToken = this.getToken();
+    const message = messageToken.text;
+    this.mask();
+    if (!masked) {
+      this.state.messages.push({
+        message: `Tool directive ${severityTokenText} ${message}`,
+        severity,
+        range: severityToken.range.copyWithNewEnd(messageToken.range)
+      });
+    }
+  }
+  handleUnknown() {
+    this.state.messages.push({
+      message: `Unknown tool directive '${this.getToken().text}'`,
+      range: this.getToken().range,
+      severity: DiagnosticSeverity.Information
+    });
+    let token = this.getToken();
+    while (token.getLText() !== '\n') { // Do not use normal mask function here as it moves over the newline
+      if (token.isWhitespace() !== true) {
+        token.text = ' '.repeat(token.text.length);
+        token.type = TokenType.whitespace;
+      }
+      this.i++;
+      token = this.getToken();
+    }
+  }
   expect(expectedString: string) {
     const token = this.getToken();
-    if (!token) {
-      throw new ParserError(`expected '${expectedString}' found EOF'`, this.tokens[this.i - 1]!.range);
-
-    } else if (token.getLText() !== expectedString) {
+    if (token.getLText() !== expectedString) {
       throw new ParserError(`expected '${expectedString}' found '${token.text ?? ''}'`, token.range);
     }
     this.mask();
 
   }
   maybe(expectedString: string) {
-    if (this.getToken()?.getLText() === expectedString) {
+    if (this.getToken().getLText() === expectedString) {
       this.mask();
     }
 
   }
   conditionalAnalysisExpression(): boolean {
     let condition;
-    if (this.getToken()?.getLText() === '(') {
+    if (this.getToken().getLText() === '(') {
+      this.expect('(');
       condition = this.conditionalAnalysisExpression();
       this.expect(')');
-      this.increment();
-    } else if (this.getToken()?.getLText() === 'not') {
-      this.increment();
+    } else if (this.getToken().getLText() === 'not') {
+      this.mask();
       return !this.conditionalAnalysisExpression();
     } else {
-      const identifier = this.getToken()!.text;
+      const identifier = this.getToken().text;
       this.mask();
-      const relationToken = this.getToken()!;
-      const relation = this.getToken()!.text;
+      const relationToken = this.getToken();
+      const relation = relationToken.text;
       this.mask();
-      const literal = this.getToken()!.text.replace(/^"/, '').replace(/"$/, '');
+      const literal = this.getToken().text.replace(/^"/, '').replace(/"$/, '');
       this.mask();
       const value = this.settings.analysis.conditionalAnalysis[identifier] ?? '';
       if (relation === '=') {
@@ -148,16 +149,19 @@ export class ConditionalParser {
       }
     }
 
-    if (this.getToken()?.getLText() === 'and') {
-      this.increment();
-      condition = condition && this.conditionalAnalysisExpression();
-    } else if (this.getToken()?.getLText() === 'or') {
-      this.increment();
-      condition = condition || this.conditionalAnalysisExpression();
-    } else if (this.getToken()?.getLText() === 'xor') {
+    // The conditionalAnalysisExpression needs to come first because of lazy evaluation (and side effects)
+    if (this.getToken().getLText() === 'and') {
+      this.mask();
+      condition = this.conditionalAnalysisExpression() && condition;
+    } else if (this.getToken().getLText() === 'or') {
+      this.mask();
+      condition = this.conditionalAnalysisExpression() || condition;
+    } else if (this.getToken().getLText() === 'xor') {
+      this.mask();
       const second = this.conditionalAnalysisExpression();
       condition = (condition && !second) || (!condition && second);
-    } else if (this.getToken()?.getLText() === 'xnor') {
+    } else if (this.getToken().getLText() === 'xnor') {
+      this.mask();
       const second = this.conditionalAnalysisExpression();
       condition = !((condition && !second) || (!condition && second));
     }
@@ -165,7 +169,11 @@ export class ConditionalParser {
     return condition;
   }
   getToken() {
-    return this.tokens[this.i];
+    const token = this.tokens[this.i];
+    if (!token) {
+      throw new ParserError(`EOF reached`, this.tokens[this.tokens.length - 1]!.range);
+    }
+    return token;
   }
   increment() {
     this.i++;
@@ -174,9 +182,10 @@ export class ConditionalParser {
     }
   }
   mask() {
-    if (this.getToken()?.isWhitespace() === false) {
-      this.tokens[this.i]!.text = ' '.repeat(this.tokens[this.i]!.text.length);
-      this.tokens[this.i]!.type = TokenType.whitespace;
+    const token = this.getToken();
+    if (token.isWhitespace() !== true) {
+      token.text = ' '.repeat(token.text.length);
+      token.type = TokenType.whitespace;
     }
     this.increment();
   }
