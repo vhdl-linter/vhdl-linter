@@ -129,9 +129,16 @@
 					"VhdlLinter.analysis.conditionalAnalysis": {
 						"scope": "window",
 						"type": "object",
-						"properties": {},
+						"properties": {
+						},
+						"patternProperties": {
+							"": {
+								"type": "string"
+							}
+						},
+						"additionalProperties": false,
 						"default": {},
-						"description": "Settings for conditional analysis (vhdl 2019)"
+						"description": "Settings for conditional analysis (vhdl 2019). e.g. DEVICE = MY_DEV_BOARD or use standard defined values: TOOL_TYPE = SYNTHESIS"
 					},
 					"VhdlLinter.paths.ignoreRegex": {
 						"scope": "window",
@@ -186,12 +193,6 @@
 						"type": "boolean",
 						"description": "Enable the rule to check if each file contains a magic comment stating the library where the file is compiled to.",
 						"default": false
-					},
-					"VhdlLinter.rules.library-reference": {
-						"scope": "window",
-						"type": "boolean",
-						"description": "Enable the rule to check if used libraries are declared.",
-						"default": true
 					},
 					"VhdlLinter.rules.multiple-definition": {
 						"scope": "window",

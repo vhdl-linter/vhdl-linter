@@ -17,7 +17,6 @@ export interface ISettings {
     'instantiation': boolean;
     'configuration': boolean;
     'library': boolean;
-    'library-reference': boolean;
     'multiple-definition': boolean;
     'not-declared': boolean;
     'naming-style': boolean;
@@ -77,7 +76,6 @@ export const defaultSettings: ISettings = {
     'instantiation': true,
     'configuration': true,
     'library': false,
-    'library-reference': true,
     'multiple-definition': true,
     'not-declared': true,
     'naming-style': true,
