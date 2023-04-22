@@ -8,7 +8,6 @@ interface ExpParserState {
   lastFormal: OLexerToken[]; // This is for checking if the actual is empty
   leftHandSide: boolean; // Is this the left hand of an assignment
   braceLevel: number;
-  constraint: boolean;
 }
 
 
@@ -19,14 +18,13 @@ export class ExpressionParser {
     leftHandSide: false,
     maybeOutput: false,
     maybeInOut: false,
-    braceLevel: 0,
-    constraint: false
+    braceLevel: 0
   };
   constructor(private state: ParserState, private parent: O.ObjectBase, private tokens: OLexerToken[]) {
 
   }
 
-  parse(constraint = false): O.OName[] {
+  parse(): O.OName[] {
     if (this.tokens.length === 0) {
       this.state.messages.push({
         message: 'expression empty',
@@ -34,9 +32,7 @@ export class ExpressionParser {
       });
       return [];
     }
-    if (constraint) {
-      this.expState.constraint = true;
-    }
+
     const result = this.inner();
     return result;
   }
@@ -162,11 +158,6 @@ export class ExpressionParser {
     }
     if (afterComma && names[0]) {
       names[0].afterComma = true;
-    }
-    if (this.expState.constraint) {
-      for (const name of names) {
-        name.constraint = true;
-      }
     }
     return names;
   }
@@ -393,7 +384,97 @@ export class ExpressionParser {
   getTextDebug() {
     return this.tokens.slice(this.expState.num, this.expState.num + 5).join(' ');
   }
+  parseConstraint() {
+    if (this.tokens.length === 0) {
+      this.state.messages.push({
+        message: 'expression empty',
+        range: this.parent.range
+      });
+      return [];
+    }
+    if (this.tokens[0]!.getLText() === 'range') {
+      return this.parse();
+    }
+    const result = [];
+    while (this.getNumToken()?.getLText() === '(') {
+      this.increaseToken();
+      const aggregate = new O.OAggregate(this.parent, new OLexerToken('', this.tokens[0]!.range, TokenType.implicit, this.parent.rootFile));
 
+      result.push(...this.innerConstraint(aggregate));
+
+    }
+    return result;
+  }
+
+  innerConstraint(parent: O.OName ) {
+    // Search for direction (to|downto) than this is range (5.2.1) and is parsed as an expression
+    const tokens = this.scanInnerConstraintForDirection();
+    if (tokens) {
+      this.expState.num += tokens.length;
+      return new ExpressionParser(this.state, parent, tokens).parse();
+    }
+    const names: O.OName[] = [];
+    while (this.expState.num < this.tokens.length && this.getNumToken()?.getLText() !== ')') {
+      if (this.getNumToken()?.getLText() === '(') {
+        const elementParent = names.length > 0 ? names.at(-1)! :
+          new O.OAggregate(this.parent, new OLexerToken('', this.tokens[0]!.range, TokenType.implicit, this.parent.rootFile));
+
+        this.increaseToken();
+        const innerNames = this.innerConstraint(names.at(-1)!);
+        for (const innerName of innerNames) {
+          innerName.parent = elementParent;
+          elementParent.children.push(innerName);
+        }
+      } else if (this.getNumToken()?.getLText() !== ',') {
+        let name;
+        if (this.getNumToken(-1)?.getLText() === '\'') {
+          name = new O.OAttributeName(parent, this.getNumToken()!);
+        } else {
+          name = new O.OName(parent, this.getNumToken()!);
+
+        }
+        name.constraint = true;
+        if (parent instanceof O.OName) {
+          parent.children.push(name);
+        }
+        names.push(name);
+      }
+      this.increaseToken();
+    }
+    this.increaseToken();
+    return names;
+  }
+  // Scan for direction (to|downto). Return the expression part when direction found
+  scanInnerConstraintForDirection() {
+    const tokens = [];
+    let adder = 0;
+    while (this.expState.num + adder < this.tokens.length && this.getNumToken(adder)?.getLText() !== ')') {
+      if (this.getNumToken(adder)?.getLText() === '(') { // skip brace
+        let braceIndex = 0;
+        while (this.expState.num + adder < this.tokens.length) {
+          if (this.getNumToken(adder)?.getLText() === '(') {
+            braceIndex++;
+          } else if (this.getNumToken(adder)?.getLText() === ')') {
+            if (braceIndex === 0) {
+              adder++;
+              break;
+            }
+            braceIndex--;
+          }
+          adder++;
+        }
+
+      } else {
+        tokens.push(this.getNumToken(adder)!);
+      }
+      adder++;
+    }
+    if (tokens.some(token => token.getLText() === "downto" || token.getLText() === 'to')) {
+      return tokens;
+    }
+    return undefined;
+
+  }
 
   private getNumToken(diffToken = 0): OLexerToken | undefined {
     let diff = 0;

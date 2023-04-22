@@ -1,6 +1,5 @@
 import * as I from "../parser/interfaces";
 import * as O from "../parser/objects";
-import { OSubtypeIndication } from "../parser/objects";
 import { VhdlLinter } from "../vhdlLinter";
 export class ElaborateNames {
   file: O.OFile;
@@ -199,11 +198,11 @@ export class ElaborateNames {
 
   elaborateName(name: O.OName) {
     if (name.constraint) {
-      const subtypeIndication = O.getNameParent(name) as OSubtypeIndication;
+      const subtypeIndication = O.getNameParent(name) as O.OSubtypeIndication;
       const typeName = subtypeIndication.typeNames.at(-1);
       if (typeName) {
         // parent is type (e.g. protected or record) or alias -> expect stuff from within
-        if (name.parent instanceof O.OName && name.parent.parent instanceof OSubtypeIndication) {
+        if (name.parent instanceof O.OName && name.parent.parent instanceof O.OSubtypeIndication) {
           // if first brace level -> expect from main type
           for (const typeDef of typeName.definitions) {
             this.elaborateTypeChildren(name, typeDef);
