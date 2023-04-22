@@ -8,7 +8,6 @@ interface ExpParserState {
   lastFormal: OLexerToken[]; // This is for checking if the actual is empty
   leftHandSide: boolean; // Is this the left hand of an assignment
   braceLevel: number;
-  constraint: boolean;
 }
 
 
@@ -19,8 +18,7 @@ export class ExpressionParser {
     leftHandSide: false,
     maybeOutput: false,
     maybeInOut: false,
-    braceLevel: 0,
-    constraint: false
+    braceLevel: 0
   };
   constructor(private state: ParserState, private parent: O.ObjectBase, private tokens: OLexerToken[]) {
 
@@ -160,11 +158,6 @@ export class ExpressionParser {
     }
     if (afterComma && names[0]) {
       names[0].afterComma = true;
-    }
-    if (this.expState.constraint) {
-      for (const name of names) {
-        name.constraint = true;
-      }
     }
     return names;
   }
@@ -415,7 +408,7 @@ export class ExpressionParser {
 
   innerConstraint(parent: O.OName ) {
     // Search for direction (to|downto) than this is range (5.2.1) and is parsed as an expression
-    const tokens = this.scanInnerConstraint();
+    const tokens = this.scanInnerConstraintForDirection();
     if (tokens) {
       this.expState.num += tokens.length;
       return new ExpressionParser(this.state, parent, tokens).parse();
@@ -451,7 +444,8 @@ export class ExpressionParser {
     this.increaseToken();
     return names;
   }
-  scanInnerConstraint() {
+  // Scan for direction (to|downto). Return the expression part when direction found
+  scanInnerConstraintForDirection() {
     const tokens = [];
     let adder = 0;
     while (this.expState.num + adder < this.tokens.length && this.getNumToken(adder)?.getLText() !== ')') {

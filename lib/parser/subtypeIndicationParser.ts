@@ -77,6 +77,7 @@ export class SubtypeIndicationParser extends ParserBase {
       }
 
     } else if (buckets.length === 3) {
+      // If the second bucket starts with a brace it can not be the type name. Thus it (and everything after) has to be the constraint.
       if (buckets[1]![0]?.getLText() === '(') {
         subtypeIndication.typeNames = new ExpressionParser(this.state, subtypeIndication, buckets[0]!).parse();
         subtypeIndication.constraint = new ExpressionParser(this.state, subtypeIndication, buckets.slice(1).flat()).parseConstraint();
