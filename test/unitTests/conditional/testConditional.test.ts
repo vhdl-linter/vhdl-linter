@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, expect, test } from '@jest/globals';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
+import { getTokenFromPosition } from '../../../lib/languageFeatures/findReferencesHandler';
 import { ProjectParser } from '../../../lib/projectParser';
 import { defaultSettingsGetter, defaultSettingsWithOverwrite } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
@@ -61,4 +62,23 @@ test.each([
   await linter.checkAll();
   expect(linter.messages).toHaveLength(1);
   expect(linter.messages[0]?.message).toBe(`Unknown tool directive 'UNKNOWN' (parser)`);
+});
+test('Testing hover for conditional', async () => {
+  const path = join(__dirname, 'test_hover.vhd');
+  const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser,
+    defaultSettingsWithOverwrite({
+      analysis: {
+        conditionalAnalysis: {
+          VALUE5: "5"
+        }
+      }
+    })());
+  await linter.checkAll();
+  const lexerToken = getTokenFromPosition(linter, {
+    line: 1,
+    character: 9
+  }, false);
+  expect(lexerToken?.hoverInfo).toBe("VALUE5: \"5\"");
+
+
 });

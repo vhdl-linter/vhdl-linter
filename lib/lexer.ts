@@ -19,7 +19,8 @@ export class OLexerToken {
     public text: string,
     public range: OIRange,
     public type: TokenType,
-    public file: OFile
+    public file: OFile,
+    public hoverInfo?: string
   ) {
   }
   isIdentifier() {
