@@ -10,6 +10,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 0,
+      "text": "library",
     },
     {
       "endIndex": 14,
@@ -17,6 +18,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 7,
+      "text": " ieee;",
     },
   ],
   [
@@ -27,6 +29,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 0,
+      "text": "use",
     },
     {
       "endIndex": 24,
@@ -34,6 +37,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 3,
+      "text": " ieee.std_logic_1164.",
     },
     {
       "endIndex": 27,
@@ -42,6 +46,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 24,
+      "text": "all",
     },
     {
       "endIndex": 29,
@@ -49,6 +54,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 27,
+      "text": ";",
     },
   ],
   [
@@ -59,6 +65,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 0,
+      "text": "entity",
     },
     {
       "endIndex": 21,
@@ -66,6 +73,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 6,
+      "text": " test_literals ",
     },
     {
       "endIndex": 23,
@@ -74,6 +82,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 21,
+      "text": "is",
     },
   ],
   [
@@ -83,6 +92,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "",
     },
   ],
   [
@@ -93,6 +103,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 0,
+      "text": "end",
     },
     {
       "endIndex": 4,
@@ -100,6 +111,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 3,
+      "text": " ",
     },
     {
       "endIndex": 10,
@@ -108,6 +120,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 4,
+      "text": "entity",
     },
     {
       "endIndex": 12,
@@ -115,6 +128,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 10,
+      "text": ";",
     },
   ],
   [
@@ -125,6 +139,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 0,
+      "text": "architecture",
     },
     {
       "endIndex": 18,
@@ -132,6 +147,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 12,
+      "text": " arch ",
     },
     {
       "endIndex": 20,
@@ -140,6 +156,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 18,
+      "text": "of",
     },
     {
       "endIndex": 35,
@@ -147,6 +164,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 20,
+      "text": " test_literals ",
     },
     {
       "endIndex": 37,
@@ -155,6 +173,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 35,
+      "text": "is",
     },
   ],
   [
@@ -164,6 +183,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "  ",
     },
     {
       "endIndex": 8,
@@ -172,6 +192,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 2,
+      "text": "signal",
     },
     {
       "endIndex": 31,
@@ -179,6 +200,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 8,
+      "text": " b : std_ulogic        ",
     },
     {
       "endIndex": 33,
@@ -187,6 +209,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 31,
+      "text": ":=",
     },
     {
       "endIndex": 34,
@@ -194,6 +217,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 33,
+      "text": " ",
     },
     {
       "endIndex": 35,
@@ -202,6 +226,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "constant.numeric.vhdl",
       ],
       "startIndex": 34,
+      "text": "5",
     },
     {
       "endIndex": 37,
@@ -209,6 +234,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 35,
+      "text": ";",
     },
   ],
   [
@@ -218,6 +244,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "  ",
     },
     {
       "endIndex": 8,
@@ -226,6 +253,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 2,
+      "text": "signal",
     },
     {
       "endIndex": 31,
@@ -233,6 +261,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 8,
+      "text": " c : std_ulogic_vector ",
     },
     {
       "endIndex": 33,
@@ -241,6 +270,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 31,
+      "text": ":=",
     },
     {
       "endIndex": 34,
@@ -248,6 +278,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 33,
+      "text": " ",
     },
     {
       "endIndex": 45,
@@ -256,6 +287,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "constant.numeric.vhdl",
       ],
       "startIndex": 34,
+      "text": "x"deadbeef"",
     },
     {
       "endIndex": 47,
@@ -263,6 +295,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 45,
+      "text": ";",
     },
   ],
   [
@@ -272,6 +305,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "  ",
     },
     {
       "endIndex": 8,
@@ -280,6 +314,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 2,
+      "text": "signal",
     },
     {
       "endIndex": 31,
@@ -287,6 +322,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 8,
+      "text": " d : std_ulogic_vector ",
     },
     {
       "endIndex": 33,
@@ -295,6 +331,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 31,
+      "text": ":=",
     },
     {
       "endIndex": 34,
@@ -302,6 +339,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 33,
+      "text": " ",
     },
     {
       "endIndex": 44,
@@ -310,6 +348,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "constant.numeric.vhdl",
       ],
       "startIndex": 34,
+      "text": ""01010101"",
     },
     {
       "endIndex": 46,
@@ -317,6 +356,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 44,
+      "text": ";",
     },
   ],
   [
@@ -326,6 +366,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "  ",
     },
     {
       "endIndex": 8,
@@ -334,6 +375,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 2,
+      "text": "signal",
     },
     {
       "endIndex": 31,
@@ -341,6 +383,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 8,
+      "text": " e : string            ",
     },
     {
       "endIndex": 33,
@@ -349,6 +392,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 31,
+      "text": ":=",
     },
     {
       "endIndex": 34,
@@ -356,6 +400,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 33,
+      "text": " ",
     },
     {
       "endIndex": 48,
@@ -364,6 +409,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "string.quoted.double",
       ],
       "startIndex": 34,
+      "text": ""hello world!"",
     },
     {
       "endIndex": 50,
@@ -371,6 +417,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 48,
+      "text": ";",
     },
   ],
   [
@@ -380,6 +427,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "  ",
     },
     {
       "endIndex": 8,
@@ -388,6 +436,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 2,
+      "text": "signal",
     },
     {
       "endIndex": 28,
@@ -395,6 +444,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 8,
+      "text": " f : integer_vector ",
     },
     {
       "endIndex": 30,
@@ -403,6 +453,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 28,
+      "text": ":=",
     },
     {
       "endIndex": 31,
@@ -410,6 +461,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 30,
+      "text": " ",
     },
     {
       "endIndex": 32,
@@ -418,6 +470,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 31,
+      "text": "(",
     },
   ],
   [
@@ -427,6 +480,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "    ",
     },
     {
       "endIndex": 11,
@@ -435,6 +489,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "constant.numeric.vhdl",
       ],
       "startIndex": 4,
+      "text": "123_456",
     },
     {
       "endIndex": 12,
@@ -443,6 +498,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 11,
+      "text": ",",
     },
   ],
   [
@@ -452,6 +508,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "    ",
     },
     {
       "endIndex": 7,
@@ -460,6 +517,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "constant.numeric.vhdl",
       ],
       "startIndex": 4,
+      "text": "1e6",
     },
     {
       "endIndex": 8,
@@ -468,6 +526,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 7,
+      "text": ",",
     },
   ],
   [
@@ -477,6 +536,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "    ",
     },
     {
       "endIndex": 16,
@@ -485,6 +545,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "constant.numeric.vhdl",
       ],
       "startIndex": 4,
+      "text": "2#1111_1111#",
     },
     {
       "endIndex": 17,
@@ -493,6 +554,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 16,
+      "text": ",",
     },
   ],
   [
@@ -502,6 +564,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "    ",
     },
     {
       "endIndex": 10,
@@ -510,6 +573,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "constant.numeric.vhdl",
       ],
       "startIndex": 4,
+      "text": "16#ff#",
     },
     {
       "endIndex": 11,
@@ -518,6 +582,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 10,
+      "text": ",",
     },
   ],
   [
@@ -527,6 +592,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "    ",
     },
     {
       "endIndex": 11,
@@ -535,6 +601,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "constant.numeric.vhdl",
       ],
       "startIndex": 4,
+      "text": "16#e#e1",
     },
   ],
   [
@@ -544,6 +611,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "    ",
     },
     {
       "endIndex": 5,
@@ -552,6 +620,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 4,
+      "text": ")",
     },
     {
       "endIndex": 7,
@@ -559,6 +628,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 5,
+      "text": ";",
     },
   ],
   [
@@ -568,6 +638,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "  ",
     },
     {
       "endIndex": 8,
@@ -576,6 +647,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 2,
+      "text": "signal",
     },
     {
       "endIndex": 25,
@@ -583,6 +655,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 8,
+      "text": " g : real_vector ",
     },
     {
       "endIndex": 27,
@@ -591,6 +664,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 25,
+      "text": ":=",
     },
     {
       "endIndex": 28,
@@ -598,6 +672,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 27,
+      "text": " ",
     },
     {
       "endIndex": 29,
@@ -606,6 +681,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 28,
+      "text": "(",
     },
   ],
   [
@@ -615,6 +691,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "    ",
     },
     {
       "endIndex": 8,
@@ -623,6 +700,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "constant.numeric.vhdl",
       ],
       "startIndex": 4,
+      "text": "12.0",
     },
     {
       "endIndex": 9,
@@ -631,6 +709,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 8,
+      "text": ",",
     },
     {
       "endIndex": 10,
@@ -638,6 +717,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 9,
+      "text": " ",
     },
     {
       "endIndex": 13,
@@ -646,6 +726,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "constant.numeric.vhdl",
       ],
       "startIndex": 10,
+      "text": "0.0",
     },
     {
       "endIndex": 14,
@@ -654,6 +735,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 13,
+      "text": ",",
     },
     {
       "endIndex": 15,
@@ -661,6 +743,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 14,
+      "text": " ",
     },
     {
       "endIndex": 20,
@@ -669,6 +752,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "constant.numeric.vhdl",
       ],
       "startIndex": 15,
+      "text": "0.456",
     },
     {
       "endIndex": 21,
@@ -677,6 +761,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 20,
+      "text": ",",
     },
     {
       "endIndex": 22,
@@ -684,6 +769,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 21,
+      "text": " ",
     },
     {
       "endIndex": 32,
@@ -692,6 +778,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "constant.numeric.vhdl",
       ],
       "startIndex": 22,
+      "text": "3.14159_26",
     },
     {
       "endIndex": 33,
@@ -700,6 +787,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 32,
+      "text": ",",
     },
   ],
   [
@@ -709,6 +797,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "    ",
     },
     {
       "endIndex": 12,
@@ -717,6 +806,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "constant.numeric.vhdl",
       ],
       "startIndex": 4,
+      "text": "1.34e-12",
     },
     {
       "endIndex": 13,
@@ -725,6 +815,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 12,
+      "text": ",",
     },
     {
       "endIndex": 14,
@@ -732,6 +823,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 13,
+      "text": " ",
     },
     {
       "endIndex": 20,
@@ -740,6 +832,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "constant.numeric.vhdl",
       ],
       "startIndex": 14,
+      "text": "1.0e+6",
     },
     {
       "endIndex": 21,
@@ -748,6 +841,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 20,
+      "text": ",",
     },
     {
       "endIndex": 22,
@@ -755,6 +849,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 21,
+      "text": " ",
     },
     {
       "endIndex": 31,
@@ -763,6 +858,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "constant.numeric.vhdl",
       ],
       "startIndex": 22,
+      "text": "6.023e+24",
     },
     {
       "endIndex": 32,
@@ -771,6 +867,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 31,
+      "text": ",",
     },
   ],
   [
@@ -780,6 +877,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "    ",
     },
     {
       "endIndex": 15,
@@ -788,6 +886,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "constant.numeric.vhdl",
       ],
       "startIndex": 4,
+      "text": "16#f.ff#e+2",
     },
   ],
   [
@@ -797,6 +896,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "    ",
     },
     {
       "endIndex": 5,
@@ -805,6 +905,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 4,
+      "text": ")",
     },
     {
       "endIndex": 7,
@@ -812,6 +913,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 5,
+      "text": ";",
     },
   ],
   [
@@ -821,6 +923,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "  ",
     },
     {
       "endIndex": 4,
@@ -829,6 +932,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "comment.block",
       ],
       "startIndex": 2,
+      "text": "/*",
     },
     {
       "endIndex": 11,
@@ -837,6 +941,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "comment.block",
       ],
       "startIndex": 4,
+      "text": " multi",
     },
   ],
   [
@@ -847,6 +952,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "comment.block",
       ],
       "startIndex": 0,
+      "text": "  line",
     },
   ],
   [
@@ -857,6 +963,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "comment.block",
       ],
       "startIndex": 0,
+      "text": "  comment ",
     },
     {
       "endIndex": 12,
@@ -865,6 +972,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "comment.block",
       ],
       "startIndex": 10,
+      "text": "*/",
     },
   ],
   [
@@ -874,6 +982,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "  ",
     },
     {
       "endIndex": 8,
@@ -882,6 +991,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 2,
+      "text": "signal",
     },
     {
       "endIndex": 31,
@@ -889,6 +999,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 8,
+      "text": " h : std_ulogic_vector ",
     },
     {
       "endIndex": 33,
@@ -897,6 +1008,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 31,
+      "text": ":=",
     },
     {
       "endIndex": 34,
@@ -904,6 +1016,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 33,
+      "text": " ",
     },
     {
       "endIndex": 35,
@@ -912,6 +1025,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 34,
+      "text": "(",
     },
     {
       "endIndex": 42,
@@ -920,6 +1034,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "constant.numeric.vhdl",
       ],
       "startIndex": 35,
+      "text": "64x"00"",
     },
     {
       "endIndex": 43,
@@ -928,6 +1043,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 42,
+      "text": ")",
     },
     {
       "endIndex": 46,
@@ -935,6 +1051,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 43,
+      "text": ";  ",
     },
     {
       "endIndex": 61,
@@ -943,6 +1060,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "comment.line.double-dash.vhdl",
       ],
       "startIndex": 46,
+      "text": "-- fixed length",
     },
   ],
   [
@@ -952,6 +1070,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "  ",
     },
     {
       "endIndex": 8,
@@ -960,6 +1079,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 2,
+      "text": "signal",
     },
     {
       "endIndex": 31,
@@ -967,6 +1087,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 8,
+      "text": " i : std_ulogic_vector ",
     },
     {
       "endIndex": 33,
@@ -975,6 +1096,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 31,
+      "text": ":=",
     },
     {
       "endIndex": 34,
@@ -982,6 +1104,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 33,
+      "text": " ",
     },
     {
       "endIndex": 35,
@@ -990,6 +1113,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 34,
+      "text": "(",
     },
     {
       "endIndex": 37,
@@ -998,6 +1122,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "constant.numeric.vhdl",
       ],
       "startIndex": 35,
+      "text": "64",
     },
     {
       "endIndex": 41,
@@ -1006,6 +1131,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "constant.numeric.vhdl",
       ],
       "startIndex": 37,
+      "text": ""00"",
     },
     {
       "endIndex": 42,
@@ -1014,6 +1140,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 41,
+      "text": ")",
     },
     {
       "endIndex": 46,
@@ -1021,6 +1148,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 42,
+      "text": ";   ",
     },
     {
       "endIndex": 61,
@@ -1029,6 +1157,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "comment.line.double-dash.vhdl",
       ],
       "startIndex": 46,
+      "text": "-- fixed length",
     },
   ],
   [
@@ -1039,6 +1168,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 0,
+      "text": "begin",
     },
   ],
   [
@@ -1048,6 +1178,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "",
     },
   ],
   [
@@ -1058,6 +1189,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 0,
+      "text": "end",
     },
     {
       "endIndex": 4,
@@ -1065,6 +1197,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 3,
+      "text": " ",
     },
     {
       "endIndex": 16,
@@ -1073,6 +1206,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 4,
+      "text": "architecture",
     },
     {
       "endIndex": 18,
@@ -1080,6 +1214,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 16,
+      "text": ";",
     },
   ],
   [
@@ -1089,6 +1224,7 @@ exports[`grammar test on test_literals.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "",
     },
   ],
 ]
@@ -1104,6 +1240,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 0,
+      "text": "library",
     },
     {
       "endIndex": 14,
@@ -1111,6 +1248,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 7,
+      "text": " ieee;",
     },
   ],
   [
@@ -1121,6 +1259,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 0,
+      "text": "use",
     },
     {
       "endIndex": 24,
@@ -1128,6 +1267,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 3,
+      "text": " ieee.std_logic_1164.",
     },
     {
       "endIndex": 27,
@@ -1136,6 +1276,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 24,
+      "text": "all",
     },
     {
       "endIndex": 29,
@@ -1143,6 +1284,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 27,
+      "text": ";",
     },
   ],
   [
@@ -1153,6 +1295,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 0,
+      "text": "use",
     },
     {
       "endIndex": 21,
@@ -1160,6 +1303,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 3,
+      "text": " ieee.numeric_std.",
     },
     {
       "endIndex": 24,
@@ -1168,6 +1312,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 21,
+      "text": "all",
     },
     {
       "endIndex": 26,
@@ -1175,6 +1320,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 24,
+      "text": ";",
     },
   ],
   [
@@ -1184,6 +1330,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "",
     },
   ],
   [
@@ -1194,6 +1341,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 0,
+      "text": "package",
     },
     {
       "endIndex": 12,
@@ -1201,6 +1349,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 7,
+      "text": " pkg ",
     },
     {
       "endIndex": 14,
@@ -1209,6 +1358,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 12,
+      "text": "is",
     },
   ],
   [
@@ -1218,6 +1368,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "  ",
     },
     {
       "endIndex": 6,
@@ -1226,6 +1377,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 2,
+      "text": "type",
     },
     {
       "endIndex": 21,
@@ -1233,6 +1385,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 6,
+      "text": " crccalculator ",
     },
     {
       "endIndex": 23,
@@ -1241,6 +1394,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 21,
+      "text": "is",
     },
     {
       "endIndex": 24,
@@ -1248,6 +1402,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 23,
+      "text": " ",
     },
     {
       "endIndex": 33,
@@ -1256,6 +1411,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 24,
+      "text": "protected",
     },
   ],
   [
@@ -1265,6 +1421,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "    ",
     },
     {
       "endIndex": 13,
@@ -1273,6 +1430,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 4,
+      "text": "procedure",
     },
     {
       "endIndex": 20,
@@ -1280,6 +1438,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 13,
+      "text": " init;",
     },
   ],
   [
@@ -1289,6 +1448,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "    ",
     },
     {
       "endIndex": 13,
@@ -1297,6 +1457,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 4,
+      "text": "procedure",
     },
     {
       "endIndex": 19,
@@ -1304,6 +1465,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 13,
+      "text": " input",
     },
     {
       "endIndex": 20,
@@ -1312,6 +1474,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 19,
+      "text": "(",
     },
     {
       "endIndex": 43,
@@ -1319,6 +1482,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 20,
+      "text": "data: std_ulogic_vector",
     },
     {
       "endIndex": 44,
@@ -1327,6 +1491,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 43,
+      "text": ")",
     },
     {
       "endIndex": 46,
@@ -1334,6 +1499,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 44,
+      "text": ";",
     },
   ],
   [
@@ -1343,6 +1509,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "    ",
     },
     {
       "endIndex": 10,
@@ -1351,6 +1518,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 4,
+      "text": "impure",
     },
     {
       "endIndex": 11,
@@ -1358,6 +1526,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 10,
+      "text": " ",
     },
     {
       "endIndex": 19,
@@ -1366,6 +1535,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 11,
+      "text": "function",
     },
     {
       "endIndex": 27,
@@ -1373,6 +1543,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 19,
+      "text": " getcrc ",
     },
     {
       "endIndex": 33,
@@ -1381,6 +1552,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 27,
+      "text": "return",
     },
     {
       "endIndex": 53,
@@ -1388,6 +1560,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 33,
+      "text": " std_ulogic_vector;",
     },
   ],
   [
@@ -1397,6 +1570,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "  ",
     },
     {
       "endIndex": 5,
@@ -1405,6 +1579,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 2,
+      "text": "end",
     },
     {
       "endIndex": 6,
@@ -1412,6 +1587,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 5,
+      "text": " ",
     },
     {
       "endIndex": 15,
@@ -1420,6 +1596,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 6,
+      "text": "protected",
     },
     {
       "endIndex": 17,
@@ -1427,6 +1604,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 15,
+      "text": ";",
     },
   ],
   [
@@ -1437,6 +1615,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 0,
+      "text": "end",
     },
     {
       "endIndex": 4,
@@ -1444,6 +1623,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 3,
+      "text": " ",
     },
     {
       "endIndex": 11,
@@ -1452,6 +1632,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 4,
+      "text": "package",
     },
     {
       "endIndex": 13,
@@ -1459,6 +1640,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 11,
+      "text": "; ",
     },
     {
       "endIndex": 28,
@@ -1467,6 +1649,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "comment.line.double-dash.vhdl",
       ],
       "startIndex": 13,
+      "text": "-- test comment",
     },
   ],
   [
@@ -1476,6 +1659,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "",
     },
   ],
   [
@@ -1486,6 +1670,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 0,
+      "text": "package",
     },
     {
       "endIndex": 8,
@@ -1493,6 +1678,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 7,
+      "text": " ",
     },
     {
       "endIndex": 12,
@@ -1501,6 +1687,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 8,
+      "text": "body",
     },
     {
       "endIndex": 17,
@@ -1508,6 +1695,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 12,
+      "text": " pkg ",
     },
     {
       "endIndex": 19,
@@ -1516,6 +1704,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 17,
+      "text": "is",
     },
   ],
   [
@@ -1525,6 +1714,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "  ",
     },
     {
       "endIndex": 10,
@@ -1533,6 +1723,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 2,
+      "text": "constant",
     },
     {
       "endIndex": 38,
@@ -1540,6 +1731,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 10,
+      "text": " c_crcpol: std_ulogic_vector",
     },
     {
       "endIndex": 39,
@@ -1548,6 +1740,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 38,
+      "text": "(",
     },
     {
       "endIndex": 41,
@@ -1556,6 +1749,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "constant.numeric.vhdl",
       ],
       "startIndex": 39,
+      "text": "31",
     },
     {
       "endIndex": 42,
@@ -1563,6 +1757,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 41,
+      "text": " ",
     },
     {
       "endIndex": 48,
@@ -1571,6 +1766,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 42,
+      "text": "downto",
     },
     {
       "endIndex": 49,
@@ -1578,6 +1774,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 48,
+      "text": " ",
     },
     {
       "endIndex": 50,
@@ -1586,6 +1783,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "constant.numeric.vhdl",
       ],
       "startIndex": 49,
+      "text": "0",
     },
     {
       "endIndex": 51,
@@ -1594,6 +1792,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 50,
+      "text": ")",
     },
     {
       "endIndex": 52,
@@ -1601,6 +1800,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 51,
+      "text": " ",
     },
     {
       "endIndex": 54,
@@ -1609,6 +1809,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 52,
+      "text": ":=",
     },
     {
       "endIndex": 55,
@@ -1616,6 +1817,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 54,
+      "text": " ",
     },
     {
       "endIndex": 66,
@@ -1624,6 +1826,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "constant.numeric.vhdl",
       ],
       "startIndex": 55,
+      "text": "x"04c11db7"",
     },
     {
       "endIndex": 68,
@@ -1631,6 +1834,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 66,
+      "text": ";",
     },
   ],
   [
@@ -1640,6 +1844,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "",
     },
   ],
   [
@@ -1649,6 +1854,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "  ",
     },
     {
       "endIndex": 10,
@@ -1657,6 +1863,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 2,
+      "text": "function",
     },
     {
       "endIndex": 18,
@@ -1664,6 +1871,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 10,
+      "text": " reflect",
     },
     {
       "endIndex": 19,
@@ -1672,6 +1880,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 18,
+      "text": "(",
     },
     {
       "endIndex": 43,
@@ -1679,6 +1888,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 19,
+      "text": "input: std_ulogic_vector",
     },
     {
       "endIndex": 44,
@@ -1687,6 +1897,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 43,
+      "text": ")",
     },
     {
       "endIndex": 45,
@@ -1694,6 +1905,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 44,
+      "text": " ",
     },
     {
       "endIndex": 51,
@@ -1702,6 +1914,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 45,
+      "text": "return",
     },
     {
       "endIndex": 70,
@@ -1709,6 +1922,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 51,
+      "text": " std_ulogic_vector ",
     },
     {
       "endIndex": 72,
@@ -1717,6 +1931,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 70,
+      "text": "is",
     },
   ],
   [
@@ -1726,6 +1941,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "    ",
     },
     {
       "endIndex": 12,
@@ -1734,6 +1950,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 4,
+      "text": "variable",
     },
     {
       "endIndex": 38,
@@ -1741,6 +1958,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 12,
+      "text": " result: std_ulogic_vector",
     },
     {
       "endIndex": 39,
@@ -1749,6 +1967,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 38,
+      "text": "(",
     },
     {
       "endIndex": 44,
@@ -1756,6 +1975,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 39,
+      "text": "input",
     },
     {
       "endIndex": 45,
@@ -1764,6 +1984,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 44,
+      "text": "'",
     },
     {
       "endIndex": 50,
@@ -1772,6 +1993,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 45,
+      "text": "range",
     },
     {
       "endIndex": 51,
@@ -1780,6 +2002,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 50,
+      "text": ")",
     },
     {
       "endIndex": 53,
@@ -1787,6 +2010,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 51,
+      "text": ";",
     },
   ],
   [
@@ -1796,6 +2020,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "  ",
     },
     {
       "endIndex": 7,
@@ -1804,6 +2029,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 2,
+      "text": "begin",
     },
   ],
   [
@@ -1813,6 +2039,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "    ",
     },
     {
       "endIndex": 7,
@@ -1821,6 +2048,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 4,
+      "text": "for",
     },
     {
       "endIndex": 10,
@@ -1828,6 +2056,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 7,
+      "text": " i ",
     },
     {
       "endIndex": 12,
@@ -1836,6 +2065,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 10,
+      "text": "in",
     },
     {
       "endIndex": 18,
@@ -1843,6 +2073,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 12,
+      "text": " input",
     },
     {
       "endIndex": 19,
@@ -1851,6 +2082,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 18,
+      "text": "'",
     },
     {
       "endIndex": 24,
@@ -1859,6 +2091,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 19,
+      "text": "range",
     },
     {
       "endIndex": 25,
@@ -1866,6 +2099,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 24,
+      "text": " ",
     },
     {
       "endIndex": 29,
@@ -1874,6 +2108,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 25,
+      "text": "loop",
     },
   ],
   [
@@ -1883,6 +2118,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "      result",
     },
     {
       "endIndex": 13,
@@ -1891,6 +2127,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 12,
+      "text": "(",
     },
     {
       "endIndex": 14,
@@ -1898,6 +2135,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 13,
+      "text": "i",
     },
     {
       "endIndex": 15,
@@ -1906,6 +2144,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 14,
+      "text": ")",
     },
     {
       "endIndex": 16,
@@ -1913,6 +2152,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 15,
+      "text": " ",
     },
     {
       "endIndex": 18,
@@ -1921,6 +2161,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 16,
+      "text": ":=",
     },
     {
       "endIndex": 24,
@@ -1928,6 +2169,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 18,
+      "text": " input",
     },
     {
       "endIndex": 25,
@@ -1936,6 +2178,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 24,
+      "text": "(",
     },
     {
       "endIndex": 30,
@@ -1943,6 +2186,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 25,
+      "text": "input",
     },
     {
       "endIndex": 31,
@@ -1951,6 +2195,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 30,
+      "text": "'",
     },
     {
       "endIndex": 36,
@@ -1958,6 +2203,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 31,
+      "text": "high ",
     },
     {
       "endIndex": 37,
@@ -1966,6 +2212,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 36,
+      "text": "-",
     },
     {
       "endIndex": 39,
@@ -1973,6 +2220,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 37,
+      "text": " i",
     },
     {
       "endIndex": 40,
@@ -1981,6 +2229,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 39,
+      "text": ")",
     },
     {
       "endIndex": 42,
@@ -1988,6 +2237,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 40,
+      "text": ";",
     },
   ],
   [
@@ -1997,6 +2247,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "    ",
     },
     {
       "endIndex": 7,
@@ -2005,6 +2256,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 4,
+      "text": "end",
     },
     {
       "endIndex": 8,
@@ -2012,6 +2264,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 7,
+      "text": " ",
     },
     {
       "endIndex": 12,
@@ -2020,6 +2273,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 8,
+      "text": "loop",
     },
     {
       "endIndex": 14,
@@ -2027,6 +2281,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 12,
+      "text": ";",
     },
   ],
   [
@@ -2036,6 +2291,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "    ",
     },
     {
       "endIndex": 10,
@@ -2044,6 +2300,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 4,
+      "text": "return",
     },
     {
       "endIndex": 19,
@@ -2051,6 +2308,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 10,
+      "text": " result;",
     },
   ],
   [
@@ -2060,6 +2318,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "  ",
     },
     {
       "endIndex": 5,
@@ -2068,6 +2327,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 2,
+      "text": "end",
     },
     {
       "endIndex": 6,
@@ -2075,6 +2335,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 5,
+      "text": " ",
     },
     {
       "endIndex": 14,
@@ -2083,6 +2344,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 6,
+      "text": "function",
     },
     {
       "endIndex": 16,
@@ -2090,6 +2352,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 14,
+      "text": ";",
     },
   ],
   [
@@ -2099,6 +2362,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "",
     },
   ],
   [
@@ -2108,6 +2372,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "",
     },
   ],
   [
@@ -2117,6 +2382,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "  ",
     },
     {
       "endIndex": 6,
@@ -2125,6 +2391,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 2,
+      "text": "type",
     },
     {
       "endIndex": 21,
@@ -2132,6 +2399,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 6,
+      "text": " crccalculator ",
     },
     {
       "endIndex": 23,
@@ -2140,6 +2408,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 21,
+      "text": "is",
     },
     {
       "endIndex": 24,
@@ -2147,6 +2416,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 23,
+      "text": " ",
     },
     {
       "endIndex": 33,
@@ -2155,6 +2425,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 24,
+      "text": "protected",
     },
     {
       "endIndex": 34,
@@ -2162,6 +2433,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 33,
+      "text": " ",
     },
     {
       "endIndex": 38,
@@ -2170,6 +2442,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 34,
+      "text": "body",
     },
   ],
   [
@@ -2179,6 +2452,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "",
     },
   ],
   [
@@ -2188,6 +2462,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "    ",
     },
     {
       "endIndex": 12,
@@ -2196,6 +2471,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 4,
+      "text": "variable",
     },
     {
       "endIndex": 35,
@@ -2203,6 +2479,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 12,
+      "text": " crc: std_ulogic_vector",
     },
     {
       "endIndex": 36,
@@ -2211,6 +2488,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 35,
+      "text": "(",
     },
     {
       "endIndex": 38,
@@ -2219,6 +2497,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "constant.numeric.vhdl",
       ],
       "startIndex": 36,
+      "text": "31",
     },
     {
       "endIndex": 39,
@@ -2226,6 +2505,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 38,
+      "text": " ",
     },
     {
       "endIndex": 45,
@@ -2234,6 +2514,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 39,
+      "text": "downto",
     },
     {
       "endIndex": 46,
@@ -2241,6 +2522,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 45,
+      "text": " ",
     },
     {
       "endIndex": 47,
@@ -2249,6 +2531,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "constant.numeric.vhdl",
       ],
       "startIndex": 46,
+      "text": "0",
     },
     {
       "endIndex": 48,
@@ -2257,6 +2540,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 47,
+      "text": ")",
     },
     {
       "endIndex": 49,
@@ -2264,6 +2548,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 48,
+      "text": " ",
     },
     {
       "endIndex": 51,
@@ -2272,6 +2557,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 49,
+      "text": ":=",
     },
     {
       "endIndex": 52,
@@ -2279,6 +2565,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 51,
+      "text": " ",
     },
     {
       "endIndex": 53,
@@ -2287,6 +2574,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 52,
+      "text": "(",
     },
     {
       "endIndex": 59,
@@ -2295,6 +2583,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 53,
+      "text": "others",
     },
     {
       "endIndex": 60,
@@ -2302,6 +2591,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 59,
+      "text": " ",
     },
     {
       "endIndex": 62,
@@ -2310,6 +2600,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 60,
+      "text": "=>",
     },
     {
       "endIndex": 63,
@@ -2317,6 +2608,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 62,
+      "text": " ",
     },
     {
       "endIndex": 66,
@@ -2325,6 +2617,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "constant.character.vhdl",
       ],
       "startIndex": 63,
+      "text": "'1'",
     },
     {
       "endIndex": 67,
@@ -2333,6 +2626,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 66,
+      "text": ")",
     },
     {
       "endIndex": 69,
@@ -2340,6 +2634,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 67,
+      "text": ";",
     },
   ],
   [
@@ -2349,6 +2644,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "",
     },
   ],
   [
@@ -2358,6 +2654,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "    ",
     },
     {
       "endIndex": 13,
@@ -2366,6 +2663,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 4,
+      "text": "procedure",
     },
     {
       "endIndex": 19,
@@ -2373,6 +2671,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 13,
+      "text": " init ",
     },
     {
       "endIndex": 21,
@@ -2381,6 +2680,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 19,
+      "text": "is",
     },
   ],
   [
@@ -2390,6 +2690,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "    ",
     },
     {
       "endIndex": 9,
@@ -2398,6 +2699,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 4,
+      "text": "begin",
     },
   ],
   [
@@ -2407,6 +2709,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "      crc ",
     },
     {
       "endIndex": 12,
@@ -2415,6 +2718,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 10,
+      "text": ":=",
     },
     {
       "endIndex": 13,
@@ -2422,6 +2726,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 12,
+      "text": " ",
     },
     {
       "endIndex": 14,
@@ -2430,6 +2735,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 13,
+      "text": "(",
     },
     {
       "endIndex": 20,
@@ -2438,6 +2744,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 14,
+      "text": "others",
     },
     {
       "endIndex": 21,
@@ -2445,6 +2752,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 20,
+      "text": " ",
     },
     {
       "endIndex": 23,
@@ -2453,6 +2761,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 21,
+      "text": "=>",
     },
     {
       "endIndex": 24,
@@ -2460,6 +2769,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 23,
+      "text": " ",
     },
     {
       "endIndex": 27,
@@ -2468,6 +2778,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "constant.character.vhdl",
       ],
       "startIndex": 24,
+      "text": "'1'",
     },
     {
       "endIndex": 28,
@@ -2476,6 +2787,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 27,
+      "text": ")",
     },
     {
       "endIndex": 30,
@@ -2483,6 +2795,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 28,
+      "text": ";",
     },
   ],
   [
@@ -2492,6 +2805,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "    ",
     },
     {
       "endIndex": 7,
@@ -2500,6 +2814,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 4,
+      "text": "end",
     },
     {
       "endIndex": 8,
@@ -2507,6 +2822,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 7,
+      "text": " ",
     },
     {
       "endIndex": 17,
@@ -2515,6 +2831,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 8,
+      "text": "procedure",
     },
     {
       "endIndex": 19,
@@ -2522,6 +2839,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 17,
+      "text": ";",
     },
   ],
   [
@@ -2531,6 +2849,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "",
     },
   ],
   [
@@ -2540,6 +2859,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "    ",
     },
     {
       "endIndex": 13,
@@ -2548,6 +2868,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 4,
+      "text": "procedure",
     },
     {
       "endIndex": 19,
@@ -2555,6 +2876,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 13,
+      "text": " input",
     },
     {
       "endIndex": 20,
@@ -2563,6 +2885,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 19,
+      "text": "(",
     },
     {
       "endIndex": 43,
@@ -2570,6 +2893,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 20,
+      "text": "data: std_ulogic_vector",
     },
     {
       "endIndex": 44,
@@ -2578,6 +2902,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 43,
+      "text": ")",
     },
     {
       "endIndex": 45,
@@ -2585,6 +2910,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 44,
+      "text": " ",
     },
     {
       "endIndex": 47,
@@ -2593,6 +2919,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 45,
+      "text": "is",
     },
   ],
   [
@@ -2602,6 +2929,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "    ",
     },
     {
       "endIndex": 9,
@@ -2610,6 +2938,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 4,
+      "text": "begin",
     },
   ],
   [
@@ -2619,6 +2948,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "      ",
     },
     {
       "endIndex": 9,
@@ -2627,6 +2957,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 6,
+      "text": "for",
     },
     {
       "endIndex": 12,
@@ -2634,6 +2965,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 9,
+      "text": " i ",
     },
     {
       "endIndex": 14,
@@ -2642,6 +2974,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 12,
+      "text": "in",
     },
     {
       "endIndex": 19,
@@ -2649,6 +2982,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 14,
+      "text": " data",
     },
     {
       "endIndex": 20,
@@ -2657,6 +2991,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 19,
+      "text": "'",
     },
     {
       "endIndex": 27,
@@ -2664,6 +2999,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 20,
+      "text": "length ",
     },
     {
       "endIndex": 28,
@@ -2672,6 +3008,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 27,
+      "text": "/",
     },
     {
       "endIndex": 29,
@@ -2679,6 +3016,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 28,
+      "text": " ",
     },
     {
       "endIndex": 30,
@@ -2687,6 +3025,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "constant.numeric.vhdl",
       ],
       "startIndex": 29,
+      "text": "8",
     },
     {
       "endIndex": 31,
@@ -2694,6 +3033,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 30,
+      "text": " ",
     },
     {
       "endIndex": 32,
@@ -2702,6 +3042,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 31,
+      "text": "-",
     },
     {
       "endIndex": 33,
@@ -2709,6 +3050,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 32,
+      "text": " ",
     },
     {
       "endIndex": 34,
@@ -2717,6 +3059,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "constant.numeric.vhdl",
       ],
       "startIndex": 33,
+      "text": "1",
     },
     {
       "endIndex": 35,
@@ -2724,6 +3067,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 34,
+      "text": " ",
     },
     {
       "endIndex": 41,
@@ -2732,6 +3076,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 35,
+      "text": "downto",
     },
     {
       "endIndex": 42,
@@ -2739,6 +3084,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 41,
+      "text": " ",
     },
     {
       "endIndex": 43,
@@ -2747,6 +3093,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "constant.numeric.vhdl",
       ],
       "startIndex": 42,
+      "text": "0",
     },
     {
       "endIndex": 44,
@@ -2754,6 +3101,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 43,
+      "text": " ",
     },
     {
       "endIndex": 48,
@@ -2762,6 +3110,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 44,
+      "text": "loop",
     },
   ],
   [
@@ -2771,6 +3120,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "          ",
     },
     {
       "endIndex": 13,
@@ -2779,6 +3129,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 10,
+      "text": "for",
     },
     {
       "endIndex": 18,
@@ -2786,6 +3137,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 13,
+      "text": " bit ",
     },
     {
       "endIndex": 20,
@@ -2794,6 +3146,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 18,
+      "text": "in",
     },
     {
       "endIndex": 21,
@@ -2801,6 +3154,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 20,
+      "text": " ",
     },
     {
       "endIndex": 22,
@@ -2809,6 +3163,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "constant.numeric.vhdl",
       ],
       "startIndex": 21,
+      "text": "0",
     },
     {
       "endIndex": 23,
@@ -2816,6 +3171,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 22,
+      "text": " ",
     },
     {
       "endIndex": 25,
@@ -2824,6 +3180,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 23,
+      "text": "to",
     },
     {
       "endIndex": 26,
@@ -2831,6 +3188,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 25,
+      "text": " ",
     },
     {
       "endIndex": 27,
@@ -2839,6 +3197,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "constant.numeric.vhdl",
       ],
       "startIndex": 26,
+      "text": "7",
     },
     {
       "endIndex": 28,
@@ -2846,6 +3205,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 27,
+      "text": " ",
     },
     {
       "endIndex": 32,
@@ -2854,6 +3214,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 28,
+      "text": "loop",
     },
   ],
   [
@@ -2863,6 +3224,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "            ",
     },
     {
       "endIndex": 14,
@@ -2871,6 +3233,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 12,
+      "text": "if",
     },
     {
       "endIndex": 18,
@@ -2878,6 +3241,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 14,
+      "text": " crc",
     },
     {
       "endIndex": 19,
@@ -2886,6 +3250,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 18,
+      "text": "(",
     },
     {
       "endIndex": 21,
@@ -2894,6 +3259,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "constant.numeric.vhdl",
       ],
       "startIndex": 19,
+      "text": "31",
     },
     {
       "endIndex": 22,
@@ -2902,6 +3268,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 21,
+      "text": ")",
     },
     {
       "endIndex": 23,
@@ -2909,6 +3276,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 22,
+      "text": " ",
     },
     {
       "endIndex": 25,
@@ -2917,6 +3285,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 23,
+      "text": "/=",
     },
     {
       "endIndex": 30,
@@ -2924,6 +3293,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 25,
+      "text": " data",
     },
     {
       "endIndex": 31,
@@ -2932,6 +3302,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 30,
+      "text": "(",
     },
     {
       "endIndex": 33,
@@ -2939,6 +3310,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 31,
+      "text": "i ",
     },
     {
       "endIndex": 34,
@@ -2947,6 +3319,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 33,
+      "text": "*",
     },
     {
       "endIndex": 35,
@@ -2954,6 +3327,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 34,
+      "text": " ",
     },
     {
       "endIndex": 36,
@@ -2962,6 +3336,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "constant.numeric.vhdl",
       ],
       "startIndex": 35,
+      "text": "8",
     },
     {
       "endIndex": 37,
@@ -2969,6 +3344,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 36,
+      "text": " ",
     },
     {
       "endIndex": 38,
@@ -2977,6 +3353,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 37,
+      "text": "+",
     },
     {
       "endIndex": 42,
@@ -2984,6 +3361,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 38,
+      "text": " bit",
     },
     {
       "endIndex": 43,
@@ -2992,6 +3370,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 42,
+      "text": ")",
     },
     {
       "endIndex": 44,
@@ -2999,6 +3378,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 43,
+      "text": " ",
     },
     {
       "endIndex": 48,
@@ -3007,6 +3387,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 44,
+      "text": "then",
     },
     {
       "endIndex": 49,
@@ -3014,6 +3395,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 48,
+      "text": " ",
     },
     {
       "endIndex": 70,
@@ -3022,6 +3404,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "comment.line.double-dash.vhdl",
       ],
       "startIndex": 49,
+      "text": "-- reflect input byte",
     },
   ],
   [
@@ -3031,6 +3414,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "              crc ",
     },
     {
       "endIndex": 20,
@@ -3039,6 +3423,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 18,
+      "text": ":=",
     },
     {
       "endIndex": 21,
@@ -3046,6 +3431,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 20,
+      "text": " ",
     },
     {
       "endIndex": 22,
@@ -3054,6 +3440,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 21,
+      "text": "(",
     },
     {
       "endIndex": 26,
@@ -3061,6 +3448,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 22,
+      "text": "crc ",
     },
     {
       "endIndex": 29,
@@ -3069,6 +3457,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 26,
+      "text": "sll",
     },
     {
       "endIndex": 30,
@@ -3076,6 +3465,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 29,
+      "text": " ",
     },
     {
       "endIndex": 31,
@@ -3084,6 +3474,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "constant.numeric.vhdl",
       ],
       "startIndex": 30,
+      "text": "1",
     },
     {
       "endIndex": 32,
@@ -3092,6 +3483,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 31,
+      "text": ")",
     },
     {
       "endIndex": 33,
@@ -3099,6 +3491,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 32,
+      "text": " ",
     },
     {
       "endIndex": 36,
@@ -3107,6 +3500,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 33,
+      "text": "xor",
     },
     {
       "endIndex": 47,
@@ -3114,6 +3508,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 36,
+      "text": " c_crcpol;",
     },
   ],
   [
@@ -3123,6 +3518,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "            ",
     },
     {
       "endIndex": 16,
@@ -3131,6 +3527,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 12,
+      "text": "else",
     },
   ],
   [
@@ -3140,6 +3537,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "              crc ",
     },
     {
       "endIndex": 20,
@@ -3148,6 +3546,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 18,
+      "text": ":=",
     },
     {
       "endIndex": 25,
@@ -3155,6 +3554,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 20,
+      "text": " crc ",
     },
     {
       "endIndex": 28,
@@ -3163,6 +3563,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 25,
+      "text": "sll",
     },
     {
       "endIndex": 29,
@@ -3170,6 +3571,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 28,
+      "text": " ",
     },
     {
       "endIndex": 30,
@@ -3178,6 +3580,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "constant.numeric.vhdl",
       ],
       "startIndex": 29,
+      "text": "1",
     },
     {
       "endIndex": 32,
@@ -3185,6 +3588,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 30,
+      "text": ";",
     },
   ],
   [
@@ -3194,6 +3598,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "            ",
     },
     {
       "endIndex": 15,
@@ -3202,6 +3607,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 12,
+      "text": "end",
     },
     {
       "endIndex": 16,
@@ -3209,6 +3615,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 15,
+      "text": " ",
     },
     {
       "endIndex": 18,
@@ -3217,6 +3624,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 16,
+      "text": "if",
     },
     {
       "endIndex": 20,
@@ -3224,6 +3632,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 18,
+      "text": ";",
     },
   ],
   [
@@ -3233,6 +3642,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "          ",
     },
     {
       "endIndex": 13,
@@ -3241,6 +3651,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 10,
+      "text": "end",
     },
     {
       "endIndex": 14,
@@ -3248,6 +3659,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 13,
+      "text": " ",
     },
     {
       "endIndex": 18,
@@ -3256,6 +3668,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 14,
+      "text": "loop",
     },
     {
       "endIndex": 20,
@@ -3263,6 +3676,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 18,
+      "text": ";",
     },
   ],
   [
@@ -3272,6 +3686,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "      ",
     },
     {
       "endIndex": 9,
@@ -3280,6 +3695,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 6,
+      "text": "end",
     },
     {
       "endIndex": 10,
@@ -3287,6 +3703,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 9,
+      "text": " ",
     },
     {
       "endIndex": 14,
@@ -3295,6 +3712,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 10,
+      "text": "loop",
     },
     {
       "endIndex": 16,
@@ -3302,6 +3720,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 14,
+      "text": ";",
     },
   ],
   [
@@ -3311,6 +3730,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "    ",
     },
     {
       "endIndex": 7,
@@ -3319,6 +3739,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 4,
+      "text": "end",
     },
     {
       "endIndex": 8,
@@ -3326,6 +3747,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 7,
+      "text": " ",
     },
     {
       "endIndex": 17,
@@ -3334,6 +3756,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 8,
+      "text": "procedure",
     },
     {
       "endIndex": 19,
@@ -3341,6 +3764,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 17,
+      "text": ";",
     },
   ],
   [
@@ -3350,6 +3774,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "",
     },
   ],
   [
@@ -3359,6 +3784,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "    ",
     },
     {
       "endIndex": 10,
@@ -3367,6 +3793,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 4,
+      "text": "impure",
     },
     {
       "endIndex": 11,
@@ -3374,6 +3801,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 10,
+      "text": " ",
     },
     {
       "endIndex": 19,
@@ -3382,6 +3810,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 11,
+      "text": "function",
     },
     {
       "endIndex": 27,
@@ -3389,6 +3818,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 19,
+      "text": " getcrc ",
     },
     {
       "endIndex": 33,
@@ -3397,6 +3827,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 27,
+      "text": "return",
     },
     {
       "endIndex": 52,
@@ -3404,6 +3835,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 33,
+      "text": " std_ulogic_vector ",
     },
     {
       "endIndex": 54,
@@ -3412,6 +3844,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 52,
+      "text": "is",
     },
   ],
   [
@@ -3421,6 +3854,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "      ",
     },
     {
       "endIndex": 14,
@@ -3429,6 +3863,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 6,
+      "text": "variable",
     },
     {
       "endIndex": 40,
@@ -3436,6 +3871,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 14,
+      "text": " result: std_ulogic_vector",
     },
     {
       "endIndex": 41,
@@ -3444,6 +3880,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 40,
+      "text": "(",
     },
     {
       "endIndex": 43,
@@ -3452,6 +3889,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "constant.numeric.vhdl",
       ],
       "startIndex": 41,
+      "text": "31",
     },
     {
       "endIndex": 44,
@@ -3459,6 +3897,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 43,
+      "text": " ",
     },
     {
       "endIndex": 50,
@@ -3467,6 +3906,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 44,
+      "text": "downto",
     },
     {
       "endIndex": 51,
@@ -3474,6 +3914,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 50,
+      "text": " ",
     },
     {
       "endIndex": 52,
@@ -3482,6 +3923,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "constant.numeric.vhdl",
       ],
       "startIndex": 51,
+      "text": "0",
     },
     {
       "endIndex": 53,
@@ -3490,6 +3932,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 52,
+      "text": ")",
     },
     {
       "endIndex": 55,
@@ -3497,6 +3940,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 53,
+      "text": ";",
     },
   ],
   [
@@ -3506,6 +3950,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "    ",
     },
     {
       "endIndex": 9,
@@ -3514,6 +3959,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 4,
+      "text": "begin",
     },
   ],
   [
@@ -3523,6 +3969,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "      result ",
     },
     {
       "endIndex": 15,
@@ -3531,6 +3978,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 13,
+      "text": ":=",
     },
     {
       "endIndex": 20,
@@ -3538,6 +3986,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 15,
+      "text": " crc ",
     },
     {
       "endIndex": 23,
@@ -3546,6 +3995,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 20,
+      "text": "xor",
     },
     {
       "endIndex": 24,
@@ -3553,6 +4003,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 23,
+      "text": " ",
     },
     {
       "endIndex": 35,
@@ -3561,6 +4012,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "constant.numeric.vhdl",
       ],
       "startIndex": 24,
+      "text": "x"ffffffff"",
     },
     {
       "endIndex": 37,
@@ -3568,6 +4020,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 35,
+      "text": ";",
     },
   ],
   [
@@ -3577,6 +4030,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "      ",
     },
     {
       "endIndex": 12,
@@ -3585,6 +4039,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 6,
+      "text": "return",
     },
     {
       "endIndex": 20,
@@ -3592,6 +4047,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 12,
+      "text": " reflect",
     },
     {
       "endIndex": 21,
@@ -3600,6 +4056,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 20,
+      "text": "(",
     },
     {
       "endIndex": 27,
@@ -3607,6 +4064,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 21,
+      "text": "result",
     },
     {
       "endIndex": 28,
@@ -3615,6 +4073,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.operator",
       ],
       "startIndex": 27,
+      "text": ")",
     },
     {
       "endIndex": 30,
@@ -3622,6 +4081,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 28,
+      "text": ";",
     },
   ],
   [
@@ -3631,6 +4091,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "    ",
     },
     {
       "endIndex": 7,
@@ -3639,6 +4100,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 4,
+      "text": "end",
     },
     {
       "endIndex": 8,
@@ -3646,6 +4108,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 7,
+      "text": " ",
     },
     {
       "endIndex": 16,
@@ -3654,6 +4117,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 8,
+      "text": "function",
     },
     {
       "endIndex": 18,
@@ -3661,6 +4125,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 16,
+      "text": ";",
     },
   ],
   [
@@ -3670,6 +4135,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "",
     },
   ],
   [
@@ -3679,6 +4145,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 0,
+      "text": "  ",
     },
     {
       "endIndex": 5,
@@ -3687,6 +4154,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 2,
+      "text": "end",
     },
     {
       "endIndex": 6,
@@ -3694,6 +4162,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 5,
+      "text": " ",
     },
     {
       "endIndex": 15,
@@ -3702,6 +4171,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 6,
+      "text": "protected",
     },
     {
       "endIndex": 16,
@@ -3709,6 +4179,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 15,
+      "text": " ",
     },
     {
       "endIndex": 20,
@@ -3717,6 +4188,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 16,
+      "text": "body",
     },
     {
       "endIndex": 22,
@@ -3724,6 +4196,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 20,
+      "text": ";",
     },
   ],
   [
@@ -3734,6 +4207,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 0,
+      "text": "end",
     },
     {
       "endIndex": 4,
@@ -3741,6 +4215,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 3,
+      "text": " ",
     },
     {
       "endIndex": 11,
@@ -3749,6 +4224,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 4,
+      "text": "package",
     },
     {
       "endIndex": 12,
@@ -3756,6 +4232,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 11,
+      "text": " ",
     },
     {
       "endIndex": 16,
@@ -3764,6 +4241,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "keyword.language.vhdl",
       ],
       "startIndex": 12,
+      "text": "body",
     },
     {
       "endIndex": 18,
@@ -3771,6 +4249,7 @@ exports[`grammar test on test_protected.vhd 1`] = `
         "source.vhdl",
       ],
       "startIndex": 16,
+      "text": ";",
     },
   ],
 ]
