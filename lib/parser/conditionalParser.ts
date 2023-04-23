@@ -124,7 +124,8 @@ export class ConditionalParser {
       this.mask();
       return !this.conditionalAnalysisExpression();
     } else {
-      const identifier = this.getToken().text;
+      const identifierToken = this.getToken();
+      const identifier = identifierToken.text;
       this.mask();
       const relationToken = this.getToken();
       const relation = relationToken.text;
@@ -132,6 +133,7 @@ export class ConditionalParser {
       const literal = this.getToken().text.replace(/^"/, '').replace(/"$/, '');
       this.mask();
       const value = this.settings.analysis.conditionalAnalysis[identifier] ?? '';
+      identifierToken.hoverInfo = `${identifier}: "${value}"`;
       if (relation === '=') {
         condition = value === literal;
       } else if (relation === '/=') {

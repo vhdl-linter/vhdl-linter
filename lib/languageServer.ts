@@ -11,7 +11,7 @@ import { handleDocumentFormatting } from './languageFeatures/documentFormatting'
 import { documentHighlightHandler } from './languageFeatures/documentHighlightHandler';
 import { DocumentSymbols } from './languageFeatures/documentSymbol';
 import { findDefinitionLinks } from './languageFeatures/findDefinition';
-import { findReferencesHandler } from './languageFeatures/findReferencesHandler';
+import { findReferencesHandler, getTokenFromPosition } from './languageFeatures/findReferencesHandler';
 import { foldingHandler } from './languageFeatures/folding';
 import { prepareRenameHandler, renameHandler } from './languageFeatures/rename';
 import { semanticToken, semanticTokensLegend } from './languageFeatures/semanticToken';
@@ -274,6 +274,17 @@ const findBestDefinition = async (params: IFindDefinitionParams, token: Cancella
 };
 
 connection.onHover(async (params, token) => {
+  const linter = await linterManager.getLinter(params.textDocument.uri, token);
+  const lexerToken = getTokenFromPosition(linter, params.position, false);
+  if ((lexerToken?.hoverInfo) !== undefined) {
+    return {
+      contents: {
+        kind: "plaintext",
+        value: lexerToken.hoverInfo
+      }
+    };
+  }
+
   const definition = await findBestDefinition(params, token);
   if (definition === null) {
     return null;
