@@ -20,7 +20,7 @@ beforeAll(async () => {
     throw new Error();
   }
   grammar = _grammar;
-})
+});
 // Create a registry that can create a grammar from a scope name.
 const registry = new vscodeTextmate.Registry({
   onigLib: vscodeOnigurumaLib,
@@ -49,7 +49,7 @@ function tokenizeLines(lines: string[]) {
 test.each([
   `test_protected.vhd`,
   'test_literals.vhd'
-])('grammar test on %s', async (filename: string) => {
+])('grammar test on %s', (filename: string) => {
 
   const text = readFileSyncNorm(__dirname + `/${filename}`, { encoding: 'utf-8' }).split('\n');
   const tokens = tokenizeLines(text);
