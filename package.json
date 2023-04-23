@@ -2,7 +2,7 @@
 	"name": "vhdl-linter",
 	"publisher": "g0t00",
 	"main": "./dist/lib/vscode.js",
-	"version": "1.5.16",
+	"version": "1.6.0",
 	"description": "A typescript based linter for vhdl",
 	"keywords": [],
 	"repository": "https://github.com/vhdl-linter/vhdl-linter",
@@ -129,8 +129,7 @@
 					"VhdlLinter.analysis.conditionalAnalysis": {
 						"scope": "window",
 						"type": "object",
-						"properties": {
-						},
+						"properties": {},
 						"patternProperties": {
 							"": {
 								"type": "string"
