@@ -91,7 +91,7 @@ export class ConditionalParser {
       severity: DiagnosticSeverity.Information
     });
     let token = this.getToken();
-    while (token.getLText() !== '\n') { // Do not use normal mask function here as it moves over the newline
+    while ((token.isWhitespace() && token.getLText().includes('\n')) !== true) { // Do not use normal mask function here as it moves over the newline
       if (token.isWhitespace() !== true) {
         token.text = ' '.repeat(token.text.length);
         token.type = TokenType.whitespace;

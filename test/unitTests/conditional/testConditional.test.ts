@@ -52,3 +52,13 @@ test('Testing conditional analysis conditions', async () => {
   const wrongMessages = linter.messages.filter(message => message.message.includes('TRUE') === false || message.message.includes('FALSE'));
   expect(wrongMessages).toHaveLength(0);
 });
+test.each([
+  'test_tool_unknown.vhd',
+  'test_tool_unknown2.vhd',
+])('Testing unknown tool directive in file %s', async filename => {
+  const path = join(__dirname, filename);
+  const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser, defaultSettingsGetter());
+  await linter.checkAll();
+  expect(linter.messages).toHaveLength(1);
+  expect(linter.messages[0]?.message).toBe(`Unknown tool directive 'UNKNOWN' (parser)`);
+});
