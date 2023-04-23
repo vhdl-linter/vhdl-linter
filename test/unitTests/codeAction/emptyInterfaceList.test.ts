@@ -45,7 +45,7 @@ test.each([
 ])('testing proposed solutions for diagnostic with file %s', async (filename: string, range) => {
   const path = join(__dirname, filename);
   const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }),
-    await ProjectParser.create([], '', defaultSettingsGetter), defaultSettingsGetter);
+    await ProjectParser.create([], '', defaultSettingsGetter), defaultSettingsGetter());
   await linter.checkAll();
   const changes = (await Promise.all(linter.diagnosticCodeActionRegistry
     .map(async callback => await callback(path)))).flat()

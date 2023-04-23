@@ -67,7 +67,7 @@ test.each(
       unused: false,
       "not-declared": false
     }
-  }));
+  })());
   const messages = await linter.checkAll();
   if (allowed) {
     expect(messages).toHaveLength(0);

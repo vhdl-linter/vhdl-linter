@@ -198,7 +198,7 @@ class FileCache {
   async parse() {
     let text = await promises.readFile(this.uri, { encoding: 'utf8' });
     text = text.replaceAll('\r\n', '\n');
-    this.linter = new VhdlLinter(this.uri, text, this.projectParser, this.projectParser.settingsGetter);
+    this.linter = new VhdlLinter(this.uri, text, this.projectParser, await this.projectParser.settingsGetter(this.uri));
     this.replaceLinter(this.linter);
   }
   replaceLinter(vhdlLinter: VhdlLinter) {

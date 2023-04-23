@@ -14,7 +14,7 @@ test.each(files)('testing add use statement actions for file %s', async (file: s
   const path = join(__dirname, file);
   const projectParser = await ProjectParser.create([pathToFileURL(__dirname)], '', defaultSettingsGetter);
   const linter = new VhdlLinter(pathToFileURL('/dummy.vhd'), readFileSyncNorm(path, { encoding: 'utf8' }),
-    projectParser, defaultSettingsGetter);
+    projectParser, defaultSettingsGetter());
   await linter.checkAll();
 
   expect(linter.messages).toMatchSnapshot();

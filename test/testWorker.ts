@@ -24,7 +24,7 @@ async function run_test(path: URL, error_expected: boolean, projectParser?: Proj
       messageWrappers.push(...await run_test(subPath, error_expected, projectParser));
     } else if (subPath.pathname.match(/\.vhdl?$/i)) {
       const text = readFileSyncNorm(subPath, { encoding: 'utf8' });
-      const vhdlLinter = new VhdlLinter(subPath, text, projectParser, getter);
+      const vhdlLinter = new VhdlLinter(subPath, text, projectParser, getter());
       if (vhdlLinter.parsedSuccessfully) {
         await vhdlLinter.checkAll();
       }

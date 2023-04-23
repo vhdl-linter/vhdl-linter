@@ -14,7 +14,7 @@ test.each(files)('testing library list %s', async (file: string) => {
   const projectParser = await ProjectParser.create([pathToFileURL(__dirname)], '', defaultSettingsGetter);
 
   const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }),
-    projectParser, defaultSettingsGetter);
+    projectParser, defaultSettingsGetter());
 
   expect(linter.file).toBeDefined();
   expect(linter.file.entities).toHaveLength(1);

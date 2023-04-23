@@ -1,4 +1,6 @@
 import { Lexer, OLexerToken, TokenType } from '../lexer';
+import { ISettings } from '../settingsGenerated';
+import { ConditionalParser } from './conditionalParser';
 import { ConfigurationDeclarationParser } from './configurationDeclarationParser';
 import { ContextParser } from './contextParser';
 import { ContextReferenceParser } from './contextReferenceParser';
@@ -17,7 +19,7 @@ export class FileParser extends ParserBase {
   public lexerTokens: OLexerToken[] = [];
   text: string;
   file: OFile;
-  constructor(text: string, filePath: URL) {
+  constructor(text: string, filePath: URL, settings: ISettings) {
 
     super(new ParserState(new ParserPosition(), filePath));
     this.originalText = text;
@@ -30,9 +32,11 @@ export class FileParser extends ParserBase {
     const lexer = new Lexer(this.originalText, this.file, lexerTokens);
     this.file.lexerTokens = lexer.lex();
     this.lexerTokens = this.file.lexerTokens;
+    new ConditionalParser(this.lexerTokens, 0, settings, this.state);
     this.state.pos.lexerTokens = this.lexerTokens;
     this.state.pos.file = this.file;
   }
+
   getNextLineRange(lineNumber: number) {
     while (this.originalText.split('\n')[lineNumber + 1]?.match(/^\s*(?:--.*)?$/)) {
       lineNumber++;

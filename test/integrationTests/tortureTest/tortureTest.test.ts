@@ -44,7 +44,7 @@ test('test project parser', () => {
 });
 test('direct parsing of file', () => {
   const linter = new VhdlLinter(tortureEntityURL, readFileSyncNorm(tortureEntityURL, { encoding: 'utf8' }),
-    projectParser, defaultSettingsGetter);
+    projectParser, defaultSettingsGetter());
   expect(linter.file.lexerTokens).toBeDefined();
   expect(linter.file.lexerTokens.length).toBeGreaterThan(0);
 });

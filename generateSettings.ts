@@ -72,6 +72,8 @@ for (const [key, value] of Object.entries(settings)) {
         throw new Error(`Array without items on key ${key}`);
       }
       type = `${value.items.type}[]`;
+    } else if (value.type === 'object') {
+      type = "Record<string, string>";
     } else {
       type = value.type;
     }

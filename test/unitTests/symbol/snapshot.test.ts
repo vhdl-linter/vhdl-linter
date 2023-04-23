@@ -22,7 +22,7 @@ test.each(
 )('Testing document symbols of %s', (fileName) => {
   const path = join(__dirname, fileName);
   const uri = pathToFileURL(path);
-  const linter = new VhdlLinter(uri, readFileSyncNorm(uri, { encoding: 'utf8' }), projectParser, defaultSettingsGetter);
+  const linter = new VhdlLinter(uri, readFileSyncNorm(uri, { encoding: 'utf8' }), projectParser, defaultSettingsGetter());
   const symbols = DocumentSymbols.get(linter);
   expect(symbols).toMatchSnapshot();
 });

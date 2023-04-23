@@ -6,6 +6,9 @@ export interface ISettings {
     'additional': string[];
     'ignoreRegex': string;
   };
+  'analysis': {
+    'conditionalAnalysis': Record<string, string>;
+  };
   'semanticTokens': boolean;
   'semanticTokensDirectionColoring': boolean;
   'rules': {
@@ -60,6 +63,10 @@ export const defaultSettings: ISettings = {
   'paths': {
     'additional': [],
     'ignoreRegex': '',
+  },
+  'analysis': {
+    'conditionalAnalysis': {
+    },
   },
   'semanticTokens': true,
   'semanticTokensDirectionColoring': false,

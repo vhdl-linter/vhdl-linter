@@ -28,9 +28,9 @@ test.each([
     }
   });
   const linter = new VhdlLinter(uri, readFileSyncNorm(uri, { encoding: 'utf8' }),
-    await ProjectParser.create([], '', getter), getter);
+    await ProjectParser.create([], '', getter), getter());
   await Elaborate.elaborate(linter);
-  const completion = await getCompletions(linter, { line: 9, character: 13 });
+  const completion = getCompletions(linter, { line: 9, character: 13 });
   expect(completion).toEqual(
     expect.arrayContaining([
       expect.objectContaining({
@@ -64,9 +64,9 @@ test.each([
 ])('testing completion in %s:%s expecting labels: %s', async (filename, position, expectedLabels, notExpectedLabels) => {
   const uri = pathToFileURL(join(__dirname, filename));
   const linter = new VhdlLinter(uri, readFileSyncNorm(uri, { encoding: 'utf8' }),
-    projectParser, defaultSettingsGetter);
+    projectParser, defaultSettingsGetter());
   await Elaborate.elaborate(linter);
-  const completions = await getCompletions(linter, position);
+  const completions =  getCompletions(linter, position);
   expect(completions).toEqual(expect.arrayContaining(expectedLabels.map(expectedLabel =>
     expect.objectContaining({label: expectedLabel})
   )));

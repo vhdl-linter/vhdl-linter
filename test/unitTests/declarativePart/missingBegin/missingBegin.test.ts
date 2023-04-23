@@ -20,7 +20,7 @@ test.each(
 )('Testing behavior of missing statements in file %s', async (fileName) => {
   const path = join(__dirname, fileName);
   const uri = pathToFileURL(path);
-  const linter = new VhdlLinter(uri, readFileSyncNorm(uri, { encoding: 'utf8' }), projectParser, defaultSettingsGetter);
+  const linter = new VhdlLinter(uri, readFileSyncNorm(uri, { encoding: 'utf8' }), projectParser, defaultSettingsGetter());
   const messages = await linter.checkAll();
   expect(messages).toMatchSnapshot();
 });

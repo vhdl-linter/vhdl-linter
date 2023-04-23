@@ -18,7 +18,7 @@ afterAll(async () => {
 
 test('Testing elaboration of choice', async () => {
   const path = join(__dirname, 'test_choice.vhd');
-  const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser, defaultSettingsGetter);
+  const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser, defaultSettingsGetter());
   await Elaborate.elaborate(linter);
 
   const assignment = linter.file.architectures[0]?.statements[0] as OAssignment;

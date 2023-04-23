@@ -19,7 +19,7 @@ afterAll(async () => {
 });
 async function prepare(fileName: string) {
   const path = join(__dirname, fileName);
-  const linter = new VhdlLinter(pathToFileURL(path), readFileSync(path, { encoding: 'utf8' }), projectParser, defaultSettingsGetter);
+  const linter = new VhdlLinter(pathToFileURL(path), readFileSync(path, { encoding: 'utf8' }), projectParser, defaultSettingsGetter());
   await Elaborate.elaborate(linter);
   return linter;
 }

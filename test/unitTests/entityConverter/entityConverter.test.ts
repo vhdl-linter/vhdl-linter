@@ -19,7 +19,7 @@ describe('Testing entityConverter', () => {
   test('Testing entity converter for with different configurations', () => {
     const path = join(__dirname, 'test_entity.vhd');
     const uri = pathToFileURL(path);
-    const linter = new VhdlLinter(uri, readFileSyncNorm(uri, { encoding: 'utf8' }), projectParser, defaultSettingsGetter);
+    const linter = new VhdlLinter(uri, readFileSyncNorm(uri, { encoding: 'utf8' }), projectParser, defaultSettingsGetter());
     for (const type of ['instance', 'signals', 'sysverilog', 'component'] as converterTypes[]) {
       const overwritesStyles = {
         instantiationLabelPrefix: ['', 'instPrefix_'],
@@ -43,7 +43,7 @@ describe('Testing entityConverter', () => {
   test('Testing position based fetch of correct entity', () => {
     const path = join(__dirname, 'two_entities.vhd');
     const uri = pathToFileURL(path);
-    const linter = new VhdlLinter(uri, readFileSyncNorm(uri, { encoding: 'utf8' }), projectParser, defaultSettingsGetter);
+    const linter = new VhdlLinter(uri, readFileSyncNorm(uri, { encoding: 'utf8' }), projectParser, defaultSettingsGetter());
     {
       const template = entityConverter(linter, 'instance', defaultSettingsGetter());
       expect(template).toContain('first_entity');
@@ -64,7 +64,7 @@ describe('Testing entityConverter', () => {
   test('Testing fetching in empty file', () => {
     const path = join(__dirname, 'fileWithoutEntity.vhd');
     const uri = pathToFileURL(path);
-    const linter = new VhdlLinter(uri, readFileSyncNorm(uri, { encoding: 'utf8' }), projectParser, defaultSettingsGetter);
+    const linter = new VhdlLinter(uri, readFileSyncNorm(uri, { encoding: 'utf8' }), projectParser, defaultSettingsGetter());
     {
       const template = entityConverter(linter, 'instance', defaultSettingsGetter());
       expect(template).toBeUndefined();
