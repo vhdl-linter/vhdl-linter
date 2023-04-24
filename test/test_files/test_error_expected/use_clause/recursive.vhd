@@ -11,19 +11,19 @@ package package_b is
   end record;
 end package;
 
+-- Recursive error will be generated for one of the two.
+-- Elaboration is done only ones per context reference (so no two errors)
 context recursive_a is
   use work.package_a;
   context work.recursive_b;
 end context recursive_a;
 
--- Disable remaining circular dependency error
--- vhdl-linter-disable elaborate
+
 context recursive_b is
   use work.package_b;
 
   context work.recursive_a;
 end context recursive_b;
--- vhdl-linter-enable elaborate
 
 
 context work.recursive_b;

@@ -28,6 +28,8 @@ export class ElaborateNames {
     }
     elaborator.scopeVisibilityMap.clear();
     elaborator.elaboratedList = new WeakSet();
+    elaborator.elaboratedListContextRefs = new WeakSet();
+    elaborator.elaboratedListUseClauses = new WeakSet();
     // elaborate ONames
     const nameList = (vhdlLinter.file.objectList.filter(obj => obj instanceof O.OName) as O.OName[]).sort((a, b) => a.nameToken.range.start.i - b.nameToken.range.start.i);
     for (const obj of nameList) {
@@ -188,11 +190,17 @@ export class ElaborateNames {
       || (name instanceof O.OAttributeName && !(obj instanceof O.OAttributeDeclaration))) {
       return;
     }
-    name.definitions.push(obj);
+    if (name.definitions.includes(obj) === false) {
+      name.definitions.push(obj);
+    }
     if (I.implementsIHasLabel(obj)) {
-      obj.labelLinks.push(name);
+      if (obj.labelLinks.includes(name) === false) {
+        obj.labelLinks.push(name);
+      }
     } else {
-      obj.nameLinks.push(name);
+      if (obj.nameLinks.includes(name) === false) {
+        obj.nameLinks.push(name);
+      }
     }
   }
 
@@ -396,9 +404,14 @@ export class ElaborateNames {
 
   }
 
+  elaboratedListUseClauses = new WeakSet<O.OUseClause>();
 
   elaborateUseClauses(parent: O.ObjectBase & I.IHasUseClauses, useClauses: O.OUseClause[]) {
     for (const useClause of useClauses) {
+      if (this.elaboratedListUseClauses.has(useClause)) {
+        continue;
+      }
+      this.elaboratedListUseClauses.add(useClause);
       // elaborate the names (useClause is created before the names of it)
       for (const name of useClause.names) {
         this.elaborate(name);
@@ -419,7 +432,7 @@ export class ElaborateNames {
       }
     }
   }
-
+  elaboratedListContextRefs = new WeakSet<O.OContextReference>();
   getUseClauses(parent: O.ObjectBase & (I.IHasUseClauses), parentContexts: O.OContext[] = []) {
     const useClauses = parent.useClauses.slice();
     const contextReferences = I.implementsIHasContextReference(parent) ? parent.contextReferences.slice() : [];
@@ -432,6 +445,10 @@ export class ElaborateNames {
     }
     if (contextReferences.length > 0) {
       for (const contextRef of contextReferences) {
+        if (this.elaboratedListContextRefs.has(contextRef)) {
+          continue;
+        }
+        this.elaboratedListContextRefs.add(contextRef);
         const [lib, context] = contextRef.names;
         if (lib && context) {
           this.elaborate(lib);

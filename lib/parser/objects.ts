@@ -342,7 +342,9 @@ export class OContextReference extends ObjectBase {
     super(parent, range);
   }
   names: OName[];
-
+  toString() { // Shows nicer info on debug
+    return this.names.map(name => name.nameToken.text).join('.');
+  }
 }
 
 export class OContext extends ObjectBase implements I.IHasTargetLibrary, I.IHasUseClauses, I.IHasContextReference, I.IHasLexerToken, I.IHasLibraries {
@@ -743,6 +745,9 @@ export class OSelectedName extends OName {
 }
 export class OUseClause extends ObjectBase {
   names: [OName, ...OSelectedName[]];
+  toString() { // Shows nicer info on debug
+    return this.names.map(name => name.nameToken.text).join('.');
+  }
 }
 export type SelectedNamePrefix = [
   first: OName,
@@ -856,13 +861,14 @@ function* iterateContexts(object: ObjectBase & I.IHasContextReference, directlyV
     if (recursionLimit === 0) {
       throw new Error(`Infinite Recursion`);
     }
-    const definitions: ObjectBase[] = [];
+    let definitions: ObjectBase[] = [];
     for (const definition of contextReference.names.at(-1)?.definitions ?? []) {
       definitions.push(definition);
       if (I.implementsIHasContextReference(definition)) {
         for (const contextReference of definition.contextReferences) {
           if (parentContextReferences.includes(contextReference) === false) {
-            definitions.push(...handleContextReference(contextReference, recursionLimit - 1, [...parentContextReferences, contextReference]));
+            const newDefinitions = handleContextReference(contextReference, recursionLimit - 1, [...parentContextReferences, contextReference]);
+            definitions = definitions.concat(newDefinitions);
           }
         }
       }
