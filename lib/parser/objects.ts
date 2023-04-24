@@ -868,7 +868,6 @@ function* iterateContexts(object: ObjectBase & I.IHasContextReference, directlyV
         for (const contextReference of definition.contextReferences) {
           if (parentContextReferences.includes(contextReference) === false) {
             const newDefinitions = handleContextReference(contextReference, recursionLimit - 1, [...parentContextReferences, contextReference]);
-            console.log('newDefinitions.length', newDefinitions.length);
             definitions = definitions.concat(newDefinitions);
           }
         }

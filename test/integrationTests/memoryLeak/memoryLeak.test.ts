@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, expect, test } from '@jest/globals';
+import { expect, test } from '@jest/globals';
 import { ProjectParser } from '../../../lib/projectParser';
 import { pathToFileURL } from 'url';
 import { defaultSettingsGetter } from '../../../lib/settings';
