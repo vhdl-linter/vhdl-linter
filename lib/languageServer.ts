@@ -149,7 +149,7 @@ export const initialization = new Promise<void>(resolve => {
         };
         await parseWorkspaces();
         connection.workspace.onDidChangeWorkspaceFolders(event => {
-          projectParser.addFolders(event.added.map(folder => new URL(folder.uri)));
+          void projectParser.addFolders(event.added.map(folder => new URL(folder.uri)));
           connection.console.log('Workspace folder change event received.');
         });
       } else {
