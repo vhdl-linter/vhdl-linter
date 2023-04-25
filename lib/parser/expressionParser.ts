@@ -410,7 +410,7 @@ export class ExpressionParser {
     // Search for direction (to|downto) than this is range (5.2.1) and is parsed as an expression
     const tokens = this.scanInnerConstraintForDirection();
     if (tokens) {
-      this.expState.num += tokens.length;
+      this.expState.num += tokens.length + 1;
       return new ExpressionParser(this.state, parent, tokens).parse();
     }
     const names: O.OName[] = [];
