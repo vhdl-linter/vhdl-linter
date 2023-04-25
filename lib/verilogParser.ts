@@ -58,10 +58,10 @@ export class VerilogParser {
       this.advanceWhitespace();
       // find port declaration, i.e. (...)
       // eslint-disable-next-line no-cond-assign
-      if (match = this.text.substring(this.pos).match(/(\()(.*?)\)/s)) {
-        let offset = this.pos + match.index! + match[1]!.length;
+      if (match = this.text.substring(this.pos).match(/\((.*?)\)/s)) {
+        let offset = this.pos + match.index! + 1;
         this.pos += match.index! + match[0].length;
-        const portsString = match[2]!;
+        const portsString = match[1]!;
         for (const portString of portsString.split(',')) {
           //           net_type ::=
           // supply0 | supply1
