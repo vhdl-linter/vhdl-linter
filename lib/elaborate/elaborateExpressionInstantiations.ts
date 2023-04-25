@@ -22,11 +22,13 @@ export function elaborateExpressionInstantiations(file: O.OFile) {
         (obj as O.OInstantiation).instantiatedUnit = [obj];
         (obj as O.OInstantiation).convertedInstantiation = true;
         (obj as O.OInstantiation).labelLinks = [];
-        if (obj.children.length > 0) {
-          (obj as O.OInstantiation).portAssociationList = new O.OPortAssociationList((obj as O.OInstantiation), obj.range.copyWithNewEnd(obj.children.at(-1)!.range));
+        // only the first children can be an instantiation
+        const children = obj.children[0];
+        if (children && children.length > 0) {
+          (obj as O.OInstantiation).portAssociationList = new O.OPortAssociationList((obj as O.OInstantiation), obj.range.copyWithNewEnd(children.at(-1)!.range));
           (obj as O.OInstantiation).portAssociationList!.children = [];
           let association: O.OAssociation | undefined;
-          for (const name of obj.children) {
+          for (const name of children) {
             if (name.afterComma && association) {
               (obj as O.OInstantiation).portAssociationList!.children.push(association);
               association = undefined;
