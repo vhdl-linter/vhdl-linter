@@ -5,6 +5,7 @@ import { implementsIHasEndingLexerToken, implementsIHasNameLinks } from '../pars
 import { OArchitecture, ObjectBase, OComponent, OConfigurationDeclaration, OEntity, OGeneric, OInstantiation, OInterfacePackage, OPackage, OPackageBody, OPackageInstantiation, OPort, OSubprogram, OVariable } from '../parser/objects';
 import { VhdlLinter } from '../vhdlLinter';
 import { findDefinitions } from './findDefinition';
+import { FileCacheVhdl } from '../projectParser';
 export function getTokenFromPosition(linter: VhdlLinter, position: Position, onlyDesignator = true): OLexerToken | undefined {
 
   const candidateTokens = linter.file.lexerTokens.filter(token => !onlyDesignator || token.isDesignator())
@@ -38,7 +39,7 @@ function isPrivate(obj: ObjectBase) {
 }
 
 export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position: Position) {
-  const linter = oldLinter.projectParser.cachedFiles.find(cachedFile => cachedFile.uri.toString() === oldLinter.file.uri.toString())?.linter;
+  const linter = (oldLinter.projectParser.cachedFiles.find(cachedFile => cachedFile.uri.toString() === oldLinter.file.uri.toString() && cachedFile instanceof FileCacheVhdl) as FileCacheVhdl | undefined)?.linter;
   if (!linter) {
     throw new ResponseError(ErrorCodes.InvalidRequest, 'Error during find reference operation', 'Error during find reference operation');
   }

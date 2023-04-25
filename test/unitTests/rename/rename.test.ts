@@ -3,7 +3,7 @@ import { pathToFileURL } from 'url';
 import { CancellationTokenSource, ErrorCodes, Position, Range, ResponseError } from 'vscode-languageserver';
 import { prepareRenameHandler, renameHandler } from '../../../lib/languageFeatures/rename';
 import { OIRange } from '../../../lib/parser/objects';
-import { ProjectParser } from '../../../lib/projectParser';
+import { FileCacheVhdl, ProjectParser } from '../../../lib/projectParser';
 import { defaultSettingsGetter } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { createPrintableRange, makeRangePrintable } from '../../helper';
@@ -293,9 +293,9 @@ test.each([
   const path = pathToFileURL(__dirname + `/${name}`);
 
   // simulate that the cancellationToken of the linter in the project parser has been canceled
-  const oldFile = projectParser.cachedFiles.find(f => f.uri.toString() === path.toString());
+  const oldFile = projectParser.cachedFiles.find(f => f.uri.toString() === path.toString()) as FileCacheVhdl;
   const cancelSource = new CancellationTokenSource();
-  oldFile!.linter.token = cancelSource.token;
+  oldFile.linter.token = cancelSource.token;
   cancelSource.cancel();
 
   const linter = new VhdlLinter(path, readFileSyncNorm(path, { encoding: 'utf8' }),
