@@ -164,7 +164,7 @@ export class ExpressionParser {
   private inner(maybeFormal = false, maybeWrite = false, maybeChoice = false): O.OName[] {
     const references: O.OName[] = [];
     let tokenBuffer: OLexerToken[] = [];
-    let innerReferences: O.OName[] | undefined;
+    let innerReferences: O.OName[][] = [];
     let lastToken: OLexerToken | undefined;
     let parent: O.OName | undefined;
     let afterComma = false;
@@ -175,11 +175,11 @@ export class ExpressionParser {
         const aggregateNew = this.getNumToken(-1) === undefined || this.getNumToken(-1)!.getLText() === '\'';
         this.increaseToken();
         const maybeFormalNew = this.getNumToken(-2) !== undefined && this.getNumToken(-2)?.getLText() !== '(' && this.getNumToken(-3)?.isIdentifier() !== true;
-        innerReferences = this.inner(maybeFormalNew, aggregateNew, aggregateNew);
+        innerReferences.push(this.inner(maybeFormalNew, aggregateNew, aggregateNew));
       } else if (this.getNumToken()!.getLText() === '<<') {
         const externalName = this.parseExternalName();
         if (externalName) {
-          innerReferences = [externalName];
+          innerReferences.push([externalName]);
         }
       } else {
         const breakTokens = [',', '=>',
@@ -223,30 +223,30 @@ export class ExpressionParser {
           if (breakToken !== ',' && breakToken !== '=>') {
             maybeWrite = false;
           }
-          if (innerReferences) {
+          for (const innerRef of innerReferences) {
             // This is a bit hacky... When there is a cast in the formal reference side. Assume the last token is the actual formal reference
             // Ie to_integer(unsigned(output)) output would be the actual formal part. ant to_integer and unsigned are normal references
-            if (formal && innerReferences.length > 0) {
-              Object.setPrototypeOf(O.getTheInnermostNameChildren(innerReferences.at(-1)!), O.OFormalName.prototype);
+            if (formal && innerRef.length > 0) {
+              Object.setPrototypeOf(O.getTheInnermostNameChildren(innerRef.at(-1)!), O.OFormalName.prototype);
             }
             if (parent) {
-              parent.children.push(...innerReferences);
-              for (const innerReference of innerReferences) {
+              parent.children.push(innerRef);
+              for (const innerReference of innerRef) {
                 innerReference.parent = parent;
               }
             } else {
-              if (innerReferences.length > 0) {
-                const aggregate = new O.OAggregate(this.parent, new OLexerToken('', innerReferences[0]!.range, TokenType.implicit, innerReferences[0]!.rootFile));
+              if (innerRef.length > 0) {
+                const aggregate = new O.OAggregate(this.parent, new OLexerToken('', innerRef[0]!.range, TokenType.implicit, innerRef[0]!.rootFile));
                 aggregate.afterComma = afterComma;
-                aggregate.children = innerReferences;
-                for (const innerReference of innerReferences) {
+                aggregate.children = [innerRef];
+                for (const innerReference of innerRef) {
                   innerReference.parent = aggregate;
                 }
                 references.push(aggregate);
               }
             }
-            innerReferences = undefined;
           }
+          innerReferences = [];
           if (formal) {
             this.expState.lastFormal = tokenBuffer;
           }
@@ -280,26 +280,26 @@ export class ExpressionParser {
         range: this.expState.lastFormal[0]!.range.copyWithNewEnd(this.expState.lastFormal[this.expState.lastFormal.length - 1]!.range)
       });
     }
-    if (innerReferences !== undefined) {
+    for (const innerRef of innerReferences) {
       if (parent) {
-        parent.children.push(...innerReferences);
-        for (const innerReference of innerReferences) {
+        parent.children.push(innerRef);
+        for (const innerReference of innerRef) {
           innerReference.parent = parent;
         }
       } else {
-        if (innerReferences.length > 0) {
-          const aggregate = new O.OAggregate(this.parent, new OLexerToken('', innerReferences[0]!.range, TokenType.implicit, innerReferences[0]!.rootFile));
-          aggregate.children = innerReferences;
+        if (innerRef.length > 0) {
+          const aggregate = new O.OAggregate(this.parent, new OLexerToken('', innerRef[0]!.range, TokenType.implicit, innerRef[0]!.rootFile));
+          aggregate.children = [innerRef];
           aggregate.afterComma = afterComma;
 
-          for (const innerReference of innerReferences) {
+          for (const innerReference of innerRef) {
             innerReference.parent = aggregate;
           }
           references.push(aggregate);
         }
       }
-      innerReferences = undefined;
     }
+    innerReferences = [];
     this.expState.lastFormal = [];
     return references;
 
@@ -423,7 +423,11 @@ export class ExpressionParser {
         const innerNames = this.innerConstraint(names.at(-1)!);
         for (const innerName of innerNames) {
           innerName.parent = elementParent;
-          elementParent.children.push(innerName);
+          if (parent.children.length > 0) {
+            parent.children.at(-1)!.push(innerName);
+          } else {
+            parent.children.push([innerName]);
+          }
         }
       } else if (this.getNumToken()?.getLText() !== ',') {
         let name;
@@ -435,7 +439,11 @@ export class ExpressionParser {
         }
         name.constraint = true;
         if (parent instanceof O.OName) {
-          parent.children.push(name);
+          if (parent.children.length > 0) {
+            parent.children.at(-1)!.push(name);
+          } else {
+            parent.children.push([name]);
+          }
         }
         names.push(name);
       }

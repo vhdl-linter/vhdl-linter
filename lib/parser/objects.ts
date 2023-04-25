@@ -225,7 +225,7 @@ export class OName extends ObjectBase implements I.IHasDefinitions, I.IHasNameTo
   // Workaround for checking of OWrites in associations. Because of overloading they can not be correctly checked.
   // This avoids false positives
   public inAssociation = false;
-  children: OName[] = [];
+  children: OName[][] = [];
   // OName was found in expression after a comma. is used in elaborate to split different actuals when an OName is converted to an OInstantiation
   afterComma = false;
   maybeFormal = false;
@@ -935,8 +935,8 @@ export function* scope(startObject: ObjectBase): Generator<[ObjectBase, boolean]
 export function getTheInnermostNameChildren(name: OName) {
   let nameChild = name;
   let recursionLimit = 1000;
-  while (nameChild.children.length > 0) {
-    nameChild = nameChild.children.at(-1)!;
+  while (nameChild.children[0] && nameChild.children[0].length > 0) {
+    nameChild = nameChild.children[0].at(-1)!;
     if (recursionLimit-- <= 0) {
       throw new Error("Infinite Recursion");
     }

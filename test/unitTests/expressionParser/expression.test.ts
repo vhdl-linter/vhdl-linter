@@ -42,7 +42,7 @@ test.each([
     function flattenReferences(reference: OName): OName[] {
       return [
         reference,
-        ...reference.children.flatMap(flattenReferences)
+        ...reference.children.flatMap(children => children.flatMap(flattenReferences))
       ];
     }
     const flatReferences = references.flatMap(flattenReferences);

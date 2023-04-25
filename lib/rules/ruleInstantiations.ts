@@ -87,7 +87,8 @@ export class RuleInstantiation extends RuleBase implements IRule {
     } else {
       const availableInterfaceElementsFlat = availableInterfaceElements.flat().filter((v, i, self) => self.findIndex(o => o.lexerTokenEquals(v)) === i);
       for (const association of associationList?.children ?? []) {
-        const formals = association.formalPart.map(formal => formal instanceof O.OFormalName === false && formal.children[0] ? formal.children[0] : formal);
+        // instantiations only care for the first children of names
+        const formals = association.formalPart.map(formal => formal instanceof O.OFormalName === false && formal.children[0] && formal.children[0][0] ? formal.children[0][0] : formal);
         if (formals.length === 0) {
           continue;
         }
