@@ -126,6 +126,12 @@
 						"default": [],
 						"description": "Additional Paths to be included (for verification library etc.)"
 					},
+					"VhdlLinter.analysis.verilogAnalysis": {
+						"scope": "window",
+						"type": "boolean",
+						"default": true,
+						"description": "Enable analysis of verilog files. Only modules get extracted and evaluated for instantiation from vhdl files."
+					},
 					"VhdlLinter.analysis.conditionalAnalysis": {
 						"scope": "window",
 						"type": "object",

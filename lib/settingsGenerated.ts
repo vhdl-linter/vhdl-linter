@@ -7,6 +7,7 @@ export interface ISettings {
     'ignoreRegex': string;
   };
   'analysis': {
+    'verilogAnalysis': boolean;
     'conditionalAnalysis': Record<string, string>;
   };
   'semanticTokens': boolean;
@@ -65,6 +66,7 @@ export const defaultSettings: ISettings = {
     'ignoreRegex': '',
   },
   'analysis': {
+    'verilogAnalysis': true,
     'conditionalAnalysis': {
     },
   },

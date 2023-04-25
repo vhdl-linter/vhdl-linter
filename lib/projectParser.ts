@@ -7,8 +7,8 @@ import { CancellationToken, WorkDoneProgressReporter } from 'vscode-languageserv
 import { Elaborate } from './elaborate/elaborate';
 import { SetAdd } from './languageFeatures/findReferencesHandler';
 import { OArchitecture, OConfigurationDeclaration, OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
-import { SettingsGetter, VhdlLinter } from './vhdlLinter';
 import { VerilogParser } from './verilogParser';
+import { SettingsGetter, VhdlLinter } from './vhdlLinter';
 
 export function joinURL(url: URL, ...additional: string[]) {
   const path = join(fileURLToPath(url), ...additional);
@@ -45,12 +45,13 @@ export class ProjectParser {
     return projectParser;
   }
   private constructor(public workspaces: URL[], public fileIgnoreRegex: string, public settingsGetter: SettingsGetter, public progress?: WorkDoneProgressReporter) { }
-  public addFolders(urls: URL[]) {
+  public async addFolders(urls: URL[]) {
     for (const url of urls) {
+      const settings = await this.settingsGetter(url);
       // Chokidar does not accept win style line endings
       const watcher = watch([
         fileURLToPath(url).replaceAll(sep, '/') + '/**/*.vhd?(l)',
-        fileURLToPath(url).replaceAll(sep, '/') + '/**/*.?(s)v',
+        ...settings.analysis.verilogAnalysis ? [fileURLToPath(url).replaceAll(sep, '/') + '/**/*.?(s)v'] : [],
       ], { ignoreInitial: true });
       watcher.on('add', (path) => {
         const handleEvent = async () => {
@@ -98,11 +99,12 @@ export class ProjectParser {
   private async init(disableWatching: boolean) {
     const files = new SetAdd<string>();
     await Promise.all(this.workspaces.map(async (directory) => {
-      const directories = await this.parseDirectory(directory);
+      const settings = await this.settingsGetter(directory);
+      const directories = await this.parseDirectory(directory, settings.analysis.verilogAnalysis);
       files.add(...directories.map(url => url.toString()));
     }));
     const rootDirectory = getRootDirectory();
-    const builtinFiles = (await this.parseDirectory(joinURL(rootDirectory, 'ieee2008'))).map(url => url.toString());
+    const builtinFiles = (await this.parseDirectory(joinURL(rootDirectory, 'ieee2008'), false)).map(url => url.toString());
     files.add(...builtinFiles);
     let index = 0;
     for (const file of files) {
@@ -123,7 +125,7 @@ export class ProjectParser {
     this.cachedFiles.sort((a, b) => b.lintingTime - a.lintingTime);
     this.flattenProject();
     if (!disableWatching) {
-      this.addFolders(this.workspaces);
+      await this.addFolders(this.workspaces);
     }
   }
   async stop() {
@@ -131,7 +133,7 @@ export class ProjectParser {
       await watcher.close();
     }
   }
-  private async parseDirectory(directory: URL): Promise<URL[]> {
+  private async parseDirectory(directory: URL, parseVerilog: boolean): Promise<URL[]> {
     const files: URL[] = [];
     const entries = await promises.readdir(directory);
     const ignoreRegex = this.fileIgnoreRegex.trim().length > 0 ? new RegExp(this.fileIgnoreRegex) : null;
@@ -141,11 +143,11 @@ export class ProjectParser {
         const filePath = joinURL(directory, entry);
         const fileStat = await promises.stat(filePath);
         if (fileStat.isFile()) {
-          if ((entry.match(/\.vhdl?$/i) || entry.match(/\.s?v$/i)) && (ignoreRegex === null || !filePath.pathname.match(ignoreRegex))) {
+          if ((entry.match(/\.vhdl?$/i) || (entry.match(/\.s?v$/i) && parseVerilog)) && (ignoreRegex === null || !filePath.pathname.match(ignoreRegex))) {
             files.push(filePath);
           }
         } else if (fileStat.isDirectory()) {
-          files.push(... await this.parseDirectory(filePath));
+          files.push(... await this.parseDirectory(filePath, parseVerilog));
         }
       } catch (e) {
         console.error(e);
