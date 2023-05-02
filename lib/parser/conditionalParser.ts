@@ -34,7 +34,7 @@ export class ConditionalParser {
   }
   handleIf() {
     let conditionWasTrue = false;
-    const condition = this.conditionalAnalysisExpression();
+    let condition = this.conditionalAnalysisExpression();
     if (condition) {
       conditionWasTrue = true;
     }
@@ -56,6 +56,7 @@ export class ConditionalParser {
       } else if (this.getToken().getLText() === 'else') {
         this.mask();
         this.seekToolDirective(conditionWasTrue);
+        condition = !conditionWasTrue;
       } else if (['error', 'warning'].includes(this.getToken().getLText())) {
         this.handleWarningError(!condition);
         this.seekToolDirective(!condition);
