@@ -169,7 +169,7 @@ export class RuleNotDeclared extends RuleBase implements IRule {
         continue;
       }
       if (obj instanceof O.OFormalName) { // Formal references handled else where
-        continue;remove #176 todo
+        continue;
       }
       if (obj instanceof O.OAttributeName) {
         if (obj.definitions.length === 0) {
