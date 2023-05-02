@@ -79,6 +79,34 @@ test('Testing hover for conditional', async () => {
     character: 9
   }, false);
   expect(lexerToken?.hoverInfo).toBe("VALUE5: \"5\"");
+});
+test('Regression test', async() => {
+  const path = join(__dirname, 'test_regression.vhd');
+  {
+    const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser,
+      defaultSettingsWithOverwrite({
+        analysis: {
+          conditionalAnalysis: {
+            DEVICE: "Arria10"
+          }
+        }
+      })());
+    await linter.checkAll();
+    expect(linter.messages).toHaveLength(1);
+    expect(linter.messages[0]?.message).toEqual(expect.stringContaining('Device Arria'));
+  }
+  {
+    const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser,
+      defaultSettingsWithOverwrite({
+        analysis: {
+          conditionalAnalysis: {
+            DEVICE: "SomethingElse"
+          }
+        }
+      })());
+    await linter.checkAll();
+    expect(linter.messages).toHaveLength(1);
+    expect(linter.messages[0]?.message).toEqual(expect.stringContaining('Device Other'));
 
-
+  }
 });
