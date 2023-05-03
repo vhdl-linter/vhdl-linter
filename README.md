@@ -7,6 +7,9 @@ Introducing the open-source VHDL Linter, written in TypeScript and thoroughly un
 ![VUnit Compile](https://github.com/vhdl-linter/vhdl-linter/actions/workflows/vunit_compile.yml/badge.svg?branch=main)
 ![TS Lint](https://github.com/vhdl-linter/vhdl-linter/actions/workflows/tslint.yml/badge.svg?branch=main)
 
+![version](https://vsmarketplacebadges.dev/version-short/g0t00.vhdl-linter.svg)
+![installs](https://vsmarketplacebadges.dev/installs-short/g0t00.vhdl-linter.svg)
+
 # Features (list is still incomplete)
 ## Project wide rename support
 Most identifier can be renamed with the project wide rename feature.
