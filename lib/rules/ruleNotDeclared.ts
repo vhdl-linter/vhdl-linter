@@ -169,7 +169,6 @@ export class RuleNotDeclared extends RuleBase implements IRule {
         continue;
       }
       if (obj instanceof O.OFormalName) { // Formal references handled else where
-        // TODO handle Formal references for function calls in assignments
         continue;
       }
       if (obj instanceof O.OAttributeName) {
