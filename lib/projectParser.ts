@@ -50,6 +50,12 @@ export class ProjectParser {
     for (const url of urls) {
       const settings = await this.settingsGetter(url);
       // Chokidar does not accept win style line endings
+      // Chokidar sometimes throws this error message on hitting weird symlink. But this is a upstream issue
+      // [Error: EISDIR: illegal operation on a directory, read] {
+      //   errno: -21,
+      //     code: 'EISDIR',
+      //       syscall: 'read'
+      // }
       const watcher = watch([
         fileURLToPath(url).replaceAll(sep, '/') + '/**/*.vhd?(l)',
         ...settings.analysis.verilogAnalysis ? [fileURLToPath(url).replaceAll(sep, '/') + '/**/*.?(s)v'] : [],
