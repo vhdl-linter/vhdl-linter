@@ -1,5 +1,5 @@
 module.exports = {
-  ignorePatterns: ["dist/**", '*.js'],
+  ignorePatterns: ["dist/**", '*.js', 'test/unitTests/projectParser/**'],
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
