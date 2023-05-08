@@ -9,6 +9,7 @@ import { SetAdd } from './languageFeatures/findReferencesHandler';
 import { OArchitecture, OConfigurationDeclaration, OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
 import { VerilogParser } from './verilogParser';
 import { SettingsGetter, VhdlLinter } from './vhdlLinter';
+import { realpath } from 'fs/promises';
 
 export function joinURL(url: URL, ...additional: string[]) {
   const path = join(fileURLToPath(url), ...additional);
@@ -133,6 +134,7 @@ export class ProjectParser {
       await watcher.close();
     }
   }
+  private parsedDirectories = new Set<string>();
   private async parseDirectory(directory: URL, parseVerilog: boolean): Promise<URL[]> {
     const files: URL[] = [];
     const entries = await promises.readdir(directory);
@@ -147,7 +149,12 @@ export class ProjectParser {
             files.push(filePath);
           }
         } else if (fileStat.isDirectory()) {
-          files.push(... await this.parseDirectory(filePath, parseVerilog));
+          const realPath = await realpath(filePath);
+          // catch infinite recursion in symlink
+          if (this.parsedDirectories.has(realPath) === false) {
+            this.parsedDirectories.add(await realpath(filePath));
+            files.push(... await this.parseDirectory(filePath, parseVerilog));
+          }
         }
       } catch (e) {
         console.error(e);
