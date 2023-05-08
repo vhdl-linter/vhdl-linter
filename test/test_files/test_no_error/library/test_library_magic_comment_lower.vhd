@@ -1,4 +1,4 @@
--- test upper case test_library
+-- test correct case of test_library
 --! @library test_library
 
 library test_library;
