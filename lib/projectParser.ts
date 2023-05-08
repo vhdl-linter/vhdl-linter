@@ -53,7 +53,7 @@ export class ProjectParser {
       const watcher = watch([
         fileURLToPath(url).replaceAll(sep, '/') + '/**/*.vhd?(l)',
         ...settings.analysis.verilogAnalysis ? [fileURLToPath(url).replaceAll(sep, '/') + '/**/*.?(s)v'] : [],
-      ], { ignoreInitial: true });
+      ], { ignoreInitial: true, followSymlinks: false });
       watcher.on('add', (path) => {
         const handleEvent = async () => {
           const url = pathToFileURL(path);
@@ -152,7 +152,7 @@ export class ProjectParser {
           const realPath = await realpath(filePath);
           // catch infinite recursion in symlink
           if (this.parsedDirectories.has(realPath) === false) {
-            this.parsedDirectories.add(await realpath(filePath));
+            this.parsedDirectories.add(await realpath(realPath));
             files.push(... await this.parseDirectory(filePath, parseVerilog));
           }
         }
