@@ -9,6 +9,7 @@ import { SetAdd } from './languageFeatures/findReferencesHandler';
 import { OArchitecture, OConfigurationDeclaration, OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
 import { VerilogParser } from './verilogParser';
 import { SettingsGetter, VhdlLinter } from './vhdlLinter';
+import { realpath } from 'fs/promises';
 
 export function joinURL(url: URL, ...additional: string[]) {
   const path = join(fileURLToPath(url), ...additional);
@@ -49,10 +50,16 @@ export class ProjectParser {
     for (const url of urls) {
       const settings = await this.settingsGetter(url);
       // Chokidar does not accept win style line endings
+      // Chokidar sometimes throws this error message on hitting weird symlink. But this is a upstream issue
+      // [Error: EISDIR: illegal operation on a directory, read] {
+      //   errno: -21,
+      //     code: 'EISDIR',
+      //       syscall: 'read'
+      // }
       const watcher = watch([
         fileURLToPath(url).replaceAll(sep, '/') + '/**/*.vhd?(l)',
         ...settings.analysis.verilogAnalysis ? [fileURLToPath(url).replaceAll(sep, '/') + '/**/*.?(s)v'] : [],
-      ], { ignoreInitial: true });
+      ], { ignoreInitial: true, followSymlinks: false });
       watcher.on('add', (path) => {
         const handleEvent = async () => {
           const url = pathToFileURL(path);
@@ -133,6 +140,7 @@ export class ProjectParser {
       await watcher.close();
     }
   }
+  private parsedDirectories = new Set<string>();
   private async parseDirectory(directory: URL, parseVerilog: boolean): Promise<URL[]> {
     const files: URL[] = [];
     const entries = await promises.readdir(directory);
@@ -147,7 +155,12 @@ export class ProjectParser {
             files.push(filePath);
           }
         } else if (fileStat.isDirectory()) {
-          files.push(... await this.parseDirectory(filePath, parseVerilog));
+          const realPath = await realpath(filePath);
+          // catch infinite recursion in symlink
+          if (this.parsedDirectories.has(realPath) === false) {
+            this.parsedDirectories.add(await realpath(realPath));
+            files.push(... await this.parseDirectory(filePath, parseVerilog));
+          }
         }
       } catch (e) {
         console.error(e);
