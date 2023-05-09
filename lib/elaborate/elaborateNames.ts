@@ -155,7 +155,7 @@ export class ElaborateNames {
         return true;
       }
       if (libraries.some(lib => lib.lexerToken.getLText() === 'work')) {
-        return obj.targetLibrary === searchName.getRootElement().targetLibrary || searchName.getRootElement().targetLibrary === undefined;
+        return obj.targetLibrary.toLowerCase() === searchName.getRootElement().targetLibrary?.toLowerCase() || searchName.getRootElement().targetLibrary === undefined;
       }
       return libraries.some(lib => lib.lexerToken.getLText() === obj.targetLibrary!.toLowerCase());
     });
