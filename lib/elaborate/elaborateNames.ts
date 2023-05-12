@@ -302,8 +302,6 @@ export class ElaborateNames {
   }
 
   elaborateSelectedName(name: O.OSelectedName) {
-
-
     // all prefix tokens should be elaborated already
     const lastPrefix = name.prefixTokens.at(-1)!;
     if (lastPrefix.definitions.length === 0) {
