@@ -14,6 +14,41 @@ export class VerilogParser {
       this.pos += match[0].length;
     }
   }
+  parsePortOrParameter(parent: O.OEntity, str: string, offset: number, parameter: boolean) {
+    const regex = /^(\s*(input|inout|output|parameter)?\s+(supply0|supply1|tri|triand|trior|tri0|tri1|uwire|wire|wand|wor|reg|logic|longint)?\s*(?:\[.*?\])?\s*)([a-zA-Z]\w*)\s*(?:\[.*?\])?\s*(?:=\s*(\S+))?/s;
+    // groups:
+    // 1: everything until name
+    // 2 (optional): in, out, parameter etc.
+    // 3 (optional): net_type
+    // 4: name
+    // 5 (optional): default value
+    const match = str.match(regex);
+    if (match) {
+      let port: O.OGenericConstant | O.OPort;
+      if (parameter) {
+        port = new O.OGenericConstant(parent, new O.OIRange(this.file, offset, offset + str.length));
+      } else {
+        port = new O.OPort(parent, new O.OIRange(this.file, offset, offset + str.length));
+        if (match[2] === 'output') {
+          port.direction = 'out';
+        } else if (match[2] === 'inout') {
+          port.direction = 'inout';
+        } else { // default to input
+          port.direction = 'in';
+        }
+      }
+      port.lexerToken = new OLexerToken(match[4]!, new O.OIRange(this.file, offset + match[1]!.length, offset + match[1]!.length + match[4]!.length), TokenType.implicit, this.file);
+      if (match[5] !== undefined) {
+        port.defaultValue = [new O.OName(port, new OLexerToken(match[5].replace(/=\s*/s, ''), new OIRange(this.file, 0, 0), TokenType.implicit, this.file))];
+      }
+      if (port instanceof O.OGenericConstant) {
+        parent.generics.push(port);
+      } else {
+        parent.ports.push(port);
+      }
+    }
+  }
+
   constructor(public uri: URL, public text: string, public projectParser: ProjectParser,
     public settingsGetter: SettingsGetter,
   ) {
@@ -39,20 +74,12 @@ export class VerilogParser {
       // find parameters, i.e. #(...)
       // eslint-disable-next-line no-cond-assign
       if (match = this.text.substring(this.pos).match(/#\((.*?)\)/s)) {
-        const baseOffset = this.pos + match.index! + 2;
+        let offset = this.pos + match.index! + 2;
         this.pos += match.index! + match[0].length;
-        const parameterString = match[1]!;
-        const parameterRegex = /(parameter\s+)(\w+)\s*(=\s*\w+)?([^,)])*,?/gs;
-        let parameterMatch;
-        // eslint-disable-next-line no-cond-assign
-        while (parameterMatch = parameterRegex.exec(parameterString)) {
-          const offset = baseOffset + parameterMatch.index;
-          const parameter = new O.OGenericConstant(module, new O.OIRange(this.file, offset, parameterMatch[0]!.length + offset));
-          parameter.lexerToken = new OLexerToken(parameterMatch[2]!, new O.OIRange(this.file, offset + parameterMatch[1]!.length, offset + parameterMatch[1]!.length + parameterMatch[2]!.length), TokenType.implicit, this.file);
-          if (parameterMatch[3] !== undefined) {
-            parameter.defaultValue = [new O.OName(parameter, new OLexerToken(parameterMatch[3].replace(/=\s*/s, ''), new OIRange(this.file, 0, 0), TokenType.implicit, this.file))];
-          }
-          module.generics.push(parameter);
+        const parametersString = match[1]!;
+        for (const parameterString of parametersString.split(',')) {
+          this.parsePortOrParameter(module, parameterString, offset, true);
+          offset += parameterString.length + 1;
         }
       }
       this.advanceWhitespace();
@@ -63,23 +90,7 @@ export class VerilogParser {
         this.pos += match.index! + match[0].length;
         const portsString = match[1]!;
         for (const portString of portsString.split(',')) {
-          //           net_type ::=
-          // supply0 | supply1
-          // | tri | triand | trior | tri0 | tri1
-          // | uwire | wire | wand | wor
-          const portMatch = portString.match(/^((\s*)(input|inout|output)?\s*(supply0|supply1|tri|triand|trior|tri0|tri1|uwire|wire|wand|wor|reg)?\s*(signed)?(\[.*?\])?\s*)(\w+)/s);
-          if (portMatch) {
-            const port = new O.OPort(module, new O.OIRange(this.file, portMatch[2]!.length + offset, portMatch[0]!.length + offset));
-            port.lexerToken = new OLexerToken(portMatch[7]!, new O.OIRange(this.file, offset + portMatch[2]!.length, offset + portMatch[2]!.length + portMatch[7]!.length), TokenType.implicit, this.file);
-            if (portMatch[3] === 'input') {
-              port.direction = 'in';
-            } else if (portMatch[3] === 'output') {
-              port.direction = 'out';
-            } else if (portMatch[3] === 'inout') {
-              port.direction = 'inout';
-            }
-            module.ports.push(port);
-          }
+          this.parsePortOrParameter(module, portString, offset, false);
           offset += portString.length + 1;
         }
       }
