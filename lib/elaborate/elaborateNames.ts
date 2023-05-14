@@ -31,7 +31,7 @@ export class ElaborateNames {
     for (const obj of vhdlLinter.file.objectList) {
       await this.checkCancel(vhdlLinter);
       if (I.implementsIHasUseClause(obj)) {
-        elaborator.elaborateUseClauses(obj, elaborator.getUseClauses(obj));
+        elaborator.elaborateUseClauses(elaborator.getUseClauses(obj));
       }
     }
     elaborator.scopeVisibilityMap.clear();
@@ -95,7 +95,7 @@ export class ElaborateNames {
     const recordChildMap = new Map<string, O.ORecordChild[]>();
     this.scopeVisibilityMap.set(parent, visibilityMap);
     this.scopeRecordChildMap.set(parent, recordChildMap);
-    for (const [scopeObj, directlyVisible] of O.scope(parent)) {
+    for (const [scopeObj, directlyVisible] of O.scope(parent, this)) {
       this.addObjectsToMap(visibilityMap, scopeObj);
       if (directlyVisible && I.implementsIHasPorts(scopeObj)) {
         this.addObjectsToMap(visibilityMap, ...scopeObj.ports);
@@ -385,7 +385,7 @@ export class ElaborateNames {
 
   }
 
-  elaborateUseClauses(parent: O.ObjectBase & I.IHasUseClauses, useClauses: O.OUseClause[]) {
+  elaborateUseClauses(useClauses: O.OUseClause[]) {
     for (const useClause of useClauses) {
       if (this.elaboratedListUseClauses.has(useClause)) {
         continue;
