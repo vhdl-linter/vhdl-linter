@@ -11,4 +11,4 @@ architecture rtl of range_selected_name is
 begin
   rec.element <= s;
   s <= rec.element;
-end architecture;
+end architecture; 

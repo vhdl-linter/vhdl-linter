@@ -380,7 +380,7 @@ export class ExpressionParser {
       return externalName;
     }
   }
-  // // This gets the current Text (for Debugger)
+  // This gets the current Text (for Debugger)
   getTextDebug() {
     return this.tokens.slice(this.expState.num, this.expState.num + 5).join(' ');
   }
@@ -452,7 +452,7 @@ export class ExpressionParser {
     this.increaseToken();
     return names;
   }
-  // Scan for direction (to|downto). Return the expression part when direction found
+  // Scan for direction (to|downto) or end with 'range. Return the expression part when direction found
   scanInnerConstraintForDirection() {
     const tokens = [];
     let adder = 0;
@@ -477,7 +477,8 @@ export class ExpressionParser {
       }
       adder++;
     }
-    if (tokens.some(token => token.getLText() === "downto" || token.getLText() === 'to')) {
+    if (tokens.some(token => token.getLText() === 'downto' || token.getLText() === 'to')
+    || (tokens.at(-1)?.getLText() === 'range' || tokens.at(-2)?.getLText() === "'")) {
       return tokens;
     }
     return undefined;
