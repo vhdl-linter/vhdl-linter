@@ -8,41 +8,41 @@ export class ElaborateNames {
   private scopeRecordChildMap = new Map<O.ObjectBase, Map<string, O.ORecordChild[]>>();
   // the project visibility map includes packages that are visible in the project
   private projectVisibilityMap?: Map<string, (O.ObjectBase & I.IHasTargetLibrary)[]> = undefined;
+  // store elaborated objects to prevent multiple elaboration
+  private elaboratedList = new WeakSet<O.OName>();
+  private elaboratedListContextRefs = new WeakSet<O.OContextReference>();
+  private elaboratedListUseClauses = new WeakSet<O.OUseClause>();
 
   private constructor(public vhdlLinter: VhdlLinter) {
     this.file = vhdlLinter.file;
   }
+
+  private static  lastCancelTime = Date.now();
+  private static async checkCancel(vhdlLinter: VhdlLinter) {
+    const now = Date.now();
+    if (now - this.lastCancelTime >= 10) {
+      await vhdlLinter.handleCanceled();
+      this.lastCancelTime = now;
+    }
+  }
   public static async elaborate(vhdlLinter: VhdlLinter) {
     const elaborator = new ElaborateNames(vhdlLinter);
-    let lastCancelTime = Date.now();
     // elaborate use clauses
     for (const obj of vhdlLinter.file.objectList) {
-      const now = Date.now();
-      if (now - lastCancelTime >= 10) {
-        await vhdlLinter.handleCanceled();
-        lastCancelTime = now;
-      }
+      await this.checkCancel(vhdlLinter);
       if (I.implementsIHasUseClause(obj)) {
         elaborator.elaborateUseClauses(obj, elaborator.getUseClauses(obj));
       }
     }
     elaborator.scopeVisibilityMap.clear();
-    elaborator.elaboratedList = new WeakSet();
-    elaborator.elaboratedListContextRefs = new WeakSet();
-    elaborator.elaboratedListUseClauses = new WeakSet();
     // elaborate ONames
     const nameList = (vhdlLinter.file.objectList.filter(obj => obj instanceof O.OName) as O.OName[]).sort((a, b) => a.nameToken.range.start.i - b.nameToken.range.start.i);
     for (const obj of nameList) {
-      const now = Date.now();
-      if (now - lastCancelTime >= 10) {
-        await vhdlLinter.handleCanceled();
-        lastCancelTime = now;
-      }
+      await this.checkCancel(vhdlLinter);
       elaborator.elaborate(obj);
     }
 
   }
-  elaboratedList = new WeakSet<O.OName>();
   elaborate(name: O.OName) {
     if (this.elaboratedList.has(name)) {
       // was already elaborated (e.g. in use clause)
@@ -183,7 +183,6 @@ export class ElaborateNames {
     }
   }
 
-
   link(name: O.OName, obj: O.ObjectBase & (I.IHasNameLinks | I.IHasLabel)) {
     // for attributes: only link attribute references to attribute declarations
     if ((obj instanceof O.OAttributeDeclaration && !(name instanceof O.OAttributeName) && !(name.parent instanceof O.OUseClause))
@@ -204,11 +203,20 @@ export class ElaborateNames {
     }
   }
 
+  // get the definitions of the typeNames of the subtype indication
+  getTypeDefinitions(obj: O.ObjectBase & I.IHasSubtypeIndication) {
+    return obj.subtypeIndication.typeNames.flatMap(type => {
+      this.elaborate(type);
+      return type.definitions;
+    });
+  }
+
   elaborateName(name: O.OName) {
     if (name.constraint) {
       const subtypeIndication = O.getNameParent(name) as O.OSubtypeIndication;
       const typeName = subtypeIndication.typeNames.at(-1);
       if (typeName) {
+        this.elaborate(typeName);
         // parent is type (e.g. protected or record) or alias -> expect stuff from within
         if (name.parent instanceof O.OName && name.parent.parent instanceof O.OSubtypeIndication) {
           // if first brace level -> expect from main type
@@ -219,8 +227,9 @@ export class ElaborateNames {
           // otherwise expect from type of last token of lower braceLevel
           const lastLevel = name.parent;
           if (lastLevel instanceof O.OName) {
+            this.elaborate(lastLevel);
             for (const typeRef of lastLevel.definitions.filter(def => I.implementsIHasSubTypeIndication(def)) as (O.ObjectBase & I.IHasSubtypeIndication)[]) {
-              for (const typeDef of typeRef.subtypeIndication.typeNames.flatMap(type => type.definitions)) {
+              for (const typeDef of this.getTypeDefinitions(typeRef)) {
                 this.elaborateTypeChildren(name, typeDef);
               }
             }
@@ -248,11 +257,8 @@ export class ElaborateNames {
           }
         }
       } else if (typeDefinition instanceof O.OAccessType || typeDefinition instanceof O.OSubType) {
-        for (const subtype of typeDefinition.subtypeIndication.typeNames) {
-          this.elaborate(subtype);
-          for (const subtypeDef of subtype.definitions) {
-            this.elaborateTypeChildren(selectedName, subtypeDef);
-          }
+        for (const subtypeDef of this.getTypeDefinitions(typeDefinition)) {
+          this.elaborateTypeChildren(selectedName, subtypeDef);
         }
       } else {
         // for protected types (not protected bodies) search subprograms and attributes
@@ -268,37 +274,19 @@ export class ElaborateNames {
         selectedName.notDeclaredHint = `${selectedName.nameToken.text} does not exist on ${typeDefinition instanceof O.ORecord ? 'record' : 'protected type'} ${typeDefinition.lexerToken.text}`;
       }
     } else if (typeDefinition instanceof O.OArray) {
-      for (const def of typeDefinition.subtypeIndication.typeNames.flatMap(r => {
-        this.elaborate(r);
-        return r.definitions;
-      })) {
+      for (const def of this.getTypeDefinitions(typeDefinition)) {
         this.elaborateTypeChildren(selectedName, def);
       }
     }
   }
   getSignalType(signalOrVariable: O.ObjectBase & I.IHasSubtypeIndication) {
     const resolveArrayAlias = (obj: O.ObjectBase): O.ObjectBase[] => {
-      if (obj instanceof O.OAlias) {
-        const name = obj.subtypeIndication.typeNames.at(-1);
-        if (name) {
-          this.elaborate(name);
-        }
-        return name?.definitions.flatMap(resolveArrayAlias) ?? [];
-      } else if (obj instanceof O.OArray) {
-        const name = obj.subtypeIndication.typeNames.at(-1);
-        if (name) {
-          this.elaborate(name);
-        }
-        return name?.definitions.flatMap(resolveArrayAlias) ?? [];
+      if (obj instanceof O.OAlias || obj instanceof O.OArray) {
+        return this.getTypeDefinitions(obj).flatMap(resolveArrayAlias) ?? [];
       }
       return [obj];
     };
-    const name = signalOrVariable.subtypeIndication.typeNames.at(-1);
-    if (name) {
-      this.elaborate(name);
-    }
-    const definitions = name?.definitions.flatMap(resolveArrayAlias) ?? [];
-    return definitions;
+    return this.getTypeDefinitions(signalOrVariable).flatMap(resolveArrayAlias) ?? [];
   }
 
   elaborateSelectedName(name: O.OSelectedName) {
@@ -340,18 +328,13 @@ export class ElaborateNames {
         }
       }
     }
-    // if all definitions are libraries -> do not look further (especially do not look in the fallback map)
+    // if all definitions are libraries -> do not look further
     if (libraryDefinitions.length === lastPrefix.definitions.length) {
       return;
     }
 
     // previous token is type (e.g. protected or record) or alias -> expect stuff from within
-    const typeNames = lastPrefix.definitions.flatMap(def => I.implementsIHasSubTypeIndication(def) ? def.subtypeIndication.typeNames : []);
-    for (const typeName of typeNames) {
-      this.elaborate(typeName);
-    }
-    const typeRefDefinitions = typeNames.flatMap(typeRef => typeRef.definitions);
-    for (const typeDef of typeRefDefinitions) {
+    for (const typeDef of lastPrefix.definitions.flatMap(def => I.implementsIHasSubTypeIndication(def) ? this.getTypeDefinitions(def) : [])) {
       this.elaborateTypeChildren(name, typeDef);
     }
 
@@ -402,8 +385,6 @@ export class ElaborateNames {
 
   }
 
-  elaboratedListUseClauses = new WeakSet<O.OUseClause>();
-
   elaborateUseClauses(parent: O.ObjectBase & I.IHasUseClauses, useClauses: O.OUseClause[]) {
     for (const useClause of useClauses) {
       if (this.elaboratedListUseClauses.has(useClause)) {
@@ -430,7 +411,6 @@ export class ElaborateNames {
       }
     }
   }
-  elaboratedListContextRefs = new WeakSet<O.OContextReference>();
   getUseClauses(parent: O.ObjectBase & (I.IHasUseClauses), parentContexts: O.OContext[] = []) {
     const useClauses = parent.useClauses.slice();
     const contextReferences = I.implementsIHasContextReference(parent) ? parent.contextReferences.slice() : [];

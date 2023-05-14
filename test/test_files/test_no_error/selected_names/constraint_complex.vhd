@@ -1,11 +1,12 @@
 library ieee;
 use ieee.std_logic_1164.all;
+
 use work.pkg_complex1.all;
+
 entity array_subtype_record is
 end entity;
-
 architecture rtl of array_subtype_record is
-  
+
   subtype constrained is rec1(
     elem0(1 downto 0),
     elem1(
