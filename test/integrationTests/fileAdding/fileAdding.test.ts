@@ -1,14 +1,9 @@
-import { afterAll, beforeEach, expect, test } from '@jest/globals';
+import { beforeEach, expect, test } from '@jest/globals';
 import { ProjectParser } from '../../../lib/projectParser';
 import { pathToFileURL } from 'url';
 import { defaultSettingsGetter } from '../../../lib/settings';
-import { VhdlLinter } from '../../../lib/vhdlLinter';
-import { readFileSyncNorm } from '../../readFileSyncNorm';
 import { join } from 'path';
-import { OContext } from '../../../lib/parser/objects';
 import { mkdir, rm, writeFile } from 'fs/promises';
-import { unlink } from 'fs/promises';
-import { writeFileSync } from 'fs';
 async function wait(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -31,7 +26,7 @@ beforeEach(async () => {
       throw err;
     }
   }
-})
+});
 test('testing adding of vhdl files', async () => {
   const testFilePath = join(__dirname, 'testfiles/test_entity.vhd');
 
@@ -46,7 +41,7 @@ test('testing adding of vhdl files', async () => {
 
     })(),
     new Promise(resolve => projectParser.events.once('change', resolve))
-  ])
+  ]);
   expect(projectParser.entities).toHaveLength(1);
   await projectParser.stop();
 });
@@ -64,7 +59,7 @@ test('testing adding of verilog files', async () => {
 
     })(),
     new Promise(resolve => projectParser.events.once('change', resolve))
-  ])
+  ]);
   expect(projectParser.entities).toHaveLength(1);
   await projectParser.stop();
 });
