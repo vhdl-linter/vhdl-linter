@@ -2,6 +2,7 @@ import { Position, Range, TextEdit } from 'vscode-languageserver';
 import { OLexerToken } from '../lexer';
 import { OIDiagnosticWithSolution } from '../vhdlLinter';
 import * as I from './interfaces';
+import { ElaborateNames } from '../elaborate/elaborateNames';
 export class OI implements Position {
   protected i_?: number;
   constructor(public parent: ObjectBase | OFile, i: number, j?: number, k?: number) {
@@ -891,7 +892,7 @@ function* iterateContexts(object: ObjectBase & I.IHasContextReference, directlyV
 }
 // Returns all object visible starting from the startObjects scope.
 // The second parameter defines if the object is directly visible.
-export function* scope(startObject: ObjectBase): Generator<[ObjectBase, boolean]> {
+export function* scope(startObject: ObjectBase, elaborateNames: ElaborateNames|undefined = undefined): Generator<[ObjectBase, boolean]> {
   let current = startObject;
   let directlyVisible = true;
   while (true) {
@@ -899,6 +900,9 @@ export function* scope(startObject: ObjectBase): Generator<[ObjectBase, boolean]
     if (current instanceof OArchitecture && current.correspondingEntity) {
       yield [current.correspondingEntity, directlyVisible];
       directlyVisible = false;
+      if (elaborateNames) {
+        elaborateNames.elaborateUseClauses(current.correspondingEntity.useClauses);
+      }
       for (const useClause of current.correspondingEntity.useClauses) {
         for (const definition of useClause.names.at(-1)?.definitions ?? []) {
           yield [definition, false];
@@ -909,6 +913,9 @@ export function* scope(startObject: ObjectBase): Generator<[ObjectBase, boolean]
     if (current instanceof OPackageBody && current.correspondingPackage) {
       yield [current.correspondingPackage, directlyVisible];
       directlyVisible = false;
+      if (elaborateNames) {
+        elaborateNames.elaborateUseClauses(current.correspondingPackage.useClauses);
+      }
       for (const useClause of current.correspondingPackage.useClauses) {
         for (const definition of useClause.names.at(-1)?.definitions ?? []) {
           yield [definition, false];
@@ -917,6 +924,9 @@ export function* scope(startObject: ObjectBase): Generator<[ObjectBase, boolean]
       yield* iterateContexts(current.correspondingPackage, directlyVisible);
     }
     if (I.implementsIHasUseClause(current)) {
+      if (elaborateNames) {
+        elaborateNames.elaborateUseClauses(current.useClauses);
+      }
       for (const useClause of current.useClauses) {
         for (const definition of useClause.names.at(-1)?.definitions ?? []) {
           yield [definition, false];
