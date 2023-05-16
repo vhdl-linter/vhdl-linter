@@ -63,8 +63,13 @@ export class ProjectParser {
       watcher.on('add', (path) => {
         const handleEvent = async () => {
           const url = pathToFileURL(path);
-          const cachedFile = await (FileCacheVhdl.create(url, this, false));
-          this.cachedFiles.push(cachedFile);
+          if (path.match(/\.s?v$/i)) {
+            const cachedFile = await FileCacheVerilog.create(url, this, false);
+            this.cachedFiles.push(cachedFile);
+          } else {
+            const cachedFile = await FileCacheVhdl.create(url, this, false);
+            this.cachedFiles.push(cachedFile);
+          }
           this.flattenProject();
           this.events.emit('change', 'add', url.toString());
         };
