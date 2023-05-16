@@ -3,7 +3,6 @@ import * as O from "./parser/objects";
 import { OIRange } from "./parser/objects";
 import { OEntity, OFile } from "./parser/objects";
 import { ProjectParser } from "./projectParser";
-import { SettingsGetter } from "./vhdlLinter";
 
 export class VerilogParser {
   file: OFile;
@@ -15,31 +14,33 @@ export class VerilogParser {
     }
   }
   parsePortOrParameter(parent: O.OEntity, str: string, offset: number, parameter: boolean) {
-    const regex = /^(\s*(input|inout|output|parameter)?\s+(supply0|supply1|tri|triand|trior|tri0|tri1|uwire|wire|wand|wor|reg|logic|longint)?\s*(?:\[.*?\])?\s*)([a-zA-Z]\w*)\s*(?:\[.*?\])?\s*(?:=\s*(\S+))?/s;
+    const regex = /^((\s*)(input|inout|output|parameter)?\s+(supply0|supply1|tri|triand|trior|tri0|tri1|uwire|wire|wand|wor|reg|logic|longint)?\s*(?:\[.*?\])?\s*)([a-zA-Z]\w*)\s*(?:\[.*?\])?\s*(?:=\s*(\S+))?/s;
     // groups:
     // 1: everything until name
-    // 2 (optional): in, out, parameter etc.
-    // 3 (optional): net_type
-    // 4: name
-    // 5 (optional): default value
+    // 2: whitespace in the beginning
+    // 3 (optional): in, out, parameter etc.
+    // 4 (optional): net_type
+    // 5: name
+    // 6 (optional): default value
     const match = str.match(regex);
     if (match) {
+      const range = new O.OIRange(this.file, offset + match[2]!.length, offset + str.length);
       let port: O.OGenericConstant | O.OPort;
       if (parameter) {
-        port = new O.OGenericConstant(parent, new O.OIRange(this.file, offset, offset + str.length));
+        port = new O.OGenericConstant(parent, range);
       } else {
-        port = new O.OPort(parent, new O.OIRange(this.file, offset, offset + str.length));
-        if (match[2] === 'output') {
+        port = new O.OPort(parent, range);
+        if (match[3] === 'output') {
           port.direction = 'out';
-        } else if (match[2] === 'inout') {
+        } else if (match[3] === 'inout') {
           port.direction = 'inout';
         } else { // default to input
           port.direction = 'in';
         }
       }
-      port.lexerToken = new OLexerToken(match[4]!, new O.OIRange(this.file, offset + match[1]!.length, offset + match[1]!.length + match[4]!.length), TokenType.implicit, this.file);
-      if (match[5] !== undefined) {
-        port.defaultValue = [new O.OName(port, new OLexerToken(match[5].replace(/=\s*/s, ''), new OIRange(this.file, 0, 0), TokenType.implicit, this.file))];
+      port.lexerToken = new OLexerToken(match[5]!, new O.OIRange(this.file, offset + match[1]!.length, offset + match[1]!.length + match[5]!.length), TokenType.implicit, this.file);
+      if (match[6] !== undefined) {
+        port.defaultValue = [new O.OName(port, new OLexerToken(match[6].replace(/=\s*/s, ''), new OIRange(this.file, 0, 0), TokenType.implicit, this.file))];
       }
       if (port instanceof O.OGenericConstant) {
         parent.generics.push(port);
@@ -49,9 +50,7 @@ export class VerilogParser {
     }
   }
 
-  constructor(public uri: URL, public text: string, public projectParser: ProjectParser,
-    public settingsGetter: SettingsGetter,
-  ) {
+  constructor(public uri: URL, public text: string, public projectParser: ProjectParser) {
     const originalText = this.text;
 
     // remove multi line and single line comments
