@@ -255,7 +255,7 @@ class FileCacheVerilog {
       text = await promises.readFile(this.uri, { encoding: 'utf8' });
       text = text.replaceAll('\r\n', '\n');
     }
-    this.parser = new VerilogParser(this.uri, text, this.projectParser, this.projectParser.settingsGetter);
+    this.parser = new VerilogParser(this.uri, text, this.projectParser);
   }
 
 }

@@ -1,10 +1,11 @@
-import { test } from '@jest/globals';
-import expect from 'expect';
+import { expect, test } from '@jest/globals';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
 import { ProjectParser } from '../../../lib/projectParser';
-import { defaultSettingsWithOverwrite } from '../../../lib/settings';
+import { defaultSettingsGetter, defaultSettingsWithOverwrite } from '../../../lib/settings';
+import { VerilogParser } from '../../../lib/verilogParser';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
+import { makeRangePrintable } from '../../helper';
 import { readFileSyncNorm } from '../../readFileSyncNorm';
 
 
@@ -26,4 +27,14 @@ test.each([true, false])('Testing verilog switch %b', async enableVerilog => {
   }
 
   await projectParser.stop();
+});
+
+test('module_advanced', async () => {
+  const uri = pathToFileURL(join(__dirname, 'module_advanced.sv'));
+  const projectParser = await ProjectParser.create([], '', defaultSettingsGetter);
+  const verilogParser = new VerilogParser(uri, readFileSyncNorm(uri, { encoding: 'utf8' }), projectParser);
+  expect(verilogParser.file.objectList.map(obj => ({
+    range: makeRangePrintable(obj.range),
+    lexerToken: obj.lexerToken?.text
+  }))).toMatchSnapshot();
 });

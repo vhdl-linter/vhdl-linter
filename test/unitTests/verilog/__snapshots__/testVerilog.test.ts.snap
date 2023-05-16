@@ -1,0 +1,62 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`module_advanced 1`] = `
+[
+  {
+    "lexerToken": "switch",
+    "range": "1:1 - 14:1",
+  },
+  {
+    "lexerToken": "g_DEVICES",
+    "range": "2:2 - 2:12",
+  },
+  {
+    "lexerToken": "g_FREQUENCY",
+    "range": "3:2 - 3:14",
+  },
+  {
+    "lexerToken": "g_AVALON_LENGTH",
+    "range": "4:2 - 4:22",
+  },
+  {
+    "lexerToken": undefined,
+    "range": "1:1 - 1:1",
+  },
+  {
+    "lexerToken": "annoying",
+    "range": "5:3 - 5:69",
+  },
+  {
+    "lexerToken": undefined,
+    "range": "1:1 - 1:1",
+  },
+  {
+    "lexerToken": "g_TEST",
+    "range": "6:3 - 7:1",
+  },
+  {
+    "lexerToken": undefined,
+    "range": "1:1 - 1:1",
+  },
+  {
+    "lexerToken": "i_clk",
+    "range": "8:2 - 8:8",
+  },
+  {
+    "lexerToken": "i_portSpeed",
+    "range": "9:3 - 9:47",
+  },
+  {
+    "lexerToken": "o_txReady",
+    "range": "10:3 - 10:44",
+  },
+  {
+    "lexerToken": "i_avalonVec",
+    "range": "11:3 - 11:62",
+  },
+  {
+    "lexerToken": "o_avalonVec",
+    "range": "12:3 - 13:1",
+  },
+]
+`;
