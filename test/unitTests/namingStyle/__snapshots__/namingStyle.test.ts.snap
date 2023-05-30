@@ -202,182 +202,6 @@ exports[`testing naming style for generic with prefix "pre_" and suffix "" 2`] =
 ]
 `;
 
-exports[`testing naming style for in with prefix "" and suffix "_suf" 1`] = `
-[
-  {
-    "code": "0;1",
-    "message": "apple does not match the style settings for input port (name_suf) (naming-style)",
-    "range": {
-      "end": {
-        "character": 9,
-        "line": 2,
-      },
-      "start": {
-        "character": 4,
-        "line": 2,
-      },
-    },
-    "severity": 2,
-  },
-]
-`;
-
-exports[`testing naming style for in with prefix "" and suffix "_suf" 2`] = `
-[
-  {
-    "edit": [
-      {
-        "newText": "apple_suf",
-        "range": {
-          "end": {
-            "character": 9,
-            "line": 2,
-          },
-          "start": {
-            "character": 4,
-            "line": 2,
-          },
-        },
-      },
-    ],
-    "kind": "quickfix",
-    "title": "Replace with 'apple_suf'",
-  },
-]
-`;
-
-exports[`testing naming style for in with prefix "pre_" and suffix "" 1`] = `
-[
-  {
-    "code": "0;1",
-    "message": "apple does not match the style settings for input port (pre_name) (naming-style)",
-    "range": {
-      "end": {
-        "character": 9,
-        "line": 2,
-      },
-      "start": {
-        "character": 4,
-        "line": 2,
-      },
-    },
-    "severity": 2,
-  },
-]
-`;
-
-exports[`testing naming style for in with prefix "pre_" and suffix "" 2`] = `
-[
-  {
-    "edit": [
-      {
-        "newText": "pre_apple",
-        "range": {
-          "end": {
-            "character": 9,
-            "line": 2,
-          },
-          "start": {
-            "character": 4,
-            "line": 2,
-          },
-        },
-      },
-    ],
-    "kind": "quickfix",
-    "title": "Replace with 'pre_apple'",
-  },
-]
-`;
-
-exports[`testing naming style for inout with prefix "" and suffix "_suf" 1`] = `
-[
-  {
-    "code": "0;1",
-    "message": "apple does not match the style settings for inout port (name_suf) (naming-style)",
-    "range": {
-      "end": {
-        "character": 9,
-        "line": 2,
-      },
-      "start": {
-        "character": 4,
-        "line": 2,
-      },
-    },
-    "severity": 2,
-  },
-]
-`;
-
-exports[`testing naming style for inout with prefix "" and suffix "_suf" 2`] = `
-[
-  {
-    "edit": [
-      {
-        "newText": "apple_suf",
-        "range": {
-          "end": {
-            "character": 9,
-            "line": 2,
-          },
-          "start": {
-            "character": 4,
-            "line": 2,
-          },
-        },
-      },
-    ],
-    "kind": "quickfix",
-    "title": "Replace with 'apple_suf'",
-  },
-]
-`;
-
-exports[`testing naming style for inout with prefix "pre_" and suffix "" 1`] = `
-[
-  {
-    "code": "0;1",
-    "message": "apple does not match the style settings for inout port (pre_name) (naming-style)",
-    "range": {
-      "end": {
-        "character": 9,
-        "line": 2,
-      },
-      "start": {
-        "character": 4,
-        "line": 2,
-      },
-    },
-    "severity": 2,
-  },
-]
-`;
-
-exports[`testing naming style for inout with prefix "pre_" and suffix "" 2`] = `
-[
-  {
-    "edit": [
-      {
-        "newText": "pre_apple",
-        "range": {
-          "end": {
-            "character": 9,
-            "line": 2,
-          },
-          "start": {
-            "character": 4,
-            "line": 2,
-          },
-        },
-      },
-    ],
-    "kind": "quickfix",
-    "title": "Replace with 'pre_apple'",
-  },
-]
-`;
-
 exports[`testing naming style for instantiationLabel with prefix "" and suffix "_suf" 1`] = `
 [
   {
@@ -438,11 +262,11 @@ exports[`testing naming style for instantiationLabel with prefix "pre_" and suff
 ]
 `;
 
-exports[`testing naming style for out with prefix "" and suffix "_suf" 1`] = `
+exports[`testing naming style for parameterIn with prefix "" and suffix "_suf" 1`] = `
 [
   {
     "code": "0;1",
-    "message": "apple does not match the style settings for output port (name_suf) (naming-style)",
+    "message": "apple does not match the style settings for input parameter (name_suf) (naming-style)",
     "range": {
       "end": {
         "character": 9,
@@ -458,7 +282,7 @@ exports[`testing naming style for out with prefix "" and suffix "_suf" 1`] = `
 ]
 `;
 
-exports[`testing naming style for out with prefix "" and suffix "_suf" 2`] = `
+exports[`testing naming style for parameterIn with prefix "" and suffix "_suf" 2`] = `
 [
   {
     "edit": [
@@ -482,7 +306,447 @@ exports[`testing naming style for out with prefix "" and suffix "_suf" 2`] = `
 ]
 `;
 
-exports[`testing naming style for out with prefix "pre_" and suffix "" 1`] = `
+exports[`testing naming style for parameterIn with prefix "pre_" and suffix "" 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "apple does not match the style settings for input parameter (pre_name) (naming-style)",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 2,
+      },
+      "start": {
+        "character": 4,
+        "line": 2,
+      },
+    },
+    "severity": 2,
+  },
+]
+`;
+
+exports[`testing naming style for parameterIn with prefix "pre_" and suffix "" 2`] = `
+[
+  {
+    "edit": [
+      {
+        "newText": "pre_apple",
+        "range": {
+          "end": {
+            "character": 9,
+            "line": 2,
+          },
+          "start": {
+            "character": 4,
+            "line": 2,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'pre_apple'",
+  },
+]
+`;
+
+exports[`testing naming style for parameterInout with prefix "" and suffix "_suf" 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "apple does not match the style settings for inout parameter (name_suf) (naming-style)",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 2,
+      },
+      "start": {
+        "character": 4,
+        "line": 2,
+      },
+    },
+    "severity": 2,
+  },
+]
+`;
+
+exports[`testing naming style for parameterInout with prefix "" and suffix "_suf" 2`] = `
+[
+  {
+    "edit": [
+      {
+        "newText": "apple_suf",
+        "range": {
+          "end": {
+            "character": 9,
+            "line": 2,
+          },
+          "start": {
+            "character": 4,
+            "line": 2,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'apple_suf'",
+  },
+]
+`;
+
+exports[`testing naming style for parameterInout with prefix "pre_" and suffix "" 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "apple does not match the style settings for inout parameter (pre_name) (naming-style)",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 2,
+      },
+      "start": {
+        "character": 4,
+        "line": 2,
+      },
+    },
+    "severity": 2,
+  },
+]
+`;
+
+exports[`testing naming style for parameterInout with prefix "pre_" and suffix "" 2`] = `
+[
+  {
+    "edit": [
+      {
+        "newText": "pre_apple",
+        "range": {
+          "end": {
+            "character": 9,
+            "line": 2,
+          },
+          "start": {
+            "character": 4,
+            "line": 2,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'pre_apple'",
+  },
+]
+`;
+
+exports[`testing naming style for parameterOut with prefix "" and suffix "_suf" 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "apple does not match the style settings for output parameter (name_suf) (naming-style)",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 2,
+      },
+      "start": {
+        "character": 4,
+        "line": 2,
+      },
+    },
+    "severity": 2,
+  },
+]
+`;
+
+exports[`testing naming style for parameterOut with prefix "" and suffix "_suf" 2`] = `
+[
+  {
+    "edit": [
+      {
+        "newText": "apple_suf",
+        "range": {
+          "end": {
+            "character": 9,
+            "line": 2,
+          },
+          "start": {
+            "character": 4,
+            "line": 2,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'apple_suf'",
+  },
+]
+`;
+
+exports[`testing naming style for parameterOut with prefix "pre_" and suffix "" 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "apple does not match the style settings for output parameter (pre_name) (naming-style)",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 2,
+      },
+      "start": {
+        "character": 4,
+        "line": 2,
+      },
+    },
+    "severity": 2,
+  },
+]
+`;
+
+exports[`testing naming style for parameterOut with prefix "pre_" and suffix "" 2`] = `
+[
+  {
+    "edit": [
+      {
+        "newText": "pre_apple",
+        "range": {
+          "end": {
+            "character": 9,
+            "line": 2,
+          },
+          "start": {
+            "character": 4,
+            "line": 2,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'pre_apple'",
+  },
+]
+`;
+
+exports[`testing naming style for portIn with prefix "" and suffix "_suf" 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "apple does not match the style settings for input port (name_suf) (naming-style)",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 2,
+      },
+      "start": {
+        "character": 4,
+        "line": 2,
+      },
+    },
+    "severity": 2,
+  },
+]
+`;
+
+exports[`testing naming style for portIn with prefix "" and suffix "_suf" 2`] = `
+[
+  {
+    "edit": [
+      {
+        "newText": "apple_suf",
+        "range": {
+          "end": {
+            "character": 9,
+            "line": 2,
+          },
+          "start": {
+            "character": 4,
+            "line": 2,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'apple_suf'",
+  },
+]
+`;
+
+exports[`testing naming style for portIn with prefix "pre_" and suffix "" 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "apple does not match the style settings for input port (pre_name) (naming-style)",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 2,
+      },
+      "start": {
+        "character": 4,
+        "line": 2,
+      },
+    },
+    "severity": 2,
+  },
+]
+`;
+
+exports[`testing naming style for portIn with prefix "pre_" and suffix "" 2`] = `
+[
+  {
+    "edit": [
+      {
+        "newText": "pre_apple",
+        "range": {
+          "end": {
+            "character": 9,
+            "line": 2,
+          },
+          "start": {
+            "character": 4,
+            "line": 2,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'pre_apple'",
+  },
+]
+`;
+
+exports[`testing naming style for portInout with prefix "" and suffix "_suf" 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "apple does not match the style settings for inout port (name_suf) (naming-style)",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 2,
+      },
+      "start": {
+        "character": 4,
+        "line": 2,
+      },
+    },
+    "severity": 2,
+  },
+]
+`;
+
+exports[`testing naming style for portInout with prefix "" and suffix "_suf" 2`] = `
+[
+  {
+    "edit": [
+      {
+        "newText": "apple_suf",
+        "range": {
+          "end": {
+            "character": 9,
+            "line": 2,
+          },
+          "start": {
+            "character": 4,
+            "line": 2,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'apple_suf'",
+  },
+]
+`;
+
+exports[`testing naming style for portInout with prefix "pre_" and suffix "" 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "apple does not match the style settings for inout port (pre_name) (naming-style)",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 2,
+      },
+      "start": {
+        "character": 4,
+        "line": 2,
+      },
+    },
+    "severity": 2,
+  },
+]
+`;
+
+exports[`testing naming style for portInout with prefix "pre_" and suffix "" 2`] = `
+[
+  {
+    "edit": [
+      {
+        "newText": "pre_apple",
+        "range": {
+          "end": {
+            "character": 9,
+            "line": 2,
+          },
+          "start": {
+            "character": 4,
+            "line": 2,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'pre_apple'",
+  },
+]
+`;
+
+exports[`testing naming style for portOut with prefix "" and suffix "_suf" 1`] = `
+[
+  {
+    "code": "0;1",
+    "message": "apple does not match the style settings for output port (name_suf) (naming-style)",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 2,
+      },
+      "start": {
+        "character": 4,
+        "line": 2,
+      },
+    },
+    "severity": 2,
+  },
+]
+`;
+
+exports[`testing naming style for portOut with prefix "" and suffix "_suf" 2`] = `
+[
+  {
+    "edit": [
+      {
+        "newText": "apple_suf",
+        "range": {
+          "end": {
+            "character": 9,
+            "line": 2,
+          },
+          "start": {
+            "character": 4,
+            "line": 2,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'apple_suf'",
+  },
+]
+`;
+
+exports[`testing naming style for portOut with prefix "pre_" and suffix "" 1`] = `
 [
   {
     "code": "0;1",
@@ -502,7 +766,7 @@ exports[`testing naming style for out with prefix "pre_" and suffix "" 1`] = `
 ]
 `;
 
-exports[`testing naming style for out with prefix "pre_" and suffix "" 2`] = `
+exports[`testing naming style for portOut with prefix "pre_" and suffix "" 2`] = `
 [
   {
     "edit": [

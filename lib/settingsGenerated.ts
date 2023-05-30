@@ -46,12 +46,18 @@ export interface ISettings {
     'constantSuffix': string;
     'genericPrefix': string;
     'genericSuffix': string;
-    'outPrefix': string;
-    'outSuffix': string;
-    'inPrefix': string;
-    'inSuffix': string;
-    'inoutPrefix': string;
-    'inoutSuffix': string;
+    'portOutPrefix': string;
+    'portOutSuffix': string;
+    'portInPrefix': string;
+    'portInSuffix': string;
+    'portInoutPrefix': string;
+    'portInoutSuffix': string;
+    'parameterOutPrefix': string;
+    'parameterOutSuffix': string;
+    'parameterInPrefix': string;
+    'parameterInSuffix': string;
+    'parameterInoutPrefix': string;
+    'parameterInoutSuffix': string;
     'instantiationLabelPrefix': string;
     'instantiationLabelSuffix': string;
     'portOmission': boolean;
@@ -106,12 +112,18 @@ export const defaultSettings: ISettings = {
     'constantSuffix': '',
     'genericPrefix': '',
     'genericSuffix': '',
-    'outPrefix': '',
-    'outSuffix': '',
-    'inPrefix': '',
-    'inSuffix': '',
-    'inoutPrefix': '',
-    'inoutSuffix': '',
+    'portOutPrefix': '',
+    'portOutSuffix': '',
+    'portInPrefix': '',
+    'portInSuffix': '',
+    'portInoutPrefix': '',
+    'portInoutSuffix': '',
+    'parameterOutPrefix': '',
+    'parameterOutSuffix': '',
+    'parameterInPrefix': '',
+    'parameterInSuffix': '',
+    'parameterInoutPrefix': '',
+    'parameterInoutSuffix': '',
     'instantiationLabelPrefix': '',
     'instantiationLabelSuffix': '',
     'portOmission': false,
