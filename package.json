@@ -384,37 +384,73 @@
 						"scope": "window",
 						"type": "string",
 						"default": "",
-						"description": "Prefix for outputs (can be left empty)."
+						"description": "Prefix for port outputs (can be left empty)."
 					},
 					"VhdlLinter.style.outSuffix": {
 						"scope": "window",
 						"type": "string",
 						"default": "",
-						"description": "Suffix for outputs (can be left empty)."
+						"description": "Suffix for port outputs (can be left empty)."
 					},
 					"VhdlLinter.style.inPrefix": {
 						"scope": "window",
 						"type": "string",
 						"default": "",
-						"description": "Prefix for inputs (can be left empty)."
+						"description": "Prefix for port inputs (can be left empty)."
 					},
 					"VhdlLinter.style.inSuffix": {
 						"scope": "window",
 						"type": "string",
 						"default": "",
-						"description": "Suffix for inputs (can be left empty)."
+						"description": "Suffix for port inputs (can be left empty)."
 					},
 					"VhdlLinter.style.inoutPrefix": {
 						"scope": "window",
 						"type": "string",
 						"default": "",
-						"description": "A Prefix for inouts (can be left empty)."
+						"description": "Prefix for port inouts (can be left empty)."
 					},
 					"VhdlLinter.style.inoutSuffix": {
 						"scope": "window",
 						"type": "string",
 						"default": "",
-						"description": "Suffix for inouts (can be left empty)."
+						"description": "Suffix for port inouts (can be left empty)."
+					},
+					"VhdlLinter.style.parameterOutPrefix": {
+						"scope": "window",
+						"type": "string",
+						"default": "",
+						"description": "Prefix for parameter outputs (can be left empty)."
+					},
+					"VhdlLinter.style.parameterOutSuffix": {
+						"scope": "window",
+						"type": "string",
+						"default": "",
+						"description": "Suffix for parameter outputs (can be left empty)."
+					},
+					"VhdlLinter.style.parameterInPrefix": {
+						"scope": "window",
+						"type": "string",
+						"default": "",
+						"description": "Prefix for parameter inputs (can be left empty)."
+					},
+					"VhdlLinter.style.parameterInSuffix": {
+						"scope": "window",
+						"type": "string",
+						"default": "",
+						"description": "Suffix for parameter inputs (can be left empty)."
+					},
+					"VhdlLinter.style.parameterInoutPrefix": {
+						"scope": "window",
+						"type": "string",
+						"default": "",
+						"description": "A Prefix for parameter inouts (can be left empty)."
+					},
+					"VhdlLinter.style.parameterInoutSuffix": {
+						"scope": "window",
+						"type": "string",
+						"default": "",
+						"description": "Suffix for parameter inouts (can be left empty)."
 					},
 					"VhdlLinter.style.instantiationLabelPrefix": {
 						"scope": "window",
@@ -432,7 +468,7 @@
 						"scope": "window",
 						"type": "boolean",
 						"default": false,
-						"description": "Enforce port ommision rule: Ports may not be implicetly left unconnected. Explicit open must be used."
+						"description": "Enforce port omission rule: Ports may not be implicitly left unconnected. Explicit open must be used."
 					}
 				}
 			}

@@ -52,6 +52,12 @@ export interface ISettings {
     'inSuffix': string;
     'inoutPrefix': string;
     'inoutSuffix': string;
+    'parameterOutPrefix': string;
+    'parameterOutSuffix': string;
+    'parameterInPrefix': string;
+    'parameterInSuffix': string;
+    'parameterInoutPrefix': string;
+    'parameterInoutSuffix': string;
     'instantiationLabelPrefix': string;
     'instantiationLabelSuffix': string;
     'portOmission': boolean;
@@ -112,6 +118,12 @@ export const defaultSettings: ISettings = {
     'inSuffix': '',
     'inoutPrefix': '',
     'inoutSuffix': '',
+    'parameterOutPrefix': '',
+    'parameterOutSuffix': '',
+    'parameterInPrefix': '',
+    'parameterInSuffix': '',
+    'parameterInoutPrefix': '',
+    'parameterInoutSuffix': '',
     'instantiationLabelPrefix': '',
     'instantiationLabelSuffix': '',
     'portOmission': false,

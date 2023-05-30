@@ -25,12 +25,22 @@ export class RuleNamingStyle extends RuleBase implements IRule {
     const styleSettings = this.settings.style;
     for (const obj of this.file.objectList) {
       if (obj instanceof O.OPort) {
-        if (obj.direction === 'in') {
-          this.checkObject(obj.lexerToken, styleSettings.inPrefix, styleSettings.inSuffix, 'input port');
-        } else if (obj.direction === 'out') {
-          this.checkObject(obj.lexerToken, styleSettings.outPrefix, styleSettings.outSuffix, 'output port');
-        } else if (obj.direction === 'inout') {
-          this.checkObject(obj.lexerToken, styleSettings.inoutPrefix, styleSettings.inoutSuffix, 'inout port');
+        if (obj.parent instanceof O.OEntity) {
+          if (obj.direction === 'in') {
+            this.checkObject(obj.lexerToken, styleSettings.inPrefix, styleSettings.inSuffix, 'input port');
+          } else if (obj.direction === 'out') {
+            this.checkObject(obj.lexerToken, styleSettings.outPrefix, styleSettings.outSuffix, 'output port');
+          } else if (obj.direction === 'inout') {
+            this.checkObject(obj.lexerToken, styleSettings.inoutPrefix, styleSettings.inoutSuffix, 'inout port');
+          }
+        } else {
+          if (obj.direction === 'in') {
+            this.checkObject(obj.lexerToken, styleSettings.parameterInPrefix, styleSettings.parameterInSuffix, 'input parameter');
+          } else if (obj.direction === 'out') {
+            this.checkObject(obj.lexerToken, styleSettings.parameterOutPrefix, styleSettings.parameterOutSuffix, 'output parameter');
+          } else if (obj.direction === 'inout') {
+            this.checkObject(obj.lexerToken, styleSettings.parameterInoutPrefix, styleSettings.parameterInoutSuffix, 'inout parameter');
+          }
         }
       } else if (obj instanceof O.OInstantiation && obj.label !== undefined) {
         this.checkObject(obj.label, styleSettings.instantiationLabelPrefix, styleSettings.instantiationLabelSuffix, 'instantiation label');

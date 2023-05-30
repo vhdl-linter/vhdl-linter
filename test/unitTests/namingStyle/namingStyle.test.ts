@@ -13,6 +13,9 @@ test.each([
   'out',
   'in',
   'inout',
+  'parameterOut',
+  'parameterIn',
+  'parameterInout',
   'instantiationLabel',
   'unused'
 ].flatMap(file => [[file, 'pre_', ''], [file, '', '_suf']]))('testing naming style for %s with prefix "%s" and suffix "%s"', async (file: string, prefix: string, suffix: string) => {
