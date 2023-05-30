@@ -27,11 +27,11 @@ export class RuleNamingStyle extends RuleBase implements IRule {
       if (obj instanceof O.OPort) {
         if (obj.parent instanceof O.OEntity) {
           if (obj.direction === 'in') {
-            this.checkObject(obj.lexerToken, styleSettings.portInPrefix, styleSettings.portInSuffix, 'input port');
+            this.checkObject(obj.lexerToken, styleSettings.inPrefix, styleSettings.inSuffix, 'input port');
           } else if (obj.direction === 'out') {
-            this.checkObject(obj.lexerToken, styleSettings.portOutPrefix, styleSettings.portOutSuffix, 'output port');
+            this.checkObject(obj.lexerToken, styleSettings.outPrefix, styleSettings.outSuffix, 'output port');
           } else if (obj.direction === 'inout') {
-            this.checkObject(obj.lexerToken, styleSettings.portInoutPrefix, styleSettings.portInoutSuffix, 'inout port');
+            this.checkObject(obj.lexerToken, styleSettings.inoutPrefix, styleSettings.inoutSuffix, 'inout port');
           }
         } else {
           if (obj.direction === 'in') {

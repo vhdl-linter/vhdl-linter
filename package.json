@@ -380,37 +380,37 @@
 						"default": "",
 						"description": "Suffix for generics (can be left empty)"
 					},
-					"VhdlLinter.style.portOutPrefix": {
+					"VhdlLinter.style.outPrefix": {
 						"scope": "window",
 						"type": "string",
 						"default": "",
 						"description": "Prefix for port outputs (can be left empty)."
 					},
-					"VhdlLinter.style.portOutSuffix": {
+					"VhdlLinter.style.outSuffix": {
 						"scope": "window",
 						"type": "string",
 						"default": "",
 						"description": "Suffix for port outputs (can be left empty)."
 					},
-					"VhdlLinter.style.portInPrefix": {
+					"VhdlLinter.style.inPrefix": {
 						"scope": "window",
 						"type": "string",
 						"default": "",
 						"description": "Prefix for port inputs (can be left empty)."
 					},
-					"VhdlLinter.style.portInSuffix": {
+					"VhdlLinter.style.inSuffix": {
 						"scope": "window",
 						"type": "string",
 						"default": "",
 						"description": "Suffix for port inputs (can be left empty)."
 					},
-					"VhdlLinter.style.portInoutPrefix": {
+					"VhdlLinter.style.inoutPrefix": {
 						"scope": "window",
 						"type": "string",
 						"default": "",
 						"description": "Prefix for port inouts (can be left empty)."
 					},
-					"VhdlLinter.style.portInoutSuffix": {
+					"VhdlLinter.style.inoutSuffix": {
 						"scope": "window",
 						"type": "string",
 						"default": "",
@@ -468,7 +468,7 @@
 						"scope": "window",
 						"type": "boolean",
 						"default": false,
-						"description": "Enforce port port ommision rule: Ports may not be implicetly left unconnected. Explicit open must be used."
+						"description": "Enforce port omission rule: Ports may not be implicitly left unconnected. Explicit open must be used."
 					}
 				}
 			}

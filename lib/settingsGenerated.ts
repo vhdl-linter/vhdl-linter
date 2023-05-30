@@ -46,12 +46,12 @@ export interface ISettings {
     'constantSuffix': string;
     'genericPrefix': string;
     'genericSuffix': string;
-    'portOutPrefix': string;
-    'portOutSuffix': string;
-    'portInPrefix': string;
-    'portInSuffix': string;
-    'portInoutPrefix': string;
-    'portInoutSuffix': string;
+    'outPrefix': string;
+    'outSuffix': string;
+    'inPrefix': string;
+    'inSuffix': string;
+    'inoutPrefix': string;
+    'inoutSuffix': string;
     'parameterOutPrefix': string;
     'parameterOutSuffix': string;
     'parameterInPrefix': string;
@@ -112,12 +112,12 @@ export const defaultSettings: ISettings = {
     'constantSuffix': '',
     'genericPrefix': '',
     'genericSuffix': '',
-    'portOutPrefix': '',
-    'portOutSuffix': '',
-    'portInPrefix': '',
-    'portInSuffix': '',
-    'portInoutPrefix': '',
-    'portInoutSuffix': '',
+    'outPrefix': '',
+    'outSuffix': '',
+    'inPrefix': '',
+    'inSuffix': '',
+    'inoutPrefix': '',
+    'inoutSuffix': '',
     'parameterOutPrefix': '',
     'parameterOutSuffix': '',
     'parameterInPrefix': '',
