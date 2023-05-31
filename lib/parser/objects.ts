@@ -721,6 +721,12 @@ export class OExit extends ObjectBase implements I.IMayHaveLabel {
   names: OName[] = [];
   labelName?: OLabelName;
 }
+export class ONext extends ObjectBase implements I.IMayHaveLabel {
+  label?: OLexerToken;
+  labelLinks: OLabelName[] = [];
+  names: OName[] = [];
+  labelName?: OLabelName;
+}
 
 export class OReport extends ObjectBase implements I.IMayHaveLabel {
   names: OName[] = [];

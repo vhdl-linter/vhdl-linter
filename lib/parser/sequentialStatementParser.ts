@@ -65,7 +65,7 @@ export class SequentialStatementParser extends ParserBase {
       } else if (nextToken.getLText() === 'null') {
         this.advanceSemicolon();
       } else if (nextToken.getLText() === 'next') {
-        this.advanceSemicolon();
+        statements.push(this.parseNext(parent, label));
       } else if (nextToken.getLText() === 'while') {
         statements.push(this.parseWhile(parent, label));
       } else if (this.checkIfIsAssignment(statementText)) {
@@ -174,29 +174,40 @@ export class SequentialStatementParser extends ParserBase {
     this.expect(';');
     return assignment;
   }
-  parseExit(parent: O.OSequenceOfStatements | O.OIf, label?: OLexerToken) {
-    this.expect('exit');
-    const exitStatement = new O.OExit(parent, this.getToken().range.copyExtendEndOfLine());
-    exitStatement.label = label;
+  parseLoopWhen(statement: O.OExit|O.ONext) {
+
     const labelToken = this.getToken().isIdentifier() ? this.consumeToken() : undefined;
     if (labelToken) {
-      exitStatement.labelName = new O.OLabelName(exitStatement, labelToken);
+      statement.labelName = new O.OLabelName(statement, labelToken);
     }
-    const  whenToken = this.maybe('when');
+    const whenToken = this.maybe('when');
     if (whenToken) {
       const [tokens] = this.advanceParenthesisAware([';'], true, false);
       if (tokens.length > 0) {
-        exitStatement.names.push(...new ExpressionParser(this.state, exitStatement, tokens).parse());
+        statement.names.push(...new ExpressionParser(this.state, statement, tokens).parse());
       } else {
         this.state.messages.push({
           message: 'Condition expected',
           range: whenToken.range.copyExtendEndOfLine()
         });
-        exitStatement.names = [];
+        statement.names = [];
       }
     }
     this.expect(';');
-    return exitStatement;
+    return statement;
+  }
+  
+  parseExit(parent: O.OSequenceOfStatements | O.OIf, label?: OLexerToken) {
+    this.expect('exit');
+    const exitStatement = new O.OExit(parent, this.getToken().range.copyExtendEndOfLine());
+    exitStatement.label = label;
+    return this.parseLoopWhen(exitStatement);
+  }
+  parseNext(parent: O.OSequenceOfStatements | O.OIf, label?: OLexerToken) {
+    this.expect('next');
+    const nextStatement = new O.ONext(parent, this.getToken().range.copyExtendEndOfLine());
+    nextStatement.label = label;
+    return this.parseLoopWhen(nextStatement);
   }
   parseWhile(parent: O.OSequenceOfStatements | O.OIf, label?: OLexerToken): O.OWhileLoop {
     const whileLoop = new O.OWhileLoop(parent, this.getToken().range.copyExtendEndOfLine());
