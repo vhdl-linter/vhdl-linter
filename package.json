@@ -217,6 +217,12 @@
 						"description": "Enable the rule to check if objects match the prefix/suffix given in VhdlLinter.style.*.",
 						"default": true
 					},
+					"VhdlLinter.rules.casing-style": {
+						"scope": "window",
+						"type": "boolean",
+						"description": "Enable the rule to check if objects match the casing given in VhdlLinter.style.*.",
+						"default": true
+					},
 					"VhdlLinter.rules.type-checking": {
 						"scope": "window",
 						"type": "boolean",
@@ -356,6 +362,32 @@
 						"default": "",
 						"description": "Suffix for variables (can be left empty)"
 					},
+					"VhdlLinter.style.objectCasing": {
+						"scope": "window",
+						"type": "string",
+						"enum": [
+							"snake_case",
+							"PascalCase",
+							"camelCase",
+							"CONSTANT_CASE",
+							"ignore"
+						],
+						"default": "ignore",
+						"description": "Casing for all non-constant objects (signals, variables, entities etc.)."
+					},
+					"VhdlLinter.style.constantGenericCasing": {
+						"scope": "window",
+						"type": "string",
+						"enum": [
+							"snake_case",
+							"PascalCase",
+							"camelCase",
+							"CONSTANT_CASE",
+							"ignore"
+						],
+						"default": "ignore",
+						"description": "Casing for constants and generics."
+					},
 					"VhdlLinter.style.constantPrefix": {
 						"scope": "window",
 						"type": "string",
@@ -452,6 +484,17 @@
 						"default": "",
 						"description": "Suffix for parameter inouts (can be left empty)."
 					},
+					"VhdlLinter.style.labelCasing": {
+						"scope": "window",
+						"type": "string",
+						"enum": [
+							"lowercase",
+							"UPPERCASE",
+							"ignore"
+						],
+						"default": "lowercase",
+						"description": "Casing for labels."
+					},
 					"VhdlLinter.style.instantiationLabelPrefix": {
 						"scope": "window",
 						"type": "string",
@@ -486,6 +529,7 @@
 		"settings": "ts-node generate-settings.ts"
 	},
 	"dependencies": {
+		"case": "^1.6.3",
 		"chokidar": "^3.5.3",
 		"string-similarity": "^3.0.0",
 		"vscode-languageclient": "^8.0.2",
