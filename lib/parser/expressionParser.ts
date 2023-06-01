@@ -420,7 +420,7 @@ export class ExpressionParser {
           new O.OAggregate(this.parent, new OLexerToken('', this.tokens[0]!.range, TokenType.implicit, this.parent.rootFile));
 
         this.increaseToken();
-        const innerNames = this.innerConstraint(names.at(-1)!);
+        const innerNames = this.innerConstraint(elementParent);
         for (const innerName of innerNames) {
           innerName.parent = elementParent;
           if (parent.children.length > 0) {
