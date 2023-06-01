@@ -14,7 +14,7 @@ test.each([
   [file, 'camelCase'],
   [file, 'CONSTANT_CASE'],
   [file, 'ignore']
-]))('testing casing style for %s with %s"', async (file: string, casing: 'lowercase' | 'UPPERCASE' | 'ignore') => {
+]))('testing casing style for %s with %s"', async (file: string, casing: 'snake_case' | 'PascalCase' | 'camelCase' | 'CONSTANT_CASE' | 'ignore') => {
   const overwrite: Record<string, string> = {};
   overwrite[`${file}Casing`] = casing;
   const getter = defaultSettingsWithOverwrite({
