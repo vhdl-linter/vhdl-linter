@@ -2,7 +2,7 @@ import { DiagnosticSeverity } from "vscode-languageserver";
 import { OLexerToken, TokenType } from "../lexer";
 import * as I from "../parser/interfaces";
 import * as O from "../parser/objects";
-import { IRule, RuleBase, codeActionFromNewName } from "./rulesBase";
+import { IRule, RuleBase, renameCodeAction } from "./rulesBase";
 import * as Case from "case";
 
 export class RuleCasingStyle extends RuleBase implements IRule {
@@ -30,7 +30,7 @@ export class RuleCasingStyle extends RuleBase implements IRule {
     if (newName === token.text) {
       return;
     }
-    const code = codeActionFromNewName(token, newName, this.vhdlLinter);
+    const code = renameCodeAction(token, newName, this.vhdlLinter);
     if (code === undefined) {
       // token matches prefix and suffix
       return;

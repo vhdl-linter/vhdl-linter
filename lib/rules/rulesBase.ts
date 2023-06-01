@@ -32,9 +32,9 @@ export function codeActionFromPrefixSuffix(token: OLexerToken, prefix: string, s
   if (suffix.length !== 0 && newName.endsWith(suffix) === false) {
     newName = `${newName}${suffix}`;
   }
-  return codeActionFromNewName(token, newName, linter);
+  return renameCodeAction(token, newName, linter);
 }
-export function codeActionFromNewName(token: OLexerToken, newName: string, linter: VhdlLinter) {
+export function renameCodeAction(token: OLexerToken, newName: string, linter: VhdlLinter) {
   if (newName === token.text) {
     return;
   }
