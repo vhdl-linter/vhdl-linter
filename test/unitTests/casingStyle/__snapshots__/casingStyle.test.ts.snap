@@ -1,0 +1,1067 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`testing casing style for constantGeneric with CONSTANT_CASE" 1`] = `
+[
+  {
+    "code": "4;5",
+    "message": "i_snake_case does not match the style settings (CONSTANT_CASE) (casing-style)",
+    "range": {
+      "end": {
+        "character": 16,
+        "line": 2,
+      },
+      "start": {
+        "character": 4,
+        "line": 2,
+      },
+    },
+    "severity": 3,
+  },
+  {
+    "code": "6;7",
+    "message": "InPascalCase does not match the style settings (CONSTANT_CASE) (casing-style)",
+    "range": {
+      "end": {
+        "character": 16,
+        "line": 3,
+      },
+      "start": {
+        "character": 4,
+        "line": 3,
+      },
+    },
+    "severity": 3,
+  },
+  {
+    "code": "8;9",
+    "message": "camelCase does not match the style settings (CONSTANT_CASE) (casing-style)",
+    "range": {
+      "end": {
+        "character": 22,
+        "line": 7,
+      },
+      "start": {
+        "character": 13,
+        "line": 7,
+      },
+    },
+    "severity": 3,
+  },
+]
+`;
+
+exports[`testing casing style for constantGeneric with CONSTANT_CASE" 2`] = `
+[
+  {
+    "edit": [
+      {
+        "newText": "I_SNAKE_CASE",
+        "range": {
+          "end": {
+            "character": 16,
+            "line": 2,
+          },
+          "start": {
+            "character": 4,
+            "line": 2,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'I_SNAKE_CASE'",
+  },
+  {
+    "edit": [
+      {
+        "newText": "IN_PASCAL_CASE",
+        "range": {
+          "end": {
+            "character": 16,
+            "line": 3,
+          },
+          "start": {
+            "character": 4,
+            "line": 3,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'IN_PASCAL_CASE'",
+  },
+  {
+    "edit": [
+      {
+        "newText": "CAMEL_CASE",
+        "range": {
+          "end": {
+            "character": 22,
+            "line": 7,
+          },
+          "start": {
+            "character": 13,
+            "line": 7,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'CAMEL_CASE'",
+  },
+]
+`;
+
+exports[`testing casing style for constantGeneric with PascalCase" 1`] = `
+[
+  {
+    "code": "4;5",
+    "message": "i_snake_case does not match the style settings (PascalCase) (casing-style)",
+    "range": {
+      "end": {
+        "character": 16,
+        "line": 2,
+      },
+      "start": {
+        "character": 4,
+        "line": 2,
+      },
+    },
+    "severity": 3,
+  },
+  {
+    "code": "6;7",
+    "message": "camelCase does not match the style settings (PascalCase) (casing-style)",
+    "range": {
+      "end": {
+        "character": 22,
+        "line": 7,
+      },
+      "start": {
+        "character": 13,
+        "line": 7,
+      },
+    },
+    "severity": 3,
+  },
+  {
+    "code": "8;9",
+    "message": "CONSTANT_CASE does not match the style settings (PascalCase) (casing-style)",
+    "range": {
+      "end": {
+        "character": 26,
+        "line": 8,
+      },
+      "start": {
+        "character": 13,
+        "line": 8,
+      },
+    },
+    "severity": 3,
+  },
+]
+`;
+
+exports[`testing casing style for constantGeneric with PascalCase" 2`] = `
+[
+  {
+    "edit": [
+      {
+        "newText": "ISnakeCase",
+        "range": {
+          "end": {
+            "character": 16,
+            "line": 2,
+          },
+          "start": {
+            "character": 4,
+            "line": 2,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'ISnakeCase'",
+  },
+  {
+    "edit": [
+      {
+        "newText": "CamelCase",
+        "range": {
+          "end": {
+            "character": 22,
+            "line": 7,
+          },
+          "start": {
+            "character": 13,
+            "line": 7,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'CamelCase'",
+  },
+  {
+    "edit": [
+      {
+        "newText": "ConstantCase",
+        "range": {
+          "end": {
+            "character": 26,
+            "line": 8,
+          },
+          "start": {
+            "character": 13,
+            "line": 8,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'ConstantCase'",
+  },
+]
+`;
+
+exports[`testing casing style for constantGeneric with camelCase" 1`] = `
+[
+  {
+    "code": "4;5",
+    "message": "i_snake_case does not match the style settings (camelCase) (casing-style)",
+    "range": {
+      "end": {
+        "character": 16,
+        "line": 2,
+      },
+      "start": {
+        "character": 4,
+        "line": 2,
+      },
+    },
+    "severity": 3,
+  },
+  {
+    "code": "6;7",
+    "message": "InPascalCase does not match the style settings (camelCase) (casing-style)",
+    "range": {
+      "end": {
+        "character": 16,
+        "line": 3,
+      },
+      "start": {
+        "character": 4,
+        "line": 3,
+      },
+    },
+    "severity": 3,
+  },
+  {
+    "code": "8;9",
+    "message": "CONSTANT_CASE does not match the style settings (camelCase) (casing-style)",
+    "range": {
+      "end": {
+        "character": 26,
+        "line": 8,
+      },
+      "start": {
+        "character": 13,
+        "line": 8,
+      },
+    },
+    "severity": 3,
+  },
+]
+`;
+
+exports[`testing casing style for constantGeneric with camelCase" 2`] = `
+[
+  {
+    "edit": [
+      {
+        "newText": "iSnakeCase",
+        "range": {
+          "end": {
+            "character": 16,
+            "line": 2,
+          },
+          "start": {
+            "character": 4,
+            "line": 2,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'iSnakeCase'",
+  },
+  {
+    "edit": [
+      {
+        "newText": "inPascalCase",
+        "range": {
+          "end": {
+            "character": 16,
+            "line": 3,
+          },
+          "start": {
+            "character": 4,
+            "line": 3,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'inPascalCase'",
+  },
+  {
+    "edit": [
+      {
+        "newText": "constantCase",
+        "range": {
+          "end": {
+            "character": 26,
+            "line": 8,
+          },
+          "start": {
+            "character": 13,
+            "line": 8,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'constantCase'",
+  },
+]
+`;
+
+exports[`testing casing style for constantGeneric with ignore" 1`] = `[]`;
+
+exports[`testing casing style for constantGeneric with ignore" 2`] = `[]`;
+
+exports[`testing casing style for constantGeneric with snake_case" 1`] = `
+[
+  {
+    "code": "4;5",
+    "message": "InPascalCase does not match the style settings (snake_case) (casing-style)",
+    "range": {
+      "end": {
+        "character": 16,
+        "line": 3,
+      },
+      "start": {
+        "character": 4,
+        "line": 3,
+      },
+    },
+    "severity": 3,
+  },
+  {
+    "code": "6;7",
+    "message": "camelCase does not match the style settings (snake_case) (casing-style)",
+    "range": {
+      "end": {
+        "character": 22,
+        "line": 7,
+      },
+      "start": {
+        "character": 13,
+        "line": 7,
+      },
+    },
+    "severity": 3,
+  },
+  {
+    "code": "8;9",
+    "message": "CONSTANT_CASE does not match the style settings (snake_case) (casing-style)",
+    "range": {
+      "end": {
+        "character": 26,
+        "line": 8,
+      },
+      "start": {
+        "character": 13,
+        "line": 8,
+      },
+    },
+    "severity": 3,
+  },
+]
+`;
+
+exports[`testing casing style for constantGeneric with snake_case" 2`] = `
+[
+  {
+    "edit": [
+      {
+        "newText": "in_pascal_case",
+        "range": {
+          "end": {
+            "character": 16,
+            "line": 3,
+          },
+          "start": {
+            "character": 4,
+            "line": 3,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'in_pascal_case'",
+  },
+  {
+    "edit": [
+      {
+        "newText": "camel_case",
+        "range": {
+          "end": {
+            "character": 22,
+            "line": 7,
+          },
+          "start": {
+            "character": 13,
+            "line": 7,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'camel_case'",
+  },
+  {
+    "edit": [
+      {
+        "newText": "constant_case",
+        "range": {
+          "end": {
+            "character": 26,
+            "line": 8,
+          },
+          "start": {
+            "character": 13,
+            "line": 8,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'constant_case'",
+  },
+]
+`;
+
+exports[`testing casing style for object with CONSTANT_CASE" 1`] = `
+[
+  {
+    "code": "4;5",
+    "message": "ent does not match the style settings (CONSTANT_CASE) (casing-style)",
+    "range": {
+      "end": {
+        "character": 10,
+        "line": 0,
+      },
+      "start": {
+        "character": 7,
+        "line": 0,
+      },
+    },
+    "severity": 3,
+  },
+  {
+    "code": "6;7",
+    "message": "i_snake_case does not match the style settings (CONSTANT_CASE) (casing-style)",
+    "range": {
+      "end": {
+        "character": 16,
+        "line": 2,
+      },
+      "start": {
+        "character": 4,
+        "line": 2,
+      },
+    },
+    "severity": 3,
+  },
+  {
+    "code": "8;9",
+    "message": "InPascalCase does not match the style settings (CONSTANT_CASE) (casing-style)",
+    "range": {
+      "end": {
+        "character": 16,
+        "line": 3,
+      },
+      "start": {
+        "character": 4,
+        "line": 3,
+      },
+    },
+    "severity": 3,
+  },
+  {
+    "code": "10;11",
+    "message": "arch does not match the style settings (CONSTANT_CASE) (casing-style)",
+    "range": {
+      "end": {
+        "character": 17,
+        "line": 6,
+      },
+      "start": {
+        "character": 13,
+        "line": 6,
+      },
+    },
+    "severity": 3,
+  },
+  {
+    "code": "12;13",
+    "message": "camelCase does not match the style settings (CONSTANT_CASE) (casing-style)",
+    "range": {
+      "end": {
+        "character": 20,
+        "line": 7,
+      },
+      "start": {
+        "character": 11,
+        "line": 7,
+      },
+    },
+    "severity": 3,
+  },
+]
+`;
+
+exports[`testing casing style for object with CONSTANT_CASE" 2`] = `
+[
+  {
+    "edit": [
+      {
+        "newText": "ENT",
+        "range": {
+          "end": {
+            "character": 10,
+            "line": 0,
+          },
+          "start": {
+            "character": 7,
+            "line": 0,
+          },
+        },
+      },
+      {
+        "newText": "ENT",
+        "range": {
+          "end": {
+            "character": 24,
+            "line": 6,
+          },
+          "start": {
+            "character": 21,
+            "line": 6,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'ENT'",
+  },
+  {
+    "edit": [
+      {
+        "newText": "I_SNAKE_CASE",
+        "range": {
+          "end": {
+            "character": 16,
+            "line": 2,
+          },
+          "start": {
+            "character": 4,
+            "line": 2,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'I_SNAKE_CASE'",
+  },
+  {
+    "edit": [
+      {
+        "newText": "IN_PASCAL_CASE",
+        "range": {
+          "end": {
+            "character": 16,
+            "line": 3,
+          },
+          "start": {
+            "character": 4,
+            "line": 3,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'IN_PASCAL_CASE'",
+  },
+  {
+    "edit": [
+      {
+        "newText": "ARCH",
+        "range": {
+          "end": {
+            "character": 17,
+            "line": 6,
+          },
+          "start": {
+            "character": 13,
+            "line": 6,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'ARCH'",
+  },
+  {
+    "edit": [
+      {
+        "newText": "CAMEL_CASE",
+        "range": {
+          "end": {
+            "character": 20,
+            "line": 7,
+          },
+          "start": {
+            "character": 11,
+            "line": 7,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'CAMEL_CASE'",
+  },
+]
+`;
+
+exports[`testing casing style for object with PascalCase" 1`] = `
+[
+  {
+    "code": "4;5",
+    "message": "ent does not match the style settings (PascalCase) (casing-style)",
+    "range": {
+      "end": {
+        "character": 10,
+        "line": 0,
+      },
+      "start": {
+        "character": 7,
+        "line": 0,
+      },
+    },
+    "severity": 3,
+  },
+  {
+    "code": "6;7",
+    "message": "i_snake_case does not match the style settings (PascalCase) (casing-style)",
+    "range": {
+      "end": {
+        "character": 16,
+        "line": 2,
+      },
+      "start": {
+        "character": 4,
+        "line": 2,
+      },
+    },
+    "severity": 3,
+  },
+  {
+    "code": "8;9",
+    "message": "arch does not match the style settings (PascalCase) (casing-style)",
+    "range": {
+      "end": {
+        "character": 17,
+        "line": 6,
+      },
+      "start": {
+        "character": 13,
+        "line": 6,
+      },
+    },
+    "severity": 3,
+  },
+  {
+    "code": "10;11",
+    "message": "camelCase does not match the style settings (PascalCase) (casing-style)",
+    "range": {
+      "end": {
+        "character": 20,
+        "line": 7,
+      },
+      "start": {
+        "character": 11,
+        "line": 7,
+      },
+    },
+    "severity": 3,
+  },
+  {
+    "code": "12;13",
+    "message": "CONSTANT_CASE does not match the style settings (PascalCase) (casing-style)",
+    "range": {
+      "end": {
+        "character": 24,
+        "line": 8,
+      },
+      "start": {
+        "character": 11,
+        "line": 8,
+      },
+    },
+    "severity": 3,
+  },
+]
+`;
+
+exports[`testing casing style for object with PascalCase" 2`] = `
+[
+  {
+    "edit": [
+      {
+        "newText": "Ent",
+        "range": {
+          "end": {
+            "character": 10,
+            "line": 0,
+          },
+          "start": {
+            "character": 7,
+            "line": 0,
+          },
+        },
+      },
+      {
+        "newText": "Ent",
+        "range": {
+          "end": {
+            "character": 24,
+            "line": 6,
+          },
+          "start": {
+            "character": 21,
+            "line": 6,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'Ent'",
+  },
+  {
+    "edit": [
+      {
+        "newText": "ISnakeCase",
+        "range": {
+          "end": {
+            "character": 16,
+            "line": 2,
+          },
+          "start": {
+            "character": 4,
+            "line": 2,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'ISnakeCase'",
+  },
+  {
+    "edit": [
+      {
+        "newText": "Arch",
+        "range": {
+          "end": {
+            "character": 17,
+            "line": 6,
+          },
+          "start": {
+            "character": 13,
+            "line": 6,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'Arch'",
+  },
+  {
+    "edit": [
+      {
+        "newText": "CamelCase",
+        "range": {
+          "end": {
+            "character": 20,
+            "line": 7,
+          },
+          "start": {
+            "character": 11,
+            "line": 7,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'CamelCase'",
+  },
+  {
+    "edit": [
+      {
+        "newText": "ConstantCase",
+        "range": {
+          "end": {
+            "character": 24,
+            "line": 8,
+          },
+          "start": {
+            "character": 11,
+            "line": 8,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'ConstantCase'",
+  },
+]
+`;
+
+exports[`testing casing style for object with camelCase" 1`] = `
+[
+  {
+    "code": "4;5",
+    "message": "i_snake_case does not match the style settings (camelCase) (casing-style)",
+    "range": {
+      "end": {
+        "character": 16,
+        "line": 2,
+      },
+      "start": {
+        "character": 4,
+        "line": 2,
+      },
+    },
+    "severity": 3,
+  },
+  {
+    "code": "6;7",
+    "message": "InPascalCase does not match the style settings (camelCase) (casing-style)",
+    "range": {
+      "end": {
+        "character": 16,
+        "line": 3,
+      },
+      "start": {
+        "character": 4,
+        "line": 3,
+      },
+    },
+    "severity": 3,
+  },
+  {
+    "code": "8;9",
+    "message": "CONSTANT_CASE does not match the style settings (camelCase) (casing-style)",
+    "range": {
+      "end": {
+        "character": 24,
+        "line": 8,
+      },
+      "start": {
+        "character": 11,
+        "line": 8,
+      },
+    },
+    "severity": 3,
+  },
+]
+`;
+
+exports[`testing casing style for object with camelCase" 2`] = `
+[
+  {
+    "edit": [
+      {
+        "newText": "iSnakeCase",
+        "range": {
+          "end": {
+            "character": 16,
+            "line": 2,
+          },
+          "start": {
+            "character": 4,
+            "line": 2,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'iSnakeCase'",
+  },
+  {
+    "edit": [
+      {
+        "newText": "inPascalCase",
+        "range": {
+          "end": {
+            "character": 16,
+            "line": 3,
+          },
+          "start": {
+            "character": 4,
+            "line": 3,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'inPascalCase'",
+  },
+  {
+    "edit": [
+      {
+        "newText": "constantCase",
+        "range": {
+          "end": {
+            "character": 24,
+            "line": 8,
+          },
+          "start": {
+            "character": 11,
+            "line": 8,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'constantCase'",
+  },
+]
+`;
+
+exports[`testing casing style for object with ignore" 1`] = `[]`;
+
+exports[`testing casing style for object with ignore" 2`] = `[]`;
+
+exports[`testing casing style for object with snake_case" 1`] = `
+[
+  {
+    "code": "4;5",
+    "message": "InPascalCase does not match the style settings (snake_case) (casing-style)",
+    "range": {
+      "end": {
+        "character": 16,
+        "line": 3,
+      },
+      "start": {
+        "character": 4,
+        "line": 3,
+      },
+    },
+    "severity": 3,
+  },
+  {
+    "code": "6;7",
+    "message": "camelCase does not match the style settings (snake_case) (casing-style)",
+    "range": {
+      "end": {
+        "character": 20,
+        "line": 7,
+      },
+      "start": {
+        "character": 11,
+        "line": 7,
+      },
+    },
+    "severity": 3,
+  },
+  {
+    "code": "8;9",
+    "message": "CONSTANT_CASE does not match the style settings (snake_case) (casing-style)",
+    "range": {
+      "end": {
+        "character": 24,
+        "line": 8,
+      },
+      "start": {
+        "character": 11,
+        "line": 8,
+      },
+    },
+    "severity": 3,
+  },
+]
+`;
+
+exports[`testing casing style for object with snake_case" 2`] = `
+[
+  {
+    "edit": [
+      {
+        "newText": "in_pascal_case",
+        "range": {
+          "end": {
+            "character": 16,
+            "line": 3,
+          },
+          "start": {
+            "character": 4,
+            "line": 3,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'in_pascal_case'",
+  },
+  {
+    "edit": [
+      {
+        "newText": "camel_case",
+        "range": {
+          "end": {
+            "character": 20,
+            "line": 7,
+          },
+          "start": {
+            "character": 11,
+            "line": 7,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'camel_case'",
+  },
+  {
+    "edit": [
+      {
+        "newText": "constant_case",
+        "range": {
+          "end": {
+            "character": 24,
+            "line": 8,
+          },
+          "start": {
+            "character": 11,
+            "line": 8,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'constant_case'",
+  },
+]
+`;

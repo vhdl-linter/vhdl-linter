@@ -21,6 +21,7 @@ export interface ISettings {
     'multiple-definition': boolean;
     'not-declared': boolean;
     'naming-style': boolean;
+    'casing-style': boolean;
     'type-checking': boolean;
     'type-resolved': boolean;
     'unused': boolean;
@@ -42,6 +43,8 @@ export interface ISettings {
     'signalSuffix': string;
     'variablePrefix': string;
     'variableSuffix': string;
+    'objectCasing': 'snake_case'|'PascalCase'|'camelCase'|'CONSTANT_CASE'|'ignore';
+    'constantGenericCasing': 'snake_case'|'PascalCase'|'camelCase'|'CONSTANT_CASE'|'ignore';
     'constantPrefix': string;
     'constantSuffix': string;
     'genericPrefix': string;
@@ -58,6 +61,7 @@ export interface ISettings {
     'parameterInSuffix': string;
     'parameterInoutPrefix': string;
     'parameterInoutSuffix': string;
+    'labelCasing': 'lowercase'|'UPPERCASE'|'ignore';
     'instantiationLabelPrefix': string;
     'instantiationLabelSuffix': string;
     'portOmission': boolean;
@@ -87,6 +91,7 @@ export const defaultSettings: ISettings = {
     'multiple-definition': true,
     'not-declared': true,
     'naming-style': true,
+    'casing-style': true,
     'type-checking': true,
     'type-resolved': true,
     'unused': true,
@@ -108,6 +113,8 @@ export const defaultSettings: ISettings = {
     'signalSuffix': '',
     'variablePrefix': '',
     'variableSuffix': '',
+    'objectCasing': 'ignore',
+    'constantGenericCasing': 'ignore',
     'constantPrefix': '',
     'constantSuffix': '',
     'genericPrefix': '',
@@ -124,6 +131,7 @@ export const defaultSettings: ISettings = {
     'parameterInSuffix': '',
     'parameterInoutPrefix': '',
     'parameterInoutSuffix': '',
+    'labelCasing': 'lowercase',
     'instantiationLabelPrefix': '',
     'instantiationLabelSuffix': '',
     'portOmission': false,

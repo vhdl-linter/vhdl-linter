@@ -32,6 +32,9 @@ export function codeActionFromPrefixSuffix(token: OLexerToken, prefix: string, s
   if (suffix.length !== 0 && newName.endsWith(suffix) === false) {
     newName = `${newName}${suffix}`;
   }
+  return codeActionFromNewName(token, newName, linter);
+}
+export function codeActionFromNewName(token: OLexerToken, newName: string, linter: VhdlLinter) {
   if (newName === token.text) {
     return;
   }
@@ -48,6 +51,5 @@ export function codeActionFromPrefixSuffix(token: OLexerToken, prefix: string, s
         await renameHandler(linter, token.range.start, newName),
         CodeActionKind.QuickFix)
     ];
-
   });
 }
