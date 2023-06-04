@@ -27,6 +27,6 @@ end architecture;
     new work.generic_pkg
       generic map (generic_parameter => 42);
 use work.instantiated_pkg.all;
-entity dummy_entity is
+entity dummy_entity is -- used as carrier for use clause
 
 end entity;
