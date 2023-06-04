@@ -1,9 +1,9 @@
 import { DefinitionLink, Position } from "vscode-languageserver";
 import { implementsIHasDefinitions, implementsIHasLexerToken } from "../parser/interfaces";
-import { OArchitecture, ObjectBase, OConfigurationDeclaration, OPackage, OPackageBody, ORecordChild, OSubprogram } from "../parser/objects";
+import { OArchitecture, OConfigurationDeclaration, OPackage, OPackageBody, OPackageInstantiation, ORecordChild, OSubprogram, ObjectBase } from "../parser/objects";
 import { VhdlLinter } from "../vhdlLinter";
 import { findObjectByDesignator } from "./findObjects";
-import { getTokenFromPosition, SetAdd } from "./findReferencesHandler";
+import { SetAdd, getTokenFromPosition } from "./findReferencesHandler";
 
 export function findDefinitions(linter: VhdlLinter, position: Position): ObjectBase[] {
   const token = getTokenFromPosition(linter, position);
@@ -25,7 +25,15 @@ export function findDefinitions(linter: VhdlLinter, position: Position): ObjectB
         definitions.add(candidate);
       }
     } else if (implementsIHasDefinitions(candidate)) {
-      definitions.add(...candidate.definitions);
+      // Only return definition of package instantiation if the call was not on the lexerToken itself
+      if (candidate instanceof OPackageInstantiation) {
+        if (candidate.lexerToken !== token) {
+          definitions.add(...candidate.definitions);
+        }
+      } else {
+        definitions.add(...candidate.definitions);
+
+      }
     }
     if (candidate instanceof OArchitecture && candidate.correspondingEntity && candidate.entityName === token) {
       definitions.add(candidate.correspondingEntity);

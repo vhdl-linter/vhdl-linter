@@ -26,3 +26,7 @@ end architecture;
   package instantiated_pkg is
     new work.generic_pkg
       generic map (generic_parameter => 42);
+use work.instantiated_pkg.all;
+entity dummy_entity is
+
+end entity;
