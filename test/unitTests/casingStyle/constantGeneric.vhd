@@ -7,5 +7,6 @@ end entity;
 architecture arch of ent is
     constant camelCase: integer := 2; -- vhdl-linter-disable-line unused
     constant CONSTANT_CASE: integer := 2; -- vhdl-linter-disable-line unused
+    type test is (enumCamel, ENUM_CONSTANT, enum_snake, EnumPascal); -- vhdl-linter-disable-line unused
 begin
 end architecture;

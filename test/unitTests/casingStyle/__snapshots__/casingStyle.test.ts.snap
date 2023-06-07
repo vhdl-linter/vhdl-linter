@@ -3,7 +3,7 @@
 exports[`testing casing style for constantGeneric with CONSTANT_CASE" 1`] = `
 [
   {
-    "code": "4;5",
+    "code": "5;6",
     "message": "i_snake_case does not match the style settings (CONSTANT_CASE) (casing-style)",
     "range": {
       "end": {
@@ -18,7 +18,7 @@ exports[`testing casing style for constantGeneric with CONSTANT_CASE" 1`] = `
     "severity": 3,
   },
   {
-    "code": "6;7",
+    "code": "7;8",
     "message": "InPascalCase does not match the style settings (CONSTANT_CASE) (casing-style)",
     "range": {
       "end": {
@@ -33,7 +33,7 @@ exports[`testing casing style for constantGeneric with CONSTANT_CASE" 1`] = `
     "severity": 3,
   },
   {
-    "code": "8;9",
+    "code": "9;10",
     "message": "camelCase does not match the style settings (CONSTANT_CASE) (casing-style)",
     "range": {
       "end": {
@@ -43,6 +43,51 @@ exports[`testing casing style for constantGeneric with CONSTANT_CASE" 1`] = `
       "start": {
         "character": 13,
         "line": 7,
+      },
+    },
+    "severity": 3,
+  },
+  {
+    "code": "11;12",
+    "message": "enumCamel does not match the style settings (CONSTANT_CASE) (casing-style)",
+    "range": {
+      "end": {
+        "character": 27,
+        "line": 9,
+      },
+      "start": {
+        "character": 18,
+        "line": 9,
+      },
+    },
+    "severity": 3,
+  },
+  {
+    "code": "13;14",
+    "message": "enum_snake does not match the style settings (CONSTANT_CASE) (casing-style)",
+    "range": {
+      "end": {
+        "character": 54,
+        "line": 9,
+      },
+      "start": {
+        "character": 44,
+        "line": 9,
+      },
+    },
+    "severity": 3,
+  },
+  {
+    "code": "15;16",
+    "message": "EnumPascal does not match the style settings (CONSTANT_CASE) (casing-style)",
+    "range": {
+      "end": {
+        "character": 66,
+        "line": 9,
+      },
+      "start": {
+        "character": 56,
+        "line": 9,
       },
     },
     "severity": 3,
@@ -109,13 +154,70 @@ exports[`testing casing style for constantGeneric with CONSTANT_CASE" 2`] = `
     "kind": "quickfix",
     "title": "Replace with 'CAMEL_CASE'",
   },
+  {
+    "edit": [
+      {
+        "newText": "ENUM_CAMEL",
+        "range": {
+          "end": {
+            "character": 27,
+            "line": 9,
+          },
+          "start": {
+            "character": 18,
+            "line": 9,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'ENUM_CAMEL'",
+  },
+  {
+    "edit": [
+      {
+        "newText": "ENUM_SNAKE",
+        "range": {
+          "end": {
+            "character": 54,
+            "line": 9,
+          },
+          "start": {
+            "character": 44,
+            "line": 9,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'ENUM_SNAKE'",
+  },
+  {
+    "edit": [
+      {
+        "newText": "ENUM_PASCAL",
+        "range": {
+          "end": {
+            "character": 66,
+            "line": 9,
+          },
+          "start": {
+            "character": 56,
+            "line": 9,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'ENUM_PASCAL'",
+  },
 ]
 `;
 
 exports[`testing casing style for constantGeneric with PascalCase" 1`] = `
 [
   {
-    "code": "4;5",
+    "code": "5;6",
     "message": "i_snake_case does not match the style settings (PascalCase) (casing-style)",
     "range": {
       "end": {
@@ -130,7 +232,7 @@ exports[`testing casing style for constantGeneric with PascalCase" 1`] = `
     "severity": 3,
   },
   {
-    "code": "6;7",
+    "code": "7;8",
     "message": "camelCase does not match the style settings (PascalCase) (casing-style)",
     "range": {
       "end": {
@@ -145,7 +247,7 @@ exports[`testing casing style for constantGeneric with PascalCase" 1`] = `
     "severity": 3,
   },
   {
-    "code": "8;9",
+    "code": "9;10",
     "message": "CONSTANT_CASE does not match the style settings (PascalCase) (casing-style)",
     "range": {
       "end": {
@@ -155,6 +257,51 @@ exports[`testing casing style for constantGeneric with PascalCase" 1`] = `
       "start": {
         "character": 13,
         "line": 8,
+      },
+    },
+    "severity": 3,
+  },
+  {
+    "code": "11;12",
+    "message": "enumCamel does not match the style settings (PascalCase) (casing-style)",
+    "range": {
+      "end": {
+        "character": 27,
+        "line": 9,
+      },
+      "start": {
+        "character": 18,
+        "line": 9,
+      },
+    },
+    "severity": 3,
+  },
+  {
+    "code": "13;14",
+    "message": "ENUM_CONSTANT does not match the style settings (PascalCase) (casing-style)",
+    "range": {
+      "end": {
+        "character": 42,
+        "line": 9,
+      },
+      "start": {
+        "character": 29,
+        "line": 9,
+      },
+    },
+    "severity": 3,
+  },
+  {
+    "code": "15;16",
+    "message": "enum_snake does not match the style settings (PascalCase) (casing-style)",
+    "range": {
+      "end": {
+        "character": 54,
+        "line": 9,
+      },
+      "start": {
+        "character": 44,
+        "line": 9,
       },
     },
     "severity": 3,
@@ -221,13 +368,70 @@ exports[`testing casing style for constantGeneric with PascalCase" 2`] = `
     "kind": "quickfix",
     "title": "Replace with 'ConstantCase'",
   },
+  {
+    "edit": [
+      {
+        "newText": "EnumCamel",
+        "range": {
+          "end": {
+            "character": 27,
+            "line": 9,
+          },
+          "start": {
+            "character": 18,
+            "line": 9,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'EnumCamel'",
+  },
+  {
+    "edit": [
+      {
+        "newText": "EnumConstant",
+        "range": {
+          "end": {
+            "character": 42,
+            "line": 9,
+          },
+          "start": {
+            "character": 29,
+            "line": 9,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'EnumConstant'",
+  },
+  {
+    "edit": [
+      {
+        "newText": "EnumSnake",
+        "range": {
+          "end": {
+            "character": 54,
+            "line": 9,
+          },
+          "start": {
+            "character": 44,
+            "line": 9,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'EnumSnake'",
+  },
 ]
 `;
 
 exports[`testing casing style for constantGeneric with camelCase" 1`] = `
 [
   {
-    "code": "4;5",
+    "code": "5;6",
     "message": "i_snake_case does not match the style settings (camelCase) (casing-style)",
     "range": {
       "end": {
@@ -242,7 +446,7 @@ exports[`testing casing style for constantGeneric with camelCase" 1`] = `
     "severity": 3,
   },
   {
-    "code": "6;7",
+    "code": "7;8",
     "message": "InPascalCase does not match the style settings (camelCase) (casing-style)",
     "range": {
       "end": {
@@ -257,7 +461,7 @@ exports[`testing casing style for constantGeneric with camelCase" 1`] = `
     "severity": 3,
   },
   {
-    "code": "8;9",
+    "code": "9;10",
     "message": "CONSTANT_CASE does not match the style settings (camelCase) (casing-style)",
     "range": {
       "end": {
@@ -267,6 +471,51 @@ exports[`testing casing style for constantGeneric with camelCase" 1`] = `
       "start": {
         "character": 13,
         "line": 8,
+      },
+    },
+    "severity": 3,
+  },
+  {
+    "code": "11;12",
+    "message": "ENUM_CONSTANT does not match the style settings (camelCase) (casing-style)",
+    "range": {
+      "end": {
+        "character": 42,
+        "line": 9,
+      },
+      "start": {
+        "character": 29,
+        "line": 9,
+      },
+    },
+    "severity": 3,
+  },
+  {
+    "code": "13;14",
+    "message": "enum_snake does not match the style settings (camelCase) (casing-style)",
+    "range": {
+      "end": {
+        "character": 54,
+        "line": 9,
+      },
+      "start": {
+        "character": 44,
+        "line": 9,
+      },
+    },
+    "severity": 3,
+  },
+  {
+    "code": "15;16",
+    "message": "EnumPascal does not match the style settings (camelCase) (casing-style)",
+    "range": {
+      "end": {
+        "character": 66,
+        "line": 9,
+      },
+      "start": {
+        "character": 56,
+        "line": 9,
       },
     },
     "severity": 3,
@@ -333,6 +582,63 @@ exports[`testing casing style for constantGeneric with camelCase" 2`] = `
     "kind": "quickfix",
     "title": "Replace with 'constantCase'",
   },
+  {
+    "edit": [
+      {
+        "newText": "enumConstant",
+        "range": {
+          "end": {
+            "character": 42,
+            "line": 9,
+          },
+          "start": {
+            "character": 29,
+            "line": 9,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'enumConstant'",
+  },
+  {
+    "edit": [
+      {
+        "newText": "enumSnake",
+        "range": {
+          "end": {
+            "character": 54,
+            "line": 9,
+          },
+          "start": {
+            "character": 44,
+            "line": 9,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'enumSnake'",
+  },
+  {
+    "edit": [
+      {
+        "newText": "enumPascal",
+        "range": {
+          "end": {
+            "character": 66,
+            "line": 9,
+          },
+          "start": {
+            "character": 56,
+            "line": 9,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'enumPascal'",
+  },
 ]
 `;
 
@@ -343,7 +649,7 @@ exports[`testing casing style for constantGeneric with ignore" 2`] = `[]`;
 exports[`testing casing style for constantGeneric with snake_case" 1`] = `
 [
   {
-    "code": "4;5",
+    "code": "5;6",
     "message": "InPascalCase does not match the style settings (snake_case) (casing-style)",
     "range": {
       "end": {
@@ -358,7 +664,7 @@ exports[`testing casing style for constantGeneric with snake_case" 1`] = `
     "severity": 3,
   },
   {
-    "code": "6;7",
+    "code": "7;8",
     "message": "camelCase does not match the style settings (snake_case) (casing-style)",
     "range": {
       "end": {
@@ -373,7 +679,7 @@ exports[`testing casing style for constantGeneric with snake_case" 1`] = `
     "severity": 3,
   },
   {
-    "code": "8;9",
+    "code": "9;10",
     "message": "CONSTANT_CASE does not match the style settings (snake_case) (casing-style)",
     "range": {
       "end": {
@@ -383,6 +689,51 @@ exports[`testing casing style for constantGeneric with snake_case" 1`] = `
       "start": {
         "character": 13,
         "line": 8,
+      },
+    },
+    "severity": 3,
+  },
+  {
+    "code": "11;12",
+    "message": "enumCamel does not match the style settings (snake_case) (casing-style)",
+    "range": {
+      "end": {
+        "character": 27,
+        "line": 9,
+      },
+      "start": {
+        "character": 18,
+        "line": 9,
+      },
+    },
+    "severity": 3,
+  },
+  {
+    "code": "13;14",
+    "message": "ENUM_CONSTANT does not match the style settings (snake_case) (casing-style)",
+    "range": {
+      "end": {
+        "character": 42,
+        "line": 9,
+      },
+      "start": {
+        "character": 29,
+        "line": 9,
+      },
+    },
+    "severity": 3,
+  },
+  {
+    "code": "15;16",
+    "message": "EnumPascal does not match the style settings (snake_case) (casing-style)",
+    "range": {
+      "end": {
+        "character": 66,
+        "line": 9,
+      },
+      "start": {
+        "character": 56,
+        "line": 9,
       },
     },
     "severity": 3,
@@ -448,6 +799,63 @@ exports[`testing casing style for constantGeneric with snake_case" 2`] = `
     ],
     "kind": "quickfix",
     "title": "Replace with 'constant_case'",
+  },
+  {
+    "edit": [
+      {
+        "newText": "enum_camel",
+        "range": {
+          "end": {
+            "character": 27,
+            "line": 9,
+          },
+          "start": {
+            "character": 18,
+            "line": 9,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'enum_camel'",
+  },
+  {
+    "edit": [
+      {
+        "newText": "enum_constant",
+        "range": {
+          "end": {
+            "character": 42,
+            "line": 9,
+          },
+          "start": {
+            "character": 29,
+            "line": 9,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'enum_constant'",
+  },
+  {
+    "edit": [
+      {
+        "newText": "enum_pascal",
+        "range": {
+          "end": {
+            "character": 66,
+            "line": 9,
+          },
+          "start": {
+            "character": 56,
+            "line": 9,
+          },
+        },
+      },
+    ],
+    "kind": "quickfix",
+    "title": "Replace with 'enum_pascal'",
   },
 ]
 `;
