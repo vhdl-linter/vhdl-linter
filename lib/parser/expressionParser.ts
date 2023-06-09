@@ -105,7 +105,7 @@ export class ExpressionParser {
     const prefixWrite: O.OName[] = [];
     const prefixRead: O.OName[] = [];
     if (buffer.length > 1) {
-      throw new O.ParserError(`Internal Error: convertName expected one token only gotten ${buffer.length}`, buffer[0]!.range.copyWithNewEnd(buffer.at(-1)!.range));
+      throw new O.ParserError(`Internal Error: convertToName expected one token only gotten ${buffer.length}`, buffer[0]!.range.copyWithNewEnd(buffer.at(-1)!.range));
     }
     for (const token of buffer) {
       if (choice) {
@@ -392,6 +392,7 @@ export class ExpressionParser {
       });
       return [];
     }
+    // range constraint -> use normal parser
     if (this.tokens[0]!.getLText() === 'range') {
       return this.parse();
     }
@@ -463,11 +464,10 @@ export class ExpressionParser {
           if (this.getNumToken(adder)?.getLText() === '(') {
             braceIndex++;
           } else if (this.getNumToken(adder)?.getLText() === ')') {
+            braceIndex--;
             if (braceIndex === 0) {
-              adder++;
               break;
             }
-            braceIndex--;
           }
           adder++;
         }

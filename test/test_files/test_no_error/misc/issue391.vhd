@@ -13,9 +13,9 @@ architecture rtl of issue391 is
   constant CONST : std_ulogic_vector(1 downto 0) := (others => '0');
 
   -- fu(CONST(0)) should be valid in type indication
-  signal my_signal : std_ulogic_vector(fu(CONST(0)) downto 0);
-begin
+  signal my_unused : std_ulogic_vector(fu(CONST(0)) - 1 downto 0);
+begin  
 
-
+ 
 
 end architecture;
