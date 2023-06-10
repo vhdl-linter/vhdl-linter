@@ -1,8 +1,9 @@
 import { Position, Range, TextEdit } from 'vscode-languageserver';
+import { ElaborateNames } from '../elaborate/elaborateNames';
 import { OLexerToken } from '../lexer';
 import { OIDiagnosticWithSolution } from '../vhdlLinter';
+import { DefinitionTracker } from './definitionTracker';
 import * as I from './interfaces';
-import { ElaborateNames } from '../elaborate/elaborateNames';
 export class OI implements Position {
   protected i_?: number;
   constructor(public parent: ObjectBase | OFile, i: number, j?: number, k?: number) {
@@ -203,14 +204,14 @@ export class ObjectBase {
 
 export abstract class OGeneric extends ObjectBase implements I.IHasDefinitions, I.IHasNameLinks {
   parent: OEntity | OPackage;
-  definitions: (OGeneric | OPackage)[] = [];
+  definitions = new DefinitionTracker<OGeneric|OPackage>();
   nameLinks: OName[] = [];
   aliasLinks: OAlias[] = [];
   lexerToken: OLexerToken;
   defaultValue?: ObjectBase[];
 }
 export class OGenericConstant extends OGeneric implements I.IVariableBase, I.IHasSubtypeIndication, I.IHasDefaultValue {
-  definitions: OGenericConstant[] = [];
+  definitions = new DefinitionTracker<OGenericConstant>();
   subtypeIndication: OSubtypeIndication;
   defaultValue?: OName[];
 
@@ -219,7 +220,7 @@ export class OName extends ObjectBase implements I.IHasDefinitions, I.IHasNameTo
   constructor(public parent: ObjectBase | OFile, public nameToken: OLexerToken, public write = false, range?: OIRange) {
     super(parent, range ?? nameToken.range);
   }
-  definitions: ObjectBase[] = [];
+  definitions = new DefinitionTracker<ObjectBase>();
   notDeclaredHint?: string;
   lexerToken: undefined;
   constraint = false;
@@ -281,7 +282,7 @@ export class OInterfacePackage extends OGeneric implements I.IHasNameLinks, I.IH
 }
 export class OPackageInstantiation extends ObjectBase implements I.IHasDefinitions, I.IHasTargetLibrary, I.IHasNameLinks,
   I.IHasUseClauses, I.IHasContextReference, I.IHasLibraries, I.IMayHaveGenericAssociationList, I.IHasLexerToken {
-  definitions: OPackage[] = [];
+  definitions = new DefinitionTracker<OPackage>();
   aliasLinks: OAlias[] = [];
   lexerToken: OLexerToken;
   uninstantiatedPackage: OName[] = [];
@@ -579,7 +580,7 @@ export class OInstantiation extends OName implements I.IHasDefinitions, I.IMayHa
     super(parent, lexerToken);
   }
   postponed = false;
-  definitions: (OEntity | OSubprogram | OComponent | OAliasWithSignature | OConfigurationDeclaration)[] = [];
+  definitions = new DefinitionTracker<OEntity | OSubprogram | OComponent | OAliasWithSignature | OConfigurationDeclaration>();
   instantiatedUnit: [OName, ...OSelectedName[]];
   package?: OLexerToken;
   portAssociationList?: OPortAssociationList;
@@ -594,7 +595,7 @@ export class OAssociation extends ObjectBase implements I.IHasDefinitions {
   constructor(public parent: OAssociationList, range: OIRange) {
     super(parent, range);
   }
-  definitions: (OPort | OGeneric | OTypeMark)[] = [];
+  definitions = new DefinitionTracker<OPort | OGeneric | OTypeMark>();
   formalPart: OFormalName[] = [];
   actualIfInput: OName[] = [];
   actualIfOutput: OName[] = [];
@@ -624,7 +625,7 @@ export class OEntity extends ObjectBase implements I.IHasTargetLibrary, I.IHasDe
   generics: OGeneric[] = [];
   statements: OConcurrentStatements[] = [];
   statementsRange: OIRange;
-  definitions: OEntity[] = [];
+  definitions = new DefinitionTracker<OEntity>();
   correspondingArchitectures: OArchitecture[] = [];
 }
 export class OComponent extends ObjectBase implements I.IHasDefinitions, I.IHasDeclarations,
@@ -641,13 +642,13 @@ export class OComponent extends ObjectBase implements I.IHasDefinitions, I.IHasD
   genericRange?: OIRange;
   ports: OPort[] = [];
   generics: OGeneric[] = [];
-  definitions: OEntity[] = [];
+  definitions = new DefinitionTracker<OEntity>();
 }
 export class OPort extends ObjectBase implements I.IVariableBase, I.IHasDefinitions, I.IHasLexerToken {
   parent: OEntity | OSubprogram;
   direction: 'in' | 'out' | 'inout';
   directionRange: OIRange;
-  definitions: OPort[] = [];
+  definitions = new DefinitionTracker<OPort>();
   lexerToken: OLexerToken;
   nameLinks: OName[] = [];
   subtypeIndication: OSubtypeIndication;
@@ -806,7 +807,7 @@ export class OSubprogram extends OSequenceOfStatements implements I.IHasNameLink
   return: OName[] = [];
   lexerToken: OLexerToken;
   endingLexerToken?: OLexerToken;
-  definitions: OSubprogram[] = [];
+  definitions = new DefinitionTracker<OSubprogram>();
 }
 export class OTypeMark extends ObjectBase {
   constructor(public parent: ObjectBase, public name: OName) {
@@ -837,7 +838,7 @@ export class OConfigurationDeclaration extends ObjectBase implements I.IHasTarge
   targetLibrary?: string;
   entityName: OLexerToken;
   libraries: OLibrary[] = [];
-  definitions: OEntity[] = [];
+  definitions = new DefinitionTracker<OEntity>();
   nameLinks: OInstantiation[] = [];
   aliasLinks: OAlias[] = [];
   declarations: ODeclaration[] = [];
@@ -850,7 +851,7 @@ export class OConfigurationSpecification extends ObjectBase {
 }
 export class OAttributeSpecification extends ObjectBase implements I.IHasNameToken, I.IHasDefinitions {
   nameToken: OLexerToken;
-  definitions: OAttributeDeclaration[] = [];
+  definitions = new DefinitionTracker<OAttributeDeclaration>();
   names: OName[] = [];
   entityClass: OLexerToken;
   lexerToken: undefined;
@@ -869,7 +870,7 @@ function* iterateContexts(object: ObjectBase & I.IHasContextReference, directlyV
       throw new Error(`Infinite Recursion`);
     }
     let definitions: ObjectBase[] = [];
-    for (const definition of contextReference.names.at(-1)?.definitions ?? []) {
+    for (const definition of contextReference.names.at(-1)?.definitions?.it() ?? []) {
       definitions.push(definition);
       if (I.implementsIHasContextReference(definition)) {
         for (const contextReference of definition.contextReferences) {
@@ -881,7 +882,7 @@ function* iterateContexts(object: ObjectBase & I.IHasContextReference, directlyV
       }
       if (I.implementsIHasUseClause(definition)) {
         for (const useClause of definition.useClauses) {
-          for (const definition of useClause.names.at(-1)?.definitions ?? []) {
+          for (const definition of useClause.names.at(-1)?.definitions?.it() ?? []) {
             definitions.push(definition);
           }
         }
@@ -910,7 +911,7 @@ export function* scope(startObject: ObjectBase, elaborateNames: ElaborateNames|u
         elaborateNames.elaborateUseClauses(current.correspondingEntity.useClauses);
       }
       for (const useClause of current.correspondingEntity.useClauses) {
-        for (const definition of useClause.names.at(-1)?.definitions ?? []) {
+        for (const definition of useClause.names.at(-1)?.definitions.it() ?? []) {
           yield [definition, false];
         }
       }
@@ -923,7 +924,7 @@ export function* scope(startObject: ObjectBase, elaborateNames: ElaborateNames|u
         elaborateNames.elaborateUseClauses(current.correspondingPackage.useClauses);
       }
       for (const useClause of current.correspondingPackage.useClauses) {
-        for (const definition of useClause.names.at(-1)?.definitions ?? []) {
+        for (const definition of useClause.names.at(-1)?.definitions.it() ?? []) {
           yield [definition, false];
         }
       }
@@ -934,7 +935,7 @@ export function* scope(startObject: ObjectBase, elaborateNames: ElaborateNames|u
         elaborateNames.elaborateUseClauses(current.useClauses);
       }
       for (const useClause of current.useClauses) {
-        for (const definition of useClause.names.at(-1)?.definitions ?? []) {
+        for (const definition of useClause.names.at(-1)?.definitions.it() ?? []) {
           yield [definition, false];
         }
       }

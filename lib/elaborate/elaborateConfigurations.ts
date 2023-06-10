@@ -5,8 +5,8 @@ export function elaborateConfigurations(file: OFile, projectParser: ProjectParse
   for (const configuration of file.objectList) {
     if (configuration instanceof OConfigurationDeclaration) {
       // find project entities
-      configuration.definitions.push(...projectParser.entities.filter(e => e.lexerToken.getLText() === configuration.entityName.getLText()));
-      for (const configurations of configuration.definitions) {
+      configuration.definitions.add(file.uri, projectParser.entities.filter(e => e.lexerToken.getLText() === configuration.entityName.getLText()));
+      for (const configurations of configuration.definitions.it()) {
         configurations.referenceConfigurations.push(configuration);
       }
     }

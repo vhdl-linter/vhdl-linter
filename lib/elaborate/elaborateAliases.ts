@@ -6,8 +6,8 @@ export function elaborateAliases(file: OFile) {
     if (alias instanceof OAlias) {
       const lastName = alias.name[alias.name.length - 1];
       if (lastName) { // No Name is throwing an an error in parser but no fatal
-        alias.aliasDefinitions = lastName.definitions;
-        for (const read of lastName.definitions) {
+        alias.aliasDefinitions = lastName.definitions.get();
+        for (const read of lastName.definitions.get()) {
           if (implementsIHasNameLinks(read)) {
             read.aliasLinks.push(alias);
           }

@@ -18,7 +18,7 @@ test('testing multi elaborate for memory leak', async () => {
 
     expect(linter.file.entities[0]?.contextReferences[0]?.names.at(-1)?.definitions.length).toBe(1);
 
-    const context = linter.file.entities[0]?.contextReferences[0]?.names.at(-1)?.definitions[0] as OContext;
+    const context = linter.file.entities[0]?.contextReferences[0]?.names.at(-1)?.definitions.get(0) as OContext;
     const useClauseDefinitions = context.useClauses.find(useClause => useClause.names[1]?.nameToken.getLText() === 'pkg')?.names.at(-1)?.definitions;
     expect(useClauseDefinitions).toHaveLength(1);
 

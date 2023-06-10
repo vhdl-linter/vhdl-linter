@@ -28,7 +28,7 @@ export class Elaborate {
         obj.aliasLinks = [];
       }
       if (implementsIHasDefinitions(obj)) {
-        obj.definitions = [];
+        obj.definitions.clear();
       }
       if (obj instanceof OEntity) {
         obj.correspondingArchitectures = [];

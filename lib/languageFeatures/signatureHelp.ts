@@ -10,7 +10,7 @@ export function signatureHelp(linter: VhdlLinter, position: Position): Signature
   }
   const [instantiation, associationList] = result;
   const signatures: SignatureInformation[] = [];
-  for (let definition of instantiation.definitions) {
+  for (let definition of instantiation.definitions.it()) {
     if (definition instanceof OAliasWithSignature) {
       // Handle AliasWIthSignatures
     } else {

@@ -13,7 +13,7 @@ export class RuleTypeResolved extends RuleBase implements IRule {
       const type = object.subtypeIndication.typeNames[0];
       if (type) {
 
-        const definition = type?.definitions[0];
+        const definition = type?.definitions.get(0);
         if (definition instanceof O.OSubType && definition.subtypeIndication.resolutionIndication.length > 0) {
           let unresolvedTypes: string[] = [];
           const lastTypeName = definition.subtypeIndication.typeNames.at(-1);
@@ -63,7 +63,7 @@ export class RuleTypeResolved extends RuleBase implements IRule {
       || object instanceof O.ORecordChild && this.settings.style.preferredLogicTypeRecordChild === 'resolved') {
       const type = object.subtypeIndication.typeNames[0];
       if (type) {
-        let definition = type.definitions[0];
+        let definition = type.definitions.get(0);
         if (definition) {
           // For aliases check find the aliased type
           const alias = [type.nameToken.getLText()];

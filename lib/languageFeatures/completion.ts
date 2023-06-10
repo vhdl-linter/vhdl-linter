@@ -14,7 +14,7 @@ function getSelectedNameCompletions(prefix: O.OName) {
   }[] = [];
   // if last prefix's definition is a record or protected type (i.e. its typeReferences contain a record or protected type)
   const prefixDefinitions = prefix.definitions.filter(I.implementsIHasSubTypeIndication);
-  const typeDefinitions = prefixDefinitions.flatMap(def => def.subtypeIndication.typeNames).flatMap(ref => ref.definitions);
+  const typeDefinitions = prefixDefinitions.flatMap(def => def.subtypeIndication.typeNames).flatMap(ref => ref.definitions.get());
   const recordTypes = typeDefinitions.filter(type => type instanceof O.ORecord) as O.ORecord[];
   result.push(...recordTypes.flatMap(type => type.children.map(child => ({
     label: child.lexerToken.text,
@@ -118,7 +118,7 @@ export function getCompletions(linter: VhdlLinter, position: Position): Completi
   const result = findParentInstantiation(linter, position);
   if (result) {
     const [instantiation, associationList] = result;
-    for (const definition of instantiation.definitions) {
+    for (const definition of instantiation.definitions.it()) {
       if (definition instanceof O.OAliasWithSignature || definition instanceof O.OConfigurationDeclaration) {
         // TODO Handle aliases and Configuration for completion
       } else {

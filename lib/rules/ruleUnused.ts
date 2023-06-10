@@ -43,7 +43,7 @@ export class RuleUnused extends RuleBase implements IRule {
       return;
     }
     for (const port of obj.ports) {
-      const type = port.subtypeIndication.typeNames[0]?.definitions?.[0];
+      const type = port.subtypeIndication.typeNames[0]?.definitions?.get(0);
       // Ignore ports of protected types as they are assumed to have side-effects so will not be read/written
       if ((type instanceof OType && (type.protected || type.protectedBody))) {
         continue;
@@ -108,7 +108,7 @@ export class RuleUnused extends RuleBase implements IRule {
               this.addUnusedMessage(declaration, `Not reading ${typeName} '${declaration.lexerToken.text}'`);
             } else if (writes.length === 0) {
               // Assume protected type has side-effect and does not net writing to.
-              const type = declaration.subtypeIndication.typeNames[0]?.definitions?.[0];
+              const type = declaration.subtypeIndication.typeNames[0]?.definitions?.get(0);
               if ((type instanceof OType && (type.protected || type.protectedBody)) === false) {
                 this.addUnusedMessage(declaration, `Not writing ${typeName} '${declaration.lexerToken.text}'`);
               }

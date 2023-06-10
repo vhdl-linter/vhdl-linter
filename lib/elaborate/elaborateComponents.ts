@@ -9,17 +9,17 @@ export function elaborateComponents(vhdlLinter: VhdlLinter) {
   for (const component of vhdlLinter.file.objectList) {
     if (component instanceof O.OComponent) {
       for (const entity of getEntities(component, vhdlLinter.projectParser)) {
-        component.definitions.push(entity);
+        component.definitions.add(vhdlLinter.file.uri, entity);
         entity.referenceComponents.push(component);
       }
       const entityPorts = component.definitions.flatMap(ent => ent.ports);
       for (const port of component.ports) {
-        port.definitions.push(...entityPorts.filter(p => p.lexerTokenEquals(port)));
+        port.definitions.add(vhdlLinter.file.uri, ...entityPorts.filter(p => p.lexerTokenEquals(port)));
         // TODO: create referenceLinks for the ports/generics of entities to the ports/generics of its component definitions
       }
       const entityGenerics = component.definitions.flatMap(ent => ent.generics);
       for (const generics of component.generics) {
-        generics.definitions.push(...entityGenerics.filter(g => g.lexerTokenEquals(generics)));
+        generics.definitions.add(vhdlLinter.file.uri, ...entityGenerics.filter(g => g.lexerTokenEquals(generics)));
       }
     }
   }

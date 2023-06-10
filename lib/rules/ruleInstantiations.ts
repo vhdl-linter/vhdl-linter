@@ -144,7 +144,7 @@ export class RuleInstantiation extends RuleBase implements IRule {
   check() {
     for (const instantiation of this.file.objectList) {
       if (instantiation instanceof O.OInstantiation) {
-        let definitions = instantiation.definitions;
+        let definitions = instantiation.definitions.get();
         if (instantiation.type === 'configuration') {
           definitions = definitions.flatMap((definition: O.OConfigurationDeclaration) => {
             const entities = this.vhdlLinter.projectParser.entities.filter(e => e.lexerToken.getLText() === definition.entityName.getLText());

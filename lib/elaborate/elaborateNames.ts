@@ -190,7 +190,7 @@ export class ElaborateNames {
       return;
     }
     if (name.definitions.includes(obj) === false) {
-      name.definitions.push(obj);
+      name.definitions.add(obj.rootFile.uri, obj);
     }
     if (I.implementsIHasLabel(obj)) {
       if (obj.labelLinks.includes(name) === false) {
@@ -207,7 +207,7 @@ export class ElaborateNames {
   getTypeDefinitions(obj: O.ObjectBase & I.IHasSubtypeIndication) {
     return obj.subtypeIndication.typeNames.flatMap(type => {
       this.elaborate(type);
-      return type.definitions;
+      return type.definitions.get();
     });
   }
 
@@ -220,7 +220,7 @@ export class ElaborateNames {
         // parent is type (e.g. protected or record) or alias -> expect stuff from within
         if (name.parent instanceof O.OName && name.parent.parent instanceof O.OSubtypeIndication) {
           // if first brace level -> expect from main type
-          for (const typeDef of typeName.definitions) {
+          for (const typeDef of typeName.definitions.it()) {
             this.elaborateTypeChildren(name, typeDef);
           }
         } else {
@@ -347,7 +347,7 @@ export class ElaborateNames {
         this.elaborate(ref);
       }
     }
-    packages.push(...pkgInstantiations.flatMap(inst => inst.uninstantiatedPackage[inst.uninstantiatedPackage.length - 1]!.definitions).filter(ref => ref instanceof O.OPackage) as O.OPackage[]);
+    packages.push(...pkgInstantiations.flatMap(inst => inst.uninstantiatedPackage[inst.uninstantiatedPackage.length - 1]!.definitions.get()).filter(ref => ref instanceof O.OPackage) as O.OPackage[]);
     for (const pkg of packages) {
 
       for (const decl of pkg.declarations) {
@@ -378,7 +378,7 @@ export class ElaborateNames {
 
     // previous token is subprogram -> look in the return types
     const returnReferences = (lastPrefix.definitions.filter(def => def instanceof O.OSubprogram) as O.OSubprogram[]).flatMap(subprogram => subprogram.return);
-    for (const returnType of returnReferences.flatMap(ref => ref.definitions)) {
+    for (const returnType of returnReferences.flatMap(ref => ref.definitions.get())) {
       this.elaborateTypeChildren(name, returnType);
     }
 
@@ -398,7 +398,7 @@ export class ElaborateNames {
       const libraryRef = useClause.names[0].definitions.some(def => def instanceof O.OLibrary);
       if (libraryRef === false) {
         const packageRef = useClause.names[0];
-        for (const obj of packageRef.definitions) {
+        for (const obj of packageRef.definitions.it()) {
           if (obj instanceof O.OPackageInstantiation || obj instanceof O.OInterfacePackage) {
             // they are not elaborated yet because the useClauses are always elaborated before anything else.
             // In this case the packageInstantiation/interfacePackage needs to be elaborated
@@ -439,7 +439,7 @@ export class ElaborateNames {
                   range: parentContexts[0]!.range
                 }, 'elaborate');
               } else {
-                context.definitions.push(obj);
+                context.definitions.add(obj.rootFile.uri, obj);
                 useClauses.push(...this.getUseClauses(obj, [...parentContexts, obj]));
               }
             }

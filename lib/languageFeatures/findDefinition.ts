@@ -20,7 +20,7 @@ export function findDefinitions(linter: VhdlLinter, position: Position): ObjectB
       // The name of the entity and the configuration itself.
       // We need to add the actual definition of the token (not of the candidates, which only maybe is the same)
       if (candidate.entityName === token) {
-        definitions.add(...candidate.definitions);
+        definitions.add(...candidate.definitions.get());
       } else {
         definitions.add(candidate);
       }
@@ -28,10 +28,10 @@ export function findDefinitions(linter: VhdlLinter, position: Position): ObjectB
       // Only return definition of package instantiation if the call was not on the lexerToken itself
       if (candidate instanceof OPackageInstantiation) {
         if (candidate.lexerToken !== token) {
-          definitions.add(...candidate.definitions);
+          definitions.add(...candidate.definitions.get());
         }
       } else {
-        definitions.add(...candidate.definitions);
+        definitions.add(...candidate.definitions.get());
 
       }
     }

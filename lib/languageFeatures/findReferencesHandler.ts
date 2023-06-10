@@ -61,7 +61,7 @@ export async function findReferenceAndDefinition(oldLinter: VhdlLinter, position
   }
   const compDefinitions = definitions.filter(def => def instanceof OComponent) as OComponent[];
   for (const component of compDefinitions) {
-    definitions.push(...component.definitions);
+    definitions.push(...component.definitions.get());
   }
 
   // find all tokens that are references to the definition

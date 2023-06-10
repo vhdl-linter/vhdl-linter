@@ -19,7 +19,7 @@ export function elaborateAssociations(file: O.OFile) {
           if (definition instanceof O.OAliasWithSignature) {
             elements = definition.typeMarks;
           } else if (definition instanceof O.OConfigurationDeclaration) {
-            elements = definition.definitions[0]?.ports ?? [];
+            elements = definition.definitions.get(0)?.ports ?? [];
           } else if (I.implementsIHasPorts(definition)) {
             elements = definition.ports;
           }
@@ -42,9 +42,9 @@ export function elaborateAssociations(file: O.OFile) {
       if (possibleFormals.length === 0) {
         continue;
       }
-      association.definitions.push(...possibleFormals);
+      association.definitions.add(file.uri, possibleFormals);
       for (const formalPart of association.formalPart) {
-        formalPart.definitions.push(...possibleFormals);
+        formalPart.definitions.add(file.uri, possibleFormals);
       }
       if (definitions.length === 1) {
         for (const possibleFormal of possibleFormals) {

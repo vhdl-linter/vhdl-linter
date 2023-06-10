@@ -1,4 +1,5 @@
 import { OLexerToken } from "../lexer";
+import { DefinitionTracker } from "./definitionTracker";
 import * as O from './objects';
 export interface IHasLabel {
   label: OLexerToken;
@@ -78,7 +79,7 @@ export function implementsIHasNameLinks(obj: O.ObjectBase): obj is O.ObjectBase 
     && (obj as O.ObjectBase & Partial<IHasNameLinks>).aliasLinks !== undefined;
 }
 export interface IHasDefinitions {
-  definitions: O.ObjectBase[];
+  definitions: DefinitionTracker<O.ObjectBase>;
 }
 export function implementsIHasDefinitions(obj: O.ObjectBase): obj is O.ObjectBase & IHasDefinitions {
   return (obj as O.ObjectBase & Partial<IHasDefinitions>).definitions !== undefined;

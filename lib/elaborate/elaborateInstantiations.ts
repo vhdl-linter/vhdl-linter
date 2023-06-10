@@ -7,28 +7,28 @@ export function elaborateInstantiations(vhdlLinter: VhdlLinter) {
       const defs = obj.instantiatedUnit.at(-1)!.definitions;
       switch (obj.type) {
       case 'entity':
-        obj.definitions = defs.filter(def => def instanceof O.OEntity) as O.OEntity[];
+        obj.definitions.set(obj.instantiatedUnit.at(-1)!.rootFile.uri, defs.filter(def => def instanceof O.OEntity) as O.OEntity[]);
         break;
       case 'component':
-        obj.definitions = defs.filter(def => def instanceof O.OComponent) as O.OComponent[];
+        obj.definitions.set(obj.instantiatedUnit.at(-1)!.rootFile.uri, defs.filter(def => def instanceof O.OComponent) as O.OComponent[]);
         break;
       case 'subprogram':
-        obj.definitions = defs.filter(def => def instanceof O.OSubprogram || def instanceof O.OAliasWithSignature) as (O.OSubprogram | O.OAliasWithSignature)[];
+        obj.definitions.set(obj.instantiatedUnit.at(-1)!.rootFile.uri, defs.filter(def => def instanceof O.OSubprogram || def instanceof O.OAliasWithSignature) as (O.OSubprogram | O.OAliasWithSignature)[]);
         break;
       case 'configuration':
-        obj.definitions = defs.filter(def => def instanceof O.OConfigurationDeclaration) as O.OConfigurationDeclaration[];
+        obj.definitions.set(obj.instantiatedUnit.at(-1)!.rootFile.uri, defs.filter(def => def instanceof O.OConfigurationDeclaration) as O.OConfigurationDeclaration[]);
         break;
       case 'unknown':
-        obj.definitions = defs.slice(0) as (typeof obj.definitions);
+        obj.definitions.set(obj.instantiatedUnit.at(-1)!.rootFile.uri, defs.get().slice(0) as ((O.OEntity | O.OSubprogram | O.OComponent | O.OAliasWithSignature | O.OConfigurationDeclaration)[]));
         break;
       }
-      for (const def of obj.definitions) {
+      for (const def of obj.definitions.it()) {
         def.nameLinks.push(obj);
       }
     } else if (obj instanceof O.OPackageInstantiation || obj instanceof O.OInterfacePackage) {
       const defs = obj.uninstantiatedPackage.at(-1)!.definitions;
-      obj.definitions = defs.filter(def => def instanceof O.OPackage) as O.OPackage[];
-      for (const def of obj.definitions) {
+      obj.definitions.set(obj.uninstantiatedPackage.at(-1)!.rootFile.uri, defs.filter(def => def instanceof O.OPackage) as O.OPackage[]);
+      for (const def of obj.definitions.it()) {
         def.nameLinks.push(obj.uninstantiatedPackage.at(-1)!);
       }
     }

@@ -27,15 +27,15 @@ test.each([
   const assignment = linter.file.architectures[0]?.statements[0] as OAssignment;
   expect(assignment.names).toHaveLength(4);
   expect(assignment.names[3]).toBeInstanceOf(OSelectedName);
-  expect(assignment.names[3]?.definitions).toHaveLength(1);
-  expect(assignment.names[3]?.definitions[0]).toBeInstanceOf(ORecordChild);
-  expect(assignment.names[3]?.definitions[0]?.lexerToken?.getLText()).toBe('apple');
+  expect(assignment.names[3]?.definitions.get()).toHaveLength(1);
+  expect(assignment.names[3]?.definitions.get()[0]).toBeInstanceOf(ORecordChild);
+  expect(assignment.names[3]?.definitions.get()[0]?.lexerToken?.getLText()).toBe('apple');
 
   expect(assignment.names[0]?.write).toBe(true);
   expect(assignment.names[1]).toBeInstanceOf(OSelectedName);
-  expect(assignment.names[1]?.definitions).toHaveLength(1);
-  expect(assignment.names[1]?.definitions[0]).toBeInstanceOf(ORecordChild);
-  expect(assignment.names[1]?.definitions[0]?.lexerToken?.getLText()).toBe('banana');
+  expect(assignment.names[1]?.definitions.get()).toHaveLength(1);
+  expect(assignment.names[1]?.definitions.get()[0]).toBeInstanceOf(ORecordChild);
+  expect(assignment.names[1]?.definitions.get()[0]?.lexerToken?.getLText()).toBe('banana');
 });
 
 test.each([
@@ -48,16 +48,16 @@ test.each([
 
   const call = linter.file.architectures[0]?.statements[0] as OInstantiation;
   expect(call.definitions).toHaveLength(1);
-  expect(call.definitions[0]).toBeInstanceOf(OSubprogram);
-  expect(call.definitions[0]?.lexerToken?.getLText()).toBe('apple');
+  expect(call.definitions.get()[0]).toBeInstanceOf(OSubprogram);
+  expect(call.definitions.get()[0]?.lexerToken?.getLText()).toBe('apple');
 
   expect(call.portAssociationList?.children).toHaveLength(1);
   expect(call.portAssociationList?.children[0]?.actualIfInput).toHaveLength(2);
   expect(call.portAssociationList?.children[0]?.actualIfInput[1]).toBeInstanceOf(OSelectedName);
   expect(call.portAssociationList?.children[0]?.actualIfInput[1]).toBeInstanceOf(OSelectedName);
-  expect(call.portAssociationList?.children[0]?.actualIfInput[1]?.definitions).toHaveLength(1);
-  expect(call.portAssociationList?.children[0]?.actualIfInput[1]?.definitions[0]).toBeInstanceOf(OSubprogram);
-  expect(call.portAssociationList?.children[0]?.actualIfInput[1]?.definitions[0]?.lexerToken?.getLText()).toBe('banana');
+  expect(call.portAssociationList?.children[0]?.actualIfInput[1]?.definitions.get()).toHaveLength(1);
+  expect(call.portAssociationList?.children[0]?.actualIfInput[1]?.definitions.get()[0]).toBeInstanceOf(OSubprogram);
+  expect(call.portAssociationList?.children[0]?.actualIfInput[1]?.definitions.get()[0]?.lexerToken?.getLText()).toBe('banana');
 
 
   expect(linter.messages).toEqual(expect.arrayContaining([
@@ -103,19 +103,19 @@ test.each([
   expect(assignment.names).toHaveLength(5);
   expect(assignment.names[3]).toBeInstanceOf(OSelectedName);
   expect(assignment.names[3]?.definitions).toHaveLength(1);
-  expect(assignment.names[3]?.definitions[0]).toBeInstanceOf(ORecordChild);
-  expect(assignment.names[3]?.definitions[0]?.lexerToken?.getLText()).toBe('banana');
+  expect(assignment.names[3]?.definitions.get()[0]).toBeInstanceOf(ORecordChild);
+  expect(assignment.names[3]?.definitions.get()[0]?.lexerToken?.getLText()).toBe('banana');
   expect(assignment.names[4]).toBeInstanceOf(OSelectedName);
   expect(assignment.names[4]?.definitions).toHaveLength(1);
-  expect(assignment.names[4]?.definitions[0]).toBeInstanceOf(ORecordChild);
-  expect(assignment.names[4]?.definitions[0]?.lexerToken?.getLText()).toBe('apple');
+  expect(assignment.names[4]?.definitions.get()[0]).toBeInstanceOf(ORecordChild);
+  expect(assignment.names[4]?.definitions.get()[0]?.lexerToken?.getLText()).toBe('apple');
 
   expect(assignment.names[0]?.write).toBe(true);
-  expect(assignment.names[0]?.definitions[0]?.lexerToken?.getLText()).toBe('s1');
+  expect(assignment.names[0]?.definitions.get()[0]?.lexerToken?.getLText()).toBe('s1');
   expect(assignment.names[1]).toBeInstanceOf(OSelectedName);
   expect(assignment.names[1]?.definitions).toHaveLength(1);
-  expect(assignment.names[1]?.definitions[0]).toBeInstanceOf(ORecordChild);
-  expect(assignment.names[1]?.definitions[0]?.lexerToken?.getLText()).toBe('apple');
+  expect(assignment.names[1]?.definitions.get()[0]).toBeInstanceOf(ORecordChild);
+  expect(assignment.names[1]?.definitions.get()[0]?.lexerToken?.getLText()).toBe('apple');
 });
 
 test.each([
@@ -129,11 +129,11 @@ test.each([
   expect(assignment.names).toHaveLength(4);
   expect(assignment.names[3]).toBeInstanceOf(OSelectedName);
   expect(assignment.names[3]?.definitions).toHaveLength(1);
-  expect(assignment.names[3]?.definitions[0]).toBeInstanceOf(ORecordChild);
-  expect(assignment.names[3]?.definitions[0]?.lexerToken?.getLText()).toBe('apple');
+  expect(assignment.names[3]?.definitions.get()[0]).toBeInstanceOf(ORecordChild);
+  expect(assignment.names[3]?.definitions.get()[0]?.lexerToken?.getLText()).toBe('apple');
 
   expect(assignment.names[1]).toBeInstanceOf(OSelectedName);
   expect(assignment.names[1]?.definitions).toHaveLength(1);
-  expect(assignment.names[1]?.definitions[0]).toBeInstanceOf(ORecordChild);
-  expect(assignment.names[1]?.definitions[0]?.lexerToken?.getLText()).toBe('banana');
+  expect(assignment.names[1]?.definitions.get()[0]).toBeInstanceOf(ORecordChild);
+  expect(assignment.names[1]?.definitions.get()[0]?.lexerToken?.getLText()).toBe('banana');
 });

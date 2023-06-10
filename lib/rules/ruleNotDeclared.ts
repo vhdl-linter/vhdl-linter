@@ -107,7 +107,7 @@ export class RuleNotDeclared extends RuleBase implements IRule {
     const possibleMatches: (O.ODeclaration|O.ORecordChild)[] = [];
     if (ref instanceof O.OSelectedName) {
       const defs = ref.prefixTokens.at(-1)!.definitions.filter(def => I.implementsIHasSubTypeIndication(def)) as (O.ObjectBase & I.IHasSubtypeIndication)[];
-      for (const typeDef of defs.flatMap(def => def.subtypeIndication.typeNames).flatMap(name => name.definitions)) {
+      for (const typeDef of defs.flatMap(def => def.subtypeIndication.typeNames).flatMap(name => name.definitions.get())) {
         if (I.implementsIHasDeclarations(typeDef)) {
           possibleMatches.push(...typeDef.declarations);
         }

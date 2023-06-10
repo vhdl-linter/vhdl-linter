@@ -35,7 +35,7 @@ function pushToken(buffer: BuilderParams[], range: O.OIRange, type: SemanticToke
 
 function findDefinition(obj: O.ObjectBase) {
   if (I.implementsIHasDefinitions(obj) && obj.definitions.length > 0) {
-    return obj.definitions[0];
+    return obj.definitions.get(0);
   }
 }
 
