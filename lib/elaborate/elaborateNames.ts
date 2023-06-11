@@ -26,6 +26,7 @@ export class ElaborateNames {
     }
   }
   public static async elaborate(vhdlLinter: VhdlLinter) {
+    // const start = Date.now();
     const elaborator = new ElaborateNames(vhdlLinter);
     // elaborate use clauses
     for (const obj of vhdlLinter.file.objectList) {
@@ -34,6 +35,7 @@ export class ElaborateNames {
         elaborator.elaborateUseClauses(elaborator.getUseClauses(obj));
       }
     }
+    // console.log(`A ${vhdlLinter.file.uri.pathname} ${Date.now() - start} ms`);
     elaborator.scopeVisibilityMap.clear();
     // elaborate ONames
     const nameList = (vhdlLinter.file.objectList.filter(obj => obj instanceof O.OName) as O.OName[]).sort((a, b) => a.nameToken.range.start.i - b.nameToken.range.start.i);
@@ -41,6 +43,7 @@ export class ElaborateNames {
       await this.checkCancel(vhdlLinter);
       elaborator.elaborate(obj);
     }
+    // console.log(`B ${vhdlLinter.file.uri.pathname} ${Date.now() - start} ms`);
 
   }
   elaborate(name: O.OName) {
@@ -72,7 +75,7 @@ export class ElaborateNames {
     }
     return obj.lexerToken?.getLText();
   }
-  addObjectsToMap<T extends O.ObjectBase>(map: Map<string, T[]>, ...objects: T[]) {
+  addObjectsToMap<T extends O.ObjectBase>(map: Map<string, T[]>, objects: T[]) {
     for (const obj of objects) {
       const text = this.getObjectText(obj);
       if (text === undefined) {
@@ -80,9 +83,8 @@ export class ElaborateNames {
       }
 
       let list: T[];
-      if (map.has(text)) {
-        list = map.get(text)!;
-      } else {
+      list = map.get(text)!;
+      if (list === undefined) {
         list = [];
         map.set(text, list);
       }
@@ -96,53 +98,56 @@ export class ElaborateNames {
     this.scopeVisibilityMap.set(parent, visibilityMap);
     this.scopeRecordChildMap.set(parent, recordChildMap);
     for (const [scopeObj, directlyVisible] of O.scope(parent, this)) {
-      this.addObjectsToMap(visibilityMap, scopeObj);
+      this.addObjectsToMap(visibilityMap, [scopeObj]);
       if (directlyVisible && I.implementsIHasPorts(scopeObj)) {
-        this.addObjectsToMap(visibilityMap, ...scopeObj.ports);
+        this.addObjectsToMap(visibilityMap, scopeObj.ports);
       }
       if (directlyVisible && I.implementsIHasGenerics(scopeObj)) {
-        this.addObjectsToMap(visibilityMap, ...scopeObj.generics);
+        this.addObjectsToMap(visibilityMap, scopeObj.generics);
       }
       if (directlyVisible && I.implementsIHasDeclarations(scopeObj)) {
-        this.addObjectsToMap(visibilityMap, ...scopeObj.declarations);
+        this.addObjectsToMap(visibilityMap, scopeObj.declarations);
         for (const type of scopeObj.declarations) {
           if (type instanceof O.OType) {
             if (type instanceof O.OEnum) {
-              this.addObjectsToMap(visibilityMap, ...type.literals);
+              this.addObjectsToMap(visibilityMap, type.literals);
             }
             if (type.units !== undefined) {
-              this.addObjectsToMap(visibilityMap, ...type.units);
+              this.addObjectsToMap(visibilityMap, type.units);
             }
             if (type.protected || type.protectedBody) {
-              this.addObjectsToMap(visibilityMap, ...type.declarations);
+              this.addObjectsToMap(visibilityMap, type.declarations);
             }
             if (type instanceof O.ORecord) {
-              this.addObjectsToMap(recordChildMap, ...type.children);
+              this.addObjectsToMap(recordChildMap, type.children);
             }
           }
         }
       }
       if (directlyVisible && I.implementsIHasStatements(scopeObj)) {
-        this.addObjectsToMap(visibilityMap, ...scopeObj.statements);
+        this.addObjectsToMap(visibilityMap, scopeObj.statements);
       }
       if (directlyVisible && I.implementsIHasLibraries(scopeObj)) {
-        this.addObjectsToMap(visibilityMap, ...scopeObj.libraries);
+        this.addObjectsToMap(visibilityMap, scopeObj.libraries);
       }
     }
   }
 
   getProjectList(searchName: O.OName, libraries: O.OLibrary[]) {
     if (this.projectVisibilityMap === undefined) {
+      // const start = Date.now();
       const projectParser = this.vhdlLinter.projectParser;
       this.projectVisibilityMap = new Map();
-      this.addObjectsToMap(this.projectVisibilityMap, ...projectParser.entities);
-      this.addObjectsToMap(this.projectVisibilityMap, ...projectParser.packages);
-      for (const pkg of projectParser.packages) {
-        this.fillVisibilityMap(pkg);
-      }
-      this.addObjectsToMap(this.projectVisibilityMap, ...projectParser.packageInstantiations);
-      this.addObjectsToMap(this.projectVisibilityMap, ...projectParser.contexts);
-      this.addObjectsToMap(this.projectVisibilityMap, ...projectParser.configurations);
+      this.addObjectsToMap(this.projectVisibilityMap, projectParser.entities);
+      this.addObjectsToMap(this.projectVisibilityMap, projectParser.packages);
+      // What does this do? If I comment out all test succeed but it takes a while
+      // for (const pkg of projectParser.packages) {
+      //   this.fillVisibilityMap(pkg);
+      // }
+      this.addObjectsToMap(this.projectVisibilityMap, projectParser.packageInstantiations);
+      this.addObjectsToMap(this.projectVisibilityMap, projectParser.contexts);
+      this.addObjectsToMap(this.projectVisibilityMap, projectParser.configurations);
+      // console.log(`build projectVisibilityMap ${Date.now() - start} ms`);
     }
     const result: (O.ObjectBase & I.IHasTargetLibrary)[] = [];
     if (searchName.nameToken.getLText() === 'all') {
@@ -412,6 +417,7 @@ export class ElaborateNames {
     }
   }
   getUseClauses(parent: O.ObjectBase & (I.IHasUseClauses), parentContexts: O.OContext[] = []) {
+    // const start = Date.now();
     const useClauses = parent.useClauses.slice();
     const contextReferences = I.implementsIHasContextReference(parent) ? parent.contextReferences.slice() : [];
     if (parent instanceof O.OPackageBody && parent.correspondingPackage) {
@@ -447,6 +453,7 @@ export class ElaborateNames {
         }
       }
     }
+    // console.log(`getUseClauses ${Date.now() - start}`);
     return useClauses;
   }
 }
