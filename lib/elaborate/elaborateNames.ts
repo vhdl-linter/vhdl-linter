@@ -26,7 +26,10 @@ export class ElaborateNames {
     }
   }
   public static async elaborate(vhdlLinter: VhdlLinter) {
+    const start = Date.now();
     const elaborator = new ElaborateNames(vhdlLinter);
+    console.log(`elaborateNames A ${vhdlLinter.uri.pathname} ${Date.now() - start}ms`);
+
     // elaborate use clauses
     for (const obj of vhdlLinter.file.objectList) {
       await this.checkCancel(vhdlLinter);
@@ -34,13 +37,16 @@ export class ElaborateNames {
         elaborator.elaborateUseClauses(elaborator.getUseClauses(obj));
       }
     }
+    console.log(`elaborateNames B ${vhdlLinter.uri.pathname} ${Date.now() - start}ms`);
     elaborator.scopeVisibilityMap.clear();
     // elaborate ONames
     const nameList = (vhdlLinter.file.objectList.filter(obj => obj instanceof O.OName) as O.OName[]).sort((a, b) => a.nameToken.range.start.i - b.nameToken.range.start.i);
+    console.log(`elaborateNames C ${vhdlLinter.uri.pathname} ${Date.now() - start}ms`);
     for (const obj of nameList) {
       await this.checkCancel(vhdlLinter);
       elaborator.elaborate(obj);
     }
+    console.log(`elaborateNames D ${vhdlLinter.uri.pathname} ${Date.now() - start}ms`);
 
   }
   elaborate(name: O.OName) {
