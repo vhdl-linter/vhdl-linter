@@ -479,7 +479,7 @@ export class ExpressionParser {
     }
     // ends with attribute
     if (tokens.some(token => token.getLText() === 'downto' || token.getLText() === 'to') || tokens.at(-2)?.getLText() === "'") {
-      return tokens;
+      return this.tokens.slice(this.expState.num, this.expState.num + adder);
     }
     return undefined;
 
