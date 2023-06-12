@@ -26,7 +26,6 @@ export class ElaborateNames {
     }
   }
   public static async elaborate(vhdlLinter: VhdlLinter) {
-    // const start = Date.now();
     const elaborator = new ElaborateNames(vhdlLinter);
     // elaborate use clauses
     for (const obj of vhdlLinter.file.objectList) {
@@ -35,7 +34,6 @@ export class ElaborateNames {
         elaborator.elaborateUseClauses(elaborator.getUseClauses(obj));
       }
     }
-    // console.log(`A ${vhdlLinter.file.uri.pathname} ${Date.now() - start} ms`);
     elaborator.scopeVisibilityMap.clear();
     // elaborate ONames
     const nameList = (vhdlLinter.file.objectList.filter(obj => obj instanceof O.OName) as O.OName[]).sort((a, b) => a.nameToken.range.start.i - b.nameToken.range.start.i);
@@ -43,7 +41,6 @@ export class ElaborateNames {
       await this.checkCancel(vhdlLinter);
       elaborator.elaborate(obj);
     }
-    // console.log(`B ${vhdlLinter.file.uri.pathname} ${Date.now() - start} ms`);
 
   }
   elaborate(name: O.OName) {
@@ -82,8 +79,7 @@ export class ElaborateNames {
         continue;
       }
 
-      let list: T[];
-      list = map.get(text);
+      let list = map.get(text);
       if (list === undefined) {
         list = [];
         map.set(text, list);
@@ -135,19 +131,13 @@ export class ElaborateNames {
 
   getProjectList(searchName: O.OName, libraries: O.OLibrary[]) {
     if (this.projectVisibilityMap === undefined) {
-      // const start = Date.now();
       const projectParser = this.vhdlLinter.projectParser;
       this.projectVisibilityMap = new Map();
       this.addObjectsToMap(this.projectVisibilityMap, projectParser.entities);
       this.addObjectsToMap(this.projectVisibilityMap, projectParser.packages);
-      // What does this do? If I comment out all test succeed but it takes a while
-      // for (const pkg of projectParser.packages) {
-      //   this.fillVisibilityMap(pkg);
-      // }
       this.addObjectsToMap(this.projectVisibilityMap, projectParser.packageInstantiations);
       this.addObjectsToMap(this.projectVisibilityMap, projectParser.contexts);
       this.addObjectsToMap(this.projectVisibilityMap, projectParser.configurations);
-      // console.log(`build projectVisibilityMap ${Date.now() - start} ms`);
     }
     const result: (O.ObjectBase & I.IHasTargetLibrary)[] = [];
     if (searchName.nameToken.getLText() === 'all') {
@@ -417,7 +407,6 @@ export class ElaborateNames {
     }
   }
   getUseClauses(parent: O.ObjectBase & (I.IHasUseClauses), parentContexts: O.OContext[] = []) {
-    // const start = Date.now();
     const useClauses = parent.useClauses.slice();
     const contextReferences = I.implementsIHasContextReference(parent) ? parent.contextReferences.slice() : [];
     if (parent instanceof O.OPackageBody && parent.correspondingPackage) {
@@ -453,7 +442,6 @@ export class ElaborateNames {
         }
       }
     }
-    // console.log(`getUseClauses ${Date.now() - start}`);
     return useClauses;
   }
 }
