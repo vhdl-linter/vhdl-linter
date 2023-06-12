@@ -57,7 +57,6 @@ jobs:
     steps:
     - name: Install emacs
       run: |
-        brew update
         brew install emacs
     - uses: actions/checkout@v3
       with:
