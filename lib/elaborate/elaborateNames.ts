@@ -83,7 +83,7 @@ export class ElaborateNames {
       }
 
       let list: T[];
-      list = map.get(text)!;
+      list = map.get(text);
       if (list === undefined) {
         list = [];
         map.set(text, list);
