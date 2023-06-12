@@ -82,13 +82,14 @@ export class ExpressionParser {
         const attributeReference = new O.OAttributeName(this.parent, reference);
         references.push(attributeReference);
         if (lastAttributeReference) {
-          attributeReference.prefix = attributeReference;
+          attributeReference.prefix = lastAttributeReference;
         }
         lastAttributeReference = attributeReference;
       }
       buffer = buffer.slice(0, attributeIndex);
       attributeIndex = this.findLastIndex(buffer, token => token.getLText() === '\'');
-
+      // Only the last thing is a choice (see selected_name_range.vhd:9)
+      choice = false;
     }
     if (attributeIndex === -1) {
       references.push(...this.convertToName(buffer, formal, write, choice, afterComma, selectedNamePrefix));
