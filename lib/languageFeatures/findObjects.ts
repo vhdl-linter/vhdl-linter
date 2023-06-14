@@ -22,7 +22,6 @@ export function findObjectFromPosition(linter: VhdlLinter, position: Position): 
 }
 
 export function findObjectByDesignator(linter: VhdlLinter, token: OLexerToken): ObjectBase[] {
-  // TODO: also find label designators
   const foundObjects = new SetAdd<ObjectBase>();
   // find all possible definitions for the lexerToken
   for (const obj of linter.file.objectList) {

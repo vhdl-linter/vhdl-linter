@@ -250,6 +250,7 @@ test.each([
 test.each([
   ['entity.vhd', createPrintableRange(5, 1, 7), 0], // No rename entity keyword
   ['entity.vhd', createPrintableRange(8, 1, 13), 0], // No rename architecture keyword
+  ['generic_instantiation.vhd', createPrintableRange(9, 3, 22), 0], // No rename label
 ])('testing rename for %s in %s where it is not possible', async (name, range) => {
   const path = __dirname + `/${name}`;
 
