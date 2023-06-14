@@ -383,7 +383,7 @@ export class ExpressionParser {
   }
   // This gets the current Text (for Debugger)
   getTextDebug() {
-    return this.tokens.slice(this.expState.num, this.expState.num + 5).join(' ');
+    return this.tokens.slice(this.expState.num, this.expState.num + 20).join(' ');
   }
   parseConstraint() {
     if (this.tokens.length === 0) {
@@ -408,7 +408,7 @@ export class ExpressionParser {
     return result;
   }
 
-  innerConstraint(parent: O.OName ) {
+  innerConstraint(parent: O.OName) {
     // Search for direction (to|downto) than this is range (5.2.1) and is parsed as an expression
     const tokens = this.scanInnerConstraintForDirection();
     if (tokens) {
@@ -448,8 +448,10 @@ export class ExpressionParser {
           }
         }
         names.push(name);
+        this.increaseToken();
+      } else {
+        this.increaseToken();
       }
-      this.increaseToken();
     }
     this.increaseToken();
     return names;
