@@ -72,7 +72,10 @@ export class ElaborateNames {
           Object.setPrototypeOf(name, O.OFormalName.prototype);
           return;
         } else if (objects.length > 0) {
-          // LRM 6.5.7.1 General is mad
+          // LRM 6.5.7.1  is mad
+          // instantiation checker assumes the formal is always formal of the direct parent.
+          // This does not work for this weird edge case as the formal is actually of the instantiation of the parent's parent.
+          // To workaround we move the formal to the parent instantiation and flag it with an exception,
           Object.setPrototypeOf(name.children[0]![0], O.OFormalName.prototype);
           name.children[0]![0]!.parent = name.parent;
           if (name.parent.formalPart.some(formal => formal.nameToken.getLText() === name.children[0]![0]!.nameToken.getLText()) === false) {
@@ -86,7 +89,6 @@ export class ElaborateNames {
           range: name.range,
           message: "Internal Parser error. Assumed maybeFormal parent to be OName"
         });
-        // throw new O.ParserError("Internal Parser error. Assumed maybeFormal parent to be OName", name.range);
       }
     }
     if (name instanceof O.OSelectedName) {
