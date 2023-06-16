@@ -1,7 +1,7 @@
 {
 	"arch": {
 		"prefix": "arch",
-		"body": "architecture ${2:arch} of ${1:ent} is\nbegin\n\t$0\nend architecture;",
+		"body": "architecture ${2:arch} of ${1:$TM_FILENAME_BASE} is\nbegin\n\t$0\nend architecture;",
 		"description": "architecture",
 		"scope": "source.vhdl"
 	},
@@ -19,13 +19,13 @@
 	},
 	"ent": {
 		"prefix": "ent",
-		"body": "entity ${1:ent} is\n\tport (\n\t\t$0\n\t);\nend entity;",
+		"body": "entity ${1:$TM_FILENAME_BASE} is\n\tport (\n\t\t$0\n\t);\nend entity;",
 		"description": "entity",
 		"scope": "source.vhdl"
 	},
 	"entarch": {
 		"prefix": "entarch",
-		"body": "entity ${1:ent} is\n\tport (\n\t\t$0\n\t);\nend entity;\narchitecture ${2:arch} of ${1:ent} is\nbegin\nend architecture;",
+		"body": "entity ${1:$TM_FILENAME_BASE} is\n\tport (\n\t\t$0\n\t);\nend entity;\narchitecture ${2:arch} of ${1:$TM_FILENAME_BASE} is\nbegin\nend architecture;",
 		"description": "entity + architecture",
 		"scope": "source.vhdl"
 	},
@@ -55,13 +55,13 @@
 	},
 	"pack": {
 		"prefix": "pack",
-		"body": "package ${1:pkg} is\n\t$0\nend package;",
+		"body": "package ${1:$TM_FILENAME_BASE} is\n\t$0\nend package;",
 		"description": "package",
 		"scope": "source.vhdl"
 	},
 	"packbody": {
 		"prefix": "packbody",
-		"body": "package body ${1:pkg} is\n\t$0\nend package body;",
+		"body": "package body ${1:$TM_FILENAME_BASE} is\n\t$0\nend package body;",
 		"description": "package",
 		"scope": "source.vhdl"
 	},

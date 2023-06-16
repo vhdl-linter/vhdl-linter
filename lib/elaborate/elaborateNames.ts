@@ -17,7 +17,7 @@ export class ElaborateNames {
     this.file = vhdlLinter.file;
   }
 
-  private static  lastCancelTime = Date.now();
+  private static lastCancelTime = Date.now();
   private static async checkCancel(vhdlLinter: VhdlLinter) {
     const now = Date.now();
     if (now - this.lastCancelTime >= 10) {
@@ -51,11 +51,42 @@ export class ElaborateNames {
     // Handle formals LRM 6.5.7.1 General
     // As formal can be function_name(formal_designator) type_mark(formal_designator) or formal_designator we need to differentiate based on elab results
     if (name.maybeFormal) {
-      const objects = this.getList(name).filter(obj => obj instanceof O.OType || obj instanceof O.OSubType || obj instanceof O.OSubprogram);
-      if (objects.length === 0) {
-        Object.setPrototypeOf(name, O.OFormalName.prototype);
-        return;
+      if (name.parent instanceof O.OName) {
+        const nextSibling = name.parent.children[0]?.[name.parent.children[0]?.indexOf(name) + 1];
+        if (nextSibling === undefined) {
+          // do nothing
+        } else if (nextSibling.maybeFormal === false) {
+          Object.setPrototypeOf(name, O.OFormalName.prototype);
+          return;
+        } else {
+          const objects = this.getList(name).filter(obj => obj instanceof O.OType || obj instanceof O.OSubType || obj instanceof O.OSubprogram || obj instanceof O.OAlias);
+          if (objects.length === 0) {
+            Object.setPrototypeOf(name, O.OFormalName.prototype);
+            return;
+          }
+        }
+      } else if (name.parent instanceof O.OAssociation) {
+        const objects = this.getList(name).filter(obj => obj instanceof O.OType || obj instanceof O.OSubType || obj instanceof O.OSubprogram || obj instanceof O.OAlias);
 
+        if (name.children.flat().length === 0 || objects.length === 0) {
+          Object.setPrototypeOf(name, O.OFormalName.prototype);
+          return;
+        } else if (objects.length > 0) {
+          // LRM 6.5.7.1 General is mad
+          Object.setPrototypeOf(name.children[0]![0], O.OFormalName.prototype);
+          name.children[0]![0]!.parent = name.parent;
+          if (name.parent.formalPart.some(formal => formal.nameToken.getLText() === name.children[0]![0]!.nameToken.getLText()) === false) {
+            name.parent.formalPart.push(name.children[0]![0]!);
+          }
+          name.children[0] = [];
+          name.functionInFormalException = true;
+        }
+      } else {
+        this.file.parserMessages.push({
+          range: name.range,
+          message: "Internal Parser error. Assumed maybeFormal parent to be OName"
+        });
+        // throw new O.ParserError("Internal Parser error. Assumed maybeFormal parent to be OName", name.range);
       }
     }
     if (name instanceof O.OSelectedName) {
