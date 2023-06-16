@@ -52,19 +52,7 @@ export class ElaborateNames {
     // As formal can be function_name(formal_designator) type_mark(formal_designator) or formal_designator we need to differentiate based on elab results
     if (name.maybeFormal) {
       if (name.parent instanceof O.OName) {
-        const nextSibling = name.parent.children[0]?.[name.parent.children[0]?.indexOf(name) + 1];
-        if (nextSibling === undefined) {
-          // do nothing
-        } else if (nextSibling.maybeFormal === false) {
-          Object.setPrototypeOf(name, O.OFormalName.prototype);
-          return;
-        } else {
-          const objects = this.getList(name).filter(obj => obj instanceof O.OType || obj instanceof O.OSubType || obj instanceof O.OSubprogram || obj instanceof O.OAlias);
-          if (objects.length === 0) {
-            Object.setPrototypeOf(name, O.OFormalName.prototype);
-            return;
-          }
-        }
+        Object.setPrototypeOf(name, O.OFormalName.prototype);
       } else if (name.parent instanceof O.OAssociation) {
         const objects = this.getList(name).filter(obj => obj instanceof O.OType || obj instanceof O.OSubType || obj instanceof O.OSubprogram || obj instanceof O.OAlias);
 
