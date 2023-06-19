@@ -3,10 +3,6 @@ import * as O from "../parser/objects";
 // elaborate association deletes the wrong actualIfInput/actualIfOutput/actualIfInOut
 export function elaborateAssociations(file: O.OFile) {
   for (const association of file.objectList.filter(obj => obj instanceof O.OAssociation) as O.OAssociation[]) {
-    // converted instantiations are always functions therefore have only inputs
-    // if (association.parent.parent instanceof O.OInstantiation && association.parent.parent.convertedInstantiation) {
-    //   continue;
-    // }
     if (association.parent instanceof O.OGenericAssociationList || association.parent instanceof O.OPortAssociationList) {
       const definitions = association.parent.parent.definitions;
 
