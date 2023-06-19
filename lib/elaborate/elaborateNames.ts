@@ -48,11 +48,16 @@ export class ElaborateNames {
       // was already elaborated (e.g. in use clause)
       return;
     }
+    // Formal names get elaborated in elaborateAssociation.ts
+    if (name instanceof O.OFormalName) {
+      return;
+    }
     // Handle formals LRM 6.5.7.1 General
     // As formal can be function_name(formal_designator) type_mark(formal_designator) or formal_designator we need to differentiate based on elab results
     if (name.maybeFormal) {
       if (name.parent instanceof O.OName) {
         Object.setPrototypeOf(name, O.OFormalName.prototype);
+        return;
       } else if (name.parent instanceof O.OAssociation) {
         const objects = this.getList(name).filter(obj => obj instanceof O.OType || obj instanceof O.OSubType || obj instanceof O.OSubprogram || obj instanceof O.OAlias);
 

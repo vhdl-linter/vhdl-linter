@@ -14,7 +14,7 @@ architecture arch of test_function_instantiation is
     shadowed_thing : integer            -- this is "shadowed"
     ) return integer is
   begin
-    return shadowed_thing;
+    return shadowed_thing + named_argument;
   end function;
   procedure foo (
     named_argument: integer;
