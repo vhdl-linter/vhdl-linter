@@ -1,0 +1,161 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Test consistent casing rule 1`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "test.vhd": [
+          {
+            "newText": "test_function",
+            "range": {
+              "end": {
+                "character": 22,
+                "line": 17,
+              },
+              "start": {
+                "character": 9,
+                "line": 17,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Replace with 'test_function'",
+  },
+]
+`;
+
+exports[`Test consistent casing rule 2`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "test.vhd": [
+          {
+            "newText": " -- vhdl-linter-disable-line consistent-casing",
+            "range": {
+              "end": {
+                "character": 1000,
+                "line": 17,
+              },
+              "start": {
+                "character": 1000,
+                "line": 17,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore consistent-casing on this line.",
+  },
+  {
+    "edit": {
+      "changes": {
+        "test.vhd": [
+          {
+            "newText": "-- vhdl-linter-disable consistent-casing
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore consistent-casing for this file.",
+  },
+]
+`;
+
+exports[`Test consistent casing rule 3`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "test.vhd": [
+          {
+            "newText": "mango",
+            "range": {
+              "end": {
+                "character": 13,
+                "line": 18,
+              },
+              "start": {
+                "character": 8,
+                "line": 18,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Replace with 'mango'",
+  },
+]
+`;
+
+exports[`Test consistent casing rule 4`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "test.vhd": [
+          {
+            "newText": " -- vhdl-linter-disable-line consistent-casing",
+            "range": {
+              "end": {
+                "character": 1000,
+                "line": 18,
+              },
+              "start": {
+                "character": 1000,
+                "line": 18,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore consistent-casing on this line.",
+  },
+  {
+    "edit": {
+      "changes": {
+        "test.vhd": [
+          {
+            "newText": "-- vhdl-linter-disable consistent-casing
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore consistent-casing for this file.",
+  },
+]
+`;

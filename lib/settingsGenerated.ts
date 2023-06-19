@@ -14,6 +14,7 @@ export interface ISettings {
   'semanticTokensDirectionColoring': boolean;
   'rules': {
     'coding-style': boolean;
+    'consistent-casing': boolean;
     'component': boolean;
     'instantiation': boolean;
     'configuration': boolean;
@@ -84,6 +85,7 @@ export const defaultSettings: ISettings = {
   'semanticTokensDirectionColoring': false,
   'rules': {
     'coding-style': true,
+    'consistent-casing': false,
     'component': true,
     'instantiation': true,
     'configuration': true,

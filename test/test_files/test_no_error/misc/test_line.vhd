@@ -7,7 +7,7 @@ architecture arch of test_line is
   procedure read(a : inout line; b : std_ulogic_vector; c : boolean; d : std_ulogic) is -- vhdl-linter-disable-line unused
   begin
   end;
-  alias BREAD is READ [line, std_ulogic_vector, boolean, std_ulogic];
+  alias BREAD is read [line, std_ulogic_vector, boolean, std_ulogic];
 
 begin
 end architecture;

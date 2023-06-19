@@ -1,7 +1,7 @@
 
 library IEEE;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
+use IEEE.std_logic_1164.all;
+use IEEE.numeric_std.all;
 entity test_function_instantiation is
 end entity;
 architecture arch of test_function_instantiation is
