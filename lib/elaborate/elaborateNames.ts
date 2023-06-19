@@ -17,7 +17,7 @@ export class ElaborateNames {
     this.file = vhdlLinter.file;
   }
 
-  private static  lastCancelTime = Date.now();
+  private static lastCancelTime = Date.now();
   private static async checkCancel(vhdlLinter: VhdlLinter) {
     const now = Date.now();
     if (now - this.lastCancelTime >= 10) {
@@ -48,14 +48,40 @@ export class ElaborateNames {
       // was already elaborated (e.g. in use clause)
       return;
     }
+    // Formal names get elaborated in elaborateAssociation.ts
+    if (name instanceof O.OFormalName) {
+      return;
+    }
     // Handle formals LRM 6.5.7.1 General
     // As formal can be function_name(formal_designator) type_mark(formal_designator) or formal_designator we need to differentiate based on elab results
     if (name.maybeFormal) {
-      const objects = this.getList(name).filter(obj => obj instanceof O.OType || obj instanceof O.OSubType || obj instanceof O.OSubprogram);
-      if (objects.length === 0) {
+      if (name.parent instanceof O.OName) {
         Object.setPrototypeOf(name, O.OFormalName.prototype);
         return;
+      } else if (name.parent instanceof O.OAssociation) {
+        const objects = this.getList(name).filter(obj => obj instanceof O.OType || obj instanceof O.OSubType || obj instanceof O.OSubprogram || obj instanceof O.OAlias);
 
+        if (name.children.flat().length === 0 || objects.length === 0) {
+          Object.setPrototypeOf(name, O.OFormalName.prototype);
+          return;
+        } else if (objects.length > 0) {
+          // LRM 6.5.7.1  is mad
+          // instantiation checker assumes the formal is always formal of the direct parent.
+          // This does not work for this weird edge case as the formal is actually of the instantiation of the parent's parent.
+          // To workaround we move the formal to the parent instantiation and flag it with an exception,
+          Object.setPrototypeOf(name.children[0]![0], O.OFormalName.prototype);
+          name.children[0]![0]!.parent = name.parent;
+          if (name.parent.formalPart.some(formal => formal.nameToken.getLText() === name.children[0]![0]!.nameToken.getLText()) === false) {
+            name.parent.formalPart.push(name.children[0]![0]!);
+          }
+          name.children[0] = [];
+          name.functionInFormalException = true;
+        }
+      } else {
+        this.file.parserMessages.push({
+          range: name.range,
+          message: "Internal Parser error. Assumed maybeFormal parent to be OName"
+        });
       }
     }
     if (name instanceof O.OSelectedName) {

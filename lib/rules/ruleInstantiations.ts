@@ -23,7 +23,7 @@ export class RuleInstantiation extends RuleBase implements IRule {
           }
           numberedArguments.push(association);
         } else {
-          if (association.formalPart.length > 1) {
+          if (association.formalPart.filter(formal => formal.functionInFormalException === false).length > 1) {
             throw new O.ParserError('Multiple Formals', association.range);
           }
           namedArguments[association.formalPart[0]!.nameToken.getLText()] = association;
@@ -78,12 +78,20 @@ export class RuleInstantiation extends RuleBase implements IRule {
         }
         return missingPortsThis;
       }, incompleteInterfaceElements[0]!);
-
-      this.addMessage({
-        range: range,
-        severity: DiagnosticSeverity.Error,
-        message: `Missing connection for ${shortestMissing[0] instanceof O.OPort ? 'ports' : 'generics'} ${shortestMissing.map(port => `'${port.lexerToken.text}'`).join(', ')}`
-      });
+      // This is madness:
+      // In an association there might be a functional call around a formal.
+      // In that case the function call has no actual. This is only possible if it is supposed to have
+      // exactly one actual.
+      const oneTargetWithOneElement = availableInterfaceElements.some(elements => elements.length === 1 && elements[0]!.parent instanceof O.OSubprogram);
+      if ((associationList?.parent instanceof O.OName
+        && associationList.parent.functionInFormalException === false)
+        || oneTargetWithOneElement === false) {
+        this.addMessage({
+          range: range,
+          severity: DiagnosticSeverity.Error,
+          message: `Missing connection for ${shortestMissing[0] instanceof O.OPort ? 'ports' : 'generics'} ${shortestMissing.map(port => `'${port.lexerToken.text}'`).join(', ')}`
+        });
+      }
     } else {
       const availableInterfaceElementsFlat = availableInterfaceElements.flat().filter((v, i, self) => self.findIndex(o => o.lexerTokenEquals(v)) === i);
       for (const association of associationList?.children ?? []) {

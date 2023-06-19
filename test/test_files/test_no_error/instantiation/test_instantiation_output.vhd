@@ -1,6 +1,8 @@
+library ieee;
+use ieee.std_logic_1164.all;
 entity test_instantiation_output_dummy is
   port (
-    test : out integer
+    test : out std_ulogic_vector(7 downto 0)
     );
 end entity;
 
