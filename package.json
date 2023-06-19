@@ -175,6 +175,12 @@
 						"description": "Enforce rules for enforcing coding style.",
 						"default": true
 					},
+					"VhdlLinter.rules.consistent-casing": {
+						"scope": "window",
+						"type": "boolean",
+						"description": "Enforce consistent casing ie. check if declaration and reference have the same case",
+						"default": false
+					},
 					"VhdlLinter.rules.component": {
 						"scope": "window",
 						"type": "boolean",

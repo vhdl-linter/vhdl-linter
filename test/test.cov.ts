@@ -42,7 +42,11 @@ async function run_test(url: URL, error_expected: boolean, projectParser?: Proje
           "naming-style": false
         }
       })
-      : defaultSettingsGetter;
+      : defaultSettingsWithOverwrite({
+        rules: {
+          "consistent-casing": true
+        }
+      });
     if (lstatSync(subPath).isDirectory()) {
       await run_test(subPath, error_expected, projectParser);
     } else if (subPath.pathname.match(/\.vhdl?$/i)) {

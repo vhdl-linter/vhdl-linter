@@ -14,7 +14,7 @@ begin
   p_test : process
   begin
     a    <= a;
-    a_I  <= 5 + 7;
+    a_i  <= 5 + 7;
     a    <= 5 - a;
     b    <= (and a) & a;
     a    <= a nor a;

@@ -15,7 +15,7 @@ package body test_named_function is
     variable c : integer;
   begin
     c := foo(a   => b);
-    C := C;
+    c := c;
     return foo(a => b);
   end function bar;
 
