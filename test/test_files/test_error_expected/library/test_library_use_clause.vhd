@@ -1,4 +1,4 @@
 -- library test;
 use test.foo.all;
-entity test is
+entity test_entity is
 end entity;

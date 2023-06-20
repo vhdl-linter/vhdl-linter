@@ -282,6 +282,12 @@
 						"type": "boolean",
 						"description": "Enable the rule to check if declarations are allowed where they are used.",
 						"default": true
+					},
+					"VhdlLinter.rules.order": {
+						"scope": "window",
+						"type": "boolean",
+						"description": "Enable the rule to check if declarations and references are in the correct order. References in the same file follow declarations.",
+						"default": true
 					}
 				}
 			},
