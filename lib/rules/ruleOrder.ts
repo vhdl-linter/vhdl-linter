@@ -2,6 +2,7 @@ import { RuleBase, IRule } from "./rulesBase";
 import { DiagnosticSeverity } from "vscode-languageserver";
 import * as O from "../parser/objects";
 import { TokenType } from "../lexer";
+import { implementsIHasLabel } from "../parser/interfaces";
 
 export class RuleOrder extends RuleBase implements IRule {
   public static readonly ruleName = 'order';
@@ -16,7 +17,10 @@ export class RuleOrder extends RuleBase implements IRule {
         if (obj instanceof O.OExternalName) {
           continue;
         }
-
+        if (obj.definitions.some(def => implementsIHasLabel(def) && def.label.getLText() === obj.nameToken.getLText())) {
+          // Label references can come before
+          continue;
+        }
         const goodDeclarations = obj.definitions.filter(definition => definition.rootFile !== obj.rootFile || definition.range.start.i < obj.nameToken.range.start.i);
         if (goodDeclarations.length === 0 && obj.definitions.length > 0) {
           this.addMessage({
