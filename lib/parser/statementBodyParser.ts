@@ -38,7 +38,7 @@ export class StatementBodyParser extends ParserBase {
         const guardRange = startRange.copyWithNewEnd(this.getToken().range.end);
         // implicit declare constant GUARD
         const constant = new OConstant(statementBody, guardRange);
-        constant.lexerToken = new OLexerToken('GUARD', guardRange, TokenType.basicIdentifier, constant.rootFile);
+        constant.lexerToken = new OLexerToken('GUARD', guardRange, TokenType.implicit, constant.rootFile);
         // read GUARD constant to avoid 'not read' warning
         statementBody.guardCondition.push(new OName(statementBody, constant.lexerToken));
         statementBody.declarations.push(constant);

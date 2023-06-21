@@ -17,6 +17,7 @@ import { RuleUseClause } from "./ruleUseClause";
 import { RuleCodingStyle } from "./ruleCodingStyle";
 import { RuleCasingStyle } from "./ruleCasingStyle";
 import { RuleConsistentCasing } from "./ruleConsistentCasing";
+import { RuleOrder } from "./ruleOrder";
 
 export const rules = [
   RuleComponent,
@@ -37,5 +38,6 @@ export const rules = [
   RuleUseClause,
   RuleCodingStyle,
   RuleCasingStyle,
-  RuleConsistentCasing
+  RuleConsistentCasing,
+  RuleOrder
 ];
