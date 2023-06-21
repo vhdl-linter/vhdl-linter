@@ -26,7 +26,7 @@ export class RuleOrder extends RuleBase implements IRule {
           this.addMessage({
             range: obj.range,
             severity: DiagnosticSeverity.Warning,
-            message: `This reference '${obj.nameToken.text}' is not following the definition in line \n${obj.definitions.map(obj => `${obj.range.start.line + 1}:${obj.range.start.character + 1}`).join(', ')} `,
+            message: `This reference '${obj.nameToken.text}' occurs before the definition in line \n${obj.definitions.map(obj => `${obj.range.start.line + 1}:${obj.range.start.character + 1}`).join(', ')} `,
 
           });
         }
