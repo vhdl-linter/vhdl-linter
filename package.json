@@ -286,7 +286,7 @@
 					"VhdlLinter.rules.order": {
 						"scope": "window",
 						"type": "boolean",
-						"description": "Enable the rule to check if declarations and references are in the correct order. References in the same file follow declarations.",
+						"description": "Enable the rule to check if all references are after the corresponding declaration (when in the same file).",
 						"default": true
 					}
 				}
