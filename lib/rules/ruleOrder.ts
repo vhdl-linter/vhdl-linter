@@ -25,7 +25,7 @@ export class RuleOrder extends RuleBase implements IRule {
         if (goodDeclarations.length === 0 && obj.definitions.length > 0) {
           this.addMessage({
             range: obj.range,
-            severity: DiagnosticSeverity.Warning,
+            severity: DiagnosticSeverity.Error,
             message: `This reference '${obj.nameToken.text}' occurs before the definition in line \n${obj.definitions.map(obj => `${obj.range.start.line + 1}:${obj.range.start.character + 1}`).join(', ')} `,
 
           });
