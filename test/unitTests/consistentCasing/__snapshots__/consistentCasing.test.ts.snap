@@ -11,11 +11,11 @@ exports[`Test consistent casing rule 1`] = `
             "range": {
               "end": {
                 "character": 22,
-                "line": 17,
+                "line": 28,
               },
               "start": {
                 "character": 9,
-                "line": 17,
+                "line": 28,
               },
             },
           },
@@ -39,11 +39,11 @@ exports[`Test consistent casing rule 2`] = `
             "range": {
               "end": {
                 "character": 1000,
-                "line": 17,
+                "line": 28,
               },
               "start": {
                 "character": 1000,
-                "line": 17,
+                "line": 28,
               },
             },
           },
@@ -91,11 +91,11 @@ exports[`Test consistent casing rule 3`] = `
             "range": {
               "end": {
                 "character": 13,
-                "line": 18,
+                "line": 30,
               },
               "start": {
                 "character": 8,
-                "line": 18,
+                "line": 30,
               },
             },
           },
@@ -119,11 +119,11 @@ exports[`Test consistent casing rule 4`] = `
             "range": {
               "end": {
                 "character": 1000,
-                "line": 18,
+                "line": 30,
               },
               "start": {
                 "character": 1000,
-                "line": 18,
+                "line": 30,
               },
             },
           },

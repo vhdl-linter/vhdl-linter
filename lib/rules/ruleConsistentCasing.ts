@@ -13,9 +13,11 @@ export class RuleConsistentCasing extends RuleBase implements IRule {
         if (obj.nameToken.type === TokenType.implicit) {
           continue;
         }
-
-        const differentCasing = obj.definitions.filter(definition => definition.rootFile.uri.toString().match(/ieee2008/) === null && definition.lexerToken?.getLText() === obj.nameToken.getLText() && definition.lexerToken?.text !== obj.nameToken.text);
-        if (differentCasing.length > 0) {
+        const differentCasing = obj.definitions.filter(definition => definition.rootFile.uri.toString().match(/ieee2008/) === null
+          && definition.lexerToken?.getLText() === obj.nameToken.getLText()
+          && definition.lexerToken?.text !== obj.nameToken.text);
+        // Only show message if there is a definition with different casing but no correct ones
+        if (differentCasing.length > 0 && obj.definitions.length - differentCasing.length === 0) {
           this.addMessage({
             range: obj.range,
             severity: DiagnosticSeverity.Warning,
