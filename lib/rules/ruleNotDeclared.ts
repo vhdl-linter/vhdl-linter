@@ -104,7 +104,7 @@ export class RuleNotDeclared extends RuleBase implements IRule {
   }
   private findReplacementActions(ref: O.OName): CodeAction[] {
     const actions: CodeAction[] = [];
-    const possibleMatches: (O.ODeclaration|O.ORecordChild)[] = [];
+    const possibleMatches: (O.ODeclaration|O.ORecordChild|O.OGeneric|O.OPort)[] = [];
     if (ref instanceof O.OSelectedName) {
       const defs = ref.prefixTokens.at(-1)!.definitions.filter(def => I.implementsIHasSubTypeIndication(def)) as (O.ObjectBase & I.IHasSubtypeIndication)[];
       for (const typeDef of defs.flatMap(def => def.subtypeIndication.typeNames).flatMap(name => name.definitions)) {
@@ -119,6 +119,12 @@ export class RuleNotDeclared extends RuleBase implements IRule {
       for (const [obj] of O.scope(ref)) {
         if (I.implementsIHasDeclarations(obj)) {
           possibleMatches.push(...obj.declarations);
+        }
+        if (I.implementsIHasPorts(obj)) {
+          possibleMatches.push(...obj.ports);
+        }
+        if (I.implementsIHasGenerics(obj)) {
+          possibleMatches.push(...obj.generics);
         }
       }
     }
