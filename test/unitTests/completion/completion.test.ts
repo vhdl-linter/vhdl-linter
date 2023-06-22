@@ -2,7 +2,7 @@ import { afterAll, beforeAll, expect, test } from '@jest/globals';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
 import { Elaborate } from '../../../lib/elaborate/elaborate';
-import { getCompletions } from '../../../lib/languageFeatures/completion';
+import { Completions } from '../../../lib/languageFeatures/completion';
 import { ProjectParser } from '../../../lib/projectParser';
 import { defaultSettingsGetter, defaultSettingsWithOverwrite } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
@@ -30,7 +30,7 @@ test.each([
   const linter = new VhdlLinter(uri, readFileSyncNorm(uri, { encoding: 'utf8' }),
     await ProjectParser.create([], '', getter), getter());
   await Elaborate.elaborate(linter);
-  const completion = getCompletions(linter, { line: 9, character: 13 });
+  const completion = new Completions(linter).getCompletions({ line: 9, character: 13 });
   expect(completion).toEqual(
     expect.arrayContaining([
       expect.objectContaining({
@@ -49,9 +49,11 @@ test.each([
 
 
 test.each([
-  ['test_completion.vhd', createPrintablePosition(11, 18), ['u_unsigned'], []],
-  ['test_completion.vhd', createPrintablePosition(15, 11), ['test_port'], []],
-  ['test_completion.vhd', createPrintablePosition(17, 1), ['all', 'procedure'], []],
+  ['test_completion.vhd', createPrintablePosition(17, 18), ['u_unsigned'], []],
+  ['test_completion.vhd', createPrintablePosition(21, 11), ['test_port'], []],
+  ['test_completion.vhd', createPrintablePosition(23, 1), ['all', 'procedure'], []],
+  ['test_completion.vhd', createPrintablePosition(24, 6), ['banana'], []],
+  ['test_completion.vhd', createPrintablePosition(24, 12), ['peach'], []],
   ['test_completion_record.vhd', createPrintablePosition(25, 10), ['foo'], ['a', 'b', 'banana', 'apple']],
   ['test_completion_record.vhd', createPrintablePosition(26, 11), ['foo'], ['a', 'b', 'banana', 'apple']],
   ['test_completion_record.vhd', createPrintablePosition(27, 14), ['banana'], ['a', 'b', 'foo', 'apple']],
@@ -60,18 +62,18 @@ test.each([
   ['test_completion_record.vhd', createPrintablePosition(30, 12), ['apple'], ['a', 'b', 'foo', 'banana']],
   ['test_procedure_parameter.vhd', createPrintablePosition(11, 15), ['par1', 'par2'], []],
   ['test_procedure_parameter.vhd', createPrintablePosition(19, 17), ['par3', 'par4'], []],
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 ])('testing completion in %s:%s expecting labels: %s', async (filename, position, expectedLabels, notExpectedLabels) => {
   const uri = pathToFileURL(join(__dirname, filename));
   const linter = new VhdlLinter(uri, readFileSyncNorm(uri, { encoding: 'utf8' }),
     projectParser, defaultSettingsGetter());
   await Elaborate.elaborate(linter);
-  const completions =  getCompletions(linter, position);
+  const completions = new Completions(linter).getCompletions(position);
   expect(completions).toEqual(expect.arrayContaining(expectedLabels.map(expectedLabel =>
-    expect.objectContaining({label: expectedLabel})
+    expect.objectContaining({ label: expectedLabel })
   )));
-  // Currently record elements are generally suggested.
-  // expect(completions).toEqual(expect.not.arrayContaining(notExpectedLabels.map(notExpectedLabel =>
-  //   expect.objectContaining({label: notExpectedLabel})
-  // )));
+  if (notExpectedLabels.length > 0) {
+    expect(completions).toEqual(expect.not.arrayContaining(notExpectedLabels.map(notExpectedLabel =>
+      expect.objectContaining({label: notExpectedLabel})
+    )));
+  }
 });

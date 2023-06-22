@@ -6,7 +6,7 @@ import {
   CodeAction, createConnection, DidChangeConfigurationNotification, InitializeParams, LSPErrorCodes, Position, ProposedFeatures, ResponseError, TextDocuments, TextDocumentSyncKind
 } from 'vscode-languageserver/node';
 import { converterTypes, entityConverter } from './entityConverter';
-import { getCompletions } from './languageFeatures/completion';
+import { Completions } from './languageFeatures/completion';
 import { handleDocumentFormatting } from './languageFeatures/documentFormatting';
 import { documentHighlightHandler } from './languageFeatures/documentHighlightHandler';
 import { DocumentSymbols } from './languageFeatures/documentSymbol';
@@ -316,7 +316,7 @@ connection.onDefinition(async (params, token) => {
 });
 connection.onCompletion(async (params, token) => {
   const linter = await linterManager.getLinter(params.textDocument.uri, token);
-  return getCompletions(linter, params.position);
+  return new Completions(linter).getCompletions(params.position);
 });
 connection.onReferences(async (params, token) => {
   const linter = await linterManager.getLinter(params.textDocument.uri, token);
