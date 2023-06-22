@@ -8,6 +8,7 @@ import { defaultSettingsGetter } from '../../../../lib/settings';
 import { VhdlLinter } from '../../../../lib/vhdlLinter';
 import { sanitizeActions } from '../../../helper';
 import { readFileSyncNorm } from "../../../readFileSyncNorm";
+import { CodeAction } from 'vscode-languageserver';
 
 const files = readdirSync(__dirname).filter(file => file.endsWith('.vhd'));
 test.each(files)('testing add signal helper %s', async (file: string) => {
@@ -22,12 +23,15 @@ test.each(files)('testing add signal helper %s', async (file: string) => {
   expect(linter.messages).toMatchSnapshot();
   for (const message of linter.messages) {
     if (typeof message.code === 'string') {
+      const messageActions: CodeAction[] = [];
       for (const action of message.code.split(';')) {
         const actions = await Promise.all(await linter.diagnosticCodeActionRegistry[parseInt(action)]?.(`file://${file}`) ?? []);
         sanitizeActions(actions);
         expect(actions).toMatchSnapshot();
-
+        messageActions.push(...actions);
       }
+      // check that each message has one action which replaces the lexerToken
+      expect(messageActions.filter(action => action.title.startsWith('Replace with'))).toHaveLength(1);
     }
   }
   await projectParser.stop();
