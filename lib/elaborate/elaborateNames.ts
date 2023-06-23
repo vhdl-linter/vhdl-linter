@@ -259,7 +259,7 @@ export class ElaborateNames {
           });
         }
         return obj;
-      })
+      });
   }
 
   elaborateName(name: O.OName) {
