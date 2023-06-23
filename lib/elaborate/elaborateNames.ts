@@ -1,5 +1,6 @@
 import * as I from "../parser/interfaces";
 import * as O from "../parser/objects";
+import { OAttributeName } from "../parser/objects";
 import { VhdlLinter } from "../vhdlLinter";
 export class ElaborateNames {
   file: O.OFile;
@@ -228,8 +229,37 @@ export class ElaborateNames {
   getTypeDefinitions(obj: O.ObjectBase & I.IHasSubtypeIndication) {
     return obj.subtypeIndication.typeNames.flatMap(type => {
       this.elaborate(type);
+      if (type instanceof O.OAttributeName && type.nameToken.getLText() === 'subtype') {
+        this.elaborate(type.prefix);
+        return type.prefix.definitions.flatMap(definition => {
+          if (I.implementsIHasSubTypeIndication(definition)) {
+            for (const typeName of definition.subtypeIndication.typeNames) {
+              this.elaborate(typeName);
+            }
+            return definition.subtypeIndication.typeNames[0]?.definitions ?? [];
+
+          }
+          return [];
+        });
+      }
       return type.definitions;
-    });
+    }) // All types can be references to other types via subtype.
+      .flatMap(obj => {
+        if (obj instanceof OAttributeName && obj.nameToken.getLText() === 'subtype') {
+          this.elaborate(obj.prefix);
+          return obj.prefix.definitions.flatMap(definition => {
+            if (I.implementsIHasSubTypeIndication(definition)) {
+              for (const typeName of definition.subtypeIndication.typeNames) {
+                this.elaborate(typeName);
+              }
+              return definition.subtypeIndication.typeNames[0]?.definitions ?? [];
+
+            }
+            return [];
+          });
+        }
+        return obj;
+      })
   }
 
   elaborateName(name: O.OName) {

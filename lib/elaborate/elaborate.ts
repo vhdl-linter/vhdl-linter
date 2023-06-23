@@ -46,7 +46,7 @@ export class Elaborate {
 
     await this.vhdlLinter.handleCanceled();
 
-    // const start = Date.now();
+    const start = Date.now();
     // Map architectures to entity
     for (const architecture of this.file.architectures) {
       if (architecture.entityName === undefined) {
@@ -65,6 +65,7 @@ export class Elaborate {
     for (const entity of this.file.entities) {
       entity.correspondingArchitectures = this.vhdlLinter.projectParser.architectures.filter(architecture => entity.lexerToken.getLText() === architecture.entityName.getLText());
     }
+    console.log(`elaborate A ${this.file.uri.pathname} ${Date.now() - start}ms`);
 
     // Map package body to package
     for (const pkg of this.file.packages) {
@@ -88,16 +89,23 @@ export class Elaborate {
 
       }
     }
+    console.log(`elaborate B ${this.file.uri.pathname} ${Date.now() - start}ms`);
 
     await this.vhdlLinter.handleCanceled();
     await ElaborateNames.elaborate(this.vhdlLinter);
+    console.log(`elaborate B1 ${this.file.uri.pathname} ${Date.now() - start}ms`);
+
     elaborateExpressionInstantiations(this.vhdlLinter.file);
+    console.log(`elaborate B2 ${this.file.uri.pathname} ${Date.now() - start}ms`);
     await this.vhdlLinter.handleCanceled();
     elaborateComponents(this.vhdlLinter);
+    console.log(`elaborate B3 ${this.file.uri.pathname} ${Date.now() - start}ms`);
     await this.vhdlLinter.handleCanceled();
     elaborateInstantiations(this.vhdlLinter);
+    console.log(`elaborate B4 ${this.file.uri.pathname} ${Date.now() - start}ms`);
     await this.vhdlLinter.handleCanceled();
     elaborateConfigurations(this.file, this.vhdlLinter.projectParser);
+    console.log(`elaborate C ${this.file.uri.pathname} ${Date.now() - start}ms`);
 
     await this.vhdlLinter.handleCanceled();
 
@@ -106,6 +114,7 @@ export class Elaborate {
     await this.vhdlLinter.handleCanceled();
     elaborateAliases(this.file);
     await this.vhdlLinter.handleCanceled();
+    console.log(`elaborate D ${this.file.uri.pathname} ${Date.now() - start}ms`);
 
   }
 
