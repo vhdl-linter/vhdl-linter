@@ -8,9 +8,9 @@ entity test_use is
 end entity;
 
 architecture rtl of test_use is
-  constant s_t : t := c;
-  signal a_unused     : test_record;
+  constant s_t : t           := c;
+  constant a   : test_record := (foo => (bar => 5));
 begin
   s <= s_t;
--- assert true report a.foo.bar;
+  assert true report a.foo.bar;
 end architecture;
