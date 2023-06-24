@@ -8,9 +8,12 @@ entity test_use is
 end entity;
 
 architecture rtl of test_use is
-  constant s_t : t           := c;
-  constant a   : test_record := (foo => (foo_inner => 5));
+  constant s_t : t := c;
+  -- TODO: Fix aggregate literals where the definition is in another file
+  -- constant a   : test_record := (foo => (foo_inner => 5));
+  signal a     : test_record;
 begin
-  s <= s_t;
-  assert true report a.foo.foo_inner;
+  s               <= s_t;
+  assert true report integer'image(a.foo.foo_inner);
+  a.foo.foo_inner <= a.foo.foo_inner;
 end architecture;
