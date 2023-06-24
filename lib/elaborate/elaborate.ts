@@ -110,7 +110,13 @@ export class Elaborate {
     await this.vhdlLinter.handleCanceled();
     elaborateAliases(this.file);
     await this.vhdlLinter.handleCanceled();
-
+    // const definitions = this.vhdlLinter.projectParser.packages?.map(a => a.rootFile.objectList.reduce((prev, obj) => {
+    //   if (implementsIHasDefinitions(obj)) {
+    //     return prev + obj.definitions.length;
+    //   }
+    //   return prev;
+    // }, 0)).reduce((prev, a) => prev + a, 0);
+    // console.log(`definitions: ${definitions ?? '??'}`);
   }
 
 

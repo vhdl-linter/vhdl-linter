@@ -1,16 +1,17 @@
 import { FSWatcher, watch } from 'chokidar';
 import { EventEmitter } from 'events';
 import { existsSync, promises } from 'fs';
+import { realpath } from 'fs/promises';
 import { basename, dirname, join, sep } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { CancellationToken, Diagnostic, DiagnosticSeverity, WorkDoneProgressReporter } from 'vscode-languageserver';
 import { Elaborate } from './elaborate/elaborate';
+import { ElaborateTargetLibrary } from './elaborate/elaborateTargetLibrary';
 import { SetAdd } from './languageFeatures/findReferencesHandler';
+import { implementsIHasDefinitions } from './parser/interfaces';
 import { OArchitecture, OConfigurationDeclaration, OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
 import { VerilogParser } from './verilogParser';
 import { SettingsGetter, VhdlLinter } from './vhdlLinter';
-import { realpath } from 'fs/promises';
-import { ElaborateTargetLibrary } from './elaborate/elaborateTargetLibrary';
 
 export function joinURL(url: URL, ...additional: string[]) {
   const path = join(fileURLToPath(url), ...additional);
@@ -89,6 +90,15 @@ export class ProjectParser {
       });
       watcher.on('change', (path) => {
         const handleEvent = async () => {
+          for (const cachedFile of this.cachedFiles) {
+            if (cachedFile instanceof FileCacheVhdl) {
+              for (const obj of cachedFile.linter.file.objectList) {
+                if (implementsIHasDefinitions(obj)) {
+                  obj.definitions = [];
+                }
+              }
+            }
+          }
           const url = pathToFileURL(path);
 
           const cachedFile = process.platform === 'win32'
@@ -219,6 +229,7 @@ export class ProjectParser {
       }
     }
     for (const cachedFile of this.cachedFiles) {
+
       if (cachedFile instanceof FileCacheVhdl) {
         new ElaborateTargetLibrary(cachedFile.linter).elaborate();
         this.entities.push(...cachedFile.linter.file.entities);
@@ -230,6 +241,7 @@ export class ProjectParser {
       } else if (cachedFile instanceof FileCacheVerilog) {
         this.entities.push(...cachedFile.parser.file.entities);
       }
+
     }
   }
   // Cache the elaboration result. Caution this can get invalid super easy. Therefore it is completely removed on any file change.
