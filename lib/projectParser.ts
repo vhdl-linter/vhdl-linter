@@ -1,9 +1,9 @@
 import { FSWatcher, watch } from 'chokidar';
 import { EventEmitter } from 'events';
 import { existsSync, promises } from 'fs';
-import { basename, join, sep } from 'path';
+import { basename, dirname, join, sep } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
-import { CancellationToken, WorkDoneProgressReporter } from 'vscode-languageserver';
+import { CancellationToken, Diagnostic, WorkDoneProgressReporter } from 'vscode-languageserver';
 import { Elaborate } from './elaborate/elaborate';
 import { SetAdd } from './languageFeatures/findReferencesHandler';
 import { OArchitecture, OConfigurationDeclaration, OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
@@ -28,8 +28,9 @@ export function getRootDirectory() {
   return currentDir;
 }
 export class ProjectParser {
-
-  public cachedFiles: (FileCacheVhdl | FileCacheVerilog)[] = [];
+  
+  public cachedFiles: (FileCacheVhdl | FileCacheVerilog | FileCacheLibraryList)[] = [];
+  public libraryMap = new Map<string, string>();
   public packages: OPackage[] = [];
   public packageInstantiations: OPackageInstantiation[] = [];
   public contexts: OContext[] = [];
@@ -58,6 +59,7 @@ export class ProjectParser {
       // }
       const watcher = watch([
         fileURLToPath(url).replaceAll(sep, '/') + '/**/*.vhd?(l)',
+        fileURLToPath(url).replaceAll(sep, '/') + '/**/*.csv',
         ...settings.analysis.verilogAnalysis ? [fileURLToPath(url).replaceAll(sep, '/') + '/**/*.?(s)v'] : [],
       ], { ignoreInitial: true, followSymlinks: false });
       watcher.on('add', (path) => {
@@ -66,6 +68,9 @@ export class ProjectParser {
           if (path.match(/\.s?v$/i)) {
             const cachedFile = await FileCacheVerilog.create(url, this, false);
             this.cachedFiles.push(cachedFile);
+          } else if (path.match(/\.csv$/i)) {
+            const libraryFile = await FileCacheLibraryList.create(url, this);
+            this.cachedFiles.push(libraryFile);
           } else {
             const cachedFile = await FileCacheVhdl.create(url, this, false);
             this.cachedFiles.push(cachedFile);
@@ -129,6 +134,9 @@ export class ProjectParser {
       if (file.match(/\.s?v$/i)) {
         const cachedFile = await FileCacheVerilog.create(new URL(file), this, builtIn);
         this.cachedFiles.push(cachedFile);
+      } else if (file.match(/\.csv$/i)) {
+        const libraryFile = await FileCacheLibraryList.create(new URL(file), this);
+        this.cachedFiles.push(libraryFile);
       } else {
         const cachedFile = await FileCacheVhdl.create(new URL(file), this, builtIn);
         this.cachedFiles.push(cachedFile);
@@ -156,7 +164,7 @@ export class ProjectParser {
         const filePath = joinURL(directory, entry);
         const fileStat = await promises.stat(filePath);
         if (fileStat.isFile()) {
-          if ((entry.match(/\.vhdl?$/i) || (entry.match(/\.s?v$/i) && parseVerilog)) && (ignoreRegex === null || !filePath.pathname.match(ignoreRegex))) {
+          if ((entry.match(/\.vhdl?$/i) || (entry.match(/\.s?v$/i) && parseVerilog) || entry.match(/\.csv$/i)) && (ignoreRegex === null || !filePath.pathname.match(ignoreRegex))) {
             files.push(filePath);
           }
         } else if (fileStat.isDirectory()) {
@@ -180,6 +188,7 @@ export class ProjectParser {
     this.packages = [];
     this.packageInstantiations = [];
     this.contexts = [];
+    this.libraryMap.clear();
     for (const cachedFile of this.cachedFiles) {
       if (cachedFile instanceof FileCacheVhdl) {
         this.entities.push(...cachedFile.linter.file.entities);
@@ -188,8 +197,20 @@ export class ProjectParser {
         this.packages.push(...cachedFile.linter.file.packages.filter(pkg => pkg instanceof OPackage) as OPackage[]);
         this.packageInstantiations.push(...cachedFile.linter.file.packageInstantiations);
         this.contexts.push(...cachedFile.linter.file.contexts);
-      } else {
+      } else if (cachedFile instanceof FileCacheVerilog) {
         this.entities.push(...cachedFile.parser.file.entities);
+      } else {
+        for (const [file, lib] of cachedFile.libraryMap.entries()) {
+          const existing = this.libraryMap.get(file);
+          if (existing !== undefined && existing !== lib) {
+            cachedFile.messages.push({
+              message: `This file ${file} has multiple different library associations: ${existing}, ${lib}.`,
+              range: { start: { line: 0, character: 0 }, end: { line: 0, character: 10 } }
+            });
+            continue;
+          }
+          this.libraryMap.set(file, lib);
+        }
       }
     }
   }
@@ -215,6 +236,57 @@ export class ProjectParser {
   }
 }
 
+export class FileCacheLibraryList {
+  public messages: Diagnostic[] = [];
+  public libraryMap = new Map<string, string>();
+  lintingTime: number;
+  public builtIn = false;
+  // Constructor can not be async. So constructor is private and use factory to create
+  public static async create(uri: URL, projectParser: ProjectParser) {
+    const cache = new FileCacheLibraryList(uri, projectParser);
+    await cache.parse();
+    return cache;
+  }
+  private constructor(public uri: URL, public projectParser: ProjectParser) {
+  }
+  async parse() {
+    this.libraryMap.clear();
+    this.messages = [];
+    const text = await promises.readFile(this.uri, { encoding: 'utf8' });
+    const lines = text.replaceAll('\r\n', '\n').split('\n');
+    for (const [i, line] of lines.entries()) {
+      // expect `library,path`
+      const split = line.split(',');
+      if (split.length !== 2) {
+        this.messages.push({
+          message: `Expected library,path but got ${split.length} parts.`,
+          range: { start: { line: i, character: 0 }, end: { line: i, character: line.length } }
+        });
+        continue;
+      }
+      if (split[1]!.startsWith('/')) {
+        // absolute path
+        this.messages.push({
+          message: `Only relative paths are allowed.`,
+          range: { start: { line: i, character: split[0]!.length }, end: { line: i, character: line.length } }
+        });
+        continue;
+      }
+      const path = pathToFileURL(dirname(fileURLToPath(this.uri)));
+      const url = joinURL(path, split[1]!).toString();
+      const existing = this.libraryMap.get(url);
+      if (existing !== undefined) {
+        this.messages.push({
+          message: `This file has already a library associated with it (${existing}).`,
+          range: { start: { line: i, character: 0 }, end: { line: i, character: line.length } }
+        });
+        continue;
+      }
+      this.libraryMap.set(url, split[0]!);
+    }
+  }
+
+}
 export class FileCacheVhdl {
   contexts: OContext[] = [];
   entities: OEntity[] = [];
