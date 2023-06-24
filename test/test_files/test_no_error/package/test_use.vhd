@@ -9,6 +9,8 @@ end entity;
 
 architecture rtl of test_use is
   constant s_t : t := c;
+  signal a_unused     : test_record;
 begin
   s <= s_t;
+-- assert true report a.foo.bar;
 end architecture;
