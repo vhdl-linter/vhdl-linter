@@ -9,6 +9,7 @@ import { elaborateConfigurations } from "./elaborateConfigurations";
 import { elaborateExpressionInstantiations } from "./elaborateExpressionInstantiations";
 import { elaborateInstantiations } from "./elaborateInstantiations";
 import { ElaborateNames } from "./elaborateNames";
+import { ElaborateTargetLibrary } from "./elaborateTargetLibrary";
 
 export class Elaborate {
   file: OFile;
@@ -89,6 +90,9 @@ export class Elaborate {
       }
     }
 
+    // also elaborate the target library here for the open file to get error messages
+    await this.vhdlLinter.handleCanceled();
+    new ElaborateTargetLibrary(this.vhdlLinter).elaborate();
     await this.vhdlLinter.handleCanceled();
     await ElaborateNames.elaborate(this.vhdlLinter);
     elaborateExpressionInstantiations(this.vhdlLinter.file);

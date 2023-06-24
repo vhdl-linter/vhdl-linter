@@ -1,0 +1,249 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Messages of csv files 1`] = `
+[
+  {
+    "message": "/home/niklas/dev/vhdl-linter/test/unitTests/libraryMapping/test1.vhd does not exist.",
+    "range": {
+      "end": {
+        "character": 14,
+        "line": 0,
+      },
+      "start": {
+        "character": 5,
+        "line": 0,
+      },
+    },
+    "severity": 2,
+  },
+  {
+    "message": "Only relative paths are allowed.",
+    "range": {
+      "end": {
+        "character": 14,
+        "line": 1,
+      },
+      "start": {
+        "character": 5,
+        "line": 1,
+      },
+    },
+    "severity": 2,
+  },
+  {
+    "message": "This file already has a library associated with it (lib1 in line 3).",
+    "range": {
+      "end": {
+        "character": 13,
+        "line": 3,
+      },
+      "start": {
+        "character": 0,
+        "line": 3,
+      },
+    },
+    "severity": 2,
+  },
+]
+`;
+
+exports[`Messages of csv files 2`] = `
+[
+  {
+    "message": "This file has another and different library association: /home/niklas/dev/vhdl-linter/test/unitTests/libraryMapping/vunit_sources_1.csv:5 (library lib2).",
+    "range": {
+      "end": {
+        "character": 1000,
+        "line": 0,
+      },
+      "start": {
+        "character": 0,
+        "line": 0,
+      },
+    },
+    "severity": 2,
+  },
+]
+`;
+
+exports[`Test library mapping with vunit like csv files (test.vhd) 1`] = `
+{
+  "code": "0",
+  "message": "The library assigned in the magic comment (wrong) does not match lib1 from /home/niklas/dev/vhdl-linter/test/unitTests/libraryMapping/vunit_sources_1.csv:2. (elaborate)",
+  "range": {
+    "end": {
+      "character": 18,
+      "line": 0,
+    },
+    "start": {
+      "character": 0,
+      "line": 0,
+    },
+  },
+  "severity": 2,
+}
+`;
+
+exports[`Test library mapping with vunit like csv files (test.vhd) 2`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "test.vhd": [
+          {
+            "newText": " -- vhdl-linter-disable-line elaborate",
+            "range": {
+              "end": {
+                "character": 1000,
+                "line": 0,
+              },
+              "start": {
+                "character": 1000,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore elaborate on this line.",
+  },
+  {
+    "edit": {
+      "changes": {
+        "test.vhd": [
+          {
+            "newText": "-- vhdl-linter-disable elaborate
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore elaborate for this file.",
+  },
+]
+`;
+
+exports[`Test library mapping with vunit like csv files (test.vhd) 3`] = `
+{
+  "code": "1;2",
+  "message": "object 'sub' is referenced but not declared (not-declared)",
+  "range": {
+    "end": {
+      "character": 27,
+      "line": 5,
+    },
+    "start": {
+      "character": 19,
+      "line": 5,
+    },
+  },
+  "severity": 1,
+}
+`;
+
+exports[`Test library mapping with vunit like csv files (test.vhd) 4`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "test.vhd": [
+          {
+            "newText": "library lib2;
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 1,
+              },
+              "start": {
+                "character": 0,
+                "line": 1,
+              },
+            },
+          },
+          {
+            "newText": "lib2",
+            "range": {
+              "end": {
+                "character": 23,
+                "line": 5,
+              },
+              "start": {
+                "character": 19,
+                "line": 5,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Change library to lib2",
+  },
+]
+`;
+
+exports[`Test library mapping with vunit like csv files (test.vhd) 5`] = `
+[
+  {
+    "edit": {
+      "changes": {
+        "test.vhd": [
+          {
+            "newText": " -- vhdl-linter-disable-line not-declared",
+            "range": {
+              "end": {
+                "character": 1000,
+                "line": 5,
+              },
+              "start": {
+                "character": 1000,
+                "line": 5,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared on this line.",
+  },
+  {
+    "edit": {
+      "changes": {
+        "test.vhd": [
+          {
+            "newText": "-- vhdl-linter-disable not-declared
+",
+            "range": {
+              "end": {
+                "character": 0,
+                "line": 0,
+              },
+              "start": {
+                "character": 0,
+                "line": 0,
+              },
+            },
+          },
+        ],
+      },
+    },
+    "kind": "quickfix",
+    "title": "Ignore not-declared for this file.",
+  },
+]
+`;

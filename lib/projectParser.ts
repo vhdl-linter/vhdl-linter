@@ -3,13 +3,14 @@ import { EventEmitter } from 'events';
 import { existsSync, promises } from 'fs';
 import { basename, dirname, join, sep } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
-import { CancellationToken, Diagnostic, WorkDoneProgressReporter } from 'vscode-languageserver';
+import { CancellationToken, Diagnostic, DiagnosticSeverity, WorkDoneProgressReporter } from 'vscode-languageserver';
 import { Elaborate } from './elaborate/elaborate';
 import { SetAdd } from './languageFeatures/findReferencesHandler';
 import { OArchitecture, OConfigurationDeclaration, OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
 import { VerilogParser } from './verilogParser';
 import { SettingsGetter, VhdlLinter } from './vhdlLinter';
 import { realpath } from 'fs/promises';
+import { ElaborateTargetLibrary } from './elaborate/elaborateTargetLibrary';
 
 export function joinURL(url: URL, ...additional: string[]) {
   const path = join(fileURLToPath(url), ...additional);
@@ -27,10 +28,16 @@ export function getRootDirectory() {
   }
   return currentDir;
 }
+interface LibraryMapping {
+  library: string;
+  definitionFile: URL; // the csv file which defines the mapping
+  definitionLine: number;
+}
+
 export class ProjectParser {
-  
+
   public cachedFiles: (FileCacheVhdl | FileCacheVerilog | FileCacheLibraryList)[] = [];
-  public libraryMap = new Map<string, string>();
+  public libraryMap = new Map<string, LibraryMapping>();
   public packages: OPackage[] = [];
   public packageInstantiations: OPackageInstantiation[] = [];
   public contexts: OContext[] = [];
@@ -189,8 +196,31 @@ export class ProjectParser {
     this.packageInstantiations = [];
     this.contexts = [];
     this.libraryMap.clear();
+
+    // do the library mapping at the beginning such that the library elaboration can happen at this stage
+    for (const cachedFile of this.cachedFiles) {
+      if (cachedFile instanceof FileCacheLibraryList) {
+        for (const [file, lib] of cachedFile.libraryMap.entries()) {
+          const existing = this.libraryMap.get(file);
+          if (existing !== undefined && existing.library !== lib.library) {
+            const message = {
+              message: `This file has another and different library association: ${fileURLToPath(existing.definitionFile)}:${existing.definitionLine + 1} (library ${existing.library}).`,
+              range: { start: { line: lib.definitionLine, character: 0 }, end: { line: lib.definitionLine, character: 1000 } },
+              severity: DiagnosticSeverity.Warning,
+            };
+            // avoid duplicate messages
+            if (cachedFile.messages.some(m => m.message === message.message && m.range.start.line === message.range.start.line) === false) {
+              cachedFile.messages.push(message);
+            }
+            continue;
+          }
+          this.libraryMap.set(file, lib);
+        }
+      }
+    }
     for (const cachedFile of this.cachedFiles) {
       if (cachedFile instanceof FileCacheVhdl) {
+        new ElaborateTargetLibrary(cachedFile.linter).elaborate();
         this.entities.push(...cachedFile.linter.file.entities);
         this.architectures.push(...cachedFile.linter.file.architectures);
         this.configurations.push(...cachedFile.linter.file.configurations);
@@ -199,18 +229,6 @@ export class ProjectParser {
         this.contexts.push(...cachedFile.linter.file.contexts);
       } else if (cachedFile instanceof FileCacheVerilog) {
         this.entities.push(...cachedFile.parser.file.entities);
-      } else {
-        for (const [file, lib] of cachedFile.libraryMap.entries()) {
-          const existing = this.libraryMap.get(file);
-          if (existing !== undefined && existing !== lib) {
-            cachedFile.messages.push({
-              message: `This file ${file} has multiple different library associations: ${existing}, ${lib}.`,
-              range: { start: { line: 0, character: 0 }, end: { line: 0, character: 10 } }
-            });
-            continue;
-          }
-          this.libraryMap.set(file, lib);
-        }
       }
     }
   }
@@ -238,7 +256,7 @@ export class ProjectParser {
 
 export class FileCacheLibraryList {
   public messages: Diagnostic[] = [];
-  public libraryMap = new Map<string, string>();
+  public libraryMap = new Map<string, LibraryMapping>();
   lintingTime: number;
   public builtIn = false;
   // Constructor can not be async. So constructor is private and use factory to create
@@ -260,7 +278,8 @@ export class FileCacheLibraryList {
       if (split.length !== 2) {
         this.messages.push({
           message: `Expected library,path but got ${split.length} parts.`,
-          range: { start: { line: i, character: 0 }, end: { line: i, character: line.length } }
+          range: { start: { line: i, character: 0 }, end: { line: i, character: line.length } },
+          severity: DiagnosticSeverity.Warning,
         });
         continue;
       }
@@ -268,21 +287,34 @@ export class FileCacheLibraryList {
         // absolute path
         this.messages.push({
           message: `Only relative paths are allowed.`,
-          range: { start: { line: i, character: split[0]!.length }, end: { line: i, character: line.length } }
+          range: { start: { line: i, character: split[0]!.length + 1 }, end: { line: i, character: line.length } },
+          severity: DiagnosticSeverity.Warning,
         });
         continue;
       }
       const path = pathToFileURL(dirname(fileURLToPath(this.uri)));
       const url = joinURL(path, split[1]!).toString();
+      if (existsSync(fileURLToPath(url)) === false) {
+        this.messages.push({
+          message: `${fileURLToPath(url)} does not exist.`,
+          range: { start: { line: i, character: split[0]!.length + 1 }, end: { line: i, character: line.length } },
+          severity: DiagnosticSeverity.Warning,
+        });
+      }
       const existing = this.libraryMap.get(url);
       if (existing !== undefined) {
         this.messages.push({
-          message: `This file has already a library associated with it (${existing}).`,
-          range: { start: { line: i, character: 0 }, end: { line: i, character: line.length } }
+          message: `This file already has a library associated with it (${existing.library} in line ${existing.definitionLine + 1}).`,
+          range: { start: { line: i, character: 0 }, end: { line: i, character: line.length } },
+          severity: DiagnosticSeverity.Warning,
         });
         continue;
       }
-      this.libraryMap.set(url, split[0]!);
+      this.libraryMap.set(url, {
+        library: split[0]!,
+        definitionFile: this.uri,
+        definitionLine: i
+      });
     }
   }
 

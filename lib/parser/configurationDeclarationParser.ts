@@ -10,7 +10,6 @@ export class ConfigurationDeclarationParser extends ParserBase {
   }
   parse() {
     const configuration = new OConfigurationDeclaration(this.parent, this.getToken().range.copyExtendEndOfLine());
-    configuration.targetLibrary = this.parent.originalText.match(/!\s*@library\s+(\S+)/i)?.[1];
     configuration.lexerToken = this.consumeToken();
     this.expect('of');
     configuration.entityName = this.consumeToken();

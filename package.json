@@ -199,12 +199,6 @@
 						"description": "Enable the rule to check if configuration reference existing entity.",
 						"default": true
 					},
-					"VhdlLinter.rules.library": {
-						"scope": "window",
-						"type": "boolean",
-						"description": "Enable the rule to check if each file contains a magic comment stating the library where the file is compiled to.",
-						"default": false
-					},
 					"VhdlLinter.rules.multiple-definition": {
 						"scope": "window",
 						"type": "boolean",

@@ -13,7 +13,6 @@ export class PackageParser extends ParserBase {
   parsePackage(parent: OFile | ObjectBase): OPackage {
     // package and the identifier have already been consumed. -2 to get the beginning of the package again
     const pkg = new OPackage(parent, this.getToken(-1, true).range);
-    pkg.targetLibrary = this.getTargetLibrary();
 
     pkg.lexerToken = this.consumeIdentifier();
     this.expect('is');
@@ -37,8 +36,6 @@ export class PackageParser extends ParserBase {
   parsePackageBody(parent: OFile | ObjectBase): OPackageBody {
     this.expect('body');
     const pkg = new OPackageBody(parent, this.getToken().range);
-    pkg.targetLibrary = this.getTargetLibrary();
-
     pkg.lexerToken = this.consumeToken();
     this.expect('is');
     const declarativePartParser = new DeclarativePartParser(this.state, pkg);
