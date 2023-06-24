@@ -3,7 +3,7 @@
 exports[`Messages of csv files 1`] = `
 [
   {
-    "message": "/home/niklas/dev/vhdl-linter/test/unitTests/libraryMapping/test1.vhd does not exist.",
+    "message": "/test1.vhd does not exist.",
     "range": {
       "end": {
         "character": 14,
@@ -50,7 +50,7 @@ exports[`Messages of csv files 1`] = `
 exports[`Messages of csv files 2`] = `
 [
   {
-    "message": "This file has another and different library association: /home/niklas/dev/vhdl-linter/test/unitTests/libraryMapping/vunit_sources_1.csv:5 (library lib2).",
+    "message": "This file has another and different library association: /vunit_sources_1.csv:5 (library lib2).",
     "range": {
       "end": {
         "character": 1000,

@@ -198,6 +198,15 @@ export class ProjectParser {
     }));
     return files;
   }
+  relativeToWorkspace(url: URL) {
+    const path = fileURLToPath(url);
+    for (const workspace of this.workspaces) {
+      if (path.startsWith(fileURLToPath(workspace))) {
+        return path.replace(fileURLToPath(workspace), '');
+      }
+    }
+    return path;
+  }
   flattenProject() {
     this.entities = [];
     this.architectures = [];
@@ -214,7 +223,7 @@ export class ProjectParser {
           const existing = this.libraryMap.get(file);
           if (existing !== undefined && existing.library !== lib.library) {
             const message = {
-              message: `This file has another and different library association: ${fileURLToPath(existing.definitionFile)}:${existing.definitionLine + 1} (library ${existing.library}).`,
+              message: `This file has another and different library association: ${this.relativeToWorkspace(existing.definitionFile)}:${existing.definitionLine + 1} (library ${existing.library}).`,
               range: { start: { line: lib.definitionLine, character: 0 }, end: { line: lib.definitionLine, character: 1000 } },
               severity: DiagnosticSeverity.Warning,
             };
@@ -305,15 +314,15 @@ export class FileCacheLibraryList {
         continue;
       }
       const path = pathToFileURL(dirname(fileURLToPath(this.uri)));
-      const url = joinURL(path, split[1]!).toString();
+      const url = joinURL(path, split[1]!);
       if (existsSync(fileURLToPath(url)) === false) {
         this.messages.push({
-          message: `${fileURLToPath(url)} does not exist.`,
+          message: `${this.projectParser.relativeToWorkspace(url)} does not exist.`,
           range: { start: { line: i, character: split[0]!.length + 1 }, end: { line: i, character: line.length } },
           severity: DiagnosticSeverity.Warning,
         });
       }
-      const existing = this.libraryMap.get(url);
+      const existing = this.libraryMap.get(url.toString());
       if (existing !== undefined) {
         this.messages.push({
           message: `This file already has a library associated with it (${existing.library} in line ${existing.definitionLine + 1}).`,
@@ -322,7 +331,7 @@ export class FileCacheLibraryList {
         });
         continue;
       }
-      this.libraryMap.set(url, {
+      this.libraryMap.set(url.toString(), {
         library: split[0]!,
         definitionFile: this.uri,
         definitionLine: i
