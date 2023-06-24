@@ -38,7 +38,7 @@ export function createPrintablePosition(onesLine: number, onesCharacter: number)
 }
 export async function runLinterGetMessages(folder: string, file: string, settingsGetter = defaultSettingsGetter) {
 
-  const projectParser = await ProjectParser.create([pathToFileURL(folder)], '', settingsGetter);
+  const projectParser = await ProjectParser.create([pathToFileURL(folder)], settingsGetter);
   const uri = pathToFileURL(join(folder, file));
   const linter = new VhdlLinter(uri, readFileSyncNorm(join(folder, file), { encoding: 'utf8' }), projectParser, settingsGetter());
   const messages = await linter.checkAll();

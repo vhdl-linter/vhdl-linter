@@ -10,7 +10,7 @@ let projectParser: ProjectParser;
 let messages: Diagnostic[];
 let linter: VhdlLinter;
 beforeAll(async () => {
-  projectParser = await ProjectParser.create([pathToFileURL(__dirname)], '', defaultSettingsGetter);
+  projectParser = await ProjectParser.create([pathToFileURL(__dirname)], defaultSettingsGetter);
 
 });
 afterAll(async () => {

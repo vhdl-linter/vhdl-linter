@@ -30,7 +30,7 @@ begin
 end architecture;
 `;
   await writeFile(tortureEntityURL, text);
-  projectParser = await ProjectParser.create([filesURL], '', defaultSettingsGetter);
+  projectParser = await ProjectParser.create([filesURL], defaultSettingsGetter);
 });
 afterAll(async () => {
   await projectParser.stop();

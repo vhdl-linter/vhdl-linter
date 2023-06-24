@@ -27,7 +27,7 @@ test.each([
   });
   const path = join(__dirname, file);
   const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }),
-    await ProjectParser.create([], '', getter), getter());
+    await ProjectParser.create([], getter), getter());
   await linter.checkAll();
 
   expect(linter.messages).toMatchSnapshot();

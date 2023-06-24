@@ -8,7 +8,7 @@ import { MessageWrapper, prettyPrintMessages, readDirPath } from "./testUtil";
 async function run_test(path: URL, error_expected: boolean, projectParser?: ProjectParser): Promise<MessageWrapper[]> {
   const messageWrappers: MessageWrapper[] = [];
   if (!projectParser) {
-    projectParser = await ProjectParser.create([path], '', defaultSettingsGetter);
+    projectParser = await ProjectParser.create([path], defaultSettingsGetter);
   }
   for (const subPath of readDirPath(path)) {
     // Exclude OSVVM and IEEE from some checker

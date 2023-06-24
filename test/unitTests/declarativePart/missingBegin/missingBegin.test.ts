@@ -9,7 +9,7 @@ import { readFileSyncNorm } from "../../../readFileSyncNorm";
 
 let projectParser: ProjectParser;
 beforeAll(async () => {
-  projectParser = await ProjectParser.create([pathToFileURL(__dirname)], '', defaultSettingsGetter);
+  projectParser = await ProjectParser.create([pathToFileURL(__dirname)], defaultSettingsGetter);
 });
 afterAll(async () => {
   await projectParser.stop();

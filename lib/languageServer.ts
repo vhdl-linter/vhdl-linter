@@ -145,7 +145,7 @@ export const initialization = new Promise<void>(resolve => {
           folders.push(...configuration.paths.additional.map(path => pathToFileURL(path))
             .filter(url => existsSync(url)));
 
-          projectParser = await ProjectParser.create(folders, configuration.paths.ignoreRegex, getDocumentSettings, false, progress);
+          projectParser = await ProjectParser.create(folders, getDocumentSettings, false, progress);
         };
         await parseWorkspaces();
         connection.workspace.onDidChangeWorkspaceFolders(event => {
@@ -157,7 +157,7 @@ export const initialization = new Promise<void>(resolve => {
         if (rootUri !== undefined) {
           folders.push(new URL(rootUri));
         }
-        projectParser = await ProjectParser.create(folders, configuration.paths.ignoreRegex, getDocumentSettings, false, progress);
+        projectParser = await ProjectParser.create(folders, getDocumentSettings, false, progress);
       }
       for (const textDocument of documents.all()) {
         await validateTextDocument(textDocument);
