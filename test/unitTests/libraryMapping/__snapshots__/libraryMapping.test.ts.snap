@@ -69,7 +69,7 @@ exports[`Messages of csv files 2`] = `
 exports[`Test library mapping with vunit like csv files (test.vhd) 1`] = `
 {
   "code": "0",
-  "message": "The library assigned in the magic comment (wrong) does not match lib1 from /home/niklas/dev/vhdl-linter/test/unitTests/libraryMapping/vunit_sources_1.csv:2. (elaborate)",
+  "message": "The library assigned in the magic comment (wrong) does not match lib1 from /vunit_sources_1.csv:2. (elaborate)",
   "range": {
     "end": {
       "character": 18,
