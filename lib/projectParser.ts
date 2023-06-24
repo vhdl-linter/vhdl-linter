@@ -202,10 +202,10 @@ export class ProjectParser {
     const path = fileURLToPath(url);
     for (const workspace of this.workspaces) {
       if (path.startsWith(fileURLToPath(workspace))) {
-        return path.replace(fileURLToPath(workspace), '');
+        return path.replace(fileURLToPath(workspace), '').replace(sep, '/');
       }
     }
-    return path;
+    return path.replace(sep, '/');
   }
   flattenProject() {
     this.entities = [];
