@@ -572,6 +572,7 @@
 	"consumedServices": {},
 	"devDependencies": {
 		"@jest/globals": "^29.3.1",
+		"@types/minimatch": "^5.1.2",
 		"@types/node": "^16.18.3",
 		"@types/string-similarity": "^3.0.0",
 		"@types/vscode": "^1.42.0",

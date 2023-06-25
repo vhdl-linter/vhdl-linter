@@ -10,7 +10,7 @@ import { defaultSettingsGetter } from '../../../../lib/settings';
 import { readFileSyncNorm } from '../../../readFileSyncNorm';
 jest.setTimeout(10000);
 test('memory leak test with random access', async () => {
-  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)], '', defaultSettingsGetter);
+  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)], defaultSettingsGetter);
   const linterManager = new LinterManager();
   const seed = 42;
   const rng = prand.xoroshiro128plus(seed);
