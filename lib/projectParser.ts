@@ -77,6 +77,7 @@ export class ProjectParser {
         handleEvent().catch(console.error);
       });
       watcher.on('change', (path) => {
+        // console.log('on change');
         const handleEvent = async () => {
           for (const cachedFile of this.cachedFiles) {
             if (cachedFile instanceof FileCacheVhdl) {
