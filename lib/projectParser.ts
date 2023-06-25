@@ -7,7 +7,7 @@ import { basename, dirname, join, sep } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { CancellationToken, Diagnostic, DiagnosticSeverity, WorkDoneProgressReporter } from 'vscode-languageserver';
 import { Elaborate } from './elaborate/elaborate';
-import { ElaborateTargetLibrary } from './elaborate/elaborateTargetLibrary';
+import { elaborateTargetLibrary } from './elaborate/elaborateTargetLibrary';
 import { SetAdd } from './languageFeatures/findReferencesHandler';
 import { implementsIHasDefinitions } from './parser/interfaces';
 import { OArchitecture, OConfigurationDeclaration, OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
@@ -46,6 +46,7 @@ const verilogGlob = '*.?(s)v';
 export class ProjectParser {
 
   public cachedFiles: (FileCacheVhdl | FileCacheVerilog | FileCacheLibraryList)[] = [];
+  // maps files (url.toString()) to a library mapping
   public libraryMap = new Map<string, LibraryMapping>();
   public packages: OPackage[] = [];
   public packageInstantiations: OPackageInstantiation[] = [];
@@ -183,13 +184,14 @@ export class ProjectParser {
     const files: URL[] = [];
     const settings = await this.settingsGetter(directory);
     const entries = await promises.readdir(directory);
+    const ignoreRegex = settings.paths.ignoreRegex.trim().length > 0 ? new RegExp(settings.paths.ignoreRegex) : null;
     await Promise.all(entries.map(async entry => {
       try {
         const filePath = joinURL(directory, entry);
         const fileStat = await promises.stat(filePath);
         if (fileStat.isFile()) {
           if ((minimatch(basename(entry), vhdlGlob) || (parseVerilog && minimatch(basename(entry), verilogGlob)) || matchGlobList(basename(entry), settings.paths.libraryMapFiles))
-            && (matchGlobList(basename(entry), settings.paths.ignoreFiles) === false)) {
+            && (matchGlobList(basename(entry), settings.paths.ignoreFiles) === false) && (ignoreRegex === null || !filePath.pathname.match(ignoreRegex))) {
             files.push(filePath);
           }
         } else if (fileStat.isDirectory()) {
@@ -248,7 +250,7 @@ export class ProjectParser {
     for (const cachedFile of this.cachedFiles) {
 
       if (cachedFile instanceof FileCacheVhdl) {
-        new ElaborateTargetLibrary(cachedFile.linter).elaborate();
+        elaborateTargetLibrary(cachedFile.linter);
         this.entities.push(...cachedFile.linter.file.entities);
         this.architectures.push(...cachedFile.linter.file.architectures);
         this.configurations.push(...cachedFile.linter.file.configurations);

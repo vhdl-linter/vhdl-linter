@@ -5,6 +5,7 @@ export interface ISettings {
   'paths': {
     'additional': string[];
     'libraryMapFiles': string[];
+    'ignoreRegex': string;
     'ignoreFiles': string[];
   };
   'analysis': {
@@ -76,6 +77,7 @@ export const defaultSettings: ISettings = {
   'paths': {
     'additional': [],
     'libraryMapFiles': ['vunit*.csv'],
+    'ignoreRegex': '',
     'ignoreFiles': [],
   },
   'analysis': {

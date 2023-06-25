@@ -137,6 +137,13 @@
 						],
 						"description": "Glob expressions for files that contain a library, source file mapping in the format `library,filename`."
 					},
+					"VhdlLinter.paths.ignoreRegex": {
+						"scope": "window",
+						"type": "string",
+						"deprecationMessage": "This is being deprecated in favor of `VhdlLinter.paths.ignoreFiles`",
+						"default": "",
+						"description": "Regex for files to be ignored by the Project Parser"
+					},
 					"VhdlLinter.paths.ignoreFiles": {
 						"scope": "window",
 						"type": "array",
