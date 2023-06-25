@@ -572,6 +572,7 @@
 	"consumedServices": {},
 	"devDependencies": {
 		"@jest/globals": "^29.3.1",
+		"@types/minimatch": "^5.1.2",
 		"@types/node": "^16.18.3",
 		"@types/string-similarity": "^3.0.0",
 		"@types/vscode": "^1.42.0",
@@ -582,6 +583,7 @@
 		"jest": "^29.3.1",
 		"jest-watch-typeahead": "^2.2.2",
 		"p-queue": "^6.6.2",
+		"pure-rand": "^6.0.2",
 		"ts-jest": "^29.0.3",
 		"typescript": "^4.9.5",
 		"utility-types": "^3.10.0",

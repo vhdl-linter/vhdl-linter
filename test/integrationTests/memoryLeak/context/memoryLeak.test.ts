@@ -1,11 +1,11 @@
 import { expect, test } from '@jest/globals';
-import { ProjectParser } from '../../../lib/projectParser';
+import { ProjectParser } from '../../../../lib/projectParser';
 import { pathToFileURL } from 'url';
-import { defaultSettingsGetter } from '../../../lib/settings';
-import { VhdlLinter } from '../../../lib/vhdlLinter';
-import { readFileSyncNorm } from '../../readFileSyncNorm';
+import { defaultSettingsGetter } from '../../../../lib/settings';
+import { VhdlLinter } from '../../../../lib/vhdlLinter';
+import { readFileSyncNorm } from '../../../readFileSyncNorm';
 import { join } from 'path';
-import { OContext } from '../../../lib/parser/objects';
+import { OContext } from '../../../../lib/parser/objects';
 
 test('testing multi elaborate for memory leak', async () => {
   const file = 'dummy.vhd';
