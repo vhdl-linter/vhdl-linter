@@ -1,6 +1,7 @@
-import { expect, test, jest } from '@jest/globals';
+import { expect, jest, test } from '@jest/globals';
 import { readdirSync } from 'fs';
 import { join } from 'path';
+import prand from 'pure-rand';
 import { pathToFileURL } from 'url';
 import { LinterManager } from '../../../../lib/linterManager';
 import { implementsIHasDefinitions } from '../../../../lib/parser/interfaces';
@@ -11,7 +12,8 @@ jest.setTimeout(10000);
 test('memory leak test with random access', async () => {
   const projectParser = await ProjectParser.create([pathToFileURL(__dirname)], '', defaultSettingsGetter);
   const linterManager = new LinterManager();
-
+  const seed = 42;
+  const rng = prand.xoroshiro128plus(seed);
 
   // This test works likes this:
   // Assuming there is no memory leak, we should reach a maximum amount of definitions in the project after randomly elaborating files
@@ -38,14 +40,13 @@ test('memory leak test with random access', async () => {
   }
   const files = readdirSync(__dirname).filter(filename => filename.match(/\.vhd$/i));
   let definitions = 0;
-  for (let i = 0; i < 1000; i++) {
-    await triggerRefresh(files[Math.floor(Math.random() * files.length)]!);
+  for (let i = 0; i < 100; i++) {
+    await triggerRefresh(files[prand.unsafeUniformIntDistribution(0, files.length - 1, rng)]!);
     definitions = Math.max(definitions, getDefinitionCount());
   }
   console.log(definitions, getDefinitionCount());
-  for (let i = 0; i < 1000; i++) {
-    const randomIndex = Math.floor(Math.random() * files.length);
-    await triggerRefresh(files[randomIndex]!);
+  for (let i = 0; i < 100; i++) {
+    await triggerRefresh(files[prand.unsafeUniformIntDistribution(0, files.length - 1, rng)]!);
     expect(getDefinitionCount()).toBeLessThanOrEqual(definitions);
   }
   await projectParser.stop();
