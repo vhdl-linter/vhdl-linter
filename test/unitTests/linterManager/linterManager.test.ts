@@ -37,7 +37,7 @@ test.each([
   [10, 5],
   [10, 10],
 ])('Testing manager with random delays unsuccessful runs before %i, after %i', async (wrongBefore, wrongAfter) => {
-  const projectParser = await ProjectParser.create([], '', defaultSettingsGetter);
+  const projectParser = await ProjectParser.create([], defaultSettingsGetter);
   const linterManager = new LinterManager();
   const uri = pathToFileURL(__filename).toString();
   const dummyTextCorrect = 'correct linter';
@@ -74,7 +74,7 @@ test.each([
 test('Running linterManager cancel test', async () => {
   // Trigger 3 times, to simulate race condition.
   // The first two times elaborate is delayed so the third call which is not delayed shall correctly cancel the first two ones.
-  const projectParser = await ProjectParser.create([], '', defaultSettingsGetter);
+  const projectParser = await ProjectParser.create([], defaultSettingsGetter);
   const linterManager = new LinterManager();
   const uri = pathToFileURL(__filename).toString();
   const dummyTextCorrect = 'correct linter';
@@ -125,7 +125,7 @@ test('Running linterManager cancel test', async () => {
 test('Running linterManager cancel getLinter', async () => {
   // Trigger 3 times, to simulate race condition.
   // The first two times elaborate is delayed so the third call which is not delayed shall correctly cancel the first two ones.
-  const projectParser = await ProjectParser.create([], '', defaultSettingsGetter);
+  const projectParser = await ProjectParser.create([], defaultSettingsGetter);
   const linterManager = new LinterManager();
   const uri = pathToFileURL(__filename).toString();
   const cancellationTokenSources = new CancellationTokenSource();

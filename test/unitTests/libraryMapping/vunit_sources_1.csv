@@ -1,0 +1,5 @@
+lib1,test1.vhd
+lib1,/test.vhd
+lib1,test.vhd
+lib1,test.vhd
+lib2,subfolder/sub.vhd

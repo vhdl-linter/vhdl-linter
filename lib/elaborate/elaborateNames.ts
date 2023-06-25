@@ -8,7 +8,7 @@ export class ElaborateNames {
   // this map only contains the record children and is used for aggregate references
   private scopeRecordChildMap = new Map<O.ObjectBase, Map<string, O.ORecordChild[]>>();
   // the project visibility map includes packages that are visible in the project
-  private projectVisibilityMap?: Map<string, (O.ObjectBase & I.IHasTargetLibrary)[]> = undefined;
+  private projectVisibilityMap?: Map<string, O.ObjectBase[]> = undefined;
   // store elaborated objects to prevent multiple elaboration
   private elaboratedList = new WeakSet<O.OName>();
   private elaboratedListContextRefs = new WeakSet<O.OContextReference>();
@@ -166,20 +166,20 @@ export class ElaborateNames {
       this.addObjectsToMap(this.projectVisibilityMap, projectParser.contexts);
       this.addObjectsToMap(this.projectVisibilityMap, projectParser.configurations);
     }
-    const result: (O.ObjectBase & I.IHasTargetLibrary)[] = [];
+    const result: O.ObjectBase[] = [];
     if (searchName.nameToken.getLText() === 'all') {
       result.push(...[...this.projectVisibilityMap.values()].flat());
     } else {
       result.push(...this.projectVisibilityMap.get(searchName.nameToken.getLText()) ?? []);
     }
     return result.filter(obj => {
-      if (obj.targetLibrary === undefined) {
+      if (obj.rootFile.targetLibrary === undefined) {
         return true;
       }
       if (libraries.some(lib => lib.lexerToken.getLText() === 'work')) {
-        return obj.targetLibrary.toLowerCase() === searchName.getRootElement().targetLibrary?.toLowerCase() || searchName.getRootElement().targetLibrary === undefined;
+        return obj.rootFile.targetLibrary.toLowerCase() === searchName.rootFile.targetLibrary?.toLowerCase() || searchName.rootFile.targetLibrary === undefined;
       }
-      return libraries.some(lib => lib.lexerToken.getLText() === obj.targetLibrary!.toLowerCase());
+      return libraries.some(lib => lib.lexerToken.getLText() === obj.rootFile.targetLibrary!.toLowerCase());
     });
   }
 

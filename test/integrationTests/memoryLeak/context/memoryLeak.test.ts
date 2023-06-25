@@ -9,7 +9,7 @@ import { OContext } from '../../../../lib/parser/objects';
 
 test('testing multi elaborate for memory leak', async () => {
   const file = 'dummy.vhd';
-  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)], '', defaultSettingsGetter);
+  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)], defaultSettingsGetter);
   const path = join(__dirname, file);
   async function runTest() {
     const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }),

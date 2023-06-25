@@ -8,7 +8,7 @@ import { readFileSyncNorm } from "../../readFileSyncNorm";
 
 test('E2E test of linter with instantiation', async () => {
   const filename = join(__dirname, 'test_inst.vhd');
-  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)], '', defaultSettingsGetter, true);
+  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)], defaultSettingsGetter, true);
   const linter = new VhdlLinter(pathToFileURL(filename), readFileSyncNorm(filename, { encoding: 'utf8' }),
     projectParser, defaultSettingsGetter());
   const diagnostic = await linter.checkAll();

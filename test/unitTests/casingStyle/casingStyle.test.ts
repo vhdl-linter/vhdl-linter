@@ -21,7 +21,7 @@ test.each([
     style: overwrite
   });
   const path = join(__dirname, `${file}.vhd`);
-  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)], '', getter);
+  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)], getter);
   const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }),
     projectParser, getter());
   await linter.checkAll();

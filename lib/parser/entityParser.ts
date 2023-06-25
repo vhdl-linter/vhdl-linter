@@ -8,7 +8,7 @@ export class EntityParser extends ParserBase {
   public entity: OEntity;
   constructor(state: ParserState, private parent: OFile) {
     super(state);
-    this.entity = new OEntity(this.parent, this.getToken(-1, true).range.copyExtendEndOfLine(), this.getTargetLibrary());
+    this.entity = new OEntity(this.parent, this.getToken(-1, true).range.copyExtendEndOfLine());
     this.debug(`start`);
   }
   parse(): OEntity {

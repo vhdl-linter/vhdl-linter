@@ -10,7 +10,7 @@ test('Testing nested if generate structures', async () => {
 
   const path = join(__dirname, 'test_nested_elsif.vhd');
   const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }),
-    await ProjectParser.create([], '', defaultSettingsGetter), defaultSettingsGetter());
+    await ProjectParser.create([], defaultSettingsGetter), defaultSettingsGetter());
   await linter.checkAll();
 
   expect(linter.messages).toHaveLength(0);

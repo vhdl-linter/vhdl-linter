@@ -10,7 +10,7 @@ import { readFileSyncNorm } from "../../readFileSyncNorm";
 let linter: VhdlLinter;
 let projectParser: ProjectParser;
 beforeAll(async () => {
-  projectParser = await ProjectParser.create([pathToFileURL(__dirname)], '', defaultSettingsGetter);
+  projectParser = await ProjectParser.create([pathToFileURL(__dirname)], defaultSettingsGetter);
   const URL = pathToFileURL(__dirname + '/definition.vhd');
   linter = new VhdlLinter(URL, readFileSyncNorm(URL, { encoding: 'utf8' }),
     projectParser, defaultSettingsGetter());

@@ -15,7 +15,8 @@ function longestInArray(array: OPort[] | OGeneric[]) {
   return longest;
 }
 export function instanceTemplate(entity: OEntity, settings: ISettings) {
-  let text = `${settings.style.instantiationLabelPrefix}${entity.lexerToken.text}${settings.style.instantiationLabelSuffix} : entity work.${entity.lexerToken.text}`;
+  const library = entity.rootFile.targetLibrary ?? 'work';
+  let text = `${settings.style.instantiationLabelPrefix}${entity.lexerToken.text}${settings.style.instantiationLabelSuffix} : entity ${library}.${entity.lexerToken.text}`;
   const indentString = '  ';
   if (entity.generics.length > 0) {
     text += `\ngeneric map (\n`;

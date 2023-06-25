@@ -7,7 +7,7 @@ import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { defaultSettingsGetter } from '../../../lib/settings';
 let projectParser: ProjectParser;
 beforeAll(async () => {
-  projectParser = await ProjectParser.create([pathToFileURL(__dirname)], '', defaultSettingsGetter);
+  projectParser = await ProjectParser.create([pathToFileURL(__dirname)], defaultSettingsGetter);
 });
 afterAll(async () => {
   await projectParser.stop();

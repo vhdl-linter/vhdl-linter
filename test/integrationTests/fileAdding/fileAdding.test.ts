@@ -30,7 +30,7 @@ beforeEach(async () => {
 test('testing adding of vhdl files', async () => {
   const testFilePath = join(__dirname, 'testfiles/test_entity.vhd');
 
-  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)], '', defaultSettingsGetter);
+  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)], defaultSettingsGetter);
   expect(projectParser.entities).toHaveLength(0);
   await Promise.all([
     (async () => {
@@ -48,7 +48,7 @@ test('testing adding of vhdl files', async () => {
 test('testing adding of verilog files', async () => {
   const testFilePath = join(__dirname, 'testfiles/test_entity.sv');
 
-  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)], '', defaultSettingsGetter);
+  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)], defaultSettingsGetter);
   expect(projectParser.entities).toHaveLength(0);
   await Promise.all([
     (async () => {

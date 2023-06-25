@@ -1,5 +1,5 @@
 import { findBestMatch } from "string-similarity";
-import { CodeAction, CodeActionKind, Command, DiagnosticSeverity, Range, TextEdit } from "vscode-languageserver";
+import { CodeAction, CodeActionKind, Command, DiagnosticSeverity, DocumentUri, Range, TextEdit } from "vscode-languageserver";
 import * as I from "../parser/interfaces";
 import * as O from "../parser/objects";
 import { IAddSignalCommandArguments } from "../vhdlLinter";
@@ -20,7 +20,7 @@ export class RuleNotDeclared extends RuleBase implements IRule {
     for (const pkg of this.vhdlLinter.projectParser.packages) {
       for (const type of pkg.declarations) {
         if (I.implementsIHasLexerToken(type) && type.lexerToken.getLText() === ref.nameToken.getLText()) {
-          let library = pkg.targetLibrary ?? 'work';
+          let library = pkg.rootFile.targetLibrary ?? 'work';
           let pkgName = pkg.lexerToken.text;
           if (library === 'work' && pkg.rootFile.uri.pathname.match(/ieee/i)) {
             if (this.settings.style.ieeeCasing === 'lowercase') {
@@ -85,6 +85,39 @@ export class RuleNotDeclared extends RuleBase implements IRule {
     }
     return actions;
   }
+  private findChangeLibraryActions(ref: O.OSelectedName): CodeAction[] {
+    const actions: CodeAction[] = [];
+    const possibleObjects = (this.vhdlLinter.projectParser.packages as O.ObjectBase[]).concat(this.vhdlLinter.projectParser.entities);
+    for (const object of possibleObjects) {
+      if (I.implementsIHasLexerToken(object) && object.lexerToken.getLText() === ref.nameToken.getLText()) {
+        const library = object.rootFile.targetLibrary ?? 'work';
+        const changes: Record<DocumentUri, TextEdit[]> = {};
+        let root = ref.getRootElement();
+        if (root instanceof O.OArchitecture && root.correspondingEntity) {
+          root = root.correspondingEntity;
+        } else if (root instanceof O.OPackageBody && root.correspondingPackage) {
+          root = root.correspondingPackage;
+        }
+        if (root.libraries.find(libraryIt => libraryIt.lexerToken.getLText() === library.toLowerCase()) === undefined) {
+          changes[root.rootFile.uri.toString()] = [TextEdit.insert(root.range.start, `library ${library};\n`)];
+        }
+        const replaceEdit = TextEdit.replace(ref.prefixTokens.at(-1)!.nameToken.range, library);
+        if (ref.rootFile.uri.toString() in changes) {
+          changes[ref.rootFile.uri.toString()]!.push(replaceEdit);
+        } else {
+          changes[ref.rootFile.uri.toString()] = [replaceEdit];
+        }
+        actions.push(CodeAction.create(
+          `Change library to ${library}`,
+          {
+            changes
+          },
+          CodeActionKind.QuickFix
+        ));
+      }
+    }
+    return actions;
+  }
   private findAddSignalActions(ref: O.OName): CodeAction[] {
     const actions: CodeAction[] = [];
     const root = ref.getRootElement();
@@ -104,7 +137,7 @@ export class RuleNotDeclared extends RuleBase implements IRule {
   }
   private findReplacementActions(ref: O.OName): CodeAction[] {
     const actions: CodeAction[] = [];
-    const possibleMatches: (O.ODeclaration|O.ORecordChild|O.OGeneric|O.OPort)[] = [];
+    const possibleMatches: (O.ODeclaration | O.ORecordChild | O.OGeneric | O.OPort)[] = [];
     if (ref instanceof O.OSelectedName) {
       const defs = ref.prefixTokens.at(-1)!.definitions.filter(def => I.implementsIHasSubTypeIndication(def)) as (O.ObjectBase & I.IHasSubtypeIndication)[];
       for (const typeDef of defs.flatMap(def => def.subtypeIndication.typeNames).flatMap(name => name.definitions)) {
@@ -151,6 +184,9 @@ export class RuleNotDeclared extends RuleBase implements IRule {
       actions.push(...this.findAddSignalActions(reference));
       actions.push(...this.findAddLibraryActions(reference));
       actions.push(...this.findReplacementActions(reference));
+      if (reference instanceof O.OSelectedName && reference.prefixTokens.at(-1)!.definitions.some(def => def instanceof O.OLibrary)) {
+        actions.push(...this.findChangeLibraryActions(reference));
+      }
       return actions;
     });
     this.addMessage({

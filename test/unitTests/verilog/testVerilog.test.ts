@@ -15,7 +15,7 @@ test.each([true, false])('Testing verilog switch %b', async enableVerilog => {
       verilogAnalysis: enableVerilog
     }
   });
-  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)], '', settingsGetter);
+  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)], settingsGetter);
   const uri = pathToFileURL(join(__dirname, '_test_verilog_instance.vhd'));
   const linter = new VhdlLinter(uri, readFileSyncNorm(uri, { encoding: 'utf8' }), projectParser, settingsGetter());
   await linter.checkAll();
@@ -31,7 +31,7 @@ test.each([true, false])('Testing verilog switch %b', async enableVerilog => {
 
 test('module_advanced', async () => {
   const uri = pathToFileURL(join(__dirname, 'module_advanced.sv'));
-  const projectParser = await ProjectParser.create([], '', defaultSettingsGetter);
+  const projectParser = await ProjectParser.create([], defaultSettingsGetter);
   const verilogParser = new VerilogParser(uri, readFileSyncNorm(uri, { encoding: 'utf8' }), projectParser);
   expect(verilogParser.file.objectList.map(obj => ({
     range: makeRangePrintable(obj.range),

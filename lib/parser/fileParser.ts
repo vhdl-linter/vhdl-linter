@@ -51,7 +51,7 @@ export class FileParser extends ParserBase {
   }
 
   parse(): OFile {
-
+    this.file.targetLibrary = this.getTargetLibrary();
     const disabledRangeStart = new Map<string | undefined, number>();
     for (const [lineNumber, line] of this.originalText.split('\n').entries()) {
       const match = /(--\s*vhdl-linter)(.*)/.exec(line) as [string, string, string] | null; // vhdl-linter-disable-next-line //vhdl-linter-disable-this-line
@@ -245,5 +245,9 @@ export class FileParser extends ParserBase {
 
     }
     return this.file;
+  }
+  getTargetLibrary() {
+    const match = this.state.pos.file.originalText.match(/!\s*@library\s+(\S+)/i);
+    return match?.[1];
   }
 }

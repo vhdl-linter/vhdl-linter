@@ -11,7 +11,7 @@ let projectParser: ProjectParser;
 let messages: Diagnostic[];
 let linter: VhdlLinter;
 beforeAll(async () => {
-  projectParser = await ProjectParser.create([pathToFileURL(__dirname)], '', defaultSettingsGetter);
+  projectParser = await ProjectParser.create([pathToFileURL(__dirname)], defaultSettingsGetter);
   const url = pathToFileURL(join(__dirname, 'list_parser.vhd'));
   linter = new VhdlLinter(url, readFileSyncNorm(url, { encoding: 'utf8' }), projectParser, defaultSettingsGetter());
   messages = await linter.checkAll();
