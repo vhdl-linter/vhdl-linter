@@ -272,8 +272,4 @@ export class ParserBase {
     }
     return text;
   }
-  getTargetLibrary() {
-    const match = this.state.pos.file.originalText.match(/!\s*@library\s+(\S+)/i);
-    return match?.[1];
-  }
 }

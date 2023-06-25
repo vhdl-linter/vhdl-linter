@@ -27,7 +27,7 @@ async function run_test(url: URL, error_expected: boolean, projectParser?: Proje
   let createdProjectParser = false;
   if (!projectParser) {
     createdProjectParser = true;
-    projectParser = await ProjectParser.create([url], '', defaultSettingsGetter);
+    projectParser = await ProjectParser.create([url], defaultSettingsGetter);
   }
   for (const subPath of readDirPath(url)) {
     if (argv.includes('--no-osvvm') && subPath.toString().match(/OSVVM/i)) {

@@ -13,7 +13,7 @@ const settingsGetter = defaultSettingsWithOverwrite({
   }
 });
 beforeAll(async () => {
-  projectParser = await ProjectParser.create([pathToFileURL(__dirname)], '', settingsGetter);
+  projectParser = await ProjectParser.create([pathToFileURL(__dirname)], settingsGetter);
 });
 afterAll(async () => {
   await projectParser.stop();

@@ -10,7 +10,7 @@ import { createPrintablePosition } from '../../helper';
 import { readFileSyncNorm } from "../../readFileSyncNorm";
 let projectParser: ProjectParser;
 beforeAll(async () => {
-  projectParser = await ProjectParser.create([pathToFileURL(__dirname)], '', defaultSettingsGetter);
+  projectParser = await ProjectParser.create([pathToFileURL(__dirname)], defaultSettingsGetter);
 });
 afterAll(async () => {
   await projectParser.stop();
@@ -28,7 +28,7 @@ test.each([
     }
   });
   const linter = new VhdlLinter(uri, readFileSyncNorm(uri, { encoding: 'utf8' }),
-    await ProjectParser.create([], '', getter), getter());
+    await ProjectParser.create([], getter), getter());
   await Elaborate.elaborate(linter);
   const completion = new Completions(linter).getCompletions({ line: 9, character: 13 });
   expect(completion).toEqual(

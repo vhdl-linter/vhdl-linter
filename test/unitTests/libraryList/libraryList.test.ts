@@ -11,7 +11,7 @@ import { readFileSyncNorm } from "../../readFileSyncNorm";
 const files = readdirSync(__dirname).filter(file => file.endsWith('.vhd'));
 test.each(files)('testing library list %s', async (file: string) => {
   const path = join(__dirname, file);
-  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)], '', defaultSettingsGetter);
+  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)], defaultSettingsGetter);
 
   const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }),
     projectParser, defaultSettingsGetter());

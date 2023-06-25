@@ -74,8 +74,8 @@ export class Completions {
     if (matchUse) {
       for (const pkg of this.linter.projectParser.packages) {
         this.addCompletion(pkg);
-        if (pkg.targetLibrary !== undefined) {
-          this.completions.push({ label: pkg.targetLibrary });
+        if (pkg.rootFile.targetLibrary !== undefined) {
+          this.completions.push({ label: pkg.rootFile.targetLibrary });
         }
       }
     }

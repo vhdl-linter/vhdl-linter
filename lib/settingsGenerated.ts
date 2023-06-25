@@ -4,7 +4,9 @@ export interface ISettings {
   };
   'paths': {
     'additional': string[];
+    'libraryMapFiles': string[];
     'ignoreRegex': string;
+    'ignoreFiles': string[];
   };
   'analysis': {
     'verilogAnalysis': boolean;
@@ -18,7 +20,6 @@ export interface ISettings {
     'component': boolean;
     'instantiation': boolean;
     'configuration': boolean;
-    'library': boolean;
     'multiple-definition': boolean;
     'not-declared': boolean;
     'naming-style': boolean;
@@ -75,7 +76,9 @@ export const defaultSettings: ISettings = {
   },
   'paths': {
     'additional': [],
+    'libraryMapFiles': ['vunit*.csv'],
     'ignoreRegex': '',
+    'ignoreFiles': [],
   },
   'analysis': {
     'verilogAnalysis': true,
@@ -90,7 +93,6 @@ export const defaultSettings: ISettings = {
     'component': true,
     'instantiation': true,
     'configuration': true,
-    'library': false,
     'multiple-definition': true,
     'not-declared': true,
     'naming-style': true,

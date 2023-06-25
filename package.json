@@ -126,6 +126,33 @@
 						"default": [],
 						"description": "Additional Paths to be included (for verification library etc.)"
 					},
+					"VhdlLinter.paths.libraryMapFiles": {
+						"scope": "window",
+						"type": "array",
+						"items": {
+							"type": "string"
+						},
+						"default": [
+							"vunit*.csv"
+						],
+						"description": "Glob expressions for files that contain a library, source file mapping in the format `library,filename`."
+					},
+					"VhdlLinter.paths.ignoreRegex": {
+						"scope": "window",
+						"type": "string",
+						"deprecationMessage": "This is being deprecated in favor of `VhdlLinter.paths.ignoreFiles`",
+						"default": "",
+						"description": "Regex for files to be ignored by the Project Parser"
+					},
+					"VhdlLinter.paths.ignoreFiles": {
+						"scope": "window",
+						"type": "array",
+						"items": {
+							"type": "string"
+						},
+						"default": [],
+						"description": "Glob expressions for files to be ignored by the project parser"
+					},
 					"VhdlLinter.analysis.verilogAnalysis": {
 						"scope": "window",
 						"type": "boolean",
@@ -144,12 +171,6 @@
 						"additionalProperties": false,
 						"default": {},
 						"description": "Settings for conditional analysis (vhdl 2019). e.g. DEVICE = MY_DEV_BOARD or use standard defined values: TOOL_TYPE = SYNTHESIS"
-					},
-					"VhdlLinter.paths.ignoreRegex": {
-						"scope": "window",
-						"type": "string",
-						"default": "",
-						"description": "Regex for files to be ignored by the Project Parser"
 					},
 					"VhdlLinter.semanticTokens": {
 						"scope": "window",
@@ -198,12 +219,6 @@
 						"type": "boolean",
 						"description": "Enable the rule to check if configuration reference existing entity.",
 						"default": true
-					},
-					"VhdlLinter.rules.library": {
-						"scope": "window",
-						"type": "boolean",
-						"description": "Enable the rule to check if each file contains a magic comment stating the library where the file is compiled to.",
-						"default": false
 					},
 					"VhdlLinter.rules.multiple-definition": {
 						"scope": "window",
@@ -543,6 +558,7 @@
 	"dependencies": {
 		"case": "^1.6.3",
 		"chokidar": "^3.5.3",
+		"minimatch": "^9.0.2",
 		"string-similarity": "^3.0.0",
 		"vscode-languageclient": "^8.0.2",
 		"vscode-languageserver": "^8.0.2",

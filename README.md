@@ -30,14 +30,14 @@ Currently working for instantiation of:
 - components
 
 Signature help is not yet supported for calling of functions.
-![rename](./doc/signature-help.png)
-![rename2](./doc/signature-help2.png)
+![signature-helper](./doc/signature-help.png)
+![signature-helper-long](./doc/signature-help2.png)
 
 ## Region Folding
 Fold regions according to the file content:
 - declarations
 - statements
-- useclauses (incl. library)
+- use clauses (incl. library)
 - interface lists
 - special blocks like instantiations, association lists, case (generate), types (record and protected)
 
@@ -52,3 +52,8 @@ Automatically convert entities to a commonly used template:
 - SystemVerilog instantiation
 - ports to signals
 ![entityConverter](./doc/entityConverter.gif)
+
+## Target library inference
+The target library of vhdl design units is parsed from [csv files like vunit](https://vunit.github.io/py/vunit.html#vunit.ui.VUnit.add_source_files_from_csv) in the format
+```libary,filename```
+- The library is used for auto completion, reference checking and template generation (e.g. instantiation template for entities)
