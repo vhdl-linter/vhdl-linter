@@ -2,6 +2,7 @@
 import { afterAll, beforeAll, expect, test } from '@jest/globals';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
+import { OAttributeName } from '../../../lib/parser/objects';
 import { ProjectParser } from '../../../lib/projectParser';
 import { defaultSettingsGetter } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
@@ -88,4 +89,18 @@ test('attribute_test_error6.vhd', async () => {
       kind: 'quickfix'
     }
   ]));
+});
+test('attribute_prefix.vhd', async () => {
+  const file = 'attribute_prefix.vhd';
+  const path = join(__dirname, file);
+
+  const uri = pathToFileURL(path);
+  const linter = new VhdlLinter(uri, readFileSyncNorm(path, { encoding: 'utf8' }),
+    projectParser, defaultSettingsGetter());
+  await linter.checkAll();
+  for (const obj of linter.file.objectList) {
+    if (obj instanceof OAttributeName) {
+      expect(obj.prefix).toBeDefined();
+    }
+  }
 });

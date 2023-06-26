@@ -5,6 +5,7 @@ import {
 import { Elaborate } from './elaborate/elaborate';
 import { FileParser } from './parser/fileParser';
 import {
+  OAttributeName,
   OFile, OI, OIRange, ParserError
 } from './parser/objects';
 import { ProjectParser } from './projectParser';

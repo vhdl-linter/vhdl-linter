@@ -34,6 +34,7 @@ export interface ISettings {
     'unit': boolean;
     'not-allowed': boolean;
     'order': boolean;
+    'attribute': boolean;
   };
   'style': {
     'preferredLogicTypePort': 'unresolved'|'resolved'|'ignore';
@@ -107,6 +108,7 @@ export const defaultSettings: ISettings = {
     'unit': true,
     'not-allowed': true,
     'order': true,
+    'attribute': true,
   },
   'style': {
     'preferredLogicTypePort': 'unresolved',
