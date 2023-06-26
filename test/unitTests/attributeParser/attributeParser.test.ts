@@ -6,7 +6,6 @@ import { ProjectParser } from '../../../lib/projectParser';
 import { defaultSettingsGetter } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { readFileSyncNorm } from "../../readFileSyncNorm";
-import { OAttributeName, ObjectBase } from '../../../lib/parser/objects';
 
 let projectParser: ProjectParser;
 beforeAll(async () => {
