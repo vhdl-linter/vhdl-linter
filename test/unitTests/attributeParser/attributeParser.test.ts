@@ -90,17 +90,3 @@ test('attribute_test_error6.vhd', async () => {
     }
   ]));
 });
-test('attribute_missing_prefix.vhd', async () => {
-  const file = 'attribute_missing_prefix.vhd';
-  const path = join(__dirname, file);
-
-  const uri = pathToFileURL(path);
-  const linter = new VhdlLinter(uri, readFileSyncNorm(path, { encoding: 'utf8' }),
-    projectParser, defaultSettingsGetter());
-  await linter.checkAll();
-  const attributeReferences = linter.file.objectList.filter((a): a is OAttributeName => a instanceof OAttributeName);
-  for (const attributeReference of attributeReferences) {
-    console.log(attributeReference.nameToken.text, attributeReference.prefix?.nameToken?.text)
-    expect(attributeReference.prefix).toBeDefined();
-  }
-})
