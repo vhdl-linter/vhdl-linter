@@ -435,7 +435,6 @@ export class ExpressionParser {
         let name;
         if (this.getNumToken(-1)?.getLText() === '\'') {
           name = new O.OAttributeName(parent, this.getNumToken()!);
-          console.log('ASD', name.rootFile.uri.toString())
         } else {
           name = new O.OName(parent, this.getNumToken()!);
 
