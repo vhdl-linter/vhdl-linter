@@ -229,7 +229,7 @@ export class ElaborateNames {
   getTypeDefinitions(obj: O.ObjectBase & I.IHasSubtypeIndication) {
     return obj.subtypeIndication.typeNames.flatMap(type => {
       this.elaborate(type);
-      if (type instanceof O.OAttributeName && type.nameToken.getLText() === 'subtype') {
+      if (type instanceof O.OAttributeName && type.nameToken.getLText() === 'subtype' && type.prefix) {
         this.elaborate(type.prefix);
         return type.prefix.definitions.flatMap(definition => {
           if (I.implementsIHasSubTypeIndication(definition)) {
@@ -245,7 +245,7 @@ export class ElaborateNames {
       return type.definitions;
     }) // All types can be references to other types via subtype.
       .flatMap(obj => {
-        if (obj instanceof OAttributeName && obj.nameToken.getLText() === 'subtype') {
+        if (obj instanceof OAttributeName && obj.nameToken.getLText() === 'subtype' && obj.prefix) {
           this.elaborate(obj.prefix);
           return obj.prefix.definitions.flatMap(definition => {
             if (I.implementsIHasSubTypeIndication(definition)) {
