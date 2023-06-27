@@ -307,7 +307,7 @@
 					"VhdlLinter.rules.attribute": {
 						"scope": "window",
 						"type": "boolean",
-						"description": "Enable the rule to check if attribute prefixes.",
+						"description": "Enable the rule to check if all attributes have prefixes.",
 						"default": true
 					}
 				}
