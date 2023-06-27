@@ -82,7 +82,7 @@ export class ExpressionParser {
         const attributeReference = new O.OAttributeName(this.parent, reference);
         references.push(attributeReference);
         if (lastAttributeReference) {
-          attributeReference.prefix = lastAttributeReference;
+          lastAttributeReference.prefix = attributeReference;
         }
         lastAttributeReference = attributeReference;
       }

@@ -1,8 +1,8 @@
 import { Position, Range, TextEdit } from 'vscode-languageserver';
+import { ElaborateNames } from '../elaborate/elaborateNames';
 import { OLexerToken } from '../lexer';
 import { OIDiagnosticWithSolution } from '../vhdlLinter';
 import * as I from './interfaces';
-import { ElaborateNames } from '../elaborate/elaborateNames';
 export class OI implements Position {
   protected i_?: number;
   constructor(public parent: ObjectBase | OFile, i: number, j?: number, k?: number) {
@@ -758,7 +758,7 @@ export type SelectedNamePrefix = [
   ...rest: OName[]
 ];
 export class OAttributeName extends OName {
-  public prefix: OName;
+  public prefix?: OName;
   constructor(public parent: ObjectBase, public nameToken: OLexerToken) {
     super(parent, nameToken);
   }
