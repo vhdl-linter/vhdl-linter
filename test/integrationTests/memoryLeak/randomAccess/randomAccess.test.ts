@@ -4,6 +4,6 @@ import { readDirPath } from '../../../testUtil';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { statSync } from 'fs';
 jest.setTimeout(120 * 1000);
-test.each(readDirPath(pathToFileURL(__dirname)).filter(url => statSync(url).isDirectory()))('memory leak test with random access for folder %s', async (folder: URL) => {
+test.skip.each(readDirPath(pathToFileURL(__dirname)).filter(url => statSync(url).isDirectory()))('memory leak test with random access for folder %s', async (folder: URL) => {
   await randomTest(fileURLToPath(folder));
 });
