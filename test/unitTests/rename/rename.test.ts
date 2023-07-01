@@ -98,6 +98,15 @@ test.each([
   },
   {
     occurrences:
+    [
+      ['entity2.vhd', createPrintableRange(6, 8, 20)],
+      ['entity2.vhd', createPrintableRange(9, 5, 17)],
+      ['entity2.vhd', createPrintableRange(11, 22, 34)],
+    ],
+    description: 'entity with statement part'
+  },
+  {
+    occurrences:
       [['entity_split.vhd', createPrintableRange(4, 5, 8)],
         ['architecture_split.vhd', createPrintableRange(5, 10, 13)],
         ['instantiation.vhd', createPrintableRange(11, 10, 13)],
@@ -107,9 +116,9 @@ test.each([
   },
   {
     occurrences:
-      [['entity2.vhd', createPrintableRange(11, 25, 29)],
-        ['entity2.vhd', createPrintableRange(15, 26, 30)],
-        ['entity2.vhd', createPrintableRange(16, 5, 9)],
+      [['entity2.vhd', createPrintableRange(12, 25, 29)],
+        ['entity2.vhd', createPrintableRange(16, 26, 30)],
+        ['entity2.vhd', createPrintableRange(17, 5, 9)],
         ['package2.vhd', createPrintableRange(5, 12, 16)],
         ['package2.vhd', createPrintableRange(6, 12, 16)],
         ['package2.vhd', createPrintableRange(7, 12, 16)],
@@ -122,7 +131,7 @@ test.each([
   },
   {
     occurrences:
-      [['entity2.vhd', createPrintableRange(16, 10, 11)],
+      [['entity2.vhd', createPrintableRange(17, 10, 11)],
         ['package2.vhd', createPrintableRange(7, 17, 18)],
       ],
     description: 'function parameter name'

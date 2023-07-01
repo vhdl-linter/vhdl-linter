@@ -4,7 +4,8 @@ use ieee.numeric_std.all;
 use work.test_pkg2.all;
 
 entity test_entity2 is
-
+begin
+  assert true report "TEST REPORT";
 end test_entity2;
 
 architecture arch of test_entity2 is
