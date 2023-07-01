@@ -129,7 +129,7 @@ export class ElaborateNames {
       if (directlyVisible && I.implementsIHasGenerics(scopeObj)) {
         this.addObjectsToMap(visibilityMap, scopeObj.generics);
       }
-      if ( I.implementsIHasDeclarations(scopeObj)) {
+      if (directlyVisible && I.implementsIHasDeclarations(scopeObj)) {
         this.addObjectsToMap(visibilityMap, scopeObj.declarations);
         for (const type of scopeObj.declarations) {
           if (type instanceof O.OType) {

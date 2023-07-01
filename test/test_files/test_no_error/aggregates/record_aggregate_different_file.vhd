@@ -13,9 +13,9 @@ begin
     tdata  => x"AA",
     tvalid => '1',
     tstrb  => "",
-    tkeep  => '1',
+    tkeep  => "1",
     tlast  => '1',
-    tdest  => '0',
+    tdest  => "0",
     tid    => "",
     tuser  => ""
     );
