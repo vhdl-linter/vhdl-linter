@@ -45,7 +45,7 @@ export class EntityParser extends ParserBase {
         this.entity.statementsRange = statementStart.copyWithNewEnd(this.getToken().range);
         this.consumeToken();
         this.maybe('entity');
-        this.maybe(this.entity.lexerToken.text);
+        this.entity.endingLexerToken = this.maybe(this.entity.lexerToken.text);
         this.entity.range = this.entity.range.copyWithNewEnd(this.getToken(-1, true).range.end);
         this.expect(';');
         break;
