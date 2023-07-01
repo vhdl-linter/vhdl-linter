@@ -122,13 +122,14 @@ export class ElaborateNames {
     this.scopeRecordChildMap.set(parent, recordChildMap);
     for (const [scopeObj, directlyVisible] of O.scope(parent, this)) {
       this.addObjectsToMap(visibilityMap, [scopeObj]);
+
       if (directlyVisible && I.implementsIHasPorts(scopeObj)) {
         this.addObjectsToMap(visibilityMap, scopeObj.ports);
       }
       if (directlyVisible && I.implementsIHasGenerics(scopeObj)) {
         this.addObjectsToMap(visibilityMap, scopeObj.generics);
       }
-      if (directlyVisible && I.implementsIHasDeclarations(scopeObj)) {
+      if ( I.implementsIHasDeclarations(scopeObj)) {
         this.addObjectsToMap(visibilityMap, scopeObj.declarations);
         for (const type of scopeObj.declarations) {
           if (type instanceof O.OType) {
@@ -147,6 +148,23 @@ export class ElaborateNames {
           }
         }
       }
+      // The stuff coming directly from scopes only get passed in via the declarative part.
+      // The stuff coming from use clauses does get iterated in directly as it can be only included partially via use without all
+      if (scopeObj instanceof O.OType) {
+        if (scopeObj instanceof O.OEnum) {
+          this.addObjectsToMap(visibilityMap, scopeObj.literals);
+        }
+        if (scopeObj.units !== undefined) {
+          this.addObjectsToMap(visibilityMap, scopeObj.units);
+        }
+        if (scopeObj.protected || scopeObj.protectedBody) {
+          this.addObjectsToMap(visibilityMap, scopeObj.declarations);
+        }
+        if (scopeObj instanceof O.ORecord) {
+          this.addObjectsToMap(recordChildMap, scopeObj.children);
+        }
+      }
+
       if (directlyVisible && I.implementsIHasStatements(scopeObj)) {
         this.addObjectsToMap(visibilityMap, scopeObj.statements);
       }
