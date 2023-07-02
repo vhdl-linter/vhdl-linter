@@ -243,38 +243,41 @@ export class ElaborateNames {
     }
   }
 
+
+  getSubtypeAttributeDefinition(type: O.OAttributeName) {
+    if (!type.prefix) { // this case should not happen
+      return [];
+    }
+    let prefix = type.prefix;
+    // We can have a chain of 'element attributes before the 'subtype
+    // During elaboration of selected names we ignore arrays anyway so we can skip past 'element here as well
+    while (prefix instanceof OAttributeName && prefix.nameToken.getLText() === 'element' && prefix.prefix !== undefined) {
+      prefix = prefix.prefix;
+    }
+    this.elaborate(prefix);
+    return prefix.definitions.flatMap(definition => {
+      if (I.implementsIHasSubTypeIndication(definition)) {
+        for (const typeName of definition.subtypeIndication.typeNames) {
+          this.elaborate(typeName);
+        }
+        return definition.subtypeIndication.typeNames[0]?.definitions ?? [];
+
+      }
+      return [];
+    });
+  }
   // get the definitions of the typeNames of the subtype indication
   getTypeDefinitions(obj: O.ObjectBase & I.IHasSubtypeIndication) {
     return obj.subtypeIndication.typeNames.flatMap(type => {
       this.elaborate(type);
-      if (type instanceof O.OAttributeName && type.nameToken.getLText() === 'subtype' && type.prefix) {
-        this.elaborate(type.prefix);
-        return type.prefix.definitions.flatMap(definition => {
-          if (I.implementsIHasSubTypeIndication(definition)) {
-            for (const typeName of definition.subtypeIndication.typeNames) {
-              this.elaborate(typeName);
-            }
-            return definition.subtypeIndication.typeNames[0]?.definitions ?? [];
-
-          }
-          return [];
-        });
+      if (type instanceof O.OAttributeName && type.nameToken.getLText() === 'subtype') {
+        return this.getSubtypeAttributeDefinition(type);
       }
       return type.definitions;
     }) // All types can be references to other types via subtype.
       .flatMap(obj => {
-        if (obj instanceof OAttributeName && obj.nameToken.getLText() === 'subtype' && obj.prefix) {
-          this.elaborate(obj.prefix);
-          return obj.prefix.definitions.flatMap(definition => {
-            if (I.implementsIHasSubTypeIndication(definition)) {
-              for (const typeName of definition.subtypeIndication.typeNames) {
-                this.elaborate(typeName);
-              }
-              return definition.subtypeIndication.typeNames[0]?.definitions ?? [];
-
-            }
-            return [];
-          });
+        if (obj instanceof OAttributeName && obj.nameToken.getLText() === 'subtype') {
+          return this.getSubtypeAttributeDefinition(obj);
         }
         return obj;
       });
