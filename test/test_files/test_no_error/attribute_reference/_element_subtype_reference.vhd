@@ -11,7 +11,7 @@ entity element_subtype_reference is
     );
 end entity;
 architecture arch of element_subtype_reference is
-  signal test      : i_test'element'subtype;
+  signal test      : i_test'element'subtype; -- this does not work in ghdl. But should be legal
   signal reference : test_record;
 begin
   reference.foo <= test.foo;
