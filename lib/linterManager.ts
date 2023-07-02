@@ -3,6 +3,8 @@ import { EventEmitter } from "stream";
 import { CancellationToken, CancellationTokenSource, LSPErrorCodes, ResponseError } from "vscode-languageserver";
 import { Elaborate } from "./elaborate/elaborate";
 import { normalizeUri } from "./normalizeUri";
+import { implementsIHasDefinitions, implementsIHasNameLinks } from "./parser/interfaces";
+import { OAlias } from "./parser/objects";
 import { FileCacheVhdl, ProjectParser } from "./projectParser";
 import { SettingsGetter, VhdlLinter } from "./vhdlLinter";
 
@@ -10,7 +12,8 @@ interface ILinterState {
   wasAlreadyValid?: boolean; // Was already once valid (=the linters object has a valid linter)
   valid?: boolean; // The file is currently valid in is last parsed/elaborated version
   done: boolean; // If a linter is marked done it is currently not parsing/elaborating
-  linter?: VhdlLinter
+  linter?: VhdlLinter;
+  version: number
 }
 export class LinterManager {
   private projectParserDebounce: Record<string, NodeJS.Timeout> = {};
@@ -55,7 +58,7 @@ export class LinterManager {
     return linter;
   }
   cancellationTokenSources: Record<string, CancellationTokenSource> = {};
-  async triggerRefresh(uri: string, text: string, projectParser: ProjectParser, settingsGetter: SettingsGetter, fromProjectParser = false) {
+  async triggerRefresh(uri: string, text: string, projectParser: ProjectParser, settingsGetter: SettingsGetter, version: number, fromProjectParser = false): Promise<VhdlLinter> {
     uri = normalizeUri(uri);
     // Cancel previous running linter of this uri
     const oldSource = this.cancellationTokenSources[uri];
@@ -66,10 +69,16 @@ export class LinterManager {
     this.cancellationTokenSources[uri] = newSource;
     const url = new URL(uri);
     // Initialize state for linter
-    const state = this.state[uri] ?? { done: false };
+    const state = this.state[uri] ?? { done: false, version };
     if (this.state[uri] === undefined) {
       this.state[uri] = state;
     }
+    // Check that we do not have some janky race condition and are actually running on the newest file
+    if (state.version > version) {
+      console.log('linter manager dropping old version');
+      return state.linter!;
+    }
+    state.version = version;
     // Mark File as currently being worked on
     state.done = false;
     const settings = await settingsGetter(url);
@@ -77,15 +86,38 @@ export class LinterManager {
     if (vhdlLinter.parsedSuccessfully === false) {
       // If parsed unsuccessfully mark this file as invalid.
       // (But old linter is kept for language-features that do not care for having the newest data)
+      if (state.version > version) {
+        console.log('linter manager: dropping old version');
+        return state.linter!;
+      }
       state.valid = false;
     } else {
+      for (const cachedFile of projectParser.cachedFiles) {
+        if (cachedFile instanceof FileCacheVhdl) {
+          for (const obj of cachedFile.linter.file.objectList) {
+            if (implementsIHasDefinitions(obj)) {
+              obj.definitions = [];
+            }
+            if (implementsIHasNameLinks(obj)) {
+              obj.nameLinks = [];
+              obj.aliasLinks = [];
+            }
+            if (obj instanceof OAlias) {
+              obj.aliasDefinitions = [];
+            }
+          }
+        }
+      }
       // Parser success run elaboration
       state.linter = vhdlLinter;
       await Elaborate.elaborate(vhdlLinter);
       if (newSource.token.isCancellationRequested) {
         throw new ResponseError(LSPErrorCodes.RequestCancelled, 'canceled');
       }
-      //
+      if (state.version > version) {
+        console.log('linter manager: dropping old version');
+        return state.linter;
+      }
       state.done = true;
       state.wasAlreadyValid = true;
       state.valid = vhdlLinter.parsedSuccessfully;
@@ -112,7 +144,7 @@ export class LinterManager {
         projectParser.flattenProject();
         try {
           projectParser.events.emit('change', 'change', uri);
-        } catch(err) {
+        } catch (err) {
           console.log('crr', err);
           if (!(err instanceof ResponseError && err.code === LSPErrorCodes.RequestCancelled)) {
             throw err;

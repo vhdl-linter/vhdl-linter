@@ -12,9 +12,20 @@ jest.mock('../../../lib/elaborate/elaborate');
 beforeEach(() => {
   jest.resetAllMocks();
 });
-jest.mock('../../../lib/projectParser');
-
-async function triggerWrapper(linterManager: LinterManager, uri: string, text: string, projectParser: ProjectParser, parsedSuccessfully: boolean, delayElaborate?: number) {
+jest.mock('../../../lib/projectParser', () => {
+  return {
+    ProjectParser: {
+      create: async () => {
+        return Promise.resolve({
+          cachedFiles: []
+        });
+      }
+    }
+  };
+}
+);
+let version = 0;
+async function triggerWrapper(linterManager: LinterManager, uri: string, text: string, projectParser: ProjectParser, parsedSuccessfully: boolean, delayElaborate?: number,) {
   jest.spyOn(Elaborate, 'elaborate').mockImplementationOnce(() => {
     return new Promise(resolve => {
       setTimeout(resolve, delayElaborate ?? Math.round(Math.random() * 10));
@@ -26,9 +37,8 @@ async function triggerWrapper(linterManager: LinterManager, uri: string, text: s
       parsedSuccessfully
     } as vhdlModule.VhdlLinter;
   });
-  await linterManager.triggerRefresh(uri, text, projectParser, defaultSettingsGetter, true);
+  await linterManager.triggerRefresh(uri, text, projectParser, defaultSettingsGetter, version++, true);
 }
-
 
 
 test.each([
@@ -42,7 +52,6 @@ test.each([
   const uri = pathToFileURL(__filename).toString();
   const dummyTextCorrect = 'correct linter';
   const returnedLinterPromise = linterManager.getLinter(uri, undefined, false);
-
   for (let i = 0; i <= wrongBefore; i++) {
     await triggerWrapper(linterManager, uri, String(i) + 'b', projectParser, false).catch(err => {
       if (err instanceof ResponseError !== false) {
@@ -126,6 +135,7 @@ test('Running linterManager cancel getLinter', async () => {
   // Trigger 3 times, to simulate race condition.
   // The first two times elaborate is delayed so the third call which is not delayed shall correctly cancel the first two ones.
   const projectParser = await ProjectParser.create([], defaultSettingsGetter);
+  console.log('projectParser', projectParser);
   const linterManager = new LinterManager();
   const uri = pathToFileURL(__filename).toString();
   const cancellationTokenSources = new CancellationTokenSource();
