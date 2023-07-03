@@ -179,6 +179,7 @@ export const initialization = new Promise<void>(resolve => {
             });
           }
         }
+        void connection.sendRequest('workspace/semanticTokens/refresh');
       });
       documents.onDidChangeContent(change => {
         void validateTextDocument(change.document);
