@@ -245,7 +245,7 @@ export class ElaborateNames {
 
 
   getSubtypeAttributeDefinition(type: O.OAttributeName) {
-    if (!type.prefix) { // this case should not happen
+    if (type.prefix === undefined) { // this case should not happen and is catched with the `attribute` rule
       return [];
     }
     this.elaborate(type.prefix);
