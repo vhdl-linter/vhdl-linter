@@ -9,8 +9,7 @@ import { CancellationToken, Diagnostic, DiagnosticSeverity, WorkDoneProgressRepo
 import { Elaborate } from './elaborate/elaborate';
 import { elaborateTargetLibrary } from './elaborate/elaborateTargetLibrary';
 import { SetAdd } from './languageFeatures/findReferencesHandler';
-import { implementsIHasDefinitions, implementsIHasNameLinks } from './parser/interfaces';
-import { OAlias, OArchitecture, OConfigurationDeclaration, OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
+import { OArchitecture, OConfigurationDeclaration, OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
 import { VerilogParser } from './verilogParser';
 import { SettingsGetter, VhdlLinter } from './vhdlLinter';
 
@@ -99,22 +98,7 @@ export class ProjectParser {
       });
       watcher.on('change', (path) => {
         const handleEvent = async () => {
-          for (const cachedFile of this.cachedFiles) {
-            if (cachedFile instanceof FileCacheVhdl) {
-              for (const obj of cachedFile.linter.file.objectList) {
-                if (implementsIHasDefinitions(obj)) {
-                  obj.definitions = [];
-                }
-                if (implementsIHasNameLinks(obj)) {
-                  obj.nameLinks = [];
-                  obj.aliasLinks = [];
-                }
-                if (obj instanceof OAlias) {
-                  obj.aliasDefinitions = [];
-                }
-              }
-            }
-          }
+
           const url = pathToFileURL(path);
 
           const cachedFile = process.platform === 'win32'

@@ -32,13 +32,14 @@ export async function randomTest(directory: string) {
     }, 0)).reduce((prev, a) => prev + a, 0);
     return definitions;
   }
+  let version = 0;
   async function triggerRefresh(filename: string) {
     const url = pathToFileURL(join(directory, filename));
     // (projectParser.watchers is private)
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
     (projectParser as any).watchers[0].emit('change', join(directory, filename));
     const text = readFileSyncNorm(url, { encoding: 'utf8' });
-    const linter = await linterManager.triggerRefresh(url.toString(), text, projectParser, defaultSettingsGetter);
+    const linter = await linterManager.triggerRefresh(url.toString(), text, projectParser, defaultSettingsGetter, version++);
     await linter.checkAll();
   }
   const files = readdirSync(directory).filter(filename => filename.match(/\.vhd$/i));

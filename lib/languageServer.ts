@@ -179,6 +179,7 @@ export const initialization = new Promise<void>(resolve => {
             });
           }
         }
+        void connection.sendRequest('workspace/semanticTokens/refresh');
       });
       documents.onDidChangeContent(change => {
         void validateTextDocument(change.document);
@@ -202,7 +203,8 @@ const linterManager = new LinterManager();
 async function validateTextDocument(textDocument: TextDocument, fromProjectParser = false) {
   try {
     if (projectParser !== undefined) {
-      const vhdlLinter = await linterManager.triggerRefresh(textDocument.uri, textDocument.getText(), projectParser, getDocumentSettings, fromProjectParser);
+
+      const vhdlLinter = await linterManager.triggerRefresh(textDocument.uri, textDocument.getText(), projectParser, getDocumentSettings, textDocument.version, fromProjectParser);
       const diagnostics = await vhdlLinter.checkAll();
       diagnostics.forEach((diag) => diag.source = 'vhdl-linter');
       await connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });

@@ -566,8 +566,8 @@
 		"chokidar": "^3.5.3",
 		"minimatch": "^9.0.2",
 		"string-similarity": "^3.0.0",
-		"vscode-languageclient": "^8.0.2",
-		"vscode-languageserver": "^8.0.2",
+		"vscode-languageclient": "^8.1.0",
+		"vscode-languageserver": "^8.1.0",
 		"vscode-languageserver-textdocument": "^1.0.7"
 	},
 	"enhancedScopes": [
