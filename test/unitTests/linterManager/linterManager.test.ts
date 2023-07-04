@@ -135,7 +135,6 @@ test('Running linterManager cancel getLinter', async () => {
   // Trigger 3 times, to simulate race condition.
   // The first two times elaborate is delayed so the third call which is not delayed shall correctly cancel the first two ones.
   const projectParser = await ProjectParser.create([], defaultSettingsGetter);
-  console.log('projectParser', projectParser);
   const linterManager = new LinterManager();
   const uri = pathToFileURL(__filename).toString();
   const cancellationTokenSources = new CancellationTokenSource();
