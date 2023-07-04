@@ -92,18 +92,20 @@ export class LinterManager {
       }
       state.valid = false;
     } else {
-      for (const cachedFile of projectParser.cachedFiles) {
-        if (cachedFile instanceof FileCacheVhdl) {
-          for (const obj of cachedFile.linter.file.objectList) {
-            if (implementsIHasDefinitions(obj)) {
-              obj.definitions = [];
-            }
-            if (implementsIHasNameLinks(obj)) {
-              obj.nameLinks = [];
-              obj.aliasLinks = [];
-            }
-            if (obj instanceof OAlias) {
-              obj.aliasDefinitions = [];
+      if (fromProjectParser === false) {
+        for (const cachedFile of projectParser.cachedFiles) {
+          if (cachedFile instanceof FileCacheVhdl) {
+            for (const obj of cachedFile.linter.file.objectList) {
+              if (implementsIHasDefinitions(obj)) {
+                obj.definitions = [];
+              }
+              if (implementsIHasNameLinks(obj)) {
+                obj.nameLinks = [];
+                obj.aliasLinks = [];
+              }
+              if (obj instanceof OAlias) {
+                obj.aliasDefinitions = [];
+              }
             }
           }
         }
