@@ -562,7 +562,7 @@
 		"settings": "ts-node generate-settings.ts"
 	},
 	"dependencies": {
-		"case": "^1.6.3",
+		"change-case": "^4.1.2",
 		"chokidar": "^3.5.3",
 		"minimatch": "^9.0.2",
 		"string-similarity": "^3.0.0",
