@@ -1,4 +1,4 @@
-import * as Case from "case";
+import * as changeCase from "change-case";
 import { DiagnosticSeverity } from "vscode-languageserver";
 import { OLexerToken, TokenType } from "../lexer";
 import * as I from "../parser/interfaces";
@@ -16,13 +16,13 @@ export class RuleCasingStyle extends RuleBase implements IRule {
     }
     let newName = token.text;
     if (casing === 'snake_case') {
-      newName = Case.snake(token.text);
+      newName = changeCase.snakeCase(token.text);
     } else if (casing === 'PascalCase') {
-      newName = Case.pascal(token.text);
+      newName = changeCase.pascalCase(token.text);
     } else if (casing === 'camelCase') {
-      newName = Case.camel(token.text);
+      newName = changeCase.camelCase(token.text);
     } else if (casing === 'CONSTANT_CASE') {
-      newName = Case.constant(token.text);
+      newName = changeCase.constantCase(token.text);
     } else if (casing !== 'ignore') {
       throw new Error(`${casing as string} is an invalid casing setting`);
     }
