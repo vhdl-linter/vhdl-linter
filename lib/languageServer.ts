@@ -20,7 +20,8 @@ import { workspaceSymbol } from './languageFeatures/workspaceSymbol';
 import { LinterManager } from './linterManager';
 import { normalizeUri } from './normalizeUri';
 import { FileCacheLibraryList, ProjectParser } from './projectParser';
-import { defaultSettings, ISettings, normalizeSettings } from './settings';
+import { ISettings } from './settings';
+import { changeConfigurationHandler, currentCapabilities, getDocumentSettings, } from './settingsManager';
 
 // Create a connection for the server. The connection auto detected protocol
 // Also include all preview / proposed LSP features.
@@ -31,56 +32,19 @@ export const connection = createConnection(ProposedFeatures.all);
 // supports full document sync only
 export const documents = new TextDocuments<TextDocument>(TextDocument);
 
-let hasWorkspaceFolderCapability = false;
 // let hasDiagnosticRelatedInformationCapability: boolean = false;
 let projectParser: ProjectParser;
 let rootUri: string | undefined;
 
-
-
-
-let globalSettings: ISettings = defaultSettings;
-let hasConfigurationCapability = false;
-// Cache the settings of all open documents
-const documentSettings = new Map<string, ISettings>();
-connection.onDidChangeConfiguration((change: { settings: { VhdlLinter?: ISettings } }) => {
-
-  if (hasConfigurationCapability) {
-    // Reset all cached document settings
-    documentSettings.clear();
-  } else {
-    globalSettings = (
-      (change.settings.VhdlLinter ?? defaultSettings)
-    );
-  }
-
-  // Revalidate all open text documents
-  for (const document of documents.all()) {
-    void validateTextDocument(document);
-  }
-});
-export async function getDocumentSettings(resource?: URL): Promise<ISettings> {
-  if (!hasConfigurationCapability) {
-    return normalizeSettings(globalSettings);
-  }
-  let result = documentSettings.get(resource?.toString() ?? '');
-  if (!result) {
-    result = normalizeSettings(await connection.workspace.getConfiguration({
-      scopeUri: resource?.toString(),
-      section: 'VhdlLinter'
-    }) as ISettings);
-  }
-  documentSettings.set(resource?.toString() ?? '', result);
-  return result;
-}
+connection.onDidChangeConfiguration(change => changeConfigurationHandler(change));
 connection.onInitialize((params: InitializeParams) => {
   const capabilities = params.capabilities;
-  hasWorkspaceFolderCapability =
+  currentCapabilities.workspaceFolder =
     capabilities.workspace?.workspaceFolders ?? false;
   if (params.rootUri !== null) {
     rootUri = params.rootUri;
   }
-  hasConfigurationCapability = capabilities.workspace?.configuration ?? false;
+  currentCapabilities.configuration = capabilities.workspace?.configuration ?? false;
   return {
     capabilities: {
       textDocumentSync: TextDocumentSyncKind.Full,
@@ -130,7 +94,7 @@ export const initialization = new Promise<void>(resolve => {
         'VHDL-linter initializing...',
         0
       );
-      if (hasConfigurationCapability) {
+      if (currentCapabilities.configuration) {
         // Register for all configuration changes.
         await connection.client.register(DidChangeConfigurationNotification.type, undefined);
       }
@@ -138,7 +102,7 @@ export const initialization = new Promise<void>(resolve => {
         section: 'VhdlLinter'
       })) as ISettings;
 
-      if (hasWorkspaceFolderCapability) {
+      if (currentCapabilities.workspaceFolder) {
         const parseWorkspaces = async () => {
           const workspaceFolders = await connection.workspace.getWorkspaceFolders();
           const folders = (workspaceFolders ?? []).map(workspaceFolder => new URL(workspaceFolder.uri));
@@ -200,7 +164,7 @@ documents.onDidClose(async change => {
 const linterManager = new LinterManager();
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
-async function validateTextDocument(textDocument: TextDocument, fromProjectParser = false) {
+export async function validateTextDocument(textDocument: TextDocument, fromProjectParser = false) {
   try {
     if (projectParser !== undefined) {
 

@@ -5,13 +5,16 @@ import { realpath } from 'fs/promises';
 import { minimatch } from 'minimatch';
 import { basename, dirname, join, sep } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
+import { DeepPartial } from 'utility-types';
 import { CancellationToken, Diagnostic, DiagnosticSeverity, WorkDoneProgressReporter } from 'vscode-languageserver';
 import { Elaborate } from './elaborate/elaborate';
 import { elaborateTargetLibrary } from './elaborate/elaborateTargetLibrary';
 import { SetAdd } from './languageFeatures/findReferencesHandler';
 import { OArchitecture, OConfigurationDeclaration, OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
+import { ISettings } from './settingsGenerated';
 import { VerilogParser } from './verilogParser';
 import { SettingsGetter, VhdlLinter } from './vhdlLinter';
+import { parse } from 'yaml';
 
 export function joinURL(url: URL, ...additional: string[]) {
   const path = join(fileURLToPath(url), ...additional);
@@ -41,9 +44,10 @@ function matchGlobList(value: string, globList: string[]) {
 
 const vhdlGlob = '*.vhd?(l)';
 const verilogGlob = '*.?(s)v';
+const settingsGlob = 'vhdl-linter.yml';
 
 export class ProjectParser {
-
+  public cachedSettings: FileCacheSettings[] = [];
   public cachedFiles: (FileCacheVhdl | FileCacheVerilog | FileCacheLibraryList)[] = [];
   // maps files (url.toString()) to a library mapping
   public libraryMap = new Map<string, LibraryMapping>();
@@ -75,6 +79,7 @@ export class ProjectParser {
       // }
       const watcher = watch([
         fileURLToPath(url).replaceAll(sep, '/') + `/**/${vhdlGlob}`,
+        fileURLToPath(url).replaceAll(sep, '/') + `/**/${settingsGlob}`,
         ...settings.analysis.verilogAnalysis ? [fileURLToPath(url).replaceAll(sep, '/') + `/**/${verilogGlob}`] : [],
         ...settings.paths.libraryMapFiles.map(glob => fileURLToPath(url).replaceAll(sep, '/') + `/**/${glob}`),
       ], { ignoreInitial: true, followSymlinks: false });
@@ -87,6 +92,9 @@ export class ProjectParser {
           } else if (matchGlobList(path, settings.paths.libraryMapFiles)) {
             const libraryFile = await FileCacheLibraryList.create(url, this);
             this.cachedFiles.push(libraryFile);
+          } else if (minimatch(basename(path), settingsGlob)) {
+            const settingsFile = await FileCacheSettings.create(url, this);
+            this.cachedSettings.push(settingsFile);
           } else {
             const cachedFile = await FileCacheVhdl.create(url, this, false);
             this.cachedFiles.push(cachedFile);
@@ -276,6 +284,24 @@ export class ProjectParser {
   }
 }
 
+export class FileCacheSettings {
+  public messages: Diagnostic[] = [];
+  public settings: DeepPartial<ISettings>;
+  lintingTime: number;
+  public builtIn = false;
+  // Constructor can not be async. So constructor is private and use factory to create
+  public static async create(uri: URL, projectParser: ProjectParser) {
+    const cache = new FileCacheSettings(uri, projectParser);
+    await cache.parse();
+    return cache;
+  }
+  private constructor(public uri: URL, public projectParser: ProjectParser) {
+  }
+  async parse() {
+    const text = await promises.readFile(this.uri, { encoding: 'utf8' });
+    const parsed = parse(text);
+  }
+}
 export class FileCacheLibraryList {
   public messages: Diagnostic[] = [];
   public libraryMap = new Map<string, LibraryMapping>();
