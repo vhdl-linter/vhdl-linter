@@ -162,24 +162,33 @@ export const initialization = new Promise<void>(resolve => {
       for (const textDocument of documents.all()) {
         await validateTextDocument(textDocument);
       }
-      projectParser.events.on('change', (_, uri: string) => {
-        // A file in project parser got changed
-        // Revalidate all *other* files. (The file itself gets directly handled.)
-        for (const document of documents.all()) {
-          if (normalizeUri(document.uri) !== uri) {
-            void validateTextDocument(document, true);
+      let timeout: NodeJS.Timeout;
+      const uris: string[] = [];
+      projectParser.events.on('change', (type, uri: string) => {
+        // if (type === 'unlink') {
+        //   connection.sendDiagnostics
+        // }
+        uris.push(uri);
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+          // A file in project parser got changed
+          // Revalidate all *other* files. (The file itself gets directly handled.)
+          for (const document of documents.all()) {
+            if (uris.includes(normalizeUri(document.uri)) === false) {
+              void validateTextDocument(document, true);
+            }
           }
-        }
-        for (const libraryListCache of projectParser.cachedFiles) {
-          if (libraryListCache instanceof FileCacheLibraryList) {
-            libraryListCache.messages.forEach((diag) => diag.source = 'vhdl-linter');
-            void connection.sendDiagnostics({
-              uri: libraryListCache.uri.toString(),
-              diagnostics: libraryListCache.messages
-            });
+          for (const libraryListCache of projectParser.cachedFiles) {
+            if (libraryListCache instanceof FileCacheLibraryList) {
+              libraryListCache.messages.forEach((diag) => diag.source = 'vhdl-linter');
+              void connection.sendDiagnostics({
+                uri: libraryListCache.uri.toString(),
+                diagnostics: libraryListCache.messages
+              });
+            }
           }
-        }
-        void connection.sendRequest('workspace/semanticTokens/refresh');
+          void connection.sendRequest('workspace/semanticTokens/refresh');
+        }, 100);
       });
       documents.onDidChangeContent(change => {
         void validateTextDocument(change.document);
