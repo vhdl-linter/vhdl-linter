@@ -68,7 +68,6 @@ test('testing removing of verilog files', async () => {
   await projectParser.stop();
 });
 test('testing removing of vhdl files by removing parent folder', async () => {
-  const testFilePath = join(__dirname, 'testfiles/test_entity.vhd');
 
   const projectParser = await ProjectParser.create([pathToFileURL(__dirname)], defaultSettingsGetter);
 
@@ -76,7 +75,7 @@ test('testing removing of vhdl files by removing parent folder', async () => {
   await Promise.all([
     (async () => {
       await wait(100);
-      await rm(join(testFilePath, '..'), { recursive: true, force: true });
+      await rm(join(__dirname, 'testfiles'), { recursive: true, force: true });
 
     })(),
     new Promise(resolve => projectParser.events.once('change', resolve))
