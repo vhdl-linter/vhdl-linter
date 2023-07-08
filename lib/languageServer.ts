@@ -165,9 +165,9 @@ export const initialization = new Promise<void>(resolve => {
       let timeout: NodeJS.Timeout;
       const uris: string[] = [];
       projectParser.events.on('change', (type, uri: string) => {
-        // if (type === 'unlink') {
-        //   connection.sendDiagnostics
-        // }
+        // debounce the project parser events.
+        // the idea is to not overwhelm when many files gets changed programmatically.
+        // For example when checking out a different git branch.
         uris.push(uri);
         clearTimeout(timeout);
         timeout = setTimeout(() => {
