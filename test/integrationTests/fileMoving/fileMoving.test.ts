@@ -9,7 +9,7 @@ async function wait(ms: number) {
 }
 beforeEach(async () => {
   try {
-    await rm(join(__dirname, 'testfiles'), { recursive: true, force: true });
+    await rm(join(__dirname, 'test_files'), { recursive: true, force: true });
   } catch (err) {
     // Ignore if not exists
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -18,7 +18,7 @@ beforeEach(async () => {
     }
   }
   try {
-    await mkdir(join(__dirname, 'testfiles'));
+    await mkdir(join(__dirname, 'test_files'));
   } catch (err) {
     // Ignore if not exists
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -26,16 +26,16 @@ beforeEach(async () => {
       throw err;
     }
   }
-  await writeFile(join(__dirname, 'testfiles/test_entity.vhd'), `
+  await writeFile(join(__dirname, 'test_files/test_entity.vhd'), `
       entity test_entity is
       end entity;`);
-  await writeFile(join(__dirname, 'testfiles/test_module.sv'), `
+  await writeFile(join(__dirname, 'test_files/test_module.sv'), `
       module test_module
       endmodule;`);
 });
 test('testing moving of vhdl files', async () => {
-  const oldFileURL = pathToFileURL(join(__dirname, 'testfiles/test_entity.vhd'));
-  const newFileURL = pathToFileURL(join(__dirname, 'testfiles/test_entity_new.vhd'));
+  const oldFileURL = pathToFileURL(join(__dirname, 'test_files/test_entity.vhd'));
+  const newFileURL = pathToFileURL(join(__dirname, 'test_files/test_entity_new.vhd'));
 
   const projectParser = await ProjectParser.create([pathToFileURL(__dirname)], defaultSettingsGetter);
 
@@ -71,8 +71,8 @@ test('testing moving of vhdl files', async () => {
   await projectParser.stop();
 });
 test('testing moving of sv files', async () => {
-  const oldFileURL = pathToFileURL(join(__dirname, 'testfiles/test_module.sv'));
-  const newFileURL = pathToFileURL(join(__dirname, 'testfiles/test_module_new.sv'));
+  const oldFileURL = pathToFileURL(join(__dirname, 'test_files/test_module.sv'));
+  const newFileURL = pathToFileURL(join(__dirname, 'test_files/test_module_new.sv'));
 
   const projectParser = await ProjectParser.create([pathToFileURL(__dirname)], defaultSettingsGetter);
 
