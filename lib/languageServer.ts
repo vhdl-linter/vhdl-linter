@@ -124,7 +124,7 @@ export const initialization = new Promise<void>(resolve => {
         };
         await parseWorkspaces();
         connection.workspace.onDidChangeWorkspaceFolders(event => {
-          void projectParser.addFolders(event.added.map(folder => new URL(folder.uri)));
+          void projectParser.watchFolders(event.added.map(folder => new URL(folder.uri)));
           connection.console.log('Workspace folder change event received.');
         });
       } else {
@@ -146,7 +146,7 @@ export const initialization = new Promise<void>(resolve => {
           }
         }
         for (const cache of projectParser.cachedFiles) {
-          if (cache instanceof FileCacheLibraryList || cache instanceof FileCacheSettings) {
+          if (cache instanceof FileCacheLibraryList) {
             cache.messages.forEach((diag) => diag.source = 'vhdl-linter');
             void connection.sendDiagnostics({
               uri: cache.uri.toString(),

@@ -30,7 +30,7 @@
 			"request": "launch",
 			"cwd": "${workspaceFolder}",
 			"runtimeExecutable": "node",
-			"runtimeArgs": ["dist/test/test.js", "--no-osvvm"]
+			"runtimeArgs": ["dist/test/test.js"]
 		},
     {
       "type": "node",

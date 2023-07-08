@@ -44,14 +44,14 @@ export const documentSettings = new Map<string, ISettings>();
 export async function getDocumentSettings(resource: URL | undefined, projectParser: ProjectParser): Promise<ISettings> {
   // default settings are assumed as default and the overwritten by either
   // settings from vs code (workspace) or the closest vhdl-linter.yml
-  if (currentCapabilities.configuration === false) {
-    return normalizeSettings(defaultSettings);
-  }
   if (resource !== undefined) {
     const fileSettings = projectParser.findSettings(resource);
     if (fileSettings?.settings !== undefined) {
       return overwriteSettings(defaultSettings, fileSettings.settings);
     }
+  }
+  if (currentCapabilities.configuration === false) {
+    return normalizeSettings(defaultSettings);
   }
   let result = documentSettings.get(resource?.toString() ?? '');
   if (result === undefined && projectParser.vsCodeWorkspace !== undefined) {

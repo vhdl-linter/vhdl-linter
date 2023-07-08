@@ -49,7 +49,8 @@ const verilogGlob = '*.?(s)v';
 export const settingsGlob = 'vhdl-linter.yml';
 
 export class ProjectParser {
-  public cachedFiles: (FileCacheVhdl | FileCacheVerilog | FileCacheLibraryList | FileCacheSettings)[] = [];
+  public cachedSettings: FileCacheSettings[] = [];
+  public cachedFiles: (FileCacheVhdl | FileCacheVerilog | FileCacheLibraryList)[] = [];
   // maps files (url.toString()) to a library mapping
   public libraryMap = new Map<string, LibraryMapping>();
   public packages: OPackage[] = [];
@@ -68,7 +69,7 @@ export class ProjectParser {
     return projectParser;
   }
   private constructor(public workspaces: URL[], public progress?: WorkDoneProgressReporter, public vsCodeWorkspace?: RemoteWorkspace) { }
-  public async addFolders(urls: URL[]) {
+  public async watchFolders(urls: URL[]) {
     for (const url of urls) {
       const settings = await getDocumentSettings(url, this);
       // Chokidar does not accept win style line endings
@@ -87,7 +88,8 @@ export class ProjectParser {
       watcher.on('add', (path) => {
         const handleEvent = async () => {
           const url = pathToFileURL(path);
-          if (matchGlobList(path, [verilogGlob])) {
+          const settings = await getDocumentSettings(url, this);
+          if (matchGlobList(path, [verilogGlob]) && settings.analysis.verilogAnalysis) {
             const cachedFile = await FileCacheVerilog.create(url, this, false);
             this.cachedFiles.push(cachedFile);
           } else if (matchGlobList(path, settings.paths.libraryMapFiles)) {
@@ -95,7 +97,7 @@ export class ProjectParser {
             this.cachedFiles.push(libraryFile);
           } else if (matchGlobList(path, [settingsGlob])) {
             const settingsFile = await FileCacheSettings.create(url, this);
-            this.cachedFiles.push(settingsFile);
+            this.cachedSettings.push(settingsFile);
           } else {
             const cachedFile = await FileCacheVhdl.create(url, this, false);
             this.cachedFiles.push(cachedFile);
@@ -139,8 +141,37 @@ export class ProjectParser {
       this.watchers.push(watcher);
     }
   }
+
+  private parsedSettingsDirectories = new Set<string>();
+  private async parseAllSettings(directory: URL) {
+    const entries = await promises.readdir(directory);
+    await Promise.all(entries.map(async entry => {
+      try {
+        const filePath = joinURL(directory, entry);
+        const fileStat = await promises.stat(filePath);
+        if (fileStat.isFile() && matchGlobList(basename(entry), [settingsGlob])) {
+          const settingsFile = await FileCacheSettings.create(filePath, this);
+          this.cachedSettings.push(settingsFile);
+        } else if (fileStat.isDirectory()) {
+          const realPath = await realpath(filePath);
+          // catch infinite recursion in symlink
+          if (this.parsedSettingsDirectories.has(realPath) === false) {
+            this.parsedSettingsDirectories.add(await realpath(realPath));
+            await this.parseAllSettings(filePath);
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }));
+  }
+
   private async init(disableWatching: boolean) {
     const files = new SetAdd<string>();
+    // parse all settings files first
+    await Promise.all(this.workspaces.map(async (directory) => {
+      await this.parseAllSettings(directory);
+    }));
     await Promise.all(this.workspaces.map(async (directory) => {
       const settings = await getDocumentSettings(directory, this);
       const directories = await this.parseDirectory(directory, settings.analysis.verilogAnalysis);
@@ -157,16 +188,15 @@ export class ProjectParser {
         index++;
       }
       const builtIn = builtinFiles.includes(file);
-      if (minimatch(basename(file), verilogGlob)) {
+      const settings = await getDocumentSettings(new URL(file), this);
+      // there should be no settings files here as they have been parsed in their own pass
+      if (minimatch(basename(file), verilogGlob) && settings.analysis.verilogAnalysis) {
         const cachedFile = await FileCacheVerilog.create(new URL(file), this, builtIn);
         this.cachedFiles.push(cachedFile);
       } else if (minimatch(basename(file), vhdlGlob)) {
         const cachedFile = await FileCacheVhdl.create(new URL(file), this, builtIn);
         this.cachedFiles.push(cachedFile);
-      } else if (matchGlobList(file, [settingsGlob])) {
-        const settingsFile = await FileCacheSettings.create(new URL(file), this);
-        this.cachedFiles.push(settingsFile);
-      } else if (matchGlobList(file, (await getDocumentSettings(new URL(file), this)).paths.libraryMapFiles)) {
+      } else if (matchGlobList(file, settings.paths.libraryMapFiles)) {
         const libraryFile = await FileCacheLibraryList.create(new URL(file), this);
         this.cachedFiles.push(libraryFile);
       }
@@ -174,7 +204,7 @@ export class ProjectParser {
     this.cachedFiles.sort((a, b) => b.lintingTime - a.lintingTime);
     this.flattenProject();
     if (!disableWatching) {
-      await this.addFolders(this.workspaces);
+      await this.watchFolders(this.workspaces);
     }
   }
   async stop() {
@@ -193,7 +223,7 @@ export class ProjectParser {
         const filePath = joinURL(directory, entry);
         const fileStat = await promises.stat(filePath);
         if (fileStat.isFile()) {
-          if (matchGlobList(basename(entry), [vhdlGlob, verilogGlob, settingsGlob, ...settings.paths.libraryMapFiles])
+          if (matchGlobList(basename(entry), [vhdlGlob, verilogGlob, ...settings.paths.libraryMapFiles])
             && (matchGlobList(basename(entry), settings.paths.ignoreFiles) === false) && (ignoreRegex === null || !filePath.pathname.match(ignoreRegex))) {
             files.push(filePath);
           }
@@ -287,16 +317,16 @@ export class ProjectParser {
 
   }
 
-  public findSettings(url: URL): FileCacheSettings|undefined {
+  public findSettings(url: URL): FileCacheSettings | undefined {
     let path = fileURLToPath(url);
     while (path.length > 1) {
-      const res = this.cachedFiles.filter(cache => cache instanceof FileCacheSettings).find(cache => {
+      const res = this.cachedSettings.filter(cache => cache instanceof FileCacheSettings).find(cache => {
         const cachePath = fileURLToPath(cache.uri);
         const test = join(path, settingsGlob);
         return cachePath === test;
       });
       if (res) {
-        return res as FileCacheSettings;
+        return res;
       }
       path = dirname(path);
     }

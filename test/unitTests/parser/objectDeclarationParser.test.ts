@@ -23,7 +23,7 @@ test('Missing semicolon handling', async () => {
   } as URL;
   const url = pathToFileURL(join(__dirname, 'object_declaration_parser.vhd'));
 
-  linter = new VhdlLinter(mockUrl, readFileSyncNorm(url, { encoding: 'utf8' }), projectParser, await getDocumentSettings(mockUrl, projectParser));
+  linter = new VhdlLinter(mockUrl, readFileSyncNorm(url, { encoding: 'utf8' }), projectParser, await getDocumentSettings(url, projectParser));
   messages = await linter.checkAll();
   expect(messages).toHaveLength(7);
   expect(messages).toEqual(expect.not.arrayContaining([
