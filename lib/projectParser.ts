@@ -6,7 +6,7 @@ import { minimatch } from 'minimatch';
 import { basename, dirname, join, sep } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { DeepPartial } from 'utility-types';
-import { CancellationToken, Diagnostic, DiagnosticSeverity, WorkDoneProgressReporter } from 'vscode-languageserver';
+import { CancellationToken, Diagnostic, DiagnosticSeverity, RemoteWorkspace, WorkDoneProgressReporter } from 'vscode-languageserver';
 import { Elaborate } from './elaborate/elaborate';
 import { elaborateTargetLibrary } from './elaborate/elaborateTargetLibrary';
 import { SetAdd } from './languageFeatures/findReferencesHandler';
@@ -62,12 +62,12 @@ export class ProjectParser {
   private watchers: FSWatcher[] = [];
   // Constructor can not be async. So constructor is private and use factory to create
   public static async create(workspaces: URL[], disableWatching = false,
-    progress?: WorkDoneProgressReporter) {
-    const projectParser = new ProjectParser(workspaces, progress);
+    progress?: WorkDoneProgressReporter, vsCodeWorkspace?: RemoteWorkspace) {
+    const projectParser = new ProjectParser(workspaces, progress, vsCodeWorkspace);
     await projectParser.init(disableWatching);
     return projectParser;
   }
-  private constructor(public workspaces: URL[], public progress?: WorkDoneProgressReporter) { }
+  private constructor(public workspaces: URL[], public progress?: WorkDoneProgressReporter, public vsCodeWorkspace?: RemoteWorkspace) { }
   public async addFolders(urls: URL[]) {
     for (const url of urls) {
       const settings = await getDocumentSettings(url, this);
@@ -290,7 +290,11 @@ export class ProjectParser {
   public findSettings(url: URL): FileCacheSettings|undefined {
     let path = fileURLToPath(url);
     while (path.length > 1) {
-      const res = this.cachedFiles.find(cache => cache instanceof FileCacheSettings && fileURLToPath(cache.uri) === path + settingsGlob);
+      const res = this.cachedFiles.filter(cache => cache instanceof FileCacheSettings).find(cache => {
+        const cachePath = fileURLToPath(cache.uri);
+        const test = join(path, settingsGlob);
+        return cachePath === test;
+      });
       if (res) {
         return res as FileCacheSettings;
       }

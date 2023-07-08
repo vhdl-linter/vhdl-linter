@@ -1,10 +1,7 @@
 import { DeepPartial } from "utility-types";
-import { connection, documents, validateTextDocument } from "./languageServer";
 import { ProjectParser } from "./projectParser";
-import { ISettings, defaultSettings as defaultSettingsGenerated } from "./settingsGenerated";
+import { ISettings, defaultSettings } from "./settingsGenerated";
 export { ISettings };
-
-let globalSettings: ISettings = defaultSettingsGenerated;
 
 
 export function normalizeSettings(settings: ISettings) {
@@ -48,38 +45,24 @@ export async function getDocumentSettings(resource: URL | undefined, projectPars
   // default settings are assumed as default and the overwritten by either
   // settings from vs code (workspace) or the closest vhdl-linter.yml
   if (currentCapabilities.configuration === false) {
-    return normalizeSettings(globalSettings);
+    return normalizeSettings(defaultSettings);
   }
   if (resource !== undefined) {
     const fileSettings = projectParser.findSettings(resource);
     if (fileSettings?.settings !== undefined) {
-      return overwriteSettings(globalSettings, fileSettings.settings);
+      return overwriteSettings(defaultSettings, fileSettings.settings);
     }
   }
   let result = documentSettings.get(resource?.toString() ?? '');
-  if (!result) {
-    result = normalizeSettings(await connection.workspace.getConfiguration({
+  if (result === undefined && projectParser.vsCodeWorkspace !== undefined) {
+    result = normalizeSettings(await projectParser.vsCodeWorkspace.getConfiguration({
       scopeUri: resource?.toString(),
       section: 'VhdlLinter'
     }) as ISettings);
   }
+  if (result === undefined) {
+    result = normalizeSettings(defaultSettings);
+  }
   documentSettings.set(resource?.toString() ?? '', result);
   return result;
-}
-
-export function changeConfigurationHandler(change: { settings: { VhdlLinter?: ISettings } }) {
-
-  if (currentCapabilities.configuration) {
-    // Reset all cached document settings
-    documentSettings.clear();
-  } else {
-    globalSettings = (
-      (change.settings.VhdlLinter ?? defaultSettingsGenerated)
-    );
-  }
-
-  // Revalidate all open text documents
-  for (const document of documents.all()) {
-    void validateTextDocument(document);
-  }
 }

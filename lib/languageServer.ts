@@ -20,8 +20,8 @@ import { workspaceSymbol } from './languageFeatures/workspaceSymbol';
 import { LinterManager } from './linterManager';
 import { normalizeUri } from './normalizeUri';
 import { FileCacheLibraryList, FileCacheSettings, ProjectParser } from './projectParser';
-import { ISettings } from './settingsManager';
-import { changeConfigurationHandler, currentCapabilities, getDocumentSettings, } from './settingsManager';
+import { documentSettings, ISettings } from './settingsManager';
+import { currentCapabilities, getDocumentSettings, } from './settingsManager';
 
 // Create a connection for the server. The connection auto detected protocol
 // Also include all preview / proposed LSP features.
@@ -36,7 +36,18 @@ export const documents = new TextDocuments<TextDocument>(TextDocument);
 let projectParser: ProjectParser;
 let rootUri: string | undefined;
 
-connection.onDidChangeConfiguration(change => changeConfigurationHandler(change));
+connection.onDidChangeConfiguration(() => {
+
+  if (currentCapabilities.configuration) {
+    // Reset all cached document settings
+    documentSettings.clear();
+  }
+
+  // Revalidate all open text documents
+  for (const document of documents.all()) {
+    void validateTextDocument(document);
+  }
+});
 connection.onInitialize((params: InitializeParams) => {
   const capabilities = params.capabilities;
   currentCapabilities.workspaceFolder =
@@ -109,7 +120,7 @@ export const initialization = new Promise<void>(resolve => {
           folders.push(...configuration.paths.additional.map(path => pathToFileURL(path))
             .filter(url => existsSync(url)));
 
-          projectParser = await ProjectParser.create(folders, false, progress);
+          projectParser = await ProjectParser.create(folders, false, progress, connection.workspace);
         };
         await parseWorkspaces();
         connection.workspace.onDidChangeWorkspaceFolders(event => {
@@ -121,7 +132,7 @@ export const initialization = new Promise<void>(resolve => {
         if (rootUri !== undefined) {
           folders.push(new URL(rootUri));
         }
-        projectParser = await ProjectParser.create(folders, false, progress);
+        projectParser = await ProjectParser.create(folders, false, progress, connection.workspace);
       }
       for (const textDocument of documents.all()) {
         await validateTextDocument(textDocument);
@@ -323,7 +334,7 @@ connection.onDocumentHighlight(async (params, token) => {
 });
 connection.onWorkspaceSymbol(async params => {
   await initialization;
-  const configuration = await getDocumentSettings(undefined,projectParser);
+  const configuration = await getDocumentSettings(undefined, projectParser);
   return workspaceSymbol(params, projectParser, configuration.paths.additional);
 });
 connection.onSignatureHelp(async (params, token) => {
