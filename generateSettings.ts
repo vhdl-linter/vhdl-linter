@@ -8,6 +8,8 @@ const settings: Record<string, {
   items?: {
     type: string
   };
+  description?: string;
+  deprecationMessage?: string;
   properties?: object;
   patternProperties?: object;
   default?: string | boolean | string[];
@@ -94,6 +96,15 @@ for (const [key, value] of Object.entries(settings)) {
         const newObject: Record<string, any> = {
           type: value.type
         };
+        if (value.description !== undefined) {
+          newObject.description = value.description;
+        }
+        if (value.default !== undefined) {
+          newObject.default = value.default;
+        }
+        if (value.deprecationMessage !== undefined) {
+          newObject.deprecationMessage = value.deprecationMessage;
+        }
         if (value.enum !== undefined) {
           newObject.enum = value.enum;
         }

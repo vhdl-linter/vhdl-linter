@@ -146,7 +146,7 @@
 					"VhdlLinter.paths.ignoreRegex": {
 						"scope": "window",
 						"type": "string",
-						"deprecationMessage": "This is being deprecated in favor of `VhdlLinter.paths.ignoreFiles`",
+						"deprecationMessage": "This is being deprecated in favor of `paths.ignoreFiles`",
 						"default": "",
 						"description": "Regex for files to be ignored by the Project Parser"
 					},
@@ -241,13 +241,13 @@
 					"VhdlLinter.rules.naming-style": {
 						"scope": "window",
 						"type": "boolean",
-						"description": "Enable the rule to check if objects match the prefix/suffix given in VhdlLinter.style.*.",
+						"description": "Enable the rule to check if objects match the prefix/suffix given in style.*.",
 						"default": true
 					},
 					"VhdlLinter.rules.casing-style": {
 						"scope": "window",
 						"type": "boolean",
-						"description": "Enable the rule to check if objects match the casing given in VhdlLinter.style.*.",
+						"description": "Enable the rule to check if objects match the casing given in style.*.",
 						"default": true
 					},
 					"VhdlLinter.rules.type-checking": {
@@ -259,7 +259,7 @@
 					"VhdlLinter.rules.type-resolved": {
 						"scope": "window",
 						"type": "boolean",
-						"description": "Enable the rule to check if ports and signals have the resolved/unresolved type given in VhdlLinter.style.preferredLogicType*.",
+						"description": "Enable the rule to check if ports and signals have the resolved/unresolved type given in 'style.preferredLogicType*.'",
 						"default": true
 					},
 					"VhdlLinter.rules.unused": {

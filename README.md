@@ -30,6 +30,10 @@ Signature help is not yet supported for calling of functions.
 ![signature-helper](./doc/signature-help.png)
 ![signature-helper-long](./doc/signature-help2.png)
 
+## Configuration
+Rules and style settings can be configured with `vhdl-linter.yml` configuration files which modifies the default settings:
+![configuration-example](./doc/configuration-example.png)
+
 ## Region Folding
 Fold regions according to the file content:
 - declarations
