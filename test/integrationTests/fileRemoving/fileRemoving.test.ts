@@ -47,6 +47,8 @@ test('testing removing of vhdl files', async () => {
     })(),
     new Promise(resolve => projectParser.events.once('change', resolve))
   ]);
+  await wait(100);
+
   expect(projectParser.entities.find(entity => entity.lexerToken.getLText() === 'test_entity')).toBeUndefined();
   await projectParser.stop();
 });
