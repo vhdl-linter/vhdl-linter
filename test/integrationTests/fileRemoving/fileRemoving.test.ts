@@ -29,7 +29,7 @@ beforeEach(async () => {
   await writeFile(join(__dirname, 'testfiles/test_entity.vhd'), `
       entity test_entity is
       end entity;`);
-  await writeFile(join(__dirname, 'testfiles/test_entity.sv'), `
+  await writeFile(join(__dirname, 'testfiles/test_module.sv'), `
       module test_module
       endmodule;`);
 });
@@ -52,7 +52,7 @@ test('testing removing of vhdl files', async () => {
   await projectParser.stop();
 });
 test('testing removing of verilog files', async () => {
-  const testFilePath = join(__dirname, 'testfiles/test_entity.sv');
+  const testFilePath = join(__dirname, 'testfiles/test_module.sv');
 
   const projectParser = await ProjectParser.create([pathToFileURL(__dirname)], defaultSettingsGetter);
 
@@ -89,9 +89,20 @@ test('testing removing of vhdl files by removing parent folder', async () => {
         }
       };
       projectParser.events.on('change', handler);
+    }),
+    new Promise<void>(resolve => {
+      const handler = (type: string, path: string) => {
+        expect(type).toBe('unlink');
+        if (path.match(/test_module.sv$/)) {
+          projectParser.events.off('change', handler);
+          resolve();
+        }
+      };
+      projectParser.events.on('change', handler);
     })
   ]);
 
   expect(projectParser.entities.find(entity => entity.lexerToken.getLText() === 'test_entity')).toBeUndefined();
+  expect(projectParser.entities.find(entity => entity.lexerToken.getLText() === 'test_module')).toBeUndefined();
   await projectParser.stop();
 });
