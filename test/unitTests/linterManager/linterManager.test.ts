@@ -16,7 +16,8 @@ jest.mock('../../../lib/projectParser', () => {
     ProjectParser: {
       create: async () => {
         return Promise.resolve({
-          cachedFiles: []
+          cachedFiles: [],
+          findSettings: () => undefined
         });
       }
     }
