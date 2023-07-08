@@ -19,7 +19,7 @@ import { signatureHelp } from './languageFeatures/signatureHelp';
 import { workspaceSymbol } from './languageFeatures/workspaceSymbol';
 import { LinterManager } from './linterManager';
 import { normalizeUri } from './normalizeUri';
-import { FileCacheLibraryList, ProjectParser } from './projectParser';
+import { FileCacheLibraryList, FileCacheSettings, ProjectParser } from './projectParser';
 import { ISettings } from './settings';
 import { changeConfigurationHandler, currentCapabilities, getDocumentSettings, } from './settingsManager';
 
@@ -134,12 +134,12 @@ export const initialization = new Promise<void>(resolve => {
             void validateTextDocument(document, true);
           }
         }
-        for (const libraryListCache of projectParser.cachedFiles) {
-          if (libraryListCache instanceof FileCacheLibraryList) {
-            libraryListCache.messages.forEach((diag) => diag.source = 'vhdl-linter');
+        for (const cache of projectParser.cachedFiles) {
+          if (cache instanceof FileCacheLibraryList || cache instanceof FileCacheSettings) {
+            cache.messages.forEach((diag) => diag.source = 'vhdl-linter');
             void connection.sendDiagnostics({
-              uri: libraryListCache.uri.toString(),
-              diagnostics: libraryListCache.messages
+              uri: cache.uri.toString(),
+              diagnostics: cache.messages
             });
           }
         }

@@ -8,6 +8,8 @@ const settings: Record<string, {
   items?: {
     type: string
   };
+  properties?: object;
+  patternProperties?: object;
   default?: string | boolean | string[];
 }> = {};
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -18,10 +20,19 @@ for (const configuration of JSON.parse(readFileSync('package.json', { encoding: 
     settings[key] = object as any;
   }
 }
+
+// generate schema
+const schema = {
+  type: 'object',
+  properties: {},
+  additionalProperties: false,
+};
+
 interface ISettings {
   [key: string]: ISettings | string | boolean | string[];
 }
 const _interface: ISettings = {};
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
 const defaultValues: ISettings = {};
 // Extract defaults
 for (const [key, value] of Object.entries(settings)) {
@@ -61,6 +72,45 @@ for (const [key, value] of Object.entries(settings)) {
   }
 }
 
+
+for (const [key, value] of Object.entries(settings)) {
+  if (key.startsWith('VhdlLinter.')) {
+    const path = key.split('.').slice(1);
+    let currentProperties: Record<string, any> = schema.properties;
+    for (const [index, segment] of path.entries()) {
+      if (index < path.length - 1) {
+        // create the properties object
+        if (currentProperties[segment] === undefined) {
+          currentProperties[segment] = {
+            type: 'object',
+            properties: {},
+            additionalProperties: false
+          };
+        }
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        currentProperties = currentProperties[segment].properties;
+      } else {
+        // create the actual object
+        const newObject: Record<string, any> = {
+          type: value.type
+        };
+        if (value.enum !== undefined) {
+          newObject.enum = value.enum;
+        }
+        if (value.items !== undefined) {
+          newObject.items = value.items;
+        }
+        if (value.properties !== undefined) {
+          newObject.properties = value.properties;
+        }
+        if (value.patternProperties !== undefined) {
+          newObject.patternProperties = value.patternProperties;
+        }
+        currentProperties[segment] = newObject;
+      }
+    }
+  }
+}
 // Extract interface
 for (const [key, value] of Object.entries(settings)) {
   if (key.startsWith('VhdlLinter.')) {
@@ -156,5 +206,8 @@ text = text.trim().substring(0, text.length - 2);
 text += `\nexport const defaultSettings: ISettings = `;
 output(defaultValues, ',');
 text = text.trim().substring(0, text.length - 2);
-text += ';';
+text += ';\n';
+text += `export const settingsSchema = ${JSON.stringify(schema, undefined, 2)};`;
 writeFileSync(`lib/settingsGenerated.ts`, text);
+
+writeFileSync(`lib/settings.schema.json`, JSON.stringify(schema, undefined, 2));

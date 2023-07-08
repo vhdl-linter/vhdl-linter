@@ -1,4 +1,4 @@
-import { commands, env, ExtensionContext, Position, window, workspace } from 'vscode';
+import { commands, env, ExtensionContext, extensions, languages, Position, window, workspace } from 'vscode';
 import {
   LanguageClient,
   LanguageClientOptions,
@@ -7,6 +7,7 @@ import {
 } from 'vscode-languageclient/node';
 import { converterTypes } from './entityConverter';
 import { IAddSignalCommandArguments } from './vhdlLinter';
+import { setupYamlSupport } from './yamlSupport';
 
 
 let client: LanguageClient;
@@ -51,6 +52,7 @@ export async function activate(context: ExtensionContext) {
     serverOptions,
     clientOptions
   );
+  setupYamlSupport(context);
 
   // Start the client. This will also launch the server
   await client.start();

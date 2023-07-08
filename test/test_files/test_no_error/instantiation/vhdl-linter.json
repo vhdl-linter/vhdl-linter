@@ -1,0 +1,13 @@
+{
+  "semanticTokens": true,
+  "trace": {
+    "server": "off"
+  },
+  "rules": {
+    "not-declared": false
+  },
+  "style": {
+    "preferredLogicTypePort": "unresolved",
+    "apple": 34
+  }
+}

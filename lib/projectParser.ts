@@ -11,10 +11,11 @@ import { Elaborate } from './elaborate/elaborate';
 import { elaborateTargetLibrary } from './elaborate/elaborateTargetLibrary';
 import { SetAdd } from './languageFeatures/findReferencesHandler';
 import { OArchitecture, OConfigurationDeclaration, OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
-import { ISettings } from './settingsGenerated';
+import { ISettings, settingsSchema } from './settingsGenerated';
 import { VerilogParser } from './verilogParser';
 import { SettingsGetter, VhdlLinter } from './vhdlLinter';
 import { parse } from 'yaml';
+import Ajv from "ajv"
 
 export function joinURL(url: URL, ...additional: string[]) {
   const path = join(fileURLToPath(url), ...additional);
@@ -38,17 +39,16 @@ interface LibraryMapping {
   definitionLine: number;
 }
 
-function matchGlobList(value: string, globList: string[]) {
+export function matchGlobList(value: string, globList: string[]) {
   return globList.some(glob => minimatch(basename(value), glob));
 }
 
 const vhdlGlob = '*.vhd?(l)';
 const verilogGlob = '*.?(s)v';
-const settingsGlob = 'vhdl-linter.yml';
+export const settingsGlob = 'vhdl-linter.yml';
 
 export class ProjectParser {
-  public cachedSettings: FileCacheSettings[] = [];
-  public cachedFiles: (FileCacheVhdl | FileCacheVerilog | FileCacheLibraryList)[] = [];
+  public cachedFiles: (FileCacheVhdl | FileCacheVerilog | FileCacheLibraryList | FileCacheSettings)[] = [];
   // maps files (url.toString()) to a library mapping
   public libraryMap = new Map<string, LibraryMapping>();
   public packages: OPackage[] = [];
@@ -86,15 +86,15 @@ export class ProjectParser {
       watcher.on('add', (path) => {
         const handleEvent = async () => {
           const url = pathToFileURL(path);
-          if (path.match(/\.s?v$/i)) {
+          if (matchGlobList(path, [verilogGlob])) {
             const cachedFile = await FileCacheVerilog.create(url, this, false);
             this.cachedFiles.push(cachedFile);
           } else if (matchGlobList(path, settings.paths.libraryMapFiles)) {
             const libraryFile = await FileCacheLibraryList.create(url, this);
             this.cachedFiles.push(libraryFile);
-          } else if (minimatch(basename(path), settingsGlob)) {
+          } else if (matchGlobList(path, [settingsGlob])) {
             const settingsFile = await FileCacheSettings.create(url, this);
-            this.cachedSettings.push(settingsFile);
+            this.cachedFiles.push(settingsFile);
           } else {
             const cachedFile = await FileCacheVhdl.create(url, this, false);
             this.cachedFiles.push(cachedFile);
@@ -162,6 +162,9 @@ export class ProjectParser {
       } else if (minimatch(basename(file), vhdlGlob)) {
         const cachedFile = await FileCacheVhdl.create(new URL(file), this, builtIn);
         this.cachedFiles.push(cachedFile);
+      } else if (matchGlobList(file, [settingsGlob])) {
+        const settingsFile = await FileCacheSettings.create(new URL(file), this);
+        this.cachedFiles.push(settingsFile);
       } else if (matchGlobList(file, (await this.settingsGetter(new URL(file))).paths.libraryMapFiles)) {
         const libraryFile = await FileCacheLibraryList.create(new URL(file), this);
         this.cachedFiles.push(libraryFile);
@@ -189,7 +192,7 @@ export class ProjectParser {
         const filePath = joinURL(directory, entry);
         const fileStat = await promises.stat(filePath);
         if (fileStat.isFile()) {
-          if ((minimatch(basename(entry), vhdlGlob) || (parseVerilog && minimatch(basename(entry), verilogGlob)) || matchGlobList(basename(entry), settings.paths.libraryMapFiles))
+          if (matchGlobList(basename(entry), [vhdlGlob, verilogGlob, settingsGlob, ...settings.paths.libraryMapFiles])
             && (matchGlobList(basename(entry), settings.paths.ignoreFiles) === false) && (ignoreRegex === null || !filePath.pathname.match(ignoreRegex))) {
             files.push(filePath);
           }
@@ -298,8 +301,24 @@ export class FileCacheSettings {
   private constructor(public uri: URL, public projectParser: ProjectParser) {
   }
   async parse() {
+    this.messages = [];
     const text = await promises.readFile(this.uri, { encoding: 'utf8' });
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const parsed = parse(text);
+    const ajv = new Ajv();
+    const validate = ajv.compile(settingsSchema);
+    if (validate(parsed)) {
+      this.settings = parsed as ISettings;
+      console.log('parsed and validated setting.');
+    } else {
+      console.log(validate.errors);
+      for (const error of validate.errors ?? []) {
+        this.messages.push({
+          message: JSON.stringify(error, undefined, 2),
+          range: { start: { line: 0, character: 0 }, end: { line: 0, character: 20 } },
+        });
+      }
+    }
   }
 }
 export class FileCacheLibraryList {
