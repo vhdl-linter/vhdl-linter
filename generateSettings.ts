@@ -207,7 +207,7 @@ text += `\nexport const defaultSettings: ISettings = `;
 output(defaultValues, ',');
 text = text.trim().substring(0, text.length - 2);
 text += ';\n';
-text += `export const settingsSchema = ${JSON.stringify(schema, undefined, 2)};`;
+text += `export const settingsSchema = ${JSON.stringify(schema)};`;
 writeFileSync(`lib/settingsGenerated.ts`, text);
 
-writeFileSync(`lib/settings.schema.json`, JSON.stringify(schema, undefined, 2));
+writeFileSync(`lib/settings.schema.json`, JSON.stringify(schema));
