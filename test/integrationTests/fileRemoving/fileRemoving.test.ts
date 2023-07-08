@@ -47,7 +47,6 @@ test('testing removing of vhdl files', async () => {
     })(),
     new Promise(resolve => projectParser.events.once('change', resolve))
   ]);
-  await wait(100);
 
   expect(projectParser.entities.find(entity => entity.lexerToken.getLText() === 'test_entity')).toBeUndefined();
   await projectParser.stop();
@@ -74,14 +73,25 @@ test('testing removing of vhdl files by removing parent folder', async () => {
   const projectParser = await ProjectParser.create([pathToFileURL(__dirname)], defaultSettingsGetter);
 
   expect(projectParser.entities.find(entity => entity.lexerToken.getLText() === 'test_entity')).toBeDefined();
+
   await Promise.all([
     (async () => {
       await wait(100);
       await rm(join(__dirname, 'testfiles'), { recursive: true, force: true });
 
     })(),
-    new Promise(resolve => projectParser.events.once('change', resolve))
+    new Promise<void>(resolve => {
+      const handler = (type: string, path: string) => {
+        expect(type).toBe('unlink');
+        if (path.match(/test_entity.vhd$/)) {
+          projectParser.events.off('change', handler);
+          resolve();
+        }
+      };
+      projectParser.events.on('change', handler);
+    })
   ]);
+
   expect(projectParser.entities.find(entity => entity.lexerToken.getLText() === 'test_entity')).toBeUndefined();
   await projectParser.stop();
 });
