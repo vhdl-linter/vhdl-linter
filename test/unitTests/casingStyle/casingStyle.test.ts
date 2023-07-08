@@ -2,9 +2,9 @@ import { expect, test } from '@jest/globals';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
 import { ProjectParser } from '../../../lib/projectParser';
-import { defaultSettingsWithOverwrite } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { readFileSyncNorm } from "../../readFileSyncNorm";
+import { getDocumentSettings, overwriteSettings } from '../../../lib/settingsManager';
 test.each([
   'object',
   'constantGeneric',
@@ -17,13 +17,13 @@ test.each([
 ]))('testing casing style for %s with %s"', async (file: string, casing: 'snake_case' | 'PascalCase' | 'camelCase' | 'CONSTANT_CASE' | 'ignore') => {
   const overwrite: Record<string, string> = {};
   overwrite[`${file}Casing`] = casing;
-  const getter = defaultSettingsWithOverwrite({
+  const path = join(__dirname, `${file}.vhd`);
+  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)]);
+  const settings = overwriteSettings(await getDocumentSettings(pathToFileURL(path), projectParser),{
     style: overwrite
   });
-  const path = join(__dirname, `${file}.vhd`);
-  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)], getter);
   const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }),
-    projectParser, getter());
+    projectParser, settings);
   await linter.checkAll();
 
   expect(linter.messages).toMatchSnapshot();

@@ -12,13 +12,9 @@
 		"vscode": "^1.42.0"
 	},
 	"contributes": {
-		"jsonValidation": [
+		"yamlValidation": [
 			{
 				"fileMatch": "vhdl-linter.yml",
-				"url": "./lib/settings.schema.json"
-			},
-			{
-				"fileMatch": "vhdl-linter.json",
 				"url": "./lib/settings.schema.json"
 			}
 		],

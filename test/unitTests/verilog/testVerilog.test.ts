@@ -2,22 +2,22 @@ import { expect, test } from '@jest/globals';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
 import { ProjectParser } from '../../../lib/projectParser';
-import { defaultSettingsGetter, defaultSettingsWithOverwrite } from '../../../lib/settings';
 import { VerilogParser } from '../../../lib/verilogParser';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { makeRangePrintable } from '../../helper';
 import { readFileSyncNorm } from '../../readFileSyncNorm';
+import { getDocumentSettings, overwriteSettings } from '../../../lib/settingsManager';
 
 
 test.each([true, false])('Testing verilog switch %b', async enableVerilog => {
-  const settingsGetter = defaultSettingsWithOverwrite({
+  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)]);
+  const uri = pathToFileURL(join(__dirname, '_test_verilog_instance.vhd'));
+  const settings = overwriteSettings(await getDocumentSettings(uri, projectParser), {
     analysis: {
       verilogAnalysis: enableVerilog
     }
   });
-  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)], settingsGetter);
-  const uri = pathToFileURL(join(__dirname, '_test_verilog_instance.vhd'));
-  const linter = new VhdlLinter(uri, readFileSyncNorm(uri, { encoding: 'utf8' }), projectParser, settingsGetter());
+  const linter = new VhdlLinter(uri, readFileSyncNorm(uri, { encoding: 'utf8' }), projectParser, settings);
   await linter.checkAll();
   if (enableVerilog) {
     expect(linter.messages).toHaveLength(0);
@@ -31,7 +31,7 @@ test.each([true, false])('Testing verilog switch %b', async enableVerilog => {
 
 test('module_advanced', async () => {
   const uri = pathToFileURL(join(__dirname, 'module_advanced.sv'));
-  const projectParser = await ProjectParser.create([], defaultSettingsGetter);
+  const projectParser = await ProjectParser.create([]);
   const verilogParser = new VerilogParser(uri, readFileSyncNorm(uri, { encoding: 'utf8' }), projectParser);
   expect(verilogParser.file.objectList.map(obj => ({
     range: makeRangePrintable(obj.range),

@@ -1,7 +1,6 @@
 import { beforeEach, expect, test } from '@jest/globals';
 import { ProjectParser } from '../../../lib/projectParser';
 import { pathToFileURL } from 'url';
-import { defaultSettingsGetter } from '../../../lib/settings';
 import { join } from 'path';
 import { mkdir, rm, writeFile } from 'fs/promises';
 async function wait(ms: number) {
@@ -30,7 +29,7 @@ beforeEach(async () => {
 test('testing adding of vhdl files', async () => {
   const testFilePath = join(__dirname, 'testfiles/test_entity.vhd');
 
-  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)], defaultSettingsGetter);
+  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)]);
   expect(projectParser.entities).toHaveLength(0);
   await Promise.all([
     (async () => {
@@ -48,7 +47,7 @@ test('testing adding of vhdl files', async () => {
 test('testing adding of verilog files', async () => {
   const testFilePath = join(__dirname, 'testfiles/test_entity.sv');
 
-  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)], defaultSettingsGetter);
+  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)]);
   expect(projectParser.entities).toHaveLength(0);
   await Promise.all([
     (async () => {

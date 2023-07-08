@@ -4,16 +4,16 @@ import { Position } from 'vscode-languageserver';
 import { Elaborate } from '../../../lib/elaborate/elaborate';
 import { findDefinitionLinks } from '../../../lib/languageFeatures/findDefinition';
 import { ProjectParser } from '../../../lib/projectParser';
-import { defaultSettingsGetter } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { readFileSyncNorm } from "../../readFileSyncNorm";
+import { getDocumentSettings } from '../../../lib/settingsManager';
 let linter: VhdlLinter;
 let projectParser: ProjectParser;
 beforeAll(async () => {
-  projectParser = await ProjectParser.create([pathToFileURL(__dirname)], defaultSettingsGetter);
-  const URL = pathToFileURL(__dirname + '/definition.vhd');
-  linter = new VhdlLinter(URL, readFileSyncNorm(URL, { encoding: 'utf8' }),
-    projectParser, defaultSettingsGetter());
+  const url = pathToFileURL(__dirname + '/definition.vhd');
+  projectParser = await ProjectParser.create([pathToFileURL(__dirname)]);
+  linter = new VhdlLinter(url, readFileSyncNorm(url, { encoding: 'utf8' }),
+    projectParser, await getDocumentSettings(url, projectParser));
   await Elaborate.elaborate(linter);
   await projectParser.stop();
 });

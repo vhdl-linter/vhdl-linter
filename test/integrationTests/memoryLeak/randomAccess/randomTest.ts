@@ -6,11 +6,10 @@ import { pathToFileURL } from 'url';
 import { LinterManager } from '../../../../lib/linterManager';
 import { implementsIHasDefinitions, implementsIHasNameLinks } from '../../../../lib/parser/interfaces';
 import { ProjectParser } from '../../../../lib/projectParser';
-import { defaultSettingsGetter } from '../../../../lib/settings';
 import { readFileSyncNorm } from '../../../readFileSyncNorm';
 
 export async function randomTest(directory: string) {
-  const projectParser = await ProjectParser.create([pathToFileURL(directory)], defaultSettingsGetter);
+  const projectParser = await ProjectParser.create([pathToFileURL(directory)]);
   const linterManager = new LinterManager();
   const seed = 42;
   const rng = prand.xoroshiro128plus(seed);
@@ -39,7 +38,7 @@ export async function randomTest(directory: string) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
     (projectParser as any).watchers[0].emit('change', join(directory, filename));
     const text = readFileSyncNorm(url, { encoding: 'utf8' });
-    const linter = await linterManager.triggerRefresh(url.toString(), text, projectParser, defaultSettingsGetter, version++);
+    const linter = await linterManager.triggerRefresh(url.toString(), text, projectParser, version++);
     await linter.checkAll();
   }
   const files = readdirSync(directory).filter(filename => filename.match(/\.vhd$/i));

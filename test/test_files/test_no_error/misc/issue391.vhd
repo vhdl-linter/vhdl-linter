@@ -16,6 +16,6 @@ architecture rtl of issue391 is
   signal my_unused : std_ulogic_vector(fu(CONST(0)) - 1 downto 0);
 begin  
 
- 
+
 
 end architecture;

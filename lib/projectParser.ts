@@ -13,9 +13,10 @@ import { SetAdd } from './languageFeatures/findReferencesHandler';
 import { OArchitecture, OConfigurationDeclaration, OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
 import { ISettings, settingsSchema } from './settingsGenerated';
 import { VerilogParser } from './verilogParser';
-import { SettingsGetter, VhdlLinter } from './vhdlLinter';
+import { VhdlLinter } from './vhdlLinter';
 import { parse } from 'yaml';
-import Ajv from "ajv"
+import Ajv from "ajv";
+import { getDocumentSettings } from './settingsManager';
 
 export function joinURL(url: URL, ...additional: string[]) {
   const path = join(fileURLToPath(url), ...additional);
@@ -60,16 +61,16 @@ export class ProjectParser {
   events = new EventEmitter();
   private watchers: FSWatcher[] = [];
   // Constructor can not be async. So constructor is private and use factory to create
-  public static async create(workspaces: URL[], settingsGetter: SettingsGetter, disableWatching = false,
+  public static async create(workspaces: URL[], disableWatching = false,
     progress?: WorkDoneProgressReporter) {
-    const projectParser = new ProjectParser(workspaces, settingsGetter, progress);
+    const projectParser = new ProjectParser(workspaces, progress);
     await projectParser.init(disableWatching);
     return projectParser;
   }
-  private constructor(public workspaces: URL[], public settingsGetter: SettingsGetter, public progress?: WorkDoneProgressReporter) { }
+  private constructor(public workspaces: URL[], public progress?: WorkDoneProgressReporter) { }
   public async addFolders(urls: URL[]) {
     for (const url of urls) {
-      const settings = await this.settingsGetter(url);
+      const settings = await getDocumentSettings(url, this);
       // Chokidar does not accept win style line endings
       // Chokidar sometimes throws this error message on hitting weird symlink. But this is a upstream issue
       // [Error: EISDIR: illegal operation on a directory, read] {
@@ -141,7 +142,7 @@ export class ProjectParser {
   private async init(disableWatching: boolean) {
     const files = new SetAdd<string>();
     await Promise.all(this.workspaces.map(async (directory) => {
-      const settings = await this.settingsGetter(directory);
+      const settings = await getDocumentSettings(directory, this);
       const directories = await this.parseDirectory(directory, settings.analysis.verilogAnalysis);
       files.add(...directories.map(url => url.toString()));
     }));
@@ -165,7 +166,7 @@ export class ProjectParser {
       } else if (matchGlobList(file, [settingsGlob])) {
         const settingsFile = await FileCacheSettings.create(new URL(file), this);
         this.cachedFiles.push(settingsFile);
-      } else if (matchGlobList(file, (await this.settingsGetter(new URL(file))).paths.libraryMapFiles)) {
+      } else if (matchGlobList(file, (await getDocumentSettings(new URL(file), this)).paths.libraryMapFiles)) {
         const libraryFile = await FileCacheLibraryList.create(new URL(file), this);
         this.cachedFiles.push(libraryFile);
       }
@@ -184,7 +185,7 @@ export class ProjectParser {
   private parsedDirectories = new Set<string>();
   private async parseDirectory(directory: URL, parseVerilog: boolean): Promise<URL[]> {
     const files: URL[] = [];
-    const settings = await this.settingsGetter(directory);
+    const settings = await getDocumentSettings(directory, this);
     const entries = await promises.readdir(directory);
     const ignoreRegex = settings.paths.ignoreRegex.trim().length > 0 ? new RegExp(settings.paths.ignoreRegex) : null;
     await Promise.all(entries.map(async entry => {
@@ -285,11 +286,22 @@ export class ProjectParser {
     this.cachedElaborate = filter;
 
   }
+
+  public findSettings(url: URL): FileCacheSettings|undefined {
+    let path = fileURLToPath(url);
+    while (path.length > 1) {
+      const res = this.cachedFiles.find(cache => cache instanceof FileCacheSettings && fileURLToPath(cache.uri) === path + settingsGlob);
+      if (res) {
+        return res as FileCacheSettings;
+      }
+      path = dirname(path);
+    }
+  }
 }
 
 export class FileCacheSettings {
   public messages: Diagnostic[] = [];
-  public settings: DeepPartial<ISettings>;
+  public settings?: DeepPartial<ISettings>;
   lintingTime: number;
   public builtIn = false;
   // Constructor can not be async. So constructor is private and use factory to create
@@ -302,22 +314,14 @@ export class FileCacheSettings {
   }
   async parse() {
     this.messages = [];
+    this.settings = undefined;
     const text = await promises.readFile(this.uri, { encoding: 'utf8' });
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const parsed = parse(text);
     const ajv = new Ajv();
-    const validate = ajv.compile(settingsSchema);
+    const validate = ajv.compile<DeepPartial<ISettings>>(settingsSchema);
     if (validate(parsed)) {
-      this.settings = parsed as ISettings;
-      console.log('parsed and validated setting.');
-    } else {
-      console.log(validate.errors);
-      for (const error of validate.errors ?? []) {
-        this.messages.push({
-          message: JSON.stringify(error, undefined, 2),
-          range: { start: { line: 0, character: 0 }, end: { line: 0, character: 20 } },
-        });
-      }
+      this.settings = parsed;
     }
   }
 }
@@ -405,7 +409,7 @@ export class FileCacheVhdl {
   async parse() {
     let text = await promises.readFile(this.uri, { encoding: 'utf8' });
     text = text.replaceAll('\r\n', '\n');
-    this.linter = new VhdlLinter(this.uri, text, this.projectParser, await this.projectParser.settingsGetter(this.uri));
+    this.linter = new VhdlLinter(this.uri, text, this.projectParser, await getDocumentSettings(this.uri, this.projectParser));
     this.replaceLinter(this.linter);
   }
   replaceLinter(vhdlLinter: VhdlLinter) {

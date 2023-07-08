@@ -3,9 +3,9 @@ import { mkdir, writeFile } from "fs/promises";
 import { join } from "path";
 import { pathToFileURL } from "url";
 import { joinURL, ProjectParser } from "../../../lib/projectParser";
-import { defaultSettingsGetter } from "../../../lib/settings";
 import { VhdlLinter } from "../../../lib/vhdlLinter";
 import { readFileSyncNorm } from "../../readFileSyncNorm";
+import { getDocumentSettings } from "../../../lib/settingsManager";
 let projectParser: ProjectParser;
 const filesURL = pathToFileURL(join(__dirname, 'tortureFiles'));
 const tortureEntityURL = joinURL(filesURL, 'torture_entity.vhd');
@@ -30,7 +30,7 @@ begin
 end architecture;
 `;
   await writeFile(tortureEntityURL, text);
-  projectParser = await ProjectParser.create([filesURL], defaultSettingsGetter);
+  projectParser = await ProjectParser.create([filesURL]);
 });
 afterAll(async () => {
   await projectParser.stop();
@@ -42,9 +42,9 @@ test('test project parser', () => {
     })
   ]));
 });
-test('direct parsing of file', () => {
+test('direct parsing of file', async () => {
   const linter = new VhdlLinter(tortureEntityURL, readFileSyncNorm(tortureEntityURL, { encoding: 'utf8' }),
-    projectParser, defaultSettingsGetter());
+    projectParser, await getDocumentSettings(tortureEntityURL, projectParser));
   expect(linter.file.lexerTokens).toBeDefined();
   expect(linter.file.lexerTokens.length).toBeGreaterThan(0);
 });

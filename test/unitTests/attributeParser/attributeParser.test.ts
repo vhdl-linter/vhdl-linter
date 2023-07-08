@@ -4,13 +4,13 @@ import { join } from 'path';
 import { pathToFileURL } from 'url';
 import { OAttributeName } from '../../../lib/parser/objects';
 import { ProjectParser } from '../../../lib/projectParser';
-import { defaultSettingsGetter } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { readFileSyncNorm } from "../../readFileSyncNorm";
+import { getDocumentSettings } from '../../../lib/settingsManager';
 
 let projectParser: ProjectParser;
 beforeAll(async () => {
-  projectParser = await ProjectParser.create([pathToFileURL(__dirname)], defaultSettingsGetter);
+  projectParser = await ProjectParser.create([pathToFileURL(__dirname)]);
 });
 afterAll(async () => {
   await projectParser.stop();
@@ -21,7 +21,7 @@ test('testing attribute parser for declaration and specification', async () => {
   const path = join(__dirname, file);
 
   const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }),
-    projectParser, defaultSettingsGetter());
+    projectParser, await getDocumentSettings(pathToFileURL(path), projectParser));
   await linter.checkAll();
 
   expect(linter.messages).toHaveLength(1);
@@ -36,7 +36,7 @@ test.each([
   const path = join(__dirname, file);
 
   const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }),
-    projectParser, defaultSettingsGetter());
+    projectParser, await getDocumentSettings(pathToFileURL(path), projectParser));
   await linter.checkAll();
 
   expect(linter.messages).toHaveLength(1);
@@ -47,7 +47,7 @@ test('testing attribute_test_error4.vhd', async () => {
   const path = join(__dirname, file);
 
   const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }),
-    projectParser, defaultSettingsGetter());
+    projectParser, await getDocumentSettings(pathToFileURL(path), projectParser));
   await linter.checkAll();
 
   expect(linter.messages).toHaveLength(2);
@@ -60,7 +60,7 @@ test('attribute_test_error6.vhd', async () => {
 
   const uri = pathToFileURL(path);
   const linter = new VhdlLinter(uri, readFileSyncNorm(path, { encoding: 'utf8' }),
-    projectParser, defaultSettingsGetter());
+    projectParser, await getDocumentSettings(pathToFileURL(path), projectParser));
   await linter.checkAll();
 
   expect(linter.messages).toHaveLength(1);
@@ -96,7 +96,7 @@ test('attribute_prefix.vhd', async () => {
 
   const uri = pathToFileURL(path);
   const linter = new VhdlLinter(uri, readFileSyncNorm(path, { encoding: 'utf8' }),
-    projectParser, defaultSettingsGetter());
+    projectParser, await getDocumentSettings(pathToFileURL(path), projectParser));
   await linter.checkAll();
   for (const obj of linter.file.objectList) {
     if (obj instanceof OAttributeName) {

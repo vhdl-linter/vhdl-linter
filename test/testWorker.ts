@@ -1,34 +1,21 @@
 import { lstatSync } from "fs";
 import { parentPort, workerData } from "worker_threads";
 import { ProjectParser } from "../lib/projectParser";
-import { defaultSettingsGetter, defaultSettingsWithOverwrite } from "../lib/settings";
 import { VhdlLinter } from "../lib/vhdlLinter";
 import { readFileSyncNorm } from "./readFileSyncNorm";
 import { MessageWrapper, prettyPrintMessages, readDirPath } from "./testUtil";
+import { getDocumentSettings } from "../lib/settingsManager";
 async function run_test(path: URL, error_expected: boolean, projectParser?: ProjectParser): Promise<MessageWrapper[]> {
   const messageWrappers: MessageWrapper[] = [];
   if (!projectParser) {
-    projectParser = await ProjectParser.create([path], defaultSettingsGetter);
+    projectParser = await ProjectParser.create([path]);
   }
   for (const subPath of readDirPath(path)) {
-    // Exclude OSVVM and IEEE from some checker
-    const getter = subPath.pathname.match(/OSVVM/i) || subPath.pathname.match(/ieee/i)
-      ? defaultSettingsWithOverwrite({
-        rules: {
-          "type-resolved": false,
-          "unit": false
-        }
-      })
-      : defaultSettingsWithOverwrite({
-        rules: {
-          "consistent-casing": true
-        }
-      });
     if (lstatSync(subPath).isDirectory()) {
       messageWrappers.push(...await run_test(subPath, error_expected, projectParser));
     } else if (subPath.pathname.match(/\.vhdl?$/i)) {
       const text = readFileSyncNorm(subPath, { encoding: 'utf8' });
-      const vhdlLinter = new VhdlLinter(subPath, text, projectParser, getter());
+      const vhdlLinter = new VhdlLinter(subPath, text, projectParser, await getDocumentSettings(subPath, projectParser));
       if (vhdlLinter.parsedSuccessfully) {
         await vhdlLinter.checkAll();
       }

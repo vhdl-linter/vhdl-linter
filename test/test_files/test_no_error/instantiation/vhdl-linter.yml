@@ -5,4 +5,3 @@ rules:
   not-declared: false
 style:
   preferredLogicTypePort: 'unresolved'
-  apple: 34

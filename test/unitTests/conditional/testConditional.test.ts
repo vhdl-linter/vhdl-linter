@@ -3,13 +3,13 @@ import { join } from 'path';
 import { pathToFileURL } from 'url';
 import { getTokenFromPosition } from '../../../lib/languageFeatures/findReferencesHandler';
 import { ProjectParser } from '../../../lib/projectParser';
-import { defaultSettingsGetter, defaultSettingsWithOverwrite } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { readFileSyncNorm } from "../../readFileSyncNorm";
+import { getDocumentSettings, overwriteSettings } from '../../../lib/settingsManager';
 
 let projectParser: ProjectParser;
 beforeAll(async () => {
-  projectParser = await ProjectParser.create([pathToFileURL(__dirname)], defaultSettingsGetter);
+  projectParser = await ProjectParser.create([pathToFileURL(__dirname)]);
 });
 afterAll(async () => {
   await projectParser.stop();
@@ -17,20 +17,20 @@ afterAll(async () => {
 
 test('Testing conditional analysis true', async () => {
   const path = join(__dirname, 'test_conditional.vhd');
-  const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser, defaultSettingsWithOverwrite({
+  const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser, overwriteSettings(await getDocumentSettings(pathToFileURL(path), projectParser), {
     analysis: {
       conditionalAnalysis: {
         DEVICE: 'TEST1'
       }
     }
-  })());
+  }));
   await linter.checkAll();
 
   expect(linter.messages).toHaveLength(0);
 });
 test('Testing conditional analysis true not set', async () => {
   const path = join(__dirname, 'test_conditional.vhd');
-  const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser, defaultSettingsGetter());
+  const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser, await getDocumentSettings(pathToFileURL(path), projectParser));
   await linter.checkAll();
   expect(linter.messages).toHaveLength(1);
 });
@@ -38,14 +38,14 @@ test('Testing conditional analysis conditions', async () => {
   const path = join(__dirname, 'test_conditional2.vhd');
   const text = readFileSyncNorm(path, { encoding: 'utf8' });
   const linter = new VhdlLinter(pathToFileURL(path), text,
-    projectParser, defaultSettingsWithOverwrite({
+    projectParser, overwriteSettings(await getDocumentSettings(pathToFileURL(path), projectParser), {
       analysis: {
         conditionalAnalysis: {
           VALUE5: "5",
           VALUE6: "6"
         }
       }
-    })());
+    }));
 
   const matches = [...text.matchAll(/TRUE/ig)];
   await linter.checkAll();
@@ -58,7 +58,7 @@ test.each([
   'test_tool_unknown2.vhd',
 ])('Testing unknown tool directive in file %s', async filename => {
   const path = join(__dirname, filename);
-  const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser, defaultSettingsGetter());
+  const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser, await getDocumentSettings(pathToFileURL(path), projectParser));
   await linter.checkAll();
   expect(linter.messages).toHaveLength(1);
   expect(linter.messages[0]?.message).toBe(`Unknown tool directive 'UNKNOWN' (parser)`);
@@ -66,13 +66,13 @@ test.each([
 test('Testing hover for conditional', async () => {
   const path = join(__dirname, 'test_hover.vhd');
   const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser,
-    defaultSettingsWithOverwrite({
+    overwriteSettings(await getDocumentSettings(pathToFileURL(path), projectParser), {
       analysis: {
         conditionalAnalysis: {
           VALUE5: "5"
         }
       }
-    })());
+    }));
   await linter.checkAll();
   const lexerToken = getTokenFromPosition(linter, {
     line: 1,
@@ -84,26 +84,26 @@ test('Regression test', async() => {
   const path = join(__dirname, 'test_regression.vhd');
   {
     const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser,
-      defaultSettingsWithOverwrite({
+      overwriteSettings(await getDocumentSettings(pathToFileURL(path), projectParser), {
         analysis: {
           conditionalAnalysis: {
             DEVICE: "Arria10"
           }
         }
-      })());
+      }));
     await linter.checkAll();
     expect(linter.messages).toHaveLength(1);
     expect(linter.messages[0]?.message).toEqual(expect.stringContaining('Device Arria'));
   }
   {
     const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser,
-      defaultSettingsWithOverwrite({
+      overwriteSettings(await getDocumentSettings(pathToFileURL(path), projectParser), {
         analysis: {
           conditionalAnalysis: {
             DEVICE: "SomethingElse"
           }
         }
-      })());
+      }));
     await linter.checkAll();
     expect(linter.messages).toHaveLength(1);
     expect(linter.messages[0]?.message).toEqual(expect.stringContaining('Device Other'));

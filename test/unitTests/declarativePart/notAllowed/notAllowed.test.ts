@@ -2,13 +2,13 @@ import { afterAll, beforeAll, expect, test } from '@jest/globals';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
 import { ProjectParser } from '../../../../lib/projectParser';
-import { defaultSettingsGetter, defaultSettingsWithOverwrite } from '../../../../lib/settings';
 import { VhdlLinter } from '../../../../lib/vhdlLinter';
 import { readFileSyncNorm } from "../../../readFileSyncNorm";
+import { getDocumentSettings, overwriteSettings } from '../../../../lib/settingsManager';
 
 let projectParser: ProjectParser;
 beforeAll(async () => {
-  projectParser = await ProjectParser.create([pathToFileURL(join(__dirname, 'projectParser'))], defaultSettingsGetter);
+  projectParser = await ProjectParser.create([pathToFileURL(join(__dirname, 'projectParser'))]);
 });
 afterAll(async () => {
   await projectParser.stop();
@@ -245,11 +245,11 @@ test.each(
   const declarationEntry = possibleDeclarations[declaration];
   const declarationCode = typeof declarationEntry === 'function' ? declarationEntry(file) : declarationEntry;
   const actualText = originalText.replace('!declaration', declarationCode);
-  const linter = new VhdlLinter(uri, actualText, projectParser, defaultSettingsWithOverwrite({
+  const linter = new VhdlLinter(uri, actualText, projectParser, overwriteSettings(await getDocumentSettings(uri, projectParser),{
     rules: {
       unused: false
     }
-  })());
+  }));
   const messages = await linter.checkAll();
   if (file === 'configuration_declaration.vhd' && declaration === 'configuration_specification') {
     // Declarative part parser can not distinguish between configuration specification and the configuration within the declaration.

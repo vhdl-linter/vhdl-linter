@@ -20,7 +20,7 @@ import { workspaceSymbol } from './languageFeatures/workspaceSymbol';
 import { LinterManager } from './linterManager';
 import { normalizeUri } from './normalizeUri';
 import { FileCacheLibraryList, FileCacheSettings, ProjectParser } from './projectParser';
-import { ISettings } from './settings';
+import { ISettings } from './settingsManager';
 import { changeConfigurationHandler, currentCapabilities, getDocumentSettings, } from './settingsManager';
 
 // Create a connection for the server. The connection auto detected protocol
@@ -109,7 +109,7 @@ export const initialization = new Promise<void>(resolve => {
           folders.push(...configuration.paths.additional.map(path => pathToFileURL(path))
             .filter(url => existsSync(url)));
 
-          projectParser = await ProjectParser.create(folders, getDocumentSettings, false, progress);
+          projectParser = await ProjectParser.create(folders, false, progress);
         };
         await parseWorkspaces();
         connection.workspace.onDidChangeWorkspaceFolders(event => {
@@ -121,7 +121,7 @@ export const initialization = new Promise<void>(resolve => {
         if (rootUri !== undefined) {
           folders.push(new URL(rootUri));
         }
-        projectParser = await ProjectParser.create(folders, getDocumentSettings, false, progress);
+        projectParser = await ProjectParser.create(folders, false, progress);
       }
       for (const textDocument of documents.all()) {
         await validateTextDocument(textDocument);
@@ -168,7 +168,7 @@ export async function validateTextDocument(textDocument: TextDocument, fromProje
   try {
     if (projectParser !== undefined) {
 
-      const vhdlLinter = await linterManager.triggerRefresh(textDocument.uri, textDocument.getText(), projectParser, getDocumentSettings, textDocument.version, fromProjectParser);
+      const vhdlLinter = await linterManager.triggerRefresh(textDocument.uri, textDocument.getText(), projectParser, textDocument.version, fromProjectParser);
       const diagnostics = await vhdlLinter.checkAll();
       diagnostics.forEach((diag) => diag.source = 'vhdl-linter');
       await connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
@@ -323,7 +323,7 @@ connection.onDocumentHighlight(async (params, token) => {
 });
 connection.onWorkspaceSymbol(async params => {
   await initialization;
-  const configuration = await getDocumentSettings();
+  const configuration = await getDocumentSettings(undefined,projectParser);
   return workspaceSymbol(params, projectParser, configuration.paths.additional);
 });
 connection.onSignatureHelp(async (params, token) => {
@@ -332,7 +332,7 @@ connection.onSignatureHelp(async (params, token) => {
 });
 connection.languages.semanticTokens.on(async (params, token) => {
   const linter = await linterManager.getLinter(params.textDocument.uri, token, false);
-  const settings = await getDocumentSettings(new URL(params.textDocument.uri));
+  const settings = await getDocumentSettings(new URL(params.textDocument.uri), projectParser);
   if (!settings.semanticTokens) {
     return {
       data: []
@@ -343,7 +343,7 @@ connection.languages.semanticTokens.on(async (params, token) => {
 });
 connection.onRequest('vhdl-linter/template', async (params: { textDocument: { uri: string }, type: converterTypes, position?: Position }, token?: CancellationToken) => {
   const linter = await linterManager.getLinter(params.textDocument.uri, token);
-  const settings = await getDocumentSettings(new URL(params.textDocument.uri));
+  const settings = await getDocumentSettings(new URL(params.textDocument.uri), projectParser);
   return entityConverter(linter, params.type, settings, params.position);
 });
 documents.listen(connection);
