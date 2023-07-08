@@ -36,7 +36,7 @@ test('testing adding of vhdl files', async () => {
     (async () => {
       await wait(100);
       await writeFile(testFilePath, `
-      entity test_enttity is
+      entity test_entity is
       end entity;`);
 
     })(),
@@ -54,7 +54,7 @@ test('testing adding of verilog files', async () => {
     (async () => {
       await wait(100);
       await writeFile(testFilePath, `
-      module test_enttity
+      module test_entity
       endmodule;`);
 
     })(),
