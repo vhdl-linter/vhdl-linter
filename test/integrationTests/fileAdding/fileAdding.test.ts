@@ -8,7 +8,7 @@ async function wait(ms: number) {
 }
 beforeEach(async () => {
   try {
-    await rm(join(__dirname, 'testfiles'), { recursive: true, force: true });
+    await rm(join(__dirname, 'test_files'), { recursive: true, force: true });
   } catch (err) {
     // Ignore if not exists
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -17,7 +17,7 @@ beforeEach(async () => {
     }
   }
   try {
-    await mkdir(join(__dirname, 'testfiles'));
+    await mkdir(join(__dirname, 'test_files'));
   } catch (err) {
     // Ignore if not exists
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -27,7 +27,7 @@ beforeEach(async () => {
   }
 });
 test('testing adding of vhdl files', async () => {
-  const testFilePath = join(__dirname, 'testfiles/test_entity.vhd');
+  const testFilePath = join(__dirname, 'test_files/test_entity.vhd');
 
   const projectParser = await ProjectParser.create([pathToFileURL(__dirname)]);
   expect(projectParser.entities).toHaveLength(0);
@@ -35,7 +35,7 @@ test('testing adding of vhdl files', async () => {
     (async () => {
       await wait(100);
       await writeFile(testFilePath, `
-      entity test_enttity is
+      entity test_entity is
       end entity;`);
 
     })(),
@@ -45,7 +45,7 @@ test('testing adding of vhdl files', async () => {
   await projectParser.stop();
 });
 test('testing adding of verilog files', async () => {
-  const testFilePath = join(__dirname, 'testfiles/test_entity.sv');
+  const testFilePath = join(__dirname, 'test_files/test_entity.sv');
 
   const projectParser = await ProjectParser.create([pathToFileURL(__dirname)]);
   expect(projectParser.entities).toHaveLength(0);
@@ -53,7 +53,7 @@ test('testing adding of verilog files', async () => {
     (async () => {
       await wait(100);
       await writeFile(testFilePath, `
-      module test_enttity
+      module test_entity
       endmodule;`);
 
     })(),

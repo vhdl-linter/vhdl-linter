@@ -19,7 +19,7 @@ import { signatureHelp } from './languageFeatures/signatureHelp';
 import { workspaceSymbol } from './languageFeatures/workspaceSymbol';
 import { LinterManager } from './linterManager';
 import { normalizeUri } from './normalizeUri';
-import { FileCacheLibraryList, FileCacheSettings, ProjectParser } from './projectParser';
+import { FileCacheLibraryList, ProjectParser } from './projectParser';
 import { documentSettings, ISettings } from './settingsManager';
 import { currentCapabilities, getDocumentSettings, } from './settingsManager';
 
@@ -137,24 +137,34 @@ export const initialization = new Promise<void>(resolve => {
       for (const textDocument of documents.all()) {
         await validateTextDocument(textDocument);
       }
-      projectParser.events.on('change', (_, uri: string) => {
-        // A file in project parser got changed
-        // Revalidate all *other* files. (The file itself gets directly handled.)
-        for (const document of documents.all()) {
-          if (normalizeUri(document.uri) !== uri) {
-            void validateTextDocument(document, true);
+      let timeout: NodeJS.Timeout;
+      let uris: string[] = [];
+      projectParser.events.on('change', (type, uri: string) => {
+        // debounce the project parser events.
+        // the idea is to not overwhelm when many files gets changed programmatically.
+        // For example when checking out a different git branch.
+        uris.push(uri);
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+          uris = [];
+          // A file in project parser got changed
+          // Revalidate all *other* files. (The file itself gets directly handled.)
+          for (const document of documents.all()) {
+            if (uris.includes(normalizeUri(document.uri)) === false) {
+              void validateTextDocument(document, true);
+            }
           }
-        }
-        for (const cache of projectParser.cachedFiles) {
-          if (cache instanceof FileCacheLibraryList) {
-            cache.messages.forEach((diag) => diag.source = 'vhdl-linter');
-            void connection.sendDiagnostics({
-              uri: cache.uri.toString(),
-              diagnostics: cache.messages
-            });
+          for (const cache of projectParser.cachedFiles) {
+            if (cache instanceof FileCacheLibraryList) {
+              cache.messages.forEach((diag) => diag.source = 'vhdl-linter');
+              void connection.sendDiagnostics({
+                uri: cache.uri.toString(),
+                diagnostics: cache.messages
+              });
+            }
           }
-        }
-        void connection.sendRequest('workspace/semanticTokens/refresh');
+          void connection.sendRequest('workspace/semanticTokens/refresh');
+        }, 100);
       });
       documents.onDidChangeContent(change => {
         void validateTextDocument(change.document);
