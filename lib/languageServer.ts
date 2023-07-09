@@ -163,7 +163,7 @@ export const initialization = new Promise<void>(resolve => {
         await validateTextDocument(textDocument);
       }
       let timeout: NodeJS.Timeout;
-      const uris: string[] = [];
+      let uris: string[] = [];
       projectParser.events.on('change', (type, uri: string) => {
         // debounce the project parser events.
         // the idea is to not overwhelm when many files gets changed programmatically.
@@ -171,6 +171,7 @@ export const initialization = new Promise<void>(resolve => {
         uris.push(uri);
         clearTimeout(timeout);
         timeout = setTimeout(() => {
+          uris = [];
           // A file in project parser got changed
           // Revalidate all *other* files. (The file itself gets directly handled.)
           for (const document of documents.all()) {
