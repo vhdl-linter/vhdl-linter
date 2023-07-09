@@ -238,7 +238,6 @@ export class DocumentSymbols {
           children.push(this.getType(decl));
         }
         if (decl instanceof OSubprogram && decl.lexerToken.type !== TokenType.implicit) {
-          console.log(decl.lexerToken.type, TokenType.implicit);
           children.push({
             name: decl.lexerToken.text,
             kind: SymbolKind.Function,
