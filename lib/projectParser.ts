@@ -102,7 +102,7 @@ export class ProjectParser {
           const url = pathToFileURL(path);
 
           const cachedFile = process.platform === 'win32'
-            ? this.cachedFiles.find(cachedFile => cachedFile.uri.toString() === url.toString().toLowerCase())
+            ? this.cachedFiles.find(cachedFile => cachedFile.uri.toString().toLowerCase() === url.toString().toLowerCase())
             : this.cachedFiles.find(cachedFile => cachedFile.uri.toString() === url.toString());
           if (cachedFile) {
             await cachedFile.parse();
@@ -119,7 +119,7 @@ export class ProjectParser {
         const url = pathToFileURL(path);
 
         const cachedFileIndex = process.platform === 'win32'
-          ? this.cachedFiles.findIndex(cachedFile => cachedFile.uri.toString() === url.toString().toLowerCase())
+          ? this.cachedFiles.findIndex(cachedFile => cachedFile.uri.toString().toLowerCase() === url.toString().toLowerCase())
           : this.cachedFiles.findIndex(cachedFile => cachedFile.uri.toString() === url.toString());
         if (cachedFileIndex > -1) {
           this.cachedFiles.splice(cachedFileIndex, 1);

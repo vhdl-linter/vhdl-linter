@@ -162,24 +162,34 @@ export const initialization = new Promise<void>(resolve => {
       for (const textDocument of documents.all()) {
         await validateTextDocument(textDocument);
       }
-      projectParser.events.on('change', (_, uri: string) => {
-        // A file in project parser got changed
-        // Revalidate all *other* files. (The file itself gets directly handled.)
-        for (const document of documents.all()) {
-          if (normalizeUri(document.uri) !== uri) {
-            void validateTextDocument(document, true);
+      let timeout: NodeJS.Timeout;
+      let uris: string[] = [];
+      projectParser.events.on('change', (type, uri: string) => {
+        // debounce the project parser events.
+        // the idea is to not overwhelm when many files gets changed programmatically.
+        // For example when checking out a different git branch.
+        uris.push(uri);
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+          uris = [];
+          // A file in project parser got changed
+          // Revalidate all *other* files. (The file itself gets directly handled.)
+          for (const document of documents.all()) {
+            if (uris.includes(normalizeUri(document.uri)) === false) {
+              void validateTextDocument(document, true);
+            }
           }
-        }
-        for (const libraryListCache of projectParser.cachedFiles) {
-          if (libraryListCache instanceof FileCacheLibraryList) {
-            libraryListCache.messages.forEach((diag) => diag.source = 'vhdl-linter');
-            void connection.sendDiagnostics({
-              uri: libraryListCache.uri.toString(),
-              diagnostics: libraryListCache.messages
-            });
+          for (const libraryListCache of projectParser.cachedFiles) {
+            if (libraryListCache instanceof FileCacheLibraryList) {
+              libraryListCache.messages.forEach((diag) => diag.source = 'vhdl-linter');
+              void connection.sendDiagnostics({
+                uri: libraryListCache.uri.toString(),
+                diagnostics: libraryListCache.messages
+              });
+            }
           }
-        }
-        void connection.sendRequest('workspace/semanticTokens/refresh');
+          void connection.sendRequest('workspace/semanticTokens/refresh');
+        }, 100);
       });
       documents.onDidChangeContent(change => {
         void validateTextDocument(change.document);
