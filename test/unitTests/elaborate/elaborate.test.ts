@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, expect, test } from '@jest/globals';
 import { join } from 'path';
-import { fileURLToPath, pathToFileURL } from 'url';
+import { pathToFileURL } from 'url';
 import { Elaborate } from '../../../lib/elaborate/elaborate';
 import { OAssignment, OChoice } from '../../../lib/parser/objects';
 import { ProjectParser } from '../../../lib/projectParser';

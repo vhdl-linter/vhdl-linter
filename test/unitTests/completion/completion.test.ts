@@ -7,7 +7,6 @@ import { ProjectParser } from '../../../lib/projectParser';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { createPrintablePosition } from '../../helper';
 import { readFileSyncNorm } from "../../readFileSyncNorm";
-import path = require('path');
 import { overwriteSettings, getDocumentSettings } from '../../../lib/settingsManager';
 let projectParser: ProjectParser;
 beforeAll(async () => {

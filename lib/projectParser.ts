@@ -353,9 +353,14 @@ export class FileCacheSettings {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const parsed = parse(text);
     const ajv = new Ajv();
-    const validate = ajv.compile<DeepPartial<ISettings>>(settingsSchema);
-    if (validate(parsed)) {
-      this.settings = parsed;
+    try {
+
+      const validate = ajv.compile<DeepPartial<ISettings>>(settingsSchema);
+      if (validate(parsed)) {
+        this.settings = parsed;
+      }
+    } catch (e) {
+      console.log(e);
     }
   }
 }

@@ -24,8 +24,8 @@ test.each([true, false])('Testing verilog switch %b', async enableVerilog => {
     expect(linter.messages).toHaveLength(1);
   }
 
-  await projectParser.stop();
   rmSync(settingsFile);
+  await projectParser.stop();
 });
 
 test('module_advanced', async () => {
