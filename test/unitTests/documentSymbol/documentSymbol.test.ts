@@ -32,7 +32,7 @@ test('test for selection must be contained in full range', async () => {
     const url = pathToFileURL(file);
     const linter = new VhdlLinter(url, readFileSyncNorm(url, { encoding: 'utf8' }), projectParser, defaultSettingsGetter());
     const symbols = DocumentSymbols.get(linter);
-    const checkSymbol = (symbol: DocumentSymbol) => {
+    function checkSymbol(symbol: DocumentSymbol) {
       if ((symbol.range.start as OI).i > (symbol.selectionRange.start as OI).i) {
         console.log(url, { name: symbol.name, detail: symbol.detail }, makeRangePrintable(symbol.range), makeRangePrintable(symbol.selectionRange));
         expect(true).toBe(false);
