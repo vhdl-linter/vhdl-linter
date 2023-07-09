@@ -113,13 +113,13 @@ export class ProjectParser {
           const url = pathToFileURL(path);
           if (matchGlobList(path, [settingsGlob])) {
             const cachedSetting = process.platform === 'win32'
-              ? this.cachedSettings.find(cachedFile => cachedFile.uri.toString() === url.toString().toLowerCase())
+              ? this.cachedSettings.find(cachedFile => cachedFile.uri.toString().toLowerCase() === url.toString().toLowerCase())
               : this.cachedSettings.find(cachedFile => cachedFile.uri.toString() === url.toString());
             await cachedSetting?.parse();
             this.events.emit('change', 'change', url.toString());
           } else {
             const cachedFile = process.platform === 'win32'
-              ? this.cachedFiles.find(cachedFile => cachedFile.uri.toString() === url.toString().toLowerCase())
+              ? this.cachedFiles.find(cachedFile => cachedFile.uri.toString().toLowerCase() === url.toString().toLowerCase())
               : this.cachedFiles.find(cachedFile => cachedFile.uri.toString() === url.toString());
             if (cachedFile) {
               await cachedFile.parse();
@@ -138,7 +138,7 @@ export class ProjectParser {
 
         if (matchGlobList(path, [settingsGlob])) {
           const cachedSettingIndex = process.platform === 'win32'
-            ? this.cachedSettings.findIndex(cachedFile => cachedFile.uri.toString() === url.toString().toLowerCase())
+            ? this.cachedSettings.findIndex(cachedFile => cachedFile.uri.toString().toLowerCase() === url.toString().toLowerCase())
             : this.cachedSettings.findIndex(cachedFile => cachedFile.uri.toString() === url.toString());
           if (cachedSettingIndex > -1) {
             this.cachedSettings.splice(cachedSettingIndex, 1);
@@ -146,7 +146,7 @@ export class ProjectParser {
           }
         } else {
           const cachedFileIndex = process.platform === 'win32'
-            ? this.cachedFiles.findIndex(cachedFile => cachedFile.uri.toString() === url.toString().toLowerCase())
+            ? this.cachedFiles.findIndex(cachedFile => cachedFile.uri.toString().toLowerCase() === url.toString().toLowerCase())
             : this.cachedFiles.findIndex(cachedFile => cachedFile.uri.toString() === url.toString());
           if (cachedFileIndex > -1) {
             this.cachedFiles.splice(cachedFileIndex, 1);
