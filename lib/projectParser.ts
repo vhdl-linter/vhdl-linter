@@ -111,31 +111,48 @@ export class ProjectParser {
         const handleEvent = async () => {
 
           const url = pathToFileURL(path);
-
-          const cachedFile = process.platform === 'win32'
-            ? this.cachedFiles.find(cachedFile => cachedFile.uri.toString() === url.toString().toLowerCase())
-            : this.cachedFiles.find(cachedFile => cachedFile.uri.toString() === url.toString());
-          if (cachedFile) {
-            await cachedFile.parse();
-            this.flattenProject();
+          if (matchGlobList(path, [settingsGlob])) {
+            const cachedSetting = process.platform === 'win32'
+              ? this.cachedSettings.find(cachedFile => cachedFile.uri.toString() === url.toString().toLowerCase())
+              : this.cachedSettings.find(cachedFile => cachedFile.uri.toString() === url.toString());
+            await cachedSetting?.parse();
             this.events.emit('change', 'change', url.toString());
           } else {
-            console.error('modified file not found', path);
+            const cachedFile = process.platform === 'win32'
+              ? this.cachedFiles.find(cachedFile => cachedFile.uri.toString() === url.toString().toLowerCase())
+              : this.cachedFiles.find(cachedFile => cachedFile.uri.toString() === url.toString());
+            if (cachedFile) {
+              await cachedFile.parse();
+              this.flattenProject();
+              this.events.emit('change', 'change', url.toString());
+            } else {
+              console.error('modified file not found', path);
+            }
+            this.cachedElaborate = undefined;
           }
-          this.cachedElaborate = undefined;
         };
         handleEvent().catch(console.error);
       });
       watcher.on('unlink', path => {
         const url = pathToFileURL(path);
 
-        const cachedFileIndex = process.platform === 'win32'
-          ? this.cachedFiles.findIndex(cachedFile => cachedFile.uri.toString() === url.toString().toLowerCase())
-          : this.cachedFiles.findIndex(cachedFile => cachedFile.uri.toString() === url.toString());
-        if (cachedFileIndex > -1) {
-          this.cachedFiles.splice(cachedFileIndex, 1);
-          this.flattenProject();
-          this.events.emit('change', 'unlink', url.toString());
+        if (matchGlobList(path, [settingsGlob])) {
+          const cachedSettingIndex = process.platform === 'win32'
+            ? this.cachedSettings.findIndex(cachedFile => cachedFile.uri.toString() === url.toString().toLowerCase())
+            : this.cachedSettings.findIndex(cachedFile => cachedFile.uri.toString() === url.toString());
+          if (cachedSettingIndex > -1) {
+            this.cachedSettings.splice(cachedSettingIndex, 1);
+            this.events.emit('change', 'change', url.toString());
+          }
+        } else {
+          const cachedFileIndex = process.platform === 'win32'
+            ? this.cachedFiles.findIndex(cachedFile => cachedFile.uri.toString() === url.toString().toLowerCase())
+            : this.cachedFiles.findIndex(cachedFile => cachedFile.uri.toString() === url.toString());
+          if (cachedFileIndex > -1) {
+            this.cachedFiles.splice(cachedFileIndex, 1);
+            this.flattenProject();
+            this.events.emit('change', 'unlink', url.toString());
+          }
         }
       });
       this.watchers.push(watcher);

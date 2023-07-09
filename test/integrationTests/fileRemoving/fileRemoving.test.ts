@@ -3,6 +3,8 @@ import { mkdir, rm, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
 import { ProjectParser } from '../../../lib/projectParser';
+import { defaultSettings } from '../../../lib/settingsGenerated';
+import { getDocumentSettings } from '../../../lib/settingsManager';
 async function wait(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -103,5 +105,24 @@ test('testing removing of vhdl files by removing parent folder', async () => {
 
   expect(projectParser.entities.find(entity => entity.lexerToken.getLText() === 'test_entity')).toBeUndefined();
   expect(projectParser.entities.find(entity => entity.lexerToken.getLText() === 'test_module')).toBeUndefined();
+  await projectParser.stop();
+});
+test('testing changing of settings file', async () => {
+  const testFilePath = join(__dirname, 'test_files/vhdl-linter.yml');
+  const defaultValue = defaultSettings.rules['consistent-casing'];
+  await writeFile(testFilePath, JSON.stringify({ rules: { 'consistent-casing': !defaultValue } }));
+
+  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)]);
+  let settings = await getDocumentSettings(pathToFileURL(testFilePath), projectParser);
+  expect(settings.rules['consistent-casing']).toEqual(!defaultValue);
+  await Promise.all([
+    (async () => {
+      await wait(100);
+      await rm(testFilePath);
+    })(),
+    new Promise(resolve => projectParser.events.once('change', resolve))
+  ]);
+  settings = await getDocumentSettings(pathToFileURL(testFilePath), projectParser);
+  expect(settings.rules['consistent-casing']).toEqual(defaultValue);
   await projectParser.stop();
 });

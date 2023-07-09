@@ -3,6 +3,8 @@ import { ProjectParser } from '../../../lib/projectParser';
 import { pathToFileURL } from 'url';
 import { join } from 'path';
 import { mkdir, rm, writeFile } from 'fs/promises';
+import { defaultSettings } from '../../../lib/settingsGenerated';
+import { getDocumentSettings } from '../../../lib/settingsManager';
 async function wait(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -60,5 +62,45 @@ test('testing adding of verilog files', async () => {
     new Promise(resolve => projectParser.events.once('change', resolve))
   ]);
   expect(projectParser.entities).toHaveLength(1);
+  await projectParser.stop();
+});
+test('testing adding of settings file', async () => {
+  const testFilePath = join(__dirname, 'test_files/vhdl-linter.yml');
+  const defaultValue = defaultSettings.rules['consistent-casing'];
+
+  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)]);
+  let settings = await getDocumentSettings(pathToFileURL(testFilePath), projectParser);
+  expect(settings.rules['consistent-casing']).toEqual(defaultValue);
+  await Promise.all([
+    (async () => {
+      await wait(100);
+      await writeFile(testFilePath, JSON.stringify({ rules: { 'consistent-casing': !defaultValue } }));
+
+    })(),
+    new Promise(resolve => projectParser.events.once('change', resolve))
+  ]);
+  settings = await getDocumentSettings(pathToFileURL(testFilePath), projectParser);
+  expect(settings.rules['consistent-casing']).toEqual(!defaultValue);
+  await projectParser.stop();
+});
+test('testing changing of settings file', async () => {
+  const testFilePath = join(__dirname, 'test_files/vhdl-linter.yml');
+  const defaultValue = defaultSettings.rules['consistent-casing'];
+  // write !default value and change it to default
+  await writeFile(testFilePath, JSON.stringify({ rules: { 'consistent-casing': !defaultValue } }));
+
+  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)]);
+  let settings = await getDocumentSettings(pathToFileURL(testFilePath), projectParser);
+  expect(settings.rules['consistent-casing']).toEqual(!defaultValue);
+  await Promise.all([
+    (async () => {
+      await wait(100);
+      await writeFile(testFilePath, JSON.stringify({ rules: { 'consistent-casing': defaultValue } }));
+
+    })(),
+    new Promise(resolve => projectParser.events.once('change', resolve))
+  ]);
+  settings = await getDocumentSettings(pathToFileURL(testFilePath), projectParser);
+  expect(settings.rules['consistent-casing']).toEqual(defaultValue);
   await projectParser.stop();
 });
