@@ -38,7 +38,8 @@ test('testing removing of vhdl files', async () => {
 
   const projectParser = await ProjectParser.create([pathToFileURL(__dirname)], defaultSettingsGetter);
 
-  expect(projectParser.entities.find(entity => entity.lexerToken.getLText() === 'test_entity')).toBeDefined();
+  expect(projectParser.entities.filter(entity => entity.lexerToken.getLText() === 'test_entity')).toHaveLength(1);
+
   await Promise.all([
     (async () => {
       await wait(100);
@@ -47,8 +48,8 @@ test('testing removing of vhdl files', async () => {
     })(),
     new Promise(resolve => projectParser.events.once('change', resolve))
   ]);
+  expect(projectParser.entities.filter(entity => entity.lexerToken.getLText() === 'test_entity')).toHaveLength(0);
 
-  expect(projectParser.entities.find(entity => entity.lexerToken.getLText() === 'test_entity')).toBeUndefined();
   await projectParser.stop();
 });
 test('testing removing of verilog files', async () => {
