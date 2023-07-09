@@ -32,26 +32,26 @@ test('test for selection must be contained in full range', async () => {
     const url = pathToFileURL(file);
     const linter = new VhdlLinter(url, readFileSyncNorm(url, { encoding: 'utf8' }), projectParser, defaultSettingsGetter());
     const symbols = DocumentSymbols.get(linter);
-    function checkSymbol(symbol: DocumentSymbol) {
-      if ((symbol.range.start as OI).i > (symbol.selectionRange.start as OI).i) {
-        console.log(url, { name: symbol.name, detail: symbol.detail }, makeRangePrintable(symbol.range), makeRangePrintable(symbol.selectionRange));
-        expect(true).toBe(false);
-      }
-      if ((symbol.range.end as OI).i < (symbol.selectionRange.end as OI).i) {
-        console.log(url, { name: symbol.name, detail: symbol.detail });
-        expect(true).toBe(false);
-
-      }
-
-      for (const child of symbol.children ?? []) {
-        checkSymbol(child);
-      }
-    };
     for (const symbol of symbols) {
-      checkSymbol(symbol);
+      checkSymbol(symbol, url);
     }
 
   }
   await projectParser.stop();
 
 });
+function checkSymbol(symbol: DocumentSymbol, url: URL) {
+  if ((symbol.range.start as OI).i > (symbol.selectionRange.start as OI).i) {
+    console.log(url, { name: symbol.name, detail: symbol.detail }, makeRangePrintable(symbol.range), makeRangePrintable(symbol.selectionRange));
+    expect(true).toBe(false);
+  }
+  if ((symbol.range.end as OI).i < (symbol.selectionRange.end as OI).i) {
+    console.log(url, { name: symbol.name, detail: symbol.detail });
+    expect(true).toBe(false);
+
+  }
+
+  for (const child of symbol.children ?? []) {
+    checkSymbol(child, url);
+  }
+}
