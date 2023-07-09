@@ -1,5 +1,5 @@
-import { join } from "path";
-import { pathToFileURL } from "url";
+import { dirname, join } from "path";
+import { fileURLToPath, pathToFileURL } from "url";
 import { CodeAction, Position, Range } from "vscode-languageserver";
 import { ProjectParser } from "../lib/projectParser";
 import { defaultSettingsGetter } from "../lib/settings";
@@ -35,6 +35,13 @@ export function createPrintablePosition(onesLine: number, onesCharacter: number)
     toString: () => makePositionPrintable(position)
   };
   return position;
+}
+export async function runLinter(url: URL, settingsGetter = defaultSettingsGetter) {
+
+  const projectParser = await ProjectParser.create([pathToFileURL(dirname(fileURLToPath(url)))], settingsGetter);
+  const linter = new VhdlLinter(url, readFileSyncNorm(url, { encoding: 'utf8' }), projectParser, settingsGetter());
+  await projectParser.stop();
+  return linter;
 }
 export async function runLinterGetMessages(folder: string, file: string, settingsGetter = defaultSettingsGetter) {
 
