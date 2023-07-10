@@ -1,4 +1,4 @@
-import { ObjectBase, OSubType, OIRange } from './objects';
+import { OIRange, OSubType, ObjectBase } from './objects';
 import { ParserBase, ParserState } from './parserBase';
 import { SubtypeIndicationParser } from './subtypeIndicationParser';
 
@@ -14,6 +14,7 @@ export class SubtypeParser extends ParserBase {
     this.subtype.lexerToken = this.consumeToken();
     this.expect('is');
     this.subtype.subtypeIndication = new SubtypeIndicationParser(this.state, this.subtype).parse();
+    this.subtype.range = this.subtype.range.copyWithNewEnd(this.getToken().range.end);
     this.expect(';');
     return this.subtype;
   }

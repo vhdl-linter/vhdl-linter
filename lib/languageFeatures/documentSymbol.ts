@@ -2,6 +2,7 @@ import { DocumentSymbol, SymbolKind } from 'vscode-languageserver';
 import { implementsIHasDeclarations, implementsIHasStatements } from '../parser/interfaces';
 import { OAlias, OArchitecture, ObjectBase, OBlock, OCase, OCaseGenerate, OConstant, OElseGenerateClause, OEntity, OFile, OForGenerate, OIf, OIfGenerate, OIfGenerateClause, OInstantiation, OPackage, OPackageBody, OProcess, ORecord, OSequentialStatement, OStatementBody, OSubprogram, OType, OWhenClause, OWhenGenerateClause } from '../parser/objects';
 import { VhdlLinter } from '../vhdlLinter';
+import { TokenType } from '../lexer';
 
 
 export class DocumentSymbols {
@@ -236,7 +237,7 @@ export class DocumentSymbols {
         if (decl instanceof OType) {
           children.push(this.getType(decl));
         }
-        if (decl instanceof OSubprogram) {
+        if (decl instanceof OSubprogram && decl.lexerToken.type !== TokenType.implicit) {
           children.push({
             name: decl.lexerToken.text,
             kind: SymbolKind.Function,

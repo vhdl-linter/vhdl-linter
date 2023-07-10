@@ -1,5 +1,5 @@
-import { join } from "path";
-import { pathToFileURL } from "url";
+import { dirname, join } from "path";
+import { fileURLToPath, pathToFileURL } from "url";
 import { CodeAction, Position, Range } from "vscode-languageserver";
 import { ProjectParser } from "../lib/projectParser";
 import { VhdlLinter } from "../lib/vhdlLinter";
@@ -38,6 +38,7 @@ export function createPrintablePosition(onesLine: number, onesCharacter: number)
   };
   return position;
 }
+
 export async function runLinterGetMessages(folder: string, file: string, settingsOverwrite: DeepPartial<ISettings>) {
 
   const projectParser = await ProjectParser.create([pathToFileURL(folder)]);

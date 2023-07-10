@@ -44,7 +44,7 @@ export function matchGlobList(value: string, globList: string[]) {
   return globList.some(glob => minimatch(basename(value), glob));
 }
 
-const vhdlGlob = '*.vhd?(l)';
+export const vhdlGlob = '*.vhd?(l)';
 const verilogGlob = '*.?(s)v';
 export const settingsGlob = 'vhdl-linter.yml';
 

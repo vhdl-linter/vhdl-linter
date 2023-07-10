@@ -155,8 +155,8 @@ export class TypeParser extends ParserBase {
 
           (type as OAccessType).subtypeIndication = new SubtypeIndicationParser(this.state, type as OAccessType).parse();
 
-          const deallocateProcedure = new OSubprogram(this.parent, (type as OAccessType).subtypeIndication.range);
-          deallocateProcedure.lexerToken = new OLexerToken('deallocate', type.lexerToken.range, TokenType.implicit, deallocateProcedure.rootFile);
+          const deallocateProcedure = new OSubprogram(this.parent, nextToken.range.copyWithNewEnd(nextToken.range.start));
+          deallocateProcedure.lexerToken = new OLexerToken('deallocate', nextToken.range.copyWithNewEnd(nextToken.range.start), TokenType.implicit, deallocateProcedure.rootFile);
           this.parent.declarations.push(deallocateProcedure);
           const port = new OPort(deallocateProcedure, type.lexerToken.range);
           port.subtypeIndication = new OSubtypeIndication(port, port.range);
