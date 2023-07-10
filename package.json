@@ -15,7 +15,7 @@
 		"yamlValidation": [
 			{
 				"fileMatch": "vhdl-linter.yml",
-				"url": "./lib/settings.schema.json"
+				"url": "./settings.schema.json"
 			}
 		],
 		"languages": [
@@ -560,11 +560,11 @@
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
 		"vscode:postpublish": "git push",
-		"compile": "tsc --project .",
-		"watch": "tsc -w  --project  .",
-		"lint": "eslint --ext .ts --max-warnings=0 .",
-		"test": "jest && npm run compile && node dist/test/test.js",
-		"coverage": "jest -c jest-coverage.config.js && xdg-open coverage/lcov-report/index.html",
+		"compile": "ts-node generateSettings.ts && tsc --project .",
+		"watch": "ts-node generateSettings.ts &&tsc -w  --project  .",
+		"lint": "ts-node generateSettings.ts && eslint --ext .ts --max-warnings=0 .",
+		"test": "ts-node generateSettings.ts && jest && npm run compile && node dist/test/test.js",
+		"coverage": "ts-node generateSettings.ts && jest -c jest-coverage.config.js && xdg-open coverage/lcov-report/index.html",
 		"settings": "ts-node generate-settings.ts"
 	},
 	"dependencies": {

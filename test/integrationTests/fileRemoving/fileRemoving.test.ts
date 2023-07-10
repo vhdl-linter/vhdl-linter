@@ -108,7 +108,7 @@ test('testing removing of vhdl files by removing parent folder', async () => {
   expect(projectParser.entities.find(entity => entity.lexerToken.getLText() === 'test_module')).toBeUndefined();
   await projectParser.stop();
 });
-test('testing changing of settings file', async () => {
+test('testing removing of settings file', async () => {
   const testFilePath = join(__dirname, 'test_files/vhdl-linter.yml');
   const defaultValue = defaultSettings.rules['consistent-casing'];
   await writeFile(testFilePath, JSON.stringify({ rules: { 'consistent-casing': !defaultValue } }));

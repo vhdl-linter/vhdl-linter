@@ -185,7 +185,7 @@ documents.onDidClose(async change => {
 const linterManager = new LinterManager();
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
-export async function validateTextDocument(textDocument: TextDocument, fromProjectParser = false) {
+async function validateTextDocument(textDocument: TextDocument, fromProjectParser = false) {
   try {
     if (projectParser !== undefined) {
 

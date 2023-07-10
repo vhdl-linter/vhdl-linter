@@ -28,7 +28,6 @@ interface ISettings {
   [key: string]: ISettings | string | boolean | string[];
 }
 const _interface: ISettings = {};
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
 const defaultValues: ISettings = {};
 // Extract defaults
 for (const [key, value] of Object.entries(settings)) {
@@ -226,4 +225,4 @@ text += ';\n';
 text += `export const settingsSchema = ${JSON.stringify(createSchema(true))};`;
 writeFileSync(`lib/settingsGenerated.ts`, text);
 
-writeFileSync(`lib/settings.schema.json`, JSON.stringify(createSchema(false)));
+writeFileSync(`settings.schema.json`, JSON.stringify(createSchema(false)));
