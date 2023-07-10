@@ -4,7 +4,7 @@ import { pathToFileURL } from 'url';
 import { join } from 'path';
 import { readFileSyncNorm } from '../../readFileSyncNorm';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
-import { getDocumentSettings } from '../../../lib/settingsManager';
+
 let projectParser: ProjectParser;
 beforeAll(async () => {
   projectParser = await ProjectParser.create([pathToFileURL(__dirname)]);
@@ -15,7 +15,7 @@ afterAll(async () => {
 test('Test order rule', async () => {
   const path = join(__dirname, 'test.vhd');
   const uri = pathToFileURL(path);
-  const linter = new VhdlLinter(uri, readFileSyncNorm(path, { encoding: 'utf8' }), projectParser, await getDocumentSettings(uri, projectParser));
+  const linter = new VhdlLinter(uri, readFileSyncNorm(path, { encoding: 'utf8' }), projectParser, await projectParser.getDocumentSettings(uri));
   await linter.checkAll();
 
   expect(linter.messages).toHaveLength(2);

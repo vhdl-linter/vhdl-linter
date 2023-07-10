@@ -4,7 +4,6 @@ import { ProjectParser } from "../lib/projectParser";
 import { VhdlLinter } from "../lib/vhdlLinter";
 import { readFileSyncNorm } from "./readFileSyncNorm";
 import { MessageWrapper, prettyPrintMessages, readDirPath } from "./testUtil";
-import { getDocumentSettings } from "../lib/settingsManager";
 async function run_test(path: URL, error_expected: boolean, projectParser?: ProjectParser): Promise<MessageWrapper[]> {
   const messageWrappers: MessageWrapper[] = [];
   if (!projectParser) {
@@ -15,7 +14,7 @@ async function run_test(path: URL, error_expected: boolean, projectParser?: Proj
       messageWrappers.push(...await run_test(subPath, error_expected, projectParser));
     } else if (subPath.pathname.match(/\.vhdl?$/i)) {
       const text = readFileSyncNorm(subPath, { encoding: 'utf8' });
-      const vhdlLinter = new VhdlLinter(subPath, text, projectParser, await getDocumentSettings(subPath, projectParser));
+      const vhdlLinter = new VhdlLinter(subPath, text, projectParser, await projectParser.getDocumentSettings(subPath));
       if (vhdlLinter.parsedSuccessfully) {
         await vhdlLinter.checkAll();
       }

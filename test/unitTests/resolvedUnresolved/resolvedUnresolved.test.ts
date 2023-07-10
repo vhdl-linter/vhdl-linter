@@ -4,7 +4,7 @@ import { pathToFileURL } from 'url';
 import { ProjectParser } from '../../../lib/projectParser';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { readFileSyncNorm } from "../../readFileSyncNorm";
-import { getDocumentSettings, overwriteSettings } from '../../../lib/settingsManager';
+import { overwriteSettings } from '../../../lib/settingsUtil';
 
 let projectParser: ProjectParser;
 beforeAll(async () => {
@@ -27,7 +27,7 @@ test.each([
 ].flatMap(file => [[file, 'unresolved'], [file, 'resolved'], [file, 'ignore']]))('testing type_resolved messages for file %s with setting %s', async (file: string, setting: 'unresolved' | 'resolved' | 'ignore') => {
 
   const path = join(__dirname, file);
-  const settings = overwriteSettings(await getDocumentSettings(pathToFileURL(path), projectParser), {
+  const settings = overwriteSettings(await projectParser.getDocumentSettings(pathToFileURL(path)), {
     style: {
       preferredLogicTypePort: setting,
       preferredLogicTypeSignal: setting,

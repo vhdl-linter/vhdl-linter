@@ -8,7 +8,7 @@ import { VhdlLinter } from '../../../../lib/vhdlLinter';
 import { sanitizeActions } from '../../../helper';
 import { readFileSyncNorm } from "../../../readFileSyncNorm";
 import { CodeAction } from 'vscode-languageserver';
-import { getDocumentSettings } from '../../../../lib/settingsManager';
+
 
 const files = readdirSync(__dirname).filter(file => file.endsWith('.vhd'));
 test.each(files)('testing add signal helper %s', async (file: string) => {
@@ -16,7 +16,7 @@ test.each(files)('testing add signal helper %s', async (file: string) => {
   const projectParser = await ProjectParser.create([pathToFileURL(__dirname)]);
 
   const linter = new VhdlLinter(pathToFileURL(`/${file}`), readFileSyncNorm(path, { encoding: 'utf8' }),
-    projectParser, await getDocumentSettings(pathToFileURL(`/${file}`), projectParser));
+    projectParser, await projectParser.getDocumentSettings(pathToFileURL(`/${file}`)));
 
   await linter.checkAll();
 

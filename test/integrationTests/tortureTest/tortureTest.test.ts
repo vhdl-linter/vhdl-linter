@@ -5,7 +5,6 @@ import { pathToFileURL } from "url";
 import { joinURL, ProjectParser } from "../../../lib/projectParser";
 import { VhdlLinter } from "../../../lib/vhdlLinter";
 import { readFileSyncNorm } from "../../readFileSyncNorm";
-import { getDocumentSettings } from "../../../lib/settingsManager";
 let projectParser: ProjectParser;
 const filesURL = pathToFileURL(join(__dirname, 'tortureFiles'));
 const tortureEntityURL = joinURL(filesURL, 'torture_entity.vhd');
@@ -44,7 +43,7 @@ test('test project parser', () => {
 });
 test('direct parsing of file', async () => {
   const linter = new VhdlLinter(tortureEntityURL, readFileSyncNorm(tortureEntityURL, { encoding: 'utf8' }),
-    projectParser, await getDocumentSettings(tortureEntityURL, projectParser));
+    projectParser, await projectParser.getDocumentSettings(tortureEntityURL));
   expect(linter.file.lexerTokens).toBeDefined();
   expect(linter.file.lexerTokens.length).toBeGreaterThan(0);
 });

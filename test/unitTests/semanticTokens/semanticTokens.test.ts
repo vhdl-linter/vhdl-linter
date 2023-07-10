@@ -8,7 +8,7 @@ import { semanticToken, semanticTokensLegend } from '../../../lib/languageFeatur
 import { ProjectParser } from '../../../lib/projectParser';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { readFileSyncNorm } from "../../readFileSyncNorm";
-import { getDocumentSettings } from '../../../lib/settingsManager';
+
 jest.mock('vscode-languageserver');
 let projectParser: ProjectParser;
 beforeAll(async () => {
@@ -29,7 +29,7 @@ test.each(files.flatMap(file => [[file, true], [file, false]]))('testing semanti
 
   const path = join(__dirname, file);
   const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }),
-    projectParser, await getDocumentSettings(pathToFileURL(path), projectParser));
+    projectParser, await projectParser.getDocumentSettings(pathToFileURL(path)));
   await Elaborate.elaborate(linter);
   // mock.instances is available with automatic mocks:
   semanticToken(linter, directionColoring);

@@ -20,8 +20,8 @@ import { workspaceSymbol } from './languageFeatures/workspaceSymbol';
 import { LinterManager } from './linterManager';
 import { normalizeUri } from './normalizeUri';
 import { FileCacheLibraryList, ProjectParser } from './projectParser';
-import { documentSettings, ISettings } from './settingsManager';
-import { currentCapabilities, getDocumentSettings, } from './settingsManager';
+import { currentCapabilities } from './settingsUtil';
+import { ISettings } from './settingsGenerated';
 
 // Create a connection for the server. The connection auto detected protocol
 // Also include all preview / proposed LSP features.
@@ -40,7 +40,7 @@ connection.onDidChangeConfiguration(() => {
 
   if (currentCapabilities.configuration) {
     // Reset all cached document settings
-    documentSettings.clear();
+    projectParser?.documentSettings.clear();
   }
 
   // Revalidate all open text documents
@@ -344,7 +344,7 @@ connection.onDocumentHighlight(async (params, token) => {
 });
 connection.onWorkspaceSymbol(async params => {
   await initialization;
-  const configuration = await getDocumentSettings(undefined, projectParser);
+  const configuration = await projectParser.getDocumentSettings(undefined);
   return workspaceSymbol(params, projectParser, configuration.paths.additional);
 });
 connection.onSignatureHelp(async (params, token) => {
@@ -353,7 +353,7 @@ connection.onSignatureHelp(async (params, token) => {
 });
 connection.languages.semanticTokens.on(async (params, token) => {
   const linter = await linterManager.getLinter(params.textDocument.uri, token, false);
-  const settings = await getDocumentSettings(new URL(params.textDocument.uri), projectParser);
+  const settings = await projectParser.getDocumentSettings(new URL(params.textDocument.uri));
   if (!settings.semanticTokens) {
     return {
       data: []
@@ -364,7 +364,7 @@ connection.languages.semanticTokens.on(async (params, token) => {
 });
 connection.onRequest('vhdl-linter/template', async (params: { textDocument: { uri: string }, type: converterTypes, position?: Position }, token?: CancellationToken) => {
   const linter = await linterManager.getLinter(params.textDocument.uri, token);
-  const settings = await getDocumentSettings(new URL(params.textDocument.uri), projectParser);
+  const settings = await projectParser.getDocumentSettings(new URL(params.textDocument.uri));
   return entityConverter(linter, params.type, settings, params.position);
 });
 documents.listen(connection);

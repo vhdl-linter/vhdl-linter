@@ -4,7 +4,7 @@ import { pathToFileURL } from 'url';
 import { ProjectParser } from '../../../lib/projectParser';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { readFileSyncNorm } from "../../readFileSyncNorm";
-import { getDocumentSettings, overwriteSettings } from '../../../lib/settingsManager';
+import { overwriteSettings } from '../../../lib/settingsUtil';
 
 let projectParser: ProjectParser;
 beforeAll(async () => {
@@ -62,7 +62,7 @@ test.each(
   const uri = pathToFileURL(path);
   const originalText = readFileSyncNorm(uri, { encoding: 'utf8' });
   const actualText = originalText.replace('!statement', possibleStatements[statement]);
-  const linter = new VhdlLinter(uri, actualText, projectParser, overwriteSettings(await getDocumentSettings(pathToFileURL(path), projectParser), {
+  const linter = new VhdlLinter(uri, actualText, projectParser, overwriteSettings(await projectParser.getDocumentSettings(pathToFileURL(path)), {
     rules: {
       unused: false,
       "not-declared": false

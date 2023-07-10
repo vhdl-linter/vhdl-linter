@@ -6,7 +6,7 @@ import { converterTypes, entityConverter } from "../../../lib/entityConverter";
 import { ProjectParser } from "../../../lib/projectParser";
 import { VhdlLinter } from "../../../lib/vhdlLinter";
 import { readFileSyncNorm } from "../../readFileSyncNorm";
-import { getDocumentSettings, overwriteSettings } from "../../../lib/settingsManager";
+import { overwriteSettings } from "../../../lib/settingsUtil";
 
 let projectParser: ProjectParser;
 beforeAll(async () => {
@@ -19,7 +19,7 @@ describe('Testing entityConverter', () => {
   test('Testing entity converter for with different configurations', async () => {
     const path = join(__dirname, 'test_entity.vhd');
     const uri = pathToFileURL(path);
-    const linter = new VhdlLinter(uri, readFileSyncNorm(uri, { encoding: 'utf8' }), projectParser, await getDocumentSettings(uri, projectParser));
+    const linter = new VhdlLinter(uri, readFileSyncNorm(uri, { encoding: 'utf8' }), projectParser, await projectParser.getDocumentSettings(uri));
     for (const type of ['instance', 'signals', 'sysverilog', 'component'] as converterTypes[]) {
       const overwritesStyles = {
         instantiationLabelPrefix: ['', 'instPrefix_'],
@@ -32,7 +32,7 @@ describe('Testing entityConverter', () => {
       for (const key of Object.keys(overwritesStyles) as (keyof typeof overwritesStyles)[]) {
         for (const value of overwritesStyles[key]) {
           const overwrite = { style: { [key]: value } };
-          const settings = overwriteSettings(await getDocumentSettings(pathToFileURL(path), projectParser), overwrite);
+          const settings = overwriteSettings(await projectParser.getDocumentSettings(pathToFileURL(path)), overwrite);
           const template = entityConverter(linter, type, settings);
           expect(template).toMatchSnapshot(`type ${type} overwrite ${JSON.stringify(overwrite)}`);
 
@@ -43,38 +43,38 @@ describe('Testing entityConverter', () => {
   test('Testing position based fetch of correct entity', async () => {
     const path = join(__dirname, 'two_entities.vhd');
     const uri = pathToFileURL(path);
-    const linter = new VhdlLinter(uri, readFileSyncNorm(uri, { encoding: 'utf8' }), projectParser, await getDocumentSettings(uri, projectParser));
+    const linter = new VhdlLinter(uri, readFileSyncNorm(uri, { encoding: 'utf8' }), projectParser, await projectParser.getDocumentSettings(uri));
     {
-      const template = entityConverter(linter, 'instance', await getDocumentSettings(uri, projectParser));
+      const template = entityConverter(linter, 'instance', await projectParser.getDocumentSettings(uri));
       expect(template).toContain('first_entity');
     }
     {
-      const template = entityConverter(linter, 'instance', await getDocumentSettings(uri, projectParser), Position.create(10, 10));
+      const template = entityConverter(linter, 'instance', await projectParser.getDocumentSettings(uri), Position.create(10, 10));
       expect(template).toContain('first_entity');
     }
     {
-      const template = entityConverter(linter, 'instance', await getDocumentSettings(uri, projectParser), Position.create(16, 5));
+      const template = entityConverter(linter, 'instance', await projectParser.getDocumentSettings(uri), Position.create(16, 5));
       expect(template).toContain('second_entity');
     }
     {
-      const template = entityConverter(linter, 'instance', await getDocumentSettings(uri, projectParser), Position.create(25, 0));
+      const template = entityConverter(linter, 'instance', await projectParser.getDocumentSettings(uri), Position.create(25, 0));
       expect(template).toContain('first_entity');
     }
   });
   test('Testing fetching in empty file', async () => {
     const path = join(__dirname, 'fileWithoutEntity.vhd');
     const uri = pathToFileURL(path);
-    const linter = new VhdlLinter(uri, readFileSyncNorm(uri, { encoding: 'utf8' }), projectParser, await getDocumentSettings(uri, projectParser));
+    const linter = new VhdlLinter(uri, readFileSyncNorm(uri, { encoding: 'utf8' }), projectParser, await projectParser.getDocumentSettings(uri));
     {
-      const template = entityConverter(linter, 'instance', await getDocumentSettings(uri, projectParser));
+      const template = entityConverter(linter, 'instance', await projectParser.getDocumentSettings(uri));
       expect(template).toBeUndefined();
     }
     {
-      const template = entityConverter(linter, 'instance', await getDocumentSettings(uri, projectParser), Position.create(25, 0));
+      const template = entityConverter(linter, 'instance', await projectParser.getDocumentSettings(uri), Position.create(25, 0));
       expect(template).toBeUndefined();
     }
     {
-      const template = entityConverter(linter, 'instance', await getDocumentSettings(uri, projectParser), Position.create(31, 0));
+      const template = entityConverter(linter, 'instance', await projectParser.getDocumentSettings(uri), Position.create(31, 0));
       expect(template).toBeUndefined();
     }
 

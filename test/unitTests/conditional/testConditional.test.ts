@@ -5,7 +5,7 @@ import { getTokenFromPosition } from '../../../lib/languageFeatures/findReferenc
 import { ProjectParser } from '../../../lib/projectParser';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { readFileSyncNorm } from "../../readFileSyncNorm";
-import { getDocumentSettings, overwriteSettings } from '../../../lib/settingsManager';
+import { overwriteSettings } from '../../../lib/settingsUtil';
 
 let projectParser: ProjectParser;
 beforeAll(async () => {
@@ -17,7 +17,7 @@ afterAll(async () => {
 
 test('Testing conditional analysis true', async () => {
   const path = join(__dirname, 'test_conditional.vhd');
-  const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser, overwriteSettings(await getDocumentSettings(pathToFileURL(path), projectParser), {
+  const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser, overwriteSettings(await projectParser.getDocumentSettings(pathToFileURL(path)), {
     analysis: {
       conditionalAnalysis: {
         DEVICE: 'TEST1'
@@ -30,7 +30,7 @@ test('Testing conditional analysis true', async () => {
 });
 test('Testing conditional analysis true not set', async () => {
   const path = join(__dirname, 'test_conditional.vhd');
-  const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser, await getDocumentSettings(pathToFileURL(path), projectParser));
+  const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser, await projectParser.getDocumentSettings(pathToFileURL(path)));
   await linter.checkAll();
   expect(linter.messages).toHaveLength(1);
 });
@@ -38,7 +38,7 @@ test('Testing conditional analysis conditions', async () => {
   const path = join(__dirname, 'test_conditional2.vhd');
   const text = readFileSyncNorm(path, { encoding: 'utf8' });
   const linter = new VhdlLinter(pathToFileURL(path), text,
-    projectParser, overwriteSettings(await getDocumentSettings(pathToFileURL(path), projectParser), {
+    projectParser, overwriteSettings(await projectParser.getDocumentSettings(pathToFileURL(path)), {
       analysis: {
         conditionalAnalysis: {
           VALUE5: "5",
@@ -58,7 +58,7 @@ test.each([
   'test_tool_unknown2.vhd',
 ])('Testing unknown tool directive in file %s', async filename => {
   const path = join(__dirname, filename);
-  const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser, await getDocumentSettings(pathToFileURL(path), projectParser));
+  const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser, await projectParser.getDocumentSettings(pathToFileURL(path)));
   await linter.checkAll();
   expect(linter.messages).toHaveLength(1);
   expect(linter.messages[0]?.message).toBe(`Unknown tool directive 'UNKNOWN' (parser)`);
@@ -66,7 +66,7 @@ test.each([
 test('Testing hover for conditional', async () => {
   const path = join(__dirname, 'test_hover.vhd');
   const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser,
-    overwriteSettings(await getDocumentSettings(pathToFileURL(path), projectParser), {
+    overwriteSettings(await projectParser.getDocumentSettings(pathToFileURL(path)), {
       analysis: {
         conditionalAnalysis: {
           VALUE5: "5"
@@ -84,7 +84,7 @@ test('Regression test', async() => {
   const path = join(__dirname, 'test_regression.vhd');
   {
     const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser,
-      overwriteSettings(await getDocumentSettings(pathToFileURL(path), projectParser), {
+      overwriteSettings(await projectParser.getDocumentSettings(pathToFileURL(path)), {
         analysis: {
           conditionalAnalysis: {
             DEVICE: "Arria10"
@@ -97,7 +97,7 @@ test('Regression test', async() => {
   }
   {
     const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser,
-      overwriteSettings(await getDocumentSettings(pathToFileURL(path), projectParser), {
+      overwriteSettings(await projectParser.getDocumentSettings(pathToFileURL(path)), {
         analysis: {
           conditionalAnalysis: {
             DEVICE: "SomethingElse"

@@ -4,7 +4,7 @@ import { pathToFileURL } from 'url';
 import { ProjectParser } from '../../../lib/projectParser';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { readFileSyncNorm } from "../../readFileSyncNorm";
-import { getDocumentSettings, overwriteSettings } from '../../../lib/settingsManager';
+import { overwriteSettings } from '../../../lib/settingsUtil';
 test.each([
   'object',
   'constantGeneric',
@@ -19,7 +19,7 @@ test.each([
   overwrite[`${file}Casing`] = casing;
   const path = join(__dirname, `${file}.vhd`);
   const projectParser = await ProjectParser.create([pathToFileURL(__dirname)]);
-  const settings = overwriteSettings(await getDocumentSettings(pathToFileURL(path), projectParser),{
+  const settings = overwriteSettings(await projectParser.getDocumentSettings(pathToFileURL(path)),{
     style: overwrite
   });
   const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }),

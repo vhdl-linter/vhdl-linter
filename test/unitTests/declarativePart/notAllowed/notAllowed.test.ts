@@ -4,7 +4,7 @@ import { pathToFileURL } from 'url';
 import { ProjectParser } from '../../../../lib/projectParser';
 import { VhdlLinter } from '../../../../lib/vhdlLinter';
 import { readFileSyncNorm } from "../../../readFileSyncNorm";
-import { getDocumentSettings, overwriteSettings } from '../../../../lib/settingsManager';
+import { overwriteSettings } from '../../../../lib/settingsUtil';
 
 let projectParser: ProjectParser;
 beforeAll(async () => {
@@ -245,7 +245,7 @@ test.each(
   const declarationEntry = possibleDeclarations[declaration];
   const declarationCode = typeof declarationEntry === 'function' ? declarationEntry(file) : declarationEntry;
   const actualText = originalText.replace('!declaration', declarationCode);
-  const linter = new VhdlLinter(uri, actualText, projectParser, overwriteSettings(await getDocumentSettings(uri, projectParser),{
+  const linter = new VhdlLinter(uri, actualText, projectParser, overwriteSettings(await projectParser.getDocumentSettings(uri),{
     rules: {
       unused: false
     }

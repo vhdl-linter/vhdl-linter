@@ -6,7 +6,7 @@ import { OAssignment, OChoice } from '../../../lib/parser/objects';
 import { ProjectParser } from '../../../lib/projectParser';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { readFileSyncNorm } from "../../readFileSyncNorm";
-import { getDocumentSettings } from '../../../lib/settingsManager';
+
 
 let projectParser: ProjectParser;
 beforeAll(async () => {
@@ -18,7 +18,7 @@ afterAll(async () => {
 
 test('Testing elaboration of choice', async () => {
   const path = join(__dirname, 'test_choice.vhd');
-  const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser, await getDocumentSettings(pathToFileURL(path), projectParser));
+  const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser, await projectParser.getDocumentSettings(pathToFileURL(path)));
   await Elaborate.elaborate(linter);
 
   const assignment = linter.file.architectures[0]?.statements[0] as OAssignment;

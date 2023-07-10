@@ -5,7 +5,6 @@ import { pathToFileURL } from "url";
 import { ProjectParser } from "../../../lib/projectParser";
 import { VhdlLinter } from "../../../lib/vhdlLinter";
 import { readFileSyncNorm } from "../../readFileSyncNorm";
-import { getDocumentSettings } from "../../../lib/settingsManager";
 
 let projectParser: ProjectParser;
 // Building test sets.
@@ -53,7 +52,7 @@ afterAll(async () => {
 test.each(testSet)('Testing magic comments on file %s should not Error %p', async (filename, shouldNotError) => {
 
   const path = join(__dirname, filename);
-  const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser, await getDocumentSettings(pathToFileURL(path), projectParser));
+  const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser, await projectParser.getDocumentSettings(pathToFileURL(path)));
   const messages = await linter.checkAll();
   if (shouldNotError) {
     expect(messages.length).toBe(0);

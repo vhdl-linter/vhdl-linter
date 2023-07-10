@@ -6,14 +6,14 @@ import { documentHighlightHandler } from '../../../lib/languageFeatures/document
 import { ProjectParser } from '../../../lib/projectParser';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { readFileSyncNorm } from "../../readFileSyncNorm";
-import { getDocumentSettings } from '../../../lib/settingsManager';
+
 
 
 test('testing document highlight snapshot write', async () => {
 
   const url = pathToFileURL(join(__dirname, 'test_highlight.vhd'));
   const projectParser = await ProjectParser.create([]);
-  const linter = new VhdlLinter(url, readFileSyncNorm(url, { encoding: 'utf8' }), projectParser, await getDocumentSettings(url, projectParser));
+  const linter = new VhdlLinter(url, readFileSyncNorm(url, { encoding: 'utf8' }), projectParser, await projectParser.getDocumentSettings(url));
   await Elaborate.elaborate(linter);
   const highlights = documentHighlightHandler(linter, {
     textDocument: {
@@ -32,7 +32,7 @@ test('testing document highlight on keyword', async () => {
   const url = pathToFileURL(join(__dirname, 'test_highlight.vhd'));
   const projectParser = await ProjectParser.create([]);
   const linter = new VhdlLinter(url, readFileSyncNorm(url, { encoding: 'utf8' }),
-    projectParser, await getDocumentSettings(url, projectParser));
+    projectParser, await projectParser.getDocumentSettings(url));
   await Elaborate.elaborate(linter);
   const highlights = documentHighlightHandler(linter, {
     textDocument: {

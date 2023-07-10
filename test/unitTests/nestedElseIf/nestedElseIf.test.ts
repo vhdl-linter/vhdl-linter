@@ -5,12 +5,12 @@ import { OIfGenerate } from '../../../lib/parser/objects';
 import { ProjectParser } from '../../../lib/projectParser';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { readFileSyncNorm } from "../../readFileSyncNorm";
-import { getDocumentSettings } from '../../../lib/settingsManager';
+
 test('Testing nested if generate structures', async () => {
   const projectParser = await ProjectParser.create([]);
   const path = join(__dirname, 'test_nested_elsif.vhd');
   const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }),
-    projectParser, await getDocumentSettings(pathToFileURL(path), projectParser));
+    projectParser, await projectParser.getDocumentSettings(pathToFileURL(path)));
   await linter.checkAll();
 
   expect(linter.messages).toHaveLength(0);

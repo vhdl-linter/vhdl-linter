@@ -7,7 +7,7 @@ import { ProjectParser } from '../../../lib/projectParser';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { createPrintablePosition } from '../../helper';
 import { readFileSyncNorm } from "../../readFileSyncNorm";
-import { overwriteSettings, getDocumentSettings } from '../../../lib/settingsManager';
+import { overwriteSettings } from '../../../lib/settingsUtil';
 let projectParser: ProjectParser;
 beforeAll(async () => {
   projectParser = await ProjectParser.create([pathToFileURL(__dirname)]);
@@ -21,7 +21,7 @@ test.each([
   ['UPPERCASE', 'STD_ULOGIC_VECTOR', 'std_ulogic_vector']
 ])('testing completion %s shall contain %s shall not contain %s', async (ieeeCasing, shallContain, shallNotContain) => {
   const uri = pathToFileURL(join(__dirname, 'test_completion.vhd'));
-  const settings = overwriteSettings(await getDocumentSettings(uri, projectParser), {
+  const settings = overwriteSettings(await projectParser.getDocumentSettings(uri), {
     style:
     {
       ieeeCasing: ieeeCasing as 'lowercase' | 'UPPERCASE'
@@ -65,7 +65,7 @@ test.each([
 ])('testing completion in %s:%s expecting labels: %s', async (filename, position, expectedLabels, notExpectedLabels) => {
   const uri = pathToFileURL(join(__dirname, filename));
   const linter = new VhdlLinter(uri, readFileSyncNorm(uri, { encoding: 'utf8' }),
-    projectParser, await getDocumentSettings(uri, projectParser));
+    projectParser, await projectParser.getDocumentSettings(uri));
   await Elaborate.elaborate(linter);
   const completions = new Completions(linter).getCompletions(position);
   expect(completions).toEqual(expect.arrayContaining(expectedLabels.map(expectedLabel =>

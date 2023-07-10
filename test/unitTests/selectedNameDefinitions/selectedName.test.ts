@@ -6,7 +6,7 @@ import { OAssignment, OInstantiation, ORecordChild, OSelectedName, OSubprogram }
 import { ProjectParser } from '../../../lib/projectParser';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { readFileSyncNorm } from "../../readFileSyncNorm";
-import { getDocumentSettings } from '../../../lib/settingsManager';
+
 
 let projectParser: ProjectParser;
 beforeAll(async () => {
@@ -21,7 +21,7 @@ test.each([
   'test_selected_name_array.vhd',
 ])('Testing definitions of %s', async (fileName) => {
   const path = join(__dirname, fileName);
-  const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser, await getDocumentSettings(pathToFileURL(path), projectParser));
+  const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser, await projectParser.getDocumentSettings(pathToFileURL(path)));
   await Elaborate.elaborate(linter);
 
   const assignment = linter.file.architectures[0]?.statements[0] as OAssignment;
@@ -43,7 +43,7 @@ test.each([
   // array of protected types is not allowed (5.3.1 "It is an error if a composite type contains elements of file types or protected types.")
 ])('Testing definitions of %s', async (fileName) => {
   const path = join(__dirname, fileName);
-  const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser, await getDocumentSettings(pathToFileURL(path), projectParser));
+  const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser, await projectParser.getDocumentSettings(pathToFileURL(path)));
   await linter.checkAll();
 
   const call = linter.file.architectures[0]?.statements[0] as OInstantiation;
@@ -96,7 +96,7 @@ test.each([
   'test_selected_name_complex.vhd',
 ])('Testing definitions of %s', async (fileName) => {
   const path = join(__dirname, fileName);
-  const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser, await getDocumentSettings(pathToFileURL(path), projectParser));
+  const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser, await projectParser.getDocumentSettings(pathToFileURL(path)));
   await Elaborate.elaborate(linter);
 
   const assignment = linter.file.architectures[0]?.statements[0] as OAssignment;
@@ -122,7 +122,7 @@ test.each([
   'test_selected_name_array_alias.vhd',
 ])('Testing definitions of %s', async (fileName) => {
   const path = join(__dirname, fileName);
-  const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser, await getDocumentSettings(pathToFileURL(path), projectParser));
+  const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }), projectParser, await projectParser.getDocumentSettings(pathToFileURL(path)));
   await Elaborate.elaborate(linter);
 
   const assignment = (linter.file.architectures[0]?.declarations[3] as OSubprogram)?.statements[0] as OAssignment;

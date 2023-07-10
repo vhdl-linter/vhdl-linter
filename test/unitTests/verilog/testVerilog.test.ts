@@ -6,7 +6,6 @@ import { VerilogParser } from '../../../lib/verilogParser';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { makeRangePrintable } from '../../helper';
 import { readFileSyncNorm } from '../../readFileSyncNorm';
-import { getDocumentSettings } from '../../../lib/settingsManager';
 import { rmSync, writeFileSync } from 'fs';
 
 
@@ -15,7 +14,7 @@ test.each([true, false])('Testing verilog switch %b', async enableVerilog => {
   writeFileSync(settingsFile, JSON.stringify({ analysis: { verilogAnalysis: enableVerilog } }));
   const projectParser = await ProjectParser.create([pathToFileURL(__dirname)]);
   const uri = pathToFileURL(join(__dirname, '_test_verilog_instance.vhd'));
-  const settings = await getDocumentSettings(uri, projectParser);
+  const settings = await projectParser.getDocumentSettings(uri);
   const linter = new VhdlLinter(uri, readFileSyncNorm(uri, { encoding: 'utf8' }), projectParser, settings);
   await linter.checkAll();
   if (enableVerilog) {

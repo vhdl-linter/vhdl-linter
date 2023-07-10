@@ -11,12 +11,12 @@ import { Elaborate } from './elaborate/elaborate';
 import { elaborateTargetLibrary } from './elaborate/elaborateTargetLibrary';
 import { SetAdd } from './languageFeatures/findReferencesHandler';
 import { OArchitecture, OConfigurationDeclaration, OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
-import { ISettings, settingsSchema } from './settingsGenerated';
+import { ISettings, defaultSettings, settingsSchema } from './settingsGenerated';
 import { VerilogParser } from './verilogParser';
 import { VhdlLinter } from './vhdlLinter';
 import { parse } from 'yaml';
 import Ajv from "ajv";
-import { getDocumentSettings } from './settingsManager';
+import { currentCapabilities, normalizeSettings, overwriteSettings } from './settingsUtil';
 
 export function joinURL(url: URL, ...additional: string[]) {
   const path = join(fileURLToPath(url), ...additional);
@@ -71,7 +71,7 @@ export class ProjectParser {
   private constructor(public workspaces: URL[], public progress?: WorkDoneProgressReporter, public vsCodeWorkspace?: RemoteWorkspace) { }
   public async watchFolders(urls: URL[]) {
     for (const url of urls) {
-      const settings = await getDocumentSettings(url, this);
+      const settings = await this.getDocumentSettings(url);
       // Chokidar does not accept win style line endings
       // Chokidar sometimes throws this error message on hitting weird symlink. But this is a upstream issue
       // [Error: EISDIR: illegal operation on a directory, read] {
@@ -88,7 +88,7 @@ export class ProjectParser {
       watcher.on('add', (path) => {
         const handleEvent = async () => {
           const url = pathToFileURL(path);
-          const settings = await getDocumentSettings(url, this);
+          const settings = await this.getDocumentSettings(url);
           if (matchGlobList(path, [verilogGlob]) && settings.analysis.verilogAnalysis) {
             const cachedFile = await FileCacheVerilog.create(url, this, false);
             this.cachedFiles.push(cachedFile);
@@ -190,7 +190,7 @@ export class ProjectParser {
       await this.parseAllSettings(directory);
     }));
     await Promise.all(this.workspaces.map(async (directory) => {
-      const settings = await getDocumentSettings(directory, this);
+      const settings = await this.getDocumentSettings(directory);
       const directories = await this.parseDirectory(directory, settings.analysis.verilogAnalysis);
       files.add(...directories.map(url => url.toString()));
     }));
@@ -205,7 +205,7 @@ export class ProjectParser {
         index++;
       }
       const builtIn = builtinFiles.includes(file);
-      const settings = await getDocumentSettings(new URL(file), this);
+      const settings = await this.getDocumentSettings(new URL(file));
       // there should be no settings files here as they have been parsed in their own pass
       if (minimatch(basename(file), verilogGlob) && settings.analysis.verilogAnalysis) {
         const cachedFile = await FileCacheVerilog.create(new URL(file), this, builtIn);
@@ -232,7 +232,7 @@ export class ProjectParser {
   private parsedDirectories = new Set<string>();
   private async parseDirectory(directory: URL, parseVerilog: boolean): Promise<URL[]> {
     const files: URL[] = [];
-    const settings = await getDocumentSettings(directory, this);
+    const settings = await this.getDocumentSettings(directory);
     const entries = await promises.readdir(directory);
     const ignoreRegex = settings.paths.ignoreRegex.trim().length > 0 ? new RegExp(settings.paths.ignoreRegex) : null;
     await Promise.all(entries.map(async entry => {
@@ -346,8 +346,37 @@ export class ProjectParser {
         return res;
       }
       path = dirname(path);
-    // as long as we are not at the root
+      // as long as we are not at the root
     } while (dirname(path) !== path);
+  }
+
+  // Cache the settings of all open documents
+  public documentSettings = new Map<string, ISettings>();
+
+  public async getDocumentSettings(resource: URL | undefined): Promise<ISettings> {
+    // default settings are assumed as default and then overwritten by either
+    // settings from vs code (workspace) or the closest vhdl-linter.yml
+    if (resource !== undefined) {
+      const fileSettings = this.findSettings(resource);
+      if (fileSettings?.settings !== undefined) {
+        return overwriteSettings(defaultSettings, fileSettings.settings);
+      }
+    }
+    if (currentCapabilities.configuration === false) {
+      return normalizeSettings(defaultSettings);
+    }
+    let result = this.documentSettings.get(resource?.toString() ?? '');
+    if (result === undefined && this.vsCodeWorkspace !== undefined) {
+      result = normalizeSettings(await this.vsCodeWorkspace.getConfiguration({
+        scopeUri: resource?.toString(),
+        section: 'VhdlLinter'
+      }) as ISettings);
+    }
+    if (result === undefined) {
+      result = normalizeSettings(defaultSettings);
+    }
+    this.documentSettings.set(resource?.toString() ?? '', result);
+    return result;
   }
 }
 
@@ -466,7 +495,7 @@ export class FileCacheVhdl {
   async parse() {
     let text = await promises.readFile(this.uri, { encoding: 'utf8' });
     text = text.replaceAll('\r\n', '\n');
-    this.linter = new VhdlLinter(this.uri, text, this.projectParser, await getDocumentSettings(this.uri, this.projectParser));
+    this.linter = new VhdlLinter(this.uri, text, this.projectParser, await this.projectParser.getDocumentSettings(this.uri));
     this.replaceLinter(this.linter);
   }
   replaceLinter(vhdlLinter: VhdlLinter) {

@@ -5,7 +5,7 @@ import { join } from 'path';
 import { readFileSyncNorm } from '../../readFileSyncNorm';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { sanitizeActions } from '../../helper';
-import { getDocumentSettings, overwriteSettings } from '../../../lib/settingsManager';
+import { overwriteSettings } from '../../../lib/settingsUtil';
 let projectParser: ProjectParser;
 beforeAll(async () => {
   projectParser = await ProjectParser.create([pathToFileURL(__dirname)]);
@@ -16,7 +16,7 @@ afterAll(async () => {
 test('Test consistent casing rule', async () => {
   const path = join(__dirname, 'test.vhd');
   const uri = pathToFileURL(path);
-  const settings = overwriteSettings(await getDocumentSettings(uri, projectParser), {
+  const settings = overwriteSettings(await projectParser.getDocumentSettings(uri), {
     rules: {
       "consistent-casing": true
     }

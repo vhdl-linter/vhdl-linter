@@ -1,8 +1,14 @@
 import { DeepPartial } from "utility-types";
-import { ProjectParser } from "./projectParser";
-import { ISettings, defaultSettings } from "./settingsGenerated";
-export { ISettings };
+import { ISettings } from "./settingsGenerated";
 
+
+// these are capabilities from the language server and mainly used by the language server
+// However, the project parser might use the `configuration` to determine whether to get settings from the language server.
+// We define them here and not in the languageServer to not start one from the projectParser
+export const currentCapabilities = {
+  configuration: false,
+  workspaceFolder: false
+};
 
 export function normalizeSettings(settings: ISettings) {
   const newSettings = JSON.parse(JSON.stringify(settings)) as ISettings;
@@ -19,6 +25,7 @@ export function overwriteSettings(settings: ISettings, overwrite: DeepPartial<IS
   recursiveObjectAssign(newSettings, overwrite);
   return normalizeSettings(newSettings);
 }
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function recursiveObjectAssign<T extends Record<string, any>>(target: T, source: DeepPartial<T>) {
   Object.keys(source).forEach(key => {
@@ -32,37 +39,4 @@ function recursiveObjectAssign<T extends Record<string, any>>(target: T, source:
       : s_val;
   });
   return target;
-}
-
-export const currentCapabilities = {
-  configuration: false,
-  workspaceFolder: false
-};
-// Cache the settings of all open documents
-export const documentSettings = new Map<string, ISettings>();
-
-export async function getDocumentSettings(resource: URL | undefined, projectParser: ProjectParser): Promise<ISettings> {
-  // default settings are assumed as default and the overwritten by either
-  // settings from vs code (workspace) or the closest vhdl-linter.yml
-  if (resource !== undefined) {
-    const fileSettings = projectParser.findSettings(resource);
-    if (fileSettings?.settings !== undefined) {
-      return overwriteSettings(defaultSettings, fileSettings.settings);
-    }
-  }
-  if (currentCapabilities.configuration === false) {
-    return normalizeSettings(defaultSettings);
-  }
-  let result = documentSettings.get(resource?.toString() ?? '');
-  if (result === undefined && projectParser.vsCodeWorkspace !== undefined) {
-    result = normalizeSettings(await projectParser.vsCodeWorkspace.getConfiguration({
-      scopeUri: resource?.toString(),
-      section: 'VhdlLinter'
-    }) as ISettings);
-  }
-  if (result === undefined) {
-    result = normalizeSettings(defaultSettings);
-  }
-  documentSettings.set(resource?.toString() ?? '', result);
-  return result;
 }

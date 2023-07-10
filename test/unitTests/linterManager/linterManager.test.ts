@@ -5,6 +5,7 @@ import { Elaborate } from '../../../lib/elaborate/elaborate';
 import { LinterManager } from '../../../lib/linterManager';
 import { ProjectParser } from '../../../lib/projectParser';
 import * as vhdlModule from '../../../lib/vhdlLinter';
+import { defaultSettings } from '../../../lib/settingsGenerated';
 
 jest.mock('../../../lib/vhdlLinter');
 jest.mock('../../../lib/elaborate/elaborate');
@@ -17,7 +18,8 @@ jest.mock('../../../lib/projectParser', () => {
       create: async () => {
         return Promise.resolve({
           cachedFiles: [],
-          findSettings: () => undefined
+          findSettings: () => undefined,
+          getDocumentSettings: () => defaultSettings
         });
       }
     }

@@ -7,7 +7,6 @@ import { implementsIHasDefinitions, implementsIHasNameLinks } from "./parser/int
 import { OAlias } from "./parser/objects";
 import { FileCacheVhdl, ProjectParser } from "./projectParser";
 import { VhdlLinter } from "./vhdlLinter";
-import { getDocumentSettings } from "./settingsManager";
 
 interface ILinterState {
   wasAlreadyValid?: boolean; // Was already once valid (=the linters object has a valid linter)
@@ -82,7 +81,7 @@ export class LinterManager {
     state.version = version;
     // Mark File as currently being worked on
     state.done = false;
-    const settings = await getDocumentSettings(url, projectParser);
+    const settings = await projectParser.getDocumentSettings(url);
     const vhdlLinter = new VhdlLinter(url, text, projectParser, settings, newSource.token);
     if (vhdlLinter.parsedSuccessfully === false) {
       // If parsed unsuccessfully mark this file as invalid.

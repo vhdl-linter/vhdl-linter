@@ -9,7 +9,7 @@ import {
 } from './parser/objects';
 import { ProjectParser } from './projectParser';
 import { rules } from './rules/ruleIndex';
-import { ISettings } from './settingsManager';
+import { ISettings } from './settingsGenerated';
 
 export interface IAddSignalCommandArguments {
   textDocumentUri: string;

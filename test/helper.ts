@@ -4,8 +4,9 @@ import { CodeAction, Position, Range } from "vscode-languageserver";
 import { ProjectParser } from "../lib/projectParser";
 import { VhdlLinter } from "../lib/vhdlLinter";
 import { readFileSyncNorm } from "./readFileSyncNorm";
-import { ISettings, getDocumentSettings, overwriteSettings } from "../lib/settingsManager";
+import { overwriteSettings } from "../lib/settingsUtil";
 import { DeepPartial } from "utility-types";
+import { ISettings } from "../lib/settingsGenerated";
 
 export function makeRangePrintable(range: Range) {
   return `${range.start.line + 1}:${range.start.character + 1} - ${range.end.line + 1}:${range.end.character + 1}`;
@@ -42,7 +43,7 @@ export async function runLinterGetMessages(folder: string, file: string, setting
   const projectParser = await ProjectParser.create([pathToFileURL(folder)]);
   const uri = pathToFileURL(join(folder, file));
   const linter = new VhdlLinter(uri, readFileSyncNorm(join(folder, file), { encoding: 'utf8' }), projectParser,
-    overwriteSettings(await getDocumentSettings(uri, projectParser), settingsOverwrite));
+    overwriteSettings(await projectParser.getDocumentSettings(uri), settingsOverwrite));
   const messages = await linter.checkAll();
   await projectParser.stop();
   return messages;

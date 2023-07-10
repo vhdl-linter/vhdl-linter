@@ -6,14 +6,14 @@ import { findDefinitionLinks } from '../../../lib/languageFeatures/findDefinitio
 import { ProjectParser } from '../../../lib/projectParser';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { readFileSyncNorm } from "../../readFileSyncNorm";
-import { getDocumentSettings } from '../../../lib/settingsManager';
+
 let linter: VhdlLinter;
 let projectParser: ProjectParser;
 beforeAll(async () => {
   const url = pathToFileURL(__dirname + '/definition.vhd');
   projectParser = await ProjectParser.create([pathToFileURL(__dirname)]);
   linter = new VhdlLinter(url, readFileSyncNorm(url, { encoding: 'utf8' }),
-    projectParser, await getDocumentSettings(url, projectParser));
+    projectParser, await projectParser.getDocumentSettings(url));
   await Elaborate.elaborate(linter);
   await projectParser.stop();
 });

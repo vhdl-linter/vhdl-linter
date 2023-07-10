@@ -8,7 +8,7 @@ import { Elaborate } from '../../../lib/elaborate/elaborate';
 import { signatureHelp } from '../../../lib/languageFeatures/signatureHelp';
 import { ProjectParser } from '../../../lib/projectParser';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
-import { getDocumentSettings } from '../../../lib/settingsManager';
+
 
 let projectParser: ProjectParser;
 beforeAll(async () => {
@@ -19,7 +19,7 @@ afterAll(async () => {
 });
 async function prepare(fileName: string) {
   const path = join(__dirname, fileName);
-  const linter = new VhdlLinter(pathToFileURL(path), readFileSync(path, { encoding: 'utf8' }), projectParser, await getDocumentSettings(pathToFileURL(path), projectParser));
+  const linter = new VhdlLinter(pathToFileURL(path), readFileSync(path, { encoding: 'utf8' }), projectParser, await projectParser.getDocumentSettings(pathToFileURL(path)));
   await Elaborate.elaborate(linter);
   return linter;
 }

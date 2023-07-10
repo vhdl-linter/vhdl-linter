@@ -6,7 +6,7 @@ import { foldingHandler } from '../../../lib/languageFeatures/folding';
 import { ProjectParser } from '../../../lib/projectParser';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { readFileSyncNorm } from "../../readFileSyncNorm";
-import { getDocumentSettings } from '../../../lib/settingsManager';
+
 
 let projectParser: ProjectParser;
 beforeAll(async () => {
@@ -21,7 +21,7 @@ test.each(
 )('Testing folding ranges of %s', async (fileName) => {
   const path = join(__dirname, fileName);
   const uri = pathToFileURL(path);
-  const linter = new VhdlLinter(uri, readFileSyncNorm(uri, { encoding: 'utf8' }), projectParser, await getDocumentSettings(uri, projectParser));
+  const linter = new VhdlLinter(uri, readFileSyncNorm(uri, { encoding: 'utf8' }), projectParser, await projectParser.getDocumentSettings(uri));
   const symbols = foldingHandler(linter);
   expect(symbols).toMatchSnapshot();
 });
