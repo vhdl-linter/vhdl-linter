@@ -336,7 +336,8 @@ export class ProjectParser {
 
   public findSettings(url: URL): FileCacheSettings | undefined {
     let path = fileURLToPath(url);
-    do {
+    // as long as we are not at the root
+    while (dirname(path) !== path) {
       const res = this.cachedSettings.filter(cache => cache instanceof FileCacheSettings).find(cache => {
         const cachePath = fileURLToPath(cache.uri);
         const test = join(path, settingsGlob);
@@ -346,8 +347,7 @@ export class ProjectParser {
         return res;
       }
       path = dirname(path);
-      // as long as we are not at the root
-    } while (dirname(path) !== path);
+    }
   }
 
   // Cache the settings of all open documents
