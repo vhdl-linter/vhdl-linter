@@ -1,5 +1,7 @@
 import { DeepPartial } from "utility-types";
 import { ISettings } from "./settingsGenerated";
+import { readFileSync } from "fs";
+import { join } from "path";
 
 
 // these are capabilities from the language server and mainly used by the language server
@@ -40,3 +42,22 @@ function recursiveObjectAssign<T extends Record<string, any>>(target: T, source:
   });
   return target;
 }
+type primitive = string | boolean | number;
+interface Schema {
+  [key: string]: Schema | primitive[] | primitive;
+}
+const file = JSON.parse(readFileSync(join(__dirname, '../settings.schema.json'), { encoding: 'utf-8' })) as Schema;
+function objectWalk(object: Schema) {
+  const result: Schema = {};
+  for (const [key, value] of Object.entries(object)) {
+    if (key !== 'deprecationMessage') {
+      if (typeof value === 'object' && !Array.isArray(value)) {
+        result[key] = objectWalk(value);
+      } else {
+        result[key] = value;
+      }
+    }
+  }
+  return result;
+}
+export const settingsSchema = objectWalk(file);
