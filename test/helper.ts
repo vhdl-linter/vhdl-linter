@@ -1,5 +1,5 @@
-import { dirname, join } from "path";
-import { fileURLToPath, pathToFileURL } from "url";
+import { join } from "path";
+import { pathToFileURL } from "url";
 import { CodeAction, Position, Range } from "vscode-languageserver";
 import { ProjectParser } from "../lib/projectParser";
 import { VhdlLinter } from "../lib/vhdlLinter";
