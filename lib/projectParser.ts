@@ -398,7 +398,10 @@ export class FileCacheSettings {
     this.settings = undefined;
     const text = await promises.readFile(this.uri, { encoding: 'utf8' });
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const parsed = parse(text);
+    let parsed = parse(text);
+    if (parsed === null) {
+      parsed = {};
+    }
     const ajv = new Ajv();
     try {
       const validate = ajv.compile<DeepPartial<ISettings>>(settingsSchema);

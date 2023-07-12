@@ -54,3 +54,9 @@ test("complex yaml", async () => {
   expect(newSettings).toStrictEqual(overwriteSettings(defaultSettings, expected));
 });
 
+
+test("empty yaml", async () => {
+  const url = pathToFileURL(join(__dirname, 'empty.vhdl-linter.yml'));
+  const fileSettings = await FileCacheSettings.create(url, await ProjectParser.create([]));
+  expect(fileSettings.settings).toStrictEqual({});
+});
