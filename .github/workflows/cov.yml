@@ -20,7 +20,7 @@ jobs:
         with:
           annotations: none
           output: report-markdown
-          test-script: npm run settings && npx jest -c jest-coverage.config.js
+          test-script: npm ci && npm run settings && npx jest -c jest-coverage.config.js
       - uses: marocchino/sticky-pull-request-comment@v2
         with:
           message: ${{ steps.coverage.outputs.report }}
