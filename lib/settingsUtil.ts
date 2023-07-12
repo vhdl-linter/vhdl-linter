@@ -1,6 +1,6 @@
 import { DeepPartial } from "utility-types";
 import { ISettings } from "./settingsGenerated";
-import { readFileSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 
 
@@ -46,7 +46,9 @@ type primitive = string | boolean | number;
 interface Schema {
   [key: string]: Schema | primitive[] | primitive;
 }
-const file = JSON.parse(readFileSync(join(__dirname, '../settings.schema.json'), { encoding: 'utf-8' })) as Schema;
+// for initial transpile before doing ts-node generateSettings, the file does not exist...
+const schemaFile = join(__dirname, '../settings.schema.json');
+const file = existsSync(schemaFile) ? JSON.parse(readFileSync(join(__dirname, '../settings.schema.json'), { encoding: 'utf-8' })) as Schema : {};
 function objectWalk(object: Schema) {
   const result: Schema = {};
   for (const [key, value] of Object.entries(object)) {
