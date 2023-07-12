@@ -6,7 +6,7 @@ import { normalizeUri } from "./normalizeUri";
 import { implementsIHasDefinitions, implementsIHasNameLinks } from "./parser/interfaces";
 import { OAlias } from "./parser/objects";
 import { FileCacheVhdl, ProjectParser } from "./projectParser";
-import { SettingsGetter, VhdlLinter } from "./vhdlLinter";
+import { VhdlLinter } from "./vhdlLinter";
 
 interface ILinterState {
   wasAlreadyValid?: boolean; // Was already once valid (=the linters object has a valid linter)
@@ -58,7 +58,7 @@ export class LinterManager {
     return linter;
   }
   cancellationTokenSources: Record<string, CancellationTokenSource> = {};
-  async triggerRefresh(uri: string, text: string, projectParser: ProjectParser, settingsGetter: SettingsGetter, version: number, fromProjectParser = false): Promise<VhdlLinter> {
+  async triggerRefresh(uri: string, text: string, projectParser: ProjectParser, version: number, fromProjectParser = false): Promise<VhdlLinter> {
     uri = normalizeUri(uri);
     // Cancel previous running linter of this uri
     const oldSource = this.cancellationTokenSources[uri];
@@ -81,7 +81,7 @@ export class LinterManager {
     state.version = version;
     // Mark File as currently being worked on
     state.done = false;
-    const settings = await settingsGetter(url);
+    const settings = await projectParser.getDocumentSettings(url);
     const vhdlLinter = new VhdlLinter(url, text, projectParser, settings, newSource.token);
     if (vhdlLinter.parsedSuccessfully === false) {
       // If parsed unsuccessfully mark this file as invalid.

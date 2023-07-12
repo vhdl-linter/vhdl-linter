@@ -3,7 +3,8 @@ import { mkdir, rm, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
 import { ProjectParser } from '../../../lib/projectParser';
-import { defaultSettingsGetter } from '../../../lib/settings';
+import { defaultSettings } from '../../../lib/settingsGenerated';
+
 async function wait(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -36,7 +37,7 @@ beforeEach(async () => {
 test('testing removing of vhdl files', async () => {
   const testFilePath = join(__dirname, 'test_files/test_entity.vhd');
 
-  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)], defaultSettingsGetter);
+  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)]);
 
   expect(projectParser.entities.filter(entity => entity.lexerToken.getLText() === 'test_entity')).toHaveLength(1);
 
@@ -55,7 +56,7 @@ test('testing removing of vhdl files', async () => {
 test('testing removing of verilog files', async () => {
   const testFilePath = join(__dirname, 'test_files/test_module.sv');
 
-  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)], defaultSettingsGetter);
+  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)]);
 
   expect(projectParser.entities.find(entity => entity.lexerToken.getLText() === 'test_module')).toBeDefined();
   await Promise.all([
@@ -71,7 +72,7 @@ test('testing removing of verilog files', async () => {
 });
 test('testing removing of vhdl files by removing parent folder', async () => {
 
-  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)], defaultSettingsGetter);
+  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)]);
 
   expect(projectParser.entities.find(entity => entity.lexerToken.getLText() === 'test_entity')).toBeDefined();
 
@@ -105,5 +106,24 @@ test('testing removing of vhdl files by removing parent folder', async () => {
 
   expect(projectParser.entities.find(entity => entity.lexerToken.getLText() === 'test_entity')).toBeUndefined();
   expect(projectParser.entities.find(entity => entity.lexerToken.getLText() === 'test_module')).toBeUndefined();
+  await projectParser.stop();
+});
+test('testing removing of settings file', async () => {
+  const testFilePath = join(__dirname, 'test_files/vhdl-linter.yml');
+  const defaultValue = defaultSettings.rules['consistent-casing'];
+  await writeFile(testFilePath, JSON.stringify({ rules: { 'consistent-casing': !defaultValue } }));
+
+  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)]);
+  let settings = await projectParser.getDocumentSettings(pathToFileURL(testFilePath));
+  expect(settings.rules['consistent-casing']).toEqual(!defaultValue);
+  await Promise.all([
+    (async () => {
+      await wait(100);
+      await rm(testFilePath);
+    })(),
+    new Promise(resolve => projectParser.events.once('change', resolve))
+  ]);
+  settings = await projectParser.getDocumentSettings(pathToFileURL(testFilePath));
+  expect(settings.rules['consistent-casing']).toEqual(defaultValue);
   await projectParser.stop();
 });

@@ -4,13 +4,13 @@ import { CancellationTokenSource, ErrorCodes, Position, Range, ResponseError } f
 import { prepareRenameHandler, renameHandler } from '../../../lib/languageFeatures/rename';
 import { OIRange } from '../../../lib/parser/objects';
 import { FileCacheVhdl, ProjectParser } from '../../../lib/projectParser';
-import { defaultSettingsGetter } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { createPrintableRange, makeRangePrintable } from '../../helper';
 import { readFileSyncNorm } from '../../readFileSyncNorm';
+
 let projectParser: ProjectParser;
 beforeAll(async () => {
-  projectParser = await ProjectParser.create([pathToFileURL(__dirname)], defaultSettingsGetter);
+  projectParser = await ProjectParser.create([pathToFileURL(__dirname)]);
 });
 afterAll(async () => {
   await projectParser.stop();
@@ -211,7 +211,7 @@ test.each([
     const path = __dirname + `/${name}`;
 
     const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }),
-      projectParser, defaultSettingsGetter());
+      projectParser, await projectParser.getDocumentSettings(pathToFileURL(path)));
     await linter.checkAll();
     await projectParser.stop();
     const newName = 'foo_bar';
@@ -264,7 +264,7 @@ test.each([
   const path = __dirname + `/${name}`;
 
   const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }),
-    projectParser, defaultSettingsGetter());
+    projectParser, await projectParser.getDocumentSettings(pathToFileURL(path)));
   await linter.checkAll();
   await projectParser.stop();
   const { start, end } = range;
@@ -288,7 +288,7 @@ test('testing handling of invalid rename Handler', async () => {
   const path = __dirname + `/${filename}`;
   const dummyPath = `/file/${filename}`;
   const linter = new VhdlLinter(pathToFileURL(dummyPath), readFileSyncNorm(path, { encoding: 'utf8' }),
-    projectParser, defaultSettingsGetter());
+    projectParser, await projectParser.getDocumentSettings(pathToFileURL(path)));
   await linter.checkAll();
   await projectParser.stop();
   let err;
@@ -308,16 +308,16 @@ test.each([
 ])('testing rename with simulated cancel token from linterManager', async (name, range) => {
   const newName = 'foo_bar';
 
-  const path = pathToFileURL(__dirname + `/${name}`);
+  const url = pathToFileURL(__dirname + `/${name}`);
 
   // simulate that the cancellationToken of the linter in the project parser has been canceled
-  const oldFile = projectParser.cachedFiles.find(f => f.uri.toString() === path.toString()) as FileCacheVhdl;
+  const oldFile = projectParser.cachedFiles.find(f => f.uri.toString() === url.toString()) as FileCacheVhdl;
   const cancelSource = new CancellationTokenSource();
   oldFile.linter.token = cancelSource.token;
   cancelSource.cancel();
 
-  const linter = new VhdlLinter(path, readFileSyncNorm(path, { encoding: 'utf8' }),
-    projectParser, defaultSettingsGetter());
+  const linter = new VhdlLinter(url, readFileSyncNorm(url, { encoding: 'utf8' }),
+    projectParser, await projectParser.getDocumentSettings(url));
   const response = await renameHandler(linter, range.start, newName);
   expect(response.changes).toBeDefined();
 });

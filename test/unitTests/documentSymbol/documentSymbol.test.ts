@@ -7,10 +7,10 @@ import { DocumentSymbol } from 'vscode-languageserver';
 import { DocumentSymbols } from "../../../lib/languageFeatures/documentSymbol";
 import { OI } from "../../../lib/parser/objects";
 import { ProjectParser, vhdlGlob } from '../../../lib/projectParser';
-import { defaultSettingsGetter } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { makeRangePrintable } from '../../helper';
 import { readFileSyncNorm } from '../../readFileSyncNorm';
+import { defaultSettings } from '../../../lib/settingsGenerated';
 
 async function getFiles(dir: string): Promise<string[]> {
   const dirents = await readdir(dir, { withFileTypes: true });
@@ -21,7 +21,7 @@ async function getFiles(dir: string): Promise<string[]> {
   return files.flat();
 }
 test('test for selection must be contained in full range', async () => {
-  const projectParser = await ProjectParser.create([], defaultSettingsGetter);
+  const projectParser = await ProjectParser.create([]);
   const files = [
     ...await getFiles(join(__dirname, '..', '..', 'test_files', 'test_no_error')),
     ...await getFiles(join(__dirname, '..', '..', '..', 'ieee2008'))];
@@ -30,7 +30,7 @@ test('test for selection must be contained in full range', async () => {
       continue;
     }
     const url = pathToFileURL(file);
-    const linter = new VhdlLinter(url, readFileSyncNorm(url, { encoding: 'utf8' }), projectParser, defaultSettingsGetter());
+    const linter = new VhdlLinter(url, readFileSyncNorm(url, { encoding: 'utf8' }), projectParser, defaultSettings);
     const symbols = DocumentSymbols.get(linter);
     for (const symbol of symbols) {
       checkSymbol(symbol, url);

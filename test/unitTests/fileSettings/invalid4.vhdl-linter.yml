@@ -1,0 +1,4 @@
+paths:
+  additional:
+    - 'apple'
+    - 32 # only strings allowed

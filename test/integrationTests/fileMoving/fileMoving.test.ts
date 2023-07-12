@@ -3,7 +3,6 @@ import { mkdir, rename, rm, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
 import { ProjectParser } from '../../../lib/projectParser';
-import { defaultSettingsGetter } from '../../../lib/settings';
 async function wait(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -37,7 +36,7 @@ test('testing moving of vhdl files', async () => {
   const oldFileURL = pathToFileURL(join(__dirname, 'test_files/test_entity.vhd'));
   const newFileURL = pathToFileURL(join(__dirname, 'test_files/test_entity_new.vhd'));
 
-  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)], defaultSettingsGetter);
+  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)]);
 
   expect(projectParser.entities.filter(entity => entity.lexerToken.getLText() === 'test_entity')).toHaveLength(1);
   await Promise.all([
@@ -74,7 +73,7 @@ test('testing moving of sv files', async () => {
   const oldFileURL = pathToFileURL(join(__dirname, 'test_files/test_module.sv'));
   const newFileURL = pathToFileURL(join(__dirname, 'test_files/test_module_new.sv'));
 
-  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)], defaultSettingsGetter);
+  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)]);
 
   expect(projectParser.entities.filter(entity => entity.lexerToken.getLText() === 'test_module')).toHaveLength(1);
   await Promise.all([

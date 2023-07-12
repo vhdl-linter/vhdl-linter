@@ -2,7 +2,7 @@ import { CodeAction, CodeActionKind } from "vscode-languageserver";
 import { renameHandler } from "../languageFeatures/rename";
 import { OLexerToken, TokenType } from "../lexer";
 import { OFile } from "../parser/objects";
-import { ISettings } from "../settings";
+import { ISettings } from "../settingsGenerated";
 import { OIDiagnostic, VhdlLinter } from "../vhdlLinter";
 
 export interface IRule {

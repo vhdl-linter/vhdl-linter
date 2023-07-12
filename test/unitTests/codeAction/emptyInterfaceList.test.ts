@@ -3,9 +3,9 @@ import { join } from 'path';
 import { pathToFileURL } from 'url';
 import { Position } from 'vscode-languageserver';
 import { ProjectParser } from '../../../lib/projectParser';
-import { defaultSettingsGetter } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { readFileSyncNorm } from "../../readFileSyncNorm";
+
 // Check the proposed solution/changes/code actions for diagnostic
 test.each([
   ['empty_interface_list_generic.vhd', {
@@ -44,8 +44,9 @@ test.each([
   ]
 ])('testing proposed solutions for diagnostic with file %s', async (filename: string, range) => {
   const path = join(__dirname, filename);
+  const projectParser = await ProjectParser.create([]);
   const linter = new VhdlLinter(pathToFileURL(path), readFileSyncNorm(path, { encoding: 'utf8' }),
-    await ProjectParser.create([], defaultSettingsGetter), defaultSettingsGetter());
+    projectParser, await projectParser.getDocumentSettings(pathToFileURL(path)));
   await linter.checkAll();
   const changes = (await Promise.all(linter.diagnosticCodeActionRegistry
     .map(async callback => await callback(path)))).flat()

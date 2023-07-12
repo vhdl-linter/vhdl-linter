@@ -5,13 +5,18 @@ import { realpath } from 'fs/promises';
 import { minimatch } from 'minimatch';
 import { basename, dirname, join, sep } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
-import { CancellationToken, Diagnostic, DiagnosticSeverity, WorkDoneProgressReporter } from 'vscode-languageserver';
+import { DeepPartial } from 'utility-types';
+import { CancellationToken, Diagnostic, DiagnosticSeverity, RemoteWorkspace, WorkDoneProgressReporter } from 'vscode-languageserver';
 import { Elaborate } from './elaborate/elaborate';
 import { elaborateTargetLibrary } from './elaborate/elaborateTargetLibrary';
 import { SetAdd } from './languageFeatures/findReferencesHandler';
 import { OArchitecture, OConfigurationDeclaration, OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
+import { ISettings, defaultSettings, settingsSchema } from './settingsGenerated';
 import { VerilogParser } from './verilogParser';
-import { SettingsGetter, VhdlLinter } from './vhdlLinter';
+import { VhdlLinter } from './vhdlLinter';
+import { parse } from 'yaml';
+import Ajv from "ajv";
+import { currentCapabilities, trimSpacesOfStyleSettings, overwriteSettings } from './settingsUtil';
 
 export function joinURL(url: URL, ...additional: string[]) {
   const path = join(fileURLToPath(url), ...additional);
@@ -35,15 +40,16 @@ interface LibraryMapping {
   definitionLine: number;
 }
 
-function matchGlobList(value: string, globList: string[]) {
+export function matchGlobList(value: string, globList: string[]) {
   return globList.some(glob => minimatch(basename(value), glob));
 }
 
 export const vhdlGlob = '*.vhd?(l)';
 const verilogGlob = '*.?(s)v';
+export const settingsGlob = 'vhdl-linter.yml';
 
 export class ProjectParser {
-
+  public cachedSettings: FileCacheSettings[] = [];
   public cachedFiles: (FileCacheVhdl | FileCacheVerilog | FileCacheLibraryList)[] = [];
   // maps files (url.toString()) to a library mapping
   public libraryMap = new Map<string, LibraryMapping>();
@@ -56,16 +62,16 @@ export class ProjectParser {
   events = new EventEmitter();
   private watchers: FSWatcher[] = [];
   // Constructor can not be async. So constructor is private and use factory to create
-  public static async create(workspaces: URL[], settingsGetter: SettingsGetter, disableWatching = false,
-    progress?: WorkDoneProgressReporter) {
-    const projectParser = new ProjectParser(workspaces, settingsGetter, progress);
+  public static async create(workspaces: URL[], disableWatching = false,
+    progress?: WorkDoneProgressReporter, vsCodeWorkspace?: RemoteWorkspace) {
+    const projectParser = new ProjectParser(workspaces, progress, vsCodeWorkspace);
     await projectParser.init(disableWatching);
     return projectParser;
   }
-  private constructor(public workspaces: URL[], public settingsGetter: SettingsGetter, public progress?: WorkDoneProgressReporter) { }
-  public async addFolders(urls: URL[]) {
+  private constructor(public workspaces: URL[], public progress?: WorkDoneProgressReporter, public vsCodeWorkspace?: RemoteWorkspace) { }
+  public async watchFolders(urls: URL[]) {
     for (const url of urls) {
-      const settings = await this.settingsGetter(url);
+      const settings = await this.getDocumentSettings(url);
       // Chokidar does not accept win style line endings
       // Chokidar sometimes throws this error message on hitting weird symlink. But this is a upstream issue
       // [Error: EISDIR: illegal operation on a directory, read] {
@@ -75,18 +81,23 @@ export class ProjectParser {
       // }
       const watcher = watch([
         fileURLToPath(url).replaceAll(sep, '/') + `/**/${vhdlGlob}`,
+        fileURLToPath(url).replaceAll(sep, '/') + `/**/${settingsGlob}`,
         ...settings.analysis.verilogAnalysis ? [fileURLToPath(url).replaceAll(sep, '/') + `/**/${verilogGlob}`] : [],
         ...settings.paths.libraryMapFiles.map(glob => fileURLToPath(url).replaceAll(sep, '/') + `/**/${glob}`),
       ], { ignoreInitial: true, followSymlinks: false });
       watcher.on('add', (path) => {
         const handleEvent = async () => {
           const url = pathToFileURL(path);
-          if (path.match(/\.s?v$/i)) {
+          const settings = await this.getDocumentSettings(url);
+          if (matchGlobList(path, [verilogGlob]) && settings.analysis.verilogAnalysis) {
             const cachedFile = await FileCacheVerilog.create(url, this, false);
             this.cachedFiles.push(cachedFile);
           } else if (matchGlobList(path, settings.paths.libraryMapFiles)) {
             const libraryFile = await FileCacheLibraryList.create(url, this);
             this.cachedFiles.push(libraryFile);
+          } else if (matchGlobList(path, [settingsGlob])) {
+            const settingsFile = await FileCacheSettings.create(url, this);
+            this.cachedSettings.push(settingsFile);
           } else {
             const cachedFile = await FileCacheVhdl.create(url, this, false);
             this.cachedFiles.push(cachedFile);
@@ -100,40 +111,86 @@ export class ProjectParser {
         const handleEvent = async () => {
 
           const url = pathToFileURL(path);
-
-          const cachedFile = process.platform === 'win32'
-            ? this.cachedFiles.find(cachedFile => cachedFile.uri.toString().toLowerCase() === url.toString().toLowerCase())
-            : this.cachedFiles.find(cachedFile => cachedFile.uri.toString() === url.toString());
-          if (cachedFile) {
-            await cachedFile.parse();
-            this.flattenProject();
+          if (matchGlobList(path, [settingsGlob])) {
+            const cachedSetting = process.platform === 'win32'
+              ? this.cachedSettings.find(cachedFile => cachedFile.uri.toString().toLowerCase() === url.toString().toLowerCase())
+              : this.cachedSettings.find(cachedFile => cachedFile.uri.toString() === url.toString());
+            await cachedSetting?.parse();
             this.events.emit('change', 'change', url.toString());
           } else {
-            console.error('modified file not found', path);
+            const cachedFile = process.platform === 'win32'
+              ? this.cachedFiles.find(cachedFile => cachedFile.uri.toString().toLowerCase() === url.toString().toLowerCase())
+              : this.cachedFiles.find(cachedFile => cachedFile.uri.toString() === url.toString());
+            if (cachedFile) {
+              await cachedFile.parse();
+              this.flattenProject();
+              this.events.emit('change', 'change', url.toString());
+            } else {
+              console.error('modified file not found', path);
+            }
+            this.cachedElaborate = undefined;
           }
-          this.cachedElaborate = undefined;
         };
         handleEvent().catch(console.error);
       });
       watcher.on('unlink', path => {
         const url = pathToFileURL(path);
 
-        const cachedFileIndex = process.platform === 'win32'
-          ? this.cachedFiles.findIndex(cachedFile => cachedFile.uri.toString().toLowerCase() === url.toString().toLowerCase())
-          : this.cachedFiles.findIndex(cachedFile => cachedFile.uri.toString() === url.toString());
-        if (cachedFileIndex > -1) {
-          this.cachedFiles.splice(cachedFileIndex, 1);
-          this.flattenProject();
-          this.events.emit('change', 'unlink', url.toString());
+        if (matchGlobList(path, [settingsGlob])) {
+          const cachedSettingIndex = process.platform === 'win32'
+            ? this.cachedSettings.findIndex(cachedFile => cachedFile.uri.toString().toLowerCase() === url.toString().toLowerCase())
+            : this.cachedSettings.findIndex(cachedFile => cachedFile.uri.toString() === url.toString());
+          if (cachedSettingIndex > -1) {
+            this.cachedSettings.splice(cachedSettingIndex, 1);
+            this.events.emit('change', 'change', url.toString());
+          }
+        } else {
+          const cachedFileIndex = process.platform === 'win32'
+            ? this.cachedFiles.findIndex(cachedFile => cachedFile.uri.toString().toLowerCase() === url.toString().toLowerCase())
+            : this.cachedFiles.findIndex(cachedFile => cachedFile.uri.toString() === url.toString());
+          if (cachedFileIndex > -1) {
+            this.cachedFiles.splice(cachedFileIndex, 1);
+            this.flattenProject();
+            this.events.emit('change', 'unlink', url.toString());
+          }
         }
       });
       this.watchers.push(watcher);
     }
   }
+
+  private parsedSettingsDirectories = new Set<string>();
+  private async parseAllSettings(directory: URL) {
+    const entries = await promises.readdir(directory);
+    await Promise.all(entries.map(async entry => {
+      try {
+        const filePath = joinURL(directory, entry);
+        const fileStat = await promises.stat(filePath);
+        if (fileStat.isFile() && matchGlobList(basename(entry), [settingsGlob])) {
+          const settingsFile = await FileCacheSettings.create(filePath, this);
+          this.cachedSettings.push(settingsFile);
+        } else if (fileStat.isDirectory()) {
+          const realPath = await realpath(filePath);
+          // catch infinite recursion in symlink
+          if (this.parsedSettingsDirectories.has(realPath) === false) {
+            this.parsedSettingsDirectories.add(await realpath(realPath));
+            await this.parseAllSettings(filePath);
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }));
+  }
+
   private async init(disableWatching: boolean) {
     const files = new SetAdd<string>();
+    // parse all settings files first
     await Promise.all(this.workspaces.map(async (directory) => {
-      const settings = await this.settingsGetter(directory);
+      await this.parseAllSettings(directory);
+    }));
+    await Promise.all(this.workspaces.map(async (directory) => {
+      const settings = await this.getDocumentSettings(directory);
       const directories = await this.parseDirectory(directory, settings.analysis.verilogAnalysis);
       files.add(...directories.map(url => url.toString()));
     }));
@@ -148,13 +205,15 @@ export class ProjectParser {
         index++;
       }
       const builtIn = builtinFiles.includes(file);
-      if (minimatch(basename(file), verilogGlob)) {
+      const settings = await this.getDocumentSettings(new URL(file));
+      // there should be no settings files here as they have been parsed in their own pass
+      if (minimatch(basename(file), verilogGlob) && settings.analysis.verilogAnalysis) {
         const cachedFile = await FileCacheVerilog.create(new URL(file), this, builtIn);
         this.cachedFiles.push(cachedFile);
       } else if (minimatch(basename(file), vhdlGlob)) {
         const cachedFile = await FileCacheVhdl.create(new URL(file), this, builtIn);
         this.cachedFiles.push(cachedFile);
-      } else if (matchGlobList(file, (await this.settingsGetter(new URL(file))).paths.libraryMapFiles)) {
+      } else if (matchGlobList(file, settings.paths.libraryMapFiles)) {
         const libraryFile = await FileCacheLibraryList.create(new URL(file), this);
         this.cachedFiles.push(libraryFile);
       }
@@ -162,7 +221,7 @@ export class ProjectParser {
     this.cachedFiles.sort((a, b) => b.lintingTime - a.lintingTime);
     this.flattenProject();
     if (!disableWatching) {
-      await this.addFolders(this.workspaces);
+      await this.watchFolders(this.workspaces);
     }
   }
   async stop() {
@@ -173,7 +232,7 @@ export class ProjectParser {
   private parsedDirectories = new Set<string>();
   private async parseDirectory(directory: URL, parseVerilog: boolean): Promise<URL[]> {
     const files: URL[] = [];
-    const settings = await this.settingsGetter(directory);
+    const settings = await this.getDocumentSettings(directory);
     const entries = await promises.readdir(directory);
     const ignoreRegex = settings.paths.ignoreRegex.trim().length > 0 ? new RegExp(settings.paths.ignoreRegex) : null;
     await Promise.all(entries.map(async entry => {
@@ -181,7 +240,7 @@ export class ProjectParser {
         const filePath = joinURL(directory, entry);
         const fileStat = await promises.stat(filePath);
         if (fileStat.isFile()) {
-          if ((minimatch(basename(entry), vhdlGlob) || (parseVerilog && minimatch(basename(entry), verilogGlob)) || matchGlobList(basename(entry), settings.paths.libraryMapFiles))
+          if (matchGlobList(basename(entry), [vhdlGlob, verilogGlob, ...settings.paths.libraryMapFiles])
             && (matchGlobList(basename(entry), settings.paths.ignoreFiles) === false) && (ignoreRegex === null || !filePath.pathname.match(ignoreRegex))) {
             files.push(filePath);
           }
@@ -274,8 +333,86 @@ export class ProjectParser {
     this.cachedElaborate = filter;
 
   }
+
+  public findSettings(url: URL): FileCacheSettings | undefined {
+    let path = fileURLToPath(url);
+    // as long as we are not at the root
+    while (dirname(path) !== path) {
+      const res = this.cachedSettings.filter(cache => cache instanceof FileCacheSettings).find(cache => {
+        const cachePath = fileURLToPath(cache.uri);
+        const test = join(path, settingsGlob);
+        return cachePath === test;
+      });
+      if (res) {
+        return res;
+      }
+      path = dirname(path);
+    }
+  }
+
+  // Cache the settings of all open documents
+  public documentSettings = new Map<string, ISettings>();
+
+  public async getDocumentSettings(resource: URL | undefined): Promise<ISettings> {
+    // default settings are assumed as default and then overwritten by either
+    // settings from vs code (workspace) or the closest vhdl-linter.yml
+    if (resource !== undefined) {
+      const fileSettings = this.findSettings(resource);
+      if (fileSettings?.settings !== undefined) {
+        return overwriteSettings(defaultSettings, fileSettings.settings);
+      }
+    }
+    if (currentCapabilities.configuration === false) {
+      return trimSpacesOfStyleSettings(defaultSettings);
+    }
+    let result = this.documentSettings.get(resource?.toString() ?? '');
+    if (result === undefined && this.vsCodeWorkspace !== undefined) {
+      result = trimSpacesOfStyleSettings(await this.vsCodeWorkspace.getConfiguration({
+        scopeUri: resource?.toString(),
+        section: 'VhdlLinter'
+      }) as ISettings);
+    }
+    if (result === undefined) {
+      result = trimSpacesOfStyleSettings(defaultSettings);
+    }
+    this.documentSettings.set(resource?.toString() ?? '', result);
+    return result;
+  }
 }
 
+export class FileCacheSettings {
+  public messages: Diagnostic[] = [];
+  public settings?: DeepPartial<ISettings>;
+  lintingTime: number;
+  public builtIn = false;
+  // Constructor can not be async. So constructor is private and use factory to create
+  public static async create(uri: URL, projectParser: ProjectParser) {
+    const cache = new FileCacheSettings(uri, projectParser);
+    await cache.parse();
+    return cache;
+  }
+  private constructor(public uri: URL, public projectParser: ProjectParser) {
+  }
+  async parse() {
+    this.messages = [];
+    this.settings = undefined;
+    const text = await promises.readFile(this.uri, { encoding: 'utf8' });
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    let parsed = parse(text);
+    if (parsed === null) {
+      parsed = {};
+    }
+    const ajv = new Ajv();
+    try {
+      const validate = ajv.compile<DeepPartial<ISettings>>(settingsSchema);
+      if (validate(parsed)) {
+        this.settings = parsed;
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  }
+}
 export class FileCacheLibraryList {
   public messages: Diagnostic[] = [];
   public libraryMap = new Map<string, LibraryMapping>();
@@ -360,7 +497,7 @@ export class FileCacheVhdl {
   async parse() {
     let text = await promises.readFile(this.uri, { encoding: 'utf8' });
     text = text.replaceAll('\r\n', '\n');
-    this.linter = new VhdlLinter(this.uri, text, this.projectParser, await this.projectParser.settingsGetter(this.uri));
+    this.linter = new VhdlLinter(this.uri, text, this.projectParser, await this.projectParser.getDocumentSettings(this.uri));
     this.replaceLinter(this.linter);
   }
   replaceLinter(vhdlLinter: VhdlLinter) {

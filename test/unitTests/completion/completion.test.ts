@@ -4,13 +4,13 @@ import { pathToFileURL } from 'url';
 import { Elaborate } from '../../../lib/elaborate/elaborate';
 import { Completions } from '../../../lib/languageFeatures/completion';
 import { ProjectParser } from '../../../lib/projectParser';
-import { defaultSettingsGetter, defaultSettingsWithOverwrite } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { createPrintablePosition } from '../../helper';
 import { readFileSyncNorm } from "../../readFileSyncNorm";
+import { overwriteSettings } from '../../../lib/settingsUtil';
 let projectParser: ProjectParser;
 beforeAll(async () => {
-  projectParser = await ProjectParser.create([pathToFileURL(__dirname)], defaultSettingsGetter);
+  projectParser = await ProjectParser.create([pathToFileURL(__dirname)]);
 });
 afterAll(async () => {
   await projectParser.stop();
@@ -21,14 +21,14 @@ test.each([
   ['UPPERCASE', 'STD_ULOGIC_VECTOR', 'std_ulogic_vector']
 ])('testing completion %s shall contain %s shall not contain %s', async (ieeeCasing, shallContain, shallNotContain) => {
   const uri = pathToFileURL(join(__dirname, 'test_completion.vhd'));
-  const getter = defaultSettingsWithOverwrite({
+  const settings = overwriteSettings(await projectParser.getDocumentSettings(uri), {
     style:
     {
       ieeeCasing: ieeeCasing as 'lowercase' | 'UPPERCASE'
     }
   });
   const linter = new VhdlLinter(uri, readFileSyncNorm(uri, { encoding: 'utf8' }),
-    await ProjectParser.create([], getter), getter());
+    projectParser, settings);
   await Elaborate.elaborate(linter);
   const completion = new Completions(linter).getCompletions({ line: 9, character: 13 });
   expect(completion).toEqual(
@@ -65,7 +65,7 @@ test.each([
 ])('testing completion in %s:%s expecting labels: %s', async (filename, position, expectedLabels, notExpectedLabels) => {
   const uri = pathToFileURL(join(__dirname, filename));
   const linter = new VhdlLinter(uri, readFileSyncNorm(uri, { encoding: 'utf8' }),
-    projectParser, defaultSettingsGetter());
+    projectParser, await projectParser.getDocumentSettings(uri));
   await Elaborate.elaborate(linter);
   const completions = new Completions(linter).getCompletions(position);
   expect(completions).toEqual(expect.arrayContaining(expectedLabels.map(expectedLabel =>

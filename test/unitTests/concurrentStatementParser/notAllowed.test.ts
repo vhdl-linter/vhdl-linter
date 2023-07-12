@@ -2,13 +2,13 @@ import { afterAll, beforeAll, expect, test } from '@jest/globals';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
 import { ProjectParser } from '../../../lib/projectParser';
-import { defaultSettingsGetter, defaultSettingsWithOverwrite } from '../../../lib/settings';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { readFileSyncNorm } from "../../readFileSyncNorm";
+import { overwriteSettings } from '../../../lib/settingsUtil';
 
 let projectParser: ProjectParser;
 beforeAll(async () => {
-  projectParser = await ProjectParser.create([pathToFileURL(__dirname)], defaultSettingsGetter);
+  projectParser = await ProjectParser.create([pathToFileURL(__dirname)]);
 });
 afterAll(async () => {
   await projectParser.stop();
@@ -62,12 +62,12 @@ test.each(
   const uri = pathToFileURL(path);
   const originalText = readFileSyncNorm(uri, { encoding: 'utf8' });
   const actualText = originalText.replace('!statement', possibleStatements[statement]);
-  const linter = new VhdlLinter(uri, actualText, projectParser, defaultSettingsWithOverwrite({
+  const linter = new VhdlLinter(uri, actualText, projectParser, overwriteSettings(await projectParser.getDocumentSettings(pathToFileURL(path)), {
     rules: {
       unused: false,
       "not-declared": false
     }
-  })());
+  }));
   const messages = await linter.checkAll();
   if (allowed) {
     expect(messages).toHaveLength(0);

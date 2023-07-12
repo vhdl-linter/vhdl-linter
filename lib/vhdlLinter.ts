@@ -9,7 +9,7 @@ import {
 } from './parser/objects';
 import { ProjectParser } from './projectParser';
 import { rules } from './rules/ruleIndex';
-import { ISettings } from './settings';
+import { ISettings } from './settingsGenerated';
 
 export interface IAddSignalCommandArguments {
   textDocumentUri: string;
@@ -27,7 +27,6 @@ export interface IIgnoreLineCommandArguments {
   textDocumentUri: string;
   range: Range;
 }
-export type SettingsGetter = (resource: URL) => Promise<ISettings> | ISettings;
 type diagnosticCodeActionCallback = (textDocumentUri: string) => Promise<CodeAction[]> | CodeAction[];
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export class VhdlLinter {

@@ -1,10 +1,12 @@
-import { dirname, join } from "path";
-import { fileURLToPath, pathToFileURL } from "url";
+import { join } from "path";
+import { pathToFileURL } from "url";
 import { CodeAction, Position, Range } from "vscode-languageserver";
 import { ProjectParser } from "../lib/projectParser";
-import { defaultSettingsGetter } from "../lib/settings";
 import { VhdlLinter } from "../lib/vhdlLinter";
 import { readFileSyncNorm } from "./readFileSyncNorm";
+import { overwriteSettings } from "../lib/settingsUtil";
+import { DeepPartial } from "utility-types";
+import { ISettings } from "../lib/settingsGenerated";
 
 export function makeRangePrintable(range: Range) {
   return `${range.start.line + 1}:${range.start.character + 1} - ${range.end.line + 1}:${range.end.character + 1}`;
@@ -36,18 +38,13 @@ export function createPrintablePosition(onesLine: number, onesCharacter: number)
   };
   return position;
 }
-export async function runLinter(url: URL, settingsGetter = defaultSettingsGetter) {
 
-  const projectParser = await ProjectParser.create([pathToFileURL(dirname(fileURLToPath(url)))], settingsGetter);
-  const linter = new VhdlLinter(url, readFileSyncNorm(url, { encoding: 'utf8' }), projectParser, settingsGetter());
-  await projectParser.stop();
-  return linter;
-}
-export async function runLinterGetMessages(folder: string, file: string, settingsGetter = defaultSettingsGetter) {
+export async function runLinterGetMessages(folder: string, file: string, settingsOverwrite: DeepPartial<ISettings>) {
 
-  const projectParser = await ProjectParser.create([pathToFileURL(folder)], settingsGetter);
+  const projectParser = await ProjectParser.create([pathToFileURL(folder)]);
   const uri = pathToFileURL(join(folder, file));
-  const linter = new VhdlLinter(uri, readFileSyncNorm(join(folder, file), { encoding: 'utf8' }), projectParser, settingsGetter());
+  const linter = new VhdlLinter(uri, readFileSyncNorm(join(folder, file), { encoding: 'utf8' }), projectParser,
+    overwriteSettings(await projectParser.getDocumentSettings(uri), settingsOverwrite));
   const messages = await linter.checkAll();
   await projectParser.stop();
   return messages;

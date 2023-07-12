@@ -7,6 +7,7 @@ import {
 } from 'vscode-languageclient/node';
 import { converterTypes } from './entityConverter';
 import { IAddSignalCommandArguments } from './vhdlLinter';
+import { setupYamlSupport } from './yamlSupport';
 
 
 let client: LanguageClient;
@@ -51,6 +52,8 @@ export async function activate(context: ExtensionContext) {
     serverOptions,
     clientOptions
   );
+  setupYamlSupport(context);
+  void settingsDeprecationWarning(context);
 
   // Start the client. This will also launch the server
   await client.start();
@@ -125,4 +128,20 @@ export async function activate(context: ExtensionContext) {
 
 export function deactivate(): Thenable<void> | undefined {
   return client.stop();
+}
+
+// show a warning that the vs code settings are being deprecated soon.
+const DO_NOT_SHOW_SETTINGS_DEPRECATION = 'DO_NOT_SHOW_SETTINGS_DEPRECATION';
+async function settingsDeprecationWarning(context: ExtensionContext) {
+  if (context.globalState.get(DO_NOT_SHOW_SETTINGS_DEPRECATION) === true) {
+    return;
+  }
+  const choice = await window.showInformationMessage(
+    "The vhdl-linter settings in the VS Code settings page are being deprecated in favor of `vhdl-linter.yml` project settings. You should migrate soon.",
+    'Ok',
+    "Don't show again.",
+  );
+  if (choice === "Don't show again.") {
+    await context.globalState.update(DO_NOT_SHOW_SETTINGS_DEPRECATION, true);
+  }
 }

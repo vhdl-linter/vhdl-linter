@@ -1,9 +1,10 @@
 import { beforeEach, expect, test } from '@jest/globals';
 import { ProjectParser } from '../../../lib/projectParser';
 import { pathToFileURL } from 'url';
-import { defaultSettingsGetter } from '../../../lib/settings';
 import { join } from 'path';
 import { mkdir, rm, writeFile } from 'fs/promises';
+import { defaultSettings } from '../../../lib/settingsGenerated';
+
 async function wait(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -30,7 +31,7 @@ beforeEach(async () => {
 test('testing adding of vhdl files', async () => {
   const testFilePath = join(__dirname, 'test_files/test_entity.vhd');
 
-  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)], defaultSettingsGetter);
+  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)]);
   expect(projectParser.entities).toHaveLength(0);
   await Promise.all([
     (async () => {
@@ -48,7 +49,7 @@ test('testing adding of vhdl files', async () => {
 test('testing adding of verilog files', async () => {
   const testFilePath = join(__dirname, 'test_files/test_entity.sv');
 
-  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)], defaultSettingsGetter);
+  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)]);
   expect(projectParser.entities).toHaveLength(0);
   await Promise.all([
     (async () => {
@@ -61,5 +62,54 @@ test('testing adding of verilog files', async () => {
     new Promise(resolve => projectParser.events.once('change', resolve))
   ]);
   expect(projectParser.entities).toHaveLength(1);
+  await projectParser.stop();
+});
+test('testing adding of settings file', async () => {
+  const testFileURL = pathToFileURL(join(__dirname, 'test_files/vhdl-linter.yml'));
+  const defaultValue = defaultSettings.rules['consistent-casing'];
+
+  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)]);
+  let settings = await projectParser.getDocumentSettings(testFileURL);
+  expect(settings.rules['consistent-casing']).toEqual(defaultValue);
+  await Promise.all([
+    (async () => {
+      await wait(100);
+      await writeFile(testFileURL, JSON.stringify({ rules: { 'consistent-casing': !defaultValue } }));
+
+    })(),
+    new Promise<void>(resolve => {
+      // for some reason windows triggers a change and an add event. Wait for the change event
+      const handler = (type: string, path: string) => {
+        if (type == 'add' && path === testFileURL.toString()) {
+          projectParser.events.off('change', handler);
+          resolve();
+        }
+      };
+      projectParser.events.on('change', handler);
+    })
+  ]);
+  settings = await projectParser.getDocumentSettings(testFileURL);
+  expect(settings.rules['consistent-casing']).toEqual(!defaultValue);
+  await projectParser.stop();
+});
+test('testing changing of settings file', async () => {
+  const testFilePath = join(__dirname, 'test_files/vhdl-linter.yml');
+  const defaultValue = defaultSettings.rules['consistent-casing'];
+  // write !default value and change it to default
+  await writeFile(testFilePath, JSON.stringify({ rules: { 'consistent-casing': !defaultValue } }));
+
+  const projectParser = await ProjectParser.create([pathToFileURL(__dirname)]);
+  let settings = await projectParser.getDocumentSettings(pathToFileURL(testFilePath));
+  expect(settings.rules['consistent-casing']).toEqual(!defaultValue);
+  await Promise.all([
+    (async () => {
+      await wait(100);
+      await writeFile(testFilePath, JSON.stringify({ rules: { 'consistent-casing': defaultValue } }));
+
+    })(),
+    new Promise(resolve => projectParser.events.once('change', resolve))
+  ]);
+  settings = await projectParser.getDocumentSettings(pathToFileURL(testFilePath));
+  expect(settings.rules['consistent-casing']).toEqual(defaultValue);
   await projectParser.stop();
 });

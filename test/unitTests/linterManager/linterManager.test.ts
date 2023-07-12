@@ -4,8 +4,8 @@ import { CancellationTokenSource, ResponseError } from 'vscode-languageserver';
 import { Elaborate } from '../../../lib/elaborate/elaborate';
 import { LinterManager } from '../../../lib/linterManager';
 import { ProjectParser } from '../../../lib/projectParser';
-import { defaultSettingsGetter } from '../../../lib/settings';
 import * as vhdlModule from '../../../lib/vhdlLinter';
+import { defaultSettings } from '../../../lib/settingsGenerated';
 
 jest.mock('../../../lib/vhdlLinter');
 jest.mock('../../../lib/elaborate/elaborate');
@@ -17,7 +17,9 @@ jest.mock('../../../lib/projectParser', () => {
     ProjectParser: {
       create: async () => {
         return Promise.resolve({
-          cachedFiles: []
+          cachedFiles: [],
+          findSettings: () => undefined,
+          getDocumentSettings: () => defaultSettings
         });
       }
     }
@@ -37,7 +39,7 @@ async function triggerWrapper(linterManager: LinterManager, uri: string, text: s
       parsedSuccessfully
     } as vhdlModule.VhdlLinter;
   });
-  await linterManager.triggerRefresh(uri, text, projectParser, defaultSettingsGetter, version++, true);
+  await linterManager.triggerRefresh(uri, text, projectParser, version++, true);
 }
 
 
@@ -47,7 +49,7 @@ test.each([
   [10, 5],
   [10, 10],
 ])('Testing manager with random delays unsuccessful runs before %i, after %i', async (wrongBefore, wrongAfter) => {
-  const projectParser = await ProjectParser.create([], defaultSettingsGetter);
+  const projectParser = await ProjectParser.create([]);
   const linterManager = new LinterManager();
   const uri = pathToFileURL(__filename).toString();
   const dummyTextCorrect = 'correct linter';
@@ -83,7 +85,7 @@ test.each([
 test('Running linterManager cancel test', async () => {
   // Trigger 3 times, to simulate race condition.
   // The first two times elaborate is delayed so the third call which is not delayed shall correctly cancel the first two ones.
-  const projectParser = await ProjectParser.create([], defaultSettingsGetter);
+  const projectParser = await ProjectParser.create([]);
   const linterManager = new LinterManager();
   const uri = pathToFileURL(__filename).toString();
   const dummyTextCorrect = 'correct linter';
@@ -134,7 +136,7 @@ test('Running linterManager cancel test', async () => {
 test('Running linterManager cancel getLinter', async () => {
   // Trigger 3 times, to simulate race condition.
   // The first two times elaborate is delayed so the third call which is not delayed shall correctly cancel the first two ones.
-  const projectParser = await ProjectParser.create([], defaultSettingsGetter);
+  const projectParser = await ProjectParser.create([]);
   const linterManager = new LinterManager();
   const uri = pathToFileURL(__filename).toString();
   const cancellationTokenSources = new CancellationTokenSource();

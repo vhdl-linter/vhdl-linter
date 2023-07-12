@@ -1,19 +1,14 @@
 import { afterAll, beforeAll, expect, test } from '@jest/globals';
 import { ProjectParser } from '../../../lib/projectParser';
 import { pathToFileURL } from 'url';
-import { defaultSettingsWithOverwrite } from '../../../lib/settings';
 import { join } from 'path';
 import { readFileSyncNorm } from '../../readFileSyncNorm';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { sanitizeActions } from '../../helper';
+import { overwriteSettings } from '../../../lib/settingsUtil';
 let projectParser: ProjectParser;
-const settingsGetter = defaultSettingsWithOverwrite({
-  rules: {
-    "consistent-casing": true
-  }
-});
 beforeAll(async () => {
-  projectParser = await ProjectParser.create([pathToFileURL(__dirname)], settingsGetter);
+  projectParser = await ProjectParser.create([pathToFileURL(__dirname)]);
 });
 afterAll(async () => {
   await projectParser.stop();
@@ -21,7 +16,12 @@ afterAll(async () => {
 test('Test consistent casing rule', async () => {
   const path = join(__dirname, 'test.vhd');
   const uri = pathToFileURL(path);
-  const linter = new VhdlLinter(uri, readFileSyncNorm(path, { encoding: 'utf8' }), projectParser, settingsGetter());
+  const settings = overwriteSettings(await projectParser.getDocumentSettings(uri), {
+    rules: {
+      "consistent-casing": true
+    }
+  });
+  const linter = new VhdlLinter(uri, readFileSyncNorm(path, { encoding: 'utf8' }), projectParser, settings);
   await linter.checkAll();
 
   expect(linter.messages).toHaveLength(2);
