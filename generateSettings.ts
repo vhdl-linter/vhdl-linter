@@ -1,5 +1,4 @@
 import { readFileSync, writeFileSync } from "fs";
-import { rules } from './lib/rules/ruleIndex';
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
 const settings: Record<string, {
@@ -27,7 +26,7 @@ for (const configuration of JSON.parse(readFileSync('package.json', { encoding: 
 interface ISettings {
   [key: string]: ISettings | string | boolean | string[];
 }
-const _interface: ISettings = {};
+export const _interface: ISettings = {};
 const defaultValues: ISettings = {};
 // Extract defaults
 for (const [key, value] of Object.entries(settings)) {
@@ -185,16 +184,7 @@ for (const [key, value] of Object.entries(settings)) {
 }
 
 
-// Check rules
-const rulesInInterface = _interface?.rules;
-if (typeof rulesInInterface !== 'object' || Array.isArray(rulesInInterface)) {
-  throw new Error('No rules path found!');
-}
-for (const rule of rules) {
-  if (rulesInInterface[rule.ruleName] === undefined) {
-    throw new Error(`Did not find rule ${rule.ruleName} in settings`);
-  }
-}
+
 
 // Export Files
 let text = 'export interface ISettings ';
@@ -222,6 +212,7 @@ text += `\nexport const defaultSettings: ISettings = `;
 output(defaultValues, ',');
 text = text.trim().substring(0, text.length - 2);
 text += ';\n';
+text += `export const settingsSchema = ${JSON.stringify(createSchema(true))};`;
 writeFileSync(`lib/settingsGenerated.ts`, text);
 
 writeFileSync(`settings.schema.json`, JSON.stringify(createSchema(false)));

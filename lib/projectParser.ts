@@ -11,12 +11,12 @@ import { Elaborate } from './elaborate/elaborate';
 import { elaborateTargetLibrary } from './elaborate/elaborateTargetLibrary';
 import { SetAdd } from './languageFeatures/findReferencesHandler';
 import { OArchitecture, OConfigurationDeclaration, OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
-import { ISettings, defaultSettings } from './settingsGenerated';
+import { ISettings, defaultSettings, settingsSchema } from './settingsGenerated';
 import { VerilogParser } from './verilogParser';
 import { VhdlLinter } from './vhdlLinter';
 import { parse } from 'yaml';
 import Ajv from "ajv";
-import { currentCapabilities, trimSpacesOfStyleSettings, overwriteSettings, settingsSchema } from './settingsUtil';
+import { currentCapabilities, trimSpacesOfStyleSettings, overwriteSettings } from './settingsUtil';
 
 export function joinURL(url: URL, ...additional: string[]) {
   const path = join(fileURLToPath(url), ...additional);

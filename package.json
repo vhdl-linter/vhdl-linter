@@ -560,11 +560,12 @@
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
 		"vscode:postpublish": "git push",
-		"compile": "ts-node generateSettings.ts && tsc --project .",
-		"watch": "ts-node generateSettings.ts &&tsc -w  --project  .",
-		"lint": "ts-node generateSettings.ts && eslint --ext .ts --max-warnings=0 .",
-		"test": "ts-node generateSettings.ts && jest && npm run compile && node dist/test/test.js",
-		"coverage": "ts-node generateSettings.ts && jest -c jest-coverage.config.js && xdg-open coverage/lcov-report/index.html"
+		"compile": "npm run settings && tsc --project .",
+		"watch": "npm run settings &&tsc -w  --project  .",
+		"lint": "npm run settings && eslint --ext .ts --max-warnings=0 .",
+		"test": "npm run settings && jest && npm run compile && node dist/test/test.js",
+		"coverage": "npm run settings && jest -c jest-coverage.config.js && xdg-open coverage/lcov-report/index.html",
+		"settings": "ts-node generateSettings.ts && ts-node lib/checkSettings.ts"
 	},
 	"dependencies": {
 		"ajv": "^8.12.0",
