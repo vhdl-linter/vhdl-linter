@@ -1,0 +1,11 @@
+# includes all invalid tests but in valid
+semanticTokens: true
+trace:
+  server: 'messages'
+paths:
+  additional:
+    - 'apple'
+    - 'banana'
+analysis:
+  conditionalAnalysis:
+    pear: orange

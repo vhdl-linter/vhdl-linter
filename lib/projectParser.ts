@@ -16,7 +16,7 @@ import { VerilogParser } from './verilogParser';
 import { VhdlLinter } from './vhdlLinter';
 import { parse } from 'yaml';
 import Ajv from "ajv";
-import { currentCapabilities, normalizeSettings, overwriteSettings, settingsSchema } from './settingsUtil';
+import { currentCapabilities, trimSpacesOfStyleSettings, overwriteSettings, settingsSchema } from './settingsUtil';
 
 export function joinURL(url: URL, ...additional: string[]) {
   const path = join(fileURLToPath(url), ...additional);
@@ -363,17 +363,17 @@ export class ProjectParser {
       }
     }
     if (currentCapabilities.configuration === false) {
-      return normalizeSettings(defaultSettings);
+      return trimSpacesOfStyleSettings(defaultSettings);
     }
     let result = this.documentSettings.get(resource?.toString() ?? '');
     if (result === undefined && this.vsCodeWorkspace !== undefined) {
-      result = normalizeSettings(await this.vsCodeWorkspace.getConfiguration({
+      result = trimSpacesOfStyleSettings(await this.vsCodeWorkspace.getConfiguration({
         scopeUri: resource?.toString(),
         section: 'VhdlLinter'
       }) as ISettings);
     }
     if (result === undefined) {
-      result = normalizeSettings(defaultSettings);
+      result = trimSpacesOfStyleSettings(defaultSettings);
     }
     this.documentSettings.set(resource?.toString() ?? '', result);
     return result;
@@ -401,7 +401,6 @@ export class FileCacheSettings {
     const parsed = parse(text);
     const ajv = new Ajv();
     try {
-
       const validate = ajv.compile<DeepPartial<ISettings>>(settingsSchema);
       if (validate(parsed)) {
         this.settings = parsed;

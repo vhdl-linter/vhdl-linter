@@ -1,0 +1,2 @@
+paths:
+  additional: 'apple' # should be array

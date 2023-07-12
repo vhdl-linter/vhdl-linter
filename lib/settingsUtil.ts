@@ -12,7 +12,8 @@ export const currentCapabilities = {
   workspaceFolder: false
 };
 
-export function normalizeSettings(settings: ISettings) {
+// trims the style settings (especially the prefix/suffixes) to make sure to generate valid vhdl results
+export function trimSpacesOfStyleSettings(settings: ISettings) {
   const newSettings = JSON.parse(JSON.stringify(settings)) as ISettings;
   for (const [key, value] of Object.entries(newSettings.style)) {
     if (typeof (newSettings.style as Record<string, unknown>)[key] === 'string') {
@@ -25,20 +26,22 @@ export function normalizeSettings(settings: ISettings) {
 export function overwriteSettings(settings: ISettings, overwrite: DeepPartial<ISettings>) {
   const newSettings = JSON.parse(JSON.stringify(settings)) as ISettings;
   recursiveObjectAssign(newSettings, overwrite);
-  return normalizeSettings(newSettings);
+  return trimSpacesOfStyleSettings(newSettings);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function recursiveObjectAssign<T extends Record<string, any>>(target: T, source: DeepPartial<T>) {
+function recursiveObjectAssign<T extends Record<string, unknown>>(target: T, source: DeepPartial<T>) {
+  // goes recursively through all keys of the source (!) and overwrites parts of target with all the values of source.
+  // if both, the target and the source have an object at the key, recurse through it
+  // otherwise take the value of source.
+  // This will not touch all parts of target that are not in source
   Object.keys(source).forEach(key => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const s_val = source[key];
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const t_val = target[key];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/strict-boolean-expressions
-    (target as any)[key] = t_val && s_val && typeof t_val === 'object' && typeof s_val === 'object'
-      ? recursiveObjectAssign(t_val, s_val)
-      : s_val;
+    const s_val = source[key] as Record<string, unknown>;
+    const t_val = target[key] as Record<string, unknown>;
+    if (t_val !== undefined && typeof t_val === 'object' && typeof s_val === 'object') {
+      (target as Record<string, unknown>)[key] = recursiveObjectAssign(t_val, s_val);
+    } else {
+      (target as Record<string, unknown>)[key] = s_val;
+    }
   });
   return target;
 }
