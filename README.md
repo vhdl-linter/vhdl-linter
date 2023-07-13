@@ -27,11 +27,13 @@ Currently working for instantiation of:
 - components
 
 Signature help is not yet supported for calling of functions.
+
 ![signature-helper](./doc/signature-help.png)
 ![signature-helper-long](./doc/signature-help2.png)
 
 ## Configuration
 Rules and style settings can be configured with `vhdl-linter.yml` configuration files which modifies the default settings:
+
 ![configuration-example](./doc/configuration-example.png)
 
 ## Region Folding
@@ -44,6 +46,7 @@ Fold regions according to the file content:
 
 ## Style checking
 Checks custom naming styles:
+
 ![namingStyle](./doc/namingStyle.gif)
 
 ## Entity Converter
@@ -52,6 +55,7 @@ Automatically convert entities to a commonly used template:
 - component
 - SystemVerilog instantiation
 - ports to signals
+
 ![entityConverter](./doc/entityConverter.gif)
 
 ## Target library inference
