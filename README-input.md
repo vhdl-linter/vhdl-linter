@@ -35,6 +35,7 @@ Signature help is not yet supported for calling of functions.
 Rules and style settings can be configured with `vhdl-linter.yml` configuration files which modifies the default settings:
 
 ![configuration-example](./doc/configuration-example.png)
+For full list of properties see [Overview of Configuration](#overview-of-configuration)
 
 ## Region Folding
 Fold regions according to the file content:
@@ -60,5 +61,7 @@ Automatically convert entities to a commonly used template:
 
 ## Target library inference
 The target library of vhdl design units is parsed from [csv files like vunit](https://vunit.github.io/py/vunit.html#vunit.ui.VUnit.add_source_files_from_csv) in the format
-```libary,filename```
+```library,filename```
 - The library is used for auto completion, reference checking and template generation (e.g. instantiation template for entities)
+
+# Overview of Configuration

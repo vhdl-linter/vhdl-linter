@@ -65,11 +65,28 @@ for (const [key, value] of Object.entries(settings)) {
     throw new Error(`Setting ${key} should start with 'VhdlLinter'`);
   }
 }
-
+interface ISchemaObject {
+  type: 'object';
+  properties: Record<string, Schema>;
+  additionalProperties: false;
+}
+interface ISchemaObjectLiteral {
+  type: 'object'
+  properties: Record<string, never>
+  patternProperties: Record<string, { type: 'string' }>
+  description: string
+  default?: object
+}
+interface ISchemaLiteral {
+  type: 'string'
+  description: string
+  default?: string
+}
+type Schema = ISchemaObject | ISchemaObjectLiteral | ISchemaLiteral;
 // ajv parser does not know keywords such as `deprecationMessage` which are nice to have for the yaml verifier
 function createSchema(ajvCompliant: boolean) {
   // generate schema
-  const schema = {
+  const schema: Schema = {
     type: 'object',
     properties: {},
     additionalProperties: false,
@@ -216,3 +233,25 @@ text += `export const settingsSchema = ${JSON.stringify(createSchema(true))};`;
 writeFileSync(`lib/settingsGenerated.ts`, text);
 
 writeFileSync(`settings.schema.json`, JSON.stringify(createSchema(false)));
+
+let readmeText = readFileSync('README-input.md', {encoding: 'utf-8'}) + '\n';
+function ISchemaObject(schema: Schema): schema is ISchemaObject {
+  return schema.type === 'object' && Object.values(schema.properties).length > 0;
+}
+function schemaWalk(schema: Schema, path: string[]) {
+  if (ISchemaObject(schema)) {
+    if (path.length > 0) {
+      readmeText += '#'.repeat(path.length + 1) + ` ${path.join('.')}\n`;
+      readmeText += `|name|description|type|default|\n`;
+      readmeText += `|---|---|---|---|\n`;
+    }
+    for (const [key, value] of Object.entries(schema.properties)) {
+      schemaWalk(value, [...path, key]);
+    }
+  } else {
+    readmeText += `|${path.join('.')}|${schema.description}|${schema.type}|${JSON.stringify(schema.default) ?? ''}\n`;
+  }
+}
+schemaWalk(createSchema(false), []);
+
+writeFileSync('README.md', readmeText);
