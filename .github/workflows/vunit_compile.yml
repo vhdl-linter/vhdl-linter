@@ -16,4 +16,4 @@ jobs:
           submodules: recursive
       - uses: VUnit/vunit_action@master
         with:
-          cmd: test/vunit_compile_test_no_error.py
+          cmd: python3 test/vunit_compile_test_no_error.py
