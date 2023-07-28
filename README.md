@@ -7,6 +7,22 @@ Introducing the open-source VHDL Linter, written in TypeScript and thoroughly un
 ![VUnit Compile](https://github.com/vhdl-linter/vhdl-linter/actions/workflows/vunit_compile.yml/badge.svg?branch=main)
 ![TS Lint](https://github.com/vhdl-linter/vhdl-linter/actions/workflows/tslint.yml/badge.svg?branch=main)
 
+# Installation
+The `vhdl-linter` can be used as a cli executable or as a VS Code extension.
+## Stand alone command line executable
+```bash
+npm i -g @vhdl-linter/vhdl-linter
+```
+This provides the `vhdl-linter-cli` executable.
+## Extension for VS Code
+- Press `Ctrl+P` to open the VS Code Quick Open Dialog
+- Enter `ext install g0t00.vhdl-linter`
+
+# Configuration
+Rules and style settings can be configured with `vhdl-linter.yml` configuration files which modifies the default settings:
+
+![configuration-example](./doc/configuration-example.png)
+
 # Features (list is still incomplete)
 ## Project wide rename support
 Most identifier can be renamed with the project wide rename feature.
@@ -30,11 +46,6 @@ Signature help is not yet supported for calling of functions.
 
 ![signature-helper](./doc/signature-help.png)
 ![signature-helper-long](./doc/signature-help2.png)
-
-## Configuration
-Rules and style settings can be configured with `vhdl-linter.yml` configuration files which modifies the default settings:
-
-![configuration-example](./doc/configuration-example.png)
 
 ## Region Folding
 Fold regions according to the file content:
