@@ -6,7 +6,7 @@ import { DocumentSymbols } from '../../../lib/languageFeatures/documentSymbol';
 import { workspaceSymbol } from '../../../lib/languageFeatures/workspaceSymbol';
 import { ProjectParser } from '../../../lib/projectParser';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
-import { readFileSyncNorm } from "../../readFileSyncNorm";
+import { readFileSyncNorm } from "../../../lib/cli/readFileSyncNorm";
 
 
 let projectParser: ProjectParser;

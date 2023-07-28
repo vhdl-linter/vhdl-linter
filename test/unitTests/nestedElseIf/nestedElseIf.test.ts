@@ -4,7 +4,7 @@ import { pathToFileURL } from 'url';
 import { OIfGenerate } from '../../../lib/parser/objects';
 import { ProjectParser } from '../../../lib/projectParser';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
-import { readFileSyncNorm } from "../../readFileSyncNorm";
+import { readFileSyncNorm } from "../../../lib/cli/readFileSyncNorm";
 
 test('Testing nested if generate structures', async () => {
   const projectParser = await ProjectParser.create([]);

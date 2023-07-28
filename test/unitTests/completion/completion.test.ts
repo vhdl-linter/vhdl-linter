@@ -6,7 +6,7 @@ import { Completions } from '../../../lib/languageFeatures/completion';
 import { ProjectParser } from '../../../lib/projectParser';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { createPrintablePosition } from '../../helper';
-import { readFileSyncNorm } from "../../readFileSyncNorm";
+import { readFileSyncNorm } from "../../../lib/cli/readFileSyncNorm";
 import { overwriteSettings } from '../../../lib/settingsUtil';
 let projectParser: ProjectParser;
 beforeAll(async () => {

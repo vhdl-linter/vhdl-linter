@@ -6,7 +6,7 @@ import { pathToFileURL } from 'url';
 import { ProjectParser } from '../../../../lib/projectParser';
 import { VhdlLinter } from '../../../../lib/vhdlLinter';
 import { sanitizeActions } from '../../../helper';
-import { readFileSyncNorm } from "../../../readFileSyncNorm";
+import { readFileSyncNorm } from "../../../../lib/cli/readFileSyncNorm";
 import { CodeAction } from 'vscode-languageserver';
 
 

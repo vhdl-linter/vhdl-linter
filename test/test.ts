@@ -4,7 +4,7 @@ import { argv, cwd } from 'process';
 import { pathToFileURL } from 'url';
 import { isMainThread, Worker } from 'worker_threads';
 import { joinURL } from '../lib/projectParser';
-import { MessageWrapper, readDirPath } from './testUtil';
+import { MessageWrapper, readDirPath } from '../lib/cli/cliUtil';
 const threadNum = cpus().length / 2;
 const queue = new PQueue({ concurrency: threadNum });
 

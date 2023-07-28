@@ -6,7 +6,7 @@ import { OIRange } from '../../../lib/parser/objects';
 import { FileCacheVhdl, ProjectParser } from '../../../lib/projectParser';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { createPrintableRange, makeRangePrintable } from '../../helper';
-import { readFileSyncNorm } from '../../readFileSyncNorm';
+import { readFileSyncNorm } from '../../../lib/cli/readFileSyncNorm';
 
 let projectParser: ProjectParser;
 beforeAll(async () => {

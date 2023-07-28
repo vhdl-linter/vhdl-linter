@@ -6,7 +6,7 @@ import { pathToFileURL } from 'url';
 import { LinterManager } from '../../../../lib/linterManager';
 import { implementsIHasDefinitions, implementsIHasNameLinks } from '../../../../lib/parser/interfaces';
 import { ProjectParser } from '../../../../lib/projectParser';
-import { readFileSyncNorm } from '../../../readFileSyncNorm';
+import { readFileSyncNorm } from '../../../../lib/cli/readFileSyncNorm';
 
 export async function randomTest(directory: string) {
   const projectParser = await ProjectParser.create([pathToFileURL(directory)]);

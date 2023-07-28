@@ -1,9 +1,9 @@
 import { lstatSync } from "fs";
 import { parentPort, workerData } from "worker_threads";
-import { ProjectParser } from "../lib/projectParser";
-import { VhdlLinter } from "../lib/vhdlLinter";
+import { ProjectParser } from "../projectParser";
+import { VhdlLinter } from "../vhdlLinter";
 import { readFileSyncNorm } from "./readFileSyncNorm";
-import { MessageWrapper, prettyPrintMessages, readDirPath } from "./testUtil";
+import { MessageWrapper, prettyPrintMessages, readDirPath } from "./cliUtil";
 async function run_test(path: URL, error_expected: boolean, projectParser?: ProjectParser): Promise<MessageWrapper[]> {
   const messageWrappers: MessageWrapper[] = [];
   if (!projectParser) {

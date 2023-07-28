@@ -1,8 +1,8 @@
 import { jest, test } from '@jest/globals';
 import { join } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
-import { readDirPath } from '../../../testUtil';
 import { randomTest } from "./randomTest";
+import { readDirPath } from '../../../../lib/cli/cliUtil';
 jest.setTimeout(60 * 60 * 1000);
 // This test takes forever...
 test.skip('memory leak test with random access walk', async () => {

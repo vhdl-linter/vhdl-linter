@@ -5,7 +5,7 @@ import { ProjectParser } from '../../../lib/projectParser';
 import { VerilogParser } from '../../../lib/verilogParser';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { makeRangePrintable } from '../../helper';
-import { readFileSyncNorm } from '../../readFileSyncNorm';
+import { readFileSyncNorm } from '../../../lib/cli/readFileSyncNorm';
 import { rmSync, writeFileSync } from 'fs';
 
 

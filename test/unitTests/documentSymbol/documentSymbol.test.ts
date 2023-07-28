@@ -9,7 +9,7 @@ import { OI } from "../../../lib/parser/objects";
 import { ProjectParser, vhdlGlob } from '../../../lib/projectParser';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { makeRangePrintable } from '../../helper';
-import { readFileSyncNorm } from '../../readFileSyncNorm';
+import { readFileSyncNorm } from '../../../lib/cli/readFileSyncNorm';
 import { defaultSettings } from '../../../lib/settingsGenerated';
 
 async function getFiles(dir: string): Promise<string[]> {

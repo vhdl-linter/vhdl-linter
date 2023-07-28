@@ -7,7 +7,7 @@ import { Elaborate } from '../../../lib/elaborate/elaborate';
 import { semanticToken, semanticTokensLegend } from '../../../lib/languageFeatures/semanticToken';
 import { ProjectParser } from '../../../lib/projectParser';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
-import { readFileSyncNorm } from "../../readFileSyncNorm";
+import { readFileSyncNorm } from "../../../lib/cli/readFileSyncNorm";
 
 jest.mock('vscode-languageserver');
 let projectParser: ProjectParser;

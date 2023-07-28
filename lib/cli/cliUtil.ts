@@ -1,9 +1,9 @@
 import { readdirSync } from "fs";
 import { cwd } from "process";
 import { DiagnosticSeverity } from "vscode-languageserver";
-import { OIRange } from "../lib/parser/objects";
-import { joinURL } from "../lib/projectParser";
-import { OIDiagnostic } from "../lib/vhdlLinter";
+import { OIRange } from "../parser/objects";
+import { joinURL } from "../projectParser";
+import { OIDiagnostic } from "../vhdlLinter";
 
 export interface MessageWrapper {
   file: string,

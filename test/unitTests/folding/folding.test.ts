@@ -5,7 +5,7 @@ import { pathToFileURL } from 'url';
 import { foldingHandler } from '../../../lib/languageFeatures/folding';
 import { ProjectParser } from '../../../lib/projectParser';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
-import { readFileSyncNorm } from "../../readFileSyncNorm";
+import { readFileSyncNorm } from "../../../lib/cli/readFileSyncNorm";
 
 
 let projectParser: ProjectParser;
