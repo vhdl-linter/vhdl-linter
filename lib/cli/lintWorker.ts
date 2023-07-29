@@ -3,51 +3,61 @@ import { parentPort, workerData } from "worker_threads";
 import { ProjectParser } from "../projectParser";
 import { VhdlLinter } from "../vhdlLinter";
 import { readFileSyncNorm } from "./readFileSyncNorm";
-import { MessageWrapper, prettyPrintMessages, readDirPath } from "./cliUtil";
-async function run_test(path: URL, error_expected: boolean, projectParser?: ProjectParser): Promise<MessageWrapper[]> {
-  const messageWrappers: MessageWrapper[] = [];
+import { MessageWrapper, getCodeClimate, prettyPrintMessages, readDirPath } from "./cliUtil";
+import { OIRange } from "../parser/objects";
+async function run_test(path: URL, errorExpected: boolean, printMessages: boolean, projectParser?: ProjectParser): Promise<MessageWrapper[]> {
+  const result: MessageWrapper[] = [];
   if (!projectParser) {
     projectParser = await ProjectParser.create([path]);
   }
   for (const subPath of readDirPath(path)) {
     if (lstatSync(subPath).isDirectory()) {
-      messageWrappers.push(...await run_test(subPath, error_expected, projectParser));
+      result.push(...await run_test(subPath, errorExpected, printMessages, projectParser));
     } else if (subPath.pathname.match(/\.vhdl?$/i)) {
       const text = readFileSyncNorm(subPath, { encoding: 'utf8' });
       const vhdlLinter = new VhdlLinter(subPath, text, projectParser, await projectParser.getDocumentSettings(subPath));
       if (vhdlLinter.parsedSuccessfully) {
         await vhdlLinter.checkAll();
       }
-      if (error_expected === false) {
+      if (errorExpected === false) {
         if (vhdlLinter.messages.length > 0) {
           const newMessage = {
             file: subPath.pathname,
             messages: vhdlLinter.messages
           };
-          messageWrappers.push(newMessage);
-          console.log(prettyPrintMessages([newMessage]));
+          result.push(newMessage);
+          if (printMessages) {
+            console.log(prettyPrintMessages([newMessage]));
+          }
         }
       } else {
         if (vhdlLinter.messages.length !== 1) {
-          const newMessage = {
+          const newMessage: MessageWrapper = {
             file: subPath.pathname,
-            messages: [...vhdlLinter.messages, { message: `One message expected found ${vhdlLinter.messages.length}` }]
+            messages: [
+              ...vhdlLinter.messages,
+              {
+                message: `One message expected found ${vhdlLinter.messages.length}`,
+                range: new OIRange(vhdlLinter.file, 0, 0)
+              }]
           };
-          messageWrappers.push(newMessage);
-          console.log(prettyPrintMessages([newMessage]));
-
+          result.push(newMessage);
+          if (printMessages) {
+            console.log(prettyPrintMessages([newMessage]));
+          }
         }
       }
-
-
     }
   }
 
-  return messageWrappers;
+  return result;
 }
 (async () => {
-  const { path, error_expected } = workerData as { path: string, error_expected: boolean };
-  const messages = await run_test(new URL(path), error_expected);
-
-  parentPort?.postMessage(messages);
+  const { path, errorExpected, outputCodeClimate } = workerData as { path: string, errorExpected: boolean, outputCodeClimate: boolean };
+  const messages = await run_test(new URL(path), errorExpected, outputCodeClimate === false);
+  if (outputCodeClimate === true) {
+    parentPort?.postMessage(getCodeClimate(messages));
+  } else {
+    parentPort?.postMessage(messages);
+  }
 })().catch(err => console.error(err));

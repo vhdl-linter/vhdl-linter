@@ -1,39 +1,24 @@
 import { cpus } from 'os';
-import PQueue from 'p-queue';
 import { argv, cwd } from 'process';
 import { pathToFileURL } from 'url';
-import { isMainThread, Worker } from 'worker_threads';
+import { isMainThread } from 'worker_threads';
 import { joinURL } from '../lib/projectParser';
-import { MessageWrapper, readDirPath } from '../lib/cli/cliUtil';
+import { MessageWrapper, readDirPath, run_test } from '../lib/cli/cliUtil';
 const threadNum = cpus().length / 2;
-const queue = new PQueue({ concurrency: threadNum });
 
 
 // Take each directory in path as a project run test on every file
-async function run_test_folder(path: URL, error_expected: boolean): Promise<MessageWrapper[]> {
+async function run_test_folder(path: URL, errorExpected: boolean): Promise<MessageWrapper[]> {
   const messageWrappers: MessageWrapper[] = [];
 
-  const messages = (await Promise.all(readDirPath(path).map(async subPath => await run_test(subPath, error_expected)))).flat();
+  const messages = (await Promise.all(readDirPath(path).map(async subPath => {
+    if (argv.includes('--no-osvvm') && subPath.toString().includes('OSVVM')) {
+      return [];
+    }
+    return await run_test(subPath, errorExpected, false);
+  }))).flat();
   messageWrappers.push(...messages);
   return messageWrappers;
-}
-// Take path as a project run test on every file
-async function run_test(path: URL, error_expected: boolean): Promise<MessageWrapper[]> {
-  if (argv.includes('--no-osvvm') && path.toString().includes('OSVVM')) {
-    return [];
-  }
-  return await queue.add(() => {
-    const worker = new Worker(__dirname + '/testWorker.js', { workerData: { path: path.toString(), error_expected } });
-    return new Promise((resolve, reject) => {
-
-      worker.on("message", msg => resolve(msg as MessageWrapper[]));
-      worker.on("error", err => reject(err));
-    });
-  }, {
-    priority: path.toString().includes('OSVVM') ? 1 : 0
-  });
-
-
 }
 console.log('Starting tests on test_files');
 console.log(`Running ${threadNum} threads in parallel`);
@@ -44,7 +29,7 @@ console.log(`Running ${threadNum} threads in parallel`);
     const promises = [];
     promises.push(run_test_folder(joinURL(pathToFileURL(cwd()), 'test', 'test_files', 'test_error_expected'), true));
     promises.push(run_test_folder(joinURL(pathToFileURL(cwd()), 'test', 'test_files', 'test_no_error'), false));
-    promises.push(run_test(joinURL(pathToFileURL(cwd()), 'ieee2008'), false));
+    promises.push(run_test(joinURL(pathToFileURL(cwd()), 'ieee2008'), false, false));
     const messages = (await Promise.all(promises)).flat();
     const timeTaken = new Date().getTime() - start;
     let timeOutError = 0;
