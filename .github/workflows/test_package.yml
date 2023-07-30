@@ -21,6 +21,7 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
     - run: npm ci
+    - run: npm run compile
     - run: npx ts-node test/integrationTests/testPackage/fakeVersion.ts
     - run: npm pack >filename
     - run: npx ts-node test/integrationTests/testPackage/testPackage.ts
