@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [16.x, 18.x]
+        node-version: [16.x, 18.x, 20.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
     steps:
     - uses: actions/checkout@v3
@@ -22,4 +22,5 @@ jobs:
         cache: 'npm'
     - run: npm ci
     - run: npx ts-node test/integrationTests/testPackage/fakeVersion.ts
+    - run: npm pack >filename
     - run: npx ts-node test/integrationTests/testPackage/testPackage.ts
