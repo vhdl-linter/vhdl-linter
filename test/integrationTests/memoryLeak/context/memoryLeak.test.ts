@@ -4,7 +4,7 @@ import { pathToFileURL } from 'url';
 import { VhdlLinter } from '../../../../lib/vhdlLinter';
 import { readFileSyncNorm } from '../../../readFileSyncNorm';
 import { join } from 'path';
-import { OContext } from '../../../../lib/parser/objects';
+import { OContext } from '../../../../lib/objects/objectsIndex';
 
 
 test('testing multi elaborate for memory leak', async () => {

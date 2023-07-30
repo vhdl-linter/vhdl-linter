@@ -5,7 +5,7 @@ import { basename, join, resolve } from 'path';
 import { pathToFileURL } from 'url';
 import { DocumentSymbol } from 'vscode-languageserver';
 import { DocumentSymbols } from "../../../lib/languageFeatures/documentSymbol";
-import { OI } from "../../../lib/parser/objects";
+import { OI } from "../../../lib/objects/objectsIndex";
 import { ProjectParser, vhdlGlob } from '../../../lib/projectParser';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { makeRangePrintable } from '../../helper';

@@ -1,4 +1,4 @@
-import * as O from "../parser/objects";
+import * as O from "../objects/objectsIndex";
 
 export function elaborateExpressionInstantiations(file: O.OFile) {
   for (const obj of file.objectList) {

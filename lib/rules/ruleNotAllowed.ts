@@ -1,6 +1,6 @@
 import { DiagnosticSeverity } from "vscode-languageserver";
 import * as I from "../parser/interfaces";
-import * as O from "../parser/objects";
+import * as O from "../objects/objectsIndex";
 import { IRule, RuleBase } from "./rulesBase";
 
 export class RuleNotAllowed extends RuleBase implements IRule {

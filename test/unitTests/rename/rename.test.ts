@@ -2,7 +2,7 @@ import { afterAll, beforeAll, expect, jest, test } from '@jest/globals';
 import { pathToFileURL } from 'url';
 import { CancellationTokenSource, ErrorCodes, Position, Range, ResponseError } from 'vscode-languageserver';
 import { prepareRenameHandler, renameHandler } from '../../../lib/languageFeatures/rename';
-import { OIRange } from '../../../lib/parser/objects';
+import { OIRange } from '../../../lib/objects/objectsIndex';
 import { FileCacheVhdl, ProjectParser } from '../../../lib/projectParser';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { createPrintableRange, makeRangePrintable } from '../../helper';

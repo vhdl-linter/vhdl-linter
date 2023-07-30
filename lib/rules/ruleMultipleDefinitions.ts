@@ -1,7 +1,7 @@
 import { DiagnosticSeverity } from "vscode-languageserver";
 import { OLexerToken } from "../lexer";
 import * as I from "../parser/interfaces";
-import { OArchitecture, OAttributeDeclaration, ObjectBase, OConstant, OFile, OPackageBody, OSignal, OType, OVariable } from "../parser/objects";
+import { OArchitecture, OAttributeDeclaration, ObjectBase, OConstant, OFile, OPackageBody, OSignal, OType, OVariable } from "../objects/objectsIndex";
 import { IRule, RuleBase } from "./rulesBase";
 type objListType = ObjectBase | { lexerToken: OLexerToken };
 

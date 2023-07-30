@@ -1,4 +1,4 @@
-import * as O from "../parser/objects";
+import * as O from "../objects/objectsIndex";
 import { ProjectParser } from "../projectParser";
 import { VhdlLinter } from "../vhdlLinter";
 

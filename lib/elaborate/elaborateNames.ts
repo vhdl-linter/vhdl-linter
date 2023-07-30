@@ -1,6 +1,6 @@
 import * as I from "../parser/interfaces";
-import * as O from "../parser/objects";
-import { OAttributeName } from "../parser/objects";
+import * as O from "../objects/objectsIndex";
+import { OAttributeName } from "../objects/objectsIndex";
 import { VhdlLinter } from "../vhdlLinter";
 export class ElaborateNames {
   file: O.OFile;

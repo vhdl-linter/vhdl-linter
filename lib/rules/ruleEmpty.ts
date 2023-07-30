@@ -1,6 +1,6 @@
 import { RuleBase, IRule } from "./rulesBase";
 import { DiagnosticSeverity } from "vscode-languageserver";
-import { OFile, OI } from "../parser/objects";
+import { OFile, OI } from "../objects/objectsIndex";
 
 export class RuleEmpty extends RuleBase implements IRule {
   public static readonly ruleName = 'empty';

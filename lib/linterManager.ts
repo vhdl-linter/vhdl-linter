@@ -4,7 +4,7 @@ import { CancellationToken, CancellationTokenSource, LSPErrorCodes, ResponseErro
 import { Elaborate } from "./elaborate/elaborate";
 import { normalizeUri } from "./normalizeUri";
 import { implementsIHasDefinitions, implementsIHasNameLinks } from "./parser/interfaces";
-import { OAlias } from "./parser/objects";
+import { OAlias } from "./objects/objectsIndex";
 import { FileCacheVhdl, ProjectParser } from "./projectParser";
 import { VhdlLinter } from "./vhdlLinter";
 

@@ -1,5 +1,5 @@
 import { DiagnosticSeverity } from "vscode-languageserver";
-import { OAttributeName, OFile } from "../parser/objects";
+import { OAttributeName, OFile } from "../objects/objectsIndex";
 import { IRule, RuleBase } from "./rulesBase";
 
 export class RuleAttribute extends RuleBase implements IRule {

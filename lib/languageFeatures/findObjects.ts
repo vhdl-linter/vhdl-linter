@@ -1,7 +1,7 @@
 import { Position } from "vscode-languageserver";
 import { OLexerToken } from "../lexer";
 import { implementsIHasEndingLexerToken, implementsIHasLexerToken } from "../parser/interfaces";
-import { OArchitecture, OAssociation, ObjectBase, OComponent, OConfigurationDeclaration, OName } from "../parser/objects";
+import { OArchitecture, OAssociation, ObjectBase, OComponent, OConfigurationDeclaration, OName } from "../objects/objectsIndex";
 import { VhdlLinter } from "../vhdlLinter";
 import { SetAdd } from "./findReferencesHandler";
 

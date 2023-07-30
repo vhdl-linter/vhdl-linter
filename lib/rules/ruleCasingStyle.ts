@@ -2,7 +2,7 @@ import * as changeCase from "change-case";
 import { DiagnosticSeverity } from "vscode-languageserver";
 import { OLexerToken, TokenType } from "../lexer";
 import * as I from "../parser/interfaces";
-import * as O from "../parser/objects";
+import * as O from "../objects/objectsIndex";
 import { IRule, RuleBase, renameCodeAction } from "./rulesBase";
 
 export class RuleCasingStyle extends RuleBase implements IRule {

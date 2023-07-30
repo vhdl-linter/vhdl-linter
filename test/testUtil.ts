@@ -1,7 +1,7 @@
 import { readdirSync } from "fs";
 import { cwd } from "process";
 import { DiagnosticSeverity } from "vscode-languageserver";
-import { OIRange } from "../lib/parser/objects";
+import { OIRange } from "../lib/objects/objectsIndex";
 import { joinURL } from "../lib/projectParser";
 import { OIDiagnostic } from "../lib/vhdlLinter";
 

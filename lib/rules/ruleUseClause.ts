@@ -1,4 +1,4 @@
-import { OFile, OUseClause } from "../parser/objects";
+import { OFile, OUseClause } from "../objects/objectsIndex";
 import { RuleBase, IRule } from "./rulesBase";
 
 export class RuleUseClause extends RuleBase implements IRule {

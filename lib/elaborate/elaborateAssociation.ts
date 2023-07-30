@@ -1,5 +1,5 @@
 import * as I from "../parser/interfaces";
-import * as O from "../parser/objects";
+import * as O from "../objects/objectsIndex";
 // elaborate association deletes the wrong actualIfInput/actualIfOutput/actualIfInOut
 export function elaborateAssociations(file: O.OFile) {
   for (const association of file.objectList.filter(obj => obj instanceof O.OAssociation) as O.OAssociation[]) {

@@ -1,5 +1,5 @@
 import { CodeAction, CodeActionKind } from "vscode-languageserver";
-import { OFile } from "../parser/objects";
+import { OFile } from "../objects/objectsIndex";
 import { OIDiagnosticWithSolution } from "../vhdlLinter";
 import { IRule, RuleBase } from "./rulesBase";
 

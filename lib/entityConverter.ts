@@ -1,6 +1,6 @@
 import { Position } from 'vscode-languageserver';
 import { findObjectFromPosition } from './languageFeatures/findObjects';
-import { OArchitecture, OEntity, OGeneric, OPort } from './parser/objects';
+import { OArchitecture, OEntity, OGeneric, OPort } from './objects/objectsIndex';
 import { ISettings } from './settingsGenerated';
 import { VhdlLinter } from './vhdlLinter';
 

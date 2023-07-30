@@ -1,4 +1,4 @@
-import { OFile, OIRange, ParserError } from './parser/objects';
+import { OFile, OIRange, ParserError } from './objects/objectsIndex';
 
 export enum TokenType {
   basicIdentifier = 'basicIdentifier',

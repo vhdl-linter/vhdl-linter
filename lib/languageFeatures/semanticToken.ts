@@ -1,6 +1,6 @@
 import { SemanticTokenModifiers, SemanticTokens, SemanticTokensBuilder, SemanticTokensLegend, SemanticTokenTypes } from "vscode-languageserver";
 import * as I from "../parser/interfaces";
-import * as O from "../parser/objects";
+import * as O from "../objects/objectsIndex";
 import { VhdlLinter } from "../vhdlLinter";
 export const semanticTokensLegend: SemanticTokensLegend = {
   tokenTypes: Object.values(SemanticTokenTypes),

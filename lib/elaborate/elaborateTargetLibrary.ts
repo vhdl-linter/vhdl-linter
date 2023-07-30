@@ -1,5 +1,5 @@
 import { DiagnosticSeverity } from "vscode-languageserver";
-import { OIRange } from "../parser/objects";
+import { OIRange } from "../objects/objectsIndex";
 import { VhdlLinter } from "../vhdlLinter";
 
 // in contrast to the usual elaboration this has to be called for *all* cached vhdl files

@@ -1,6 +1,6 @@
 import { MarkupKind, Position, SignatureHelp, SignatureInformation } from "vscode-languageserver";
 import { implementsIHasGenerics } from "../parser/interfaces";
-import { OAliasWithSignature, OConfigurationDeclaration, OGenericAssociationList } from "../parser/objects";
+import { OAliasWithSignature, OConfigurationDeclaration, OGenericAssociationList } from "../objects/objectsIndex";
 import { VhdlLinter } from "../vhdlLinter";
 import { findParentInstantiation } from "./helper/findParentInstantiation";
 export function signatureHelp(linter: VhdlLinter, position: Position): SignatureHelp | null {

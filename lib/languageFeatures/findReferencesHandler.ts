@@ -2,7 +2,7 @@ import { ErrorCodes, Location, Position, ResponseError } from 'vscode-languagese
 import { Elaborate } from '../elaborate/elaborate';
 import { OLexerToken } from '../lexer';
 import { implementsIHasEndingLexerToken, implementsIHasNameLinks } from '../parser/interfaces';
-import { OArchitecture, ObjectBase, OComponent, OConfigurationDeclaration, OEntity, OGeneric, OInstantiation, OInterfacePackage, OPackage, OPackageBody, OPackageInstantiation, OPort, OSubprogram, OVariable } from '../parser/objects';
+import { OArchitecture, ObjectBase, OComponent, OConfigurationDeclaration, OEntity, OGeneric, OInstantiation, OInterfacePackage, OPackage, OPackageBody, OPackageInstantiation, OPort, OSubprogram, OVariable } from '../objects/objectsIndex';
 import { VhdlLinter } from '../vhdlLinter';
 import { findDefinitions } from './findDefinition';
 import { FileCacheVhdl } from '../projectParser';

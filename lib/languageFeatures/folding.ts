@@ -1,6 +1,6 @@
 import { FoldingRange, FoldingRangeKind } from 'vscode-languageserver';
 import * as I from '../parser/interfaces';
-import * as O from '../parser/objects';
+import * as O from '../objects/objectsIndex';
 import { VhdlLinter } from '../vhdlLinter';
 export function foldingHandler(linter: VhdlLinter): FoldingRange[] {
   const result: FoldingRange[] = [];

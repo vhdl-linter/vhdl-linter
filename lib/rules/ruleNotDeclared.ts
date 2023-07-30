@@ -1,7 +1,7 @@
 import { findBestMatch } from "string-similarity";
 import { CodeAction, CodeActionKind, Command, DiagnosticSeverity, DocumentUri, Range, TextEdit } from "vscode-languageserver";
 import * as I from "../parser/interfaces";
-import * as O from "../parser/objects";
+import * as O from "../objects/objectsIndex";
 import { IAddSignalCommandArguments } from "../vhdlLinter";
 import { IRule, RuleBase } from "./rulesBase";
 

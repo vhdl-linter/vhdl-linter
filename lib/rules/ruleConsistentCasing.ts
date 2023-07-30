@@ -1,6 +1,6 @@
 import { RuleBase, IRule } from "./rulesBase";
 import { CodeAction, CodeActionKind, DiagnosticSeverity, TextEdit } from "vscode-languageserver";
-import * as O from "../parser/objects";
+import * as O from "../objects/objectsIndex";
 import { TokenType } from "../lexer";
 
 export class RuleConsistentCasing extends RuleBase implements IRule {

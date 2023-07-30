@@ -1,6 +1,6 @@
 import { CodeAction, CodeActionKind, DiagnosticSeverity, TextEdit } from "vscode-languageserver";
 import { TokenType } from "../lexer";
-import { OFile, OName, OUnit } from "../parser/objects";
+import { OFile, OName, OUnit } from "../objects/objectsIndex";
 import { IRule, RuleBase } from "./rulesBase";
 
 export class RuleUnits extends RuleBase implements IRule {

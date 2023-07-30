@@ -10,7 +10,7 @@ import { CancellationToken, Diagnostic, DiagnosticSeverity, RemoteWorkspace, Wor
 import { Elaborate } from './elaborate/elaborate';
 import { elaborateTargetLibrary } from './elaborate/elaborateTargetLibrary';
 import { SetAdd } from './languageFeatures/findReferencesHandler';
-import { OArchitecture, OConfigurationDeclaration, OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
+import { OArchitecture, OConfigurationDeclaration, OContext, OEntity, OPackage, OPackageInstantiation } from './objects/objectsIndex';
 import { ISettings, defaultSettings, settingsSchema } from './settingsGenerated';
 import { VerilogParser } from './verilogParser';
 import { VhdlLinter } from './vhdlLinter';

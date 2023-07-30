@@ -6,7 +6,7 @@ import { Elaborate } from './elaborate/elaborate';
 import { FileParser } from './parser/fileParser';
 import {
   OFile, OI, OIRange, ParserError
-} from './parser/objects';
+} from './objects/objectsIndex';
 import { ProjectParser } from './projectParser';
 import { rules } from './rules/ruleIndex';
 import { ISettings } from './settingsGenerated';

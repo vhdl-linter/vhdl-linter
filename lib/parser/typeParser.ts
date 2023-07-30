@@ -23,7 +23,7 @@ export class TypeParser extends ParserBase {
       }
       i++;
     }
-    throw new ParserError(`is Units failed in `, this.getToken(0).range);
+    throw new O.ParserError(`is Units failed in `, this.getToken(0).range);
   }
   parse(): OType {
     const type = new OType(this.parent, this.getToken().range.copyExtendEndOfLine());

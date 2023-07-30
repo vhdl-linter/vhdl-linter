@@ -2,7 +2,7 @@ import { expect, test } from '@jest/globals';
 import { pathToFileURL } from 'url';
 import { Lexer, OLexerToken } from '../../../lib/lexer';
 import { ExpressionParser } from '../../../lib/parser/expressionParser';
-import { ObjectBase, OFile, OIRange, OName } from '../../../lib/parser/objects';
+import { ObjectBase, OFile, OIRange, OName } from '../../../lib/objects/objectsIndex';
 import { ParserPosition, ParserState } from '../../../lib/parser/parserBase';
 
 test.each([

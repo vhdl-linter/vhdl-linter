@@ -1,7 +1,7 @@
 import { CodeAction, CodeActionKind } from "vscode-languageserver";
 import { renameHandler } from "../languageFeatures/rename";
 import { OLexerToken, TokenType } from "../lexer";
-import { OFile } from "../parser/objects";
+import { OFile } from "../objects/objectsIndex";
 import { ISettings } from "../settingsGenerated";
 import { OIDiagnostic, VhdlLinter } from "../vhdlLinter";
 

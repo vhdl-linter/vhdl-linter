@@ -1,4 +1,4 @@
-import { OConfigurationDeclaration, OFile } from "../parser/objects";
+import { OConfigurationDeclaration, OFile } from "../objects/objectsIndex";
 import { ProjectParser } from "../projectParser";
 
 export function elaborateConfigurations(file: OFile, projectParser: ProjectParser) {

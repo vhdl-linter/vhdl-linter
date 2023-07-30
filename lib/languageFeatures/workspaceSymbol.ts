@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'url';
 import { SymbolInformation, SymbolKind, WorkspaceSymbolParams } from 'vscode-languageserver';
-import { OProcess, OSubprogram, OPackage, OEntity, OType, ORecordChild } from '../parser/objects';
+import { OProcess, OSubprogram, OPackage, OEntity, OType, ORecordChild } from '../objects/objectsIndex';
 import { FileCacheVhdl, ProjectParser } from '../projectParser';
 
 export function workspaceSymbol(params: WorkspaceSymbolParams, projectParser: ProjectParser, additionalPaths: string[]): SymbolInformation[] | null {

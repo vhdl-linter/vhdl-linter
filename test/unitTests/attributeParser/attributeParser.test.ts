@@ -2,7 +2,7 @@
 import { afterAll, beforeAll, expect, test } from '@jest/globals';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
-import { OAttributeName } from '../../../lib/parser/objects';
+import { OAttributeName } from '../../../lib/objects/objectsIndex';
 import { ProjectParser } from '../../../lib/projectParser';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { readFileSyncNorm } from "../../readFileSyncNorm";

@@ -1,6 +1,6 @@
 import { RuleBase, IRule } from "./rulesBase";
 import { DiagnosticSeverity } from "vscode-languageserver";
-import * as O from "../parser/objects";
+import * as O from "../objects/objectsIndex";
 import { TokenType } from "../lexer";
 import { implementsIHasLabel } from "../parser/interfaces";
 

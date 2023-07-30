@@ -1,6 +1,6 @@
 import { expect, test } from '@jest/globals';
 import { Lexer, OLexerToken, TokenType } from "../../../lib/lexer";
-import { OFile } from '../../../lib/parser/objects';
+import { OFile } from '../../../lib/objects/objectsIndex';
 
 test.each([
   ['1 to i-1', 7, 5]

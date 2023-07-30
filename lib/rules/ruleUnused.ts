@@ -1,6 +1,6 @@
 import { DiagnosticSeverity } from "vscode-languageserver";
 import { IHasLexerToken, IHasNameToken, IHasPorts, implementsIHasDeclarations, implementsIHasGenerics, implementsIHasLexerToken, implementsIHasPorts } from "../parser/interfaces";
-import { ObjectBase, OComponent, OConstant, OEntity, OFile, OPackage, OPackageBody, OPackageInstantiation, OSignal, OSubprogram, OType, OVariable } from "../parser/objects";
+import { ObjectBase, OComponent, OConstant, OEntity, OFile, OPackage, OPackageBody, OPackageInstantiation, OSignal, OSubprogram, OType, OVariable } from "../objects/objectsIndex";
 import { codeActionFromPrefixSuffix, IRule, RuleBase } from "./rulesBase";
 
 export class RuleUnused extends RuleBase implements IRule {

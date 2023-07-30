@@ -1,6 +1,6 @@
 import { DiagnosticSeverity } from "vscode-languageserver";
 import { OLexerToken } from "../lexer";
-import * as O from "../parser/objects";
+import * as O from "../objects/objectsIndex";
 import { codeActionFromPrefixSuffix, IRule, RuleBase } from "./rulesBase";
 
 export class RuleNamingStyle extends RuleBase implements IRule {

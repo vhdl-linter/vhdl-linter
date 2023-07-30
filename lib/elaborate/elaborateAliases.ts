@@ -1,5 +1,5 @@
 import { implementsIHasNameLinks } from "../parser/interfaces";
-import { OAlias, OFile } from "../parser/objects";
+import { OAlias, OFile } from "../objects/objectsIndex";
 
 export function elaborateAliases(file: OFile) {
   for (const alias of file.objectList) {

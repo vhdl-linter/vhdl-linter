@@ -1,6 +1,6 @@
 import { RuleBase, IRule } from "./rulesBase";
 import { DiagnosticSeverity } from "vscode-languageserver";
-import { OConstant, OFile, OGeneric } from "../parser/objects";
+import { OConstant, OFile, OGeneric } from "../objects/objectsIndex";
 
 export class RuleConstantWrite extends RuleBase implements IRule {
   public static readonly ruleName = 'constant-write';

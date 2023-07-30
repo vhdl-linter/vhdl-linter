@@ -1,5 +1,5 @@
 import { Position } from "vscode-languageserver";
-import { OAssociationList, OFile, OInstantiation } from "../../parser/objects";
+import { OAssociationList, OFile, OInstantiation } from "../../objects/objectsIndex";
 import { VhdlLinter } from "../../vhdlLinter";
 import { findObjectFromPosition } from "../findObjects";
 

@@ -1,4 +1,4 @@
-import * as O from "../parser/objects";
+import * as O from "../objects/objectsIndex";
 import { VhdlLinter } from "../vhdlLinter";
 
 export function elaborateInstantiations(vhdlLinter: VhdlLinter) {
