@@ -5,3 +5,5 @@ vunit_out
 coverage
 settings.schema.json
 lib/settingsGenerated.ts
+/*.tgz
+/filename
