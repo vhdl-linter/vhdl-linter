@@ -4,22 +4,23 @@ import { joinURL } from '../projectParser';
 import { pathToFileURL } from 'url';
 import { cwd } from 'process';
 import { DiagnosticSeverity } from 'vscode-languageserver';
-import { run_test } from './cliUtil';
+import { lint_folder } from './lintFolder';
 
 (async () => {
   program
     .name('vhdl-linter')
     .description('A typescript based linter for vhdl')
     .argument('<folder...>', 'The folder to lint')
-    .option('-j --output-json', 'Output message in json compatible with Code Climate Engine Specification (Gitlab & Github compatible)')
+    .option('-j, --output-json', 'Output message in json compatible with Code Climate Engine Specification (Gitlab & Github compatible)')
+    .option('-e, --exclude <pattern...>', 'Exclude pattern for linting. Use the ignore setting from the `vhdl-linter.yml` file to not parse files at all.')
     .parse();
-
+  const options = program.opts();
   const start = new Date().getTime();
   const promises = [];
-  const outputJson = program.opts().outputJson === true;
+  const outputJson = options.outputJson === true;
   for (const folder of program.args) {
     const url = joinURL(pathToFileURL(cwd()), folder);
-    promises.push(run_test(url, false, outputJson));
+    promises.push(lint_folder(url, false, outputJson === false, (options.exclude as string[]|undefined) ?? []));
   }
   const messages = (await Promise.all(promises)).flat();
   if (outputJson) {

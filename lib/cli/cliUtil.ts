@@ -1,26 +1,9 @@
 import { readdirSync } from "fs";
-import { Worker } from 'worker_threads';
 import { DiagnosticSeverity } from "vscode-languageserver";
 import { joinURL } from "../projectParser";
 import { OIDiagnostic } from "../vhdlLinter";
 import { OIRange } from "../parser/objects";
 import { createHash } from "crypto";
-import { cpus } from "os";
-import PQueue from "p-queue";
-import { cwd } from "process";
-const threadNum = cpus().length / 2;
-const queue = new PQueue({ concurrency: threadNum });
-
-// Take path as a project run test on every file
-export async function run_test(path: URL, errorExpected: boolean, outputCodeClimate: boolean): Promise<MessageWrapper[]> {
-  return await queue.add(() => {
-    const worker = new Worker(__dirname + '/lintWorker.js', { workerData: { path: path.toString(), errorExpected, outputCodeClimate } });
-    return new Promise((resolve, reject) => {
-      worker.on("message", msg => resolve(msg as MessageWrapper[]));
-      worker.on("error", err => reject(err));
-    });
-  });
-}
 
 export interface MessageWrapper {
   file: string;
@@ -40,9 +23,9 @@ function getMessageColor(message: OIDiagnostic) {
 export function printRange(range: OIRange) {
   return `${range.start.line}:${range.start.character} - ${range.end.line}:${range.end.character}`;
 }
-export function prettyPrintMessages(messages: MessageWrapper[]) {
+export function prettyPrintMessages(root: string, messages: MessageWrapper[]) {
   return messages.map(message => {
-    const filename = message.file.replace(cwd(), '').substring(3);
+    const filename = message.file.replace(root, '').substring(1);
     return message.messages.slice(0, 5).map((innerMessage) => {
       const messageText = `${getMessageColor(innerMessage)}${innerMessage.message}\u001b[0m`;
       return `${filename}:${innerMessage.range.start.line + 1} (r: ${printRange(innerMessage.range)})\n  ${messageText}`; // lines are 0 based in OI
