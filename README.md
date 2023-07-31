@@ -13,7 +13,7 @@ The `vhdl-linter` can be used as a cli executable or as a VS Code extension.
 ```bash
 npm i -g @vhdl-linter/vhdl-linter
 ```
-This provides the `vhdl-linter-cli` executable.
+This provides the `vhdl-linter` executable.
 ## Extension for VS Code
 - Press `Ctrl+P` to open the VS Code Quick Open Dialog
 - Enter `ext install g0t00.vhdl-linter`

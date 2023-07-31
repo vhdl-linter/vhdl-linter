@@ -8,7 +8,7 @@ import { run_test } from './cliUtil';
 
 (async () => {
   program
-    .name('vhdl-linter-cli')
+    .name('vhdl-linter')
     .description('A typescript based linter for vhdl')
     .argument('<folder...>', 'The folder to lint')
     .option('-j --output-json', 'Output message in json compatible with Code Climate Engine Specification (Gitlab & Github compatible)')

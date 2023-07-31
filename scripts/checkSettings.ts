@@ -1,5 +1,5 @@
-import { _interface } from '../generateSettings';
-import { rules } from './rules/ruleIndex';
+import { _interface } from './generateSettings';
+import { rules } from '../lib/rules/ruleIndex';
 
 // Check rules
 const rulesInInterface = _interface?.rules;

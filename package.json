@@ -11,7 +11,7 @@
 		"vscode": "^1.42.0"
 	},
 	"bin": {
-		"vhdl-linter-cli": "dist/lib/cli/cli.js"
+		"vhdl-linter": "dist/lib/cli/cli.js"
 	},
 	"contributes": {
 		"yamlValidation": [
@@ -567,7 +567,7 @@
 		"lint": "npm run settings && eslint --ext .ts --max-warnings=0 .",
 		"test": "npm run settings && jest && npm run compile && node dist/test/test.js",
 		"coverage": "npm run settings && jest -c jest-coverage.config.js && xdg-open coverage/lcov-report/index.html",
-		"settings": "ts-node generateSettings.ts && ts-node lib/checkSettings.ts"
+		"settings": "ts-node scripts/generateSettings.ts && ts-node scripts/checkSettings.ts"
 	},
 	"dependencies": {
 		"ajv": "^8.12.0",
