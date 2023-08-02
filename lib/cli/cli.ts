@@ -5,6 +5,7 @@ import { pathToFileURL } from 'url';
 import { cwd } from 'process';
 import { DiagnosticSeverity } from 'vscode-languageserver';
 import { lint_folder } from './lintFolder';
+import { getCodeClimate } from './cliUtil';
 
 (async () => {
   program
@@ -24,8 +25,7 @@ import { lint_folder } from './lintFolder';
   }
   const messages = (await Promise.all(promises)).flat();
   if (outputJson) {
-    // console.log(messages[0].location);
-    console.log(JSON.stringify(messages, undefined, 2));
+    console.log(JSON.stringify(getCodeClimate(messages), undefined, 2));
   } else {
     const timeTaken = new Date().getTime() - start;
     console.log(`Linted in ${(timeTaken / 1000).toFixed(2)}s:`);
