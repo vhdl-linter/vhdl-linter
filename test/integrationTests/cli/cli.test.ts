@@ -28,8 +28,7 @@ test('json', () => {
   expect(process.status).toBe(3);
   const result = JSON.parse(process.stdout) as CodeClimateIssue[];
   expect(result).toHaveLength(3);
-  // make paths relative
-  const maskedResult = result.map(entry => ({ ...entry, location: { ...entry.location, path: makeRelative(entry.location.path) } }));
+  const maskedResult = result.map(entry => ({ ...entry, location: { ...entry.location, path: makeRelative(entry.location.path) }, fingerprint: 'fake' }));
   expect(maskedResult).toMatchSnapshot();
 });
 

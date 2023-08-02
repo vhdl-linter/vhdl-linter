@@ -40,7 +40,7 @@ exports[`json 1`] = `
     ],
     "check_name": "vhdl-linter",
     "description": "object 'std_ulogic' is referenced but not declared (not-declared)",
-    "fingerprint": "156ea442586829b4714779eb504a16bee5dcfedefd7c7ca9056beb16f8f640bc",
+    "fingerprint": "fake",
     "location": {
       "path": "test/integrationTests/cli/testFolder/subfolder/error.vhd",
       "positions": {
@@ -63,7 +63,7 @@ exports[`json 1`] = `
     ],
     "check_name": "vhdl-linter",
     "description": "Port is using resolved subtype (std_logic) should use unresolved type std_ulogic  (type-resolved)",
-    "fingerprint": "b737d831a8a63f0215debb447d3268ed58ec166d1a58cbb95f17e1ff13588bc6",
+    "fingerprint": "fake",
     "location": {
       "path": "test/integrationTests/cli/testFolder/subfolder/info.vhd",
       "positions": {
@@ -86,7 +86,7 @@ exports[`json 1`] = `
     ],
     "check_name": "vhdl-linter",
     "description": "Not reading input port 'input' (unused)",
-    "fingerprint": "704e164f2944891718b09dbbf1777c4ddfe806adc110539f1a8286ad8d82e629",
+    "fingerprint": "fake",
     "location": {
       "path": "test/integrationTests/cli/testFolder/subfolder/warning.vhd",
       "positions": {
