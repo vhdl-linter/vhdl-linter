@@ -44,11 +44,10 @@ function isGitIgnored(path: string) {
   }
 }
 function ignore(excludePatterns: string[], relativePath: string, absolutePath: string) {
-
   return excludePatterns.some(glob => minimatch(relativePath, glob)) || isGitIgnored(absolutePath);
 }
 
-export async function lint_folder(path: URL, errorExpected: boolean, printMessages: boolean, excludePatterns: string[], projectParser?: ProjectParser): Promise<MessageWrapper[]> {
+export async function lintFolder(path: URL, errorExpected: boolean, printMessages: boolean, excludePatterns: string[], projectParser?: ProjectParser): Promise<MessageWrapper[]> {
   const result: MessageWrapper[] = [];
   if (!projectParser) {
     projectParser = await ProjectParser.create([path]);
@@ -62,7 +61,7 @@ export async function lint_folder(path: URL, errorExpected: boolean, printMessag
       if (ignore(excludePatterns, relativePath, fileURLToPath(subPath))) {
         continue;
       }
-      result.push(...await lint_folder(subPath, errorExpected, printMessages, excludePatterns, projectParser));
+      result.push(...await lintFolder(subPath, errorExpected, printMessages, excludePatterns, projectParser));
     } else if (minimatch(basename(relativePath), vhdlGlob)) {
       if (ignore(excludePatterns, relativePath, fileURLToPath(subPath))) {
         continue;

@@ -4,8 +4,9 @@ import { joinURL } from '../projectParser';
 import { pathToFileURL } from 'url';
 import { cwd } from 'process';
 import { DiagnosticSeverity } from 'vscode-languageserver';
-import { lint_folder } from './lintFolder';
+import { lintFolder } from './lintFolder';
 import { getCodeClimate } from './cliUtil';
+import { isAbsolute } from 'path';
 
 (async () => {
   program
@@ -20,8 +21,8 @@ import { getCodeClimate } from './cliUtil';
   const promises = [];
   const outputJson = options.outputJson === true;
   for (const folder of program.args) {
-    const url = joinURL(pathToFileURL(cwd()), folder);
-    promises.push(lint_folder(url, false, outputJson === false, (options.exclude as string[]|undefined) ?? []));
+    const url = isAbsolute(folder) ? pathToFileURL(folder) : joinURL(pathToFileURL(cwd()), folder);
+    promises.push(lintFolder(url, false, outputJson === false, (options.exclude as string[]|undefined) ?? []));
   }
   const messages = (await Promise.all(promises)).flat();
   if (outputJson) {
