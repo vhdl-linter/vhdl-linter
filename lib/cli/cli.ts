@@ -1,42 +1,7 @@
 #!/usr/bin/env node
-import { program } from 'commander';
-import { joinURL } from '../projectParser';
-import { pathToFileURL } from 'url';
-import { cwd } from 'process';
-import { DiagnosticSeverity } from 'vscode-languageserver';
-import { lintFolder } from './lintFolder';
-import { getCodeClimate } from './cliUtil';
-import { isAbsolute } from 'path';
+import { cli } from './cliExec';
 
 (async () => {
-  program
-    .name('vhdl-linter')
-    .description('A typescript based linter for vhdl')
-    .argument('<folder...>', 'The folder to lint')
-    .option('-j, --output-json', 'Output message in json compatible with Code Climate Engine Specification (Gitlab & Github compatible)')
-    .option('-e, --exclude <pattern...>', 'Exclude pattern for linting. Use the ignore setting from the `vhdl-linter.yml` file to not parse files at all.')
-    .parse();
-  const options = program.opts();
-  const start = new Date().getTime();
-  const promises = [];
-  const outputJson = options.outputJson === true;
-  for (const folder of program.args) {
-    const url = isAbsolute(folder) ? pathToFileURL(folder) : joinURL(pathToFileURL(cwd()), folder);
-    promises.push(lintFolder(url, false, outputJson === false, (options.exclude as string[]|undefined) ?? []));
-  }
-  const messages = (await Promise.all(promises)).flat();
-  if (outputJson) {
-    console.log(JSON.stringify(getCodeClimate(messages), undefined, 2));
-  } else {
-    const timeTaken = new Date().getTime() - start;
-    console.log(`Linted in ${(timeTaken / 1000).toFixed(2)}s:`);
-
-    const allMessages = messages.flatMap(m => m.messages);
-    const warningCount = allMessages.filter(m => m?.severity === DiagnosticSeverity.Warning).length;
-    const infoCount = allMessages.filter(m => m?.severity === DiagnosticSeverity.Information).length;
-    // default is error
-    const errorCount = allMessages.filter(m => m?.severity !== DiagnosticSeverity.Warning && m?.severity !== DiagnosticSeverity.Information).length;
-    console.log(`${errorCount} error(s), ${warningCount} warning(s), ${infoCount} info(s)`);
-  }
-  process.exit(messages.length);
+  const returnCode = await cli(process.argv);
+  process.exit(returnCode);
 })().catch(err => console.error(err));

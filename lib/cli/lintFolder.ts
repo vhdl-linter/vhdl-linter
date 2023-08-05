@@ -47,11 +47,8 @@ function ignore(excludePatterns: string[], relativePath: string, absolutePath: s
   return excludePatterns.some(glob => minimatch(relativePath, glob)) || isGitIgnored(absolutePath);
 }
 
-export async function lintFolder(path: URL, errorExpected: boolean, printMessages: boolean, excludePatterns: string[], projectParser?: ProjectParser): Promise<MessageWrapper[]> {
+export async function lintFolder(path: URL, errorExpected: boolean, printMessages: boolean, excludePatterns: string[], projectParser: ProjectParser): Promise<MessageWrapper[]> {
   const result: MessageWrapper[] = [];
-  if (!projectParser) {
-    projectParser = await ProjectParser.create([path]);
-  }
   const rootPath = fileURLToPath(projectParser.workspaces[0]!);
   for (const subPath of readDirPath(path)) {
     // in this case we only ever have one workspace
