@@ -28,13 +28,13 @@ async function callCli(argv: string[]) {
 test('no parameters', async () => {
   const process = await callCli([testPath]);
   expect(process.status).toBe(3);
-  expect(process.stdout.replace(/Linted in [\d.]+s:/, '')).toMatchSnapshot();
+  expect(process.stdout.replace(/Linted in [\d.]+s:/, '').replaceAll(/\\/g, '/')).toMatchSnapshot();
 });
 
 test('relative path', async () => {
   const process = await callCli([makeRelative(testPath)]);
   expect(process.status).toBe(3);
-  expect(process.stdout.replace(/Linted in [\d.]+s:/, '')).toMatchSnapshot();
+  expect(process.stdout.replace(/Linted in [\d.]+s:/, '').replaceAll(/\\/g, '/')).toMatchSnapshot();
 });
 
 
@@ -43,7 +43,7 @@ test('json', async () => {
   expect(process.status).toBe(3);
   const result = JSON.parse(process.stdout) as CodeClimateIssue[];
   expect(result).toHaveLength(3);
-  const maskedResult = result.map(entry => ({ ...entry, location: { ...entry.location, path: makeRelative(entry.location.path) }, fingerprint: 'fake' }));
+  const maskedResult = result.map(entry => ({ ...entry, location: { ...entry.location, path: makeRelative(entry.location.path).replaceAll(/\\/g, '/') }, fingerprint: 'fake' }));
   expect(maskedResult).toMatchSnapshot();
 });
 
@@ -56,13 +56,13 @@ test.each([
 ])('exclude %s (expect %s messages)', async (pattern: string, messageCount: number) => {
   const process = await callCli([testPath, '-e', pattern]);
   expect(process.status).toBe(messageCount);
-  expect(process.stdout.replace(/Linted in [\d.]+s:/, '')).toMatchSnapshot();
+  expect(process.stdout.replace(/Linted in [\d.]+s:/, '').replaceAll(/\\/g, '/')).toMatchSnapshot();
 });
 
 test('multiple excludes', async () => {
   const process = await callCli([testPath, '-e', '**/info*', '**/error*']);
   expect(process.status).toBe(1);
-  expect(process.stdout.replace(/Linted in [\d.]+s:/, '')).toMatchSnapshot();
+  expect(process.stdout.replace(/Linted in [\d.]+s:/, '').replaceAll(/\\/g, '/')).toMatchSnapshot();
 });
 
 test('git', async () => {
@@ -76,7 +76,7 @@ test('git', async () => {
     await writeFile(join(gitTestPath, '.gitignore'), 'info*');
     const processIgnore = await callCli([gitTestPath]);
     expect(processIgnore.status).toEqual(2);
-    expect(processIgnore.stdout.replace(/Linted in [\d.]+s:/, '')).toMatchSnapshot();
+    expect(processIgnore.stdout.replace(/Linted in [\d.]+s:/, '').replaceAll(/\\/g, '/')).toMatchSnapshot();
   } finally {
     await rm(gitTestPath, { recursive: true });
   }

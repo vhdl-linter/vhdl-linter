@@ -71,7 +71,7 @@ export async function lintFolder(path: URL, errorExpected: boolean, printMessage
       if (errorExpected === false) {
         if (vhdlLinter.messages.length > 0) {
           const newMessage = {
-            file: subPath.pathname,
+            file: fileURLToPath(subPath),
             messages: vhdlLinter.messages
           };
           result.push(newMessage);
@@ -82,7 +82,7 @@ export async function lintFolder(path: URL, errorExpected: boolean, printMessage
       } else {
         if (vhdlLinter.messages.length !== 1) {
           const newMessage: MessageWrapper = {
-            file: subPath.pathname,
+            file: fileURLToPath(subPath),
             messages: [
               ...vhdlLinter.messages,
               {
