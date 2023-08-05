@@ -32,6 +32,16 @@ subfolder/warning.vhd:3 (r: 2:4 - 2:9)
 "
 `;
 
+exports[`git 1`] = `
+"subfolder/error.vhd:2 (r: 1:15 - 1:25)
+  [31mobject 'std_ulogic' is referenced but not declared (not-declared)[0m
+subfolder/warning.vhd:3 (r: 2:4 - 2:9)
+  [33mNot reading input port 'input' (unused)[0m
+
+1 error(s), 1 warning(s), 0 info(s)
+"
+`;
+
 exports[`json 1`] = `
 [
   {

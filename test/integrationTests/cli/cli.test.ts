@@ -3,8 +3,10 @@ import { join, sep } from "path";
 import { cwd } from "process";
 import { CodeClimateIssue } from "../../../lib/cli/cliUtil";
 import { cli } from "../../../lib/cli/cliExec";
+import { cp, rm, writeFile } from "fs/promises";
 
 const testPath = join(__dirname, 'testFolder');
+const gitTestPath = join(__dirname, 'testFolderGit');
 function makeRelative(path: string) {
   return path.replace(cwd() + sep, '');
 }
@@ -61,4 +63,21 @@ test('multiple excludes', async () => {
   const process = await callCli([testPath, '-e', '**/info*', '**/error*']);
   expect(process.status).toBe(1);
   expect(process.stdout.replace(/Linted in [\d.]+s:/, '')).toMatchSnapshot();
+});
+
+test('git', async () => {
+  try {
+    // copy the files such that they are no longe in the git index and `.gitignore` files work as expected
+    await cp(testPath, gitTestPath, { recursive: true });
+    // no git ignore, all three errors should exist
+    const processNoIgnore = await callCli([gitTestPath]);
+    expect(processNoIgnore.status).toEqual(3);
+    // ignore info* -> expect only the error and warning
+    await writeFile(join(gitTestPath, '.gitignore'), 'info*');
+    const processIgnore = await callCli([gitTestPath]);
+    expect(processIgnore.status).toEqual(2);
+    expect(processIgnore.stdout.replace(/Linted in [\d.]+s:/, '')).toMatchSnapshot();
+  } finally {
+    await rm(gitTestPath, { recursive: true });
+  }
 });
