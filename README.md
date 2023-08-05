@@ -13,7 +13,7 @@ The `vhdl-linter` can be used as a cli executable or as a VS Code extension.
 ```bash
 npm i -g @vhdl-linter/vhdl-linter
 ```
-This provides the `vhdl-linter` executable.
+This provides the `vhdl-linter` executable which can be used to lint one folder from the command line (e.g. for CI).
 ## Extension for VS Code
 - Press `Ctrl+P` to open the VS Code Quick Open Dialog
 - Enter `ext install g0t00.vhdl-linter`
