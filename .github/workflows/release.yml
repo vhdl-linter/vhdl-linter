@@ -69,6 +69,7 @@ jobs:
           bodyFile: ${{ github.workspace }}-CHANGELOG.txt
           tag: ${{ env.GIT_TAG }}
   release-npm:
+    needs: release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
