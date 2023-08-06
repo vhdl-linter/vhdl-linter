@@ -1,12 +1,12 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`exclude **/*.vhd (expect 0 messages) 1`] = `
+exports[`exclude **/*.vhd (expect exitCode 0) 1`] = `
 "
 0 error(s), 0 warning(s), 0 info(s)
 "
 `;
 
-exports[`exclude **/error.vhd (expect 2 messages) 1`] = `
+exports[`exclude **/error.vhd (expect exitCode 0) 1`] = `
 "subfolder/info.vhd:5 (r: 4:14 - 4:23)
   [34mPort is using resolved subtype (std_logic) should use unresolved type std_ulogic  (type-resolved)[0m
 subfolder/warning.vhd:3 (r: 2:4 - 2:9)
@@ -16,13 +16,13 @@ subfolder/warning.vhd:3 (r: 2:4 - 2:9)
 "
 `;
 
-exports[`exclude subfolder (expect 0 messages) 1`] = `
+exports[`exclude subfolder (expect exitCode 0) 1`] = `
 "
 0 error(s), 0 warning(s), 0 info(s)
 "
 `;
 
-exports[`exclude subfolder/info* (expect 2 messages) 1`] = `
+exports[`exclude subfolder/info* (expect exitCode 1) 1`] = `
 "subfolder/error.vhd:2 (r: 1:15 - 1:25)
   [31mobject 'std_ulogic' is referenced but not declared (not-declared)[0m
 subfolder/warning.vhd:3 (r: 2:4 - 2:9)
@@ -117,10 +117,10 @@ exports[`json 1`] = `
 `;
 
 exports[`multiple excludes 1`] = `
-"subfolder/warning.vhd:3 (r: 2:4 - 2:9)
-  [33mNot reading input port 'input' (unused)[0m
+"subfolder/error.vhd:2 (r: 1:15 - 1:25)
+  [31mobject 'std_ulogic' is referenced but not declared (not-declared)[0m
 
-0 error(s), 1 warning(s), 0 info(s)
+1 error(s), 0 warning(s), 0 info(s)
 "
 `;
 

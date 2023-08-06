@@ -1,4 +1,4 @@
-import { expect, test } from "@jest/globals";
+import { expect, test, jest, beforeEach } from "@jest/globals";
 import { join, sep } from "path";
 import { cwd } from "process";
 import { CodeClimateIssue } from "../../../lib/cli/cliUtil";
@@ -24,23 +24,32 @@ async function callCli(argv: string[]) {
     stdout
   };
 }
+beforeEach(() => {
+  jest.clearAllMocks();
+});
+class MockedExitError extends Error { }
+jest.spyOn(process, 'exit').mockImplementation(code => {
+  throw new MockedExitError((code ?? 0).toString());
+});
+const mockedLog = jest.spyOn(console, 'log').mockImplementation((...args) => {});
+mockedLog.
 
 test('no parameters', async () => {
-  const process = await callCli([testPath]);
-  expect(process.status).toBe(3);
+  const process = await callCli([testPath, '']);
+  expect(process.status).toBe(1);
   expect(process.stdout.replace(/Linted in [\d.]+s:/, '').replaceAll(/\\/g, '/')).toMatchSnapshot();
 });
 
 test('relative path', async () => {
   const process = await callCli([makeRelative(testPath)]);
-  expect(process.status).toBe(3);
+  expect(process.status).toBe(1);
   expect(process.stdout.replace(/Linted in [\d.]+s:/, '').replaceAll(/\\/g, '/')).toMatchSnapshot();
 });
 
 
 test('json', async () => {
   const process = await callCli([testPath, '-j']);
-  expect(process.status).toBe(3);
+  expect(process.status).toBe(1);
   const result = JSON.parse(process.stdout) as CodeClimateIssue[];
   expect(result).toHaveLength(3);
   const maskedResult = result.map(entry => ({ ...entry, location: { ...entry.location, path: makeRelative(entry.location.path).replaceAll(/\\/g, '/') }, fingerprint: 'fake' }));
@@ -49,18 +58,18 @@ test('json', async () => {
 
 
 test.each([
-  ['**/error.vhd', 2], // file explicitly
+  ['**/error.vhd', 0], // file explicitly
   ['**/*.vhd', 0], // file wildcards
   ['subfolder', 0], // folders
-  ['subfolder/info*', 2], // files in folder
-])('exclude %s (expect %s messages)', async (pattern: string, messageCount: number) => {
+  ['subfolder/info*', 1], // files in folder
+])('exclude %s (expect exitCode %s)', async (pattern: string, exitCode: number) => {
   const process = await callCli([testPath, '-e', pattern]);
-  expect(process.status).toBe(messageCount);
+  expect(process.status).toBe(exitCode);
   expect(process.stdout.replace(/Linted in [\d.]+s:/, '').replaceAll(/\\/g, '/')).toMatchSnapshot();
 });
 
 test('multiple excludes', async () => {
-  const process = await callCli([testPath, '-e', '**/info*', '**/error*']);
+  const process = await callCli([testPath, '-e', '**/info*', '**/warning*']);
   expect(process.status).toBe(1);
   expect(process.stdout.replace(/Linted in [\d.]+s:/, '').replaceAll(/\\/g, '/')).toMatchSnapshot();
 });
@@ -71,13 +80,23 @@ test('git', async () => {
     await cp(testPath, gitTestPath, { recursive: true });
     // no git ignore, all three errors should exist
     const processNoIgnore = await callCli([gitTestPath]);
-    expect(processNoIgnore.status).toEqual(3);
+    expect(processNoIgnore.status).toEqual(1);
     // ignore info* -> expect only the error and warning
     await writeFile(join(gitTestPath, '.gitignore'), 'info*');
     const processIgnore = await callCli([gitTestPath]);
-    expect(processIgnore.status).toEqual(2);
+    expect(processIgnore.status).toEqual(1);
     expect(processIgnore.stdout.replace(/Linted in [\d.]+s:/, '').replaceAll(/\\/g, '/')).toMatchSnapshot();
   } finally {
     await rm(gitTestPath, { recursive: true });
+  }
+});
+
+
+test('folder parsing', async () => {
+  try {
+    await callCli([join(testPath, 'error.vhd')]);
+  } catch (e) {
+    expect(e).toBeInstanceOf(MockedExitError);
+    expect((e as MockedExitError).message).toBe('1');
   }
 });
