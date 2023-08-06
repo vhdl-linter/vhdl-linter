@@ -562,6 +562,7 @@
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
 		"vscode:postpublish": "git push",
+		"prepublishOnly": "npm run compile",
 		"compile": "npm run settings && tsc --project .",
 		"watch": "npm run settings &&tsc -w  --project  .",
 		"lint": "npm run settings && eslint --ext .ts --max-warnings=0 .",
