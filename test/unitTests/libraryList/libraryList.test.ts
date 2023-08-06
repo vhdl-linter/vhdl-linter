@@ -5,7 +5,7 @@ import { join } from 'path';
 import { pathToFileURL } from 'url';
 import { ProjectParser } from '../../../lib/projectParser';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
-import { readFileSyncNorm } from "../../readFileSyncNorm";
+import { readFileSyncNorm } from "../../../lib/cli/readFileSyncNorm";
 
 
 const files = readdirSync(__dirname).filter(file => file.endsWith('.vhd'));

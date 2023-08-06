@@ -4,7 +4,7 @@ import { pathToFileURL } from 'url';
 import { getTokenFromPosition } from '../../../lib/languageFeatures/findReferencesHandler';
 import { ProjectParser } from '../../../lib/projectParser';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
-import { readFileSyncNorm } from "../../readFileSyncNorm";
+import { readFileSyncNorm } from "../../../lib/cli/readFileSyncNorm";
 import { overwriteSettings } from '../../../lib/settingsUtil';
 
 let projectParser: ProjectParser;

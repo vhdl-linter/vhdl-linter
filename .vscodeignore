@@ -2,3 +2,4 @@
 tsconfig.json
 test
 test_results
+doc/*.xcf

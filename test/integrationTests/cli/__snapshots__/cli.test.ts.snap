@@ -1,0 +1,149 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`exclude **/*.vhd (expect 0 messages) 1`] = `
+"
+0 error(s), 0 warning(s), 0 info(s)
+"
+`;
+
+exports[`exclude **/error.vhd (expect 2 messages) 1`] = `
+"subfolder/info.vhd:5 (r: 4:14 - 4:23)
+  [34mPort is using resolved subtype (std_logic) should use unresolved type std_ulogic  (type-resolved)[0m
+subfolder/warning.vhd:3 (r: 2:4 - 2:9)
+  [33mNot reading input port 'input' (unused)[0m
+
+0 error(s), 1 warning(s), 1 info(s)
+"
+`;
+
+exports[`exclude subfolder (expect 0 messages) 1`] = `
+"
+0 error(s), 0 warning(s), 0 info(s)
+"
+`;
+
+exports[`exclude subfolder/info* (expect 2 messages) 1`] = `
+"subfolder/error.vhd:2 (r: 1:15 - 1:25)
+  [31mobject 'std_ulogic' is referenced but not declared (not-declared)[0m
+subfolder/warning.vhd:3 (r: 2:4 - 2:9)
+  [33mNot reading input port 'input' (unused)[0m
+
+1 error(s), 1 warning(s), 0 info(s)
+"
+`;
+
+exports[`git 1`] = `
+"subfolder/error.vhd:2 (r: 1:15 - 1:25)
+  [31mobject 'std_ulogic' is referenced but not declared (not-declared)[0m
+subfolder/warning.vhd:3 (r: 2:4 - 2:9)
+  [33mNot reading input port 'input' (unused)[0m
+
+1 error(s), 1 warning(s), 0 info(s)
+"
+`;
+
+exports[`json 1`] = `
+[
+  {
+    "categories": [
+      "Style",
+    ],
+    "check_name": "vhdl-linter",
+    "description": "object 'std_ulogic' is referenced but not declared (not-declared)",
+    "fingerprint": "fake",
+    "location": {
+      "path": "test/integrationTests/cli/testFolder/subfolder/error.vhd",
+      "positions": {
+        "begin": {
+          "column": 15,
+          "line": 1,
+        },
+        "end": {
+          "column": 25,
+          "line": 1,
+        },
+      },
+    },
+    "severity": "blocker",
+    "type": "issue",
+  },
+  {
+    "categories": [
+      "Style",
+    ],
+    "check_name": "vhdl-linter",
+    "description": "Port is using resolved subtype (std_logic) should use unresolved type std_ulogic  (type-resolved)",
+    "fingerprint": "fake",
+    "location": {
+      "path": "test/integrationTests/cli/testFolder/subfolder/info.vhd",
+      "positions": {
+        "begin": {
+          "column": 14,
+          "line": 4,
+        },
+        "end": {
+          "column": 23,
+          "line": 4,
+        },
+      },
+    },
+    "severity": "minor",
+    "type": "issue",
+  },
+  {
+    "categories": [
+      "Style",
+    ],
+    "check_name": "vhdl-linter",
+    "description": "Not reading input port 'input' (unused)",
+    "fingerprint": "fake",
+    "location": {
+      "path": "test/integrationTests/cli/testFolder/subfolder/warning.vhd",
+      "positions": {
+        "begin": {
+          "column": 4,
+          "line": 2,
+        },
+        "end": {
+          "column": 9,
+          "line": 2,
+        },
+      },
+    },
+    "severity": "major",
+    "type": "issue",
+  },
+]
+`;
+
+exports[`multiple excludes 1`] = `
+"subfolder/warning.vhd:3 (r: 2:4 - 2:9)
+  [33mNot reading input port 'input' (unused)[0m
+
+0 error(s), 1 warning(s), 0 info(s)
+"
+`;
+
+exports[`no parameters 1`] = `
+"subfolder/error.vhd:2 (r: 1:15 - 1:25)
+  [31mobject 'std_ulogic' is referenced but not declared (not-declared)[0m
+subfolder/info.vhd:5 (r: 4:14 - 4:23)
+  [34mPort is using resolved subtype (std_logic) should use unresolved type std_ulogic  (type-resolved)[0m
+subfolder/warning.vhd:3 (r: 2:4 - 2:9)
+  [33mNot reading input port 'input' (unused)[0m
+
+1 error(s), 1 warning(s), 1 info(s)
+"
+`;
+
+exports[`relative path 1`] = `
+"subfolder/error.vhd:2 (r: 1:15 - 1:25)
+  [31mobject 'std_ulogic' is referenced but not declared (not-declared)[0m
+subfolder/info.vhd:5 (r: 4:14 - 4:23)
+  [34mPort is using resolved subtype (std_logic) should use unresolved type std_ulogic  (type-resolved)[0m
+subfolder/warning.vhd:3 (r: 2:4 - 2:9)
+  [33mNot reading input port 'input' (unused)[0m
+
+1 error(s), 1 warning(s), 1 info(s)
+"
+`;

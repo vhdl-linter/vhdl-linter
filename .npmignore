@@ -1,0 +1,10 @@
+**/*.ts
+tsconfig.json
+test
+test_results
+.github
+.vscode
+.vscodeignore
+coverage
+**/*.map
+doc

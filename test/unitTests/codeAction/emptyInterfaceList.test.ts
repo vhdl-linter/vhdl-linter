@@ -4,7 +4,7 @@ import { pathToFileURL } from 'url';
 import { Position } from 'vscode-languageserver';
 import { ProjectParser } from '../../../lib/projectParser';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
-import { readFileSyncNorm } from "../../readFileSyncNorm";
+import { readFileSyncNorm } from "../../../lib/cli/readFileSyncNorm";
 
 // Check the proposed solution/changes/code actions for diagnostic
 test.each([

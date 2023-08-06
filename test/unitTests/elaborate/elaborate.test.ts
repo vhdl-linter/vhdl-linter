@@ -5,7 +5,7 @@ import { Elaborate } from '../../../lib/elaborate/elaborate';
 import { OAssignment, OChoice } from '../../../lib/parser/objects';
 import { ProjectParser } from '../../../lib/projectParser';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
-import { readFileSyncNorm } from "../../readFileSyncNorm";
+import { readFileSyncNorm } from "../../../lib/cli/readFileSyncNorm";
 
 
 let projectParser: ProjectParser;

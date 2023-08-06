@@ -10,6 +10,9 @@
 	"engines": {
 		"vscode": "^1.42.0"
 	},
+	"bin": {
+		"vhdl-linter": "dist/lib/cli/cli.js"
+	},
 	"contributes": {
 		"yamlValidation": [
 			{
@@ -564,12 +567,13 @@
 		"lint": "npm run settings && eslint --ext .ts --max-warnings=0 .",
 		"test": "npm run settings && jest && npm run compile && node dist/test/test.js",
 		"coverage": "npm run settings && jest -c jest-coverage.config.js && xdg-open coverage/lcov-report/index.html",
-		"settings": "ts-node generateSettings.ts && ts-node lib/checkSettings.ts"
+		"settings": "ts-node scripts/generateSettings.ts && ts-node scripts/checkSettings.ts"
 	},
 	"dependencies": {
 		"ajv": "^8.12.0",
 		"change-case": "^4.1.2",
 		"chokidar": "^3.5.3",
+		"commander": "^11.0.0",
 		"minimatch": "^9.0.2",
 		"string-similarity": "^3.0.0",
 		"vscode-languageclient": "^8.1.0",

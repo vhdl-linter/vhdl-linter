@@ -5,7 +5,7 @@ import { Elaborate } from '../../../lib/elaborate/elaborate';
 import { documentHighlightHandler } from '../../../lib/languageFeatures/documentHighlightHandler';
 import { ProjectParser } from '../../../lib/projectParser';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
-import { readFileSyncNorm } from "../../readFileSyncNorm";
+import { readFileSyncNorm } from "../../../lib/cli/readFileSyncNorm";
 
 
 

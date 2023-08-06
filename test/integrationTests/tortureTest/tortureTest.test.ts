@@ -4,7 +4,7 @@ import { join } from "path";
 import { pathToFileURL } from "url";
 import { joinURL, ProjectParser } from "../../../lib/projectParser";
 import { VhdlLinter } from "../../../lib/vhdlLinter";
-import { readFileSyncNorm } from "../../readFileSyncNorm";
+import { readFileSyncNorm } from "../../../lib/cli/readFileSyncNorm";
 let projectParser: ProjectParser;
 const filesURL = pathToFileURL(join(__dirname, 'tortureFiles'));
 const tortureEntityURL = joinURL(filesURL, 'torture_entity.vhd');

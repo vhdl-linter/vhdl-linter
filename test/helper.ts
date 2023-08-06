@@ -3,7 +3,7 @@ import { pathToFileURL } from "url";
 import { CodeAction, Position, Range } from "vscode-languageserver";
 import { ProjectParser } from "../lib/projectParser";
 import { VhdlLinter } from "../lib/vhdlLinter";
-import { readFileSyncNorm } from "./readFileSyncNorm";
+import { readFileSyncNorm } from "../lib/cli/readFileSyncNorm";
 import { overwriteSettings } from "../lib/settingsUtil";
 import { DeepPartial } from "utility-types";
 import { ISettings } from "../lib/settingsGenerated";

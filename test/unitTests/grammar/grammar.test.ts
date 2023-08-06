@@ -1,7 +1,7 @@
 import { beforeAll, expect, test } from '@jest/globals';
 import { readFileSync } from "fs";
 import { readFile } from "fs/promises";
-import { readFileSyncNorm } from '../../readFileSyncNorm';
+import { readFileSyncNorm } from '../../../lib/cli/readFileSyncNorm';
 import path = require("path");
 import oniguruma = require('vscode-oniguruma');
 import vscodeTextmate = require('vscode-textmate');

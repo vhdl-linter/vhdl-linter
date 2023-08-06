@@ -2,7 +2,7 @@ import { afterAll, beforeAll, expect, test } from '@jest/globals';
 import { FileCacheLibraryList, ProjectParser } from '../../../lib/projectParser';
 import { pathToFileURL } from 'url';
 import { join } from 'path';
-import { readFileSyncNorm } from '../../readFileSyncNorm';
+import { readFileSyncNorm } from '../../../lib/cli/readFileSyncNorm';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { sanitizeActions } from '../../helper';
 import { readdirSync } from 'fs';

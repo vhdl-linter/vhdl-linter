@@ -7,7 +7,7 @@ import { pathToFileURL } from 'url';
 import { joinURL, ProjectParser } from '../lib/projectParser';
 import { VhdlLinter } from '../lib/vhdlLinter';
 
-import { readFileSyncNorm } from "./readFileSyncNorm";
+import { readFileSyncNorm } from "../lib/cli/readFileSyncNorm";
 function readDirPath(path: URL) {
   return readdirSync(path).map(file => joinURL(path, file));
 }

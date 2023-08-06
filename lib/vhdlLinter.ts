@@ -28,9 +28,8 @@ export interface IIgnoreLineCommandArguments {
   range: Range;
 }
 type diagnosticCodeActionCallback = (textDocumentUri: string) => Promise<CodeAction[]> | CodeAction[];
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export class VhdlLinter {
-  messages: Diagnostic[] = [];
+  messages: OIDiagnostic[] = [];
   file: OFile;
   parser?: FileParser;
   parsedSuccessfully = false;
@@ -78,7 +77,7 @@ export class VhdlLinter {
           message = `Javascript error while parsing '${e.message}' ${e.stack ?? ''}`;
         }
         this.messages.push({
-          range: Range.create(Position.create(0, 0), Position.create(10, 10)),
+          range: new OIRange(this.file, 0, 50),
           message
         });
         console.error(e);
@@ -205,9 +204,9 @@ export class VhdlLinter {
       if ((err instanceof ResponseError && err.code === LSPErrorCodes.RequestCancelled)) {
         throw err;
       } else if (err instanceof ParserError) {
-        this.messages.push(Diagnostic.create(err.range, `Error while parsing: '${err.message}'`));
+        this.messages.push({ range: err.range, message: `Error while parsing: '${err.message}'` });
       } else {
-        this.messages.push(Diagnostic.create(Range.create(Position.create(0, 0), Position.create(10, 100)), `Error while checking: '${(err as Error)?.message}'\n${(err as Error)?.stack ?? ''}`));
+        this.messages.push({ range: new OIRange(this.file, 0, 50), message: `Error while checking: '${(err as Error)?.message}'\n${(err as Error)?.stack ?? ''}` });
       }
     }
 
