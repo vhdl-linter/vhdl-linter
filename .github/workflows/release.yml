@@ -80,7 +80,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       - run: |
           npm ci
-          npx ts-node prepareNpmRelease.ts
+          npx ts-node scripts/prepareNpmRelease.ts
           npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPMJS_TOKEN }}
