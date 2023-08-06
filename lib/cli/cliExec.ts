@@ -1,5 +1,5 @@
 import { Command, InvalidArgumentError } from '@commander-js/extra-typings';
-import { ProjectParser, joinURL } from '../projectParser';
+import { ProjectParser } from '../projectParser';
 import { pathToFileURL } from 'url';
 import { cwd } from 'process';
 import { DiagnosticSeverity } from 'vscode-languageserver';

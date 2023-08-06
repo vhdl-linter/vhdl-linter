@@ -1,4 +1,4 @@
-import { expect, test, jest, beforeEach } from "@jest/globals";
+import { expect, test, jest } from "@jest/globals";
 import { join, sep } from "path";
 import { cwd } from "process";
 import { CodeClimateIssue } from "../../../lib/cli/cliUtil";
@@ -9,6 +9,9 @@ const testPath = join(__dirname, 'testFolder');
 const gitTestPath = join(__dirname, 'testFolderGit');
 function makeRelative(path: string) {
   return path.replace(cwd() + sep, '');
+}
+function sanitizeTextOutput(stdout: string) {
+  return stdout.replace(/Linted in [\d.]+s:/, '').replaceAll(/\\/g, '/');
 }
 
 async function callCli(argv: string[]) {
@@ -24,26 +27,21 @@ async function callCli(argv: string[]) {
     stdout
   };
 }
-beforeEach(() => {
-  jest.clearAllMocks();
-});
 class MockedExitError extends Error { }
 jest.spyOn(process, 'exit').mockImplementation(code => {
   throw new MockedExitError((code ?? 0).toString());
 });
-const mockedLog = jest.spyOn(console, 'log').mockImplementation((...args) => {});
-mockedLog.
 
 test('no parameters', async () => {
   const process = await callCli([testPath, '']);
   expect(process.status).toBe(1);
-  expect(process.stdout.replace(/Linted in [\d.]+s:/, '').replaceAll(/\\/g, '/')).toMatchSnapshot();
+  expect(sanitizeTextOutput(process.stdout)).toMatchSnapshot();
 });
 
 test('relative path', async () => {
   const process = await callCli([makeRelative(testPath)]);
   expect(process.status).toBe(1);
-  expect(process.stdout.replace(/Linted in [\d.]+s:/, '').replaceAll(/\\/g, '/')).toMatchSnapshot();
+  expect(sanitizeTextOutput(process.stdout)).toMatchSnapshot();
 });
 
 
@@ -65,13 +63,13 @@ test.each([
 ])('exclude %s (expect exitCode %s)', async (pattern: string, exitCode: number) => {
   const process = await callCli([testPath, '-e', pattern]);
   expect(process.status).toBe(exitCode);
-  expect(process.stdout.replace(/Linted in [\d.]+s:/, '').replaceAll(/\\/g, '/')).toMatchSnapshot();
+  expect(sanitizeTextOutput(process.stdout)).toMatchSnapshot();
 });
 
 test('multiple excludes', async () => {
   const process = await callCli([testPath, '-e', '**/info*', '**/warning*']);
   expect(process.status).toBe(1);
-  expect(process.stdout.replace(/Linted in [\d.]+s:/, '').replaceAll(/\\/g, '/')).toMatchSnapshot();
+  expect(sanitizeTextOutput(process.stdout)).toMatchSnapshot();
 });
 
 test('git', async () => {
@@ -85,18 +83,45 @@ test('git', async () => {
     await writeFile(join(gitTestPath, '.gitignore'), 'info*');
     const processIgnore = await callCli([gitTestPath]);
     expect(processIgnore.status).toEqual(1);
-    expect(processIgnore.stdout.replace(/Linted in [\d.]+s:/, '').replaceAll(/\\/g, '/')).toMatchSnapshot();
+    expect(sanitizeTextOutput(processIgnore.stdout)).toMatchSnapshot();
   } finally {
     await rm(gitTestPath, { recursive: true });
   }
 });
 
 
-test('folder parsing', async () => {
+test('invalid parameters', async () => {
+  // is a file
   try {
     await callCli([join(testPath, 'error.vhd')]);
   } catch (e) {
     expect(e).toBeInstanceOf(MockedExitError);
     expect((e as MockedExitError).message).toBe('1');
   }
+  // does not exist
+  try {
+    await callCli([join(testPath, 'x')]);
+  } catch (e) {
+    expect(e).toBeInstanceOf(MockedExitError);
+    expect((e as MockedExitError).message).toBe('1');
+  }
+  // invalid int
+  try {
+    await callCli([join(testPath, '-i', '1.3')]);
+  } catch (e) {
+    expect(e).toBeInstanceOf(MockedExitError);
+    expect((e as MockedExitError).message).toBe('1');
+  }
+});
+
+test('max 0 info', async () => {
+  const process = await callCli([testPath, '-i', '0', '-e', '**/error*', '**/warning*']);
+  expect(process.status).toBe(1);
+  expect(sanitizeTextOutput(process.stdout)).toMatchSnapshot();
+});
+
+test('max 0 warning', async () => {
+  const process = await callCli([testPath, '-w', '0', '-e', '**/error*', '**/info*']);
+  expect(process.status).toBe(1);
+  expect(sanitizeTextOutput(process.stdout)).toMatchSnapshot();
 });
