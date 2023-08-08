@@ -16,7 +16,7 @@ execSync(`npm install ${join(__dirname, '..', '..', '..', packagePath)}`);
 
 let err: unknown;
 try {
-  execSync(`npx  vhdl-linter ../vhdlFolder -j`, { encoding: 'utf8', cwd: __dirname });
+  execSync(`npx  vhdl-linter ./vhdlFolder -j --max-warning 0`, { encoding: 'utf8'});
 } catch (_err: unknown) {
   err = _err;
 }
