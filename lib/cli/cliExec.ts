@@ -32,7 +32,7 @@ export async function cli(argv: string[]) {
     .option('-j, --output-json', 'Output message in json compatible with Code Climate Engine Specification (Gitlab & Github compatible)', false)
     .option('-e, --exclude <pattern...>', 'Exclude pattern for linting. Use the ignore setting from the `vhdl-linter.yml` file to not parse files at all.', [])
     .option('-i, --max-info <count>', 'Number of information messages to trigger a nonzero exit code', integerParam, -1)
-    .option('-w, --max-warning <count>', 'Number of information messages to trigger a nonzero exit code', integerParam, -1)
+    .option('-w, --max-warnings <count>', 'Number of information messages to trigger a nonzero exit code', integerParam, -1)
     .parse(argv);
   const options = program.opts();
   const start = new Date().getTime();
