@@ -54,7 +54,7 @@ export async function cli(argv: string[]) {
   }
   if (errorCount > 0) {
     return 1;
-  } else if (warningCount > options.maxWarning && options.maxWarning !== -1) {
+  } else if (warningCount > options.maxWarnings && options.maxWarnings !== -1) {
     return 1;
   } else if (infoCount > options.maxInfo && options.maxInfo !== -1) {
     return 1;
