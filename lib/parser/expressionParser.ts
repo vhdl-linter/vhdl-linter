@@ -170,6 +170,7 @@ export class ExpressionParser {
     let parent: O.OName | undefined;
     let afterComma = false;
     let selectedNamePrefix: O.OName | undefined;
+    const maybeWriteInitial = maybeWrite;
     while (this.expState.num < this.tokens.length && this.getNumToken()?.getLText() !== ')') {
       if (this.getNumToken()?.getLText() === '(') {
         this.expState.braceLevel++;
@@ -223,6 +224,8 @@ export class ExpressionParser {
           // The exception is in an aggregate all aggregate elements are written. (aggregate elements are separated by ',')
           if (breakToken !== ',' && breakToken !== '=>') {
             maybeWrite = false;
+          } else if (maybeWriteInitial) { // This needs to be reset afterwards (example for selected names in aggregate)
+            maybeWrite = maybeWriteInitial;
           }
           for (const innerRef of innerReferences) {
             // This is a bit hacky... When there is a cast in the formal reference side. Assume the last token is the actual formal reference
