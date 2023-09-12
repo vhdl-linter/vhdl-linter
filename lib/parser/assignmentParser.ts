@@ -22,13 +22,10 @@ export class AssignmentParser extends ParserBase {
 
     assignment.postponed = postponed;
     assignment.label = label;
-    let leftHandSideNum = this.state.pos.num;
+    const leftHandSideNum = this.state.pos.num;
     this.findToken(['<=', ':=']);
     const leftHandSideTokens = [];
-    while (leftHandSideNum < this.state.pos.num) {
-      leftHandSideTokens.push(this.state.pos.lexerTokens[leftHandSideNum]!);
-      leftHandSideNum++;
-    }
+    leftHandSideTokens.push(...this.state.pos.lexerTokens.slice(leftHandSideNum, this.state.pos.num));
     const expressionParser = new ExpressionParser(this.state, assignment, leftHandSideTokens);
     assignment.names = expressionParser.parseTarget();
     assignment.names.unshift(...withNames);
