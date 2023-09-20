@@ -196,7 +196,7 @@ export class SequentialStatementParser extends ParserBase {
     this.expect(';');
     return statement;
   }
-  
+
   parseExit(parent: O.OSequenceOfStatements | O.OIf, label?: OLexerToken) {
     this.expect('exit');
     const exitStatement = new O.OExit(parent, this.getToken().range.copyExtendEndOfLine());
@@ -285,6 +285,7 @@ export class SequentialStatementParser extends ParserBase {
   parseCase(parent: O.ObjectBase, label?: OLexerToken): O.OCase {
     this.debug(`parseCase ${label?.text ?? ''}`);
     const case_ = new O.OCase(parent, this.getToken(-1, true).range.copyExtendEndOfLine());
+    case_.matching = this.maybe('?') !== undefined;
     const [expressionTokens] = this.advanceParenthesisAware(['is']);
     case_.expression = new ExpressionParser(this.state, case_, expressionTokens).parse();
 
@@ -299,7 +300,15 @@ export class SequentialStatementParser extends ParserBase {
       case_.whenClauses.push(whenClause);
     }
     this.expect('end');
-    this.expect('case');
+    const caseToken = this.expect('case');
+    if (case_.matching) {
+      if (!this.maybe('?')) {
+        this.state.messages.push({
+          message: 'This case statement begins with a question mark delimiter (matching case). A question mark is required at the end as well!',
+          range: caseToken.range.copyExtendEndOfLine()
+        });
+      }
+    }
     if (label) {
       this.maybe(label);
     }
