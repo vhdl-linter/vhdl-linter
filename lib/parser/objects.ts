@@ -676,6 +676,7 @@ export class OCase extends ObjectBase implements I.IMayHaveLabel {
   whenClauses: OWhenClause[] = [];
   label?: OLexerToken;
   labelLinks: OLabelName[] = [];
+  matching = false;
 }
 export class OWhenClause extends OSequenceOfStatements {
   condition: OName[] = [];
