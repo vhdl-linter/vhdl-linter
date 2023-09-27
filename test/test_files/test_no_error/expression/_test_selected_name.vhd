@@ -21,7 +21,7 @@ package body test_selected_name is
   impure function GetNamePlus(ID : integer) return string is
     ------------------------------------------------------------
     type ItemArrayPtrType is access ItemArrayType;
-    variable Template : ItemArrayType(1 to 1) := (1 => (CovMessage => null));
+    variable Template : ItemArrayType(1 to 1) := (1 => (CovMessage => null)); -- vhdl-linter-disable-line unused
 
     variable CovStructPtr : ItemArrayPtrType := new ItemArrayType'(Template);  -- vhdl-linter-disable-line unused
 
