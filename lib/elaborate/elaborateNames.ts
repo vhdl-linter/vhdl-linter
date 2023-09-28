@@ -403,6 +403,7 @@ export class ElaborateNames {
     for (const typeDef of lastPrefix.definitions.flatMap(def => I.implementsIHasSubTypeIndication(def) ? this.getTypeDefinitions(def) : [])) {
       this.elaborateTypeChildren(name, typeDef);
     }
+    // TODO: External names are now supported for Aliases, but they can be used everywhere where names are allowed. Need to fix this more completly...
     // Handle when the last token is referencing an external name
     for (const typeDefinition of lastPrefix.definitions) {
       if (typeDefinition instanceof O.OAlias) {
