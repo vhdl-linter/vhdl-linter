@@ -1,12 +1,12 @@
 import { join } from "path";
 import { pathToFileURL } from "url";
-import { CodeAction, Position, Range } from "vscode-languageserver";
-import { ProjectParser } from "../lib/projectParser";
-import { VhdlLinter } from "../lib/vhdlLinter";
-import { readFileSyncNorm } from "../lib/cli/readFileSyncNorm";
-import { overwriteSettings } from "../lib/settingsUtil";
 import { DeepPartial } from "utility-types";
+import { CodeAction, Position, Range } from "vscode-languageserver";
+import { readFileSyncNorm } from "../lib/cli/readFileSyncNorm";
+import { ProjectParser } from "../lib/projectParser";
 import { ISettings } from "../lib/settingsGenerated";
+import { overwriteSettings } from "../lib/settingsUtil";
+import { VhdlLinter } from "../lib/vhdlLinter";
 
 export function makeRangePrintable(range: Range) {
   return `${range.start.line + 1}:${range.start.character + 1} - ${range.end.line + 1}:${range.end.character + 1}`;
@@ -39,7 +39,12 @@ export function createPrintablePosition(onesLine: number, onesCharacter: number)
   return position;
 }
 
-export async function runLinterGetMessages(folder: string, file: string, settingsOverwrite: DeepPartial<ISettings>) {
+export async function runLinterGetMessages(folder: string, file: string, settingsOverwrite: DeepPartial<ISettings> = {}) {
+
+  const [messages] = await runLinterGetMessagesAndFile(folder, file, settingsOverwrite);
+  return messages;
+}
+export async function runLinterGetMessagesAndFile(folder: string, file: string, settingsOverwrite: DeepPartial<ISettings> = {}) {
 
   const projectParser = await ProjectParser.create([pathToFileURL(folder)]);
   const uri = pathToFileURL(join(folder, file));
@@ -47,7 +52,7 @@ export async function runLinterGetMessages(folder: string, file: string, setting
     overwriteSettings(await projectParser.getDocumentSettings(uri), settingsOverwrite));
   const messages = await linter.checkAll();
   await projectParser.stop();
-  return messages;
+  return [messages, linter.file] as const;
 }
 export function sanitizeActions(actions: CodeAction[]) {
   for (const action of actions) {
