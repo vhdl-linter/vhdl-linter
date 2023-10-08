@@ -7,7 +7,7 @@ import { ContextReferenceParser } from './contextReferenceParser';
 import { EntityParser } from './entityParser';
 import { ExpressionParser } from './expressionParser';
 import { IHasUseClauses } from './interfaces';
-import { MagicCommentType, ObjectBase, OFile, OI, OIRange, OLibrary, OMagicCommentDisable, OName, OPackageInstantiation, OSelectedName, OUseClause, ParserError } from './objects';
+import { MagicCommentType, OFile, OI, OIRange, OLibrary, OMagicCommentDisable, OName, OPackageInstantiation, OSelectedName, OUseClause, ObjectBase, ParserError } from './objects';
 import { PackageInstantiationParser } from './packageInstantiationParser';
 import { PackageParser } from './packageParser';
 import { ParserBase, ParserPosition, ParserState } from './parserBase';
@@ -69,7 +69,7 @@ export class FileParser extends ParserBase {
             ));
           }
 
-        } else if ((innerMatch = (match[2].match(/-disable-next-line(?:\s|$)(.+)?/i) as [string, string] |null)) !== null) {
+        } else if ((innerMatch = (match[2].match(/-disable-next-line(?:\s|$)(.+)?/i) as [string, string] | null)) !== null) {
           for (const rule of innerMatch[1]?.split(' ') ?? [undefined]) {
             this.file.magicComments.push(new OMagicCommentDisable(
               this.file,
@@ -144,7 +144,27 @@ export class FileParser extends ParserBase {
     this.advanceWhitespace();
 
     while (this.state.pos.isValid()) {
-      const nextToken = this.consumeToken();
+      let nextToken = this.consumeToken();
+      const allowedKeywords = [
+        'context', 'library', 'use', 'entity', 'architecture', 'package', 'configuration'
+      ];
+      const errorTokens = [];
+      while (allowedKeywords.includes(nextToken.getLText()) === false) {
+        errorTokens.push(nextToken);
+        if (this.state.pos.isValid()) {
+          nextToken = this.consumeToken();
+        } else {
+          break;
+        }
+      }
+      if (errorTokens.length > 0) {
+        const range = errorTokens[0]!.range.copyWithNewEnd(errorTokens.at(-1)!.range);
+        this.state.messages.push({
+          message: `Unexpected statement '${range.getText().slice(0, 50)}' in file scope. Expecting on of *${allowedKeywords.join(',')}*`,
+
+          range,
+        });
+      }
       if (nextToken.getLText() === 'context') {
         if (this.advanceSemicolon(false).find(token => token.getLText() === 'is')) {
           const contextParser = new ContextParser(this.state, this.file);
@@ -238,9 +258,9 @@ export class FileParser extends ParserBase {
         contextReferences = [];
         libraries = defaultLibrary.slice(0);
         useClausesPrepare = [];
-      } else {
-        throw new ParserError(`Unexpected token ${nextToken.text}`, this.getToken().range);
       }
+
+
       this.advanceWhitespace();
 
     }
