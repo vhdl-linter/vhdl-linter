@@ -181,7 +181,7 @@ export class ExpressionParser {
       } else if (this.getNumToken()!.getLText() === '<<') {
         const externalName = this.parseExternalName();
         if (externalName) {
-          innerReferences.push([externalName]);
+          references.push(externalName);
         }
       } else {
         const breakTokens = [',', '=>',
@@ -379,8 +379,13 @@ export class ExpressionParser {
     if (path.length === 0) {
       return;
     } else {
+      if (typeTokens.length == 0) {
+        throw new O.ParserError(`Invalid external name`, ltToken.range.copyWithNewEnd(this.tokens.at(-1)!.range));
+      }
       const externalName = new O.OExternalName(this.parent, path as ([OLexerToken]), kind, ltToken.range.copyWithNewEnd(gtToken.range));
-      externalName.typeNames = new ExpressionParser(this.state, externalName, typeTokens).parse();
+      externalName.subtypeIndication = new O.OSubtypeIndication(externalName, typeTokens.at(0)!.range.copyWithNewEnd(typeTokens.at(-1)!.range));
+      externalName.subtypeIndication.typeNames = new ExpressionParser(this.state, externalName, typeTokens).parse();
+
       return externalName;
     }
   }

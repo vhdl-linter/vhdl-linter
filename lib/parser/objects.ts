@@ -231,6 +231,9 @@ export class OName extends ObjectBase implements I.IHasDefinitions, I.IHasNameTo
   afterComma = false;
   maybeFormal = false;
   functionInFormalException = false;
+  toString() {
+    return this.nameToken.text;
+  }
 }
 export class OAggregate extends OName {
 
@@ -238,8 +241,7 @@ export class OAggregate extends OName {
 export class OChoice extends OName {
 }
 export class OExternalName extends OName {
-
-  typeNames: OName[] = [];
+  subtypeIndication: OSubtypeIndication;
   constructor(public parent: ObjectBase, public path: [OLexerToken], public kind: OLexerToken, range: OIRange) {
     super(parent, path[0], false, range);
   }
@@ -746,6 +748,9 @@ export class OAssertion extends ObjectBase implements I.IMayHaveLabel {
 export class OSelectedName extends OName {
   constructor(public parent: ObjectBase, public nameToken: OLexerToken, public prefixTokens: SelectedNamePrefix, public write = false) {
     super(parent, nameToken, write, nameToken.range.copyWithNewStart(prefixTokens[0].range));
+  }
+  toString(): string {
+    return this.prefixTokens.map(token => token.nameToken.text).join('.') + '.' + this.nameToken.text;
   }
 }
 export class OUseClause extends ObjectBase {

@@ -261,7 +261,7 @@ export class ElaborateNames {
     });
   }
   // get the definitions of the typeNames of the subtype indication
-  getTypeDefinitions(obj: O.ObjectBase & I.IHasSubtypeIndication) {
+  getTypeDefinitions(obj: O.ObjectBase & I.IHasSubtypeIndication): O.ObjectBase[] {
     return obj.subtypeIndication.typeNames.flatMap(type => {
       this.elaborate(type);
       if (type instanceof O.OAttributeName) {
@@ -274,6 +274,17 @@ export class ElaborateNames {
           return this.getSubtypeAttributeDefinition(obj);
         }
         return obj;
+      })
+      .flatMap(obj => {
+        if (obj instanceof O.OAlias) {
+          return obj.name.flatMap(name => {
+            if (name instanceof O.OExternalName) {
+              return this.getTypeDefinitions(name);
+            }
+            return [];
+          });
+        }
+        return [obj];
       });
   }
 
@@ -400,23 +411,19 @@ export class ElaborateNames {
     }
 
     // previous token is type (e.g. protected or record) or alias -> expect stuff from within
-    for (const typeDef of lastPrefix.definitions.flatMap(def => I.implementsIHasSubTypeIndication(def) ? this.getTypeDefinitions(def) : [])) {
+    for (const typeDef of lastPrefix.definitions.flatMap(def => {
+      const result = [];
+      if (I.implementsIHasSubTypeIndication(def)) {
+        result.push(...this.getTypeDefinitions(def));
+      }
+      if (def instanceof O.OAlias) {
+        result.push(...def.name.flatMap(name => name instanceof O.OExternalName ? this.getTypeDefinitions(name) : []));
+      }
+      return result;
+    })) {
       this.elaborateTypeChildren(name, typeDef);
     }
-    // TODO: External names are now supported for Aliases, but they can be used everywhere where names are allowed. Need to fix this more completly...
-    // Handle when the last token is referencing an external name
-    for (const typeDefinition of lastPrefix.definitions) {
-      if (typeDefinition instanceof O.OAlias) {
-        if (typeDefinition.name[0] instanceof O.OAggregate && typeDefinition.name[0].children[0]?.[0] instanceof O.OExternalName) {
-          for (const typeName of typeDefinition.name[0].children[0]?.[0].typeNames ?? []) {
-            for (const definition of typeName.definitions) {
-              this.elaborateTypeChildren(name, definition);
 
-            }
-          }
-        }
-      }
-    }
     // previous token is package
     const packages = lastPrefix.definitions.filter(def => def instanceof O.OPackage) as O.OPackage[];
     // previous token is pkg inst or interface pkg -> find stuff from the uninstantiated package
