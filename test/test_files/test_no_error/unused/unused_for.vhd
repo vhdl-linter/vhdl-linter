@@ -9,7 +9,7 @@ begin
     end loop;
     wait;
   end process;
-  label_x : for I in range generate
+  label_x : for I in 1 to 10 generate
 
   end generate;
 end architecture;
