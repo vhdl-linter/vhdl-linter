@@ -3,6 +3,7 @@ import {
   CodeAction, CodeActionKind, Diagnostic, DiagnosticSeverity, LSPErrorCodes, Position, Range, ResponseError, TextEdit
 } from 'vscode-languageserver';
 import { Elaborate } from './elaborate/elaborate';
+import { OLexerToken } from './lexer';
 import { FileParser } from './parser/fileParser';
 import {
   OFile, OI, OIRange, ParserError
@@ -34,7 +35,8 @@ export class VhdlLinter {
   parser?: FileParser;
   parsedSuccessfully = false;
   elaborated = false;
-
+  // Store data for casing style actions (For the do all in file button)
+  casingStyleActions : {token: OLexerToken, newName: string}[] = [];
   constructor(public uri: URL, public text: string, public projectParser: ProjectParser,
     public settings: ISettings,
     public token?: CancellationToken) {

@@ -1,5 +1,6 @@
 import * as changeCase from "change-case";
-import { DiagnosticSeverity } from "vscode-languageserver";
+import { CodeAction, CodeActionKind, DiagnosticSeverity, TextEdit } from "vscode-languageserver";
+import { renameHandler } from "../languageFeatures/rename";
 import { OLexerToken, TokenType } from "../lexer";
 import * as I from "../parser/interfaces";
 import * as O from "../parser/objects";
@@ -29,11 +30,43 @@ export class RuleCasingStyle extends RuleBase implements IRule {
     if (newName === token.text) {
       return;
     }
-    const code = renameCodeAction(token, newName, this.vhdlLinter);
+    let code = String(renameCodeAction(token, newName, this.vhdlLinter));
     if (code === undefined) {
       // token matches prefix and suffix
       return;
     }
+    this.vhdlLinter.casingStyleActions.push({
+      token: token,
+      newName: newName
+    });
+    code = `${code};${this.vhdlLinter.addCodeActionCallback(() => {
+      return [
+        CodeAction.create(
+          `Auto-Fix all 'casing-style' messages in this file`,
+          CodeActionKind.QuickFix),
+
+      ];
+    }, async () => {
+      const mergedChanges: Record<string, TextEdit[]> = {};
+      for (const casingStyleChange of this.vhdlLinter.casingStyleActions) {
+        const change = await renameHandler(this.vhdlLinter, casingStyleChange.token.range.start, casingStyleChange.newName);
+        for (const [key, fileChanges] of Object.entries(change.changes)) {
+          if (mergedChanges[key] !== undefined) {
+            mergedChanges[key]!.push(...fileChanges);
+          } else {
+            mergedChanges[key] = fileChanges;
+
+          }
+        }
+      }
+      return [
+        CodeAction.create(
+          `Replace with '${newName}'`,
+
+          { changes: mergedChanges },
+          CodeActionKind.QuickFix)
+      ];
+    })}`;
     this.addMessage({
       range: token.range,
       severity: DiagnosticSeverity.Information,
