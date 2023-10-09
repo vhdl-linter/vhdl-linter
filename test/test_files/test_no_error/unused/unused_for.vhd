@@ -4,7 +4,7 @@ architecture arch of unused_for is
 begin
   process is
   begin
-    for I in 1 to 10 loop
+    for I in 1 to 10 loop -- unused iterator constant should not generate an unused warning
       report "hello world";
     end loop;
     wait;
