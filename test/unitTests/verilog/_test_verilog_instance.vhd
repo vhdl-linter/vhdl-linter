@@ -20,10 +20,11 @@ begin
       in_byte_2  => in_byte_2);
   process
   begin
-  in_bit    <= 0;
-  in_bit_2  <= 0;
-  in_byte_2 <= (others => '0');
-  report to_hex_string(out_bit & out_bit_2 & out_byte_2);
+    in_bit    <= 0;
+    in_bit_2  <= 0;
+    in_byte_2 <= (others => '0');
+    report to_hex_string(out_bit & out_bit_2 & out_byte_2);
   end process;
+
 
 end architecture;
