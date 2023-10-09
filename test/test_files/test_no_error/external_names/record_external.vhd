@@ -22,13 +22,16 @@ use work.pkg_record.all;
 entity record_external is
 end entity;
 architecture arch of record_external is
+  alias test_alias is << signal record_external.inner.test_signal : test_record >>;
+  signal test_copy                                                : test_alias'subtype;
 begin
   inner : entity work.inner;
 
   process is
-    alias test_alias is << signal record_external.inner.test_signal : test_record >>;
   begin
     report "Foo: " & to_hstring(test_alias.foo);
+    report "Foo: " & to_hstring(test_copy.foo);
+    test_copy.foo <= "01";
     wait;
   end process;
 end architecture;
