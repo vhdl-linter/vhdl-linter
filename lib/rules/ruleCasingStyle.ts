@@ -61,8 +61,7 @@ export class RuleCasingStyle extends RuleBase implements IRule {
       }
       return [
         CodeAction.create(
-          `Replace with '${newName}'`,
-
+          `Auto-Fix all 'casing-style' messages in this file`,
           { changes: mergedChanges },
           CodeActionKind.QuickFix)
       ];
