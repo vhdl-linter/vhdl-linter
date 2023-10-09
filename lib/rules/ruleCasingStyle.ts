@@ -47,7 +47,8 @@ export class RuleCasingStyle extends RuleBase implements IRule {
     for (const obj of this.file.objectList) {
       if (obj instanceof O.OGeneric || obj instanceof O.OConstant || obj instanceof O.OEnumLiteral) {
         this.checkObject(obj.lexerToken, styleSettings.constantGenericCasing);
-      } else if (I.implementsIHasLexerToken(obj)) {
+      } else if (I.implementsIHasLexerToken(obj) && obj instanceof O.OLibrary === false) {
+        // ignore library as they follow external declaration
         this.checkObject(obj.lexerToken, styleSettings.objectCasing);
       }
     }

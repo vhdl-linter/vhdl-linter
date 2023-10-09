@@ -1,3 +1,6 @@
+library test_library;
+library TestLibrary;
+library TEST_LIBRARY;
 entity ent is
   generic (
     i_snake_case: integer; -- vhdl-linter-disable-line unused
