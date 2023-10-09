@@ -160,8 +160,7 @@ export class FileParser extends ParserBase {
       if (errorTokens.length > 0) {
         const range = errorTokens[0]!.range.copyWithNewEnd(errorTokens.at(-1)!.range);
         this.state.messages.push({
-        message: `Unexpected statement '${range.getText().slice(0, 50)}' in file scope. Expecting on of *${allowedKeywords.join(',')}*`,
-
+          message: `Unexpected statement '${range.getText().slice(0, 50)}' in file scope. Expecting on of *${allowedKeywords.join(',')}*`,
           range,
         });
       }
