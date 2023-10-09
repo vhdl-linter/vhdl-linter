@@ -20,10 +20,21 @@ begin
       in_byte_2  => in_byte_2);
   process
   begin
-  in_bit    <= 0;
-  in_bit_2  <= 0;
-  in_byte_2 <= (others => '0');
-  report to_hex_string(out_bit & out_bit_2 & out_byte_2);
+    in_bit    <= 0;
+    in_bit_2  <= 0;
+    in_byte_2 <= (others => '0');
+    report to_hex_string(out_bit & out_bit_2 & out_byte_2);
   end process;
+  inst_dummy_module_non_ansi : entity work.dummy_module_non_ansi
+    generic map (
+      PARAM_A => 5,
+      PARAM_B => 5,
+      PARAM_C => 5
+      )
+    port map (
+      A => in_bit,
+      B => in_bit_2,
+      C => in_byte_2(0)
+      );
 
 end architecture;

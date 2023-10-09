@@ -1,7 +1,6 @@
 import { OLexerToken, TokenType } from "./lexer";
 import * as O from "./parser/objects";
-import { OIRange } from "./parser/objects";
-import { OEntity, OFile } from "./parser/objects";
+import { OEntity, OFile, OIRange } from "./parser/objects";
 import { ProjectParser } from "./projectParser";
 
 export class VerilogParser {
@@ -71,8 +70,10 @@ export class VerilogParser {
       this.pos += match.index! + match[0].length;
       this.advanceWhitespace();
       // find parameters, i.e. #(...)
+      // (We assume it directly follows the module. In theory package_import_declaration could be here. Ignore for now)
       // eslint-disable-next-line no-cond-assign
-      if (match = this.text.substring(this.pos).match(/#\((.*?)\)/s)) {
+      if (match = this.text.substring(this.pos).match(/^#\((.*?)\)/s)) {
+
         let offset = this.pos + match.index! + 2;
         this.pos += match.index! + match[0].length;
         const parametersString = match[1]!;
@@ -84,7 +85,7 @@ export class VerilogParser {
       this.advanceWhitespace();
       // find port declaration, i.e. (...)
       // eslint-disable-next-line no-cond-assign
-      if (match = this.text.substring(this.pos).match(/\((.*?)\)/s)) {
+      if (match = this.text.substring(this.pos).match(/^\((.*?)\)/s)) {
         let offset = this.pos + match.index! + 1;
         this.pos += match.index! + match[0].length;
         const portsString = match[1]!;
@@ -93,11 +94,21 @@ export class VerilogParser {
           offset += portString.length + 1;
         }
       }
-      match = this.text.substring(this.pos).match(/\bendmodule\b/);
+      match = this.text.substring(this.pos).match(/^(.*?)\bendmodule\b/s);
       module.lexerToken = moduleName;
       if (match) {
-        module.range = module.range.copyWithNewEnd(new O.OI(this.file, this.pos + match.index!));
-        this.pos += match.index! + match[0].length;
+        const re = /(parameter.*?);/ig;
+        let innerMatch;
+        // eslint-disable-next-line no-cond-assign
+        while (innerMatch = re.exec(match[1]!)) {
+          let offset = 0;
+          for (const parameterString of innerMatch[1]!.split(',')) {
+            this.parsePortOrParameter(module, parameterString, this.pos + innerMatch.index + offset, true);
+            offset += parameterString.length + 1;
+          }
+        }
+        module.range = module.range.copyWithNewEnd(new O.OI(this.file, this.pos + match[1]!.length));
+        this.pos += match[0].length;
       }
 
       this.file.entities.push(module);

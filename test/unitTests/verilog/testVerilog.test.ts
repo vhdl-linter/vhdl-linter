@@ -36,3 +36,11 @@ test('module_advanced', async () => {
     lexerToken: obj.lexerToken?.text
   }))).toMatchSnapshot();
 });
+test('test verilog with non ansi header', async () => {
+  const uri = pathToFileURL(join(__dirname, 'verilog_non_ansi.sv'));
+  const projectParser = await ProjectParser.create([]);
+  const verilogParser = new VerilogParser(uri, readFileSyncNorm(uri, { encoding: 'utf8' }), projectParser);
+  expect(verilogParser.file.entities).toHaveLength(1);
+  expect(verilogParser.file.entities[0]?.ports).toHaveLength(3);
+  expect(verilogParser.file.entities[0]?.generics).toHaveLength(3);
+})
