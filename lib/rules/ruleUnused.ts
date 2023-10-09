@@ -1,7 +1,7 @@
 import { DiagnosticSeverity } from "vscode-languageserver";
 import { IHasLexerToken, IHasNameToken, IHasPorts, implementsIHasDeclarations, implementsIHasGenerics, implementsIHasLexerToken, implementsIHasPorts } from "../parser/interfaces";
-import { ObjectBase, OComponent, OConstant, OEntity, OFile, OPackage, OPackageBody, OPackageInstantiation, OSignal, OSubprogram, OType, OVariable } from "../parser/objects";
-import { codeActionFromPrefixSuffix, IRule, RuleBase } from "./rulesBase";
+import { OComponent, OConstant, OEntity, OFile, OForGenerate, OForLoop, OPackage, OPackageBody, OPackageInstantiation, OSignal, OSubprogram, OType, OVariable, ObjectBase } from "../parser/objects";
+import { IRule, RuleBase, codeActionFromPrefixSuffix } from "./rulesBase";
 
 export class RuleUnused extends RuleBase implements IRule {
   public static readonly ruleName = 'unused';
@@ -18,6 +18,10 @@ export class RuleUnused extends RuleBase implements IRule {
     }
     // ignore entities that do not have the architecture in the same file
     if (obj.parent instanceof OEntity && obj.rootFile.architectures.find(a => a.entityName.getLText() === (obj.parent as OEntity).lexerToken.getLText()) === undefined) {
+      return;
+    }
+    // ignore unused iterators
+    if ((obj.parent instanceof OForLoop || obj.parent instanceof OForGenerate) && obj.parent.declarations[0] === obj) {
       return;
     }
     const token = implementsIHasLexerToken(obj) ? obj.lexerToken : obj.nameToken;
