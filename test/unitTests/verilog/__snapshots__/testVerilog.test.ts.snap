@@ -60,3 +60,44 @@ exports[`module_advanced 1`] = `
   },
 ]
 `;
+
+exports[`test verilog with non ansi header 1`] = `
+[
+  {
+    "lexerToken": "dummy_module_non_ansi",
+    "range": "3:1 - 32:1",
+  },
+  {
+    "lexerToken": "A",
+    "range": "5:3 - 5:5",
+  },
+  {
+    "lexerToken": "B",
+    "range": "6:3 - 6:5",
+  },
+  {
+    "lexerToken": "C",
+    "range": "8:3 - 10:4",
+  },
+  {
+    "lexerToken": "PARAM_A",
+    "range": "13:3 - 13:25",
+  },
+  {
+    "lexerToken": undefined,
+    "range": "1:1 - 1:1",
+  },
+  {
+    "lexerToken": "PARAM_B",
+    "range": "15:3 - 15:20",
+  },
+  {
+    "lexerToken": "PARAM_C",
+    "range": "15:21 - 15:34",
+  },
+  {
+    "lexerToken": undefined,
+    "range": "1:1 - 1:1",
+  },
+]
+`;

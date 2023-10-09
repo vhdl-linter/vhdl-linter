@@ -43,4 +43,8 @@ test('test verilog with non ansi header', async () => {
   expect(verilogParser.file.entities).toHaveLength(1);
   expect(verilogParser.file.entities[0]?.ports).toHaveLength(3);
   expect(verilogParser.file.entities[0]?.generics).toHaveLength(3);
-})
+  expect(verilogParser.file.objectList.map(obj => ({
+    range: makeRangePrintable(obj.range),
+    lexerToken: obj.lexerToken?.text
+  }))).toMatchSnapshot();
+});
