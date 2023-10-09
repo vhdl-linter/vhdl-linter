@@ -8,11 +8,11 @@ exports[`testing casing style for constantGeneric with CONSTANT_CASE" 1`] = `
     "range": {
       "end": {
         "character": 16,
-        "line": 2,
+        "line": 5,
       },
       "start": {
         "character": 4,
-        "line": 2,
+        "line": 5,
       },
     },
     "severity": 3,
@@ -23,11 +23,11 @@ exports[`testing casing style for constantGeneric with CONSTANT_CASE" 1`] = `
     "range": {
       "end": {
         "character": 16,
-        "line": 3,
+        "line": 6,
       },
       "start": {
         "character": 4,
-        "line": 3,
+        "line": 6,
       },
     },
     "severity": 3,
@@ -38,11 +38,11 @@ exports[`testing casing style for constantGeneric with CONSTANT_CASE" 1`] = `
     "range": {
       "end": {
         "character": 22,
-        "line": 7,
+        "line": 10,
       },
       "start": {
         "character": 13,
-        "line": 7,
+        "line": 10,
       },
     },
     "severity": 3,
@@ -53,11 +53,11 @@ exports[`testing casing style for constantGeneric with CONSTANT_CASE" 1`] = `
     "range": {
       "end": {
         "character": 27,
-        "line": 9,
+        "line": 12,
       },
       "start": {
         "character": 18,
-        "line": 9,
+        "line": 12,
       },
     },
     "severity": 3,
@@ -68,11 +68,11 @@ exports[`testing casing style for constantGeneric with CONSTANT_CASE" 1`] = `
     "range": {
       "end": {
         "character": 54,
-        "line": 9,
+        "line": 12,
       },
       "start": {
         "character": 44,
-        "line": 9,
+        "line": 12,
       },
     },
     "severity": 3,
@@ -83,11 +83,11 @@ exports[`testing casing style for constantGeneric with CONSTANT_CASE" 1`] = `
     "range": {
       "end": {
         "character": 66,
-        "line": 9,
+        "line": 12,
       },
       "start": {
         "character": 56,
-        "line": 9,
+        "line": 12,
       },
     },
     "severity": 3,
@@ -104,11 +104,11 @@ exports[`testing casing style for constantGeneric with CONSTANT_CASE" 2`] = `
         "range": {
           "end": {
             "character": 16,
-            "line": 2,
+            "line": 5,
           },
           "start": {
             "character": 4,
-            "line": 2,
+            "line": 5,
           },
         },
       },
@@ -123,11 +123,11 @@ exports[`testing casing style for constantGeneric with CONSTANT_CASE" 2`] = `
         "range": {
           "end": {
             "character": 16,
-            "line": 3,
+            "line": 6,
           },
           "start": {
             "character": 4,
-            "line": 3,
+            "line": 6,
           },
         },
       },
@@ -142,11 +142,11 @@ exports[`testing casing style for constantGeneric with CONSTANT_CASE" 2`] = `
         "range": {
           "end": {
             "character": 22,
-            "line": 7,
+            "line": 10,
           },
           "start": {
             "character": 13,
-            "line": 7,
+            "line": 10,
           },
         },
       },
@@ -161,11 +161,11 @@ exports[`testing casing style for constantGeneric with CONSTANT_CASE" 2`] = `
         "range": {
           "end": {
             "character": 27,
-            "line": 9,
+            "line": 12,
           },
           "start": {
             "character": 18,
-            "line": 9,
+            "line": 12,
           },
         },
       },
@@ -180,11 +180,11 @@ exports[`testing casing style for constantGeneric with CONSTANT_CASE" 2`] = `
         "range": {
           "end": {
             "character": 54,
-            "line": 9,
+            "line": 12,
           },
           "start": {
             "character": 44,
-            "line": 9,
+            "line": 12,
           },
         },
       },
@@ -199,11 +199,11 @@ exports[`testing casing style for constantGeneric with CONSTANT_CASE" 2`] = `
         "range": {
           "end": {
             "character": 66,
-            "line": 9,
+            "line": 12,
           },
           "start": {
             "character": 56,
-            "line": 9,
+            "line": 12,
           },
         },
       },
@@ -222,11 +222,11 @@ exports[`testing casing style for constantGeneric with PascalCase" 1`] = `
     "range": {
       "end": {
         "character": 16,
-        "line": 2,
+        "line": 5,
       },
       "start": {
         "character": 4,
-        "line": 2,
+        "line": 5,
       },
     },
     "severity": 3,
@@ -237,11 +237,11 @@ exports[`testing casing style for constantGeneric with PascalCase" 1`] = `
     "range": {
       "end": {
         "character": 22,
-        "line": 7,
+        "line": 10,
       },
       "start": {
         "character": 13,
-        "line": 7,
+        "line": 10,
       },
     },
     "severity": 3,
@@ -252,11 +252,11 @@ exports[`testing casing style for constantGeneric with PascalCase" 1`] = `
     "range": {
       "end": {
         "character": 26,
-        "line": 8,
+        "line": 11,
       },
       "start": {
         "character": 13,
-        "line": 8,
+        "line": 11,
       },
     },
     "severity": 3,
@@ -267,11 +267,11 @@ exports[`testing casing style for constantGeneric with PascalCase" 1`] = `
     "range": {
       "end": {
         "character": 27,
-        "line": 9,
+        "line": 12,
       },
       "start": {
         "character": 18,
-        "line": 9,
+        "line": 12,
       },
     },
     "severity": 3,
@@ -282,11 +282,11 @@ exports[`testing casing style for constantGeneric with PascalCase" 1`] = `
     "range": {
       "end": {
         "character": 42,
-        "line": 9,
+        "line": 12,
       },
       "start": {
         "character": 29,
-        "line": 9,
+        "line": 12,
       },
     },
     "severity": 3,
@@ -297,11 +297,11 @@ exports[`testing casing style for constantGeneric with PascalCase" 1`] = `
     "range": {
       "end": {
         "character": 54,
-        "line": 9,
+        "line": 12,
       },
       "start": {
         "character": 44,
-        "line": 9,
+        "line": 12,
       },
     },
     "severity": 3,
@@ -318,11 +318,11 @@ exports[`testing casing style for constantGeneric with PascalCase" 2`] = `
         "range": {
           "end": {
             "character": 16,
-            "line": 2,
+            "line": 5,
           },
           "start": {
             "character": 4,
-            "line": 2,
+            "line": 5,
           },
         },
       },
@@ -337,11 +337,11 @@ exports[`testing casing style for constantGeneric with PascalCase" 2`] = `
         "range": {
           "end": {
             "character": 22,
-            "line": 7,
+            "line": 10,
           },
           "start": {
             "character": 13,
-            "line": 7,
+            "line": 10,
           },
         },
       },
@@ -356,11 +356,11 @@ exports[`testing casing style for constantGeneric with PascalCase" 2`] = `
         "range": {
           "end": {
             "character": 26,
-            "line": 8,
+            "line": 11,
           },
           "start": {
             "character": 13,
-            "line": 8,
+            "line": 11,
           },
         },
       },
@@ -375,11 +375,11 @@ exports[`testing casing style for constantGeneric with PascalCase" 2`] = `
         "range": {
           "end": {
             "character": 27,
-            "line": 9,
+            "line": 12,
           },
           "start": {
             "character": 18,
-            "line": 9,
+            "line": 12,
           },
         },
       },
@@ -394,11 +394,11 @@ exports[`testing casing style for constantGeneric with PascalCase" 2`] = `
         "range": {
           "end": {
             "character": 42,
-            "line": 9,
+            "line": 12,
           },
           "start": {
             "character": 29,
-            "line": 9,
+            "line": 12,
           },
         },
       },
@@ -413,11 +413,11 @@ exports[`testing casing style for constantGeneric with PascalCase" 2`] = `
         "range": {
           "end": {
             "character": 54,
-            "line": 9,
+            "line": 12,
           },
           "start": {
             "character": 44,
-            "line": 9,
+            "line": 12,
           },
         },
       },
@@ -436,11 +436,11 @@ exports[`testing casing style for constantGeneric with camelCase" 1`] = `
     "range": {
       "end": {
         "character": 16,
-        "line": 2,
+        "line": 5,
       },
       "start": {
         "character": 4,
-        "line": 2,
+        "line": 5,
       },
     },
     "severity": 3,
@@ -451,11 +451,11 @@ exports[`testing casing style for constantGeneric with camelCase" 1`] = `
     "range": {
       "end": {
         "character": 16,
-        "line": 3,
+        "line": 6,
       },
       "start": {
         "character": 4,
-        "line": 3,
+        "line": 6,
       },
     },
     "severity": 3,
@@ -466,11 +466,11 @@ exports[`testing casing style for constantGeneric with camelCase" 1`] = `
     "range": {
       "end": {
         "character": 26,
-        "line": 8,
+        "line": 11,
       },
       "start": {
         "character": 13,
-        "line": 8,
+        "line": 11,
       },
     },
     "severity": 3,
@@ -481,11 +481,11 @@ exports[`testing casing style for constantGeneric with camelCase" 1`] = `
     "range": {
       "end": {
         "character": 42,
-        "line": 9,
+        "line": 12,
       },
       "start": {
         "character": 29,
-        "line": 9,
+        "line": 12,
       },
     },
     "severity": 3,
@@ -496,11 +496,11 @@ exports[`testing casing style for constantGeneric with camelCase" 1`] = `
     "range": {
       "end": {
         "character": 54,
-        "line": 9,
+        "line": 12,
       },
       "start": {
         "character": 44,
-        "line": 9,
+        "line": 12,
       },
     },
     "severity": 3,
@@ -511,11 +511,11 @@ exports[`testing casing style for constantGeneric with camelCase" 1`] = `
     "range": {
       "end": {
         "character": 66,
-        "line": 9,
+        "line": 12,
       },
       "start": {
         "character": 56,
-        "line": 9,
+        "line": 12,
       },
     },
     "severity": 3,
@@ -532,11 +532,11 @@ exports[`testing casing style for constantGeneric with camelCase" 2`] = `
         "range": {
           "end": {
             "character": 16,
-            "line": 2,
+            "line": 5,
           },
           "start": {
             "character": 4,
-            "line": 2,
+            "line": 5,
           },
         },
       },
@@ -551,11 +551,11 @@ exports[`testing casing style for constantGeneric with camelCase" 2`] = `
         "range": {
           "end": {
             "character": 16,
-            "line": 3,
+            "line": 6,
           },
           "start": {
             "character": 4,
-            "line": 3,
+            "line": 6,
           },
         },
       },
@@ -570,11 +570,11 @@ exports[`testing casing style for constantGeneric with camelCase" 2`] = `
         "range": {
           "end": {
             "character": 26,
-            "line": 8,
+            "line": 11,
           },
           "start": {
             "character": 13,
-            "line": 8,
+            "line": 11,
           },
         },
       },
@@ -589,11 +589,11 @@ exports[`testing casing style for constantGeneric with camelCase" 2`] = `
         "range": {
           "end": {
             "character": 42,
-            "line": 9,
+            "line": 12,
           },
           "start": {
             "character": 29,
-            "line": 9,
+            "line": 12,
           },
         },
       },
@@ -608,11 +608,11 @@ exports[`testing casing style for constantGeneric with camelCase" 2`] = `
         "range": {
           "end": {
             "character": 54,
-            "line": 9,
+            "line": 12,
           },
           "start": {
             "character": 44,
-            "line": 9,
+            "line": 12,
           },
         },
       },
@@ -627,11 +627,11 @@ exports[`testing casing style for constantGeneric with camelCase" 2`] = `
         "range": {
           "end": {
             "character": 66,
-            "line": 9,
+            "line": 12,
           },
           "start": {
             "character": 56,
-            "line": 9,
+            "line": 12,
           },
         },
       },
@@ -654,11 +654,11 @@ exports[`testing casing style for constantGeneric with snake_case" 1`] = `
     "range": {
       "end": {
         "character": 16,
-        "line": 3,
+        "line": 6,
       },
       "start": {
         "character": 4,
-        "line": 3,
+        "line": 6,
       },
     },
     "severity": 3,
@@ -669,11 +669,11 @@ exports[`testing casing style for constantGeneric with snake_case" 1`] = `
     "range": {
       "end": {
         "character": 22,
-        "line": 7,
+        "line": 10,
       },
       "start": {
         "character": 13,
-        "line": 7,
+        "line": 10,
       },
     },
     "severity": 3,
@@ -684,11 +684,11 @@ exports[`testing casing style for constantGeneric with snake_case" 1`] = `
     "range": {
       "end": {
         "character": 26,
-        "line": 8,
+        "line": 11,
       },
       "start": {
         "character": 13,
-        "line": 8,
+        "line": 11,
       },
     },
     "severity": 3,
@@ -699,11 +699,11 @@ exports[`testing casing style for constantGeneric with snake_case" 1`] = `
     "range": {
       "end": {
         "character": 27,
-        "line": 9,
+        "line": 12,
       },
       "start": {
         "character": 18,
-        "line": 9,
+        "line": 12,
       },
     },
     "severity": 3,
@@ -714,11 +714,11 @@ exports[`testing casing style for constantGeneric with snake_case" 1`] = `
     "range": {
       "end": {
         "character": 42,
-        "line": 9,
+        "line": 12,
       },
       "start": {
         "character": 29,
-        "line": 9,
+        "line": 12,
       },
     },
     "severity": 3,
@@ -729,11 +729,11 @@ exports[`testing casing style for constantGeneric with snake_case" 1`] = `
     "range": {
       "end": {
         "character": 66,
-        "line": 9,
+        "line": 12,
       },
       "start": {
         "character": 56,
-        "line": 9,
+        "line": 12,
       },
     },
     "severity": 3,
@@ -750,11 +750,11 @@ exports[`testing casing style for constantGeneric with snake_case" 2`] = `
         "range": {
           "end": {
             "character": 16,
-            "line": 3,
+            "line": 6,
           },
           "start": {
             "character": 4,
-            "line": 3,
+            "line": 6,
           },
         },
       },
@@ -769,11 +769,11 @@ exports[`testing casing style for constantGeneric with snake_case" 2`] = `
         "range": {
           "end": {
             "character": 22,
-            "line": 7,
+            "line": 10,
           },
           "start": {
             "character": 13,
-            "line": 7,
+            "line": 10,
           },
         },
       },
@@ -788,11 +788,11 @@ exports[`testing casing style for constantGeneric with snake_case" 2`] = `
         "range": {
           "end": {
             "character": 26,
-            "line": 8,
+            "line": 11,
           },
           "start": {
             "character": 13,
-            "line": 8,
+            "line": 11,
           },
         },
       },
@@ -807,11 +807,11 @@ exports[`testing casing style for constantGeneric with snake_case" 2`] = `
         "range": {
           "end": {
             "character": 27,
-            "line": 9,
+            "line": 12,
           },
           "start": {
             "character": 18,
-            "line": 9,
+            "line": 12,
           },
         },
       },
@@ -826,11 +826,11 @@ exports[`testing casing style for constantGeneric with snake_case" 2`] = `
         "range": {
           "end": {
             "character": 42,
-            "line": 9,
+            "line": 12,
           },
           "start": {
             "character": 29,
-            "line": 9,
+            "line": 12,
           },
         },
       },
@@ -845,11 +845,11 @@ exports[`testing casing style for constantGeneric with snake_case" 2`] = `
         "range": {
           "end": {
             "character": 66,
-            "line": 9,
+            "line": 12,
           },
           "start": {
             "character": 56,
-            "line": 9,
+            "line": 12,
           },
         },
       },
