@@ -6,6 +6,7 @@ import { readFileSyncNorm } from '../../../lib/cli/readFileSyncNorm';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { sanitizeActions } from '../../helper';
 import { overwriteSettings } from '../../../lib/settingsUtil';
+import { CancellationTokenSource } from 'vscode-languageserver';
 let projectParser: ProjectParser;
 beforeAll(async () => {
   projectParser = await ProjectParser.create([pathToFileURL(__dirname)]);
@@ -30,7 +31,7 @@ test('Test consistent casing rule', async () => {
     expect(message.message).toMatch(/consistent-casing/i);
     if (typeof message.code === 'string') {
       for (const action of message.code?.split(';') ?? []) {
-        const actions = await Promise.all(await linter.diagnosticCodeActionRegistry[parseInt(action)]?.(`file:///test.vhd`) ?? []);
+        const actions = await Promise.all(await linter.diagnosticCodeActionRegistry[parseInt(action)]?.(`file:///test.vhd`, new CancellationTokenSource().token) ?? []);
         sanitizeActions(actions);
         expect(actions).toMatchSnapshot();
       }

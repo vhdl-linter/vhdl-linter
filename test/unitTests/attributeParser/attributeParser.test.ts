@@ -6,6 +6,7 @@ import { OAttributeName } from '../../../lib/parser/objects';
 import { ProjectParser } from '../../../lib/projectParser';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { readFileSyncNorm } from "../../../lib/cli/readFileSyncNorm";
+import { CancellationTokenSource } from 'vscode-languageserver';
 
 
 let projectParser: ProjectParser;
@@ -65,7 +66,7 @@ test('attribute_test_error6.vhd', async () => {
 
   expect(linter.messages).toHaveLength(1);
   expect(linter.messages[0]?.message).toBe(`Unexpected signal in attribute_specification. Assuming forgotten ':' (parser)`);
-  const solution = linter.diagnosticCodeActionRegistry[parseInt((String(linter.messages[0]?.code ?? '').split(';') as [string, ...string[]])[0])]?.(uri.toString());
+  const solution = linter.diagnosticCodeActionRegistry[parseInt((String(linter.messages[0]?.code ?? '',).split(';') as [string, ...string[]])[0])]?.(uri.toString(), new CancellationTokenSource().token);
   expect(solution).toEqual(expect.arrayContaining([
     {
       edit: {

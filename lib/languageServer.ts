@@ -20,8 +20,8 @@ import { workspaceSymbol } from './languageFeatures/workspaceSymbol';
 import { LinterManager } from './linterManager';
 import { normalizeUri } from './normalizeUri';
 import { FileCacheLibraryList, ProjectParser } from './projectParser';
-import { currentCapabilities } from './settingsUtil';
 import { ISettings } from './settingsGenerated';
+import { currentCapabilities } from './settingsUtil';
 
 // Create a connection for the server. The connection auto detected protocol
 // Also include all preview / proposed LSP features.
@@ -182,7 +182,7 @@ export const initialization = new Promise<void>(resolve => {
 documents.onDidClose(async change => {
   await connection.sendDiagnostics({ uri: change.document.uri, diagnostics: [] });
 });
-const linterManager = new LinterManager();
+const linterManager = new LinterManager(connection);
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
 async function validateTextDocument(textDocument: TextDocument, fromProjectParser = false) {
@@ -225,7 +225,7 @@ connection.onCodeAction(async (params, token): Promise<CodeAction[]> => {
     for (const code of codes) {
       const callback = linter.diagnosticCodeActionRegistry[code];
       if (typeof callback === 'function') {
-        actions.push(...(await callback(params.textDocument.uri)).map((action, index) => ({
+        actions.push(...(await callback(params.textDocument.uri, token)).map((action, index) => ({
           ...action,
           data: {
             uri: linter.uri.toString(),
@@ -248,7 +248,7 @@ connection.onCodeActionResolve(async (codeAction, token) => {
 
     const callback = linter.diagnosticCodeActionResolveRegistry[data.code];
     if (typeof callback === 'function') {
-      return (await callback(data.uri))[data.index];
+      return (await callback(data.uri, token))[data.index];
     }
   }
 });
