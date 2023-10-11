@@ -6,6 +6,7 @@ import { readFileSyncNorm } from '../../../lib/cli/readFileSyncNorm';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { sanitizeActions } from '../../helper';
 import { readdirSync } from 'fs';
+import { CancellationTokenSource } from 'vscode-languageserver';
 
 let projectParser: ProjectParser;
 beforeAll(async () => {
@@ -25,7 +26,8 @@ test.each(files)('Test library mapping with vunit like csv files (%s)', async (f
     expect(message).toMatchSnapshot();
     if (typeof message.code === 'string') {
       for (const action of message.code?.split(';') ?? []) {
-        const actions = await Promise.all(await linter.diagnosticCodeActionRegistry[parseInt(action)]?.(`file:///test.vhd`) ?? []);
+
+        const actions = await Promise.all(await linter.diagnosticCodeActionRegistry[parseInt(action)]?.(`file:///test.vhd`, new CancellationTokenSource().token) ?? []);
         sanitizeActions(actions);
         expect(actions).toMatchSnapshot();
       }

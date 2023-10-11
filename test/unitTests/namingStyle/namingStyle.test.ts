@@ -5,6 +5,7 @@ import { ProjectParser } from '../../../lib/projectParser';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { readFileSyncNorm } from "../../../lib/cli/readFileSyncNorm";
 import { overwriteSettings } from '../../../lib/settingsUtil';
+import { CancellationTokenSource } from 'vscode-languageserver';
 test.each([
   'signal',
   'variable',
@@ -33,7 +34,7 @@ test.each([
 
   expect(linter.messages).toMatchSnapshot();
   const codes = linter.messages.filter(message => file ==='unused' ? message.message.includes('(unused)') : message.message.includes('(naming-style)')).map(message => String(message.code ?? '').split(String(';'))).flat();
-  const solutions = (await Promise.all(codes.map(async code => await linter.diagnosticCodeActionResolveRegistry[parseInt(code)]?.(linter.uri.toString())))).flat()
+  const solutions = (await Promise.all(codes.map(async code => await linter.diagnosticCodeActionResolveRegistry[parseInt(code)]?.(linter.uri.toString(), new CancellationTokenSource().token)))).flat()
     .filter(solution => solution?.title.includes('Replace with'));
   expect(solutions.map(solution => ({
     ...solution,

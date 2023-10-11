@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, expect, test } from '@jest/globals';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
-import { Diagnostic } from 'vscode-languageserver';
+import { CancellationTokenSource, Diagnostic } from 'vscode-languageserver';
 import { ProjectParser } from '../../../lib/projectParser';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { readFileSyncNorm } from "../../../lib/cli/readFileSyncNorm";
@@ -39,7 +39,7 @@ test('Not optional separators in interface list', () => {
     }),
   );
   const uri = linter.file.uri.toString();
-  const solution = linter.diagnosticCodeActionRegistry[parseInt((String(message?.code ?? '').split(';') as [string, ...string[]])[0])]?.(uri);
+  const solution = linter.diagnosticCodeActionRegistry[parseInt((String(message?.code ?? '').split(';') as [string, ...string[]])[0])]?.(uri, new CancellationTokenSource().token);
   expect(solution).toEqual(expect.arrayContaining([
     {
       edit: {
@@ -82,7 +82,7 @@ test('Not optional separators in association list', () => {
 
   const message = messages.find(message => message.message === "Unexpected ',' at end of association list (parser)");
 
-  const solution = linter.diagnosticCodeActionRegistry[parseInt((String(message?.code ?? '').split(';') as [string, ...string[]])[0])]?.(uri);
+  const solution = linter.diagnosticCodeActionRegistry[parseInt((String(message?.code ?? '').split(';') as [string, ...string[]])[0])]?.(uri, new CancellationTokenSource().token);
   expect(solution).toEqual(expect.arrayContaining([
     {
       edit: {

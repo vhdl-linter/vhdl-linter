@@ -48,7 +48,16 @@ export class RuleCasingStyle extends RuleBase implements IRule {
       ];
     }, async () => {
       const mergedChanges: Record<string, TextEdit[]> = {};
-      for (const casingStyleChange of this.vhdlLinter.casingStyleActions) {
+      let serverInitiatedReporter;
+      if (this.connection) {
+        serverInitiatedReporter = await this.connection.window.createWorkDoneProgress();
+        serverInitiatedReporter.begin(
+          'Auto-fix running'
+        );
+
+      }
+      for (const [index, casingStyleChange] of this.vhdlLinter.casingStyleActions.entries()) {
+        serverInitiatedReporter?.report(100 * index / this.vhdlLinter.casingStyleActions.length);
         const change = await renameHandler(this.vhdlLinter, casingStyleChange.token.range.start, casingStyleChange.newName);
         for (const [key, fileChanges] of Object.entries(change.changes)) {
           if (mergedChanges[key] !== undefined) {
@@ -59,6 +68,7 @@ export class RuleCasingStyle extends RuleBase implements IRule {
           }
         }
       }
+      serverInitiatedReporter?.done();
       return [
         CodeAction.create(
           `Auto-Fix all 'casing-style' messages in this file`,

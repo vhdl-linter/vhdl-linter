@@ -1,6 +1,6 @@
 import {
   CancellationToken,
-  CodeAction, CodeActionKind, Diagnostic, DiagnosticSeverity, LSPErrorCodes, Position, Range, ResponseError, TextEdit
+  CodeAction, CodeActionKind, Diagnostic, DiagnosticSeverity, LSPErrorCodes, Position, Range, ResponseError, TextEdit, _Connection
 } from 'vscode-languageserver';
 import { Elaborate } from './elaborate/elaborate';
 import { OLexerToken } from './lexer';
@@ -28,7 +28,7 @@ export interface IIgnoreLineCommandArguments {
   textDocumentUri: string;
   range: Range;
 }
-type diagnosticCodeActionCallback = (textDocumentUri: string) => Promise<CodeAction[]> | CodeAction[];
+type diagnosticCodeActionCallback = (textDocumentUri: string, cancellationToken: CancellationToken) => Promise<CodeAction[]> | CodeAction[];
 export class VhdlLinter {
   messages: OIDiagnostic[] = [];
   file: OFile;
@@ -36,10 +36,10 @@ export class VhdlLinter {
   parsedSuccessfully = false;
   elaborated = false;
   // Store data for casing style actions (For the do all in file button)
-  casingStyleActions : {token: OLexerToken, newName: string}[] = [];
+  casingStyleActions: { token: OLexerToken, newName: string }[] = [];
   constructor(public uri: URL, public text: string, public projectParser: ProjectParser,
     public settings: ISettings,
-    public token?: CancellationToken) {
+    public token?: CancellationToken, public connection?: _Connection) {
     try {
       this.parser = new FileParser(text, this.uri, settings);
       this.file = this.parser.parse();
@@ -193,7 +193,7 @@ export class VhdlLinter {
 
       for (const checkerClass of rules) {
         if ((this.settings.rules as Record<string, boolean>)[checkerClass.ruleName]) {
-          const checker = new checkerClass(this, this.settings);
+          const checker = new checkerClass(this, this.settings, this.connection);
           checker.check();
           if (profiling) {
             console.log(`check ${checkerClass.ruleName}: ${Date.now() - start}ms`);

@@ -1,6 +1,6 @@
 import { platform } from "process";
 import { EventEmitter } from "stream";
-import { CancellationToken, CancellationTokenSource, LSPErrorCodes, ResponseError } from "vscode-languageserver";
+import { CancellationToken, CancellationTokenSource, LSPErrorCodes, ResponseError, _Connection } from "vscode-languageserver";
 import { Elaborate } from "./elaborate/elaborate";
 import { normalizeUri } from "./normalizeUri";
 import { implementsIHasDefinitions, implementsIHasNameLinks } from "./parser/interfaces";
@@ -16,6 +16,7 @@ interface ILinterState {
   version: number
 }
 export class LinterManager {
+  constructor(public connection?: _Connection) {}
   private projectParserDebounce: Record<string, NodeJS.Timeout> = {};
   // We do not actually care for the linter where the parsing failed.
   // So this will always point to working linter
@@ -82,7 +83,7 @@ export class LinterManager {
     // Mark File as currently being worked on
     state.done = false;
     const settings = await projectParser.getDocumentSettings(url);
-    const vhdlLinter = new VhdlLinter(url, text, projectParser, settings, newSource.token);
+    const vhdlLinter = new VhdlLinter(url, text, projectParser, settings, newSource.token, this.connection);
     if (vhdlLinter.parsedSuccessfully === false) {
       // If parsed unsuccessfully mark this file as invalid.
       // (But old linter is kept for language-features that do not care for having the newest data)

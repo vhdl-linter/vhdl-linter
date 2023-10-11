@@ -1,4 +1,4 @@
-import { CodeAction, CodeActionKind } from "vscode-languageserver";
+import { CodeAction, CodeActionKind, _Connection } from "vscode-languageserver";
 import { renameHandler } from "../languageFeatures/rename";
 import { OLexerToken, TokenType } from "../lexer";
 import { OFile } from "../parser/objects";
@@ -11,7 +11,7 @@ export interface IRule {
 export class RuleBase {
   file: OFile;
   static readonly ruleName: string;
-  constructor(public vhdlLinter: VhdlLinter, public settings: ISettings) {
+  constructor(public vhdlLinter: VhdlLinter, public settings: ISettings, public connection?: _Connection) {
     this.file = vhdlLinter.file;
   }
 
