@@ -7,6 +7,7 @@ import { ProjectParser } from '../../../../lib/projectParser';
 import { VhdlLinter } from '../../../../lib/vhdlLinter';
 import { sanitizeActions } from '../../../helper';
 import { readFileSyncNorm } from "../../../../lib/cli/readFileSyncNorm";
+import { CancellationTokenSource } from 'vscode-languageserver';
 
 
 const files = readdirSync(__dirname).filter(file => file.endsWith('.vhd'));
@@ -22,7 +23,7 @@ test.each(files)('testing add use statement actions for file %s', async (file: s
     if (typeof message.code === 'string') {
       for (const action of message.code.split(';')) {
 
-        const actions = await Promise.all(await linter.diagnosticCodeActionRegistry[parseInt(action)]?.('file:///dummy.vhd') ?? []);
+        const actions = await Promise.all(await linter.diagnosticCodeActionRegistry[parseInt(action)]?.('file:///dummy.vhd', new CancellationTokenSource().token) ?? []);
         sanitizeActions(actions);
         expect(actions).toMatchSnapshot();
       }

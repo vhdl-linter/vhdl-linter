@@ -1,7 +1,7 @@
 import { expect, test } from '@jest/globals';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
-import { Position } from 'vscode-languageserver';
+import { CancellationTokenSource, Position } from 'vscode-languageserver';
 import { ProjectParser } from '../../../lib/projectParser';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { readFileSyncNorm } from "../../../lib/cli/readFileSyncNorm";
@@ -49,7 +49,7 @@ test.each([
     projectParser, await projectParser.getDocumentSettings(pathToFileURL(path)));
   await linter.checkAll();
   const changes = (await Promise.all(linter.diagnosticCodeActionRegistry
-    .map(async callback => await callback(path)))).flat()
+    .map(async callback => await callback(path, new CancellationTokenSource().token)))).flat()
     .map(actions => {
       return Object.values(actions.edit?.changes ?? {});
     }).flat(2)

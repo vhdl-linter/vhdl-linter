@@ -7,7 +7,7 @@ import { ProjectParser } from '../../../../lib/projectParser';
 import { VhdlLinter } from '../../../../lib/vhdlLinter';
 import { sanitizeActions } from '../../../helper';
 import { readFileSyncNorm } from "../../../../lib/cli/readFileSyncNorm";
-import { CodeAction } from 'vscode-languageserver';
+import { CancellationTokenSource, CodeAction } from 'vscode-languageserver';
 
 
 const files = readdirSync(__dirname).filter(file => file.endsWith('.vhd'));
@@ -25,7 +25,7 @@ test.each(files)('testing add signal helper %s', async (file: string) => {
     if (typeof message.code === 'string') {
       const messageActions: CodeAction[] = [];
       for (const action of message.code.split(';')) {
-        const actions = await Promise.all(await linter.diagnosticCodeActionRegistry[parseInt(action)]?.(`file://${file}`) ?? []);
+        const actions = await Promise.all(await linter.diagnosticCodeActionRegistry[parseInt(action)]?.(`file://${file}`, new CancellationTokenSource().token) ?? []);
         sanitizeActions(actions);
         expect(actions).toMatchSnapshot();
         messageActions.push(...actions);

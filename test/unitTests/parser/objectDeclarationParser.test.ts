@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, expect, test } from '@jest/globals';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
-import { Diagnostic } from 'vscode-languageserver';
+import { CancellationTokenSource, Diagnostic } from 'vscode-languageserver';
 import { ProjectParser } from '../../../lib/projectParser';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { readFileSyncNorm } from "../../../lib/cli/readFileSyncNorm";
@@ -33,7 +33,7 @@ test('Missing semicolon handling', async () => {
   ]));
   for (const message of messages) {
     const codes = String(message.code ?? '').split(String(';'));
-    const solutions = (await Promise.all(codes.map(async code => await linter.diagnosticCodeActionRegistry[parseInt(code)]?.(linter.uri.toString())))).flat();
+    const solutions = (await Promise.all(codes.map(async code => await linter.diagnosticCodeActionRegistry[parseInt(code)]?.(linter.uri.toString(), new CancellationTokenSource().token)))).flat();
     expect(solutions).toEqual(expect.arrayContaining([
       expect.objectContaining({
         title: `Insert ';'`
