@@ -35,6 +35,17 @@
 					".vht"
 				],
 				"configuration": "./language-configuration.json"
+			},
+			{
+				"id": "psl",
+				"aliases": [
+					"PSL",
+					"Property Specification Language"
+				],
+				"extensions": [
+					".psl"
+				],
+				"configuration": "./psl-configuration.jsonc"
 			}
 		],
 		"grammars": [
@@ -42,6 +53,11 @@
 				"language": "vhdl",
 				"scopeName": "source.vhdl",
 				"path": "./syntaxes/vhdl.json"
+			},
+			{
+				"language": "psl",
+				"scopeName": "source.psl",
+				"path": "./syntaxes/psl.json"
 			}
 		],
 		"snippets": [
