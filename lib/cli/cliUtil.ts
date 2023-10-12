@@ -1,9 +1,9 @@
+import { createHash } from "crypto";
 import { readdirSync } from "fs";
 import { DiagnosticSeverity } from "vscode-languageserver";
+import { OIRange } from "../parser/objects";
 import { joinURL } from "../projectParser";
 import { OIDiagnostic } from "../vhdlLinter";
-import { OIRange } from "../parser/objects";
-import { createHash } from "crypto";
 
 export interface MessageWrapper {
   file: string;
@@ -26,10 +26,10 @@ export function printRange(range: OIRange) {
 export function prettyPrintMessages(root: string, messages: MessageWrapper[]) {
   return messages.map(message => {
     const filename = message.file.replace(root, '').substring(1);
-    return message.messages.slice(0, 5).map((innerMessage) => {
+    return message.messages.map((innerMessage) => {
       const messageText = `${getMessageColor(innerMessage)}${innerMessage.message}\u001b[0m`;
       return `${filename}:${innerMessage.range.start.line + 1} (r: ${printRange(innerMessage.range)})\n  ${messageText}`; // lines are 0 based in OI
-    }).join('\n') + (message.messages.length > 5 ? `\n\u001b[31m ... and ${message.messages.length - 5} more\u001b[0m` : '');
+    }).join('\n');
   }).join('\n');
 }
 
@@ -81,14 +81,14 @@ function mapSeverity(severity?: DiagnosticSeverity): CodeClimateSeverity {
   return 'blocker';
 }
 
-export function getCodeClimate(messages: MessageWrapper[]): CodeClimateIssue[] {
+export function getCodeClimate(messages: MessageWrapper[], root: string): CodeClimateIssue[] {
   return messages.flatMap(wrapper => wrapper.messages.map(message => ({
     type: 'issue',
     check_name: message.source ?? 'vhdl-linter',
     description: message.message,
     categories: ['Style'],
     location: {
-      path: wrapper.file,
+      path: wrapper.file.replace(root, ''),
       positions: {
         begin: {
           line: message.range.start.line,
