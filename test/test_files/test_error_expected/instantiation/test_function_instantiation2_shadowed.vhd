@@ -5,7 +5,7 @@ use IEEE.numeric_std.all;
 entity test_function_instantiation is
 end entity;
 architecture arch of test_function_instantiation is
-  function shadowed_thing return integer is -- vhdl-linter-disable-line unused
+  function shadowed_thing return integer is -- is hidden -> unused
   begin
     return 5;
   end function;

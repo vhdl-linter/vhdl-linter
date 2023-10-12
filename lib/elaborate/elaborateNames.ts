@@ -3,7 +3,10 @@ import * as O from "../parser/objects";
 import { OAttributeName } from "../parser/objects";
 import { VhdlLinter } from "../vhdlLinter";
 function isOverloadable(obj: O.ObjectBase): boolean {
-  return obj instanceof O.OSubprogram || obj instanceof O.OEnumLiteral || obj instanceof O.OAttributeDeclaration;
+  return obj instanceof O.OSubprogram || obj instanceof O.OEnumLiteral
+    || obj instanceof O.OAttributeDeclaration // Attributes are called differently. Also they are kind of subprograms, so probably fine
+    || (obj instanceof O.OType && (obj.protected || obj.protectedBody)); // The protected head should be visible in the protected body
+  // This generates false positives e.g. for overloading protected type with function. But I think is fine
 }
 export class ElaborateNames {
   file: O.OFile;
