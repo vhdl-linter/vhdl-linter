@@ -52,7 +52,7 @@ exports[`json 1`] = `
     "description": "object 'std_ulogic' is referenced but not declared (not-declared)",
     "fingerprint": "fake",
     "location": {
-      "path": "test/integrationTests/cli/testFolder/subfolder/error.vhd",
+      "path": "subfolder/error.vhd",
       "positions": {
         "begin": {
           "column": 15,
@@ -75,7 +75,7 @@ exports[`json 1`] = `
     "description": "Port is using resolved subtype (std_logic) should use unresolved type std_ulogic  (type-resolved)",
     "fingerprint": "fake",
     "location": {
-      "path": "test/integrationTests/cli/testFolder/subfolder/info.vhd",
+      "path": "subfolder/info.vhd",
       "positions": {
         "begin": {
           "column": 14,
@@ -98,7 +98,7 @@ exports[`json 1`] = `
     "description": "Not reading input port 'input' (unused)",
     "fingerprint": "fake",
     "location": {
-      "path": "test/integrationTests/cli/testFolder/subfolder/warning.vhd",
+      "path": "subfolder/warning.vhd",
       "positions": {
         "begin": {
           "column": 4,

@@ -88,7 +88,7 @@ export function getCodeClimate(messages: MessageWrapper[], root: string): CodeCl
     description: message.message,
     categories: ['Style'],
     location: {
-      path: wrapper.file.replace(root, ''),
+      path: wrapper.file.replace(root, '').substring(1),
       positions: {
         begin: {
           line: message.range.start.line,
