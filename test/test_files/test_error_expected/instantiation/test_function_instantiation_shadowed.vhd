@@ -5,19 +5,19 @@ use ieee.numeric_std.all;
 entity test_function_instantiation is
 end entity;
 architecture arch of test_function_instantiation is
-  function shadowed_thing return integer is -- vhdl-linter-disable-line unused
+  function shadowed_thing return integer is  -- this gets hidden -> unused
   begin
     return 5;
   end function;
   function foo (
-    shadowed_thing : integer;           -- this is "shadowed"
-    extra_param    : boolean            -- vhdl-linter-disable-line unused
+    shadowed_thing : integer;                -- this is "shadowed"
+    extra_param    : boolean                 -- vhdl-linter-disable-line unused
     ) return integer is
   begin
     return shadowed_thing;
   end function;
   procedure foo (
-    shadowed_thing : integer            -- this is "shadowed"
+    shadowed_thing : integer                 -- this is "shadowed"
     ) is
   begin
     report integer'image(shadowed_thing);

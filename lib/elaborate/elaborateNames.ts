@@ -2,6 +2,9 @@ import * as I from "../parser/interfaces";
 import * as O from "../parser/objects";
 import { OAttributeName } from "../parser/objects";
 import { VhdlLinter } from "../vhdlLinter";
+function isOverloadable(obj: O.ObjectBase): boolean {
+  return obj instanceof O.OSubprogram || obj instanceof O.OEnumLiteral || obj instanceof O.OAttributeDeclaration;
+}
 export class ElaborateNames {
   file: O.OFile;
   private scopeVisibilityMap = new Map<O.ObjectBase, Map<string, O.ObjectBase[]>>();
@@ -121,26 +124,27 @@ export class ElaborateNames {
     this.scopeVisibilityMap.set(parent, visibilityMap);
     this.scopeRecordChildMap.set(parent, recordChildMap);
     for (const [scopeObj, directlyVisible] of O.scope(parent, this)) {
-      this.addObjectsToMap(visibilityMap, [scopeObj]);
+      const visibilityMapScopeLevel = new Map<string, O.ObjectBase[]>();
+      this.addObjectsToMap(visibilityMapScopeLevel, [scopeObj]);
 
       if (directlyVisible && I.implementsIHasPorts(scopeObj)) {
-        this.addObjectsToMap(visibilityMap, scopeObj.ports);
+        this.addObjectsToMap(visibilityMapScopeLevel, scopeObj.ports);
       }
       if (directlyVisible && I.implementsIHasGenerics(scopeObj)) {
-        this.addObjectsToMap(visibilityMap, scopeObj.generics);
+        this.addObjectsToMap(visibilityMapScopeLevel, scopeObj.generics);
       }
       if (directlyVisible && I.implementsIHasDeclarations(scopeObj)) {
-        this.addObjectsToMap(visibilityMap, scopeObj.declarations);
+        this.addObjectsToMap(visibilityMapScopeLevel, scopeObj.declarations);
         for (const type of scopeObj.declarations) {
           if (type instanceof O.OType) {
             if (type instanceof O.OEnum) {
-              this.addObjectsToMap(visibilityMap, type.literals);
+              this.addObjectsToMap(visibilityMapScopeLevel, type.literals);
             }
             if (type.units !== undefined) {
-              this.addObjectsToMap(visibilityMap, type.units);
+              this.addObjectsToMap(visibilityMapScopeLevel, type.units);
             }
             if (type.protected || type.protectedBody) {
-              this.addObjectsToMap(visibilityMap, type.declarations);
+              this.addObjectsToMap(visibilityMapScopeLevel, type.declarations);
             }
             if (type instanceof O.ORecord) {
               this.addObjectsToMap(recordChildMap, type.children);
@@ -152,13 +156,13 @@ export class ElaborateNames {
       // The stuff coming from use clauses does get iterated in directly as it can be only included partially via use without all
       if (scopeObj instanceof O.OType) {
         if (scopeObj instanceof O.OEnum) {
-          this.addObjectsToMap(visibilityMap, scopeObj.literals);
+          this.addObjectsToMap(visibilityMapScopeLevel, scopeObj.literals);
         }
         if (scopeObj.units !== undefined) {
-          this.addObjectsToMap(visibilityMap, scopeObj.units);
+          this.addObjectsToMap(visibilityMapScopeLevel, scopeObj.units);
         }
         if (scopeObj.protected || scopeObj.protectedBody) {
-          this.addObjectsToMap(visibilityMap, scopeObj.declarations);
+          this.addObjectsToMap(visibilityMapScopeLevel, scopeObj.declarations);
         }
         if (scopeObj instanceof O.ORecord) {
           this.addObjectsToMap(recordChildMap, scopeObj.children);
@@ -166,10 +170,22 @@ export class ElaborateNames {
       }
 
       if (directlyVisible && I.implementsIHasStatements(scopeObj)) {
-        this.addObjectsToMap(visibilityMap, scopeObj.statements);
+        this.addObjectsToMap(visibilityMapScopeLevel, scopeObj.statements);
       }
       if (directlyVisible && I.implementsIHasLibraries(scopeObj)) {
-        this.addObjectsToMap(visibilityMap, scopeObj.libraries);
+        this.addObjectsToMap(visibilityMapScopeLevel, scopeObj.libraries);
+      }
+      for (const [text, listLevel] of visibilityMapScopeLevel.entries()) {
+
+        const list = visibilityMap.get(text);
+        if (list === undefined) {
+          visibilityMap.set(text, listLevel);
+        } else {
+
+          if (list.every(isOverloadable)) {
+            list.push(...listLevel.filter(isOverloadable));
+          }
+        }
       }
     }
   }

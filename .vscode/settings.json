@@ -15,6 +15,7 @@
     "nand",
     "Onig",
     "OSVVM",
+    "Overloadable",
     "quickfix",
     "Referencable",
     "setq",
