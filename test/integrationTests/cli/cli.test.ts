@@ -50,7 +50,7 @@ test('json', async () => {
   expect(process.status).toBe(1);
   const result = JSON.parse(process.stdout) as CodeClimateIssue[];
   expect(result).toHaveLength(3);
-  const maskedResult = result.map(entry => ({ ...entry, location: { ...entry.location, path: makeRelative(entry.location.path).replaceAll(/\\/g, '/') }, fingerprint: 'fake' }));
+  const maskedResult = result.map(entry => ({ ...entry, location: { ...entry.location, path: entry.location.path.replaceAll(/\\/g, '/') }, fingerprint: 'fake' }));
   expect(maskedResult).toMatchSnapshot();
 });
 

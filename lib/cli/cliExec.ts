@@ -1,12 +1,13 @@
 import { Command, InvalidArgumentError } from '@commander-js/extra-typings';
-import { ProjectParser } from '../projectParser';
-import { pathToFileURL } from 'url';
-import { cwd } from 'process';
-import { DiagnosticSeverity } from 'vscode-languageserver';
-import { lintFolder } from './lintFolder';
-import { getCodeClimate } from './cliUtil';
-import { isAbsolute, join } from 'path';
 import { existsSync, lstatSync } from 'fs';
+import { isAbsolute, join } from 'path';
+import { cwd } from 'process';
+import { fileURLToPath, pathToFileURL } from 'url';
+import { DiagnosticSeverity } from 'vscode-languageserver';
+import { ProjectParser } from '../projectParser';
+import { OIDiagnostic } from '../vhdlLinter';
+import { getCodeClimate, prettyPrintMessages } from './cliUtil';
+import { lintFolder } from './lintFolder';
 
 export async function cli(argv: string[]) {
   const integerParam = (v: string) => {
@@ -44,9 +45,15 @@ export async function cli(argv: string[]) {
   const warningCount = allMessages.filter(m => m?.severity === DiagnosticSeverity.Warning).length;
   const infoCount = allMessages.filter(m => m?.severity === DiagnosticSeverity.Information).length;
   // default is error
-  const errorCount = allMessages.filter(m => m?.severity !== DiagnosticSeverity.Warning && m?.severity !== DiagnosticSeverity.Information).length;
+  function isError(m: OIDiagnostic) {
+    return m?.severity !== DiagnosticSeverity.Warning && m?.severity !== DiagnosticSeverity.Information;
+  }
+  const errorCount = allMessages.filter(isError).length;
   if (options.outputJson) {
-    console.log(JSON.stringify(getCodeClimate(filesWithMessages), undefined, 2));
+    const rootPath = fileURLToPath(projectParser.workspaces[0]!);
+    console.log(JSON.stringify(getCodeClimate(filesWithMessages, rootPath), undefined, 2));
+    const filesWithErrors = filesWithMessages.map(fileWithMessages => ({ ...fileWithMessages, messages: fileWithMessages.messages.filter(isError) })).filter(fileWithMessages => fileWithMessages.messages.length > 0);
+    console.error(prettyPrintMessages(rootPath, filesWithErrors));
   } else {
     const timeTaken = new Date().getTime() - start;
     console.log(`Linted in ${(timeTaken / 1000).toFixed(2)}s:`);
