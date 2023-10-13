@@ -106,21 +106,31 @@ export class VhdlLinter {
     if (this.checkMagicComments(diagnostic.range, name)) {
       const newCode = this.addCodeActionCallback((textDocumentUri: string) => {
         const actions: CodeAction[] = [];
+        const existingComment = this.file.magicComments.find(mc => mc.range.start.line == diagnostic.range.end.line && mc.range.end.line == diagnostic.range.end.line);
         actions.push(CodeAction.create(
           `Ignore ${name} on this line.`,
           {
             changes: {
               [textDocumentUri]: [
-                TextEdit.insert(Position.create(diagnostic.range.end.line, 1000), ` -- vhdl-linter-disable-line ${name}`)]
+                existingComment === undefined ?
+                  TextEdit.insert(Position.create(diagnostic.range.end.line, 1000), ` -- vhdl-linter-disable-line ${name}`)
+                  : TextEdit.insert(existingComment.range.end, ` ${name}`)
+              ]
             }
           },
           CodeActionKind.QuickFix));
+        const existingCommentFile = this.file.magicComments.find(mc => mc.range.start.line == 0 && mc.range.end.i == this.text.length - 1);
+
         actions.push(CodeAction.create(
           `Ignore ${name} for this file.`,
           {
             changes: {
               [textDocumentUri]: [
-                TextEdit.insert(Position.create(0, 0), `-- vhdl-linter-disable ${name}\n`)]
+                existingCommentFile === undefined ?
+                  TextEdit.insert(Position.create(0, 0), `-- vhdl-linter-disable ${name}\n`)
+                  : TextEdit.insert(Position.create(existingCommentFile.range.start.line, 1000), ` ${name}`)
+              ]
+
             }
           },
           CodeActionKind.QuickFix));

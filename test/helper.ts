@@ -41,10 +41,10 @@ export function createPrintablePosition(onesLine: number, onesCharacter: number)
 
 export async function runLinterGetMessages(folder: string, file: string, settingsOverwrite: DeepPartial<ISettings> = {}) {
 
-  const [messages] = await runLinterGetMessagesAndFile(folder, file, settingsOverwrite);
+  const [messages] = await runLinterGetMessagesAndLinter(folder, file, settingsOverwrite);
   return messages;
 }
-export async function runLinterGetMessagesAndFile(folder: string, file: string, settingsOverwrite: DeepPartial<ISettings> = {}) {
+export async function runLinterGetMessagesAndLinter(folder: string, file: string, settingsOverwrite: DeepPartial<ISettings> = {}) {
 
   const projectParser = await ProjectParser.create([pathToFileURL(folder)]);
   const uri = pathToFileURL(join(folder, file));
@@ -52,7 +52,7 @@ export async function runLinterGetMessagesAndFile(folder: string, file: string, 
     overwriteSettings(await projectParser.getDocumentSettings(uri), settingsOverwrite));
   const messages = await linter.checkAll();
   await projectParser.stop();
-  return [messages, linter.file] as const;
+  return [messages, linter] as const;
 }
 export function sanitizeActions(actions: CodeAction[]) {
   for (const action of actions) {
