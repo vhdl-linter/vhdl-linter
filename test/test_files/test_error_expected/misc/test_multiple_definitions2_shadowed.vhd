@@ -5,7 +5,7 @@ use ieee.numeric_std.all;
 
 entity test_multiple_definitions2 is
   port (
-    o_test : out std_ulogic             -- vhdl-linter-disable-line unused
+    o_test : out std_ulogic             -- is hidden -> unused
 
     );
 end test_multiple_definitions2;

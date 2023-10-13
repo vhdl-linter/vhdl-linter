@@ -2,10 +2,10 @@
 library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
-entity test_function_instantiation is
+entity test_function_instantiation2_shadowed is
 end entity;
-architecture arch of test_function_instantiation is
-  function shadowed_thing return integer is -- vhdl-linter-disable-line unused
+architecture arch of test_function_instantiation2_shadowed is
+  function shadowed_thing return integer is -- is hidden -> unused
   begin
     return 5;
   end function;
