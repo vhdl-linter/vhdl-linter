@@ -2,9 +2,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-entity test_function_instantiation is
+entity test_function_instantiation_shadowed is
 end entity;
-architecture arch of test_function_instantiation is
+architecture arch of test_function_instantiation_shadowed is
   function shadowed_thing return integer is  -- this gets hidden -> unused
   begin
     return 5;
