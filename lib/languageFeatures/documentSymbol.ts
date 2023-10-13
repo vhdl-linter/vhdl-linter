@@ -167,8 +167,9 @@ export class DocumentSymbols {
   }
   getSequentialStatement(statement: OSequentialStatement): DocumentSymbol[] {
     if (statement instanceof OCase) {
+      const name = statement.caseTokens.filter(token => !token.isWhitespace()).join('');
       return [{
-        name: statement.expression.map(read => read.nameToken.text).join(' '),
+        name,
         detail: 'case',
         kind: SymbolKind.Enum,
         range: statement.range,
