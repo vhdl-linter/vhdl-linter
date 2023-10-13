@@ -5,14 +5,14 @@ entity issue476 is
 end issue476;
 
 architecture rtl of issue476 is
-  signal output : std_ulogic;
+  signal apple : std_ulogic;
 begin
   p_adc : process
     constant V : integer := 1;
   begin
     case (V) is 
-      when 19     => output <= output;
-      when others => output <= output;
+      when 19     => apple <= apple;
+      when others => apple <= apple;
     end case;
   end process p_adc;
 end architecture rtl;
