@@ -1,6 +1,6 @@
 import { DocumentSymbol, SymbolKind } from 'vscode-languageserver';
 import { implementsIHasDeclarations, implementsIHasStatements } from '../parser/interfaces';
-import { OAlias, OArchitecture, ObjectBase, OBlock, OCase, OCaseGenerate, OConstant, OElseGenerateClause, OEntity, OFile, OForGenerate, OIf, OIfGenerate, OIfGenerateClause, OInstantiation, OPackage, OPackageBody, OProcess, ORecord, OSequentialStatement, OStatementBody, OSubprogram, OType, OWhenClause, OWhenGenerateClause } from '../parser/objects';
+import { OAggregate, OAlias, OArchitecture, ObjectBase, OBlock, OCase, OCaseGenerate, OConstant, OElseGenerateClause, OEntity, OFile, OForGenerate, OIf, OIfGenerate, OIfGenerateClause, OInstantiation, OPackage, OPackageBody, OProcess, ORecord, OSequentialStatement, OStatementBody, OSubprogram, OType, OWhenClause, OWhenGenerateClause } from '../parser/objects';
 import { VhdlLinter } from '../vhdlLinter';
 import { TokenType } from '../lexer';
 
@@ -167,8 +167,9 @@ export class DocumentSymbols {
   }
   getSequentialStatement(statement: OSequentialStatement): DocumentSymbol[] {
     if (statement instanceof OCase) {
+      const name = statement.caseTokens.filter(token => !token.isWhitespace()).join('');
       return [{
-        name: statement.expression.map(read => read.nameToken.text).join(' '),
+        name,
         detail: 'case',
         kind: SymbolKind.Enum,
         range: statement.range,

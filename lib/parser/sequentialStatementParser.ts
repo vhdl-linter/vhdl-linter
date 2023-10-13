@@ -286,8 +286,8 @@ export class SequentialStatementParser extends ParserBase {
     this.debug(`parseCase ${label?.text ?? ''}`);
     const case_ = new O.OCase(parent, this.getToken(-1, true).range.copyExtendEndOfLine());
     case_.matching = this.maybe('?') !== undefined;
-    const [expressionTokens] = this.advanceParenthesisAware(['is']);
-    case_.expression = new ExpressionParser(this.state, case_, expressionTokens).parse();
+    [case_.caseTokens] = this.advanceParenthesisAware(['is']);
+    case_.expression = new ExpressionParser(this.state, case_, case_.caseTokens).parse();
 
     while (this.getToken().getLText() === 'when') {
       this.debug(`parseWhen`);
