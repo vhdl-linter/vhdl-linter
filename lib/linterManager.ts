@@ -3,8 +3,6 @@ import { EventEmitter } from "stream";
 import { CancellationToken, CancellationTokenSource, LSPErrorCodes, ResponseError, _Connection } from "vscode-languageserver";
 import { Elaborate } from "./elaborate/elaborate";
 import { normalizeUri } from "./normalizeUri";
-import { implementsIHasDefinitions, implementsIHasNameLinks } from "./parser/interfaces";
-import { OAlias } from "./parser/objects";
 import { FileCacheVhdl, ProjectParser } from "./projectParser";
 import { VhdlLinter } from "./vhdlLinter";
 
@@ -95,18 +93,7 @@ export class LinterManager {
     } else {
       for (const cachedFile of projectParser.cachedFiles) {
         if (cachedFile instanceof FileCacheVhdl) {
-          for (const obj of cachedFile.linter.file.objectList) {
-            if (implementsIHasDefinitions(obj)) {
-              obj.definitions = [];
-            }
-            if (implementsIHasNameLinks(obj)) {
-              obj.nameLinks = [];
-              obj.aliasLinks = [];
-            }
-            if (obj instanceof OAlias) {
-              obj.aliasDefinitions = [];
-            }
-          }
+          Elaborate.clear(cachedFile.linter);
         }
       }
       // Parser success run elaboration
