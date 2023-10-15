@@ -146,7 +146,6 @@ export const initialization = new Promise<void>(resolve => {
         uris.push(uri);
         clearTimeout(timeout);
         timeout = setTimeout(() => {
-          uris = [];
           // A file in project parser got changed
           // Revalidate all *other* files. (The file itself gets directly handled.)
           for (const document of documents.all()) {
@@ -154,6 +153,7 @@ export const initialization = new Promise<void>(resolve => {
               void validateTextDocument(document, true);
             }
           }
+          uris = [];
           for (const cache of projectParser.cachedFiles) {
             if (cache instanceof FileCacheLibraryList) {
               cache.messages.forEach((diag) => diag.source = 'vhdl-linter');
