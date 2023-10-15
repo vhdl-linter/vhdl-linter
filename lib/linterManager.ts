@@ -3,8 +3,6 @@ import { EventEmitter } from "stream";
 import { CancellationToken, CancellationTokenSource, LSPErrorCodes, ResponseError, _Connection } from "vscode-languageserver";
 import { Elaborate } from "./elaborate/elaborate";
 import { normalizeUri } from "./normalizeUri";
-import { implementsIHasDefinitions, implementsIHasNameLinks } from "./parser/interfaces";
-import { OAlias } from "./parser/objects";
 import { FileCacheVhdl, ProjectParser } from "./projectParser";
 import { VhdlLinter } from "./vhdlLinter";
 
@@ -16,7 +14,7 @@ interface ILinterState {
   version: number
 }
 export class LinterManager {
-  constructor(public connection?: _Connection) {}
+  constructor(public connection?: _Connection) { }
   private projectParserDebounce: Record<string, NodeJS.Timeout> = {};
   // We do not actually care for the linter where the parsing failed.
   // So this will always point to working linter
@@ -93,22 +91,9 @@ export class LinterManager {
       }
       state.valid = false;
     } else {
-      if (fromProjectParser === false) {
-        for (const cachedFile of projectParser.cachedFiles) {
-          if (cachedFile instanceof FileCacheVhdl) {
-            for (const obj of cachedFile.linter.file.objectList) {
-              if (implementsIHasDefinitions(obj)) {
-                obj.definitions = [];
-              }
-              if (implementsIHasNameLinks(obj)) {
-                obj.nameLinks = [];
-                obj.aliasLinks = [];
-              }
-              if (obj instanceof OAlias) {
-                obj.aliasDefinitions = [];
-              }
-            }
-          }
+      for (const cachedFile of projectParser.cachedFiles) {
+        if (cachedFile instanceof FileCacheVhdl) {
+          Elaborate.clear(cachedFile.linter);
         }
       }
       // Parser success run elaboration
