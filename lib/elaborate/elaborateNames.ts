@@ -4,15 +4,17 @@ import { OAttributeName } from "../parser/objects";
 import { VhdlLinter } from "../vhdlLinter";
 function isOverloadable(obj: O.ObjectBase): boolean {
   return obj instanceof O.OSubprogram || obj instanceof O.OEnumLiteral
-    || obj instanceof O.OAttributeDeclaration // Attributes are called differently. Also they are kind of subprograms, so probably fine
     || (obj instanceof O.OType && (obj.protected || obj.protectedBody)); // The protected head should be visible in the protected body
   // This generates false positives e.g. for overloading protected type with function. But I think is fine
 }
+type VisibilityMap = Map<string, {
+  attribute: O.ObjectBase[] // attributes do not interact with other declarations. Put into own bucket
+  recordChild: O.ObjectBase[] // make available for choices
+  name: O.ObjectBase[] //all remaining visible declarations are collected into one bucket
+}>;
 export class ElaborateNames {
   file: O.OFile;
-  private scopeVisibilityMap = new Map<O.ObjectBase, Map<string, O.ObjectBase[]>>();
-  // this map only contains the record children and is used for aggregate references
-  private scopeRecordChildMap = new Map<O.ObjectBase, Map<string, O.ORecordChild[]>>();
+  private scopeVisibilityMap = new Map<O.ObjectBase, VisibilityMap>();
   // the project visibility map includes packages that are visible in the project
   private projectVisibilityMap?: Map<string, O.ObjectBase[]> = undefined;
   // store elaborated objects to prevent multiple elaboration
@@ -105,7 +107,33 @@ export class ElaborateNames {
     }
     return obj.lexerToken?.getLText();
   }
-  addObjectsToMap<T extends O.ObjectBase>(map: Map<string, T[]>, objects: T[]) {
+  addObjectsToMap(map: VisibilityMap, objects: O.ObjectBase[]) {
+    for (const obj of objects) {
+      const text = this.getObjectText(obj);
+      if (text === undefined) {
+        continue;
+      }
+
+      let list = map.get(text);
+      if (list === undefined) {
+        list = {
+          attribute: [],
+          name: [],
+          recordChild: []
+        };
+        map.set(text, list);
+      }
+
+      if (obj instanceof O.OAttributeDeclaration || obj instanceof O.OAttributeSpecification) {
+        list.attribute.push(obj);
+      } else if (obj instanceof O.ORecordChild) {
+        list.recordChild.push(obj);
+      } else {
+        list.name.push(obj);
+      }
+    }
+  }
+  addObjectsToFlatMap<T extends O.ObjectBase>(map: Map<string, T[]>, objects: T[]) {
     for (const obj of objects) {
       const text = this.getObjectText(obj);
       if (text === undefined) {
@@ -117,17 +145,17 @@ export class ElaborateNames {
         list = [];
         map.set(text, list);
       }
+
       list.push(obj);
     }
   }
 
   fillVisibilityMap(parent: O.ObjectBase) {
-    const visibilityMap = new Map<string, O.ObjectBase[]>();
-    const recordChildMap = new Map<string, O.ORecordChild[]>();
+
+    const visibilityMap: VisibilityMap = new Map();
     this.scopeVisibilityMap.set(parent, visibilityMap);
-    this.scopeRecordChildMap.set(parent, recordChildMap);
     for (const [scopeObj, directlyVisible] of O.scope(parent, this)) {
-      const visibilityMapScopeLevel = new Map<string, O.ObjectBase[]>();
+      const visibilityMapScopeLevel: VisibilityMap = new Map();
       this.addObjectsToMap(visibilityMapScopeLevel, [scopeObj]);
 
       if (directlyVisible && I.implementsIHasPorts(scopeObj)) {
@@ -150,7 +178,7 @@ export class ElaborateNames {
               this.addObjectsToMap(visibilityMapScopeLevel, type.declarations);
             }
             if (type instanceof O.ORecord) {
-              this.addObjectsToMap(recordChildMap, type.children);
+              this.addObjectsToMap(visibilityMapScopeLevel, type.children);
             }
           }
         }
@@ -168,7 +196,7 @@ export class ElaborateNames {
           this.addObjectsToMap(visibilityMapScopeLevel, scopeObj.declarations);
         }
         if (scopeObj instanceof O.ORecord) {
-          this.addObjectsToMap(recordChildMap, scopeObj.children);
+          this.addObjectsToMap(visibilityMapScopeLevel, scopeObj.children);
         }
       }
 
@@ -185,9 +213,11 @@ export class ElaborateNames {
           visibilityMap.set(text, listLevel);
         } else {
 
-          if (list.every(isOverloadable)) {
-            list.push(...listLevel.filter(isOverloadable));
+          if (list.name.every(isOverloadable)) {
+            list.name.push(...listLevel.name.filter(isOverloadable));
           }
+          list.attribute.push(...listLevel.attribute);
+          list.recordChild.push(...listLevel.recordChild);
         }
       }
     }
@@ -197,11 +227,11 @@ export class ElaborateNames {
     if (this.projectVisibilityMap === undefined) {
       const projectParser = this.vhdlLinter.projectParser;
       this.projectVisibilityMap = new Map();
-      this.addObjectsToMap(this.projectVisibilityMap, projectParser.entities);
-      this.addObjectsToMap(this.projectVisibilityMap, projectParser.packages);
-      this.addObjectsToMap(this.projectVisibilityMap, projectParser.packageInstantiations);
-      this.addObjectsToMap(this.projectVisibilityMap, projectParser.contexts);
-      this.addObjectsToMap(this.projectVisibilityMap, projectParser.configurations);
+      this.addObjectsToFlatMap(this.projectVisibilityMap, projectParser.entities);
+      this.addObjectsToFlatMap(this.projectVisibilityMap, projectParser.packages);
+      this.addObjectsToFlatMap(this.projectVisibilityMap, projectParser.packageInstantiations);
+      this.addObjectsToFlatMap(this.projectVisibilityMap, projectParser.contexts);
+      this.addObjectsToFlatMap(this.projectVisibilityMap, projectParser.configurations);
     }
     const result: O.ObjectBase[] = [];
     if (searchName.nameToken.getLText() === 'all') {
@@ -234,9 +264,12 @@ export class ElaborateNames {
     }
     const objMap = this.scopeVisibilityMap.get(key)!;
     const searchText = name.nameToken.getLText();
-    const result = objMap.get(searchText) ?? [];
+    if (name instanceof O.OAttributeName) {
+      return objMap.get(searchText)?.attribute ?? [];
+    }
+    const result = objMap.get(searchText)?.name ?? [];
     if (name instanceof O.OChoice) {
-      return result.concat(this.scopeRecordChildMap.get(key)!.get(searchText) ?? []);
+      return result.concat(this.scopeVisibilityMap.get(key)!.get(searchText)?.recordChild ?? []);
     } else {
       return result;
     }
