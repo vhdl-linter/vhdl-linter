@@ -192,7 +192,10 @@ async function validateTextDocument(textDocument: TextDocument, fromProjectParse
       const vhdlLinter = await linterManager.triggerRefresh(textDocument.uri, textDocument.getText(), projectParser, textDocument.version, fromProjectParser);
       const diagnostics = await vhdlLinter.checkAll();
       diagnostics.forEach((diag) => diag.source = 'vhdl-linter');
-      await connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+      if (documents.get(textDocument.uri) !== undefined) {
+        // handle if the document closed while validating
+        await connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+      }
     }
   } catch (err) {
     // Ignore cancelled
