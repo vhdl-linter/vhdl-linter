@@ -13,6 +13,6 @@ begin
     variable length : integer;          -- vhdl-linter-disable-line unused
 
   begin
-    report foo'length;  -- length should not be hidden by the variable
+    report to_string(foo'length);  -- length should not be hidden by the variable
   end process;
 end architecture;
