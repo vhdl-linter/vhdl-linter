@@ -212,8 +212,9 @@ export class ElaborateNames {
         if (list === undefined) {
           visibilityMap.set(text, listLevel);
         } else {
-
-          if (list.name.every(isOverloadable)) {
+          if (list.name.length == 0) {
+            list.name.push(...listLevel.name);
+          } else if (list.name.every(isOverloadable)) {
             list.name.push(...listLevel.name.filter(isOverloadable));
           }
           list.attribute.push(...listLevel.attribute);
