@@ -130,14 +130,6 @@ export class LinterManager {
           cachedFile.replaceLinter(vhdlLinter);
         }
         projectParser.flattenProject();
-        try {
-          projectParser.events.emit('change', 'change', uri);
-        } catch (err) {
-          console.log('crr', err);
-          if (!(err instanceof ResponseError && err.code === LSPErrorCodes.RequestCancelled)) {
-            throw err;
-          }
-        }
       }, 30);
     }
   }
