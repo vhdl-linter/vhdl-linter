@@ -34,6 +34,12 @@ export class ElaborateNames {
       this.lastCancelTime = now;
     }
   }
+  debugPrint() {
+    for (const [scope, entries] of this.scopeVisibilityMap.entries()) {
+      const things = [...entries.values()].flat();
+      console.log(scope.lexerToken?.text, things.length);
+    }
+  }
   public static async elaborate(vhdlLinter: VhdlLinter) {
     const elaborator = new ElaborateNames(vhdlLinter);
     // elaborate use clauses
@@ -50,6 +56,8 @@ export class ElaborateNames {
       await this.checkCancel(vhdlLinter);
       elaborator.elaborate(obj);
     }
+    // return is used for testing
+    return elaborator;
 
   }
   elaborate(name: O.OName) {
@@ -553,13 +561,6 @@ export class ElaborateNames {
   getUseClauses(parent: O.ObjectBase & (I.IHasUseClauses), parentContexts: O.OContext[] = []) {
     const useClauses = parent.useClauses.slice();
     const contextReferences = I.implementsIHasContextReference(parent) ? parent.contextReferences.slice() : [];
-    if (parent instanceof O.OPackageBody && parent.correspondingPackage) {
-      useClauses.push(...parent.correspondingPackage.useClauses);
-      contextReferences.push(...parent.correspondingPackage.contextReferences);
-    } else if (parent instanceof O.OArchitecture && parent.correspondingEntity) {
-      useClauses.push(...parent.correspondingEntity.useClauses);
-      contextReferences.push(...parent.correspondingEntity.contextReferences);
-    }
     if (contextReferences.length > 0) {
       for (const contextRef of contextReferences) {
         if (this.elaboratedListContextRefs.has(contextRef)) {

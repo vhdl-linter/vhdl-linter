@@ -901,36 +901,57 @@ function* iterateContexts(object: ObjectBase & I.IHasContextReference, directlyV
 }
 // Returns all object visible starting from the startObjects scope.
 // The second parameter defines if the object is directly visible.
-export function* scope(startObject: ObjectBase, elaborateNames: ElaborateNames|undefined = undefined): Generator<[ObjectBase, boolean]> {
+export function* scope(startObject: ObjectBase, elaborateNames: ElaborateNames | undefined = undefined): Generator<[ObjectBase, boolean]> {
   let current = startObject;
   let directlyVisible = true;
+  // make sure stuff is only yielded once
+  const alreadyYieldedDirectlyVisible: ObjectBase[] = [];
+  const alreadyYieldedNoneDirectlyVisible: ObjectBase[] = [];
+  function* yieldWrapper([obj, directlyVisible]: [ObjectBase, boolean]): Generator<[ObjectBase, boolean]> {
+    if (directlyVisible) {
+      if (!alreadyYieldedDirectlyVisible.includes(obj)) {
+        alreadyYieldedDirectlyVisible.push(obj);
+        yield [obj, directlyVisible];
+      }
+    } else {
+      if (!alreadyYieldedNoneDirectlyVisible.includes(obj)) {
+        alreadyYieldedNoneDirectlyVisible.push(obj);
+        yield [obj, directlyVisible];
+      }
+    }
+  }
+  function* yieldWrapperGenerator(gen: Generator<[ObjectBase, boolean]>): Generator<[ObjectBase, boolean]> {
+    for (const it of gen) {
+      yield* yieldWrapper(it);
+    }
+  }
   while (true) {
     yield [current, directlyVisible];
     if (current instanceof OArchitecture && current.correspondingEntity) {
-      yield [current.correspondingEntity, directlyVisible];
+      yield* yieldWrapper([current.correspondingEntity, directlyVisible]);
       directlyVisible = false;
       if (elaborateNames) {
         elaborateNames.elaborateUseClauses(current.correspondingEntity.useClauses);
       }
       for (const useClause of current.correspondingEntity.useClauses) {
         for (const definition of useClause.names.at(-1)?.definitions ?? []) {
-          yield [definition, false];
+          yield* yieldWrapper([definition, false]);
         }
       }
-      yield* iterateContexts(current.correspondingEntity, directlyVisible);
+      yield* yieldWrapperGenerator(iterateContexts(current.correspondingEntity, directlyVisible));
     }
     if (current instanceof OPackageBody && current.correspondingPackage) {
-      yield [current.correspondingPackage, directlyVisible];
+      yield* yieldWrapper([current.correspondingPackage, directlyVisible]);
       directlyVisible = false;
       if (elaborateNames) {
         elaborateNames.elaborateUseClauses(current.correspondingPackage.useClauses);
       }
       for (const useClause of current.correspondingPackage.useClauses) {
         for (const definition of useClause.names.at(-1)?.definitions ?? []) {
-          yield [definition, false];
+          yield* yieldWrapper([definition, false]);
         }
       }
-      yield* iterateContexts(current.correspondingPackage, directlyVisible);
+      yield* yieldWrapperGenerator(iterateContexts(current.correspondingPackage, directlyVisible));
     }
     if (I.implementsIHasUseClause(current)) {
       if (elaborateNames) {
@@ -938,12 +959,12 @@ export function* scope(startObject: ObjectBase, elaborateNames: ElaborateNames|u
       }
       for (const useClause of current.useClauses) {
         for (const definition of useClause.names.at(-1)?.definitions ?? []) {
-          yield [definition, false];
+          yield* yieldWrapper([definition, false]);
         }
       }
     }
     if (I.implementsIHasContextReference(current)) {
-      yield* iterateContexts(current, directlyVisible);
+      yield* yieldWrapperGenerator(iterateContexts(current, directlyVisible));
     }
     if (current.parent instanceof OFile) {
       break;
