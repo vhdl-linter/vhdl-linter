@@ -6,6 +6,7 @@ import { VhdlLinter } from '../vhdlLinter';
 import { findObjectFromPosition } from './findObjects';
 import { getTokenFromPosition } from './findReferencesHandler';
 import { findParentInstantiation } from './helper/findParentInstantiation';
+import { scope } from '../parser/scopeIterator';
 
 export class Completions {
   private completions: CompletionItem[] = [];
@@ -104,7 +105,7 @@ export class Completions {
     }
 
 
-    for (const [object] of O.scope(completionObject)) {
+    for (const [object] of scope(completionObject)) {
       this.addCorrectCompletion(object);
       if (I.implementsIHasDeclarations(object)) {
         for (const declaration of object.declarations) {

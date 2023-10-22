@@ -39,5 +39,6 @@ test('Testing elaboration of context vs use clause', async () => {
     const things = [...elaborator['scopeVisibilityMap'].values()].flatMap(map => [...map.values()]).flat();
     return things;
   }));
-  expect(thingsContext!.length - thingsUseClause!.length).toBeLessThan(3);
+  // the context itself is counted
+  expect(thingsContext!.length - thingsUseClause!.length).toBeLessThan(2);
 });

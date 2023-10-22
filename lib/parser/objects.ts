@@ -1,8 +1,8 @@
 import { Position, Range, TextEdit } from 'vscode-languageserver';
-import { ElaborateNames } from '../elaborate/elaborateNames';
 import { OLexerToken } from '../lexer';
 import { OIDiagnosticWithSolution } from '../vhdlLinter';
 import * as I from './interfaces';
+
 export class OI implements Position {
   protected i_?: number;
   constructor(public parent: ObjectBase | OFile, i: number, j?: number, k?: number) {
@@ -865,113 +865,9 @@ export class OAttributeDeclaration extends ObjectBase implements I.IHasLexerToke
   aliasDefinitions: ObjectBase[] = [];
   subtypeIndication: OSubtypeIndication;
 }
-// Iterate through all context and use clauses of the object recursively
-function* iterateContexts(object: ObjectBase & I.IHasContextReference, directlyVisible: boolean): Generator<[ObjectBase, boolean]> {
-  const handleContextReference = (contextReference: OContextReference, recursionLimit: number, parentContextReferences: OContextReference[] = []) => {
-    if (recursionLimit === 0) {
-      throw new Error(`Infinite Recursion`);
-    }
-    let definitions: ObjectBase[] = [];
-    for (const definition of contextReference.names.at(-1)?.definitions ?? []) {
-      definitions.push(definition);
-      if (I.implementsIHasContextReference(definition)) {
-        for (const contextReference of definition.contextReferences) {
-          if (parentContextReferences.includes(contextReference) === false) {
-            const newDefinitions = handleContextReference(contextReference, recursionLimit - 1, [...parentContextReferences, contextReference]);
-            definitions = definitions.concat(newDefinitions);
-          }
-        }
-      }
-      if (I.implementsIHasUseClause(definition)) {
-        for (const useClause of definition.useClauses) {
-          for (const definition of useClause.names.at(-1)?.definitions ?? []) {
-            definitions.push(definition);
-          }
-        }
-      }
-    }
-    return definitions;
-  };
 
-  for (const contextReference of object.contextReferences) {
-    for (const definition of handleContextReference(contextReference, 20)) {
-      yield [definition, directlyVisible];
-    }
-  }
-}
-// Returns all object visible starting from the startObjects scope.
-// The second parameter defines if the object is directly visible.
-export function* scope(startObject: ObjectBase, elaborateNames: ElaborateNames | undefined = undefined): Generator<[ObjectBase, boolean]> {
-  let current = startObject;
-  let directlyVisible = true;
-  // make sure stuff is only yielded once
-  const alreadyYieldedDirectlyVisible: ObjectBase[] = [];
-  const alreadyYieldedNoneDirectlyVisible: ObjectBase[] = [];
-  function* yieldWrapper([obj, directlyVisible]: [ObjectBase, boolean]): Generator<[ObjectBase, boolean]> {
-    if (directlyVisible) {
-      if (!alreadyYieldedDirectlyVisible.includes(obj)) {
-        alreadyYieldedDirectlyVisible.push(obj);
-        yield [obj, directlyVisible];
-      }
-    } else {
-      if (!alreadyYieldedNoneDirectlyVisible.includes(obj)) {
-        alreadyYieldedNoneDirectlyVisible.push(obj);
-        yield [obj, directlyVisible];
-      }
-    }
-  }
-  function* yieldWrapperGenerator(gen: Generator<[ObjectBase, boolean]>): Generator<[ObjectBase, boolean]> {
-    for (const it of gen) {
-      yield* yieldWrapper(it);
-    }
-  }
-  while (true) {
-    yield [current, directlyVisible];
-    if (current instanceof OArchitecture && current.correspondingEntity) {
-      yield* yieldWrapper([current.correspondingEntity, directlyVisible]);
-      directlyVisible = false;
-      if (elaborateNames) {
-        elaborateNames.elaborateUseClauses(current.correspondingEntity.useClauses);
-      }
-      for (const useClause of current.correspondingEntity.useClauses) {
-        for (const definition of useClause.names.at(-1)?.definitions ?? []) {
-          yield* yieldWrapper([definition, false]);
-        }
-      }
-      yield* yieldWrapperGenerator(iterateContexts(current.correspondingEntity, directlyVisible));
-    }
-    if (current instanceof OPackageBody && current.correspondingPackage) {
-      yield* yieldWrapper([current.correspondingPackage, directlyVisible]);
-      directlyVisible = false;
-      if (elaborateNames) {
-        elaborateNames.elaborateUseClauses(current.correspondingPackage.useClauses);
-      }
-      for (const useClause of current.correspondingPackage.useClauses) {
-        for (const definition of useClause.names.at(-1)?.definitions ?? []) {
-          yield* yieldWrapper([definition, false]);
-        }
-      }
-      yield* yieldWrapperGenerator(iterateContexts(current.correspondingPackage, directlyVisible));
-    }
-    if (I.implementsIHasUseClause(current)) {
-      if (elaborateNames) {
-        elaborateNames.elaborateUseClauses(current.useClauses);
-      }
-      for (const useClause of current.useClauses) {
-        for (const definition of useClause.names.at(-1)?.definitions ?? []) {
-          yield* yieldWrapper([definition, false]);
-        }
-      }
-    }
-    if (I.implementsIHasContextReference(current)) {
-      yield* yieldWrapperGenerator(iterateContexts(current, directlyVisible));
-    }
-    if (current.parent instanceof OFile) {
-      break;
-    }
-    current = current.parent;
-  }
-}
+
+
 export function getTheInnermostNameChildren(name: OName) {
   let nameChild = name;
   let recursionLimit = 1000;
@@ -993,5 +889,5 @@ export function getNameParent(name: OName) {
     }
   }
   return nameParent;
-
 }
+// export { scope } from './scopeIterator';

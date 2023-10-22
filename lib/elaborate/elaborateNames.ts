@@ -1,6 +1,7 @@
 import * as I from "../parser/interfaces";
 import * as O from "../parser/objects";
 import { OAttributeName } from "../parser/objects";
+import { scope } from "../parser/scopeIterator";
 import { VhdlLinter } from "../vhdlLinter";
 function isOverloadable(obj: O.ObjectBase): boolean {
   return obj instanceof O.OSubprogram || obj instanceof O.OEnumLiteral
@@ -34,6 +35,7 @@ export class ElaborateNames {
       this.lastCancelTime = now;
     }
   }
+  /* istanbul ignore next */
   debugPrint() {
     for (const [scope, entries] of this.scopeVisibilityMap.entries()) {
       const things = [...entries.values()].flat();
@@ -162,7 +164,7 @@ export class ElaborateNames {
 
     const visibilityMap: VisibilityMap = new Map();
     this.scopeVisibilityMap.set(parent, visibilityMap);
-    for (const [scopeObj, directlyVisible] of O.scope(parent, this)) {
+    for (const [scopeObj, directlyVisible] of scope(parent, this)) {
       const visibilityMapScopeLevel: VisibilityMap = new Map();
       this.addObjectsToMap(visibilityMapScopeLevel, [scopeObj]);
 
@@ -262,7 +264,7 @@ export class ElaborateNames {
   getList(name: O.OName) {
     // find parent which is a scope
     let key: O.ObjectBase = name;
-    for (const [p] of O.scope(key)) {
+    for (const [p] of scope(key)) {
       if (I.implementsIHasDeclarations(p) || I.implementsIHasStatements(p) || p instanceof O.OPackageInstantiation || p instanceof O.OContext) {
         key = p;
         break;
