@@ -2,6 +2,7 @@ import { CodeAction, CodeActionKind, DiagnosticSeverity, TextEdit } from "vscode
 import { implementsIHasDeclarations } from "../parser/interfaces";
 import * as O from "../parser/objects";
 import { IRule, RuleBase } from "./rulesBase";
+import { scope } from "../parser/scopeIterator";
 
 export class RuleTypeResolved extends RuleBase implements IRule {
   public static readonly ruleName = 'type-resolved';
@@ -68,7 +69,7 @@ export class RuleTypeResolved extends RuleBase implements IRule {
           // For aliases check find the aliased type
           const alias = [type.nameToken.getLText()];
           while (definition instanceof O.OAlias) {
-            for (const [obj] of O.scope(definition)) {
+            for (const [obj] of scope(definition)) {
               if (implementsIHasDeclarations(obj)) {
                 for (const typeIter of obj.declarations) {
                   if (typeIter instanceof O.OType && typeIter.lexerToken.getLText() === (definition as O.OAlias).name[0]!.nameToken.getLText()) {

@@ -1,11 +1,13 @@
 import { afterAll, beforeAll, expect, test } from '@jest/globals';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
+import { readFileSyncNorm } from "../../../lib/cli/readFileSyncNorm";
 import { Elaborate } from '../../../lib/elaborate/elaborate';
+import { ElaborateNames } from '../../../lib/elaborate/elaborateNames';
 import { OAssignment, OChoice } from '../../../lib/parser/objects';
 import { ProjectParser } from '../../../lib/projectParser';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
-import { readFileSyncNorm } from "../../../lib/cli/readFileSyncNorm";
+import { runLinterGetMessagesAndLinter } from '../../helper';
 
 
 let projectParser: ProjectParser;
@@ -27,4 +29,16 @@ test('Testing elaboration of choice', async () => {
   expect(choice).toBeDefined();
   expect(choice?.nameToken.text).toBe('ID');
   expect(choice?.definitions.length).toBe(1);
+});
+test('Testing elaboration of context vs use clause', async () => {
+  const files = ['test_context.vhd', 'test_use.vhd'];
+  const [thingsContext, thingsUseClause] = await Promise.all(files.map(async file => {
+    const [, linter] = await runLinterGetMessagesAndLinter(__dirname, file);
+    const elaborator = await ElaborateNames.elaborate(linter);
+    // eslint-disable-next-line @typescript-eslint/dot-notation
+    const things = [...elaborator['scopeVisibilityMap'].values()].flatMap(map => [...map.values()]).flat();
+    return things;
+  }));
+  // the context itself is counted
+  expect(thingsContext!.length - thingsUseClause!.length).toBeLessThan(2);
 });

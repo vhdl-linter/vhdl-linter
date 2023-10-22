@@ -1,6 +1,7 @@
 import * as I from "../parser/interfaces";
 import * as O from "../parser/objects";
 import { OAttributeName } from "../parser/objects";
+import { scope } from "../parser/scopeIterator";
 import { VhdlLinter } from "../vhdlLinter";
 function isOverloadable(obj: O.ObjectBase): boolean {
   return obj instanceof O.OSubprogram || obj instanceof O.OEnumLiteral
@@ -34,6 +35,13 @@ export class ElaborateNames {
       this.lastCancelTime = now;
     }
   }
+  /* istanbul ignore next */
+  debugPrint() {
+    for (const [scope, entries] of this.scopeVisibilityMap.entries()) {
+      const things = [...entries.values()].flat();
+      console.log(scope.lexerToken?.text, things.length);
+    }
+  }
   public static async elaborate(vhdlLinter: VhdlLinter) {
     const elaborator = new ElaborateNames(vhdlLinter);
     // elaborate use clauses
@@ -50,6 +58,8 @@ export class ElaborateNames {
       await this.checkCancel(vhdlLinter);
       elaborator.elaborate(obj);
     }
+    // return is used for testing
+    return elaborator;
 
   }
   elaborate(name: O.OName) {
@@ -154,7 +164,7 @@ export class ElaborateNames {
 
     const visibilityMap: VisibilityMap = new Map();
     this.scopeVisibilityMap.set(parent, visibilityMap);
-    for (const [scopeObj, directlyVisible] of O.scope(parent, this)) {
+    for (const [scopeObj, directlyVisible] of scope(parent, this)) {
       const visibilityMapScopeLevel: VisibilityMap = new Map();
       this.addObjectsToMap(visibilityMapScopeLevel, [scopeObj]);
 
@@ -254,7 +264,7 @@ export class ElaborateNames {
   getList(name: O.OName) {
     // find parent which is a scope
     let key: O.ObjectBase = name;
-    for (const [p] of O.scope(key)) {
+    for (const [p] of scope(key)) {
       if (I.implementsIHasDeclarations(p) || I.implementsIHasStatements(p) || p instanceof O.OPackageInstantiation || p instanceof O.OContext) {
         key = p;
         break;
@@ -553,13 +563,6 @@ export class ElaborateNames {
   getUseClauses(parent: O.ObjectBase & (I.IHasUseClauses), parentContexts: O.OContext[] = []) {
     const useClauses = parent.useClauses.slice();
     const contextReferences = I.implementsIHasContextReference(parent) ? parent.contextReferences.slice() : [];
-    if (parent instanceof O.OPackageBody && parent.correspondingPackage) {
-      useClauses.push(...parent.correspondingPackage.useClauses);
-      contextReferences.push(...parent.correspondingPackage.contextReferences);
-    } else if (parent instanceof O.OArchitecture && parent.correspondingEntity) {
-      useClauses.push(...parent.correspondingEntity.useClauses);
-      contextReferences.push(...parent.correspondingEntity.contextReferences);
-    }
     if (contextReferences.length > 0) {
       for (const contextRef of contextReferences) {
         if (this.elaboratedListContextRefs.has(contextRef)) {

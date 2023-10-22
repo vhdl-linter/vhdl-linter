@@ -4,6 +4,7 @@ import * as I from "../parser/interfaces";
 import * as O from "../parser/objects";
 import { IAddSignalCommandArguments } from "../vhdlLinter";
 import { IRule, RuleBase } from "./rulesBase";
+import { scope } from "../parser/scopeIterator";
 
 export class RuleNotDeclared extends RuleBase implements IRule {
   public static readonly ruleName = 'not-declared';
@@ -149,7 +150,7 @@ export class RuleNotDeclared extends RuleBase implements IRule {
         }
       }
     } else {
-      for (const [obj] of O.scope(ref)) {
+      for (const [obj] of scope(ref)) {
         if (I.implementsIHasDeclarations(obj)) {
           possibleMatches.push(...obj.declarations);
         }
