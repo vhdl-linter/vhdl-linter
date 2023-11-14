@@ -40,8 +40,11 @@ interface LibraryMapping {
   definitionLine: number;
 }
 
-export function matchGlobList(value: string, globList: string[]) {
+export function matchBasename(value: string, globList: string[]) {
   return globList.some(glob => minimatch(basename(value), glob));
+}
+function matchFullPath(value: string, globList: string[]) {
+  return globList.some(glob => minimatch(value, glob));
 }
 
 export const vhdlGlob = '*.vhd?(l)';
@@ -89,13 +92,13 @@ export class ProjectParser {
         const handleEvent = async () => {
           const url = pathToFileURL(path);
           const settings = await this.getDocumentSettings(url);
-          if (matchGlobList(path, [verilogGlob]) && settings.analysis.verilogAnalysis) {
+          if (matchBasename(path, [verilogGlob]) && settings.analysis.verilogAnalysis) {
             const cachedFile = await FileCacheVerilog.create(url, this, false);
             this.cachedFiles.push(cachedFile);
-          } else if (matchGlobList(path, settings.paths.libraryMapFiles)) {
+          } else if (matchBasename(path, settings.paths.libraryMapFiles)) {
             const libraryFile = await FileCacheLibraryList.create(url, this);
             this.cachedFiles.push(libraryFile);
-          } else if (matchGlobList(path, [settingsGlob])) {
+          } else if (matchBasename(path, [settingsGlob])) {
             const settingsFile = await FileCacheSettings.create(url, this);
             this.cachedSettings.push(settingsFile);
           } else {
@@ -111,7 +114,7 @@ export class ProjectParser {
         const handleEvent = async () => {
 
           const url = pathToFileURL(path);
-          if (matchGlobList(path, [settingsGlob])) {
+          if (matchBasename(path, [settingsGlob])) {
             const cachedSetting = process.platform === 'win32'
               ? this.cachedSettings.find(cachedFile => cachedFile.uri.toString().toLowerCase() === url.toString().toLowerCase())
               : this.cachedSettings.find(cachedFile => cachedFile.uri.toString() === url.toString());
@@ -136,7 +139,7 @@ export class ProjectParser {
       watcher.on('unlink', path => {
         const url = pathToFileURL(path);
 
-        if (matchGlobList(path, [settingsGlob])) {
+        if (matchBasename(path, [settingsGlob])) {
           const cachedSettingIndex = process.platform === 'win32'
             ? this.cachedSettings.findIndex(cachedFile => cachedFile.uri.toString().toLowerCase() === url.toString().toLowerCase())
             : this.cachedSettings.findIndex(cachedFile => cachedFile.uri.toString() === url.toString());
@@ -166,7 +169,7 @@ export class ProjectParser {
       try {
         const filePath = joinURL(directory, entry);
         const fileStat = await promises.stat(filePath);
-        if (fileStat.isFile() && matchGlobList(basename(entry), [settingsGlob])) {
+        if (fileStat.isFile() && matchBasename(basename(entry), [settingsGlob])) {
           const settingsFile = await FileCacheSettings.create(filePath, this);
           this.cachedSettings.push(settingsFile);
         } else if (fileStat.isDirectory()) {
@@ -191,11 +194,11 @@ export class ProjectParser {
     }));
     await Promise.all(this.workspaces.map(async (directory) => {
       const settings = await this.getDocumentSettings(directory);
-      const directories = await this.parseDirectory(directory, settings.analysis.verilogAnalysis);
+      const directories = await this.parseDirectory(directory, settings.analysis.verilogAnalysis, directory);
       files.add(...directories.map(url => url.toString()));
     }));
     const rootDirectory = getRootDirectory();
-    const builtinFiles = (await this.parseDirectory(joinURL(rootDirectory, 'ieee2008'), false)).map(url => url.toString());
+    const builtinFiles = (await this.parseDirectory(joinURL(rootDirectory, 'ieee2008'), false, rootDirectory)).map(url => url.toString());
     files.add(...builtinFiles);
     let index = 0;
     for (const file of files) {
@@ -213,7 +216,7 @@ export class ProjectParser {
       } else if (minimatch(basename(file), vhdlGlob)) {
         const cachedFile = await FileCacheVhdl.create(new URL(file), this, builtIn);
         this.cachedFiles.push(cachedFile);
-      } else if (matchGlobList(file, settings.paths.libraryMapFiles)) {
+      } else if (matchBasename(file, settings.paths.libraryMapFiles)) {
         const libraryFile = await FileCacheLibraryList.create(new URL(file), this);
         this.cachedFiles.push(libraryFile);
       }
@@ -230,7 +233,7 @@ export class ProjectParser {
     }
   }
   private parsedDirectories = new Set<string>();
-  private async parseDirectory(directory: URL, parseVerilog: boolean): Promise<URL[]> {
+  private async parseDirectory(directory: URL, parseVerilog: boolean, workspaceRoot: URL): Promise<URL[]> {
     const files: URL[] = [];
     const settings = await this.getDocumentSettings(directory);
     const entries = await promises.readdir(directory);
@@ -240,8 +243,9 @@ export class ProjectParser {
         const filePath = joinURL(directory, entry);
         const fileStat = await promises.stat(filePath);
         if (fileStat.isFile()) {
-          if (matchGlobList(basename(entry), [vhdlGlob, verilogGlob, ...settings.paths.libraryMapFiles])
-            && (matchGlobList(basename(entry), settings.paths.ignoreFiles) === false) && (ignoreRegex === null || !filePath.pathname.match(ignoreRegex))) {
+          const relativeName = fileURLToPath(filePath).replace(fileURLToPath(workspaceRoot) + sep, '');
+          if (matchBasename(basename(entry), [vhdlGlob, verilogGlob, ...settings.paths.libraryMapFiles])
+            && (matchFullPath(relativeName, settings.paths.ignoreFiles) === false) && (ignoreRegex === null || !filePath.pathname.match(ignoreRegex))) {
             files.push(filePath);
           }
         } else if (fileStat.isDirectory()) {
@@ -249,7 +253,7 @@ export class ProjectParser {
           // catch infinite recursion in symlink
           if (this.parsedDirectories.has(realPath) === false) {
             this.parsedDirectories.add(await realpath(realPath));
-            files.push(... await this.parseDirectory(filePath, parseVerilog));
+            files.push(... await this.parseDirectory(filePath, parseVerilog, workspaceRoot));
           }
         }
       } catch (e) {
