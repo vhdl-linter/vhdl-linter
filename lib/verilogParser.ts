@@ -2,6 +2,7 @@ import { OLexerToken, TokenType } from "./lexer";
 import * as O from "./parser/objects";
 import { OEntity, OFile, OIRange } from "./parser/objects";
 import { ProjectParser } from "./projectParser";
+import { URL } from 'url';
 
 export class VerilogParser {
   file: OFile;

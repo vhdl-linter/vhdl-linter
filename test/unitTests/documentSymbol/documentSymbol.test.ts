@@ -11,6 +11,7 @@ import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { makeRangePrintable } from '../../helper';
 import { readFileSyncNorm } from '../../../lib/cli/readFileSyncNorm';
 import { defaultSettings } from '../../../lib/settingsGenerated';
+import { URL } from 'url';
 
 async function getFiles(dir: string): Promise<string[]> {
   const dirents = await readdir(dir, { withFileTypes: true });

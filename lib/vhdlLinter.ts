@@ -11,6 +11,7 @@ import {
 import { ProjectParser } from './projectParser';
 import { rules } from './rules/ruleIndex';
 import { ISettings } from './settingsGenerated';
+import { URL } from 'url';
 
 export interface IAddSignalCommandArguments {
   textDocumentUri: string;

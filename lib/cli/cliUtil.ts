@@ -4,6 +4,7 @@ import { DiagnosticSeverity } from "vscode-languageserver";
 import { OIRange } from "../parser/objects";
 import { joinURL } from "../projectParser";
 import { OIDiagnostic } from "../vhdlLinter";
+import { URL } from 'url';
 
 export interface MessageWrapper {
   file: string;

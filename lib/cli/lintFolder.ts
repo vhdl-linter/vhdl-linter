@@ -9,6 +9,7 @@ import { basename, dirname } from "path";
 import { fileURLToPath } from "url";
 import { execSync } from "child_process";
 import { platform } from "process";
+import { URL } from 'url';
 
 let gitExists = false;
 if (platform === 'win32') {

@@ -17,6 +17,7 @@ import { VhdlLinter } from './vhdlLinter';
 import { parse } from 'yaml';
 import Ajv from "ajv";
 import { currentCapabilities, trimSpacesOfStyleSettings, overwriteSettings } from './settingsUtil';
+import { URL } from 'url';
 
 export function joinURL(url: URL, ...additional: string[]) {
   const path = join(fileURLToPath(url), ...additional);
@@ -241,7 +242,7 @@ export class ProjectParser {
         const fileStat = await promises.stat(filePath);
         if (fileStat.isFile()) {
           if (matchGlobList(basename(entry), [vhdlGlob, verilogGlob, ...settings.paths.libraryMapFiles])
-            && (matchGlobList(basename(entry), settings.paths.ignoreFiles) === false) && (ignoreRegex === null || !filePath.pathname.match(ignoreRegex))) {
+            && (matchGlobList(entry, settings.paths.ignoreFiles) === false) && (ignoreRegex === null || !filePath.pathname.match(ignoreRegex))) {
             files.push(filePath);
           }
         } else if (fileStat.isDirectory()) {

@@ -6,6 +6,7 @@ import { joinURL } from '../lib/projectParser';
 import { MessageWrapper, readDirPath } from '../lib/cli/cliUtil';
 import PQueue from 'p-queue';
 import { join } from 'path';
+import { URL } from 'url';
 
 const threadNum = cpus().length / 2;
 const queue = new PQueue({ concurrency: threadNum });

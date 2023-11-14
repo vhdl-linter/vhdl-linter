@@ -6,6 +6,7 @@ import { argv, cwd } from 'process';
 import { pathToFileURL } from 'url';
 import { joinURL, ProjectParser } from '../lib/projectParser';
 import { VhdlLinter } from '../lib/vhdlLinter';
+import { URL } from 'url';
 
 import { readFileSyncNorm } from "../lib/cli/readFileSyncNorm";
 function readDirPath(path: URL) {
