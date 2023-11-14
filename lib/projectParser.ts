@@ -242,7 +242,7 @@ export class ProjectParser {
         const fileStat = await promises.stat(filePath);
         if (fileStat.isFile()) {
           if (matchGlobList(basename(entry), [vhdlGlob, verilogGlob, ...settings.paths.libraryMapFiles])
-            && (matchGlobList(entry, settings.paths.ignoreFiles) === false) && (ignoreRegex === null || !filePath.pathname.match(ignoreRegex))) {
+            && (matchGlobList(basename(entry), settings.paths.ignoreFiles) === false) && (ignoreRegex === null || !filePath.pathname.match(ignoreRegex))) {
             files.push(filePath);
           }
         } else if (fileStat.isDirectory()) {
