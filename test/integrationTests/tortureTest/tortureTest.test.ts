@@ -5,6 +5,7 @@ import { pathToFileURL } from "url";
 import { joinURL, ProjectParser } from "../../../lib/projectParser";
 import { VhdlLinter } from "../../../lib/vhdlLinter";
 import { readFileSyncNorm } from "../../../lib/cli/readFileSyncNorm";
+import { writeFileSync } from "fs";
 let projectParser: ProjectParser;
 const filesURL = pathToFileURL(join(__dirname, 'tortureFiles'));
 const tortureEntityURL = joinURL(filesURL, 'torture_entity.vhd');
@@ -17,6 +18,7 @@ beforeAll(async () => {
       throw err;
     }
   }
+  writeFileSync(joinURL(filesURL, 'vhdl-linter.yml'), 'analysis: { maxFileSize: 1000 }');
   const testLength = 100 * 1000;
   const text = `entity torture_entity is
 end torture_entity;

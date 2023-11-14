@@ -497,7 +497,7 @@ export class FileCacheVhdl {
   async parse() {
     const stat = await promises.stat(this.uri);
     let text;
-    const maxFileSize = (await this.projectParser.getDocumentSettings(this.uri)).analysis.maxFileSize;
+    const maxFileSize = (await this.projectParser.getDocumentSettings(this.uri)).analysis.maxFileSize * 1024;
     if (stat.size > maxFileSize) {
       text = '';
     } else {
