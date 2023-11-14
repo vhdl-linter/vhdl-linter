@@ -10,7 +10,7 @@ import { CancellationToken, Diagnostic, DiagnosticSeverity, RemoteWorkspace, Wor
 import { Elaborate } from './elaborate/elaborate';
 import { elaborateTargetLibrary } from './elaborate/elaborateTargetLibrary';
 import { SetAdd } from './languageFeatures/findReferencesHandler';
-import { OArchitecture, OConfigurationDeclaration, OContext, OEntity, OPackage, OPackageInstantiation } from './parser/objects';
+import { OArchitecture, OConfigurationDeclaration, OContext, OEntity, OI, OPackage, OPackageInstantiation, ParserError } from './parser/objects';
 import { ISettings, defaultSettings, settingsSchema } from './settingsGenerated';
 import { VerilogParser } from './verilogParser';
 import { VhdlLinter } from './vhdlLinter';
@@ -495,8 +495,15 @@ export class FileCacheVhdl {
   private constructor(public uri: URL, public projectParser: ProjectParser, public builtIn: boolean) {
   }
   async parse() {
-    let text = await promises.readFile(this.uri, { encoding: 'utf8' });
-    text = text.replaceAll('\r\n', '\n');
+    const stat = await promises.stat(this.uri);
+    let text;
+    const maxFileSize = (await this.projectParser.getDocumentSettings(this.uri)).analysis.maxFileSize;
+    if (stat.size > maxFileSize) {
+      text = '';
+    } else {
+      text = await promises.readFile(this.uri, { encoding: 'utf8' });
+      text = text.replaceAll('\r\n', '\n');
+    }
     this.linter = new VhdlLinter(this.uri, text, this.projectParser, await this.projectParser.getDocumentSettings(this.uri));
     this.replaceLinter(this.linter);
   }
@@ -519,9 +526,9 @@ class FileCacheVerilog {
   async parse() {
     const stat = await promises.stat(this.uri);
     let text;
-    if (stat.size > 50 * 1024) {
+    const maxFileSize = (await this.projectParser.getDocumentSettings(this.uri)).analysis.maxFileSize;
+    if (stat.size > maxFileSize) {
       text = '';
-      // throw new O.ParserError('this.file too large', new O.OIRange(this.file), 0, 100));
     } else {
       text = await promises.readFile(this.uri, { encoding: 'utf8' });
       text = text.replaceAll('\r\n', '\n');
