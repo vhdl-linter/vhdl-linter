@@ -30,7 +30,7 @@ export class FileParser extends ParserBase {
     const lexerTokens: [] = [];
     this.file = new OFile(this.text, this.state.fileUri, this.originalText, lexerTokens);
     if (this.text.length > settings.analysis.maxFileSize * 1024) {
-      throw new ParserError(`This file is larger than the configured maximum size of ${settings.analysis.maxFileSize}kB (${(this.text.length / 1024)}kB)`, new OI(this.file, 0).getRangeToEndLine());
+      throw new ParserError(`This file is larger than the configured maximum size of ${settings.analysis.maxFileSize}kiB (${(this.text.length / 1024)}kiB)`, new OI(this.file, 0).getRangeToEndLine());
     }
     const lexer = new Lexer(this.originalText, this.file, lexerTokens);
     this.file.lexerTokens = lexer.lex();
