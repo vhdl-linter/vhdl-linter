@@ -13,12 +13,21 @@ async function getProjectParser(ignoreGlob: string) {
 }
 
 test.each([
-  ["**/*entity*", true], // by filename
-  ["**/*no_match*", false], // by filename
-  ["**/export/**/*", true], // by last folder
-  ["**/modules/**/*", true], // by middle folder
-  ["src/*", false], // by first folder
-  ["src/**/*", true], // by first folder
+  ["**/*entity*", true], // glob dir & file
+  ["**/export", true], // should match dir or file
+  ["**/modules", true], // by middle folder
+  ["src/*", true], // everything in src
+  ["src", true], // everything in src
+  ["src/modules", true], // everything in src/modules
+  ["src/modules/export", true], // everything in src/modules/export
+  ["src/**/test_entity.vhd", true],
+  ["**/*no_match*", false], // glob dir & file
+  ["**/does-not-exist", false], // should match dir
+  ["does-not-exist/*", false], // everything in src
+  ["does-not-exist", false], // everything in src
+  ["src/does-not-exist", false], // everything in src/modules
+  ["src/modules/does-not-exist", false], // everything in src/modules/export
+  ["src/**/does-not-exist.vhd", false],
 ])('Test ignore glob "%s". errorExpected: %s', async (ignoreGlob: string, errorExpected: boolean) => {
   const path = join(__dirname, "test_use.vhd");
   const uri = pathToFileURL(path);

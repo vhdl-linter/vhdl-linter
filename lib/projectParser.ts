@@ -242,13 +242,13 @@ export class ProjectParser {
       try {
         const filePath = joinURL(directory, entry);
         const fileStat = await promises.stat(filePath);
+        const relativeName = fileURLToPath(filePath).replace(fileURLToPath(workspaceRoot) + sep, '');
         if (fileStat.isFile()) {
-          const relativeName = fileURLToPath(filePath).replace(fileURLToPath(workspaceRoot) + sep, '');
           if (matchBasename(basename(entry), [vhdlGlob, verilogGlob, ...settings.paths.libraryMapFiles])
             && (matchFullPath(relativeName, settings.paths.ignoreFiles) === false) && (ignoreRegex === null || !filePath.pathname.match(ignoreRegex))) {
             files.push(filePath);
           }
-        } else if (fileStat.isDirectory()) {
+        } else if (fileStat.isDirectory() && matchFullPath(relativeName, settings.paths.ignoreFiles) === false) {
           const realPath = await realpath(filePath);
           // catch infinite recursion in symlink
           if (this.parsedDirectories.has(realPath) === false) {
