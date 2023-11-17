@@ -4,6 +4,7 @@ import { OIDiagnosticWithSolution } from '../vhdlLinter';
 import { config } from './config';
 import { ExpressionParser } from './expressionParser';
 import { ObjectBase, OFile, OIRange, OName, OSelectedName, ParserError } from './objects';
+import { URL } from 'url';
 
 
 export class ParserPosition {

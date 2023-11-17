@@ -1,6 +1,7 @@
 import { expect, test } from '@jest/globals';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { normalizeUri } from '../../../lib/normalizeUri';
+import { URL } from 'url';
 
 let example: string, examplePath: string;
 if (process.platform === "win32") {

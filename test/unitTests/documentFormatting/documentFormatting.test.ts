@@ -15,6 +15,7 @@ import { attachWorkDone } from 'vscode-languageserver/lib/common/progress';
 import { connection } from '../../../lib/languageServer';
 import { handleDocumentFormatting } from '../../../lib/languageFeatures/documentFormatting';
 import * as PP from '../../../lib/projectParser';
+import { URL } from 'url';
 
 const text = 'dummy Text';
 const expectedTest = 'expected dummy result';

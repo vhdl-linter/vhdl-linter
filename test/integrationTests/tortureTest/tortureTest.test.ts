@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, expect, test } from "@jest/globals";
+import { afterAll, beforeAll, expect, jest, test } from "@jest/globals";
 import { mkdir, writeFile } from "fs/promises";
 import { join } from "path";
 import { pathToFileURL } from "url";
@@ -8,6 +8,9 @@ import { readFileSyncNorm } from "../../../lib/cli/readFileSyncNorm";
 let projectParser: ProjectParser;
 const filesURL = pathToFileURL(join(__dirname, 'tortureFiles'));
 const tortureEntityURL = joinURL(filesURL, 'torture_entity.vhd');
+
+// is required for the mac ci run
+jest.setTimeout(15_000);
 
 beforeAll(async () => {
   try {

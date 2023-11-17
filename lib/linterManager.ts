@@ -5,6 +5,7 @@ import { Elaborate } from "./elaborate/elaborate";
 import { normalizeUri } from "./normalizeUri";
 import { FileCacheVhdl, ProjectParser } from "./projectParser";
 import { VhdlLinter } from "./vhdlLinter";
+import { URL } from 'url';
 
 interface ILinterState {
   wasAlreadyValid?: boolean; // Was already once valid (=the linters object has a valid linter)

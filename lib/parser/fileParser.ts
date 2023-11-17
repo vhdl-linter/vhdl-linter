@@ -12,6 +12,7 @@ import { PackageInstantiationParser } from './packageInstantiationParser';
 import { PackageParser } from './packageParser';
 import { ParserBase, ParserPosition, ParserState } from './parserBase';
 import { StatementBodyParser } from './statementBodyParser';
+import { URL } from 'url';
 
 export class FileParser extends ParserBase {
   state: ParserState;

@@ -17,6 +17,7 @@ import { VhdlLinter } from './vhdlLinter';
 import { parse } from 'yaml';
 import Ajv from "ajv";
 import { currentCapabilities, trimSpacesOfStyleSettings, overwriteSettings } from './settingsUtil';
+import { URL } from 'url';
 
 export function joinURL(url: URL, ...additional: string[]) {
   const path = join(fileURLToPath(url), ...additional);

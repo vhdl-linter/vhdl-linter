@@ -5,6 +5,7 @@ import { Diagnostic } from 'vscode-languageserver';
 import { ProjectParser } from '../../../lib/projectParser';
 import { VhdlLinter } from '../../../lib/vhdlLinter';
 import { readFileSyncNorm } from "../../../lib/cli/readFileSyncNorm";
+import { URL } from 'url';
 
 let projectParser: ProjectParser;
 let messages: Diagnostic[];

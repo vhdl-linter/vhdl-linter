@@ -2,6 +2,7 @@ import { Position, Range, TextEdit } from 'vscode-languageserver';
 import { OLexerToken } from '../lexer';
 import { OIDiagnosticWithSolution } from '../vhdlLinter';
 import * as I from './interfaces';
+import { URL } from 'url';
 
 export class OI implements Position {
   protected i_?: number;

@@ -22,6 +22,7 @@ import { normalizeUri } from './normalizeUri';
 import { FileCacheLibraryList, ProjectParser } from './projectParser';
 import { ISettings } from './settingsGenerated';
 import { currentCapabilities } from './settingsUtil';
+import { URL } from 'url';
 
 // Create a connection for the server. The connection auto detected protocol
 // Also include all preview / proposed LSP features.
