@@ -23,7 +23,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
  */
 import * as vscode from 'vscode';
-import { matchGlobList, settingsGlob } from './projectParser';
+import { matchBasename, settingsGlob } from './projectParser';
 const DO_NOT_SHOW_YAML_SUGGESTION = 'DO_NOT_SHOW_YAML_SUGGESTION';
 
 export const setupYamlSupport = (context: vscode.ExtensionContext) => {
@@ -31,7 +31,7 @@ export const setupYamlSupport = (context: vscode.ExtensionContext) => {
   if (context.globalState.get(DO_NOT_SHOW_YAML_SUGGESTION) === true) { return; }
   vscode.workspace.onDidOpenTextDocument(async document => {
     if (context.globalState.get(DO_NOT_SHOW_YAML_SUGGESTION) === true) { return; }
-    if (matchGlobList(document.fileName, [settingsGlob])) {
+    if (matchBasename(document.fileName, [settingsGlob])) {
       const choice = await vscode.window.showInformationMessage(
         "Would you like to install Red Hat's YAML extension to get real-time linting on the vhdl-linter.yml file?",
         'Yes',
