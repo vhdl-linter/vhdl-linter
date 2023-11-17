@@ -176,7 +176,7 @@
 							"type": "string"
 						},
 						"default": [],
-						"description": "Glob expressions for files to be ignored by the project parser"
+						"description": "Glob expressions for files to be ignored by the project parser (matches the files or directories)"
 					},
 					"VhdlLinter.analysis.verilogAnalysis": {
 						"scope": "window",
