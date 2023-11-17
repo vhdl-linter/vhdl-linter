@@ -5,6 +5,7 @@ on:
       - master
       - main
 
+
 jobs:
   coverage:
     runs-on: ubuntu-latest
