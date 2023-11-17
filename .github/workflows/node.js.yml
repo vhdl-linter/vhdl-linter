@@ -5,10 +5,11 @@ name: Node.js CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
   merge_group:
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -17,18 +18,18 @@ jobs:
         node-version: [16.x, 18.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
     steps:
-    - name: Install emacs
-      run: sudo apt install emacs
-    - uses: actions/checkout@v3
-      with:
-        submodules: recursive
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    - run: npm ci
-    - run: npm test
+      - name: Install emacs
+        run: sudo apt install emacs
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+      - run: npm ci
+      - run: npm test
   build-win:
     runs-on: windows-latest
     strategy:
@@ -36,18 +37,18 @@ jobs:
         node-version: [16.x]
         # See supported Node.js release schedule at  https://nodejs.org/en/about/releases/
     steps:
-    - name: Install emacs
-      run: choco install emacs
-    - uses: actions/checkout@v3
-      with:
-        submodules: recursive
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    - run: npm ci
-    - run: npm test
+      - name: Install emacs
+        run: choco install emacs
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+      - run: npm ci
+      - run: npm test
   build-mac:
     runs-on: macos-latest
     strategy:
@@ -55,16 +56,16 @@ jobs:
         node-version: [16.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
     steps:
-    - name: Install emacs
-      run: |
-        brew install emacs
-    - uses: actions/checkout@v3
-      with:
-        submodules: recursive
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    - run: npm ci
-    - run: npm test
+      - name: Install emacs
+        run: |
+          brew install emacs
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+      - run: npm ci
+      - run: npm test
