@@ -184,6 +184,12 @@
 						"default": true,
 						"description": "Enable analysis of verilog files. Only modules get extracted and evaluated for instantiation from vhdl files."
 					},
+					"VhdlLinter.analysis.maxFileSize": {
+						"scope": "window",
+						"type": "number",
+						"default": 512,
+						"description": "The maximum file size (in kiB) that should be analyzed."
+					},
 					"VhdlLinter.analysis.conditionalAnalysis": {
 						"scope": "window",
 						"type": "object",

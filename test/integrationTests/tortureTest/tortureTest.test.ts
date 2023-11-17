@@ -19,16 +19,17 @@ beforeAll(async () => {
   }
   const testLength = 100 * 1000;
   const text = `entity torture_entity is
-end torture_entity;
-
-architecture arch of torture_entity is
-signal a : integer;
-signal b : integer;
-begin
+  end torture_entity;
+  
+  architecture arch of torture_entity is
+  signal a : integer;
+  signal b : integer;
+  begin
   ${Array(testLength).fill(0).map(() => `  a <= b;\n`).join('')}
-end architecture;
-`;
+  end architecture;
+  `;
   await writeFile(tortureEntityURL, text);
+  await writeFile(joinURL(filesURL, 'vhdl-linter.yml'), 'analysis: { maxFileSize: 1000 }');
   projectParser = await ProjectParser.create([filesURL]);
 });
 afterAll(async () => {
