@@ -29,6 +29,9 @@ export class FileParser extends ParserBase {
     // In the end lexerTokens === this.file.lexerTokens === this.lexerTokens
     const lexerTokens: [] = [];
     this.file = new OFile(this.text, this.state.fileUri, this.originalText, lexerTokens);
+    if (this.text.length > settings.analysis.maxFileSize * 1024) {
+      throw new ParserError(`This file is larger than the configured maximum size of ${settings.analysis.maxFileSize}kiB (${(this.text.length / 1024)}kiB)`, new OI(this.file, 0).getRangeToEndLine());
+    }
     const lexer = new Lexer(this.originalText, this.file, lexerTokens);
     this.file.lexerTokens = lexer.lex();
     this.lexerTokens = this.file.lexerTokens;
@@ -114,10 +117,6 @@ export class FileParser extends ParserBase {
       const disabledRange = new OIRange(this.file, new OI(this.file, start, 0), new OI(this.file, this.originalText.length - 1));
       this.file.magicComments.push(new OMagicCommentDisable(
         this.file, MagicCommentType.Disable, disabledRange, rule));
-    }
-    // this.state.pos = new OI(this.file, 0);
-    if (this.text.length > 500 * 1024) {
-      throw new ParserError('this.file too large', this.state.pos.getRangeToEndLine());
     }
     let contextReferences = [];
     const defaultLibrary = [
