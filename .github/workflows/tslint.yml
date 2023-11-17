@@ -1,9 +1,11 @@
 name: tslint
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
+  merge_group:
+
 jobs:
   job:
     runs-on: ubuntu-latest
