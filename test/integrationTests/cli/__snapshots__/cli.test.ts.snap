@@ -2,11 +2,23 @@
 
 exports[`exclude **/*.vhd (expect exitCode 0) 1`] = `
 "
+"
+`;
+
+exports[`exclude **/*.vhd (expect exitCode 0) 2`] = `
+"
 0 error(s), 0 warning(s), 0 info(s)
 "
 `;
 
 exports[`exclude **/error.vhd (expect exitCode 0) 1`] = `
+"
+
+
+"
+`;
+
+exports[`exclude **/error.vhd (expect exitCode 0) 2`] = `
 "subfolder/info.vhd:5 (r: 4:14 - 4:23)
   [34mPort is using resolved subtype (std_logic) should use unresolved type std_ulogic  (type-resolved)[0m
 subfolder/warning.vhd:3 (r: 2:4 - 2:9)
@@ -16,13 +28,22 @@ subfolder/warning.vhd:3 (r: 2:4 - 2:9)
 "
 `;
 
-exports[`exclude subfolder (expect exitCode 0) 1`] = `
+exports[`exclude subfolder (expect exitCode 0) 1`] = `""`;
+
+exports[`exclude subfolder (expect exitCode 0) 2`] = `
 "
 0 error(s), 0 warning(s), 0 info(s)
 "
 `;
 
 exports[`exclude subfolder/info* (expect exitCode 1) 1`] = `
+"
+
+
+"
+`;
+
+exports[`exclude subfolder/info* (expect exitCode 1) 2`] = `
 "subfolder/error.vhd:2 (r: 1:15 - 1:25)
   [31mobject 'std_ulogic' is referenced but not declared (not-declared)[0m
 subfolder/warning.vhd:3 (r: 2:4 - 2:9)
@@ -33,6 +54,22 @@ subfolder/warning.vhd:3 (r: 2:4 - 2:9)
 `;
 
 exports[`git 1`] = `
+"
+
+
+
+"
+`;
+
+exports[`git 2`] = `
+"
+
+
+
+"
+`;
+
+exports[`git 3`] = `
 "subfolder/error.vhd:2 (r: 1:15 - 1:25)
   [31mobject 'std_ulogic' is referenced but not declared (not-declared)[0m
 subfolder/warning.vhd:3 (r: 2:4 - 2:9)
@@ -43,6 +80,16 @@ subfolder/warning.vhd:3 (r: 2:4 - 2:9)
 `;
 
 exports[`json 1`] = `
+"
+
+
+
+subfolder/error.vhd:2 (r: 1:15 - 1:25)
+  [31mobject 'std_ulogic' is referenced but not declared (not-declared)[0m
+"
+`;
+
+exports[`json 2`] = `
 [
   {
     "categories": [
@@ -117,6 +164,12 @@ exports[`json 1`] = `
 `;
 
 exports[`max 0 info 1`] = `
+"
+
+"
+`;
+
+exports[`max 0 info 2`] = `
 "subfolder/info.vhd:5 (r: 4:14 - 4:23)
   [34mPort is using resolved subtype (std_logic) should use unresolved type std_ulogic  (type-resolved)[0m
 
@@ -125,6 +178,12 @@ exports[`max 0 info 1`] = `
 `;
 
 exports[`max 0 warning 1`] = `
+"
+
+"
+`;
+
+exports[`max 0 warning 2`] = `
 "subfolder/warning.vhd:3 (r: 2:4 - 2:9)
   [33mNot reading input port 'input' (unused)[0m
 
@@ -133,6 +192,12 @@ exports[`max 0 warning 1`] = `
 `;
 
 exports[`multiple excludes 1`] = `
+"
+
+"
+`;
+
+exports[`multiple excludes 2`] = `
 "subfolder/error.vhd:2 (r: 1:15 - 1:25)
   [31mobject 'std_ulogic' is referenced but not declared (not-declared)[0m
 
@@ -141,6 +206,14 @@ exports[`multiple excludes 1`] = `
 `;
 
 exports[`no parameters 1`] = `
+"
+
+
+
+"
+`;
+
+exports[`no parameters 2`] = `
 "subfolder/error.vhd:2 (r: 1:15 - 1:25)
   [31mobject 'std_ulogic' is referenced but not declared (not-declared)[0m
 subfolder/info.vhd:5 (r: 4:14 - 4:23)
@@ -153,6 +226,14 @@ subfolder/warning.vhd:3 (r: 2:4 - 2:9)
 `;
 
 exports[`relative path 1`] = `
+"
+
+
+
+"
+`;
+
+exports[`relative path 2`] = `
 "subfolder/error.vhd:2 (r: 1:15 - 1:25)
   [31mobject 'std_ulogic' is referenced but not declared (not-declared)[0m
 subfolder/info.vhd:5 (r: 4:14 - 4:23)
