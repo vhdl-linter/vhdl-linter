@@ -1,0 +1,5 @@
+{
+  "VhdlLinter.paths.ignoreFiles": [
+    "test_entity*.vhd"
+  ]
+}
