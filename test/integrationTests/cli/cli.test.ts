@@ -28,7 +28,7 @@ async function callCli(argv: string[]) {
   const status = await cli(['node', 'cli.ts', ...argv]);
   console.log = logOld;
   console.error = errOld;
-  expect(stderr.replaceAll(/\\/g, '/')).toMatchSnapshot();
+  expect(stderr.replaceAll(/\\/g, '/')).toMatchSnapshot('stderr');
   return {
     status,
     stdout
