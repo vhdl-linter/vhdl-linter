@@ -16,12 +16,19 @@ function sanitizeTextOutput(stdout: string) {
 
 async function callCli(argv: string[]) {
   const logOld = console.log;
+  const errOld = console.error;
   let stdout = '';
   console.log = (...args) => {
     stdout += args.join(' ') + '\n';
   };
+  let stderr = '';
+  console.error = (...args) => {
+    stderr += args.join(' ') + '\n';
+  };
   const status = await cli(['node', 'cli.ts', ...argv]);
   console.log = logOld;
+  console.error = errOld;
+  expect(stderr.replaceAll(/\\/g, '/')).toMatchSnapshot('stderr');
   return {
     status,
     stdout
@@ -30,6 +37,14 @@ async function callCli(argv: string[]) {
 class MockedExitError extends Error { }
 jest.spyOn(process, 'exit').mockImplementation(code => {
   throw new MockedExitError((code ?? 0).toString());
+});
+jest.spyOn(process.stdout, 'write').mockImplementation(x => {
+  console.log(x);
+  return true;
+});
+jest.spyOn(process.stderr, 'write').mockImplementation(x => {
+  console.error(x);
+  return true;
 });
 
 test('no parameters', async () => {

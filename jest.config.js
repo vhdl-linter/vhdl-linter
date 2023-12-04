@@ -1,4 +1,5 @@
 /** @type {import('ts-jest').JestConfigWithTsJest} */
+
 // eslint-disable-next-line no-undef
 module.exports = {
   preset: 'ts-jest',
@@ -8,5 +9,6 @@ module.exports = {
     'jest-watch-typeahead/filename',
     'jest-watch-typeahead/testname',
   ],
-  testTimeout: 10_000
+  testTimeout: process.platform === 'darwin' ? 20_000 : 10_000,
+  maxWorkers: process.platform === 'darwin' ? 1 : '100%'
 };
