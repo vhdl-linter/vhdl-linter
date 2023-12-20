@@ -433,7 +433,7 @@ export class FileCacheSettings {
       this.settings = parsed;
     } else {
       this.messages.push({
-        message: `This yaml does not match the schema for our settings: ${validate.errors?.map(e => this.yamlSchemaErrorToString(e)).join('\n') ?? 'unknown error'}`,
+        message: `This yaml does not match the schema for vhdl-linter settings: ${validate.errors?.map(e => this.yamlSchemaErrorToString(e)).join('\n') ?? 'unknown error'}`,
         range: { start: { line: 0, character: 0 }, end: { line: 0, character: 50 } },
         severity: DiagnosticSeverity.Error
       });
