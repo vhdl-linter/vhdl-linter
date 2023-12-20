@@ -21,6 +21,7 @@ test.each(
   const url = pathToFileURL(join(__dirname, fileName));
   const fileSettings = await FileCacheSettings.create(url, await ProjectParser.create([]));
   expect(fileSettings.settings).toBeUndefined();
+  expect(fileSettings.messages).toMatchSnapshot();
 });
 
 test("valid simple yaml", async () => {

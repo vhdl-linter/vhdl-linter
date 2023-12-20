@@ -14,8 +14,8 @@ import { OArchitecture, OConfigurationDeclaration, OContext, OEntity, OPackage, 
 import { ISettings, defaultSettings, settingsSchema } from './settingsGenerated';
 import { VerilogParser } from './verilogParser';
 import { VhdlLinter } from './vhdlLinter';
-import { parse } from 'yaml';
-import Ajv from "ajv";
+import { YAMLParseError, parse } from 'yaml';
+import Ajv, { ErrorObject } from "ajv";
 import { currentCapabilities, trimSpacesOfStyleSettings, overwriteSettings } from './settingsUtil';
 import { URL } from 'url';
 
@@ -398,23 +398,45 @@ export class FileCacheSettings {
   }
   private constructor(public uri: URL, public projectParser: ProjectParser) {
   }
+  yamlSchemaErrorToString<K extends string, P, S>(e: ErrorObject<K, P, S>) {
+    const paramsString = Object.values(e.params as Record<string, string>).join(', ');
+    if (e.keyword === 'additionalProperties') {
+      return `Properties ${paramsString} are not allowed!`;
+    }
+    return `${e.instancePath}: ${e.message ?? ''} (${paramsString})`;
+  }
   async parse() {
     this.messages = [];
     this.settings = undefined;
     const text = await promises.readFile(this.uri, { encoding: 'utf8' });
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    let parsed = parse(text);
+    let parsed;
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      parsed = parse(text);
+    } catch (e) {
+      if (e instanceof YAMLParseError) {
+        this.messages.push({
+          message: `Not valid yaml: ${e.message}`,
+          range: { start: { line: (e.linePos?.[0]?.line ?? 1) - 1, character: (e.linePos?.[0]?.col ?? 1) - 1},
+            end: { line: (e.linePos?.[1]?.line ?? 1) - 1, character: (e.linePos?.[1]?.col ?? 50) - 1 } },
+          severity: DiagnosticSeverity.Error
+        });
+      }
+      return;
+    }
     if (parsed === null) {
       parsed = {};
     }
     const ajv = new Ajv();
-    try {
-      const validate = ajv.compile<DeepPartial<ISettings>>(settingsSchema);
-      if (validate(parsed)) {
-        this.settings = parsed;
-      }
-    } catch (e) {
-      console.log(e);
+    const validate = ajv.compile<DeepPartial<ISettings>>(settingsSchema);
+    if (validate(parsed)) {
+      this.settings = parsed;
+    } else {
+      this.messages.push({
+        message: `This yaml does not match the schema for our settings: ${validate.errors?.map(e => this.yamlSchemaErrorToString(e)).join('\n') ?? 'unknown error'}`,
+        range: { start: { line: 0, character: 0 }, end: { line: 0, character: 50 } },
+        severity: DiagnosticSeverity.Error
+      });
     }
   }
 }

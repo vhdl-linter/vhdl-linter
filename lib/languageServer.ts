@@ -19,7 +19,7 @@ import { signatureHelp } from './languageFeatures/signatureHelp';
 import { workspaceSymbol } from './languageFeatures/workspaceSymbol';
 import { LinterManager } from './linterManager';
 import { normalizeUri } from './normalizeUri';
-import { FileCacheLibraryList, ProjectParser } from './projectParser';
+import { FileCacheLibraryList, FileCacheSettings, ProjectParser } from './projectParser';
 import { ISettings } from './settingsGenerated';
 import { currentCapabilities } from './settingsUtil';
 import { URL } from 'url';
@@ -155,14 +155,15 @@ export const initialization = new Promise<void>(resolve => {
             }
           }
           uris = [];
-          for (const cache of projectParser.cachedFiles) {
-            if (cache instanceof FileCacheLibraryList) {
-              cache.messages.forEach((diag) => diag.source = 'vhdl-linter');
-              void connection.sendDiagnostics({
-                uri: cache.uri.toString(),
-                diagnostics: cache.messages
-              });
-            }
+          const messages = (projectParser.cachedFiles
+            .filter(c => c instanceof FileCacheLibraryList) as (FileCacheLibraryList | FileCacheSettings)[])
+            .concat(projectParser.cachedSettings);
+          for (const file of messages) {
+            file.messages.forEach((diag) => diag.source = 'vhdl-linter');
+            void connection.sendDiagnostics({
+              uri: file.uri.toString(),
+              diagnostics: file.messages
+            });
           }
           void connection.sendRequest('workspace/semanticTokens/refresh');
         }, 100);
