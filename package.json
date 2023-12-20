@@ -1,7 +1,7 @@
 {
 	"name": "vhdl-linter",
 	"publisher": "g0t00",
-	"version": "0.0.1",
+	"version": "1.8.22",
 	"main": "./dist/lib/vscode.js",
 	"description": "A typescript based linter for vhdl",
 	"keywords": [],
