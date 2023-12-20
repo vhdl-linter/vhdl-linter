@@ -3,7 +3,7 @@
 exports[`invalid yaml invalid0.vhdl-linter.yml 1`] = `
 [
   {
-    "message": "This yaml does not match the schema for our settings: Properties key-not-allowed are not allowed!",
+    "message": "This yaml does not match the schema for vhdl-linter settings: Properties key-not-allowed are not allowed!",
     "range": {
       "end": {
         "character": 50,
@@ -22,7 +22,7 @@ exports[`invalid yaml invalid0.vhdl-linter.yml 1`] = `
 exports[`invalid yaml invalid1.vhdl-linter.yml 1`] = `
 [
   {
-    "message": "This yaml does not match the schema for our settings: /trace/server: must be equal to one of the allowed values (off,messages,verbose)",
+    "message": "This yaml does not match the schema for vhdl-linter settings: /trace/server: must be equal to one of the allowed values (off,messages,verbose)",
     "range": {
       "end": {
         "character": 50,
@@ -41,7 +41,7 @@ exports[`invalid yaml invalid1.vhdl-linter.yml 1`] = `
 exports[`invalid yaml invalid2.vhdl-linter.yml 1`] = `
 [
   {
-    "message": "This yaml does not match the schema for our settings: /trace/server: must be string (string)",
+    "message": "This yaml does not match the schema for vhdl-linter settings: /trace/server: must be string (string)",
     "range": {
       "end": {
         "character": 50,
@@ -60,7 +60,7 @@ exports[`invalid yaml invalid2.vhdl-linter.yml 1`] = `
 exports[`invalid yaml invalid3.vhdl-linter.yml 1`] = `
 [
   {
-    "message": "This yaml does not match the schema for our settings: /paths/additional: must be array (array)",
+    "message": "This yaml does not match the schema for vhdl-linter settings: /paths/additional: must be array (array)",
     "range": {
       "end": {
         "character": 50,
@@ -79,7 +79,7 @@ exports[`invalid yaml invalid3.vhdl-linter.yml 1`] = `
 exports[`invalid yaml invalid4.vhdl-linter.yml 1`] = `
 [
   {
-    "message": "This yaml does not match the schema for our settings: /paths/additional/1: must be string (string)",
+    "message": "This yaml does not match the schema for vhdl-linter settings: /paths/additional/1: must be string (string)",
     "range": {
       "end": {
         "character": 50,
@@ -98,7 +98,7 @@ exports[`invalid yaml invalid4.vhdl-linter.yml 1`] = `
 exports[`invalid yaml invalid5.vhdl-linter.yml 1`] = `
 [
   {
-    "message": "This yaml does not match the schema for our settings: /analysis/conditionalAnalysis/banana: must be string (string)",
+    "message": "This yaml does not match the schema for vhdl-linter settings: /analysis/conditionalAnalysis/banana: must be string (string)",
     "range": {
       "end": {
         "character": 50,
