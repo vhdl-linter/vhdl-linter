@@ -10,7 +10,7 @@ architecture arch of test_verilog_instance is
   signal out_byte_2 : std_ulogic_vector(8 - 1 downto 0);
   signal in_byte_2  : std_ulogic_vector(8 - 1 downto 0);
 begin
-  inst_test_module : entity work.test_module_0
+  inst_test_module : entity work.test_module
     port map (
       in_bit     => in_bit,
       out_bit    => out_bit,

@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`module snapshot module_advanced.sv 1`] = `
+exports[`module_advanced 1`] = `
 [
   {
     "lexerToken": "switch",
