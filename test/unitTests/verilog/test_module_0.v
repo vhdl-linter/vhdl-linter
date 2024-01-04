@@ -1,4 +1,4 @@
-module test_module
+module test_module_0
 #(
   parameter WIDTH = 8
 )

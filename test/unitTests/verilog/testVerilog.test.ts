@@ -27,8 +27,11 @@ test.each([true, false])('Testing verilog switch %b', async enableVerilog => {
   await projectParser.stop();
 });
 
-test('module_advanced', async () => {
-  const uri = pathToFileURL(join(__dirname, 'module_advanced.sv'));
+test.each([
+  'module_advanced.sv',
+  'test_module_1.v',
+])('module snapshot %s', async fileName => {
+  const uri = pathToFileURL(join(__dirname, fileName));
   const projectParser = await ProjectParser.create([]);
   const verilogParser = new VerilogParser(uri, readFileSyncNorm(uri, { encoding: 'utf8' }), projectParser);
   expect(verilogParser.file.objectList.map(obj => ({
